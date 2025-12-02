@@ -273,7 +273,7 @@ class DeclarationHelper {
     for (var field in containingElement.fields) {
       // Skip fields that are already initialized at their declaration.
       if (!field.isStatic &&
-          !field.isSynthetic &&
+          field.isOriginDeclaration &&
           !fieldsToSkip.contains(field) &&
           (!(field.isFinal || field.isConst) || !field.hasInitializer)) {
         _suggestField(field: field);
@@ -1407,7 +1407,7 @@ class DeclarationHelper {
     }
 
     for (var field in element.fields) {
-      if (!field.isSynthetic && (!mustBeStatic || field.isStatic)) {
+      if (field.isOriginDeclaration && (!mustBeStatic || field.isStatic)) {
         _suggestField(
           field: field,
           referencingInterface: referencingInterface,
@@ -1536,8 +1536,7 @@ class DeclarationHelper {
     }
     for (var field in fields) {
       if (field.isStatic &&
-          (!field.isSynthetic ||
-              (containingElement is EnumElement && field.name == 'values')) &&
+          (field.isOriginDeclaration || field.isOriginEnumValues) &&
           field.isVisibleIn(request.libraryElement) &&
           (!onlyInvocations ||
               field.type is FunctionType ||
@@ -1628,7 +1627,7 @@ class DeclarationHelper {
         _suggestTopLevelFunction(element, null);
       }
       for (var element in library.topLevelVariables) {
-        if (!element.isSynthetic) {
+        if (element.isOriginDeclaration) {
           _suggestTopLevelVariable(element, null);
         }
       }
@@ -2339,7 +2338,7 @@ class DeclarationHelper {
       } else {
         var matcherScore = state.matcher.score(element.displayName);
         if (matcherScore != -1) {
-          if (element.isSynthetic) {
+          if (element.isOriginGetterSetter) {
             var getter = element.getter;
             if (getter != null) {
               if (getter.isSynthetic) {

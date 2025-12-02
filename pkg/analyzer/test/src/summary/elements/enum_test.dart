@@ -35,7 +35,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer aaa (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration aaa (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::aaa
               initializer: expression_0
                 InstanceCreationExpression
@@ -49,7 +49,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 hasInitializer bbb (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F3 hasInitializer isOriginDeclaration bbb (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@enum::E::@field::bbb
               initializer: expression_1
                 InstanceCreationExpression
@@ -63,7 +63,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F4 hasInitializer ccc (nameOffset:21) (firstTokenOffset:21) (offset:21)
+            #F4 hasInitializer isOriginDeclaration ccc (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@enum::E::@field::ccc
               initializer: expression_2
                 InstanceCreationExpression
@@ -77,7 +77,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_3
                 ListLiteral
@@ -116,7 +116,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer aaa
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration aaa
           reference: <testLibrary>::@enum::E::@field::aaa
           firstFragment: #F2
           type: E
@@ -124,7 +124,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::aaa
-        static const enumConstant hasImplicitType hasInitializer bbb
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration bbb
           reference: <testLibrary>::@enum::E::@field::bbb
           firstFragment: #F3
           type: E
@@ -132,7 +132,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::bbb
-        static const enumConstant hasImplicitType hasInitializer ccc
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration ccc
           reference: <testLibrary>::@enum::E::@field::ccc
           firstFragment: #F4
           type: E
@@ -140,7 +140,7 @@ library
             fragment: #F4
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::ccc
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E>
@@ -193,7 +193,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -215,7 +215,7 @@ library
                             offset: 18
                     rightParenthesis: ) @21
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -246,7 +246,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -254,7 +254,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -304,7 +304,7 @@ library
             #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
           fields
-            #F3 hasInitializer int (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F3 hasInitializer isOriginDeclaration int (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::E::@field::int
               initializer: expression_0
                 InstanceCreationExpression
@@ -324,7 +324,7 @@ library
                         staticType: int
                     rightParenthesis: ) @19
                   staticType: E<int>
-            #F4 hasInitializer string (nameOffset:22) (firstTokenOffset:22) (offset:22)
+            #F4 hasInitializer isOriginDeclaration string (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@enum::E::@field::string
               initializer: expression_1
                 InstanceCreationExpression
@@ -343,7 +343,7 @@ library
                         literal: '2' @29
                     rightParenthesis: ) @32
                   staticType: E<String>
-            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
@@ -383,7 +383,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer int
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration int
           reference: <testLibrary>::@enum::E::@field::int
           firstFragment: #F3
           type: E<int>
@@ -391,7 +391,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::int
-        static const enumConstant hasImplicitType hasInitializer string
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration string
           reference: <testLibrary>::@enum::E::@field::string
           firstFragment: #F4
           type: E<String>
@@ -399,7 +399,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::string
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E<dynamic>>
@@ -451,7 +451,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer _name (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration _name (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::_name
               initializer: expression_0
                 InstanceCreationExpression
@@ -465,7 +465,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -492,7 +492,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer _name
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration _name
           reference: <testLibrary>::@enum::E::@field::_name
           firstFragment: #F2
           type: E
@@ -500,7 +500,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::_name
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -546,7 +546,7 @@ library
             #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
           fields
-            #F3 hasInitializer v (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -574,7 +574,7 @@ library
                         staticType: double
                     rightParenthesis: ) @26
                   staticType: E<double>
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -608,7 +608,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F3
           type: E<double>
@@ -616,7 +616,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E<dynamic>>
@@ -662,7 +662,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer _ (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration _ (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::_
               initializer: expression_0
                 InstanceCreationExpression
@@ -676,7 +676,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -703,7 +703,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer _
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration _
           reference: <testLibrary>::@enum::E::@field::_
           firstFragment: #F2
           type: E
@@ -711,7 +711,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::_
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -754,7 +754,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -768,7 +768,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -801,7 +801,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -809,7 +809,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -855,7 +855,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -869,7 +869,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -898,7 +898,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -906,7 +906,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -949,7 +949,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -963,7 +963,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -994,7 +994,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1002,7 +1002,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -1049,7 +1049,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -1068,7 +1068,7 @@ library
                     leftParenthesis: ( @18
                     rightParenthesis: ) @19
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1101,7 +1101,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1109,7 +1109,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -1156,7 +1156,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -1170,7 +1170,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1182,7 +1182,7 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 x (nameOffset:22) (firstTokenOffset:22) (offset:22)
+            #F4 isOriginDeclaration x (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@enum::E::@field::x
           constructors
             #F5 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:33)
@@ -1208,7 +1208,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1216,7 +1216,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -1224,7 +1224,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        final hasImplicitType x
+        final hasImplicitType isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x
           firstFragment: #F4
           type: dynamic
@@ -1281,7 +1281,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -1295,7 +1295,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1307,9 +1307,9 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 x (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F4 isOriginDeclaration x (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::E::@field::x::@def::0
-            #F5 x (nameOffset:44) (firstTokenOffset:44) (offset:44)
+            #F5 isOriginDeclaration x (nameOffset:44) (firstTokenOffset:44) (offset:44)
               element: <testLibrary>::@enum::E::@field::x::@def::1
           constructors
             #F6 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:49) (offset:55)
@@ -1334,7 +1334,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1342,7 +1342,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -1350,12 +1350,12 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        final x
+        final isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x::@def::0
           firstFragment: #F4
           type: int
           getter: <testLibrary>::@enum::E::@getter::x::@def::0
-        final x
+        final isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x::@def::1
           firstFragment: #F5
           type: String
@@ -1410,7 +1410,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -1424,7 +1424,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1455,7 +1455,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1463,7 +1463,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -1512,7 +1512,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -1526,7 +1526,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1538,7 +1538,7 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 x (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F4 isOriginDeclaration x (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::E::@field::x
           constructors
             #F5 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:31) (offset:37)
@@ -1573,7 +1573,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1581,7 +1581,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -1589,7 +1589,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        final x
+        final isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x
           firstFragment: #F4
           type: int
@@ -1643,7 +1643,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -1657,7 +1657,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1669,7 +1669,7 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 x (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F4 isOriginDeclaration x (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::E::@field::x
           constructors
             #F5 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:31) (offset:37)
@@ -1692,7 +1692,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1700,7 +1700,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -1708,7 +1708,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        final x
+        final isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x
           firstFragment: #F4
           type: num
@@ -1759,7 +1759,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -1773,7 +1773,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1785,7 +1785,7 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 x (nameOffset:22) (firstTokenOffset:22) (offset:22)
+            #F4 isOriginDeclaration x (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@enum::E::@field::x
           constructors
             #F5 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
@@ -1808,7 +1808,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1816,7 +1816,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -1824,7 +1824,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        final hasImplicitType x
+        final hasImplicitType isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x
           firstFragment: #F4
           type: dynamic
@@ -1875,7 +1875,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -1889,7 +1889,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1901,7 +1901,7 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 x (nameOffset:22) (firstTokenOffset:22) (offset:22)
+            #F4 isOriginDeclaration x (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@enum::E::@field::x
           constructors
             #F5 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
@@ -1924,7 +1924,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1932,7 +1932,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -1940,7 +1940,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        final hasImplicitType x
+        final hasImplicitType isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x
           firstFragment: #F4
           type: dynamic
@@ -1990,7 +1990,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -2013,7 +2013,7 @@ library
                         staticType: int
                     rightParenthesis: ) @21
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2045,7 +2045,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -2053,7 +2053,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -2100,7 +2100,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -2118,7 +2118,7 @@ library
                         staticType: int
                     rightParenthesis: ) @15
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2149,7 +2149,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -2157,7 +2157,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -2208,7 +2208,7 @@ library
             #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
           fields
-            #F3 hasInitializer v (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -2224,7 +2224,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2236,7 +2236,7 @@ library
                       staticType: E<dynamic>
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
-            #F5 x (nameOffset:29) (firstTokenOffset:29) (offset:29)
+            #F5 isOriginDeclaration x (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@enum::E::@field::x
           constructors
             #F6 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:34) (offset:40)
@@ -2262,7 +2262,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F3
           type: E<dynamic>
@@ -2270,7 +2270,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E<dynamic>>
@@ -2278,7 +2278,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        final x
+        final isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x
           firstFragment: #F5
           type: int
@@ -2352,7 +2352,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -2371,7 +2371,7 @@ library
                     leftParenthesis: ( @18
                     rightParenthesis: ) @19
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2399,7 +2399,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -2407,7 +2407,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -2450,7 +2450,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -2469,7 +2469,7 @@ library
                     leftParenthesis: ( @18
                     rightParenthesis: ) @19
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2497,7 +2497,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -2505,7 +2505,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -2548,7 +2548,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -2562,7 +2562,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2590,7 +2590,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -2598,7 +2598,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -2641,7 +2641,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -2655,7 +2655,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2683,7 +2683,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -2691,7 +2691,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -2734,7 +2734,7 @@ library
         #F1 enum E (nameOffset:65) (firstTokenOffset:44) (offset:65)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:69) (firstTokenOffset:69) (offset:69)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:69) (firstTokenOffset:69) (offset:69)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -2748,7 +2748,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2776,7 +2776,7 @@ library
       documentationComment: /**\n * Docs\n */
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -2784,7 +2784,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -2827,7 +2827,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -2841,7 +2841,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2853,7 +2853,7 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 hasInitializer foo (nameOffset:22) (firstTokenOffset:22) (offset:22)
+            #F4 hasInitializer isOriginDeclaration foo (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@enum::E::@field::foo
               initializer: expression_2
                 IntegerLiteral
@@ -2876,7 +2876,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -2884,7 +2884,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -2892,7 +2892,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        final hasImplicitType hasInitializer foo
+        final hasImplicitType hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@enum::E::@field::foo
           firstFragment: #F4
           type: int
@@ -2941,7 +2941,7 @@ library
       firstFragment: #F0
       supertype: Enum
       fields
-        final promotable _foo
+        final promotable isOriginDeclaration _foo
           reference: <testLibrary>::@enum::E::@field::_foo
           firstFragment: #F1
           type: int?
@@ -2966,7 +2966,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:10) (firstTokenOffset:10) (offset:10)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -2980,7 +2980,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2992,7 +2992,7 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::foo
           constructors
             #F5 synthetic const isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
@@ -3011,7 +3011,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -3019,7 +3019,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -3027,7 +3027,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: <testLibrary>::@enum::E::@field::foo
           firstFragment: #F4
           type: int
@@ -3079,7 +3079,7 @@ library
         #F3 enum E (nameOffset:16) (firstTokenOffset:11) (offset:16)
           element: <testLibrary>::@enum::E
           fields
-            #F4 hasInitializer v (nameOffset:35) (firstTokenOffset:35) (offset:35)
+            #F4 hasInitializer isOriginDeclaration v (nameOffset:35) (firstTokenOffset:35) (offset:35)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -3093,7 +3093,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3130,7 +3130,7 @@ library
       interfaces
         I
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F4
           type: E
@@ -3138,7 +3138,7 @@ library
             fragment: #F4
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E>
@@ -3189,7 +3189,7 @@ library
         #F3 enum E (nameOffset:55) (firstTokenOffset:50) (offset:55)
           element: <testLibrary>::@enum::E
           fields
-            #F4 hasInitializer v (nameOffset:78) (firstTokenOffset:78) (offset:78)
+            #F4 hasInitializer isOriginDeclaration v (nameOffset:78) (firstTokenOffset:78) (offset:78)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -3203,7 +3203,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+            #F5 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3224,7 +3224,7 @@ library
         #F8 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
           element: <testLibrary>::@extensionType::B
           fields
-            #F9 it (nameOffset:32) (firstTokenOffset:28) (offset:32)
+            #F9 isOriginDeclaringFormalParameter it (nameOffset:32) (firstTokenOffset:28) (offset:32)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
@@ -3245,7 +3245,7 @@ library
         A
         C
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F4
           type: E
@@ -3253,7 +3253,7 @@ library
             fragment: #F4
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E>
@@ -3280,7 +3280,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::B::@field::it
           firstFragment: #F9
           type: int
@@ -3325,7 +3325,7 @@ library
             #F5 U (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: #E1 U
           fields
-            #F6 hasInitializer v (nameOffset:44) (firstTokenOffset:44) (offset:44)
+            #F6 hasInitializer isOriginDeclaration v (nameOffset:44) (firstTokenOffset:44) (offset:44)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -3341,7 +3341,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F7 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3384,7 +3384,7 @@ library
       interfaces
         I<U>
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F6
           type: E<dynamic>
@@ -3392,7 +3392,7 @@ library
             fragment: #F6
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F7
           type: List<E<dynamic>>
@@ -3449,7 +3449,7 @@ library
         #F5 enum E (nameOffset:27) (firstTokenOffset:22) (offset:27)
           element: <testLibrary>::@enum::E
           fields
-            #F6 hasInitializer v (nameOffset:52) (firstTokenOffset:52) (offset:52)
+            #F6 hasInitializer isOriginDeclaration v (nameOffset:52) (firstTokenOffset:52) (offset:52)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -3463,7 +3463,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F7 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3508,7 +3508,7 @@ library
         X
         Z
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F6
           type: E
@@ -3516,7 +3516,7 @@ library
             fragment: #F6
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F7
           type: List<E>
@@ -3562,7 +3562,7 @@ library
             #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
           fields
-            #F3 hasInitializer v (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -3578,7 +3578,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3619,7 +3619,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F3
           type: E<dynamic>
@@ -3627,7 +3627,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E<dynamic>>
@@ -3686,7 +3686,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -3700,7 +3700,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3730,7 +3730,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -3738,7 +3738,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -3783,7 +3783,7 @@ library
         #F1 enum <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@enum::0
           fields
-            #F2 hasInitializer v (nameOffset:6) (firstTokenOffset:6) (offset:6)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:6) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@enum::0::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -3797,7 +3797,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: InvalidType
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
               element: <testLibrary>::@enum::0::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3824,7 +3824,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::0::@field::v
           firstFragment: #F2
           type: InvalidType
@@ -3832,7 +3832,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::0::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::0::@field::values
           firstFragment: #F3
           type: List<<null>>
@@ -3875,7 +3875,7 @@ library
         #F1 enum E (nameOffset:16) (firstTokenOffset:11) (offset:16)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:29) (firstTokenOffset:29) (offset:29)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -3889,7 +3889,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3921,7 +3921,7 @@ library
       mixins
         M
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -3929,7 +3929,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -3986,7 +3986,7 @@ library
         #F3 enum E (nameOffset:55) (firstTokenOffset:50) (offset:55)
           element: <testLibrary>::@enum::E
           fields
-            #F4 hasInitializer v (nameOffset:72) (firstTokenOffset:72) (offset:72)
+            #F4 hasInitializer isOriginDeclaration v (nameOffset:72) (firstTokenOffset:72) (offset:72)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -4000,7 +4000,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+            #F5 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -4021,7 +4021,7 @@ library
         #F8 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
           element: <testLibrary>::@extensionType::B
           fields
-            #F9 it (nameOffset:32) (firstTokenOffset:28) (offset:32)
+            #F9 isOriginDeclaringFormalParameter it (nameOffset:32) (firstTokenOffset:28) (offset:32)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
@@ -4042,7 +4042,7 @@ library
         A
         C
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F4
           type: E
@@ -4050,7 +4050,7 @@ library
             fragment: #F4
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E>
@@ -4077,7 +4077,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::B::@field::it
           firstFragment: #F9
           type: int
@@ -4110,7 +4110,7 @@ library
         #F1 enum E (nameOffset:44) (firstTokenOffset:39) (offset:44)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:67) (firstTokenOffset:67) (offset:67)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:67) (firstTokenOffset:67) (offset:67)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -4124,7 +4124,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -4165,7 +4165,7 @@ library
         M1<int>
         M2<int>
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -4173,7 +4173,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -4233,7 +4233,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:10) (firstTokenOffset:10) (offset:10)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -4247,7 +4247,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -4259,7 +4259,7 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::foo
           constructors
             #F5 synthetic const isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
@@ -4282,7 +4282,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -4290,7 +4290,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -4298,7 +4298,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: <testLibrary>::@enum::E::@field::foo
           firstFragment: #F4
           type: int
@@ -4350,7 +4350,7 @@ library
             #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
           fields
-            #F3 hasInitializer v (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -4366,7 +4366,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -4396,7 +4396,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F3
           type: E<dynamic>
@@ -4404,7 +4404,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E<dynamic>>
@@ -4451,7 +4451,7 @@ library
             #F3 U (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: #E1 U
           fields
-            #F4 hasInitializer v (nameOffset:39) (firstTokenOffset:39) (offset:39)
+            #F4 hasInitializer isOriginDeclaration v (nameOffset:39) (firstTokenOffset:39) (offset:39)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -4467,7 +4467,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<num, num>
-            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -4501,7 +4501,7 @@ library
           bound: T
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F4
           type: E<num, num>
@@ -4509,7 +4509,7 @@ library
             fragment: #F4
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E<num, num>>
@@ -4552,7 +4552,7 @@ library
             #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
           fields
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
@@ -4576,7 +4576,7 @@ library
           bound: dynamic
       supertype: Enum
       fields
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E<dynamic>>
@@ -4618,7 +4618,7 @@ library
             #F4 V (nameOffset:35) (firstTokenOffset:35) (offset:35)
               element: #E2 V
           fields
-            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
@@ -4648,7 +4648,7 @@ library
           bound: dynamic
       supertype: Enum
       fields
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E<dynamic, num, dynamic>>
@@ -4686,7 +4686,7 @@ library
             #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
           fields
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
@@ -4710,7 +4710,7 @@ library
           bound: void Function(E<dynamic>)
       supertype: Enum
       fields
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E<dynamic>>
@@ -4748,7 +4748,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:7) (offset:10)
               element: #E0 T
           fields
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
@@ -4771,7 +4771,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E<dynamic>>
@@ -4809,7 +4809,7 @@ library
             #F2 T (nameOffset:11) (firstTokenOffset:7) (offset:11)
               element: #E0 T
           fields
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
@@ -4832,7 +4832,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E<dynamic>>
@@ -4870,7 +4870,7 @@ library
             #F2 T (nameOffset:13) (firstTokenOffset:7) (offset:13)
               element: #E0 T
           fields
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
@@ -4893,7 +4893,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E<dynamic>>
@@ -4935,7 +4935,7 @@ library
             #F4 V (nameOffset:26) (firstTokenOffset:22) (offset:26)
               element: #E2 V
           fields
-            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
@@ -4962,7 +4962,7 @@ library
           firstFragment: #F4
       supertype: Enum
       fields
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E<dynamic, dynamic, dynamic>>
@@ -5003,7 +5003,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer a (nameOffset:32) (firstTokenOffset:11) (offset:32)
+            #F2 hasInitializer isOriginDeclaration a (nameOffset:32) (firstTokenOffset:11) (offset:32)
               element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
                 InstanceCreationExpression
@@ -5017,7 +5017,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 hasInitializer b (nameOffset:47) (firstTokenOffset:37) (offset:47)
+            #F3 hasInitializer isOriginDeclaration b (nameOffset:47) (firstTokenOffset:37) (offset:47)
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
@@ -5031,7 +5031,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
@@ -5064,7 +5064,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer a
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F2
           type: E
@@ -5072,7 +5072,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::a
-        static const enumConstant hasImplicitType hasInitializer b
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F3
           type: E
@@ -5080,7 +5080,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::b
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
@@ -5136,7 +5136,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer a (nameOffset:46) (firstTokenOffset:11) (offset:46)
+            #F2 hasInitializer isOriginDeclaration a (nameOffset:46) (firstTokenOffset:11) (offset:46)
               element: <testLibrary>::@enum::E::@field::a
               metadata
                 Annotation
@@ -5158,7 +5158,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 hasInitializer b (nameOffset:75) (firstTokenOffset:51) (offset:75)
+            #F3 hasInitializer isOriginDeclaration b (nameOffset:75) (firstTokenOffset:51) (offset:75)
               element: <testLibrary>::@enum::E::@field::b
               metadata
                 Annotation
@@ -5180,7 +5180,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
@@ -5208,7 +5208,7 @@ library
             #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
-        #F9 hasInitializer annotation (nameOffset:91) (firstTokenOffset:91) (offset:91)
+        #F9 hasInitializer isOriginDeclaration annotation (nameOffset:91) (firstTokenOffset:91) (offset:91)
           element: <testLibrary>::@topLevelVariable::annotation
           initializer: expression_3
             IntegerLiteral
@@ -5223,7 +5223,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer a
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F2
           metadata
@@ -5239,7 +5239,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::a
-        static const enumConstant hasImplicitType hasInitializer b
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F3
           metadata
@@ -5255,7 +5255,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::b
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
@@ -5284,7 +5284,7 @@ library
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
-    const hasInitializer annotation
+    const hasInitializer isOriginDeclaration annotation
       reference: <testLibrary>::@topLevelVariable::annotation
       firstFragment: #F9
       type: int
@@ -5315,7 +5315,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:8) (firstTokenOffset:8) (offset:8)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -5329,7 +5329,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 hasInitializer <null-name> (nameOffset:<null>) (firstTokenOffset:10) (offset:10)
+            #F3 hasInitializer isOriginDeclaration <null-name> (nameOffset:<null>) (firstTokenOffset:10) (offset:10)
               element: <testLibrary>::@enum::E::@field::0
               initializer: expression_1
                 InstanceCreationExpression
@@ -5343,7 +5343,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
@@ -5376,7 +5376,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -5384,7 +5384,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        static const enumConstant hasImplicitType hasInitializer <null-name>
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration <null-name>
           reference: <testLibrary>::@enum::E::@field::0
           firstFragment: #F3
           type: E
@@ -5392,7 +5392,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::1
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
@@ -5435,7 +5435,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v1 (nameOffset:9) (firstTokenOffset:9) (offset:9)
+            #F2 hasInitializer isOriginDeclaration v1 (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::v1
               initializer: expression_0
                 InstanceCreationExpression
@@ -5449,7 +5449,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 hasInitializer v2 (nameOffset:13) (firstTokenOffset:13) (offset:13)
+            #F3 hasInitializer isOriginDeclaration v2 (nameOffset:13) (firstTokenOffset:13) (offset:13)
               element: <testLibrary>::@enum::E::@field::v2
               initializer: expression_1
                 InstanceCreationExpression
@@ -5463,7 +5463,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
@@ -5496,7 +5496,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v1
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v1
           reference: <testLibrary>::@enum::E::@field::v1
           firstFragment: #F2
           type: E
@@ -5504,7 +5504,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v1
-        static const enumConstant hasImplicitType hasInitializer v2
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v2
           reference: <testLibrary>::@enum::E::@field::v2
           firstFragment: #F3
           type: E
@@ -5512,7 +5512,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::v2
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
@@ -5555,7 +5555,7 @@ library
         #F1 enum E1 (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E1
           fields
-            #F2 hasInitializer v1 (nameOffset:10) (firstTokenOffset:10) (offset:10)
+            #F2 hasInitializer isOriginDeclaration v1 (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: <testLibrary>::@enum::E1::@field::v1
               initializer: expression_0
                 InstanceCreationExpression
@@ -5569,7 +5569,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E1
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E1::@field::values
               initializer: expression_1
                 ListLiteral
@@ -5593,7 +5593,7 @@ library
         #F7 enum E2 (nameOffset:20) (firstTokenOffset:15) (offset:20)
           element: <testLibrary>::@enum::E2
           fields
-            #F8 hasInitializer v2 (nameOffset:25) (firstTokenOffset:25) (offset:25)
+            #F8 hasInitializer isOriginDeclaration v2 (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@enum::E2::@field::v2
               initializer: expression_2
                 InstanceCreationExpression
@@ -5607,7 +5607,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E2
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F9 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E2::@field::values
               initializer: expression_3
                 ListLiteral
@@ -5634,7 +5634,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v1
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v1
           reference: <testLibrary>::@enum::E1::@field::v1
           firstFragment: #F2
           type: E1
@@ -5642,7 +5642,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E1::@getter::v1
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E1::@field::values
           firstFragment: #F3
           type: List<E1>
@@ -5670,7 +5670,7 @@ library
       firstFragment: #F7
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v2
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v2
           reference: <testLibrary>::@enum::E2::@field::v2
           firstFragment: #F8
           type: E2
@@ -5678,7 +5678,7 @@ library
             fragment: #F8
             expression: expression_2
           getter: <testLibrary>::@enum::E2::@getter::v2
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E2::@field::values
           firstFragment: #F9
           type: List<E2>
@@ -5774,7 +5774,7 @@ library
         #F14 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F15 hasInitializer a (nameOffset:8) (firstTokenOffset:8) (offset:8)
+            #F15 hasInitializer isOriginDeclaration a (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
                 InstanceCreationExpression
@@ -5788,7 +5788,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F16 hasInitializer b (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F16 hasInitializer isOriginDeclaration b (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
@@ -5802,7 +5802,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F17 hasInitializer c (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F17 hasInitializer isOriginDeclaration c (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::E::@field::c
               initializer: expression_2
                 InstanceCreationExpression
@@ -5816,7 +5816,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F18 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F18 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_3
                 ListLiteral
@@ -5921,7 +5921,7 @@ library
       firstFragment: #F14
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer a
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F15
           type: E
@@ -5929,7 +5929,7 @@ library
             fragment: #F15
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::a
-        static const enumConstant hasImplicitType hasInitializer b
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F16
           type: E
@@ -5937,7 +5937,7 @@ library
             fragment: #F16
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::b
-        static const enumConstant hasImplicitType hasInitializer c
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration c
           reference: <testLibrary>::@enum::E::@field::c
           firstFragment: #F17
           type: E
@@ -5945,7 +5945,7 @@ library
             fragment: #F17
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::c
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F18
           type: List<E>
@@ -5993,7 +5993,7 @@ library
         #F1 enum E (nameOffset:19) (firstTokenOffset:14) (offset:19)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:26) (firstTokenOffset:23) (offset:26)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:26) (firstTokenOffset:23) (offset:26)
               element: <testLibrary>::@enum::E::@field::v
               metadata
                 Annotation
@@ -6015,7 +6015,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -6037,7 +6037,7 @@ library
             #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
-        #F7 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+        #F7 hasInitializer isOriginDeclaration a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_2
             IntegerLiteral
@@ -6052,7 +6052,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           metadata
@@ -6068,7 +6068,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -6092,7 +6092,7 @@ library
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
-    const hasImplicitType hasInitializer a
+    const hasImplicitType hasInitializer isOriginDeclaration a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F7
       type: int
@@ -6132,7 +6132,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           fields
-            #F2 value (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F2 isOriginDeclaration value (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@class::A::@field::value
           constructors
             #F3 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:35) (offset:41)
@@ -6149,7 +6149,7 @@ library
         #F6 enum E (nameOffset:64) (firstTokenOffset:59) (offset:64)
           element: <testLibrary>::@enum::E
           fields
-            #F7 hasInitializer a (nameOffset:78) (firstTokenOffset:70) (offset:78)
+            #F7 hasInitializer isOriginDeclaration a (nameOffset:78) (firstTokenOffset:70) (offset:78)
               element: <testLibrary>::@enum::E::@field::a
               metadata
                 Annotation
@@ -6178,7 +6178,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F8 hasInitializer b (nameOffset:83) (firstTokenOffset:83) (offset:83)
+            #F8 hasInitializer isOriginDeclaration b (nameOffset:83) (firstTokenOffset:83) (offset:83)
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
@@ -6192,7 +6192,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F9 hasInitializer c (nameOffset:96) (firstTokenOffset:88) (offset:96)
+            #F9 hasInitializer isOriginDeclaration c (nameOffset:96) (firstTokenOffset:88) (offset:96)
               element: <testLibrary>::@enum::E::@field::c
               metadata
                 Annotation
@@ -6221,7 +6221,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F10 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+            #F10 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_3
                 ListLiteral
@@ -6259,7 +6259,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        final value
+        final isOriginDeclaration value
           reference: <testLibrary>::@class::A::@field::value
           firstFragment: #F2
           type: dynamic
@@ -6285,7 +6285,7 @@ library
       firstFragment: #F6
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer a
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F7
           metadata
@@ -6308,7 +6308,7 @@ library
             fragment: #F7
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::a
-        static const enumConstant hasImplicitType hasInitializer b
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F8
           type: E
@@ -6316,7 +6316,7 @@ library
             fragment: #F8
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::b
-        static const enumConstant hasImplicitType hasInitializer c
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration c
           reference: <testLibrary>::@enum::E::@field::c
           firstFragment: #F9
           metadata
@@ -6339,7 +6339,7 @@ library
             fragment: #F9
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::c
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F10
           type: List<E>
@@ -6392,7 +6392,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:16) (firstTokenOffset:11) (offset:16)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:16) (firstTokenOffset:11) (offset:16)
               element: <testLibrary>::@enum::E::@field::v
               metadata
                 Annotation
@@ -6414,7 +6414,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -6441,7 +6441,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           metadata
@@ -6457,7 +6457,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -6502,7 +6502,7 @@ library
         #F1 enum E (nameOffset:19) (firstTokenOffset:14) (offset:19)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:25) (firstTokenOffset:25) (offset:25)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -6516,7 +6516,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -6547,7 +6547,7 @@ library
             #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
-        #F7 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+        #F7 hasInitializer isOriginDeclaration a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_2
             IntegerLiteral
@@ -6562,7 +6562,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -6570,7 +6570,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -6602,7 +6602,7 @@ library
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
-    const hasImplicitType hasInitializer a
+    const hasImplicitType hasInitializer isOriginDeclaration a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F7
       type: int
@@ -6638,7 +6638,7 @@ library
         #F1 enum E (nameOffset:19) (firstTokenOffset:14) (offset:19)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:25) (firstTokenOffset:25) (offset:25)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -6652,7 +6652,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -6685,7 +6685,7 @@ library
                     staticType: null
                   element: <testLibrary>::@getter::a
       topLevelVariables
-        #F8 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+        #F8 hasInitializer isOriginDeclaration a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_2
             IntegerLiteral
@@ -6700,7 +6700,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -6708,7 +6708,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -6745,7 +6745,7 @@ library
               element: <testLibrary>::@getter::a
           returnType: void
   topLevelVariables
-    const hasImplicitType hasInitializer a
+    const hasImplicitType hasInitializer isOriginDeclaration a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F8
       type: int
@@ -6795,7 +6795,7 @@ library
                     staticType: null
                   element: <testLibrary>::@getter::foo
           fields
-            #F3 hasInitializer v (nameOffset:40) (firstTokenOffset:40) (offset:40)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -6811,7 +6811,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -6823,7 +6823,7 @@ library
                       staticType: E<dynamic>
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
-            #F5 hasInitializer foo (nameOffset:58) (firstTokenOffset:58) (offset:58)
+            #F5 hasInitializer isOriginDeclaration foo (nameOffset:58) (firstTokenOffset:58) (offset:58)
               element: <testLibrary>::@enum::E::@field::foo
               initializer: expression_2
                 IntegerLiteral
@@ -6852,7 +6852,7 @@ library
                     staticType: null
                   element: <testLibrary>::@enum::E::@getter::foo
       topLevelVariables
-        #F11 hasInitializer foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
+        #F11 hasInitializer isOriginDeclaration foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
           initializer: expression_3
             IntegerLiteral
@@ -6878,7 +6878,7 @@ library
               element: <testLibrary>::@getter::foo
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F3
           type: E<dynamic>
@@ -6886,7 +6886,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E<dynamic>>
@@ -6894,7 +6894,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        static const hasImplicitType hasInitializer foo
+        static const hasImplicitType hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@enum::E::@field::foo
           firstFragment: #F5
           type: int
@@ -6936,7 +6936,7 @@ library
               element: <testLibrary>::@enum::E::@getter::foo
           returnType: void
   topLevelVariables
-    const hasImplicitType hasInitializer foo
+    const hasImplicitType hasInitializer isOriginDeclaration foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F11
       type: int
@@ -6981,7 +6981,7 @@ library
                     staticType: null
                   element: <testLibrary>::@getter::a
           fields
-            #F3 hasInitializer v (nameOffset:31) (firstTokenOffset:31) (offset:31)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -6997,7 +6997,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -7019,7 +7019,7 @@ library
             #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
-        #F8 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+        #F8 hasInitializer isOriginDeclaration a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_2
             IntegerLiteral
@@ -7045,7 +7045,7 @@ library
               element: <testLibrary>::@getter::a
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F3
           type: E<dynamic>
@@ -7053,7 +7053,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E<dynamic>>
@@ -7077,7 +7077,7 @@ library
           returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
-    const hasImplicitType hasInitializer a
+    const hasImplicitType hasInitializer isOriginDeclaration a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F8
       type: int
@@ -7106,7 +7106,7 @@ library
         #F1 enum E (nameOffset:22) (firstTokenOffset:14) (offset:22)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -7120,7 +7120,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -7142,7 +7142,7 @@ library
             #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
-        #F7 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+        #F7 hasInitializer isOriginDeclaration a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_2
             IntegerLiteral
@@ -7157,7 +7157,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -7165,7 +7165,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -7189,7 +7189,7 @@ library
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
-    const hasImplicitType hasInitializer a
+    const hasImplicitType hasInitializer isOriginDeclaration a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F7
       type: int
@@ -7220,7 +7220,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasInitializer v (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -7245,7 +7245,7 @@ library
                           staticType: int
                     rightParenthesis: ) @34
                   staticType: A
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -7257,7 +7257,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo
           constructors
             #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
@@ -7280,7 +7280,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -7288,7 +7288,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -7296,7 +7296,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        synthetic final foo
+        synthetic final isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F4
           type: int?
@@ -7344,7 +7344,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasInitializer v (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -7362,7 +7362,7 @@ library
                         staticType: int
                     rightParenthesis: ) @29
                   staticType: A
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -7374,7 +7374,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo
           constructors
             #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
@@ -7397,7 +7397,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -7405,7 +7405,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -7413,7 +7413,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        synthetic final foo
+        synthetic final isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F4
           type: int?
@@ -7461,7 +7461,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasInitializer v (nameOffset:34) (firstTokenOffset:34) (offset:34)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -7486,7 +7486,7 @@ library
                           staticType: int
                     rightParenthesis: ) @42
                   staticType: A
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -7498,7 +7498,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo
           constructors
             #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
@@ -7521,7 +7521,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -7529,7 +7529,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -7537,7 +7537,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        synthetic final foo
+        synthetic final isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F4
           type: int
@@ -7585,7 +7585,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasInitializer v (nameOffset:25) (firstTokenOffset:25) (offset:25)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -7603,7 +7603,7 @@ library
                         staticType: int
                     rightParenthesis: ) @28
                   staticType: A
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -7615,7 +7615,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo
           constructors
             #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
@@ -7638,7 +7638,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -7646,7 +7646,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -7654,7 +7654,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        synthetic final foo
+        synthetic final isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F4
           type: int Function()
@@ -7702,7 +7702,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasInitializer v (nameOffset:23) (firstTokenOffset:23) (offset:23)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -7720,7 +7720,7 @@ library
                         staticType: int
                     rightParenthesis: ) @26
                   staticType: A
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -7732,7 +7732,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo
           constructors
             #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
@@ -7755,7 +7755,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -7763,7 +7763,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -7771,7 +7771,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        synthetic final foo
+        synthetic final isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F4
           type: int
@@ -7819,7 +7819,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasInitializer v (nameOffset:21) (firstTokenOffset:21) (offset:21)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -7837,7 +7837,7 @@ library
                         staticType: int
                     rightParenthesis: ) @24
                   staticType: A
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -7849,7 +7849,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo
           constructors
             #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
@@ -7878,7 +7878,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -7886,7 +7886,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -7894,7 +7894,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        synthetic foo
+        synthetic isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F4
           type: int
@@ -7956,7 +7956,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           fields
-            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
           constructors
             #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -7969,7 +7969,7 @@ library
         #F5 enum B (nameOffset:37) (firstTokenOffset:32) (offset:37)
           element: <testLibrary>::@enum::B
           fields
-            #F6 hasInitializer v (nameOffset:64) (firstTokenOffset:64) (offset:64)
+            #F6 hasInitializer isOriginDeclaration v (nameOffset:64) (firstTokenOffset:64) (offset:64)
               element: <testLibrary>::@enum::B::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -7987,7 +7987,7 @@ library
                         staticType: int
                     rightParenthesis: ) @67
                   staticType: B
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F7 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@enum::B::@field::values
               initializer: expression_1
                 ListLiteral
@@ -7999,7 +7999,7 @@ library
                       staticType: B
                   rightBracket: ] @0
                   staticType: List<B>
-            #F8 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F8 synthetic isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@enum::B::@field::foo
           constructors
             #F9 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
@@ -8021,7 +8021,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -8044,7 +8044,7 @@ library
       interfaces
         A
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::B::@field::v
           firstFragment: #F6
           type: B
@@ -8052,7 +8052,7 @@ library
             fragment: #F6
             expression: expression_0
           getter: <testLibrary>::@enum::B::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::B::@field::values
           firstFragment: #F7
           type: List<B>
@@ -8060,7 +8060,7 @@ library
             fragment: #F7
             expression: expression_1
           getter: <testLibrary>::@enum::B::@getter::values
-        synthetic final hasImplicitType foo
+        synthetic final hasImplicitType isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::B::@field::foo
           firstFragment: #F8
           type: int
@@ -8111,7 +8111,7 @@ library
             #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
           fields
-            #F3 hasInitializer v (nameOffset:24) (firstTokenOffset:24) (offset:24)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:24) (firstTokenOffset:24) (offset:24)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -8131,7 +8131,7 @@ library
                         staticType: int
                     rightParenthesis: ) @27
                   staticType: A<int>
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -8143,7 +8143,7 @@ library
                       staticType: A<int>
                   rightBracket: ] @0
                   staticType: List<A<dynamic>>
-            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 synthetic isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo
           constructors
             #F6 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
@@ -8169,7 +8169,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A<int>
@@ -8177,7 +8177,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A<dynamic>>
@@ -8185,7 +8185,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        synthetic final foo
+        synthetic final isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           hasEnclosingTypeParameterReference: true
@@ -8235,7 +8235,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasInitializer v (nameOffset:19) (firstTokenOffset:19) (offset:19)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:19) (firstTokenOffset:19) (offset:19)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -8253,7 +8253,7 @@ library
                         staticType: int
                     rightParenthesis: ) @22
                   staticType: A
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -8284,7 +8284,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -8292,7 +8292,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -8336,7 +8336,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasInitializer v (nameOffset:17) (firstTokenOffset:17) (offset:17)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -8354,7 +8354,7 @@ library
                         staticType: int
                     rightParenthesis: ) @20
                   staticType: A
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -8385,7 +8385,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -8393,7 +8393,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -8440,7 +8440,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasInitializer v (nameOffset:21) (firstTokenOffset:21) (offset:21)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -8458,7 +8458,7 @@ library
                         staticType: int
                     rightParenthesis: ) @24
                   staticType: A
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -8470,7 +8470,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F4 foo (nameOffset:39) (firstTokenOffset:39) (offset:39)
+            #F4 isOriginDeclaration foo (nameOffset:39) (firstTokenOffset:39) (offset:39)
               element: <testLibrary>::@enum::A::@field::foo
           constructors
             #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
@@ -8493,7 +8493,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -8501,7 +8501,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -8509,7 +8509,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        final foo
+        final isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F4
           type: int
@@ -8556,7 +8556,7 @@ library
         #F1 enum A (nameOffset:11) (firstTokenOffset:0) (offset:11)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasInitializer v (nameOffset:22) (firstTokenOffset:22) (offset:22)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -8575,7 +8575,7 @@ library
                     leftParenthesis: ( @29
                     rightParenthesis: ) @30
                   staticType: A
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -8604,7 +8604,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -8612,7 +8612,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -8652,7 +8652,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasInitializer v (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -8671,7 +8671,7 @@ library
                     leftParenthesis: ( @23
                     rightParenthesis: ) @24
                   staticType: A
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -8700,7 +8700,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -8708,7 +8708,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -8748,7 +8748,7 @@ library
         #F1 enum A (nameOffset:11) (firstTokenOffset:0) (offset:11)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasInitializer v (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -8762,7 +8762,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -8790,7 +8790,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -8798,7 +8798,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -8838,7 +8838,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasInitializer v (nameOffset:10) (firstTokenOffset:10) (offset:10)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -8852,7 +8852,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -8880,7 +8880,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -8888,7 +8888,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -8940,7 +8940,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -8954,7 +8954,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -8990,7 +8990,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -8998,7 +8998,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -9100,7 +9100,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F4
           fields
-            #F5 hasInitializer v (nameOffset:43) (firstTokenOffset:43) (offset:43)
+            #F5 hasInitializer isOriginDeclaration v (nameOffset:43) (firstTokenOffset:43) (offset:43)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -9114,7 +9114,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F6 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -9217,7 +9217,7 @@ library
       firstFragment: #F3
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A
@@ -9225,7 +9225,7 @@ library
             fragment: #F5
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A>
@@ -9283,7 +9283,7 @@ library
         #F1 enum A (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@enum::A::@def::0
           fields
-            #F2 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+            #F2 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::A::@def::0::@field::values
               initializer: expression_0
                 ListLiteral
@@ -9304,7 +9304,7 @@ library
           element: <testLibrary>::@enum::A::@def::1
           nextFragment: #F7
           fields
-            #F8 hasInitializer v (nameOffset:49) (firstTokenOffset:49) (offset:49)
+            #F8 hasInitializer isOriginDeclaration v (nameOffset:49) (firstTokenOffset:49) (offset:49)
               element: <testLibrary>::@enum::A::@def::1::@field::v
               initializer: expression_1
                 InstanceCreationExpression
@@ -9318,7 +9318,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+            #F9 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@enum::A::@def::1::@field::values
               initializer: expression_2
                 ListLiteral
@@ -9354,7 +9354,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@def::0::@field::values
           firstFragment: #F2
           type: List<A>
@@ -9382,7 +9382,7 @@ library
       firstFragment: #F6
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@def::1::@field::v
           firstFragment: #F8
           type: A
@@ -9390,7 +9390,7 @@ library
             fragment: #F8
             expression: expression_1
           getter: <testLibrary>::@enum::A::@def::1::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@def::1::@field::values
           firstFragment: #F9
           type: List<A>
@@ -9447,7 +9447,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_0
                 ListLiteral
@@ -9476,7 +9476,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -9528,7 +9528,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v1 (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v1 (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v1
               initializer: expression_0
                 InstanceCreationExpression
@@ -9542,7 +9542,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -9571,7 +9571,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           fields
-            #F8 hasInitializer v2 (nameOffset:36) (firstTokenOffset:36) (offset:36)
+            #F8 hasInitializer isOriginDeclaration v2 (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@enum::A::@field::v2
               initializer: expression_2
                 InstanceCreationExpression
@@ -9594,7 +9594,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v1
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v1
           reference: <testLibrary>::@enum::A::@field::v1
           firstFragment: #F3
           type: A
@@ -9602,7 +9602,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v1
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -9610,7 +9610,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        static const enumConstant hasImplicitType hasInitializer v2
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F8
           type: A
@@ -9667,7 +9667,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v1 (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v1 (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v1
               initializer: expression_0
                 InstanceCreationExpression
@@ -9681,7 +9681,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -9715,7 +9715,7 @@ library
           previousFragment: #F1
           nextFragment: #F8
           fields
-            #F9 hasInitializer v2 (nameOffset:36) (firstTokenOffset:36) (offset:36)
+            #F9 hasInitializer isOriginDeclaration v2 (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@enum::A::@field::v2
               initializer: expression_2
                 InstanceCreationExpression
@@ -9736,7 +9736,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F2
           fields
-            #F11 hasInitializer v3 (nameOffset:61) (firstTokenOffset:61) (offset:61)
+            #F11 hasInitializer isOriginDeclaration v3 (nameOffset:61) (firstTokenOffset:61) (offset:61)
               element: <testLibrary>::@enum::A::@field::v3
               initializer: expression_3
                 InstanceCreationExpression
@@ -9759,7 +9759,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v1
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v1
           reference: <testLibrary>::@enum::A::@field::v1
           firstFragment: #F3
           type: A
@@ -9767,7 +9767,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v1
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -9775,7 +9775,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        static const enumConstant hasImplicitType hasInitializer v2
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F9
           type: A
@@ -9783,7 +9783,7 @@ library
             fragment: #F9
             expression: expression_2
           getter: <testLibrary>::@enum::A::@getter::v2
-        static const enumConstant hasImplicitType hasInitializer v3
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v3
           reference: <testLibrary>::@enum::A::@field::v3
           firstFragment: #F11
           type: A
@@ -9842,7 +9842,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v1 (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v1 (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v1
               initializer: expression_0
                 InstanceCreationExpression
@@ -9856,7 +9856,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -9889,7 +9889,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           fields
-            #F8 hasInitializer v2 (nameOffset:36) (firstTokenOffset:36) (offset:36)
+            #F8 hasInitializer isOriginDeclaration v2 (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@enum::A::@field::v2
               initializer: expression_2
                 InstanceCreationExpression
@@ -9904,7 +9904,7 @@ library
                     rightParenthesis: ) @0
                   staticType: null
               nextFragment: #F9
-            #F9 augment hasInitializer v2 (nameOffset:50) (firstTokenOffset:42) (offset:50)
+            #F9 augment hasInitializer isOriginDeclaration v2 (nameOffset:50) (firstTokenOffset:42) (offset:50)
               element: <testLibrary>::@enum::A::@field::v2
               initializer: expression_3
                 InstanceCreationExpression
@@ -9928,7 +9928,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v1
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v1
           reference: <testLibrary>::@enum::A::@field::v1
           firstFragment: #F3
           type: A
@@ -9936,7 +9936,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v1
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -9944,7 +9944,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        static const enumConstant hasImplicitType hasInitializer v2
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F8
           type: A
@@ -9997,7 +9997,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v1 (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v1 (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v1
               initializer: expression_0
                 InstanceCreationExpression
@@ -10011,7 +10011,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 hasInitializer v2 (nameOffset:15) (firstTokenOffset:15) (offset:15)
+            #F4 hasInitializer isOriginDeclaration v2 (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@enum::A::@field::v2
               initializer: expression_1
                 InstanceCreationExpression
@@ -10026,7 +10026,7 @@ library
                     rightParenthesis: ) @0
                   staticType: null
               nextFragment: #F5
-            #F6 hasInitializer v3 (nameOffset:19) (firstTokenOffset:19) (offset:19)
+            #F6 hasInitializer isOriginDeclaration v3 (nameOffset:19) (firstTokenOffset:19) (offset:19)
               element: <testLibrary>::@enum::A::@field::v3
               initializer: expression_2
                 InstanceCreationExpression
@@ -10040,7 +10040,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_3
                 ListLiteral
@@ -10081,7 +10081,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           fields
-            #F5 augment hasInitializer v2 (nameOffset:52) (firstTokenOffset:44) (offset:52)
+            #F5 augment hasInitializer isOriginDeclaration v2 (nameOffset:52) (firstTokenOffset:44) (offset:52)
               element: <testLibrary>::@enum::A::@field::v2
               initializer: expression_4
                 InstanceCreationExpression
@@ -10102,7 +10102,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v1
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v1
           reference: <testLibrary>::@enum::A::@field::v1
           firstFragment: #F3
           type: A
@@ -10110,7 +10110,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v1
-        static const enumConstant hasImplicitType hasInitializer v2
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F4
           type: A
@@ -10118,7 +10118,7 @@ library
             fragment: #F5
             expression: expression_4
           getter: <testLibrary>::@enum::A::@getter::v2
-        static const enumConstant hasImplicitType hasInitializer v3
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v3
           reference: <testLibrary>::@enum::A::@field::v3
           firstFragment: #F6
           type: A
@@ -10126,7 +10126,7 @@ library
             fragment: #F6
             expression: expression_2
           getter: <testLibrary>::@enum::A::@getter::v3
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F7
           type: List<A>
@@ -10185,7 +10185,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v1 (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v1 (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v1
               initializer: expression_0
                 InstanceCreationExpression
@@ -10204,7 +10204,7 @@ library
                     rightParenthesis: ) @15
                   staticType: null
               nextFragment: #F4
-            #F5 hasInitializer v2 (nameOffset:18) (firstTokenOffset:18) (offset:18)
+            #F5 hasInitializer isOriginDeclaration v2 (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@enum::A::@field::v2
               initializer: expression_1
                 InstanceCreationExpression
@@ -10222,7 +10222,7 @@ library
                         staticType: int
                     rightParenthesis: ) @22
                   staticType: A
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_2
                 ListLiteral
@@ -10261,7 +10261,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           fields
-            #F4 augment hasInitializer v1 (nameOffset:77) (firstTokenOffset:69) (offset:77)
+            #F4 augment hasInitializer isOriginDeclaration v1 (nameOffset:77) (firstTokenOffset:69) (offset:77)
               element: <testLibrary>::@enum::A::@field::v1
               initializer: expression_3
                 InstanceCreationExpression
@@ -10286,7 +10286,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v1
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v1
           reference: <testLibrary>::@enum::A::@field::v1
           firstFragment: #F3
           type: A
@@ -10294,7 +10294,7 @@ library
             fragment: #F4
             expression: expression_3
           getter: <testLibrary>::@enum::A::@getter::v1
-        static const enumConstant hasImplicitType hasInitializer v2
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F5
           type: A
@@ -10302,7 +10302,7 @@ library
             fragment: #F5
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::v2
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A>
@@ -10362,7 +10362,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -10377,7 +10377,7 @@ library
                     rightParenthesis: ) @0
                   staticType: null
               nextFragment: #F4
-            #F5 hasInitializer v2 (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F5 hasInitializer isOriginDeclaration v2 (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::A::@field::v2
               initializer: expression_1
                 InstanceCreationExpression
@@ -10391,7 +10391,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_2
                 ListLiteral
@@ -10422,7 +10422,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           fields
-            #F4 augment hasInitializer v (nameOffset:50) (firstTokenOffset:42) (offset:50)
+            #F4 augment hasInitializer isOriginDeclaration v (nameOffset:50) (firstTokenOffset:42) (offset:50)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_3
                 InstanceCreationExpression
@@ -10443,7 +10443,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -10451,7 +10451,7 @@ library
             fragment: #F4
             expression: expression_3
           getter: <testLibrary>::@enum::A::@getter::v
-        static const enumConstant hasImplicitType hasInitializer v2
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F5
           type: A
@@ -10459,7 +10459,7 @@ library
             fragment: #F5
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::v2
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A>
@@ -10509,7 +10509,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -10528,7 +10528,7 @@ library
                     leftParenthesis: ( @18
                     rightParenthesis: ) @19
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -10560,7 +10560,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -10568,7 +10568,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -10621,7 +10621,7 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 hasInitializer v (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F5 hasInitializer isOriginDeclaration v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -10652,7 +10652,7 @@ library
                     leftParenthesis: ( @26
                     rightParenthesis: ) @27
                   staticType: A<int>
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -10694,7 +10694,7 @@ library
           firstFragment: #F3
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A<int>
@@ -10702,7 +10702,7 @@ library
             fragment: #F5
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A<dynamic>>
@@ -10756,7 +10756,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -10770,7 +10770,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -10807,7 +10807,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -10815,7 +10815,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -10867,7 +10867,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -10881,7 +10881,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -10912,7 +10912,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -10920,7 +10920,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -10970,7 +10970,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -10984,7 +10984,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -11021,7 +11021,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -11029,7 +11029,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -11082,7 +11082,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -11100,7 +11100,7 @@ library
                         staticType: int
                     rightParenthesis: ) @14
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -11112,7 +11112,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F5 f (nameOffset:29) (firstTokenOffset:29) (offset:29)
+            #F5 isOriginDeclaration f (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@enum::A::@field::f
           getters
             #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
@@ -11139,7 +11139,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -11147,7 +11147,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -11155,7 +11155,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        final f
+        final isOriginDeclaration f
           reference: <testLibrary>::@enum::A::@field::f
           firstFragment: #F5
           type: int
@@ -11212,7 +11212,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -11226,7 +11226,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -11238,7 +11238,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F5 f (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F5 isOriginDeclaration f (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::f
           getters
             #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
@@ -11262,7 +11262,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -11270,7 +11270,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -11278,7 +11278,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        final f
+        final isOriginDeclaration f
           reference: <testLibrary>::@enum::A::@field::f
           firstFragment: #F5
           type: int
@@ -11340,7 +11340,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -11354,7 +11354,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -11366,7 +11366,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F5 hasInitializer foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F5 hasInitializer isOriginDeclaration foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_2
                 IntegerLiteral
@@ -11388,7 +11388,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           fields
-            #F6 augment hasInitializer foo (nameOffset:76) (firstTokenOffset:76) (offset:76)
+            #F6 augment hasInitializer isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:76) (offset:76)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_3
                 IntegerLiteral
@@ -11401,7 +11401,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -11409,7 +11409,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -11417,7 +11417,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        final hasInitializer foo
+        final hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -11476,7 +11476,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -11490,7 +11490,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -11502,7 +11502,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F5 hasInitializer foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F5 hasInitializer isOriginDeclaration foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_2
                 IntegerLiteral
@@ -11525,7 +11525,7 @@ library
           previousFragment: #F1
           nextFragment: #F11
           fields
-            #F6 augment hasInitializer foo (nameOffset:76) (firstTokenOffset:76) (offset:76)
+            #F6 augment hasInitializer isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:76) (offset:76)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_3
                 IntegerLiteral
@@ -11537,7 +11537,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F2
           fields
-            #F12 augment hasInitializer foo (nameOffset:126) (firstTokenOffset:126) (offset:126)
+            #F12 augment hasInitializer isOriginDeclaration foo (nameOffset:126) (firstTokenOffset:126) (offset:126)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_4
                 IntegerLiteral
@@ -11550,7 +11550,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -11558,7 +11558,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -11566,7 +11566,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        final hasInitializer foo
+        final hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -11625,7 +11625,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -11639,7 +11639,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -11651,7 +11651,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F5 hasInitializer foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F5 hasInitializer isOriginDeclaration foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_2
                 IntegerLiteral
@@ -11682,7 +11682,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F2
           fields
-            #F6 augment hasInitializer foo (nameOffset:125) (firstTokenOffset:125) (offset:125)
+            #F6 augment hasInitializer isOriginDeclaration foo (nameOffset:125) (firstTokenOffset:125) (offset:125)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_3
                 IntegerLiteral
@@ -11695,7 +11695,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -11703,7 +11703,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -11711,7 +11711,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        final hasInitializer foo
+        final hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -11770,7 +11770,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -11784,7 +11784,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -11796,7 +11796,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F5 hasInitializer foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F5 hasInitializer isOriginDeclaration foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_2
                 IntegerLiteral
@@ -11828,7 +11828,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F2
           fields
-            #F6 augment hasInitializer foo (nameOffset:125) (firstTokenOffset:125) (offset:125)
+            #F6 augment hasInitializer isOriginDeclaration foo (nameOffset:125) (firstTokenOffset:125) (offset:125)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_3
                 IntegerLiteral
@@ -11841,7 +11841,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -11849,7 +11849,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -11857,7 +11857,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        final hasInitializer foo
+        final hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -11923,7 +11923,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -11937,7 +11937,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -11949,7 +11949,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F5 hasInitializer foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F5 hasInitializer isOriginDeclaration foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_2
                 IntegerLiteral
@@ -11971,7 +11971,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           fields
-            #F6 augment hasInitializer foo (nameOffset:79) (firstTokenOffset:79) (offset:79)
+            #F6 augment hasInitializer isOriginDeclaration foo (nameOffset:79) (firstTokenOffset:79) (offset:79)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_3
                 DoubleLiteral
@@ -11984,7 +11984,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -11992,7 +11992,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -12000,7 +12000,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        final hasInitializer foo
+        final hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -12058,7 +12058,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -12072,7 +12072,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -12084,7 +12084,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F5 hasInitializer foo (nameOffset:37) (firstTokenOffset:37) (offset:37)
+            #F5 hasInitializer isOriginDeclaration foo (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_2
                 SimpleIdentifier
@@ -12107,7 +12107,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           fields
-            #F6 augment hasInitializer foo (nameOffset:119) (firstTokenOffset:119) (offset:119)
+            #F6 augment hasInitializer isOriginDeclaration foo (nameOffset:119) (firstTokenOffset:119) (offset:119)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_3
                 SimpleIdentifier
@@ -12121,7 +12121,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -12129,7 +12129,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -12137,7 +12137,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        final hasInitializer foo
+        final hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int Function()
@@ -12194,7 +12194,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -12208,7 +12208,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -12220,7 +12220,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo
               nextFragment: #F6
           constructors
@@ -12238,7 +12238,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           fields
-            #F6 augment hasInitializer foo (nameOffset:75) (firstTokenOffset:75) (offset:75)
+            #F6 augment hasInitializer isOriginDeclaration foo (nameOffset:75) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_2
                 IntegerLiteral
@@ -12251,7 +12251,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -12259,7 +12259,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -12267,7 +12267,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        synthetic hasInitializer foo
+        synthetic hasInitializer isOriginGetterSetter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -12322,7 +12322,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -12336,7 +12336,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -12348,7 +12348,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F5 hasInitializer foo1 (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F5 hasInitializer isOriginDeclaration foo1 (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::foo1
               initializer: expression_2
                 IntegerLiteral
@@ -12369,7 +12369,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           fields
-            #F10 hasInitializer foo2 (nameOffset:69) (firstTokenOffset:69) (offset:69)
+            #F10 hasInitializer isOriginDeclaration foo2 (nameOffset:69) (firstTokenOffset:69) (offset:69)
               element: <testLibrary>::@enum::A::@field::foo2
               initializer: expression_3
                 IntegerLiteral
@@ -12384,7 +12384,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -12392,7 +12392,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -12400,7 +12400,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        final hasInitializer foo1
+        final hasInitializer isOriginDeclaration foo1
           reference: <testLibrary>::@enum::A::@field::foo1
           firstFragment: #F5
           type: int
@@ -12408,7 +12408,7 @@ library
             fragment: #F5
             expression: expression_2
           getter: <testLibrary>::@enum::A::@getter::foo1
-        final hasInitializer foo2
+        final hasInitializer isOriginDeclaration foo2
           reference: <testLibrary>::@enum::A::@field::foo2
           firstFragment: #F10
           type: int
@@ -12472,7 +12472,7 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 hasInitializer v (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F5 hasInitializer isOriginDeclaration v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -12496,7 +12496,7 @@ library
                     leftParenthesis: ( @20
                     rightParenthesis: ) @21
                   staticType: A<int>
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -12508,7 +12508,7 @@ library
                       staticType: A<int>
                   rightBracket: ] @0
                   staticType: List<A<dynamic>>
-            #F7 foo1 (nameOffset:34) (firstTokenOffset:34) (offset:34)
+            #F7 isOriginDeclaration foo1 (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@enum::A::@field::foo1
           constructors
             #F8 synthetic const isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
@@ -12529,7 +12529,7 @@ library
               element: #E0 T
               previousFragment: #F3
           fields
-            #F12 foo2 (nameOffset:74) (firstTokenOffset:74) (offset:74)
+            #F12 isOriginDeclaration foo2 (nameOffset:74) (firstTokenOffset:74) (offset:74)
               element: <testLibrary>::@enum::A::@field::foo2
           getters
             #F13 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
@@ -12543,7 +12543,7 @@ library
           firstFragment: #F3
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A<int>
@@ -12551,7 +12551,7 @@ library
             fragment: #F5
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A<dynamic>>
@@ -12559,13 +12559,13 @@ library
             fragment: #F6
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        final foo1
+        final isOriginDeclaration foo1
           reference: <testLibrary>::@enum::A::@field::foo1
           firstFragment: #F7
           hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibrary>::@enum::A::@getter::foo1
-        final foo2
+        final isOriginDeclaration foo2
           reference: <testLibrary>::@enum::A::@field::foo2
           firstFragment: #F12
           hasEnclosingTypeParameterReference: true
@@ -12625,7 +12625,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -12643,7 +12643,7 @@ library
                         staticType: int
                     rightParenthesis: ) @14
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -12672,7 +12672,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           fields
-            #F9 foo (nameOffset:71) (firstTokenOffset:71) (offset:71)
+            #F9 isOriginDeclaration foo (nameOffset:71) (firstTokenOffset:71) (offset:71)
               element: <testLibrary>::@enum::A::@field::foo
           getters
             #F10 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
@@ -12683,7 +12683,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -12691,7 +12691,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -12699,7 +12699,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        final foo
+        final isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F9
           type: int
@@ -12756,7 +12756,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -12770,7 +12770,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -12796,7 +12796,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           fields
-            #F8 foo (nameOffset:70) (firstTokenOffset:70) (offset:70)
+            #F8 isOriginDeclaration foo (nameOffset:70) (firstTokenOffset:70) (offset:70)
               element: <testLibrary>::@enum::A::@field::foo
           getters
             #F9 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
@@ -12807,7 +12807,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -12815,7 +12815,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -12823,7 +12823,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        final foo
+        final isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F8
           type: int
@@ -12885,7 +12885,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -12899,7 +12899,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -12911,7 +12911,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F5 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 synthetic isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo1
           constructors
             #F6 synthetic const isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
@@ -12928,7 +12928,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           fields
-            #F10 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+            #F10 synthetic isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@enum::A::@field::foo2
           getters
             #F11 foo2 (nameOffset:66) (firstTokenOffset:58) (offset:66)
@@ -12939,7 +12939,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -12947,7 +12947,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -12955,12 +12955,12 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        synthetic foo1
+        synthetic isOriginGetterSetter foo1
           reference: <testLibrary>::@enum::A::@field::foo1
           firstFragment: #F5
           type: int
           getter: <testLibrary>::@enum::A::@getter::foo1
-        synthetic foo2
+        synthetic isOriginGetterSetter foo2
           reference: <testLibrary>::@enum::A::@field::foo2
           firstFragment: #F10
           type: int
@@ -13021,7 +13021,7 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 hasInitializer v (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F5 hasInitializer isOriginDeclaration v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -13045,7 +13045,7 @@ library
                     leftParenthesis: ( @20
                     rightParenthesis: ) @21
                   staticType: A<int>
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -13057,7 +13057,7 @@ library
                       staticType: A<int>
                   rightBracket: ] @0
                   staticType: List<A<dynamic>>
-            #F7 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo1
           constructors
             #F8 synthetic const isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
@@ -13078,7 +13078,7 @@ library
               element: #E0 T
               previousFragment: #F3
           fields
-            #F12 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
+            #F12 synthetic isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@enum::A::@field::foo2
           getters
             #F13 foo2 (nameOffset:70) (firstTokenOffset:64) (offset:70)
@@ -13092,7 +13092,7 @@ library
           firstFragment: #F3
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A<int>
@@ -13100,7 +13100,7 @@ library
             fragment: #F5
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A<dynamic>>
@@ -13108,13 +13108,13 @@ library
             fragment: #F6
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        synthetic foo1
+        synthetic isOriginGetterSetter foo1
           reference: <testLibrary>::@enum::A::@field::foo1
           firstFragment: #F7
           hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibrary>::@enum::A::@getter::foo1
-        synthetic foo2
+        synthetic isOriginGetterSetter foo2
           reference: <testLibrary>::@enum::A::@field::foo2
           firstFragment: #F12
           hasEnclosingTypeParameterReference: true
@@ -13174,7 +13174,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -13188,7 +13188,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -13200,7 +13200,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F5 hasInitializer foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F5 hasInitializer isOriginDeclaration foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_2
                 IntegerLiteral
@@ -13231,7 +13231,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -13239,7 +13239,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -13247,7 +13247,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        final hasInitializer foo
+        final hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -13306,7 +13306,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -13320,7 +13320,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -13332,7 +13332,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F5 hasInitializer foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F5 hasInitializer isOriginDeclaration foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_2
                 IntegerLiteral
@@ -13372,7 +13372,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -13380,7 +13380,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -13388,7 +13388,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        final hasInitializer foo
+        final hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -13444,7 +13444,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -13458,7 +13458,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -13470,9 +13470,9 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F5 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 synthetic isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo1
-            #F6 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo2
           constructors
             #F7 synthetic const isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
@@ -13501,7 +13501,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -13509,7 +13509,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -13517,12 +13517,12 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        synthetic foo1
+        synthetic isOriginGetterSetter foo1
           reference: <testLibrary>::@enum::A::@field::foo1
           firstFragment: #F5
           type: int
           getter: <testLibrary>::@enum::A::@getter::foo1
-        synthetic foo2
+        synthetic isOriginGetterSetter foo2
           reference: <testLibrary>::@enum::A::@field::foo2
           firstFragment: #F6
           type: int
@@ -13580,7 +13580,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -13594,7 +13594,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -13606,7 +13606,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo
           constructors
             #F6 synthetic const isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
@@ -13637,7 +13637,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -13645,7 +13645,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -13653,7 +13653,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -13709,7 +13709,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -13723,7 +13723,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -13735,7 +13735,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo
           constructors
             #F6 synthetic const isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
@@ -13771,7 +13771,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -13779,7 +13779,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -13787,7 +13787,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -13840,7 +13840,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -13854,7 +13854,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -13875,7 +13875,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           fields
-            #F7 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F7 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::A::@field::foo
           getters
             #F8 augment foo (nameOffset:52) (firstTokenOffset:36) (offset:52)
@@ -13886,7 +13886,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -13894,7 +13894,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -13902,7 +13902,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F7
           type: int
@@ -13962,7 +13962,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F6
           fields
-            #F7 hasInitializer v (nameOffset:25) (firstTokenOffset:25) (offset:25)
+            #F7 hasInitializer isOriginDeclaration v (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -13976,7 +13976,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -14024,7 +14024,7 @@ library
         I1
         I2
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F7
           type: A
@@ -14032,7 +14032,7 @@ library
             fragment: #F7
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F8
           type: List<A>
@@ -14103,7 +14103,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F8
           fields
-            #F9 hasInitializer v (nameOffset:25) (firstTokenOffset:25) (offset:25)
+            #F9 hasInitializer isOriginDeclaration v (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -14117,7 +14117,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F10 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F10 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -14177,7 +14177,7 @@ library
         I2
         I3
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F9
           type: A
@@ -14185,7 +14185,7 @@ library
             fragment: #F9
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F10
           type: List<A>
@@ -14254,7 +14254,7 @@ library
               element: #E1 T
               nextFragment: #F9
           fields
-            #F10 hasInitializer v (nameOffset:28) (firstTokenOffset:28) (offset:28)
+            #F10 hasInitializer isOriginDeclaration v (nameOffset:28) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -14278,7 +14278,7 @@ library
                     leftParenthesis: ( @34
                     rightParenthesis: ) @35
                   staticType: A<int>
-            #F11 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F11 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -14336,7 +14336,7 @@ library
         I1
         I2<T>
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F10
           type: A<int>
@@ -14344,7 +14344,7 @@ library
             fragment: #F10
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F11
           type: List<A<dynamic>>
@@ -14413,7 +14413,7 @@ library
               element: #E1 T
               nextFragment: #F9
           fields
-            #F10 hasInitializer v (nameOffset:28) (firstTokenOffset:28) (offset:28)
+            #F10 hasInitializer isOriginDeclaration v (nameOffset:28) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -14429,7 +14429,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A<dynamic>
-            #F11 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F11 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -14487,7 +14487,7 @@ library
         I1
         I2<T>
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F10
           type: A<dynamic>
@@ -14495,7 +14495,7 @@ library
             fragment: #F10
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F11
           type: List<A<dynamic>>
@@ -14545,7 +14545,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -14559,7 +14559,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -14595,7 +14595,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -14603,7 +14603,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -14660,7 +14660,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -14674,7 +14674,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -14714,7 +14714,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -14722,7 +14722,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -14785,7 +14785,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -14799,7 +14799,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -14839,7 +14839,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -14847,7 +14847,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -14907,7 +14907,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -14921,7 +14921,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -14963,7 +14963,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -14971,7 +14971,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -15029,7 +15029,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -15043,7 +15043,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -15090,7 +15090,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -15098,7 +15098,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -15157,7 +15157,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -15171,7 +15171,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -15218,7 +15218,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -15226,7 +15226,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -15285,7 +15285,7 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 hasInitializer v (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F5 hasInitializer isOriginDeclaration v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -15309,7 +15309,7 @@ library
                     leftParenthesis: ( @20
                     rightParenthesis: ) @21
                   staticType: A<int>
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -15352,7 +15352,7 @@ library
           firstFragment: #F3
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A<int>
@@ -15360,7 +15360,7 @@ library
             fragment: #F5
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A<dynamic>>
@@ -15425,7 +15425,7 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 hasInitializer v (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F5 hasInitializer isOriginDeclaration v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -15449,7 +15449,7 @@ library
                     leftParenthesis: ( @20
                     rightParenthesis: ) @21
                   staticType: A<int>
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -15494,7 +15494,7 @@ library
           firstFragment: #F3
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A<int>
@@ -15502,7 +15502,7 @@ library
             fragment: #F5
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A<dynamic>>
@@ -15557,7 +15557,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:19) (firstTokenOffset:19) (offset:19)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:19) (firstTokenOffset:19) (offset:19)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -15571,7 +15571,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -15609,7 +15609,7 @@ library
         M1
         M2
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -15617,7 +15617,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -15684,7 +15684,7 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 hasInitializer v (nameOffset:25) (firstTokenOffset:25) (offset:25)
+            #F5 hasInitializer isOriginDeclaration v (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -15708,7 +15708,7 @@ library
                     leftParenthesis: ( @31
                     rightParenthesis: ) @32
                   staticType: A<int>
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -15774,7 +15774,7 @@ library
         M2<T>
         M3<T>
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A<int>
@@ -15782,7 +15782,7 @@ library
             fragment: #F5
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A<dynamic>>
@@ -15857,7 +15857,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -15871,7 +15871,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -15883,7 +15883,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F5 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 synthetic isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo1
           constructors
             #F6 synthetic const isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
@@ -15904,7 +15904,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           fields
-            #F11 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+            #F11 synthetic isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@enum::A::@field::foo2
           setters
             #F12 foo2 (nameOffset:62) (firstTokenOffset:58) (offset:62)
@@ -15918,7 +15918,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -15926,7 +15926,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -15934,12 +15934,12 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        synthetic foo1
+        synthetic isOriginGetterSetter foo1
           reference: <testLibrary>::@enum::A::@field::foo1
           firstFragment: #F5
           type: int
           setter: <testLibrary>::@enum::A::@setter::foo1
-        synthetic foo2
+        synthetic isOriginGetterSetter foo2
           reference: <testLibrary>::@enum::A::@field::foo2
           firstFragment: #F11
           type: int
@@ -16005,7 +16005,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -16019,7 +16019,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -16031,7 +16031,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F5 hasInitializer foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F5 hasInitializer isOriginDeclaration foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_2
                 IntegerLiteral
@@ -16063,7 +16063,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -16071,7 +16071,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -16079,7 +16079,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        final hasInitializer foo
+        final hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -16144,7 +16144,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -16158,7 +16158,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -16183,7 +16183,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           fields
-            #F8 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F8 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::A::@field::foo
           setters
             #F9 augment foo (nameOffset:48) (firstTokenOffset:36) (offset:48)
@@ -16197,7 +16197,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -16205,7 +16205,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -16213,7 +16213,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F8
           type: int
@@ -16271,7 +16271,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -16285,7 +16285,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -16297,9 +16297,9 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            #F5 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 synthetic isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo1
-            #F6 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo2
           constructors
             #F7 synthetic const isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
@@ -16338,7 +16338,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -16346,7 +16346,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -16354,12 +16354,12 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        synthetic foo1
+        synthetic isOriginGetterSetter foo1
           reference: <testLibrary>::@enum::A::@field::foo1
           firstFragment: #F5
           type: int
           setter: <testLibrary>::@enum::A::@setter::foo1
-        synthetic foo2
+        synthetic isOriginGetterSetter foo2
           reference: <testLibrary>::@enum::A::@field::foo2
           firstFragment: #F6
           type: int
@@ -16430,7 +16430,7 @@ library
         #F3 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F4 hasInitializer v (nameOffset:8) (firstTokenOffset:8) (offset:8)
+            #F4 hasInitializer isOriginDeclaration v (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -16444,7 +16444,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -16471,7 +16471,7 @@ library
       firstFragment: #F3
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F4
           type: A
@@ -16479,7 +16479,7 @@ library
             fragment: #F4
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
@@ -16525,7 +16525,7 @@ library
         #F2 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A::@def::0
           fields
-            #F3 hasInitializer v (nameOffset:8) (firstTokenOffset:8) (offset:8)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: <testLibrary>::@enum::A::@def::0::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -16539,7 +16539,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@def::0::@field::values
               initializer: expression_1
                 ListLiteral
@@ -16559,7 +16559,7 @@ library
         #F7 enum A (nameOffset:44) (firstTokenOffset:31) (offset:44)
           element: <testLibrary>::@enum::A::@def::1
           fields
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F8 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@enum::A::@def::1::@field::values
               initializer: expression_2
                 ListLiteral
@@ -16579,7 +16579,7 @@ library
       firstFragment: #F2
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@def::0::@field::v
           firstFragment: #F3
           type: A
@@ -16587,7 +16587,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@def::0::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@def::0::@field::values
           firstFragment: #F4
           type: List<A>
@@ -16611,7 +16611,7 @@ library
       firstFragment: #F7
       supertype: Enum
       fields
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@def::1::@field::values
           firstFragment: #F8
           type: List<A>
@@ -16656,7 +16656,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -16675,7 +16675,7 @@ library
                     leftParenthesis: ( @18
                     rightParenthesis: ) @19
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -16727,7 +16727,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -16735,7 +16735,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -16784,7 +16784,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -16803,7 +16803,7 @@ library
                     leftParenthesis: ( @18
                     rightParenthesis: ) @19
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -16843,7 +16843,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -16851,7 +16851,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -16900,7 +16900,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -16914,7 +16914,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -16952,7 +16952,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -16960,7 +16960,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -17018,7 +17018,7 @@ library
           element: <testLibrary>::@enum::B
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:41) (firstTokenOffset:41) (offset:41)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:41) (firstTokenOffset:41) (offset:41)
               element: <testLibrary>::@enum::B::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -17032,7 +17032,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: B
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::B::@field::values
               initializer: expression_1
                 ListLiteral
@@ -17070,7 +17070,7 @@ library
       interfaces
         A
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::B::@field::v
           firstFragment: #F3
           type: B
@@ -17078,7 +17078,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::B::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::B::@field::values
           firstFragment: #F4
           type: List<B>
@@ -17145,7 +17145,7 @@ library
           element: <testLibrary>::@enum::B
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:29) (firstTokenOffset:29) (offset:29)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@enum::B::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -17159,7 +17159,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: B
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@enum::B::@field::values
               initializer: expression_1
                 ListLiteral
@@ -17197,7 +17197,7 @@ library
       interfaces
         A
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::B::@field::v
           firstFragment: #F3
           type: B
@@ -17205,7 +17205,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::B::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::B::@field::values
           firstFragment: #F4
           type: List<B>
@@ -17272,7 +17272,7 @@ library
           element: <testLibrary>::@enum::B
           nextFragment: #F2
           fields
-            #F3 hasInitializer v (nameOffset:29) (firstTokenOffset:29) (offset:29)
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@enum::B::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -17286,7 +17286,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: B
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@enum::B::@field::values
               initializer: expression_1
                 ListLiteral
@@ -17324,7 +17324,7 @@ library
       mixins
         A
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::B::@field::v
           firstFragment: #F3
           type: B
@@ -17332,7 +17332,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::B::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::B::@field::values
           firstFragment: #F4
           type: List<B>
@@ -17400,7 +17400,7 @@ library
               element: #E0 T
               nextFragment: #F6
           fields
-            #F7 hasInitializer v (nameOffset:24) (firstTokenOffset:24) (offset:24)
+            #F7 hasInitializer isOriginDeclaration v (nameOffset:24) (firstTokenOffset:24) (offset:24)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -17416,7 +17416,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A<B>
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -17462,7 +17462,7 @@ library
           bound: B
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F7
           type: A<B>
@@ -17470,7 +17470,7 @@ library
             fragment: #F7
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F8
           type: List<A<B>>

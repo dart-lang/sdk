@@ -474,10 +474,6 @@ testFile
     codeOffset: 15 + 9
     className: E
     parameters: (int it)
-  FIELD it
-    offset: 21 1:22
-    codeOffset: 15 + 9
-    className: E
   GETTER g
     offset: 37 2:11
     codeOffset: 29 + 15

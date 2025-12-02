@@ -231,7 +231,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
         }
       }
       for (var field in extensionElement.fields) {
-        if (!field.isStatic && !field.isSynthetic) {
+        if (!field.isStatic && field.isOriginDeclaration) {
           recorder.recordDeclaration(node.offset, field);
         }
       }

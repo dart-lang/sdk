@@ -489,7 +489,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
         .toList(growable: false);
 
     bool typeHasInstanceVariables(InterfaceTypeImpl type) =>
-        type.element.fields.any((e) => !e.isSynthetic);
+        type.element.fields.any((e) => e.isOriginDeclaration);
 
     _constructors = superConstructors.map((superConstructor) {
       var constructorFragment = ConstructorFragmentImpl(
@@ -2034,7 +2034,7 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   @trackedIndirectly
   FieldElementImpl? get valuesField {
     for (var field in fields) {
-      if (field.name == 'values' && field.isSyntheticEnumField) {
+      if (field.isOriginEnumValues) {
         return field;
       }
     }
@@ -2855,9 +2855,24 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @trackedIncludedInId
   bool get isFinal => _firstFragment.isFinal;
 
+  @trackedIndirectly
+  bool get isInstanceField => !isStatic;
+
   @override
   @trackedIncludedInId
   bool get isLate => _firstFragment.isLate;
+
+  @override
+  @trackedIncludedInId
+  bool get isOriginDeclaringFormalParameter {
+    return firstFragment.isOriginDeclaringFormalParameter;
+  }
+
+  @override
+  @trackedIncludedInId
+  bool get isOriginEnumValues {
+    return firstFragment.isOriginEnumValues;
+  }
 
   @override
   @trackedIncludedInId
@@ -2867,24 +2882,10 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @trackedIncludedInId
   bool get isStatic => _firstFragment.isStatic;
 
+  @Deprecated('Use isOriginX instead')
   @override
   @trackedIncludedInId
   bool get isSynthetic => _firstFragment.isSynthetic;
-
-  /// Return `true` if this element is a synthetic enum field.
-  ///
-  /// It is synthetic because it is not written explicitly in code, but it
-  /// is different from other synthetic fields, because its getter is also
-  /// synthetic.
-  ///
-  /// Such fields are `index`, `_name`, and `values`.
-  @trackedIndirectly
-  bool get isSyntheticEnumField {
-    return enclosingElement is EnumElementImpl &&
-        isSynthetic &&
-        getter?.isSynthetic == true &&
-        setter == null;
-  }
 
   @override
   @trackedIncludedInId
@@ -8137,6 +8138,15 @@ enum Modifier {
   /// or [PrimaryConstructorDeclaration].
   ORIGIN_DECLARATION,
 
+  /// Whether the field is from a declaring formal parameter.
+  ORIGIN_DECLARING_FORMAL_PARAMETER,
+
+  /// Whether the field is the `values` field of an enum.
+  ORIGIN_ENUM_VALUES,
+
+  /// Whether the property inducing element is from a getter or setter.
+  ORIGIN_GETTER_SETTER,
+
   /// Whether the constructor was created because there are no explicit
   /// constructors.
   ORIGIN_IMPLICIT_DEFAULT,
@@ -8856,6 +8866,18 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
 
   @override
   @trackedIncludedInId
+  bool get isOriginDeclaration {
+    return firstFragment.isOriginDeclaration;
+  }
+
+  @override
+  @trackedIncludedInId
+  bool get isOriginGetterSetter {
+    return firstFragment.isOriginGetterSetter;
+  }
+
+  @override
+  @trackedIncludedInId
   LibraryElementImpl get library => super.library!;
 
   @override
@@ -8940,9 +8962,10 @@ abstract class PropertyInducingElementTypeInference {
   TypeImpl perform();
 }
 
+@GenerateFragmentImpl(modifiers: _PropertyInducingFragmentImplModifiers.values)
 abstract class PropertyInducingFragmentImpl
     extends NonParameterVariableFragmentImpl
-    with DeferredResolutionReadingMixin
+    with DeferredResolutionReadingMixin, _PropertyInducingFragmentImplMixin
     implements PropertyInducingFragment {
   @override
   final String? name;
@@ -9576,6 +9599,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   @trackedIncludedInId
   bool get isStatic => _firstFragment.isStatic;
 
+  @Deprecated('Use isOriginX instead')
   @override
   @trackedIncludedInId
   bool get isSynthetic {
@@ -10486,6 +10510,8 @@ enum _FieldFragmentImplModifiers {
   /// Whether the field was explicitly marked as being covariant.
   isExplicitlyCovariant,
   isEnumConstant,
+  isOriginDeclaringFormalParameter,
+  isOriginEnumValues,
   isPromotable,
 }
 
@@ -10506,6 +10532,11 @@ enum _FragmentImplModifiers {
 enum _MixinFragmentImplModifiers { isBase }
 
 enum _NonParameterVariableFragmentImplModifiers { hasInitializer }
+
+enum _PropertyInducingFragmentImplModifiers {
+  isOriginDeclaration,
+  isOriginGetterSetter,
+}
 
 /// Instances of [List]s that are used as "not yet computed" values, they
 /// must be not `null`, and not identical to `const <T>[]`.

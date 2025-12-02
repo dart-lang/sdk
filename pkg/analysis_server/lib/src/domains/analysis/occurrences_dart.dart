@@ -416,7 +416,7 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
       canonicalElement = canonicalElement.field;
     } else if (canonicalElement case PropertyAccessorElement(
       :var variable,
-    ) when !variable.isSynthetic) {
+    ) when variable.isOriginDeclaration) {
       canonicalElement = variable;
     }
     return canonicalElement?.baseElement;

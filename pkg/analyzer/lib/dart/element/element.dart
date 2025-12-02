@@ -312,11 +312,11 @@ abstract class ConstructorFragment implements ExecutableFragment {
   /// It is `null` if the fragment is synthetic, or does not have the keyword.
   int? get factoryKeywordOffset;
 
-  @override
   @Deprecated(
     'Use isOriginDeclaration / isOriginImplicitDefault / '
     'isOriginMixinApplication instead, depending on intent.',
   )
+  @override
   bool get isSynthetic;
 
   @override
@@ -1274,6 +1274,18 @@ abstract class FieldElement implements PropertyInducingElement {
 
   /// Whether the field was explicitly marked as being external.
   bool get isExternal;
+
+  /// Whether the field is from a declaring formal parameter.
+  ///
+  /// When this is `true`, [isOriginDeclaration], [isOriginGetterSetter],
+  /// and [isOriginEnumValues] are `false`.
+  bool get isOriginDeclaringFormalParameter;
+
+  /// Whether the field is the `values` field of an enum.
+  ///
+  /// When this is `true`, [isOriginDeclaration], [isOriginGetterSetter],
+  /// and [isOriginDeclaringFormalParameter] are `false`.
+  bool get isOriginEnumValues;
 
   /// Whether the field can be type promoted.
   bool get isPromotable;
@@ -2973,6 +2985,21 @@ abstract class PropertyInducingElement implements VariableElement {
   /// Whether any fragment of this variable has an initializer at declaration.
   bool get hasInitializer;
 
+  /// Whether the property is from an explicit [FieldDeclaration],
+  /// [TopLevelVariableDeclaration], or [EnumConstantDeclaration].
+  ///
+  /// When this is `true`, [isOriginGetterSetter] is `false`.
+  bool get isOriginDeclaration;
+
+  /// Whether the property is from a getter or setter.
+  ///
+  /// When this is `true`, [isOriginGetterSetter] is `false`.
+  bool get isOriginGetterSetter;
+
+  @Deprecated('Use isOriginX instead')
+  @override
+  bool get isSynthetic;
+
   @override
   LibraryElement get library;
 
@@ -3011,6 +3038,7 @@ abstract class PropertyInducingFragment implements VariableFragment {
   /// A synthetic fragment is a fragment that is not represented in the source
   /// code explicitly, but is implied by the source code, such as the default
   /// constructor for a class that does not explicitly define any constructors.
+  @Deprecated('Use isOriginX instead')
   bool get isSynthetic;
 
   @override

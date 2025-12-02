@@ -117,10 +117,8 @@ class InstanceMemberInferrer {
       if (field.isStatic) {
         return;
       }
-      if (field.isSynthetic) {
-        if (field.declaringFormalParameter == null) {
-          return;
-        }
+      if (field.isOriginGetterSetter) {
+        return;
       }
       elementLibraryUri = field.library.uri;
       elementName = field.name ?? '';

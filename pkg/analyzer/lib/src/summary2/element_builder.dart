@@ -473,6 +473,7 @@ class ElementBuilder {
 
     if (lastFieldElement == null) {
       var fieldFragment = FieldFragmentImpl(name: getterFragment.name)
+        ..isOriginGetterSetter = true
         ..isSynthetic = true
         ..isStatic = getterFragment.isStatic;
       instanceFragment.addField(fieldFragment);
@@ -572,6 +573,7 @@ class ElementBuilder {
 
     if (lastFieldElement == null) {
       var fieldFragment = FieldFragmentImpl(name: setterFragment.name)
+        ..isOriginGetterSetter = true
         ..isSynthetic = true
         ..isStatic = setterFragment.isStatic;
       instanceFragment.addField(fieldFragment);
@@ -689,9 +691,10 @@ class ElementBuilder {
     }
 
     if (lastVariableElement == null) {
-      var variableFragment = TopLevelVariableFragmentImpl(
-        name: getterFragment.name,
-      )..isSynthetic = true;
+      var variableFragment =
+          TopLevelVariableFragmentImpl(name: getterFragment.name)
+            ..isOriginGetterSetter = true
+            ..isSynthetic = true;
       libraryFragment.addTopLevelVariable(variableFragment);
 
       lastVariableElement = TopLevelVariableElementImpl(
@@ -739,9 +742,10 @@ class ElementBuilder {
     }
 
     if (lastVariableElement == null) {
-      var variableFragment = TopLevelVariableFragmentImpl(
-        name: setterFragment.name,
-      )..isSynthetic = true;
+      var variableFragment =
+          TopLevelVariableFragmentImpl(name: setterFragment.name)
+            ..isOriginGetterSetter = true
+            ..isSynthetic = true;
       libraryFragment.addTopLevelVariable(variableFragment);
 
       lastVariableElement = TopLevelVariableElementImpl(
@@ -1180,6 +1184,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
           ..isAugmentation = constant.augmentKeyword != null
           ..isConst = true
           ..isEnumConstant = true
+          ..isOriginDeclaration = true
           ..isStatic = true;
         field.metadata = _buildMetadata(constant.metadata);
 
@@ -1247,6 +1252,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       var valuesField = FieldFragmentImpl(name: 'values')
         ..isConst = true
         ..isStatic = true
+        ..isOriginEnumValues = true
         ..isSynthetic = true;
       var initializer = ListLiteralImpl(
         constKeyword: null,
@@ -1398,6 +1404,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       fragment.isExternal = node.externalKeyword != null;
       fragment.isFinal = node.fields.isFinal;
       fragment.isLate = node.fields.isLate;
+      fragment.isOriginDeclaration = true;
       fragment.isStatic = node.isStatic;
       fragment.metadata = metadata;
 
@@ -1813,6 +1820,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         var name = _getFragmentName(formalParameter.name);
         var fieldFragment = FieldFragmentImpl(name: name);
         fieldFragment.isFinal = formalParameter.isFinal;
+        fieldFragment.isOriginDeclaringFormalParameter = true;
         fieldFragment.isSynthetic = true;
         fieldFragment.hasImplicitType = !formalParameter.isExplicitlyTyped;
         _linker.elementNodes[fieldFragment] = formalParameter;
@@ -1962,6 +1970,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       fragment.isExternal = node.externalKeyword != null;
       fragment.isFinal = node.variables.isFinal;
       fragment.isLate = node.variables.isLate;
+      fragment.isOriginDeclaration = true;
       fragment.metadata = metadata;
       if (fragment.isConst) {
         fragment.constantInitializer = variable.initializer;
@@ -2049,6 +2058,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     );
     fieldFragment.isAugmentation = extensionFragment.isAugmentation;
     fieldFragment.isFinal = true;
+    fieldFragment.isOriginDeclaringFormalParameter = true;
     fieldFragment.metadata = _buildMetadata(formalParameter.metadata);
     _linker.elementNodes[fieldFragment] = primaryConstructor;
 

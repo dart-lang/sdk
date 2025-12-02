@@ -252,7 +252,11 @@ class SummaryWriter {
   }
 
   void summarizeField(FieldElement element) {
-    if (element.isSynthetic || element.isEnumConstant) return;
+    if (element.isOriginGetterSetter ||
+        element.isEnumConstant ||
+        element.isOriginEnumValues) {
+      return;
+    }
 
     var name = element.name;
     if (name == null) return;

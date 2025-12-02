@@ -304,12 +304,18 @@ class Linker {
         ...element.mixins,
       ].nonNulls.any((type) => computeFor(type.element));
 
-      hasNonFinalField |= element.fields.any((field) {
-        return !field.isFinal &&
-            !field.isConst &&
-            !field.isStatic &&
-            !field.isSynthetic;
-      });
+      hasNonFinalField |= !element.fields
+          .where((field) => field.isInstanceField)
+          .every((field) {
+            // If has storage...
+            if (field.isOriginDeclaration ||
+                field.isOriginDeclaringFormalParameter) {
+              // ...then must be final
+              return field.isFinal || field.isConst;
+            }
+            // Otherwise we don't care.
+            return true;
+          });
 
       return element.hasNonFinalField = hasNonFinalField;
     }

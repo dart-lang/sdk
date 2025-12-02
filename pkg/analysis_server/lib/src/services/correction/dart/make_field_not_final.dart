@@ -44,7 +44,7 @@ class MakeFieldNotFinal extends ResolvedCorrectionProducer {
 
     // The variable must be not synthetic, and have no setter yet.
     var variable = getter.variable;
-    if (variable.isSynthetic || variable.setter != null) {
+    if (!variable.isOriginDeclaration || variable.setter != null) {
       return;
     }
 

@@ -441,13 +441,13 @@ extension on Element {
       return true;
     }
     if (this case PropertyInducingElement(
-      isSynthetic: true,
+      isOriginGetterSetter: true,
       :var getter?,
     ) when getter.isInAnalyzerPublicApi) {
       return true;
     }
     if (this case PropertyInducingElement(
-      isSynthetic: true,
+      isOriginGetterSetter: true,
       :var setter?,
     ) when setter.isInAnalyzerPublicApi) {
       return true;

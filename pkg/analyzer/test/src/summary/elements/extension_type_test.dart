@@ -37,7 +37,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:22) (firstTokenOffset:17) (offset:22)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:22) (firstTokenOffset:17) (offset:22)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
@@ -45,7 +45,7 @@ library
         #F4 extension type B (nameOffset:44) (firstTokenOffset:29) (offset:44)
           element: <testLibrary>::@extensionType::B
           fields
-            #F5 it (nameOffset:50) (firstTokenOffset:46) (offset:50)
+            #F5 isOriginDeclaringFormalParameter it (nameOffset:50) (firstTokenOffset:46) (offset:50)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F6 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
@@ -58,7 +58,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int?
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int?
@@ -85,7 +85,7 @@ library
         Object
         num
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::B::@field::it
           firstFragment: #F5
           type: int
@@ -115,7 +115,7 @@ library
         #F1 extension type A (nameOffset:21) (firstTokenOffset:0) (offset:21)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:27) (firstTokenOffset:23) (offset:27)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:27) (firstTokenOffset:23) (offset:27)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
             #F3 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
@@ -136,7 +136,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -176,7 +176,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
             #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
@@ -204,7 +204,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -251,7 +251,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:29) (firstTokenOffset:25) (offset:29)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:29) (firstTokenOffset:25) (offset:29)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
             #F3 isOriginDeclaration isPrimary primary (nameOffset:17) (firstTokenOffset:15) (offset:17)
@@ -280,7 +280,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::primary
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -327,7 +327,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:27) (firstTokenOffset:23) (offset:27)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:27) (firstTokenOffset:23) (offset:27)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
             #F3 isOriginDeclaration isPrimary named (nameOffset:17) (firstTokenOffset:15) (offset:17)
@@ -351,7 +351,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::named
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -391,7 +391,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
             #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
@@ -419,7 +419,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -467,7 +467,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
             #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
@@ -495,7 +495,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -543,7 +543,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:29) (firstTokenOffset:25) (offset:29)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:29) (firstTokenOffset:25) (offset:29)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
             #F3 isOriginDeclaration isPrimary primary (nameOffset:17) (firstTokenOffset:15) (offset:17)
@@ -572,7 +572,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::primary
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -620,7 +620,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:29) (firstTokenOffset:25) (offset:29)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:29) (firstTokenOffset:25) (offset:29)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
             #F3 isOriginDeclaration isPrimary primary (nameOffset:17) (firstTokenOffset:15) (offset:17)
@@ -649,7 +649,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::primary
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -698,7 +698,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
             #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
@@ -727,7 +727,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: num
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: num
@@ -776,7 +776,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
             #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
@@ -805,7 +805,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: num
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: num
@@ -854,7 +854,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
             #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
@@ -883,7 +883,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: num
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: num
@@ -941,7 +941,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
             #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
@@ -964,7 +964,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -1005,7 +1005,7 @@ library
         #F1 extension type A (nameOffset:24) (firstTokenOffset:0) (offset:24)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:30) (firstTokenOffset:26) (offset:30)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:30) (firstTokenOffset:26) (offset:30)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
             #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:24) (offset:24)
@@ -1027,7 +1027,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -1069,9 +1069,9 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
-            #F3 hasInitializer foo (nameOffset:46) (firstTokenOffset:46) (offset:46)
+            #F3 hasInitializer isOriginDeclaration foo (nameOffset:46) (firstTokenOffset:46) (offset:46)
               element: <testLibrary>::@extensionType::A::@field::foo
               initializer: expression_0
                 IntegerLiteral
@@ -1090,13 +1090,13 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        static const hasInitializer foo
+        static const hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@extensionType::A::@field::foo
           firstFragment: #F3
           type: int
@@ -1136,9 +1136,9 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
-            #F3 hasInitializer foo (nameOffset:42) (firstTokenOffset:42) (offset:42)
+            #F3 hasInitializer isOriginDeclaration foo (nameOffset:42) (firstTokenOffset:42) (offset:42)
               element: <testLibrary>::@extensionType::A::@field::foo
               initializer: expression_0
                 IntegerLiteral
@@ -1157,13 +1157,13 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        static const hasImplicitType hasInitializer foo
+        static const hasImplicitType hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@extensionType::A::@field::foo
           firstFragment: #F3
           type: int
@@ -1203,9 +1203,9 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
-            #F3 hasInitializer foo (nameOffset:35) (firstTokenOffset:35) (offset:35)
+            #F3 hasInitializer isOriginDeclaration foo (nameOffset:35) (firstTokenOffset:35) (offset:35)
               element: <testLibrary>::@extensionType::A::@field::foo
           getters
             #F4 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -1220,13 +1220,13 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        final hasImplicitType hasInitializer foo
+        final hasImplicitType hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@extensionType::A::@field::foo
           firstFragment: #F3
           type: int
@@ -1267,7 +1267,7 @@ library
         #F1 extension type A (nameOffset:32) (firstTokenOffset:17) (offset:32)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:43) (firstTokenOffset:34) (offset:43)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:43) (firstTokenOffset:34) (offset:43)
               element: <testLibrary>::@extensionType::A::@field::it
               metadata
                 Annotation
@@ -1304,7 +1304,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           metadata
@@ -1362,9 +1362,9 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
-            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo
           getters
             #F4 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -1379,13 +1379,13 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: <testLibrary>::@extensionType::A::@field::foo
           firstFragment: #F3
           type: int
@@ -1430,7 +1430,7 @@ library
         #F4 extension type X (nameOffset:64) (firstTokenOffset:49) (offset:64)
           element: <testLibrary>::@extensionType::X
           fields
-            #F5 it (nameOffset:68) (firstTokenOffset:66) (offset:68)
+            #F5 isOriginDeclaringFormalParameter it (nameOffset:68) (firstTokenOffset:66) (offset:68)
               element: <testLibrary>::@extensionType::X::@field::it
           getters
             #F6 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
@@ -1459,7 +1459,7 @@ library
         A
         B
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::X::@field::it
           firstFragment: #F5
           type: C
@@ -1491,7 +1491,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -1499,7 +1499,7 @@ library
         #F4 extension type B (nameOffset:56) (firstTokenOffset:41) (offset:56)
           element: <testLibrary>::@extensionType::B
           fields
-            #F5 it (nameOffset:62) (firstTokenOffset:58) (offset:62)
+            #F5 isOriginDeclaringFormalParameter it (nameOffset:62) (firstTokenOffset:58) (offset:62)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F6 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
@@ -1514,7 +1514,7 @@ library
       interfaces
         Object
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -1535,7 +1535,7 @@ library
       interfaces
         Object
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::B::@field::it
           firstFragment: #F5
           type: int
@@ -1566,7 +1566,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -1581,7 +1581,7 @@ library
       interfaces
         Object
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -1613,7 +1613,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -1621,7 +1621,7 @@ library
         #F4 extension type B (nameOffset:43) (firstTokenOffset:28) (offset:43)
           element: <testLibrary>::@extensionType::B
           fields
-            #F5 it (nameOffset:49) (firstTokenOffset:45) (offset:49)
+            #F5 isOriginDeclaringFormalParameter it (nameOffset:49) (firstTokenOffset:45) (offset:49)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F6 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
@@ -1634,7 +1634,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: num
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: num
@@ -1655,7 +1655,7 @@ library
       interfaces
         A
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::B::@field::it
           firstFragment: #F5
           type: int
@@ -1686,7 +1686,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -1701,7 +1701,7 @@ library
       interfaces
         num
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -1732,7 +1732,7 @@ library
         #F1 extension type X (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::X
           fields
-            #F2 it (nameOffset:22) (firstTokenOffset:17) (offset:22)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:22) (firstTokenOffset:17) (offset:22)
               element: <testLibrary>::@extensionType::X::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
@@ -1745,7 +1745,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::X::@constructor::new
       typeErasure: int?
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::X::@field::it
           firstFragment: #F2
           type: int?
@@ -1779,7 +1779,7 @@ library
             #F2 T (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: #E0 T
           fields
-            #F3 it (nameOffset:22) (firstTokenOffset:20) (offset:22)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:22) (firstTokenOffset:20) (offset:22)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F4 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
@@ -1795,7 +1795,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: T
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           hasEnclosingTypeParameterReference: true
@@ -1829,7 +1829,7 @@ library
         #F1 extension type X (nameOffset:33) (firstTokenOffset:18) (offset:33)
           element: <testLibrary>::@extensionType::X
           fields
-            #F2 it (nameOffset:39) (firstTokenOffset:35) (offset:39)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:39) (firstTokenOffset:35) (offset:39)
               element: <testLibrary>::@extensionType::X::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
@@ -1847,7 +1847,7 @@ library
       interfaces
         num
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::X::@field::it
           firstFragment: #F2
           type: int
@@ -1894,7 +1894,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int?
       fields
-        final promotable _it
+        final promotable isOriginDeclaringFormalParameter _it
           reference: <testLibrary>::@extensionType::A::@field::_it
           firstFragment: #F1
           type: int?
@@ -1932,7 +1932,7 @@ library
         #F1 extension type A (nameOffset:37) (firstTokenOffset:17) (offset:37)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:43) (firstTokenOffset:39) (offset:43)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:43) (firstTokenOffset:39) (offset:43)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
             #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
@@ -1953,7 +1953,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -1995,7 +1995,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -2014,7 +2014,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -2056,7 +2056,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -2079,7 +2079,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -2122,7 +2122,7 @@ library
         #F1 extension type <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@extensionType::0
           fields
-            #F2 it (nameOffset:20) (firstTokenOffset:16) (offset:20)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:20) (firstTokenOffset:16) (offset:20)
               element: <testLibrary>::@extensionType::0::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
@@ -2135,7 +2135,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::0::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::0::@field::it
           firstFragment: #F2
           type: int
@@ -2166,7 +2166,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 <null-name> (nameOffset:<null>) (firstTokenOffset:17) (offset:17)
+            #F2 isOriginDeclaringFormalParameter <null-name> (nameOffset:<null>) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@extensionType::A::@field::0
           constructors
             #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
@@ -2189,7 +2189,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
-        final <null-name>
+        final isOriginDeclaringFormalParameter <null-name>
           reference: <testLibrary>::@extensionType::A::@field::0
           firstFragment: #F2
           type: InvalidType
@@ -2231,7 +2231,7 @@ library
             #F2 T (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: #E0 T
           fields
-            #F3 it (nameOffset:34) (firstTokenOffset:30) (offset:34)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:34) (firstTokenOffset:30) (offset:34)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F4 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
@@ -2248,7 +2248,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
@@ -2281,9 +2281,9 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
-            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo
           getters
             #F4 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -2302,13 +2302,13 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: <testLibrary>::@extensionType::A::@field::foo
           firstFragment: #F3
           type: double
@@ -2350,7 +2350,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:19) (firstTokenOffset:17) (offset:19)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:19) (firstTokenOffset:17) (offset:19)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
@@ -2358,7 +2358,7 @@ library
         #F4 extension type B (nameOffset:42) (firstTokenOffset:27) (offset:42)
           element: <testLibrary>::@extensionType::B
           fields
-            #F5 it (nameOffset:46) (firstTokenOffset:44) (offset:46)
+            #F5 isOriginDeclaringFormalParameter it (nameOffset:46) (firstTokenOffset:44) (offset:46)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F6 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
@@ -2371,7 +2371,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: InvalidType
@@ -2390,7 +2390,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: InvalidType
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::B::@field::it
           firstFragment: #F5
           type: InvalidType
@@ -2423,7 +2423,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:19) (firstTokenOffset:17) (offset:19)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:19) (firstTokenOffset:17) (offset:19)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
@@ -2431,7 +2431,7 @@ library
         #F4 extension type B (nameOffset:42) (firstTokenOffset:27) (offset:42)
           element: <testLibrary>::@extensionType::B
           fields
-            #F5 it (nameOffset:52) (firstTokenOffset:44) (offset:52)
+            #F5 isOriginDeclaringFormalParameter it (nameOffset:52) (firstTokenOffset:44) (offset:52)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F6 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
@@ -2444,7 +2444,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: B
@@ -2463,7 +2463,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: InvalidType
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::B::@field::it
           firstFragment: #F5
           type: InvalidType
@@ -2494,7 +2494,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:19) (firstTokenOffset:17) (offset:19)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:19) (firstTokenOffset:17) (offset:19)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
@@ -2507,7 +2507,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: InvalidType
@@ -2540,7 +2540,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -2548,7 +2548,7 @@ library
         #F4 extension type B (nameOffset:44) (firstTokenOffset:29) (offset:44)
           element: <testLibrary>::@extensionType::B
           fields
-            #F5 it (nameOffset:62) (firstTokenOffset:46) (offset:62)
+            #F5 isOriginDeclaringFormalParameter it (nameOffset:62) (firstTokenOffset:46) (offset:62)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F6 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
@@ -2561,7 +2561,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -2580,7 +2580,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int Function(int)
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::B::@field::it
           firstFragment: #F5
           type: A Function(A)
@@ -2616,7 +2616,7 @@ library
             #F2 T (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: #E0 T
           fields
-            #F3 it (nameOffset:22) (firstTokenOffset:20) (offset:22)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:22) (firstTokenOffset:20) (offset:22)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F4 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
@@ -2624,7 +2624,7 @@ library
         #F5 extension type B (nameOffset:45) (firstTokenOffset:30) (offset:45)
           element: <testLibrary>::@extensionType::B
           fields
-            #F6 it (nameOffset:57) (firstTokenOffset:47) (offset:57)
+            #F6 isOriginDeclaringFormalParameter it (nameOffset:57) (firstTokenOffset:47) (offset:57)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F7 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
@@ -2640,7 +2640,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: T
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           hasEnclosingTypeParameterReference: true
@@ -2661,7 +2661,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: double
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::B::@field::it
           firstFragment: #F6
           type: A<double>
@@ -2694,7 +2694,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -2702,7 +2702,7 @@ library
         #F4 extension type B (nameOffset:44) (firstTokenOffset:29) (offset:44)
           element: <testLibrary>::@extensionType::B
           fields
-            #F5 it (nameOffset:54) (firstTokenOffset:46) (offset:54)
+            #F5 isOriginDeclaringFormalParameter it (nameOffset:54) (firstTokenOffset:46) (offset:54)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F6 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
@@ -2715,7 +2715,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -2734,7 +2734,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: List<int>
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::B::@field::it
           firstFragment: #F5
           type: List<A>
@@ -2765,7 +2765,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F2 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F3 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -2778,7 +2778,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -2813,7 +2813,7 @@ library
             #F3 U (nameOffset:32) (firstTokenOffset:32) (offset:32)
               element: #E1 U
           fields
-            #F4 it (nameOffset:45) (firstTokenOffset:35) (offset:45)
+            #F4 isOriginDeclaringFormalParameter it (nameOffset:45) (firstTokenOffset:35) (offset:45)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
             #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
@@ -2840,7 +2840,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: Map<T, U>
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F4
           hasEnclosingTypeParameterReference: true
@@ -2889,7 +2889,7 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
@@ -2910,7 +2910,7 @@ library
           previousFragment: #F1
           nextFragment: #F10
           fields
-            #F4 augment it (nameOffset:58) (firstTokenOffset:54) (offset:58)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:58) (firstTokenOffset:54) (offset:58)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
               nextFragment: #F11
@@ -2930,7 +2930,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F11 augment it (nameOffset:95) (firstTokenOffset:91) (offset:95)
+            #F11 augment isOriginDeclaringFormalParameter it (nameOffset:95) (firstTokenOffset:91) (offset:95)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
           constructors
@@ -2951,7 +2951,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
@@ -3001,7 +3001,7 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 augment it (nameOffset:29) (firstTokenOffset:25) (offset:29)
+            #F3 augment isOriginDeclaringFormalParameter it (nameOffset:29) (firstTokenOffset:25) (offset:29)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
@@ -3024,7 +3024,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:84) (firstTokenOffset:80) (offset:84)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:84) (firstTokenOffset:80) (offset:84)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
@@ -3048,7 +3048,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
@@ -3101,7 +3101,7 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
@@ -3121,7 +3121,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:58) (firstTokenOffset:54) (offset:58)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:58) (firstTokenOffset:54) (offset:58)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
@@ -3147,7 +3147,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
@@ -3198,7 +3198,7 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 it (nameOffset:24) (firstTokenOffset:20) (offset:24)
+            #F5 isOriginDeclaringFormalParameter it (nameOffset:24) (firstTokenOffset:20) (offset:24)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
           constructors
@@ -3222,7 +3222,7 @@ library
               element: #E0 T
               previousFragment: #F3
           fields
-            #F6 augment it (nameOffset:64) (firstTokenOffset:60) (offset:64)
+            #F6 augment isOriginDeclaringFormalParameter it (nameOffset:64) (firstTokenOffset:60) (offset:64)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
           constructors
@@ -3254,7 +3254,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F5
           type: int
@@ -3305,7 +3305,7 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:27) (firstTokenOffset:23) (offset:27)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:27) (firstTokenOffset:23) (offset:27)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
@@ -3326,7 +3326,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:70) (firstTokenOffset:66) (offset:70)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:70) (firstTokenOffset:66) (offset:70)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
@@ -3352,7 +3352,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::named
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
@@ -3401,10 +3401,10 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
-            #F5 hasInitializer foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
+            #F5 hasInitializer isOriginDeclaration foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo
               nextFragment: #F6
           constructors
@@ -3432,10 +3432,10 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:81) (firstTokenOffset:77) (offset:81)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:81) (firstTokenOffset:77) (offset:81)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
-            #F6 augment hasInitializer foo (nameOffset:108) (firstTokenOffset:108) (offset:108)
+            #F6 augment hasInitializer isOriginDeclaration foo (nameOffset:108) (firstTokenOffset:108) (offset:108)
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
           constructors
@@ -3456,13 +3456,13 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        static hasInitializer foo
+        static hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@extensionType::A::@field::foo
           firstFragment: #F5
           type: int
@@ -3527,10 +3527,10 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
-            #F5 hasInitializer foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
+            #F5 hasInitializer isOriginDeclaration foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo
               nextFragment: #F6
           constructors
@@ -3559,11 +3559,11 @@ library
           previousFragment: #F1
           nextFragment: #F15
           fields
-            #F4 augment it (nameOffset:81) (firstTokenOffset:77) (offset:81)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:81) (firstTokenOffset:77) (offset:81)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
               nextFragment: #F16
-            #F6 augment hasInitializer foo (nameOffset:108) (firstTokenOffset:108) (offset:108)
+            #F6 augment hasInitializer isOriginDeclaration foo (nameOffset:108) (firstTokenOffset:108) (offset:108)
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
               nextFragment: #F17
@@ -3583,10 +3583,10 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F16 augment it (nameOffset:149) (firstTokenOffset:145) (offset:149)
+            #F16 augment isOriginDeclaringFormalParameter it (nameOffset:149) (firstTokenOffset:145) (offset:149)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
-            #F17 augment hasInitializer foo (nameOffset:176) (firstTokenOffset:176) (offset:176)
+            #F17 augment hasInitializer isOriginDeclaration foo (nameOffset:176) (firstTokenOffset:176) (offset:176)
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F6
           constructors
@@ -3607,13 +3607,13 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        static hasInitializer foo
+        static hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@extensionType::A::@field::foo
           firstFragment: #F5
           type: int
@@ -3678,10 +3678,10 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
-            #F5 hasInitializer foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
+            #F5 hasInitializer isOriginDeclaration foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo
               nextFragment: #F6
           constructors
@@ -3711,7 +3711,7 @@ library
           previousFragment: #F1
           nextFragment: #F16
           fields
-            #F4 augment it (nameOffset:81) (firstTokenOffset:77) (offset:81)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:81) (firstTokenOffset:77) (offset:81)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
               nextFragment: #F17
@@ -3735,10 +3735,10 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F17 augment it (nameOffset:154) (firstTokenOffset:150) (offset:154)
+            #F17 augment isOriginDeclaringFormalParameter it (nameOffset:154) (firstTokenOffset:150) (offset:154)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
-            #F6 augment hasInitializer foo (nameOffset:181) (firstTokenOffset:181) (offset:181)
+            #F6 augment hasInitializer isOriginDeclaration foo (nameOffset:181) (firstTokenOffset:181) (offset:181)
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
           constructors
@@ -3759,13 +3759,13 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        static hasInitializer foo
+        static hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@extensionType::A::@field::foo
           firstFragment: #F5
           type: int
@@ -3830,10 +3830,10 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
-            #F5 hasInitializer foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
+            #F5 hasInitializer isOriginDeclaration foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo
               nextFragment: #F6
           constructors
@@ -3863,7 +3863,7 @@ library
           previousFragment: #F1
           nextFragment: #F16
           fields
-            #F4 augment it (nameOffset:81) (firstTokenOffset:77) (offset:81)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:81) (firstTokenOffset:77) (offset:81)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
               nextFragment: #F17
@@ -3890,10 +3890,10 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F17 augment it (nameOffset:154) (firstTokenOffset:150) (offset:154)
+            #F17 augment isOriginDeclaringFormalParameter it (nameOffset:154) (firstTokenOffset:150) (offset:154)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
-            #F6 augment hasInitializer foo (nameOffset:181) (firstTokenOffset:181) (offset:181)
+            #F6 augment hasInitializer isOriginDeclaration foo (nameOffset:181) (firstTokenOffset:181) (offset:181)
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
           constructors
@@ -3914,13 +3914,13 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        static hasInitializer foo
+        static hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@extensionType::A::@field::foo
           firstFragment: #F5
           type: int
@@ -3981,10 +3981,10 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
-            #F5 hasInitializer foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
+            #F5 hasInitializer isOriginDeclaration foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo
               nextFragment: #F6
           constructors
@@ -4012,10 +4012,10 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:81) (firstTokenOffset:77) (offset:81)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:81) (firstTokenOffset:77) (offset:81)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
-            #F6 augment hasInitializer foo (nameOffset:111) (firstTokenOffset:111) (offset:111)
+            #F6 augment hasInitializer isOriginDeclaration foo (nameOffset:111) (firstTokenOffset:111) (offset:111)
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
           constructors
@@ -4036,13 +4036,13 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        static hasInitializer foo
+        static hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@extensionType::A::@field::foo
           firstFragment: #F5
           type: int
@@ -4105,10 +4105,10 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
-            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F5 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo
               nextFragment: #F6
           constructors
@@ -4130,10 +4130,10 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:86) (firstTokenOffset:82) (offset:86)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:86) (firstTokenOffset:82) (offset:86)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
-            #F6 augment hasInitializer foo (nameOffset:113) (firstTokenOffset:113) (offset:113)
+            #F6 augment hasInitializer isOriginDeclaration foo (nameOffset:113) (firstTokenOffset:113) (offset:113)
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
           constructors
@@ -4154,13 +4154,13 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        synthetic static hasInitializer foo
+        synthetic static hasInitializer isOriginGetterSetter foo
           reference: <testLibrary>::@extensionType::A::@field::foo
           firstFragment: #F5
           type: int
@@ -4210,10 +4210,10 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
-            #F5 hasInitializer foo1 (nameOffset:40) (firstTokenOffset:40) (offset:40)
+            #F5 hasInitializer isOriginDeclaration foo1 (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo1
           constructors
             #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
@@ -4240,10 +4240,10 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:82) (firstTokenOffset:78) (offset:82)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:82) (firstTokenOffset:78) (offset:82)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
-            #F14 hasInitializer foo2 (nameOffset:101) (firstTokenOffset:101) (offset:101)
+            #F14 hasInitializer isOriginDeclaration foo2 (nameOffset:101) (firstTokenOffset:101) (offset:101)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
             #F9 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:76) (offset:76)
@@ -4272,19 +4272,19 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        static hasInitializer foo1
+        static hasInitializer isOriginDeclaration foo1
           reference: <testLibrary>::@extensionType::A::@field::foo1
           firstFragment: #F5
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::foo1
           setter: <testLibrary>::@extensionType::A::@setter::foo1
-        static hasInitializer foo2
+        static hasInitializer isOriginDeclaration foo2
           reference: <testLibrary>::@extensionType::A::@field::foo2
           firstFragment: #F14
           type: int
@@ -4359,10 +4359,10 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
-            #F5 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F5 synthetic isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo1
           constructors
             #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
@@ -4383,10 +4383,10 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:80) (firstTokenOffset:76) (offset:80)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:80) (firstTokenOffset:76) (offset:80)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
-            #F12 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
+            #F12 synthetic isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
             #F9 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:74) (offset:74)
@@ -4409,18 +4409,18 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        synthetic foo1
+        synthetic isOriginGetterSetter foo1
           reference: <testLibrary>::@extensionType::A::@field::foo1
           firstFragment: #F5
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::foo1
-        synthetic foo2
+        synthetic isOriginGetterSetter foo2
           reference: <testLibrary>::@extensionType::A::@field::foo2
           firstFragment: #F12
           type: int
@@ -4479,10 +4479,10 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 it (nameOffset:24) (firstTokenOffset:20) (offset:24)
+            #F5 isOriginDeclaringFormalParameter it (nameOffset:24) (firstTokenOffset:20) (offset:24)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
-            #F7 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F7 synthetic isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo1
           constructors
             #F8 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
@@ -4507,10 +4507,10 @@ library
               element: #E0 T
               previousFragment: #F3
           fields
-            #F6 augment it (nameOffset:79) (firstTokenOffset:75) (offset:79)
+            #F6 augment isOriginDeclaringFormalParameter it (nameOffset:79) (firstTokenOffset:75) (offset:79)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
-            #F14 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
+            #F14 synthetic isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
             #F11 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:70) (offset:70)
@@ -4536,19 +4536,19 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F5
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        synthetic foo1
+        synthetic isOriginGetterSetter foo1
           reference: <testLibrary>::@extensionType::A::@field::foo1
           firstFragment: #F7
           hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibrary>::@extensionType::A::@getter::foo1
-        synthetic foo2
+        synthetic isOriginGetterSetter foo2
           reference: <testLibrary>::@extensionType::A::@field::foo2
           firstFragment: #F14
           hasEnclosingTypeParameterReference: true
@@ -4606,10 +4606,10 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
-            #F5 hasInitializer foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
+            #F5 hasInitializer isOriginDeclaration foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo
           constructors
             #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
@@ -4637,7 +4637,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:81) (firstTokenOffset:77) (offset:81)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:81) (firstTokenOffset:77) (offset:81)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
@@ -4662,13 +4662,13 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        static hasInitializer foo
+        static hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@extensionType::A::@field::foo
           firstFragment: #F5
           type: int
@@ -4733,10 +4733,10 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
-            #F5 hasInitializer foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
+            #F5 hasInitializer isOriginDeclaration foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo
           constructors
             #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
@@ -4765,7 +4765,7 @@ library
           previousFragment: #F1
           nextFragment: #F15
           fields
-            #F4 augment it (nameOffset:81) (firstTokenOffset:77) (offset:81)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:81) (firstTokenOffset:77) (offset:81)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
               nextFragment: #F16
@@ -4790,7 +4790,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F16 augment it (nameOffset:154) (firstTokenOffset:150) (offset:154)
+            #F16 augment isOriginDeclaringFormalParameter it (nameOffset:154) (firstTokenOffset:150) (offset:154)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
           constructors
@@ -4815,13 +4815,13 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        static hasInitializer foo
+        static hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@extensionType::A::@field::foo
           firstFragment: #F5
           type: int
@@ -4883,12 +4883,12 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
-            #F5 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F5 synthetic isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo1
-            #F6 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F6 synthetic isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
             #F7 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
@@ -4912,7 +4912,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:101) (firstTokenOffset:97) (offset:101)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:101) (firstTokenOffset:97) (offset:101)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
@@ -4937,18 +4937,18 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        synthetic foo1
+        synthetic isOriginGetterSetter foo1
           reference: <testLibrary>::@extensionType::A::@field::foo1
           firstFragment: #F5
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::foo1
-        synthetic foo2
+        synthetic isOriginGetterSetter foo2
           reference: <testLibrary>::@extensionType::A::@field::foo2
           firstFragment: #F6
           type: int
@@ -5007,10 +5007,10 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
-            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F5 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo
           constructors
             #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
@@ -5033,7 +5033,7 @@ library
           previousFragment: #F1
           nextFragment: #F13
           fields
-            #F4 augment it (nameOffset:79) (firstTokenOffset:75) (offset:79)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:79) (firstTokenOffset:75) (offset:79)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
               nextFragment: #F14
@@ -5058,7 +5058,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F14 augment it (nameOffset:145) (firstTokenOffset:141) (offset:145)
+            #F14 augment isOriginDeclaringFormalParameter it (nameOffset:145) (firstTokenOffset:141) (offset:145)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
           constructors
@@ -5083,13 +5083,13 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: <testLibrary>::@extensionType::A::@field::foo
           firstFragment: #F5
           type: int
@@ -5138,7 +5138,7 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           getters
@@ -5147,7 +5147,7 @@ library
         #F6 extension type I1 (nameOffset:57) (firstTokenOffset:42) (offset:57)
           element: <testLibrary>::@extensionType::I1
           fields
-            #F7 it (nameOffset:64) (firstTokenOffset:60) (offset:64)
+            #F7 isOriginDeclaringFormalParameter it (nameOffset:64) (firstTokenOffset:60) (offset:64)
               element: <testLibrary>::@extensionType::I1::@field::it
           getters
             #F8 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
@@ -5156,13 +5156,13 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:101) (firstTokenOffset:97) (offset:101)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:101) (firstTokenOffset:97) (offset:101)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
         #F9 extension type I2 (nameOffset:137) (firstTokenOffset:122) (offset:137)
           element: <testLibrary>::@extensionType::I2
           fields
-            #F10 it (nameOffset:144) (firstTokenOffset:140) (offset:144)
+            #F10 isOriginDeclaringFormalParameter it (nameOffset:144) (firstTokenOffset:140) (offset:144)
               element: <testLibrary>::@extensionType::I2::@field::it
           getters
             #F11 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:144)
@@ -5178,7 +5178,7 @@ library
         I1
         I2
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
@@ -5197,7 +5197,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::I1::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::I1::@field::it
           firstFragment: #F7
           type: int
@@ -5216,7 +5216,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::I2::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::I2::@field::it
           firstFragment: #F10
           type: int
@@ -5254,7 +5254,7 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
@@ -5273,7 +5273,7 @@ library
         #F10 extension type I1 (nameOffset:57) (firstTokenOffset:42) (offset:57)
           element: <testLibrary>::@extensionType::I1
           fields
-            #F11 it (nameOffset:64) (firstTokenOffset:60) (offset:64)
+            #F11 isOriginDeclaringFormalParameter it (nameOffset:64) (firstTokenOffset:60) (offset:64)
               element: <testLibrary>::@extensionType::I1::@field::it
           constructors
             #F12 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:57) (offset:57)
@@ -5291,7 +5291,7 @@ library
           previousFragment: #F1
           nextFragment: #F15
           fields
-            #F4 augment it (nameOffset:101) (firstTokenOffset:97) (offset:101)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:101) (firstTokenOffset:97) (offset:101)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
               nextFragment: #F16
@@ -5310,7 +5310,7 @@ library
         #F19 extension type I2 (nameOffset:137) (firstTokenOffset:122) (offset:137)
           element: <testLibrary>::@extensionType::I2
           fields
-            #F20 it (nameOffset:144) (firstTokenOffset:140) (offset:144)
+            #F20 isOriginDeclaringFormalParameter it (nameOffset:144) (firstTokenOffset:140) (offset:144)
               element: <testLibrary>::@extensionType::I2::@field::it
           constructors
             #F21 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:137) (offset:137)
@@ -5327,7 +5327,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F16 augment it (nameOffset:181) (firstTokenOffset:177) (offset:181)
+            #F16 augment isOriginDeclaringFormalParameter it (nameOffset:181) (firstTokenOffset:177) (offset:181)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
           constructors
@@ -5343,7 +5343,7 @@ library
         #F24 extension type I3 (nameOffset:217) (firstTokenOffset:202) (offset:217)
           element: <testLibrary>::@extensionType::I3
           fields
-            #F25 it (nameOffset:224) (firstTokenOffset:220) (offset:224)
+            #F25 isOriginDeclaringFormalParameter it (nameOffset:224) (firstTokenOffset:220) (offset:224)
               element: <testLibrary>::@extensionType::I3::@field::it
           constructors
             #F26 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:217) (offset:217)
@@ -5368,7 +5368,7 @@ library
         I2
         I3
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
@@ -5396,7 +5396,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::I1::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::I1::@field::it
           firstFragment: #F11
           type: int
@@ -5424,7 +5424,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::I2::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::I2::@field::it
           firstFragment: #F20
           type: int
@@ -5452,7 +5452,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::I3::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::I3::@field::it
           firstFragment: #F25
           type: int
@@ -5500,7 +5500,7 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 it (nameOffset:24) (firstTokenOffset:20) (offset:24)
+            #F5 isOriginDeclaringFormalParameter it (nameOffset:24) (firstTokenOffset:20) (offset:24)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
           constructors
@@ -5519,7 +5519,7 @@ library
         #F12 extension type I1 (nameOffset:60) (firstTokenOffset:45) (offset:60)
           element: <testLibrary>::@extensionType::I1
           fields
-            #F13 it (nameOffset:67) (firstTokenOffset:63) (offset:67)
+            #F13 isOriginDeclaringFormalParameter it (nameOffset:67) (firstTokenOffset:63) (offset:67)
               element: <testLibrary>::@extensionType::I1::@field::it
           constructors
             #F14 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:60) (offset:60)
@@ -5540,7 +5540,7 @@ library
               element: #E0 T
               previousFragment: #F3
           fields
-            #F6 augment it (nameOffset:107) (firstTokenOffset:103) (offset:107)
+            #F6 augment isOriginDeclaringFormalParameter it (nameOffset:107) (firstTokenOffset:103) (offset:107)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
           constructors
@@ -5559,7 +5559,7 @@ library
             #F18 E (nameOffset:149) (firstTokenOffset:149) (offset:149)
               element: #E1 E
           fields
-            #F19 it (nameOffset:156) (firstTokenOffset:152) (offset:156)
+            #F19 isOriginDeclaringFormalParameter it (nameOffset:156) (firstTokenOffset:152) (offset:156)
               element: <testLibrary>::@extensionType::I2::@field::it
           constructors
             #F20 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:146) (offset:146)
@@ -5586,7 +5586,7 @@ library
         I1
         I2<T>
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F5
           type: int
@@ -5614,7 +5614,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::I1::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::I1::@field::it
           firstFragment: #F13
           type: int
@@ -5645,7 +5645,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::I2::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::I2::@field::it
           firstFragment: #F19
           type: int
@@ -5693,7 +5693,7 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 it (nameOffset:24) (firstTokenOffset:20) (offset:24)
+            #F5 isOriginDeclaringFormalParameter it (nameOffset:24) (firstTokenOffset:20) (offset:24)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
           constructors
@@ -5712,7 +5712,7 @@ library
         #F12 extension type I1 (nameOffset:60) (firstTokenOffset:45) (offset:60)
           element: <testLibrary>::@extensionType::I1
           fields
-            #F13 it (nameOffset:67) (firstTokenOffset:63) (offset:67)
+            #F13 isOriginDeclaringFormalParameter it (nameOffset:67) (firstTokenOffset:63) (offset:67)
               element: <testLibrary>::@extensionType::I1::@field::it
           constructors
             #F14 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:60) (offset:60)
@@ -5733,7 +5733,7 @@ library
               element: #E0 T
               previousFragment: #F3
           fields
-            #F6 augment it (nameOffset:110) (firstTokenOffset:106) (offset:110)
+            #F6 augment isOriginDeclaringFormalParameter it (nameOffset:110) (firstTokenOffset:106) (offset:110)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
           constructors
@@ -5752,7 +5752,7 @@ library
             #F18 E (nameOffset:152) (firstTokenOffset:152) (offset:152)
               element: #E1 E
           fields
-            #F19 it (nameOffset:159) (firstTokenOffset:155) (offset:159)
+            #F19 isOriginDeclaringFormalParameter it (nameOffset:159) (firstTokenOffset:155) (offset:159)
               element: <testLibrary>::@extensionType::I2::@field::it
           constructors
             #F20 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:149) (offset:149)
@@ -5779,7 +5779,7 @@ library
         I1
         I2<T>
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F5
           type: int
@@ -5807,7 +5807,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::I1::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::I1::@field::it
           firstFragment: #F13
           type: int
@@ -5838,7 +5838,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::I2::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::I2::@field::it
           firstFragment: #F19
           type: int
@@ -5884,7 +5884,7 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
@@ -5907,7 +5907,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:75) (firstTokenOffset:71) (offset:75)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:75) (firstTokenOffset:71) (offset:75)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
@@ -5931,7 +5931,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
@@ -5987,7 +5987,7 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
@@ -6013,7 +6013,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:93) (firstTokenOffset:89) (offset:93)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:93) (firstTokenOffset:89) (offset:93)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
@@ -6038,7 +6038,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
@@ -6097,7 +6097,7 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
@@ -6122,7 +6122,7 @@ library
           previousFragment: #F1
           nextFragment: #F12
           fields
-            #F4 augment it (nameOffset:75) (firstTokenOffset:71) (offset:75)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:75) (firstTokenOffset:71) (offset:75)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
               nextFragment: #F13
@@ -6147,7 +6147,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F13 augment it (nameOffset:137) (firstTokenOffset:133) (offset:137)
+            #F13 augment isOriginDeclaringFormalParameter it (nameOffset:137) (firstTokenOffset:133) (offset:137)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
           constructors
@@ -6172,7 +6172,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
@@ -6227,7 +6227,7 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 it (nameOffset:24) (firstTokenOffset:20) (offset:24)
+            #F5 isOriginDeclaringFormalParameter it (nameOffset:24) (firstTokenOffset:20) (offset:24)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
           constructors
@@ -6254,7 +6254,7 @@ library
               element: #E0 T
               previousFragment: #F3
           fields
-            #F6 augment it (nameOffset:87) (firstTokenOffset:83) (offset:87)
+            #F6 augment isOriginDeclaringFormalParameter it (nameOffset:87) (firstTokenOffset:83) (offset:87)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
           constructors
@@ -6281,7 +6281,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F5
           type: int
@@ -6342,7 +6342,7 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 it (nameOffset:24) (firstTokenOffset:20) (offset:24)
+            #F5 isOriginDeclaringFormalParameter it (nameOffset:24) (firstTokenOffset:20) (offset:24)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
           constructors
@@ -6370,7 +6370,7 @@ library
               element: #E0 T
               previousFragment: #F3
           fields
-            #F6 augment it (nameOffset:87) (firstTokenOffset:83) (offset:87)
+            #F6 augment isOriginDeclaringFormalParameter it (nameOffset:87) (firstTokenOffset:83) (offset:87)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
           constructors
@@ -6398,7 +6398,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F5
           type: int
@@ -6451,7 +6451,7 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
@@ -6477,7 +6477,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:94) (firstTokenOffset:90) (offset:94)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:94) (firstTokenOffset:90) (offset:94)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
@@ -6502,7 +6502,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
@@ -6557,10 +6557,10 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
-            #F5 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F5 synthetic isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo1
           constructors
             #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
@@ -6585,10 +6585,10 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:80) (firstTokenOffset:76) (offset:80)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:80) (firstTokenOffset:76) (offset:80)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
-            #F13 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
+            #F13 synthetic isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
             #F9 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:74) (offset:74)
@@ -6614,18 +6614,18 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        synthetic foo1
+        synthetic isOriginGetterSetter foo1
           reference: <testLibrary>::@extensionType::A::@field::foo1
           firstFragment: #F5
           type: int
           setter: <testLibrary>::@extensionType::A::@setter::foo1
-        synthetic foo2
+        synthetic isOriginGetterSetter foo2
           reference: <testLibrary>::@extensionType::A::@field::foo2
           firstFragment: #F13
           type: int
@@ -6689,10 +6689,10 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
-            #F5 hasInitializer foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
+            #F5 hasInitializer isOriginDeclaration foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo
           constructors
             #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
@@ -6720,7 +6720,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:81) (firstTokenOffset:77) (offset:81)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:81) (firstTokenOffset:77) (offset:81)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
@@ -6748,13 +6748,13 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        static hasInitializer foo
+        static hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@extensionType::A::@field::foo
           firstFragment: #F5
           type: int
@@ -6816,12 +6816,12 @@ library
           element: <testLibrary>::@extensionType::A
           nextFragment: #F2
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
-            #F5 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F5 synthetic isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo1
-            #F6 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F6 synthetic isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
             #F7 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
@@ -6852,7 +6852,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           fields
-            #F4 augment it (nameOffset:101) (firstTokenOffset:97) (offset:101)
+            #F4 augment isOriginDeclaringFormalParameter it (nameOffset:101) (firstTokenOffset:97) (offset:101)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
@@ -6880,18 +6880,18 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        synthetic foo1
+        synthetic isOriginGetterSetter foo1
           reference: <testLibrary>::@extensionType::A::@field::foo1
           firstFragment: #F5
           type: int
           setter: <testLibrary>::@extensionType::A::@setter::foo1
-        synthetic foo2
+        synthetic isOriginGetterSetter foo2
           reference: <testLibrary>::@extensionType::A::@field::foo2
           firstFragment: #F6
           type: int
@@ -6960,7 +6960,7 @@ library
         #F3 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F4 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F4 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F5 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -6977,7 +6977,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F4
           type: int
@@ -7015,7 +7015,7 @@ library
         #F2 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A::@def::0
           fields
-            #F3 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@def::0::@field::it
           getters
             #F4 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -7023,7 +7023,7 @@ library
         #F5 extension type A (nameOffset:72) (firstTokenOffset:49) (offset:72)
           element: <testLibrary>::@extensionType::A::@def::1
           fields
-            #F6 augment it (nameOffset:78) (firstTokenOffset:74) (offset:78)
+            #F6 augment isOriginDeclaringFormalParameter it (nameOffset:78) (firstTokenOffset:74) (offset:78)
               element: <testLibrary>::@extensionType::A::@def::1::@field::it
           getters
             #F7 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
@@ -7040,7 +7040,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@def::0::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@def::0::@field::it
           firstFragment: #F3
           type: int
@@ -7059,7 +7059,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@def::1::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@def::1::@field::it
           firstFragment: #F6
           type: int
@@ -7097,7 +7097,7 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 it (nameOffset:24) (firstTokenOffset:20) (offset:24)
+            #F5 isOriginDeclaringFormalParameter it (nameOffset:24) (firstTokenOffset:20) (offset:24)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
           getters
@@ -7113,7 +7113,7 @@ library
               previousFragment: #F3
               nextFragment: #F9
           fields
-            #F6 augment it (nameOffset:63) (firstTokenOffset:59) (offset:63)
+            #F6 augment isOriginDeclaringFormalParameter it (nameOffset:63) (firstTokenOffset:59) (offset:63)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
               nextFragment: #F10
@@ -7125,7 +7125,7 @@ library
               element: #E0 T
               previousFragment: #F4
           fields
-            #F10 augment it (nameOffset:102) (firstTokenOffset:98) (offset:102)
+            #F10 augment isOriginDeclaringFormalParameter it (nameOffset:102) (firstTokenOffset:98) (offset:102)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F6
   extensionTypes
@@ -7139,7 +7139,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F5
           type: int
@@ -7177,7 +7177,7 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 it (nameOffset:24) (firstTokenOffset:20) (offset:24)
+            #F5 isOriginDeclaringFormalParameter it (nameOffset:24) (firstTokenOffset:20) (offset:24)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
           getters
@@ -7193,7 +7193,7 @@ library
               previousFragment: #F3
               nextFragment: #F9
           fields
-            #F6 augment it (nameOffset:66) (firstTokenOffset:62) (offset:66)
+            #F6 augment isOriginDeclaringFormalParameter it (nameOffset:66) (firstTokenOffset:62) (offset:66)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
               nextFragment: #F10
@@ -7205,7 +7205,7 @@ library
               element: #E0 T
               previousFragment: #F4
           fields
-            #F10 augment it (nameOffset:105) (firstTokenOffset:101) (offset:105)
+            #F10 augment isOriginDeclaringFormalParameter it (nameOffset:105) (firstTokenOffset:101) (offset:105)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F6
   extensionTypes
@@ -7219,7 +7219,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F5
           type: int
@@ -7260,7 +7260,7 @@ library
               element: #E1 U
               nextFragment: #F6
           fields
-            #F7 it (nameOffset:27) (firstTokenOffset:23) (offset:27)
+            #F7 isOriginDeclaringFormalParameter it (nameOffset:27) (firstTokenOffset:23) (offset:27)
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F8
           getters
@@ -7280,7 +7280,7 @@ library
               previousFragment: #F5
               nextFragment: #F12
           fields
-            #F8 augment it (nameOffset:66) (firstTokenOffset:62) (offset:66)
+            #F8 augment isOriginDeclaringFormalParameter it (nameOffset:66) (firstTokenOffset:62) (offset:66)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F7
               nextFragment: #F13
@@ -7295,7 +7295,7 @@ library
               element: #E1 U
               previousFragment: #F6
           fields
-            #F13 augment it (nameOffset:108) (firstTokenOffset:104) (offset:108)
+            #F13 augment isOriginDeclaringFormalParameter it (nameOffset:108) (firstTokenOffset:104) (offset:108)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F8
   extensionTypes
@@ -7311,7 +7311,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F7
           type: int

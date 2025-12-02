@@ -1070,10 +1070,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     Iterable<String> nonFinalInstanceFields(InterfaceElement element) {
       return element.fields
-          .where(
-            (FieldElement field) =>
-                !field.isSynthetic && !field.isFinal && !field.isStatic,
-          )
+          .where((field) {
+            if (field.isStatic || field.isFinal) {
+              return false;
+            }
+            return field.isOriginDeclaration;
+          })
           .map((FieldElement field) => '${element.name}.${field.name}');
     }
 

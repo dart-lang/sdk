@@ -572,6 +572,7 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.writeIndentedLine(() {
+      // ignore: deprecated_member_use_from_same_package
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
@@ -584,6 +585,20 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(e.isPromotable, 'promotable ');
       _sink.writeIf(e.hasImplicitType, 'hasImplicitType ');
       _sink.writeIf(e.hasInitializer, 'hasInitializer ');
+
+      _assertHasExactlyOneTrue([
+        e.isOriginDeclaration,
+        e.isOriginDeclaringFormalParameter,
+        e.isOriginEnumValues,
+        e.isOriginGetterSetter,
+      ]);
+      _sink.writeIf(e.isOriginDeclaration, 'isOriginDeclaration ');
+      _sink.writeIf(
+        e.isOriginDeclaringFormalParameter,
+        'isOriginDeclaringFormalParameter ',
+      );
+      _sink.writeIf(e.isOriginEnumValues, 'isOriginEnumValues ');
+      _sink.writeIf(e.isOriginGetterSetter, 'isOriginGetterSetter ');
 
       _writeElementName(e);
     });
@@ -650,6 +665,20 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(f.isAugmentation, 'augment ');
       _sink.writeIf(f.isSynthetic, 'synthetic ');
       _sink.writeIf(f.hasInitializer, 'hasInitializer ');
+
+      _assertHasExactlyOneTrue([
+        f.isOriginDeclaration,
+        f.isOriginDeclaringFormalParameter,
+        f.isOriginEnumValues,
+        f.isOriginGetterSetter,
+      ]);
+      _sink.writeIf(f.isOriginDeclaration, 'isOriginDeclaration ');
+      _sink.writeIf(
+        f.isOriginDeclaringFormalParameter,
+        'isOriginDeclaringFormalParameter ',
+      );
+      _sink.writeIf(f.isOriginEnumValues, 'isOriginEnumValues ');
+      _sink.writeIf(f.isOriginGetterSetter, 'isOriginGetterSetter ');
 
       _writeFragmentName(f);
     });
@@ -1688,12 +1717,8 @@ class _Element2Writer extends _AbstractElementWriter {
     DartType type = e.type;
     expect(type, isNotNull);
 
-    if (!e.isSynthetic) {
-      // expect(e.getter2, isNotNull);
-      _assertNonSyntheticElementSelf(e);
-    }
-
     _sink.writeIndentedLine(() {
+      // ignore: deprecated_member_use_from_same_package
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isExternal, 'external ');
       _sink.writeIf(e.isLate, 'late ');
@@ -1701,6 +1726,10 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(e.isConst, 'const ');
       _sink.writeIf(e.hasImplicitType, 'hasImplicitType ');
       _sink.writeIf(e.hasInitializer, 'hasInitializer ');
+
+      _assertHasExactlyOneTrue([e.isOriginDeclaration, e.isOriginGetterSetter]);
+      _sink.writeIf(e.isOriginDeclaration, 'isOriginDeclaration ');
+      _sink.writeIf(e.isOriginGetterSetter, 'isOriginGetterSetter ');
 
       _writeElementName(e);
     });
@@ -1758,6 +1787,10 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(f.isAugmentation, 'augment ');
       _sink.writeIf(f.isSynthetic, 'synthetic ');
       _sink.writeIf(f.hasInitializer, 'hasInitializer ');
+
+      _assertHasExactlyOneTrue([f.isOriginDeclaration, f.isOriginGetterSetter]);
+      _sink.writeIf(f.isOriginDeclaration, 'isOriginDeclaration ');
+      _sink.writeIf(f.isOriginGetterSetter, 'isOriginGetterSetter ');
 
       _writeFragmentName(f);
     });

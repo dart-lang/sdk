@@ -306,11 +306,11 @@ library
             #F11 U (nameOffset:68) (firstTokenOffset:68) (offset:68)
               element: #E1 U
           fields
-            #F12 f (nameOffset:101) (firstTokenOffset:101) (offset:101)
+            #F12 isOriginDeclaration f (nameOffset:101) (firstTokenOffset:101) (offset:101)
               element: <testLibrary>::@mixin::M::@field::f
-            #F13 synthetic g (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+            #F13 synthetic isOriginGetterSetter g (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@mixin::M::@field::g
-            #F14 synthetic s (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+            #F14 synthetic isOriginGetterSetter s (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@mixin::M::@field::s
           getters
             #F15 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
@@ -380,20 +380,20 @@ library
         C
         D
       fields
-        f
+        isOriginDeclaration f
           reference: <testLibrary>::@mixin::M::@field::f
           firstFragment: #F12
           hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibrary>::@mixin::M::@getter::f
           setter: <testLibrary>::@mixin::M::@setter::f
-        synthetic g
+        synthetic isOriginGetterSetter g
           reference: <testLibrary>::@mixin::M::@field::g
           firstFragment: #F13
           hasEnclosingTypeParameterReference: true
           type: U
           getter: <testLibrary>::@mixin::M::@getter::g
-        synthetic s
+        synthetic isOriginGetterSetter s
           reference: <testLibrary>::@mixin::M::@field::s
           firstFragment: #F14
           type: int
@@ -541,7 +541,7 @@ library
         #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           fields
-            #F2 hasInitializer x (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F2 hasInitializer isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::M::@field::x
           getters
             #F3 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
@@ -559,7 +559,7 @@ library
       superclassConstraints
         Object
       fields
-        hasImplicitType hasInitializer x
+        hasImplicitType hasInitializer isOriginDeclaration x
           reference: <testLibrary>::@mixin::M::@field::x
           firstFragment: #F2
           type: int
@@ -599,7 +599,7 @@ library
         #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           fields
-            #F2 hasInitializer x (nameOffset:18) (firstTokenOffset:18) (offset:18)
+            #F2 hasInitializer isOriginDeclaration x (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@mixin::M::@field::x
           getters
             #F3 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
@@ -611,7 +611,7 @@ library
       superclassConstraints
         Object
       fields
-        final hasImplicitType hasInitializer x
+        final hasImplicitType hasInitializer isOriginDeclaration x
           reference: <testLibrary>::@mixin::M::@field::x
           firstFragment: #F2
           type: int
@@ -655,7 +655,7 @@ library
         #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           fields
-            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::M::@field::foo
           getters
             #F3 foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
@@ -667,7 +667,7 @@ library
       superclassConstraints
         Object
       fields
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: <testLibrary>::@mixin::M::@field::foo
           firstFragment: #F2
           type: int
@@ -699,7 +699,7 @@ library
         #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           fields
-            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::M::@field::foo
           getters
             #F3 foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
@@ -711,7 +711,7 @@ library
       superclassConstraints
         Object
       fields
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: <testLibrary>::@mixin::M::@field::foo
           firstFragment: #F2
           type: int
@@ -743,7 +743,7 @@ library
         #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           fields
-            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::M::@field::foo
           getters
             #F3 foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
@@ -755,7 +755,7 @@ library
       superclassConstraints
         Object
       fields
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: <testLibrary>::@mixin::M::@field::foo
           firstFragment: #F2
           type: int
@@ -1554,7 +1554,7 @@ library
         #F3 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
           element: <testLibrary>::@extensionType::B
           fields
-            #F4 it (nameOffset:32) (firstTokenOffset:28) (offset:32)
+            #F4 isOriginDeclaringFormalParameter it (nameOffset:32) (firstTokenOffset:28) (offset:32)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F5 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
@@ -1577,7 +1577,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::B::@field::it
           firstFragment: #F4
           type: int
@@ -1809,7 +1809,7 @@ library
         #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           fields
-            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::M::@field::foo
           setters
             #F3 foo (nameOffset:21) (firstTokenOffset:17) (offset:21)
@@ -1824,7 +1824,7 @@ library
       superclassConstraints
         Object
       fields
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: <testLibrary>::@mixin::M::@field::foo
           firstFragment: #F2
           type: int
@@ -1860,7 +1860,7 @@ library
         #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           fields
-            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::M::@field::foo
           setters
             #F3 foo (nameOffset:21) (firstTokenOffset:17) (offset:21)
@@ -1875,7 +1875,7 @@ library
       superclassConstraints
         Object
       fields
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: <testLibrary>::@mixin::M::@field::foo
           firstFragment: #F2
           type: int
@@ -1916,7 +1916,7 @@ library
         #F3 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
           element: <testLibrary>::@extensionType::B
           fields
-            #F4 it (nameOffset:32) (firstTokenOffset:28) (offset:32)
+            #F4 isOriginDeclaringFormalParameter it (nameOffset:32) (firstTokenOffset:28) (offset:32)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
             #F5 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
@@ -1939,7 +1939,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
       fields
-        final it
+        final isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::B::@field::it
           firstFragment: #F4
           type: int
@@ -2260,7 +2260,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo
               nextFragment: #F4
           getters
@@ -2276,7 +2276,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           fields
-            #F4 augment hasInitializer foo (nameOffset:60) (firstTokenOffset:60) (offset:60)
+            #F4 augment hasInitializer isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:60) (offset:60)
               element: <testLibrary>::@mixin::A::@field::foo
               previousFragment: #F3
   mixins
@@ -2286,7 +2286,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2337,7 +2337,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo
               nextFragment: #F4
           getters
@@ -2354,7 +2354,7 @@ library
           previousFragment: #F1
           nextFragment: #F8
           fields
-            #F4 augment hasInitializer foo (nameOffset:60) (firstTokenOffset:60) (offset:60)
+            #F4 augment hasInitializer isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:60) (offset:60)
               element: <testLibrary>::@mixin::A::@field::foo
               previousFragment: #F3
               nextFragment: #F9
@@ -2362,7 +2362,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           fields
-            #F9 augment hasInitializer foo (nameOffset:104) (firstTokenOffset:104) (offset:104)
+            #F9 augment hasInitializer isOriginDeclaration foo (nameOffset:104) (firstTokenOffset:104) (offset:104)
               element: <testLibrary>::@mixin::A::@field::foo
               previousFragment: #F4
   mixins
@@ -2372,7 +2372,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2423,7 +2423,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo
               nextFragment: #F4
           getters
@@ -2448,7 +2448,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           fields
-            #F4 augment hasInitializer foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
+            #F4 augment hasInitializer isOriginDeclaration foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
               element: <testLibrary>::@mixin::A::@field::foo
               previousFragment: #F3
   mixins
@@ -2458,7 +2458,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2509,7 +2509,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo
               nextFragment: #F4
           getters
@@ -2537,7 +2537,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           fields
-            #F4 augment hasInitializer foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
+            #F4 augment hasInitializer isOriginDeclaration foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
               element: <testLibrary>::@mixin::A::@field::foo
               previousFragment: #F3
   mixins
@@ -2547,7 +2547,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2594,7 +2594,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo
               nextFragment: #F4
           getters
@@ -2610,7 +2610,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           fields
-            #F4 augment hasInitializer foo (nameOffset:63) (firstTokenOffset:63) (offset:63)
+            #F4 augment hasInitializer isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:63) (offset:63)
               element: <testLibrary>::@mixin::A::@field::foo
               previousFragment: #F3
   mixins
@@ -2620,7 +2620,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2669,7 +2669,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           fields
-            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::A::@field::foo
               nextFragment: #F4
           getters
@@ -2679,7 +2679,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           fields
-            #F4 augment hasInitializer foo (nameOffset:65) (firstTokenOffset:65) (offset:65)
+            #F4 augment hasInitializer isOriginDeclaration foo (nameOffset:65) (firstTokenOffset:65) (offset:65)
               element: <testLibrary>::@mixin::A::@field::foo
               previousFragment: #F3
   mixins
@@ -2689,7 +2689,7 @@ library
       superclassConstraints
         Object
       fields
-        synthetic hasInitializer foo
+        synthetic hasInitializer isOriginGetterSetter foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2725,7 +2725,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer foo1 (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F3 hasInitializer isOriginDeclaration foo1 (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo1
           getters
             #F4 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
@@ -2740,7 +2740,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           fields
-            #F7 hasInitializer foo2 (nameOffset:53) (firstTokenOffset:53) (offset:53)
+            #F7 hasInitializer isOriginDeclaration foo2 (nameOffset:53) (firstTokenOffset:53) (offset:53)
               element: <testLibrary>::@mixin::A::@field::foo2
           getters
             #F8 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
@@ -2758,13 +2758,13 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer foo1
+        hasInitializer isOriginDeclaration foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@mixin::A::@getter::foo1
           setter: <testLibrary>::@mixin::A::@setter::foo1
-        hasInitializer foo2
+        hasInitializer isOriginDeclaration foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F7
           type: int
@@ -2829,7 +2829,7 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 foo1 (nameOffset:17) (firstTokenOffset:17) (offset:17)
+            #F5 isOriginDeclaration foo1 (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@mixin::A::@field::foo1
           getters
             #F6 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
@@ -2848,7 +2848,7 @@ library
               element: #E0 T
               previousFragment: #F3
           fields
-            #F9 foo2 (nameOffset:51) (firstTokenOffset:51) (offset:51)
+            #F9 isOriginDeclaration foo2 (nameOffset:51) (firstTokenOffset:51) (offset:51)
               element: <testLibrary>::@mixin::A::@field::foo2
           getters
             #F10 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
@@ -2869,14 +2869,14 @@ library
       superclassConstraints
         Object
       fields
-        foo1
+        isOriginDeclaration foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F5
           hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibrary>::@mixin::A::@getter::foo1
           setter: <testLibrary>::@mixin::A::@setter::foo1
-        foo2
+        isOriginDeclaration foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F9
           hasEnclosingTypeParameterReference: true
@@ -2942,7 +2942,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           fields
-            #F3 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 synthetic isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::A::@field::foo1
           getters
             #F4 foo1 (nameOffset:20) (firstTokenOffset:12) (offset:20)
@@ -2951,7 +2951,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           fields
-            #F5 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+            #F5 synthetic isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
               element: <testLibrary>::@mixin::A::@field::foo2
           getters
             #F6 foo2 (nameOffset:62) (firstTokenOffset:54) (offset:62)
@@ -2963,12 +2963,12 @@ library
       superclassConstraints
         Object
       fields
-        synthetic foo1
+        synthetic isOriginGetterSetter foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@mixin::A::@getter::foo1
-        synthetic foo2
+        synthetic isOriginGetterSetter foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F5
           type: int
@@ -3013,7 +3013,7 @@ library
               element: #E0 T
               nextFragment: #F4
           fields
-            #F5 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 synthetic isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::A::@field::foo1
           getters
             #F6 foo1 (nameOffset:21) (firstTokenOffset:15) (offset:21)
@@ -3026,7 +3026,7 @@ library
               element: #E0 T
               previousFragment: #F3
           fields
-            #F7 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F7 synthetic isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@mixin::A::@field::foo2
           getters
             #F8 foo2 (nameOffset:59) (firstTokenOffset:53) (offset:59)
@@ -3041,13 +3041,13 @@ library
       superclassConstraints
         Object
       fields
-        synthetic foo1
+        synthetic isOriginGetterSetter foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F5
           hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibrary>::@mixin::A::@getter::foo1
-        synthetic foo2
+        synthetic isOriginGetterSetter foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F7
           hasEnclosingTypeParameterReference: true
@@ -3091,7 +3091,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo
           getters
             #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
@@ -3117,7 +3117,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -3168,7 +3168,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo
           getters
             #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
@@ -3203,7 +3203,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -3251,9 +3251,9 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           fields
-            #F3 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 synthetic isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::A::@field::foo1
-            #F4 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 synthetic isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::A::@field::foo2
           getters
             #F5 foo1 (nameOffset:20) (firstTokenOffset:12) (offset:20)
@@ -3275,12 +3275,12 @@ library
       superclassConstraints
         Object
       fields
-        synthetic foo1
+        synthetic isOriginGetterSetter foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@mixin::A::@getter::foo1
-        synthetic foo2
+        synthetic isOriginGetterSetter foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F4
           type: int
@@ -3325,7 +3325,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           fields
-            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::A::@field::foo
           getters
             #F4 foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
@@ -3354,7 +3354,7 @@ library
       superclassConstraints
         Object
       fields
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -3867,7 +3867,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           fields
-            #F3 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 synthetic isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::A::@field::foo1
           setters
             #F4 foo1 (nameOffset:16) (firstTokenOffset:12) (offset:16)
@@ -3879,7 +3879,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           fields
-            #F6 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+            #F6 synthetic isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
               element: <testLibrary>::@mixin::A::@field::foo2
           setters
             #F7 foo2 (nameOffset:58) (firstTokenOffset:54) (offset:58)
@@ -3894,12 +3894,12 @@ library
       superclassConstraints
         Object
       fields
-        synthetic foo1
+        synthetic isOriginGetterSetter foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F3
           type: int
           setter: <testLibrary>::@mixin::A::@setter::foo1
-        synthetic foo2
+        synthetic isOriginGetterSetter foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F6
           type: int
@@ -3948,7 +3948,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           fields
-            #F3 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo
           getters
             #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
@@ -3977,7 +3977,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -4025,9 +4025,9 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           fields
-            #F3 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 synthetic isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::A::@field::foo1
-            #F4 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 synthetic isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::A::@field::foo2
           setters
             #F5 foo1 (nameOffset:16) (firstTokenOffset:12) (offset:16)
@@ -4058,12 +4058,12 @@ library
       superclassConstraints
         Object
       fields
-        synthetic foo1
+        synthetic isOriginGetterSetter foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F3
           type: int
           setter: <testLibrary>::@mixin::A::@setter::foo1
-        synthetic foo2
+        synthetic isOriginGetterSetter foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F4
           type: int

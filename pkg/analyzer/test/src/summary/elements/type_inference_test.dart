@@ -30,13 +30,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer f (nameOffset:6) (firstTokenOffset:6) (offset:6)
+        #F1 hasInitializer isOriginDeclaration f (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F2 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::f
   topLevelVariables
-    final hasImplicitType hasInitializer f
+    final hasImplicitType hasInitializer isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F1
       type: V Function<U, V>(U, V)
@@ -77,13 +77,13 @@ library
       enclosingFragment: #F0
       previousFragment: #F0
       topLevelVariables
-        #F2 hasInitializer f (nameOffset:19) (firstTokenOffset:19) (offset:19)
+        #F2 hasInitializer isOriginDeclaration f (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F3 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::f
   topLevelVariables
-    final hasImplicitType hasInitializer f
+    final hasImplicitType hasInitializer isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F2
       type: double Function(int)
@@ -116,7 +116,7 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           fields
-            #F3 hasInitializer f (nameOffset:21) (firstTokenOffset:21) (offset:21)
+            #F3 hasInitializer isOriginDeclaration f (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@field::f
           constructors
             #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -133,7 +133,7 @@ library
         #E0 T
           firstFragment: #F2
       fields
-        final hasImplicitType hasInitializer f
+        final hasImplicitType hasInitializer isOriginDeclaration f
           reference: <testLibrary>::@class::C::@field::f
           firstFragment: #F3
           type: InvalidType
@@ -199,7 +199,7 @@ library
             #F10 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E3 T
       topLevelVariables
-        #F11 hasInitializer x (nameOffset:118) (firstTokenOffset:118) (offset:118)
+        #F11 hasInitializer isOriginDeclaration x (nameOffset:118) (firstTokenOffset:118) (offset:118)
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
             InstanceCreationExpression
@@ -269,7 +269,7 @@ library
           firstFragment: #F10
       aliasedType: D<T, U> Function<U>()
   topLevelVariables
-    const hasImplicitType hasInitializer x
+    const hasImplicitType hasInitializer isOriginDeclaration x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F11
       type: C<int>
@@ -334,7 +334,7 @@ library
         #F7 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
       topLevelVariables
-        #F8 hasInitializer x (nameOffset:101) (firstTokenOffset:101) (offset:101)
+        #F8 hasInitializer isOriginDeclaration x (nameOffset:101) (firstTokenOffset:101) (offset:101)
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
             InstanceCreationExpression
@@ -392,7 +392,7 @@ library
       firstFragment: #F7
       aliasedType: D<T> Function<T>()
   topLevelVariables
-    const hasImplicitType hasInitializer x
+    const hasImplicitType hasInitializer isOriginDeclaration x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F8
       type: C
@@ -462,7 +462,7 @@ library
                 #F8 requiredPositional _ (nameOffset:63) (firstTokenOffset:61) (offset:63)
                   element: <testLibrary>::@class::S::@constructor::new::@formalParameter::_
       topLevelVariables
-        #F9 hasInitializer s (nameOffset:74) (firstTokenOffset:74) (offset:74)
+        #F9 hasInitializer isOriginDeclaration s (nameOffset:74) (firstTokenOffset:74) (offset:74)
           element: <testLibrary>::@topLevelVariable::s
       getters
         #F10 synthetic s (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
@@ -506,7 +506,7 @@ library
               firstFragment: #F8
               type: T
   topLevelVariables
-    hasImplicitType hasInitializer s
+    hasImplicitType hasInitializer isOriginDeclaration s
       reference: <testLibrary>::@topLevelVariable::s
       firstFragment: #F9
       type: S<B>
@@ -555,7 +555,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           fields
-            #F2 b (nameOffset:14) (firstTokenOffset:14) (offset:14)
+            #F2 isOriginDeclaration b (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@class::A::@field::b
           constructors
             #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -573,7 +573,7 @@ library
         #F7 class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::B
           fields
-            #F8 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F8 synthetic isOriginGetterSetter c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::B::@field::c
           constructors
             #F9 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
@@ -601,9 +601,9 @@ library
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       topLevelVariables
-        #F17 hasInitializer a (nameOffset:111) (firstTokenOffset:111) (offset:111)
+        #F17 hasInitializer isOriginDeclaration a (nameOffset:111) (firstTokenOffset:111) (offset:111)
           element: <testLibrary>::@topLevelVariable::a
-        #F18 hasInitializer x (nameOffset:128) (firstTokenOffset:128) (offset:128)
+        #F18 hasInitializer isOriginDeclaration x (nameOffset:128) (firstTokenOffset:128) (offset:128)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F19 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:111)
@@ -626,7 +626,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        b
+        isOriginDeclaration b
           reference: <testLibrary>::@class::A::@field::b
           firstFragment: #F2
           type: B
@@ -656,7 +656,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: #F7
       fields
-        synthetic c
+        synthetic isOriginGetterSetter c
           reference: <testLibrary>::@class::B::@field::c
           firstFragment: #F8
           type: C
@@ -699,13 +699,13 @@ library
           firstFragment: #F16
           superConstructor: <testLibrary>::@class::C::@constructor::new
   topLevelVariables
-    hasImplicitType hasInitializer a
+    hasImplicitType hasInitializer isOriginDeclaration a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F17
       type: A
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
-    hasImplicitType hasInitializer x
+    hasImplicitType hasInitializer isOriginDeclaration x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F18
       type: C
@@ -758,11 +758,11 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer x (nameOffset:4) (firstTokenOffset:4) (offset:4)
+        #F1 hasInitializer isOriginDeclaration x (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::x
-        #F2 hasInitializer y (nameOffset:40) (firstTokenOffset:40) (offset:40)
+        #F2 hasInitializer isOriginDeclaration y (nameOffset:40) (firstTokenOffset:40) (offset:40)
           element: <testLibrary>::@topLevelVariable::y
-        #F3 hasInitializer z (nameOffset:53) (firstTokenOffset:53) (offset:53)
+        #F3 hasInitializer isOriginDeclaration z (nameOffset:53) (firstTokenOffset:53) (offset:53)
           element: <testLibrary>::@topLevelVariable::z
       getters
         #F4 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
@@ -788,19 +788,19 @@ library
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@setter::z::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer x
+    hasImplicitType hasInitializer isOriginDeclaration x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: Iterable<String>
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
-    hasImplicitType hasInitializer y
+    hasImplicitType hasInitializer isOriginDeclaration y
       reference: <testLibrary>::@topLevelVariable::y
       firstFragment: #F2
       type: List<int>
       getter: <testLibrary>::@getter::y
       setter: <testLibrary>::@setter::y
-    hasImplicitType hasInitializer z
+    hasImplicitType hasInitializer isOriginDeclaration z
       reference: <testLibrary>::@topLevelVariable::z
       firstFragment: #F3
       type: List<String>
@@ -871,7 +871,7 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 p (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F2 isOriginDeclaration p (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::p
           constructors
             #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -887,9 +887,9 @@ library
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::p::@formalParameter::value
       topLevelVariables
-        #F7 hasInitializer x (nameOffset:25) (firstTokenOffset:25) (offset:25)
+        #F7 hasInitializer isOriginDeclaration x (nameOffset:25) (firstTokenOffset:25) (offset:25)
           element: <testLibrary>::@topLevelVariable::x
-        #F8 hasInitializer y (nameOffset:40) (firstTokenOffset:40) (offset:40)
+        #F8 hasInitializer isOriginDeclaration y (nameOffset:40) (firstTokenOffset:40) (offset:40)
           element: <testLibrary>::@topLevelVariable::y
       getters
         #F9 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
@@ -912,7 +912,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        p
+        isOriginDeclaration p
           reference: <testLibrary>::@class::C::@field::p
           firstFragment: #F2
           type: int
@@ -939,13 +939,13 @@ library
           returnType: void
           variable: <testLibrary>::@class::C::@field::p
   topLevelVariables
-    hasImplicitType hasInitializer x
+    hasImplicitType hasInitializer isOriginDeclaration x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F7
       type: List<C>
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
-    hasImplicitType hasInitializer y
+    hasImplicitType hasInitializer isOriginDeclaration y
       reference: <testLibrary>::@topLevelVariable::y
       firstFragment: #F8
       type: Iterable<int>
@@ -1043,7 +1043,7 @@ library
             #F3 V (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E1 V
           fields
-            #F4 x (nameOffset:24) (firstTokenOffset:24) (offset:24)
+            #F4 isOriginDeclaration x (nameOffset:24) (firstTokenOffset:24) (offset:24)
               element: <testLibrary>::@class::C::@field::x
           constructors
             #F5 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:29) (offset:29)
@@ -1063,7 +1063,7 @@ library
         #E1 V
           firstFragment: #F3
       fields
-        final hasImplicitType x
+        final hasImplicitType isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F4
           type: dynamic
@@ -1104,7 +1104,7 @@ library
             #F3 V (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E1 V
           fields
-            #F4 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 synthetic isOriginGetterSetter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@field::x
           constructors
             #F5 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -1123,7 +1123,7 @@ library
         #E1 V
           firstFragment: #F3
       fields
-        synthetic x
+        synthetic isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F4
           type: dynamic
@@ -1225,7 +1225,7 @@ library
             #F3 V (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E1 V
           fields
-            #F4 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 synthetic isOriginGetterSetter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@field::x
           constructors
             #F5 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -1247,7 +1247,7 @@ library
         #E1 V
           firstFragment: #F3
       fields
-        synthetic x
+        synthetic isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F4
           type: dynamic
@@ -1367,7 +1367,7 @@ library
               typeNameOffset: 64
               periodOffset: 65
       topLevelVariables
-        #F6 hasInitializer c (nameOffset:78) (firstTokenOffset:78) (offset:78)
+        #F6 hasInitializer isOriginDeclaration c (nameOffset:78) (firstTokenOffset:78) (offset:78)
           element: <testLibrary>::@topLevelVariable::c
       getters
         #F7 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
@@ -1398,7 +1398,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::_
           firstFragment: #F5
   topLevelVariables
-    hasImplicitType hasInitializer c
+    hasImplicitType hasInitializer isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F6
       type: C<num>
@@ -1442,9 +1442,9 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           fields
-            #F2 hasInitializer foo (nameOffset:25) (firstTokenOffset:25) (offset:25)
+            #F2 hasInitializer isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::A::@field::foo
-            #F3 hasInitializer bar (nameOffset:56) (firstTokenOffset:56) (offset:56)
+            #F3 hasInitializer isOriginDeclaration bar (nameOffset:56) (firstTokenOffset:56) (offset:56)
               element: <testLibrary>::@class::A::@field::bar
           constructors
             #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -1463,12 +1463,12 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        static final hasImplicitType hasInitializer foo
+        static final hasImplicitType hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::A::@getter::foo
-        static final hasImplicitType hasInitializer bar
+        static final hasImplicitType hasInitializer isOriginDeclaration bar
           reference: <testLibrary>::@class::A::@field::bar
           firstFragment: #F3
           type: int Function(double)
@@ -1511,7 +1511,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer x (nameOffset:21) (firstTokenOffset:21) (offset:21)
+        #F1 hasInitializer isOriginDeclaration x (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -1529,7 +1529,7 @@ library
             #F6 T (nameOffset:6) (firstTokenOffset:6) (offset:6)
               element: #E0 T
   topLevelVariables
-    hasImplicitType hasInitializer x
+    hasImplicitType hasInitializer isOriginDeclaration x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
@@ -1578,11 +1578,11 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer m (nameOffset:19) (firstTokenOffset:19) (offset:19)
+        #F1 hasInitializer isOriginDeclaration m (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::m
-        #F2 hasInitializer n (nameOffset:53) (firstTokenOffset:53) (offset:53)
+        #F2 hasInitializer isOriginDeclaration n (nameOffset:53) (firstTokenOffset:53) (offset:53)
           element: <testLibrary>::@topLevelVariable::n
-        #F3 hasInitializer x (nameOffset:73) (firstTokenOffset:73) (offset:73)
+        #F3 hasInitializer isOriginDeclaration x (nameOffset:73) (firstTokenOffset:73) (offset:73)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F4 synthetic m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
@@ -1608,19 +1608,19 @@ library
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasInitializer m
+    hasInitializer isOriginDeclaration m
       reference: <testLibrary>::@topLevelVariable::m
       firstFragment: #F1
       type: int Function<T>()?
       getter: <testLibrary>::@getter::m
       setter: <testLibrary>::@setter::m
-    hasInitializer n
+    hasInitializer isOriginDeclaration n
       reference: <testLibrary>::@topLevelVariable::n
       firstFragment: #F2
       type: int Function<T>()
       getter: <testLibrary>::@getter::n
       setter: <testLibrary>::@setter::n
-    hasImplicitType hasInitializer x
+    hasImplicitType hasInitializer isOriginDeclaration x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F3
       type: int
@@ -1690,7 +1690,7 @@ library
       libraryImports
         dart:collection
       topLevelVariables
-        #F1 hasInitializer m (nameOffset:30) (firstTokenOffset:30) (offset:30)
+        #F1 hasInitializer isOriginDeclaration m (nameOffset:30) (firstTokenOffset:30) (offset:30)
           element: <testLibrary>::@topLevelVariable::m
       getters
         #F2 synthetic m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
@@ -1702,7 +1702,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@setter::m::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer m
+    hasImplicitType hasInitializer isOriginDeclaration m
       reference: <testLibrary>::@topLevelVariable::m
       firstFragment: #F1
       type: HashMap<dynamic, dynamic>
@@ -1741,13 +1741,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer a (nameOffset:4) (firstTokenOffset:4) (offset:4)
+        #F1 hasInitializer isOriginDeclaration a (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::a
-        #F2 hasInitializer b (nameOffset:19) (firstTokenOffset:19) (offset:19)
+        #F2 hasInitializer isOriginDeclaration b (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::b
-        #F3 hasInitializer c (nameOffset:34) (firstTokenOffset:34) (offset:34)
+        #F3 hasInitializer isOriginDeclaration c (nameOffset:34) (firstTokenOffset:34) (offset:34)
           element: <testLibrary>::@topLevelVariable::c
-        #F4 hasInitializer d (nameOffset:49) (firstTokenOffset:49) (offset:49)
+        #F4 hasInitializer isOriginDeclaration d (nameOffset:49) (firstTokenOffset:49) (offset:49)
           element: <testLibrary>::@topLevelVariable::d
       getters
         #F5 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
@@ -1780,7 +1780,7 @@ library
             #F16 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@setter::d::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer a
+    hasImplicitType hasInitializer isOriginDeclaration a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       typeInferenceError: dependencyCycle
@@ -1788,7 +1788,7 @@ library
       type: dynamic
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
-    hasImplicitType hasInitializer b
+    hasImplicitType hasInitializer isOriginDeclaration b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
       typeInferenceError: dependencyCycle
@@ -1796,7 +1796,7 @@ library
       type: dynamic
       getter: <testLibrary>::@getter::b
       setter: <testLibrary>::@setter::b
-    hasImplicitType hasInitializer c
+    hasImplicitType hasInitializer isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F3
       typeInferenceError: dependencyCycle
@@ -1804,7 +1804,7 @@ library
       type: dynamic
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    hasImplicitType hasInitializer d
+    hasImplicitType hasInitializer isOriginDeclaration d
       reference: <testLibrary>::@topLevelVariable::d
       firstFragment: #F4
       type: int
@@ -1887,7 +1887,7 @@ library
         #F1 class C (nameOffset:31) (firstTokenOffset:25) (offset:31)
           element: <testLibrary>::@class::C
           fields
-            #F2 v (nameOffset:49) (firstTokenOffset:49) (offset:49)
+            #F2 isOriginDeclaration v (nameOffset:49) (firstTokenOffset:49) (offset:49)
               element: <testLibrary>::@class::C::@field::v
           constructors
             #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
@@ -1905,7 +1905,7 @@ library
         #F7 class D (nameOffset:69) (firstTokenOffset:54) (offset:69)
           element: <testLibrary>::@class::D
           fields
-            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+            #F8 synthetic isOriginGetterSetter v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@class::D::@field::v
           constructors
             #F9 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
@@ -1923,7 +1923,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        hasImplicitType v
+        hasImplicitType isOriginDeclaration v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F2
           type: int Function(String)
@@ -1957,7 +1957,7 @@ library
       reference: <testLibrary>::@class::D
       firstFragment: #F7
       fields
-        synthetic v
+        synthetic isOriginGetterSetter v
           reference: <testLibrary>::@class::D::@field::v
           firstFragment: #F8
           type: int Function(String)
@@ -1997,7 +1997,7 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasInitializer x (nameOffset:21) (firstTokenOffset:21) (offset:21)
+        #F1 hasInitializer isOriginDeclaration x (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -2009,7 +2009,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer x
+    hasImplicitType hasInitializer isOriginDeclaration x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
@@ -2049,7 +2049,7 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasInitializer x (nameOffset:21) (firstTokenOffset:21) (offset:21)
+        #F1 hasInitializer isOriginDeclaration x (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -2061,7 +2061,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer x
+    hasImplicitType hasInitializer isOriginDeclaration x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int?
@@ -2101,7 +2101,7 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasInitializer x (nameOffset:21) (firstTokenOffset:21) (offset:21)
+        #F1 hasInitializer isOriginDeclaration x (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -2113,7 +2113,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer x
+    hasImplicitType hasInitializer isOriginDeclaration x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: void Function()
@@ -2153,7 +2153,7 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasInitializer x (nameOffset:21) (firstTokenOffset:21) (offset:21)
+        #F1 hasInitializer isOriginDeclaration x (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -2165,7 +2165,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer x
+    hasImplicitType hasInitializer isOriginDeclaration x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: void Function()?
@@ -2212,7 +2212,7 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           fields
-            #F3 v (nameOffset:37) (firstTokenOffset:37) (offset:37)
+            #F3 isOriginDeclaration v (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@class::C::@field::v
           constructors
             #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -2235,7 +2235,7 @@ library
             #F10 V (nameOffset:62) (firstTokenOffset:62) (offset:62)
               element: #E2 V
           fields
-            #F11 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F11 synthetic isOriginGetterSetter v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::D::@field::v
           constructors
             #F12 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
@@ -2253,7 +2253,7 @@ library
           firstFragment: #F2
       supertype: D<int, T>
       fields
-        hasImplicitType v
+        hasImplicitType isOriginDeclaration v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F3
           hasEnclosingTypeParameterReference: true
@@ -2294,7 +2294,7 @@ library
         #E2 V
           firstFragment: #F10
       fields
-        synthetic v
+        synthetic isOriginGetterSetter v
           reference: <testLibrary>::@class::D::@field::v
           firstFragment: #F11
           hasEnclosingTypeParameterReference: true
@@ -2330,7 +2330,7 @@ library
         #F1 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
       topLevelVariables
-        #F2 hasInitializer v (nameOffset:53) (firstTokenOffset:53) (offset:53)
+        #F2 hasInitializer isOriginDeclaration v (nameOffset:53) (firstTokenOffset:53) (offset:53)
           element: <testLibrary>::@topLevelVariable::v
       getters
         #F3 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
@@ -2353,7 +2353,7 @@ library
       firstFragment: #F1
       aliasedType: void Function(int Function(String))
   topLevelVariables
-    hasImplicitType hasInitializer v
+    hasImplicitType hasInitializer isOriginDeclaration v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F2
       type: dynamic
@@ -2673,7 +2673,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer v (nameOffset:40) (firstTokenOffset:40) (offset:40)
+        #F1 hasInitializer isOriginDeclaration v (nameOffset:40) (firstTokenOffset:40) (offset:40)
           element: <testLibrary>::@topLevelVariable::v
       getters
         #F2 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
@@ -2696,7 +2696,7 @@ library
                 #F8 requiredPositional h (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: h@21
   topLevelVariables
-    hasImplicitType hasInitializer v
+    hasImplicitType hasInitializer isOriginDeclaration v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: dynamic
@@ -2749,7 +2749,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer v (nameOffset:42) (firstTokenOffset:42) (offset:42)
+        #F1 hasInitializer isOriginDeclaration v (nameOffset:42) (firstTokenOffset:42) (offset:42)
           element: <testLibrary>::@topLevelVariable::v
       getters
         #F2 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
@@ -2772,7 +2772,7 @@ library
                 #F8 requiredPositional h (nameOffset:22) (firstTokenOffset:17) (offset:22)
                   element: h@22
   topLevelVariables
-    hasImplicitType hasInitializer v
+    hasImplicitType hasInitializer isOriginDeclaration v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: dynamic
@@ -2828,7 +2828,7 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginGetterSetter f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@field::f
           constructors
             #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -2843,7 +2843,7 @@ library
         #F6 class D (nameOffset:54) (firstTokenOffset:39) (offset:54)
           element: <testLibrary>::@class::D
           fields
-            #F7 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
+            #F7 synthetic isOriginGetterSetter f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@class::D::@field::f
           constructors
             #F8 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
@@ -2864,7 +2864,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        synthetic f
+        synthetic isOriginGetterSetter f
           reference: <testLibrary>::@class::C::@field::f
           firstFragment: #F2
           type: int Function(String)
@@ -2888,7 +2888,7 @@ library
       reference: <testLibrary>::@class::D
       firstFragment: #F6
       fields
-        synthetic f
+        synthetic isOriginGetterSetter f
           reference: <testLibrary>::@class::D::@field::f
           firstFragment: #F7
           type: int Function(String)
@@ -3009,9 +3009,9 @@ library
               typeNameOffset: 19
               periodOffset: 20
       topLevelVariables
-        #F4 hasInitializer a1 (nameOffset:36) (firstTokenOffset:36) (offset:36)
+        #F4 hasInitializer isOriginDeclaration a1 (nameOffset:36) (firstTokenOffset:36) (offset:36)
           element: <testLibrary>::@topLevelVariable::a1
-        #F5 hasInitializer a2 (nameOffset:50) (firstTokenOffset:50) (offset:50)
+        #F5 hasInitializer isOriginDeclaration a2 (nameOffset:50) (firstTokenOffset:50) (offset:50)
           element: <testLibrary>::@topLevelVariable::a2
       getters
         #F6 synthetic a1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
@@ -3041,13 +3041,13 @@ library
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F3
   topLevelVariables
-    hasImplicitType hasInitializer a1
+    hasImplicitType hasInitializer isOriginDeclaration a1
       reference: <testLibrary>::@topLevelVariable::a1
       firstFragment: #F4
       type: A
       getter: <testLibrary>::@getter::a1
       setter: <testLibrary>::@setter::a1
-    hasImplicitType hasInitializer a2
+    hasImplicitType hasInitializer isOriginDeclaration a2
       reference: <testLibrary>::@topLevelVariable::a2
       firstFragment: #F5
       type: A
@@ -3110,9 +3110,9 @@ library
         <testLibraryFragment>::@prefix2::foo
           fragments: @21
       topLevelVariables
-        #F1 hasInitializer a1 (nameOffset:30) (firstTokenOffset:30) (offset:30)
+        #F1 hasInitializer isOriginDeclaration a1 (nameOffset:30) (firstTokenOffset:30) (offset:30)
           element: <testLibrary>::@topLevelVariable::a1
-        #F2 hasInitializer a2 (nameOffset:48) (firstTokenOffset:48) (offset:48)
+        #F2 hasInitializer isOriginDeclaration a2 (nameOffset:48) (firstTokenOffset:48) (offset:48)
           element: <testLibrary>::@topLevelVariable::a2
       getters
         #F3 synthetic a1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
@@ -3131,13 +3131,13 @@ library
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
               element: <testLibrary>::@setter::a2::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer a1
+    hasImplicitType hasInitializer isOriginDeclaration a1
       reference: <testLibrary>::@topLevelVariable::a1
       firstFragment: #F1
       type: A
       getter: <testLibrary>::@getter::a1
       setter: <testLibrary>::@setter::a1
-    hasImplicitType hasInitializer a2
+    hasImplicitType hasInitializer isOriginDeclaration a2
       reference: <testLibrary>::@topLevelVariable::a2
       firstFragment: #F2
       type: A
@@ -3191,7 +3191,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer v (nameOffset:71) (firstTokenOffset:71) (offset:71)
+        #F1 hasInitializer isOriginDeclaration v (nameOffset:71) (firstTokenOffset:71) (offset:71)
           element: <testLibrary>::@topLevelVariable::v
       getters
         #F2 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
@@ -3220,7 +3220,7 @@ library
                 #F10 requiredPositional y (nameOffset:54) (firstTokenOffset:47) (offset:54)
                   element: y@54
   topLevelVariables
-    hasImplicitType hasInitializer v
+    hasImplicitType hasInitializer isOriginDeclaration v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: List<Object Function(int Function(String))>
@@ -3320,7 +3320,7 @@ library
         #F9 class D (nameOffset:121) (firstTokenOffset:106) (offset:121)
           element: <testLibrary>::@class::D
           fields
-            #F10 f (nameOffset:141) (firstTokenOffset:141) (offset:141)
+            #F10 isOriginDeclaration f (nameOffset:141) (firstTokenOffset:141) (offset:141)
               element: <testLibrary>::@class::D::@field::f
           constructors
             #F11 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:121)
@@ -3375,7 +3375,7 @@ library
       firstFragment: #F9
       supertype: C
       fields
-        hasImplicitType f
+        hasImplicitType isOriginDeclaration f
           reference: <testLibrary>::@class::D::@field::f
           firstFragment: #F10
           type: dynamic
@@ -3434,7 +3434,7 @@ library
         #F4 class B (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@class::B
           fields
-            #F5 a (nameOffset:50) (firstTokenOffset:50) (offset:50)
+            #F5 isOriginDeclaration a (nameOffset:50) (firstTokenOffset:50) (offset:50)
               element: <testLibrary>::@class::B::@field::a
           constructors
             #F6 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
@@ -3450,7 +3450,7 @@ library
                 #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
                   element: <testLibrary>::@class::B::@setter::a::@formalParameter::value
       topLevelVariables
-        #F10 hasInitializer c (nameOffset:59) (firstTokenOffset:59) (offset:59)
+        #F10 hasInitializer isOriginDeclaration c (nameOffset:59) (firstTokenOffset:59) (offset:59)
           element: <testLibrary>::@topLevelVariable::c
       getters
         #F11 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
@@ -3478,7 +3478,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       fields
-        a
+        isOriginDeclaration a
           reference: <testLibrary>::@class::B::@field::a
           firstFragment: #F5
           type: A
@@ -3505,7 +3505,7 @@ library
           returnType: void
           variable: <testLibrary>::@class::B::@field::a
   topLevelVariables
-    hasImplicitType hasInitializer c
+    hasImplicitType hasInitializer isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F10
       type: double
@@ -3545,9 +3545,9 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer a (nameOffset:4) (firstTokenOffset:4) (offset:4)
+        #F1 hasInitializer isOriginDeclaration a (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::a
-        #F2 hasInitializer b (nameOffset:42) (firstTokenOffset:42) (offset:42)
+        #F2 hasInitializer isOriginDeclaration b (nameOffset:42) (firstTokenOffset:42) (offset:42)
           element: <testLibrary>::@topLevelVariable::b
       getters
         #F3 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
@@ -3566,13 +3566,13 @@ library
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@setter::b::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer a
+    hasImplicitType hasInitializer isOriginDeclaration a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: int Function()
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
-    hasImplicitType hasInitializer b
+    hasImplicitType hasInitializer isOriginDeclaration b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
       type: int
@@ -3629,7 +3629,7 @@ library
         <testLibraryFragment>::@prefix2::a
           fragments: @28
       topLevelVariables
-        #F1 hasInitializer x (nameOffset:35) (firstTokenOffset:35) (offset:35)
+        #F1 hasInitializer isOriginDeclaration x (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
@@ -3641,7 +3641,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer x
+    hasImplicitType hasInitializer isOriginDeclaration x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: Future<dynamic> Function()
@@ -3677,7 +3677,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer x (nameOffset:4) (firstTokenOffset:4) (offset:4)
+        #F1 hasInitializer isOriginDeclaration x (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
@@ -3689,7 +3689,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer x
+    hasImplicitType hasInitializer isOriginDeclaration x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int Function(int Function(String))
@@ -3725,7 +3725,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer x (nameOffset:4) (firstTokenOffset:4) (offset:4)
+        #F1 hasInitializer isOriginDeclaration x (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
@@ -3737,7 +3737,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer x
+    hasImplicitType hasInitializer isOriginDeclaration x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int Function(int Function(String))
@@ -3778,7 +3778,7 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasInitializer y (nameOffset:21) (firstTokenOffset:21) (offset:21)
+        #F1 hasInitializer isOriginDeclaration y (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::y
       getters
         #F2 synthetic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -3790,7 +3790,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@setter::y::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer y
+    hasImplicitType hasInitializer isOriginDeclaration y
       reference: <testLibrary>::@topLevelVariable::y
       firstFragment: #F1
       type: int
@@ -3832,9 +3832,9 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           fields
-            #F2 hasInitializer x (nameOffset:25) (firstTokenOffset:25) (offset:25)
+            #F2 hasInitializer isOriginDeclaration x (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::A::@field::x
-            #F3 hasInitializer y (nameOffset:51) (firstTokenOffset:51) (offset:51)
+            #F3 hasInitializer isOriginDeclaration y (nameOffset:51) (firstTokenOffset:51) (offset:51)
               element: <testLibrary>::@class::A::@field::y
           constructors
             #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -3850,14 +3850,14 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        static final hasImplicitType hasInitializer x
+        static final hasImplicitType hasInitializer isOriginDeclaration x
           reference: <testLibrary>::@class::A::@field::x
           firstFragment: #F2
           typeInferenceError: dependencyCycle
             arguments: [x, y]
           type: dynamic
           getter: <testLibrary>::@class::A::@getter::x
-        static final hasImplicitType hasInitializer y
+        static final hasImplicitType hasInitializer isOriginDeclaration y
           reference: <testLibrary>::@class::A::@field::y
           firstFragment: #F3
           typeInferenceError: dependencyCycle
@@ -3900,11 +3900,11 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           fields
-            #F2 hasInitializer a (nameOffset:25) (firstTokenOffset:25) (offset:25)
+            #F2 hasInitializer isOriginDeclaration a (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::A::@field::a
-            #F3 hasInitializer b (nameOffset:49) (firstTokenOffset:49) (offset:49)
+            #F3 hasInitializer isOriginDeclaration b (nameOffset:49) (firstTokenOffset:49) (offset:49)
               element: <testLibrary>::@class::A::@field::b
-            #F4 hasInitializer c (nameOffset:66) (firstTokenOffset:66) (offset:66)
+            #F4 hasInitializer isOriginDeclaration c (nameOffset:66) (firstTokenOffset:66) (offset:66)
               element: <testLibrary>::@class::A::@field::c
           constructors
             #F5 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -3922,19 +3922,19 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        static final hasImplicitType hasInitializer a
+        static final hasImplicitType hasInitializer isOriginDeclaration a
           reference: <testLibrary>::@class::A::@field::a
           firstFragment: #F2
           typeInferenceError: dependencyCycle
             arguments: [a, c]
           type: dynamic
           getter: <testLibrary>::@class::A::@getter::a
-        static final hasImplicitType hasInitializer b
+        static final hasImplicitType hasInitializer isOriginDeclaration b
           reference: <testLibrary>::@class::A::@field::b
           firstFragment: #F3
           type: A
           getter: <testLibrary>::@class::A::@getter::b
-        final hasImplicitType hasInitializer c
+        final hasImplicitType hasInitializer isOriginDeclaration c
           reference: <testLibrary>::@class::A::@field::c
           firstFragment: #F4
           typeInferenceError: dependencyCycle
@@ -3989,7 +3989,7 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           fields
-            #F3 value (nameOffset:17) (firstTokenOffset:17) (offset:17)
+            #F3 isOriginDeclaration value (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@class::A::@field::value
           constructors
             #F4 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
@@ -4011,7 +4011,7 @@ library
         #F9 class B (nameOffset:51) (firstTokenOffset:45) (offset:51)
           element: <testLibrary>::@class::B
           fields
-            #F10 hasInitializer a (nameOffset:61) (firstTokenOffset:61) (offset:61)
+            #F10 hasInitializer isOriginDeclaration a (nameOffset:61) (firstTokenOffset:61) (offset:61)
               element: <testLibrary>::@class::B::@field::a
           constructors
             #F11 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
@@ -4034,7 +4034,7 @@ library
         #E0 T
           firstFragment: #F2
       fields
-        value
+        isOriginDeclaration value
           reference: <testLibrary>::@class::A::@field::value
           firstFragment: #F3
           hasEnclosingTypeParameterReference: true
@@ -4072,7 +4072,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: #F9
       fields
-        hasImplicitType hasInitializer a
+        hasImplicitType hasInitializer isOriginDeclaration a
           reference: <testLibrary>::@class::B::@field::a
           firstFragment: #F10
           type: A<String>
@@ -4130,7 +4130,7 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           fields
-            #F3 value (nameOffset:17) (firstTokenOffset:17) (offset:17)
+            #F3 isOriginDeclaration value (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@class::A::@field::value
           constructors
             #F4 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
@@ -4164,7 +4164,7 @@ library
         #F13 class C (nameOffset:78) (firstTokenOffset:72) (offset:78)
           element: <testLibrary>::@class::C
           fields
-            #F14 hasInitializer a (nameOffset:88) (firstTokenOffset:88) (offset:88)
+            #F14 hasInitializer isOriginDeclaration a (nameOffset:88) (firstTokenOffset:88) (offset:88)
               element: <testLibrary>::@class::C::@field::a
           constructors
             #F15 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
@@ -4190,7 +4190,7 @@ library
         #E0 T
           firstFragment: #F2
       fields
-        value
+        isOriginDeclaration value
           reference: <testLibrary>::@class::A::@field::value
           firstFragment: #F3
           hasEnclosingTypeParameterReference: true
@@ -4260,7 +4260,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F13
       fields
-        hasImplicitType hasInitializer a
+        hasImplicitType hasInitializer isOriginDeclaration a
           reference: <testLibrary>::@class::C::@field::a
           firstFragment: #F14
           type: B<int>
@@ -4315,7 +4315,7 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           fields
-            #F3 hasInitializer f (nameOffset:19) (firstTokenOffset:19) (offset:19)
+            #F3 hasInitializer isOriginDeclaration f (nameOffset:19) (firstTokenOffset:19) (offset:19)
               element: <testLibrary>::@class::A::@field::f
           constructors
             #F4 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
@@ -4342,7 +4342,7 @@ library
         #E0 T
           firstFragment: #F2
       fields
-        hasImplicitType hasInitializer f
+        hasImplicitType hasInitializer isOriginDeclaration f
           reference: <testLibrary>::@class::A::@field::f
           firstFragment: #F3
           type: int
@@ -4402,9 +4402,9 @@ library
                 #F3 requiredPositional _ (nameOffset:14) (firstTokenOffset:14) (offset:14)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::_
       topLevelVariables
-        #F4 hasInitializer a (nameOffset:26) (firstTokenOffset:26) (offset:26)
+        #F4 hasInitializer isOriginDeclaration a (nameOffset:26) (firstTokenOffset:26) (offset:26)
           element: <testLibrary>::@topLevelVariable::a
-        #F5 hasInitializer b (nameOffset:48) (firstTokenOffset:48) (offset:48)
+        #F5 hasInitializer isOriginDeclaration b (nameOffset:48) (firstTokenOffset:48) (offset:48)
           element: <testLibrary>::@topLevelVariable::b
       getters
         #F6 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
@@ -4424,14 +4424,14 @@ library
               firstFragment: #F3
               type: dynamic
   topLevelVariables
-    final hasImplicitType hasInitializer a
+    final hasImplicitType hasInitializer isOriginDeclaration a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F4
       typeInferenceError: dependencyCycle
         arguments: [a, b]
       type: dynamic
       getter: <testLibrary>::@getter::a
-    final hasImplicitType hasInitializer b
+    final hasImplicitType hasInitializer isOriginDeclaration b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F5
       typeInferenceError: dependencyCycle
@@ -4470,7 +4470,7 @@ library
         package:test/a.dart
         package:test/b.dart
       topLevelVariables
-        #F1 hasInitializer v (nameOffset:38) (firstTokenOffset:38) (offset:38)
+        #F1 hasInitializer isOriginDeclaration v (nameOffset:38) (firstTokenOffset:38) (offset:38)
           element: <testLibrary>::@topLevelVariable::v
       getters
         #F2 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
@@ -4482,7 +4482,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer v
+    hasImplicitType hasInitializer isOriginDeclaration v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: InvalidType
@@ -4518,7 +4518,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer x (nameOffset:4) (firstTokenOffset:4) (offset:4)
+        #F1 hasInitializer isOriginDeclaration x (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
@@ -4530,7 +4530,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer x
+    hasImplicitType hasInitializer isOriginDeclaration x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: dynamic Function(dynamic) Function(dynamic)
@@ -4566,7 +4566,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer x (nameOffset:4) (firstTokenOffset:4) (offset:4)
+        #F1 hasInitializer isOriginDeclaration x (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
@@ -4578,7 +4578,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer x
+    hasImplicitType hasInitializer isOriginDeclaration x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int Function(int) Function(int)
@@ -4614,7 +4614,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer x (nameOffset:4) (firstTokenOffset:4) (offset:4)
+        #F1 hasInitializer isOriginDeclaration x (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::x
       getters
         #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
@@ -4626,7 +4626,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer x
+    hasImplicitType hasInitializer isOriginDeclaration x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: dynamic Function([dynamic])
@@ -4665,11 +4665,11 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+        #F1 hasInitializer isOriginDeclaration a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
-        #F2 hasInitializer b (nameOffset:19) (firstTokenOffset:19) (offset:19)
+        #F2 hasInitializer isOriginDeclaration b (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::b
-        #F3 hasInitializer c (nameOffset:32) (firstTokenOffset:32) (offset:32)
+        #F3 hasInitializer isOriginDeclaration c (nameOffset:32) (firstTokenOffset:32) (offset:32)
           element: <testLibrary>::@topLevelVariable::c
       getters
         #F4 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -4679,19 +4679,19 @@ library
         #F6 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
           element: <testLibrary>::@getter::c
   topLevelVariables
-    final hasImplicitType hasInitializer a
+    final hasImplicitType hasInitializer isOriginDeclaration a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: dynamic
       getter: <testLibrary>::@getter::a
-    final hasImplicitType hasInitializer b
+    final hasImplicitType hasInitializer isOriginDeclaration b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
       typeInferenceError: dependencyCycle
         arguments: [b, c]
       type: dynamic
       getter: <testLibrary>::@getter::b
-    final hasImplicitType hasInitializer c
+    final hasImplicitType hasInitializer isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F3
       typeInferenceError: dependencyCycle
@@ -4731,11 +4731,11 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+        #F1 hasInitializer isOriginDeclaration a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
-        #F2 hasInitializer b (nameOffset:19) (firstTokenOffset:19) (offset:19)
+        #F2 hasInitializer isOriginDeclaration b (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::b
-        #F3 hasInitializer c (nameOffset:32) (firstTokenOffset:32) (offset:32)
+        #F3 hasInitializer isOriginDeclaration c (nameOffset:32) (firstTokenOffset:32) (offset:32)
           element: <testLibrary>::@topLevelVariable::c
       getters
         #F4 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -4745,21 +4745,21 @@ library
         #F6 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
           element: <testLibrary>::@getter::c
   topLevelVariables
-    final hasImplicitType hasInitializer a
+    final hasImplicitType hasInitializer isOriginDeclaration a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       typeInferenceError: dependencyCycle
         arguments: [a, b]
       type: dynamic
       getter: <testLibrary>::@getter::a
-    final hasImplicitType hasInitializer b
+    final hasImplicitType hasInitializer isOriginDeclaration b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
       typeInferenceError: dependencyCycle
         arguments: [a, b]
       type: dynamic
       getter: <testLibrary>::@getter::b
-    final hasImplicitType hasInitializer c
+    final hasImplicitType hasInitializer isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F3
       type: dynamic
@@ -4799,13 +4799,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+        #F1 hasInitializer isOriginDeclaration a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
-        #F2 hasInitializer b (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F2 hasInitializer isOriginDeclaration b (nameOffset:23) (firstTokenOffset:23) (offset:23)
           element: <testLibrary>::@topLevelVariable::b
-        #F3 hasInitializer c (nameOffset:36) (firstTokenOffset:36) (offset:36)
+        #F3 hasInitializer isOriginDeclaration c (nameOffset:36) (firstTokenOffset:36) (offset:36)
           element: <testLibrary>::@topLevelVariable::c
-        #F4 hasInitializer d (nameOffset:49) (firstTokenOffset:49) (offset:49)
+        #F4 hasInitializer isOriginDeclaration d (nameOffset:49) (firstTokenOffset:49) (offset:49)
           element: <testLibrary>::@topLevelVariable::d
       getters
         #F5 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -4817,28 +4817,28 @@ library
         #F8 synthetic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@getter::d
   topLevelVariables
-    final hasImplicitType hasInitializer a
+    final hasImplicitType hasInitializer isOriginDeclaration a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       typeInferenceError: dependencyCycle
         arguments: [a, d]
       type: dynamic
       getter: <testLibrary>::@getter::a
-    final hasImplicitType hasInitializer b
+    final hasImplicitType hasInitializer isOriginDeclaration b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
       typeInferenceError: dependencyCycle
         arguments: [b, c]
       type: dynamic
       getter: <testLibrary>::@getter::b
-    final hasImplicitType hasInitializer c
+    final hasImplicitType hasInitializer isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F3
       typeInferenceError: dependencyCycle
         arguments: [b, c]
       type: dynamic
       getter: <testLibrary>::@getter::c
-    final hasImplicitType hasInitializer d
+    final hasImplicitType hasInitializer isOriginDeclaration d
       reference: <testLibrary>::@topLevelVariable::d
       firstFragment: #F4
       typeInferenceError: dependencyCycle
@@ -4889,11 +4889,11 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+        #F1 hasInitializer isOriginDeclaration a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
-        #F2 hasInitializer b (nameOffset:19) (firstTokenOffset:19) (offset:19)
+        #F2 hasInitializer isOriginDeclaration b (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::b
-        #F3 hasInitializer c (nameOffset:36) (firstTokenOffset:36) (offset:36)
+        #F3 hasInitializer isOriginDeclaration c (nameOffset:36) (firstTokenOffset:36) (offset:36)
           element: <testLibrary>::@topLevelVariable::c
       getters
         #F4 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -4903,21 +4903,21 @@ library
         #F6 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@getter::c
   topLevelVariables
-    final hasImplicitType hasInitializer a
+    final hasImplicitType hasInitializer isOriginDeclaration a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       typeInferenceError: dependencyCycle
         arguments: [a, b]
       type: dynamic
       getter: <testLibrary>::@getter::a
-    final hasImplicitType hasInitializer b
+    final hasImplicitType hasInitializer isOriginDeclaration b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
       typeInferenceError: dependencyCycle
         arguments: [b, c]
       type: dynamic
       getter: <testLibrary>::@getter::b
-    final hasImplicitType hasInitializer c
+    final hasImplicitType hasInitializer isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F3
       typeInferenceError: dependencyCycle
@@ -4982,7 +4982,7 @@ library
             #F6 T (nameOffset:42) (firstTokenOffset:42) (offset:42)
               element: #E0 T
           fields
-            #F7 f (nameOffset:67) (firstTokenOffset:67) (offset:67)
+            #F7 isOriginDeclaration f (nameOffset:67) (firstTokenOffset:67) (offset:67)
               element: <testLibrary>::@class::C::@field::f
           constructors
             #F8 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:72) (offset:78)
@@ -4996,9 +4996,9 @@ library
             #F10 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
               element: <testLibrary>::@class::C::@getter::f
       topLevelVariables
-        #F11 hasInitializer b (nameOffset:98) (firstTokenOffset:98) (offset:98)
+        #F11 hasInitializer isOriginDeclaration b (nameOffset:98) (firstTokenOffset:98) (offset:98)
           element: <testLibrary>::@topLevelVariable::b
-        #F12 hasInitializer c (nameOffset:113) (firstTokenOffset:113) (offset:113)
+        #F12 hasInitializer isOriginDeclaration c (nameOffset:113) (firstTokenOffset:113) (offset:113)
           element: <testLibrary>::@topLevelVariable::c
       getters
         #F13 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:98)
@@ -5030,7 +5030,7 @@ library
           firstFragment: #F6
           bound: A
       fields
-        final f
+        final isOriginDeclaration f
           reference: <testLibrary>::@class::C::@field::f
           firstFragment: #F7
           hasEnclosingTypeParameterReference: true
@@ -5053,12 +5053,12 @@ library
           returnType: T
           variable: <testLibrary>::@class::C::@field::f
   topLevelVariables
-    final hasImplicitType hasInitializer b
+    final hasImplicitType hasInitializer isOriginDeclaration b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F11
       type: B
       getter: <testLibrary>::@getter::b
-    final hasImplicitType hasInitializer c
+    final hasImplicitType hasInitializer isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F12
       type: C<B>
@@ -5094,13 +5094,13 @@ library
         #F1 extension <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@extension::0
           fields
-            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
+            #F2 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
               element: <testLibrary>::@extension::0::@field::foo
           getters
             #F3 foo (nameOffset:32) (firstTokenOffset:24) (offset:32)
               element: <testLibrary>::@extension::0::@getter::foo
       topLevelVariables
-        #F4 hasInitializer v (nameOffset:48) (firstTokenOffset:48) (offset:48)
+        #F4 hasInitializer isOriginDeclaration v (nameOffset:48) (firstTokenOffset:48) (offset:48)
           element: <testLibrary>::@topLevelVariable::v
       getters
         #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
@@ -5118,7 +5118,7 @@ library
       extendedType: String
       onDeclaration: dart:core::@class::String
       fields
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: <testLibrary>::@extension::0::@field::foo
           firstFragment: #F2
           type: int
@@ -5130,7 +5130,7 @@ library
           returnType: int
           variable: <testLibrary>::@extension::0::@field::foo
   topLevelVariables
-    hasImplicitType hasInitializer v
+    hasImplicitType hasInitializer isOriginDeclaration v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       type: int
@@ -5183,9 +5183,9 @@ library
         #F4 F (nameOffset:34) (firstTokenOffset:24) (offset:34)
           element: <testLibrary>::@typeAlias::F
       topLevelVariables
-        #F5 hasInitializer V2 (nameOffset:56) (firstTokenOffset:56) (offset:56)
+        #F5 hasInitializer isOriginDeclaration V2 (nameOffset:56) (firstTokenOffset:56) (offset:56)
           element: <testLibrary>::@topLevelVariable::V2
-        #F6 hasInitializer V (nameOffset:71) (firstTokenOffset:71) (offset:71)
+        #F6 hasInitializer isOriginDeclaration V (nameOffset:71) (firstTokenOffset:71) (offset:71)
           element: <testLibrary>::@topLevelVariable::V
       getters
         #F7 synthetic V2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
@@ -5227,13 +5227,13 @@ library
       firstFragment: #F4
       aliasedType: dynamic Function(dynamic)
   topLevelVariables
-    hasInitializer V2
+    hasInitializer isOriginDeclaration V2
       reference: <testLibrary>::@topLevelVariable::V2
       firstFragment: #F5
       type: dynamic
       getter: <testLibrary>::@getter::V2
       setter: <testLibrary>::@setter::V2
-    hasInitializer V
+    hasInitializer isOriginDeclaration V
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: #F6
       type: int
@@ -5293,9 +5293,9 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 V (nameOffset:4) (firstTokenOffset:4) (offset:4)
+        #F1 isOriginDeclaration V (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::V
-        #F2 V2 (nameOffset:22) (firstTokenOffset:22) (offset:22)
+        #F2 isOriginDeclaration V2 (nameOffset:22) (firstTokenOffset:22) (offset:22)
           element: <testLibrary>::@topLevelVariable::V2
       getters
         #F3 synthetic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
@@ -5314,13 +5314,13 @@ library
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@setter::V2::@formalParameter::value
   topLevelVariables
-    hasImplicitType V
+    hasImplicitType isOriginDeclaration V
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: #F1
       type: dynamic
       getter: <testLibrary>::@getter::V
       setter: <testLibrary>::@setter::V
-    V2
+    isOriginDeclaration V2
       reference: <testLibrary>::@topLevelVariable::V2
       firstFragment: #F2
       type: List<dynamic>
@@ -5421,7 +5421,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 v (nameOffset:4) (firstTokenOffset:4) (offset:4)
+        #F1 isOriginDeclaration v (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::v
       getters
         #F2 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
@@ -5433,7 +5433,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    v
+    isOriginDeclaration v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: InvalidType
@@ -5467,7 +5467,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 d (nameOffset:6) (firstTokenOffset:6) (offset:6)
+        #F1 isOriginDeclaration d (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::d
       getters
         #F2 synthetic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -5479,7 +5479,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@setter::d::@formalParameter::value
   topLevelVariables
-    d
+    isOriginDeclaration d
       reference: <testLibrary>::@topLevelVariable::d
       firstFragment: #F1
       type: Never
@@ -5523,7 +5523,7 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           fields
-            #F3 t (nameOffset:17) (firstTokenOffset:17) (offset:17)
+            #F3 isOriginDeclaration t (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@class::C::@field::t
           constructors
             #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -5546,7 +5546,7 @@ library
         #E0 T
           firstFragment: #F2
       fields
-        t
+        isOriginDeclaration t
           reference: <testLibrary>::@class::C::@field::t
           firstFragment: #F3
           hasEnclosingTypeParameterReference: true
@@ -5597,7 +5597,7 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           fields
-            #F3 t (nameOffset:18) (firstTokenOffset:18) (offset:18)
+            #F3 isOriginDeclaration t (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@class::C::@field::t
           constructors
             #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -5620,7 +5620,7 @@ library
         #E0 T
           firstFragment: #F2
       fields
-        t
+        isOriginDeclaration t
           reference: <testLibrary>::@class::C::@field::t
           firstFragment: #F3
           hasEnclosingTypeParameterReference: true
@@ -5677,7 +5677,7 @@ library
         #F3 enum E (nameOffset:16) (firstTokenOffset:11) (offset:16)
           element: <testLibrary>::@enum::E
           fields
-            #F4 hasInitializer v (nameOffset:20) (firstTokenOffset:20) (offset:20)
+            #F4 hasInitializer isOriginDeclaration v (nameOffset:20) (firstTokenOffset:20) (offset:20)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -5691,7 +5691,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -5716,11 +5716,11 @@ library
         #F9 F (nameOffset:32) (firstTokenOffset:24) (offset:32)
           element: <testLibrary>::@typeAlias::F
       topLevelVariables
-        #F10 c (nameOffset:39) (firstTokenOffset:39) (offset:39)
+        #F10 isOriginDeclaration c (nameOffset:39) (firstTokenOffset:39) (offset:39)
           element: <testLibrary>::@topLevelVariable::c
-        #F11 e (nameOffset:44) (firstTokenOffset:44) (offset:44)
+        #F11 isOriginDeclaration e (nameOffset:44) (firstTokenOffset:44) (offset:44)
           element: <testLibrary>::@topLevelVariable::e
-        #F12 f (nameOffset:49) (firstTokenOffset:49) (offset:49)
+        #F12 isOriginDeclaration f (nameOffset:49) (firstTokenOffset:49) (offset:49)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F13 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
@@ -5759,7 +5759,7 @@ library
       firstFragment: #F3
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F4
           type: E
@@ -5767,7 +5767,7 @@ library
             fragment: #F4
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E>
@@ -5796,19 +5796,19 @@ library
       firstFragment: #F9
       aliasedType: dynamic Function()
   topLevelVariables
-    c
+    isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F10
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    e
+    isOriginDeclaration e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F11
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F12
       type: dynamic Function()
@@ -5886,11 +5886,11 @@ library
           partKeywordOffset: 11
           unit: #F1
       topLevelVariables
-        #F2 c (nameOffset:28) (firstTokenOffset:28) (offset:28)
+        #F2 isOriginDeclaration c (nameOffset:28) (firstTokenOffset:28) (offset:28)
           element: <testLibrary>::@topLevelVariable::c
-        #F3 e (nameOffset:33) (firstTokenOffset:33) (offset:33)
+        #F3 isOriginDeclaration e (nameOffset:33) (firstTokenOffset:33) (offset:33)
           element: <testLibrary>::@topLevelVariable::e
-        #F4 f (nameOffset:38) (firstTokenOffset:38) (offset:38)
+        #F4 isOriginDeclaration f (nameOffset:38) (firstTokenOffset:38) (offset:38)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F5 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
@@ -5930,7 +5930,7 @@ library
         #F16 enum E (nameOffset:27) (firstTokenOffset:22) (offset:27)
           element: <testLibrary>::@enum::E
           fields
-            #F17 hasInitializer v (nameOffset:31) (firstTokenOffset:31) (offset:31)
+            #F17 hasInitializer isOriginDeclaration v (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -5944,7 +5944,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F18 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F18 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -5982,7 +5982,7 @@ library
       firstFragment: #F16
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F17
           type: E
@@ -5990,7 +5990,7 @@ library
             fragment: #F17
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F18
           type: List<E>
@@ -6019,19 +6019,19 @@ library
       firstFragment: #F22
       aliasedType: dynamic Function()
   topLevelVariables
-    c
+    isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F2
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    e
+    isOriginDeclaration e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F3
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F4
       type: dynamic Function()
@@ -6116,7 +6116,7 @@ library
         #F4 enum E (nameOffset:42) (firstTokenOffset:37) (offset:42)
           element: <testLibrary>::@enum::E
           fields
-            #F5 hasInitializer v (nameOffset:46) (firstTokenOffset:46) (offset:46)
+            #F5 hasInitializer isOriginDeclaration v (nameOffset:46) (firstTokenOffset:46) (offset:46)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -6130,7 +6130,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+            #F6 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -6159,11 +6159,11 @@ library
       enclosingFragment: #F0
       previousFragment: #F0
       topLevelVariables
-        #F11 c (nameOffset:13) (firstTokenOffset:13) (offset:13)
+        #F11 isOriginDeclaration c (nameOffset:13) (firstTokenOffset:13) (offset:13)
           element: <testLibrary>::@topLevelVariable::c
-        #F12 e (nameOffset:18) (firstTokenOffset:18) (offset:18)
+        #F12 isOriginDeclaration e (nameOffset:18) (firstTokenOffset:18) (offset:18)
           element: <testLibrary>::@topLevelVariable::e
-        #F13 f (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F13 isOriginDeclaration f (nameOffset:23) (firstTokenOffset:23) (offset:23)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F14 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
@@ -6202,7 +6202,7 @@ library
       firstFragment: #F4
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F5
           type: E
@@ -6210,7 +6210,7 @@ library
             fragment: #F5
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F6
           type: List<E>
@@ -6239,19 +6239,19 @@ library
       firstFragment: #F10
       aliasedType: dynamic Function()
   topLevelVariables
-    c
+    isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F11
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    e
+    isOriginDeclaration e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F12
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F13
       type: dynamic Function()
@@ -6349,7 +6349,7 @@ library
         #F5 enum E (nameOffset:27) (firstTokenOffset:22) (offset:27)
           element: <testLibrary>::@enum::E
           fields
-            #F6 hasInitializer v (nameOffset:31) (firstTokenOffset:31) (offset:31)
+            #F6 hasInitializer isOriginDeclaration v (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -6363,7 +6363,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F7 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -6392,11 +6392,11 @@ library
       enclosingFragment: #F0
       previousFragment: #F1
       topLevelVariables
-        #F12 c (nameOffset:13) (firstTokenOffset:13) (offset:13)
+        #F12 isOriginDeclaration c (nameOffset:13) (firstTokenOffset:13) (offset:13)
           element: <testLibrary>::@topLevelVariable::c
-        #F13 e (nameOffset:18) (firstTokenOffset:18) (offset:18)
+        #F13 isOriginDeclaration e (nameOffset:18) (firstTokenOffset:18) (offset:18)
           element: <testLibrary>::@topLevelVariable::e
-        #F14 f (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F14 isOriginDeclaration f (nameOffset:23) (firstTokenOffset:23) (offset:23)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F15 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
@@ -6435,7 +6435,7 @@ library
       firstFragment: #F5
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F6
           type: E
@@ -6443,7 +6443,7 @@ library
             fragment: #F6
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F7
           type: List<E>
@@ -6472,19 +6472,19 @@ library
       firstFragment: #F11
       aliasedType: dynamic Function()
   topLevelVariables
-    c
+    isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F12
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    e
+    isOriginDeclaration e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F13
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F14
       type: dynamic Function()
@@ -6574,7 +6574,7 @@ library
         #F4 enum E (nameOffset:27) (firstTokenOffset:22) (offset:27)
           element: <testLibrary>::@enum::E
           fields
-            #F5 hasInitializer v (nameOffset:31) (firstTokenOffset:31) (offset:31)
+            #F5 hasInitializer isOriginDeclaration v (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -6588,7 +6588,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F6 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -6613,11 +6613,11 @@ library
         #F10 F (nameOffset:43) (firstTokenOffset:35) (offset:43)
           element: <testLibrary>::@typeAlias::F
       topLevelVariables
-        #F11 c (nameOffset:50) (firstTokenOffset:50) (offset:50)
+        #F11 isOriginDeclaration c (nameOffset:50) (firstTokenOffset:50) (offset:50)
           element: <testLibrary>::@topLevelVariable::c
-        #F12 e (nameOffset:55) (firstTokenOffset:55) (offset:55)
+        #F12 isOriginDeclaration e (nameOffset:55) (firstTokenOffset:55) (offset:55)
           element: <testLibrary>::@topLevelVariable::e
-        #F13 f (nameOffset:60) (firstTokenOffset:60) (offset:60)
+        #F13 isOriginDeclaration f (nameOffset:60) (firstTokenOffset:60) (offset:60)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F14 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
@@ -6656,7 +6656,7 @@ library
       firstFragment: #F4
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F5
           type: E
@@ -6664,7 +6664,7 @@ library
             fragment: #F5
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F6
           type: List<E>
@@ -6693,19 +6693,19 @@ library
       firstFragment: #F10
       aliasedType: dynamic Function()
   topLevelVariables
-    c
+    isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F11
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    e
+    isOriginDeclaration e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F12
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F13
       type: dynamic Function()
@@ -6777,7 +6777,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
-        #F3 c (nameOffset:13) (firstTokenOffset:13) (offset:13)
+        #F3 isOriginDeclaration c (nameOffset:13) (firstTokenOffset:13) (offset:13)
           element: <testLibrary>::@topLevelVariable::c
       getters
         #F4 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
@@ -6797,7 +6797,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
   topLevelVariables
-    c
+    isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F3
       type: C
@@ -6843,7 +6843,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
-        #F5 c (nameOffset:32) (firstTokenOffset:32) (offset:32)
+        #F5 isOriginDeclaration c (nameOffset:32) (firstTokenOffset:32) (offset:32)
           element: <testLibrary>::@topLevelVariable::c
       getters
         #F6 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
@@ -6868,7 +6868,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
   topLevelVariables
-    c
+    isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F5
       type: C<int, String>
@@ -6914,7 +6914,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
-        #F5 c (nameOffset:19) (firstTokenOffset:19) (offset:19)
+        #F5 isOriginDeclaration c (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::c
       getters
         #F6 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
@@ -6939,7 +6939,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
   topLevelVariables
-    c
+    isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F5
       type: C<dynamic, dynamic>
@@ -6976,7 +6976,7 @@ library
         #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:9) (firstTokenOffset:9) (offset:9)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -6990,7 +6990,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -7012,7 +7012,7 @@ library
             #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
-        #F7 e (nameOffset:15) (firstTokenOffset:15) (offset:15)
+        #F7 isOriginDeclaration e (nameOffset:15) (firstTokenOffset:15) (offset:15)
           element: <testLibrary>::@topLevelVariable::e
       getters
         #F8 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
@@ -7029,7 +7029,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -7037,7 +7037,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -7061,7 +7061,7 @@ library
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
-    e
+    isOriginDeclaration e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F7
       type: E
@@ -7101,11 +7101,11 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 c (nameOffset:19) (firstTokenOffset:19) (offset:19)
+        #F1 isOriginDeclaration c (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::c
-        #F2 e (nameOffset:24) (firstTokenOffset:24) (offset:24)
+        #F2 isOriginDeclaration e (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::e
-        #F3 f (nameOffset:29) (firstTokenOffset:29) (offset:29)
+        #F3 isOriginDeclaration f (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F4 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
@@ -7131,19 +7131,19 @@ library
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    c
+    isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F1
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    e
+    isOriginDeclaration e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F2
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F3
       type: dynamic Function()
@@ -7215,11 +7215,11 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 c (nameOffset:19) (firstTokenOffset:19) (offset:19)
+        #F1 isOriginDeclaration c (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::c
-        #F2 e (nameOffset:24) (firstTokenOffset:24) (offset:24)
+        #F2 isOriginDeclaration e (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::e
-        #F3 f (nameOffset:29) (firstTokenOffset:29) (offset:29)
+        #F3 isOriginDeclaration f (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F4 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
@@ -7245,19 +7245,19 @@ library
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    c
+    isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F1
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    e
+    isOriginDeclaration e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F2
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F3
       type: dynamic Function()
@@ -7330,11 +7330,11 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 c (nameOffset:19) (firstTokenOffset:19) (offset:19)
+        #F1 isOriginDeclaration c (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::c
-        #F2 e (nameOffset:24) (firstTokenOffset:24) (offset:24)
+        #F2 isOriginDeclaration e (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::e
-        #F3 f (nameOffset:29) (firstTokenOffset:29) (offset:29)
+        #F3 isOriginDeclaration f (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F4 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
@@ -7360,19 +7360,19 @@ library
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    c
+    isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F1
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    e
+    isOriginDeclaration e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F2
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F3
       type: dynamic Function()
@@ -7445,11 +7445,11 @@ library
       libraryImports
         package:test/a/a.dart
       topLevelVariables
-        #F1 c (nameOffset:21) (firstTokenOffset:21) (offset:21)
+        #F1 isOriginDeclaration c (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::c
-        #F2 e (nameOffset:26) (firstTokenOffset:26) (offset:26)
+        #F2 isOriginDeclaration e (nameOffset:26) (firstTokenOffset:26) (offset:26)
           element: <testLibrary>::@topLevelVariable::e
-        #F3 f (nameOffset:31) (firstTokenOffset:31) (offset:31)
+        #F3 isOriginDeclaration f (nameOffset:31) (firstTokenOffset:31) (offset:31)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F4 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -7475,19 +7475,19 @@ library
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    c
+    isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F1
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    e
+    isOriginDeclaration e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F2
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F3
       type: dynamic Function()
@@ -7559,11 +7559,11 @@ library
       libraryImports
         package:test/a/a.dart
       topLevelVariables
-        #F1 c (nameOffset:21) (firstTokenOffset:21) (offset:21)
+        #F1 isOriginDeclaration c (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::c
-        #F2 e (nameOffset:26) (firstTokenOffset:26) (offset:26)
+        #F2 isOriginDeclaration e (nameOffset:26) (firstTokenOffset:26) (offset:26)
           element: <testLibrary>::@topLevelVariable::e
-        #F3 f (nameOffset:31) (firstTokenOffset:31) (offset:31)
+        #F3 isOriginDeclaration f (nameOffset:31) (firstTokenOffset:31) (offset:31)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F4 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -7589,19 +7589,19 @@ library
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    c
+    isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F1
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    e
+    isOriginDeclaration e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F2
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F3
       type: dynamic Function()
@@ -7673,11 +7673,11 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 c (nameOffset:19) (firstTokenOffset:19) (offset:19)
+        #F1 isOriginDeclaration c (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::c
-        #F2 e (nameOffset:24) (firstTokenOffset:24) (offset:24)
+        #F2 isOriginDeclaration e (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::e
-        #F3 f (nameOffset:29) (firstTokenOffset:29) (offset:29)
+        #F3 isOriginDeclaration f (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F4 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
@@ -7703,19 +7703,19 @@ library
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    c
+    isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F1
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    e
+    isOriginDeclaration e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F2
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F3
       type: dynamic Function()
@@ -7788,9 +7788,9 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 c1 (nameOffset:20) (firstTokenOffset:20) (offset:20)
+        #F1 isOriginDeclaration c1 (nameOffset:20) (firstTokenOffset:20) (offset:20)
           element: <testLibrary>::@topLevelVariable::c1
-        #F2 c2 (nameOffset:27) (firstTokenOffset:27) (offset:27)
+        #F2 isOriginDeclaration c2 (nameOffset:27) (firstTokenOffset:27) (offset:27)
           element: <testLibrary>::@topLevelVariable::c2
       getters
         #F3 synthetic c1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
@@ -7809,13 +7809,13 @@ library
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@setter::c2::@formalParameter::value
   topLevelVariables
-    c1
+    isOriginDeclaration c1
       reference: <testLibrary>::@topLevelVariable::c1
       firstFragment: #F1
       type: C1
       getter: <testLibrary>::@getter::c1
       setter: <testLibrary>::@setter::c1
-    c2
+    isOriginDeclaration c2
       reference: <testLibrary>::@topLevelVariable::c2
       firstFragment: #F2
       type: C2
@@ -7870,11 +7870,11 @@ library
       libraryImports
         package:test/a/b.dart
       topLevelVariables
-        #F1 c (nameOffset:21) (firstTokenOffset:21) (offset:21)
+        #F1 isOriginDeclaration c (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::c
-        #F2 e (nameOffset:26) (firstTokenOffset:26) (offset:26)
+        #F2 isOriginDeclaration e (nameOffset:26) (firstTokenOffset:26) (offset:26)
           element: <testLibrary>::@topLevelVariable::e
-        #F3 f (nameOffset:31) (firstTokenOffset:31) (offset:31)
+        #F3 isOriginDeclaration f (nameOffset:31) (firstTokenOffset:31) (offset:31)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F4 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -7900,19 +7900,19 @@ library
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    c
+    isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F1
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    e
+    isOriginDeclaration e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F2
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F3
       type: dynamic Function()
@@ -7983,11 +7983,11 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 c (nameOffset:19) (firstTokenOffset:19) (offset:19)
+        #F1 isOriginDeclaration c (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::c
-        #F2 e (nameOffset:24) (firstTokenOffset:24) (offset:24)
+        #F2 isOriginDeclaration e (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::e
-        #F3 f (nameOffset:29) (firstTokenOffset:29) (offset:29)
+        #F3 isOriginDeclaration f (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F4 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
@@ -8013,19 +8013,19 @@ library
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    c
+    isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F1
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    e
+    isOriginDeclaration e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F2
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F3
       type: dynamic Function()
@@ -8093,7 +8093,7 @@ library
         #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
       topLevelVariables
-        #F2 f (nameOffset:15) (firstTokenOffset:15) (offset:15)
+        #F2 isOriginDeclaration f (nameOffset:15) (firstTokenOffset:15) (offset:15)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F3 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
@@ -8110,7 +8110,7 @@ library
       firstFragment: #F1
       aliasedType: dynamic Function()
   topLevelVariables
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F2
       type: dynamic Function()
@@ -8157,7 +8157,7 @@ library
             #F3 U (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E1 U
       topLevelVariables
-        #F4 f (nameOffset:39) (firstTokenOffset:39) (offset:39)
+        #F4 isOriginDeclaration f (nameOffset:39) (firstTokenOffset:39) (offset:39)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F5 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
@@ -8179,7 +8179,7 @@ library
           firstFragment: #F3
       aliasedType: U Function(T)
   topLevelVariables
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F4
       type: String Function(int)
@@ -8233,7 +8233,7 @@ library
             #F3 U (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E1 U
       topLevelVariables
-        #F4 f (nameOffset:26) (firstTokenOffset:26) (offset:26)
+        #F4 isOriginDeclaration f (nameOffset:26) (firstTokenOffset:26) (offset:26)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F5 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
@@ -8255,7 +8255,7 @@ library
           firstFragment: #F3
       aliasedType: U Function(T)
   topLevelVariables
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F4
       type: dynamic Function(dynamic)

@@ -106,7 +106,7 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
     var constantNames = <String>[];
     for (var field in classElement.fields) {
       // Ensure static const.
-      if (field.isSynthetic || !field.isConst || !field.isStatic) {
+      if (field.isOriginGetterSetter || !field.isConst || !field.isStatic) {
         continue;
       }
       // Check for type equality.

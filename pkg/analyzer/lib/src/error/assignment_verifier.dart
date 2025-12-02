@@ -69,7 +69,7 @@ class AssignmentVerifier {
 
       if (variable.isConst) {
         _diagnosticReporter.atNode(node, diag.assignmentToConst);
-      } else if (variable is FieldElement && variable.isSynthetic) {
+      } else if (variable is FieldElement && variable.isOriginGetterSetter) {
         _diagnosticReporter.atNode(
           node,
           diag.assignmentToFinalNoSetter,

@@ -244,6 +244,22 @@ mixin _FieldFragmentImplMixin {
     setModifier(Modifier.EXPLICITLY_COVARIANT, value);
   }
 
+  bool get isOriginDeclaringFormalParameter {
+    return hasModifier(Modifier.ORIGIN_DECLARING_FORMAL_PARAMETER);
+  }
+
+  set isOriginDeclaringFormalParameter(bool value) {
+    setModifier(Modifier.ORIGIN_DECLARING_FORMAL_PARAMETER, value);
+  }
+
+  bool get isOriginEnumValues {
+    return hasModifier(Modifier.ORIGIN_ENUM_VALUES);
+  }
+
+  set isOriginEnumValues(bool value) {
+    setModifier(Modifier.ORIGIN_ENUM_VALUES, value);
+  }
+
   bool get isPromotable {
     return hasModifier(Modifier.PROMOTABLE);
   }
@@ -318,6 +334,28 @@ mixin _NonParameterVariableFragmentImplMixin {
 
   set hasInitializer(bool value) {
     setModifier(Modifier.HAS_INITIALIZER, value);
+  }
+
+  bool hasModifier(Modifier modifier);
+
+  void setModifier(Modifier modifier, bool value);
+}
+
+mixin _PropertyInducingFragmentImplMixin {
+  bool get isOriginDeclaration {
+    return hasModifier(Modifier.ORIGIN_DECLARATION);
+  }
+
+  set isOriginDeclaration(bool value) {
+    setModifier(Modifier.ORIGIN_DECLARATION, value);
+  }
+
+  bool get isOriginGetterSetter {
+    return hasModifier(Modifier.ORIGIN_GETTER_SETTER);
+  }
+
+  set isOriginGetterSetter(bool value) {
+    setModifier(Modifier.ORIGIN_GETTER_SETTER, value);
   }
 
   bool hasModifier(Modifier modifier);

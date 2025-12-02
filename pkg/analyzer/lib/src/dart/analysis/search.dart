@@ -795,7 +795,7 @@ class Search {
     List<SearchResult> results = <SearchResult>[];
     var getter = field.getter;
     var setter = field.setter;
-    if (!field.isSynthetic) {
+    if (field.isOriginDeclaration) {
       await _addResults(results, field, searchedFiles, const {
         IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,
         IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
@@ -1417,7 +1417,7 @@ class _FindLibraryDeclarations {
   void _addFields(List<FieldElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      if (!element.isSynthetic) {
+      if (element.isOriginDeclaration) {
         _addDeclaration(element, element.name!);
       }
     }
@@ -1465,7 +1465,7 @@ class _FindLibraryDeclarations {
   void _addVariables(List<TopLevelVariableElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      if (!element.isSynthetic) {
+      if (element.isOriginDeclaration) {
         _addDeclaration(element, element.name!);
       }
     }

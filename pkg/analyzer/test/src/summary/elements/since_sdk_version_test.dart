@@ -102,7 +102,7 @@ library
         #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           fields
-            #F2 hasInitializer foo (nameOffset:57) (firstTokenOffset:57) (offset:57)
+            #F2 hasInitializer isOriginDeclaration foo (nameOffset:57) (firstTokenOffset:57) (offset:57)
               element: dart:foo::@class::A::@field::foo
           getters
             #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
@@ -119,7 +119,7 @@ library
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       fields
-        hasInitializer foo
+        hasInitializer isOriginDeclaration foo
           reference: dart:foo::@class::A::@field::foo
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -167,7 +167,7 @@ library
         #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           fields
-            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+            #F2 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: dart:foo::@class::A::@field::foo
           getters
             #F3 foo (nameOffset:61) (firstTokenOffset:53) (offset:61)
@@ -178,7 +178,7 @@ library
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       fields
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: dart:foo::@class::A::@field::foo
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -324,7 +324,7 @@ library
         #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           fields
-            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+            #F2 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: dart:foo::@class::A::@field::foo
           setters
             #F3 foo (nameOffset:57) (firstTokenOffset:53) (offset:57)
@@ -338,7 +338,7 @@ library
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       fields
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: dart:foo::@class::A::@field::foo
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -379,7 +379,7 @@ library
         #F1 enum E (nameOffset:31) (firstTokenOffset:26) (offset:31)
           element: dart:foo::@enum::E
           fields
-            #F2 hasInitializer v1 (nameOffset:37) (firstTokenOffset:37) (offset:37)
+            #F2 hasInitializer isOriginDeclaration v1 (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: dart:foo::@enum::E::@field::v1
               initializer: expression_0
                 InstanceCreationExpression
@@ -393,7 +393,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 hasInitializer v2 (nameOffset:60) (firstTokenOffset:43) (offset:60)
+            #F3 hasInitializer isOriginDeclaration v2 (nameOffset:60) (firstTokenOffset:43) (offset:60)
               element: dart:foo::@enum::E::@field::v2
               initializer: expression_1
                 InstanceCreationExpression
@@ -407,7 +407,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: dart:foo::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
@@ -436,7 +436,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v1
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v1
           reference: dart:foo::@enum::E::@field::v1
           firstFragment: #F2
           type: E
@@ -444,7 +444,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: dart:foo::@enum::E::@getter::v1
-        static const enumConstant hasImplicitType hasInitializer v2
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v2
           reference: dart:foo::@enum::E::@field::v2
           firstFragment: #F3
           sinceSdkVersion: 2.15.0
@@ -453,7 +453,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: dart:foo::@enum::E::@getter::v2
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: dart:foo::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
@@ -502,7 +502,7 @@ library
         #F1 enum E (nameOffset:46) (firstTokenOffset:26) (offset:46)
           element: dart:foo::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:52) (firstTokenOffset:52) (offset:52)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:52) (firstTokenOffset:52) (offset:52)
               element: dart:foo::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -516,7 +516,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: dart:foo::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -543,7 +543,7 @@ library
       sinceSdkVersion: 2.15.0
       supertype: Enum
       fields
-        static const enumConstant hasImplicitType hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: dart:foo::@enum::E::@field::v
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -552,7 +552,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: dart:foo::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: dart:foo::@enum::E::@field::values
           firstFragment: #F3
           sinceSdkVersion: 2.15.0
@@ -920,13 +920,13 @@ library
     #F0 dart:foo
       element: dart:foo
       topLevelVariables
-        #F1 hasInitializer foo (nameOffset:47) (firstTokenOffset:47) (offset:47)
+        #F1 hasInitializer isOriginDeclaration foo (nameOffset:47) (firstTokenOffset:47) (offset:47)
           element: dart:foo::@topLevelVariable::foo
       getters
         #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
           element: dart:foo::@getter::foo
   topLevelVariables
-    final hasImplicitType hasInitializer foo
+    final hasImplicitType hasInitializer isOriginDeclaration foo
       reference: dart:foo::@topLevelVariable::foo
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
