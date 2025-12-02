@@ -673,10 +673,7 @@ LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     if (baseClasses.requiresTypeArgument) {
       constant.writeln('type: ${type.code},');
     }
-    String uniqueName = analyzerCode.toString().replaceFirst(
-      'LinterLintCode.',
-      'LintCode.',
-    );
+    String uniqueName = analyzerCode.snakeCaseName;
     constant.writeln("uniqueName: '$uniqueName',");
     if (withArgumentsName != null) {
       constant.writeln('withArguments: $withArgumentsName,');

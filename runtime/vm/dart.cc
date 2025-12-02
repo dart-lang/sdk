@@ -7,7 +7,6 @@
 
 #include "vm/dart.h"
 
-#include "platform/thread_sanitizer.h"
 #include "platform/unwinding_records.h"
 
 #include "vm/app_snapshot.h"
@@ -1083,8 +1082,9 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
   if (Snapshot::IncludesCode(kind)) {
     VM_GLOBAL_FLAG_LIST(ADD_P, ADD_R, ADD_C, ADD_D);
 
-    ADD_FLAG(tsan, FLAG_target_thread_sanitizer)
+    ADD_FLAG(asan, FLAG_target_address_sanitizer)
     ADD_FLAG(msan, FLAG_target_memory_sanitizer)
+    ADD_FLAG(tsan, FLAG_target_thread_sanitizer)
     ADD_FLAG(shared_data, FLAG_experimental_shared_data)
 
     if (kind == Snapshot::kFullJIT) {

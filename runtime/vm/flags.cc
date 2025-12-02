@@ -74,15 +74,15 @@ FLAG_LIST(PRODUCT_FLAG_MACRO,
 #undef DEBUG_FLAG_MACRO
 
 #if defined(DART_PRECOMPILER)
-#if defined(TARGET_USES_THREAD_SANITIZER)
-constexpr bool kDefaultTargetThreadSanitizer = true;
+#if defined(TARGET_USES_ADDRESS_SANITIZER)
+constexpr bool kDefaultTargetAddressSanitizer = true;
 #else
-constexpr bool kDefaultTargetThreadSanitizer = false;
+constexpr bool kDefaultTargetAddressSanitizer = false;
 #endif
 DEFINE_FLAG(bool,
-            target_thread_sanitizer,
-            kDefaultTargetThreadSanitizer,
-            "Generate Dart code compatible with Thread Sanitizer");
+            target_address_sanitizer,
+            kDefaultTargetAddressSanitizer,
+            "Generate Dart code compatible with Address Sanitizer");
 #if defined(TARGET_USES_MEMORY_SANITIZER)
 constexpr bool kDefaultTargetMemorySanitizer = true;
 #else
@@ -92,6 +92,16 @@ DEFINE_FLAG(bool,
             target_memory_sanitizer,
             kDefaultTargetMemorySanitizer,
             "Generate Dart code compatible with Memory Sanitizer");
+
+#if defined(TARGET_USES_THREAD_SANITIZER)
+constexpr bool kDefaultTargetThreadSanitizer = true;
+#else
+constexpr bool kDefaultTargetThreadSanitizer = false;
+#endif
+DEFINE_FLAG(bool,
+            target_thread_sanitizer,
+            kDefaultTargetThreadSanitizer,
+            "Generate Dart code compatible with Thread Sanitizer");
 #endif
 
 static bool IsMainOrDevChannel() {

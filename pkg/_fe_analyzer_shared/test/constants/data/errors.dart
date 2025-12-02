@@ -6,7 +6,7 @@ String method() => 'foo';
 
 const String string0 =
     /*cfe|dart2js.error: Method invocation is not a constant expression.*/
-    /*analyzer.error: CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION*/ method();
+    /*analyzer.error: CONST_EVAL_METHOD_INVOCATION*/ method();
 
 main() {
   print(string0);

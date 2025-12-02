@@ -24,7 +24,7 @@ const DiagnosticWithoutArguments abiSpecificIntegerInvalid =
           "one const constructor.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FfiCode.ABI_SPECIFIC_INTEGER_INVALID',
+      uniqueName: 'ABI_SPECIFIC_INTEGER_INVALID',
       expectedTypes: [],
     );
 
@@ -39,7 +39,7 @@ const DiagnosticWithoutArguments abiSpecificIntegerMappingExtra =
       correctionMessage: "Try removing the extra annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_EXTRA',
+      uniqueName: 'ABI_SPECIFIC_INTEGER_MAPPING_EXTRA',
       expectedTypes: [],
     );
 
@@ -54,7 +54,7 @@ const DiagnosticWithoutArguments abiSpecificIntegerMappingMissing =
       correctionMessage: "Try adding an annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING',
+      uniqueName: 'ABI_SPECIFIC_INTEGER_MAPPING_MISSING',
       expectedTypes: [],
     );
 
@@ -73,7 +73,7 @@ abiSpecificIntegerMappingUnsupported = DiagnosticWithArguments(
       "'Uint16', 'UInt32', or 'Uint64'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED',
+  uniqueName: 'ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED',
   withArguments: _withArgumentsAbiSpecificIntegerMappingUnsupported,
   expectedTypes: [ExpectedType.string],
 );
@@ -87,7 +87,7 @@ const DiagnosticWithoutArguments abstractClassMember =
           "Try removing the 'abstract' keyword. You can add the 'abstract' "
           "keyword before the class declaration.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.ABSTRACT_CLASS_MEMBER',
+      uniqueName: 'ABSTRACT_CLASS_MEMBER',
       expectedTypes: [],
     );
 
@@ -99,7 +99,7 @@ const DiagnosticWithoutArguments abstractExternalField =
           "Fields can't be declared both 'abstract' and 'external'.",
       correctionMessage: "Try removing the 'abstract' or 'external' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.ABSTRACT_EXTERNAL_FIELD',
+      uniqueName: 'ABSTRACT_EXTERNAL_FIELD',
       expectedTypes: [],
     );
 
@@ -113,7 +113,7 @@ abstractFieldConstructorInitializer = DiagnosticWithoutArgumentsImpl(
       "field declaration.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER',
+  uniqueName: 'ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER',
   expectedTypes: [],
 );
 
@@ -126,7 +126,7 @@ const DiagnosticWithoutArguments abstractFieldInitializer =
           "Try removing the initializer or the 'abstract' keyword.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER',
+      uniqueName: 'ABSTRACT_FIELD_INITIALIZER',
       expectedTypes: [],
     );
 
@@ -138,7 +138,7 @@ const DiagnosticWithoutArguments abstractFinalBaseClass =
           "An 'abstract' class can't be declared as both 'final' and 'base'.",
       correctionMessage: "Try removing either the 'final' or 'base' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.ABSTRACT_FINAL_BASE_CLASS',
+      uniqueName: 'ABSTRACT_FINAL_BASE_CLASS',
       expectedTypes: [],
     );
 
@@ -150,7 +150,7 @@ abstractFinalInterfaceClass = DiagnosticWithoutArgumentsImpl(
       "An 'abstract' class can't be declared as both 'final' and 'interface'.",
   correctionMessage: "Try removing either the 'final' or 'interface' keyword.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.ABSTRACT_FINAL_INTERFACE_CLASS',
+  uniqueName: 'ABSTRACT_FINAL_INTERFACE_CLASS',
   expectedTypes: [],
 );
 
@@ -161,7 +161,7 @@ const DiagnosticWithoutArguments abstractLateField =
       problemMessage: "Abstract fields cannot be late.",
       correctionMessage: "Try removing the 'abstract' or 'late' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.ABSTRACT_LATE_FIELD',
+      uniqueName: 'ABSTRACT_LATE_FIELD',
       expectedTypes: [],
     );
 
@@ -175,7 +175,7 @@ const DiagnosticWithoutArguments abstractSealedClass =
       correctionMessage: "Try removing the 'abstract' keyword.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.ABSTRACT_SEALED_CLASS',
+      uniqueName: 'ABSTRACT_SEALED_CLASS',
       expectedTypes: [],
     );
 
@@ -186,7 +186,7 @@ const DiagnosticWithoutArguments abstractStaticField =
       problemMessage: "Static fields can't be declared 'abstract'.",
       correctionMessage: "Try removing the 'abstract' or 'static' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.ABSTRACT_STATIC_FIELD',
+      uniqueName: 'ABSTRACT_STATIC_FIELD',
       expectedTypes: [],
     );
 
@@ -197,7 +197,7 @@ const DiagnosticWithoutArguments abstractStaticMethod =
       problemMessage: "Static methods can't be declared to be 'abstract'.",
       correctionMessage: "Try removing the keyword 'abstract'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.ABSTRACT_STATIC_METHOD',
+      uniqueName: 'ABSTRACT_STATIC_METHOD',
       expectedTypes: [],
     );
 
@@ -216,7 +216,7 @@ abstractSuperMemberReference = DiagnosticWithArguments(
   problemMessage: "The {0} '{1}' is always abstract in the supertype.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE',
+  uniqueName: 'ABSTRACT_SUPER_MEMBER_REFERENCE',
   withArguments: _withArgumentsAbstractSuperMemberReference,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -230,7 +230,7 @@ addressPosition = DiagnosticWithoutArgumentsImpl(
       "external call.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.ADDRESS_POSITION',
+  uniqueName: 'ADDRESS_POSITION',
   expectedTypes: [],
 );
 
@@ -246,7 +246,7 @@ addressReceiver = DiagnosticWithoutArgumentsImpl(
       "Change the receiver of '.address' to one of the allowed kinds.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.ADDRESS_RECEIVER',
+  uniqueName: 'ADDRESS_RECEIVER',
   expectedTypes: [],
 );
 
@@ -269,7 +269,7 @@ ambiguousExport = DiagnosticWithArguments(
       "the name in one of the export directives.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.AMBIGUOUS_EXPORT',
+  uniqueName: 'AMBIGUOUS_EXPORT',
   withArguments: _withArgumentsAmbiguousExport,
   expectedTypes: [ExpectedType.string, ExpectedType.uri, ExpectedType.uri],
 );
@@ -289,8 +289,7 @@ ambiguousExtensionMemberAccessThreeOrMore = DiagnosticWithArguments(
       "be chosen.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE',
+  uniqueName: 'AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE',
   withArguments: _withArgumentsAmbiguousExtensionMemberAccessThreeOrMore,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -316,7 +315,7 @@ ambiguousExtensionMemberAccessTwo = DiagnosticWithArguments(
       "be chosen.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO',
+  uniqueName: 'AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO',
   withArguments: _withArgumentsAmbiguousExtensionMemberAccessTwo,
   expectedTypes: [
     ExpectedType.string,
@@ -339,7 +338,7 @@ ambiguousImport = DiagnosticWithArguments(
       "name from all but one of the imports.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.AMBIGUOUS_IMPORT',
+  uniqueName: 'AMBIGUOUS_IMPORT',
   withArguments: _withArgumentsAmbiguousImport,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -357,7 +356,7 @@ ambiguousSetOrMapLiteralBoth = DiagnosticWithoutArgumentsImpl(
       "elements are consistent.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH',
+  uniqueName: 'AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH',
   expectedTypes: [],
 );
 
@@ -373,7 +372,7 @@ ambiguousSetOrMapLiteralEither = DiagnosticWithoutArgumentsImpl(
       "maps).",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER',
+  uniqueName: 'AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER',
   expectedTypes: [],
 );
 
@@ -388,7 +387,7 @@ analysisOptionDeprecated = DiagnosticWithArguments(
   name: 'ANALYSIS_OPTION_DEPRECATED',
   problemMessage: "The option '{0}' is no longer supported.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED',
+  uniqueName: 'ANALYSIS_OPTION_DEPRECATED',
   withArguments: _withArgumentsAnalysisOptionDeprecated,
   expectedTypes: [ExpectedType.object],
 );
@@ -406,8 +405,7 @@ analysisOptionDeprecatedWithReplacement = DiagnosticWithArguments(
   problemMessage: "The option '{0}' is no longer supported.",
   correctionMessage: "Try using the new '{1}' option.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName:
-      'AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT',
+  uniqueName: 'ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT',
   withArguments: _withArgumentsAnalysisOptionDeprecatedWithReplacement,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -422,7 +420,7 @@ const DiagnosticWithoutArguments annotationOnPointerField =
       correctionMessage: "Try removing the annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FfiCode.ANNOTATION_ON_POINTER_FIELD',
+      uniqueName: 'ANNOTATION_ON_POINTER_FIELD',
       expectedTypes: [],
     );
 
@@ -433,7 +431,7 @@ annotationOnTypeArgument = DiagnosticWithoutArgumentsImpl(
   problemMessage:
       "Type arguments can't have annotations because they aren't declarations.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT',
+  uniqueName: 'ANNOTATION_ON_TYPE_ARGUMENT',
   expectedTypes: [],
 );
 
@@ -446,7 +444,7 @@ const DiagnosticWithoutArguments annotationSpaceBeforeParenthesis =
       correctionMessage:
           "Remove any spaces or comments before the parenthesis.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.ANNOTATION_SPACE_BEFORE_PARENTHESIS',
+      uniqueName: 'ANNOTATION_SPACE_BEFORE_PARENTHESIS',
       expectedTypes: [],
     );
 
@@ -456,7 +454,7 @@ const DiagnosticWithoutArguments annotationWithTypeArguments =
       name: 'ANNOTATION_WITH_TYPE_ARGUMENTS',
       problemMessage: "An annotation can't use type arguments.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS',
+      uniqueName: 'ANNOTATION_WITH_TYPE_ARGUMENTS',
       expectedTypes: [],
     );
 
@@ -467,7 +465,7 @@ annotationWithTypeArgumentsUninstantiated = DiagnosticWithoutArgumentsImpl(
   problemMessage:
       "An annotation with type arguments must be followed by an argument list.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED',
+  uniqueName: 'ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED',
   expectedTypes: [],
 );
 
@@ -482,7 +480,7 @@ argumentMustBeAConstant = DiagnosticWithArguments(
   correctionMessage: "Try replacing the value with a literal or const.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.ARGUMENT_MUST_BE_A_CONSTANT',
+  uniqueName: 'ARGUMENT_MUST_BE_A_CONSTANT',
   withArguments: _withArgumentsArgumentMustBeAConstant,
   expectedTypes: [ExpectedType.string],
 );
@@ -497,7 +495,7 @@ const DiagnosticWithoutArguments argumentMustBeNative =
           "Try passing a static function or field annotated with '@Native'",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FfiCode.ARGUMENT_MUST_BE_NATIVE',
+      uniqueName: 'ARGUMENT_MUST_BE_NATIVE',
       expectedTypes: [],
     );
 
@@ -520,7 +518,7 @@ argumentTypeNotAssignable = DiagnosticWithArguments(
       "{2}",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE',
+  uniqueName: 'ARGUMENT_TYPE_NOT_ASSIGNABLE',
   withArguments: _withArgumentsArgumentTypeNotAssignable,
   expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
 );
@@ -538,7 +536,7 @@ argumentTypeNotAssignableToErrorHandler = DiagnosticWithArguments(
       "Function(Object)' or '{1} Function(Object, StackTrace)'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
+  uniqueName: 'ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
   withArguments: _withArgumentsArgumentTypeNotAssignableToErrorHandler,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -551,7 +549,7 @@ const DiagnosticWithoutArguments assertInRedirectingConstructor =
           "A redirecting constructor can't have an 'assert' initializer.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR',
+      uniqueName: 'ASSERT_IN_REDIRECTING_CONSTRUCTOR',
       expectedTypes: [],
     );
 
@@ -567,7 +565,7 @@ assetDirectoryDoesNotExist = DiagnosticWithArguments(
       "Try creating the directory or fixing the path to the directory.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST',
+  uniqueName: 'ASSET_DIRECTORY_DOES_NOT_EXIST',
   withArguments: _withArgumentsAssetDirectoryDoesNotExist,
   expectedTypes: [ExpectedType.string],
 );
@@ -583,7 +581,7 @@ assetDoesNotExist = DiagnosticWithArguments(
   correctionMessage: "Try creating the file or fixing the path to the file.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PubspecWarningCode.ASSET_DOES_NOT_EXIST',
+  uniqueName: 'ASSET_DOES_NOT_EXIST',
   withArguments: _withArgumentsAssetDoesNotExist,
   expectedTypes: [ExpectedType.string],
 );
@@ -599,7 +597,7 @@ assetFieldNotList = DiagnosticWithoutArgumentsImpl(
       "Try converting the value to be a list of relative file paths.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PubspecWarningCode.ASSET_FIELD_NOT_LIST',
+  uniqueName: 'ASSET_FIELD_NOT_LIST',
   expectedTypes: [],
 );
 
@@ -611,7 +609,7 @@ const DiagnosticWithoutArguments assetMissingPath =
       correctionMessage: "Try adding a 'path' field.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'PubspecWarningCode.ASSET_MISSING_PATH',
+      uniqueName: 'ASSET_MISSING_PATH',
       expectedTypes: [],
     );
 
@@ -626,7 +624,7 @@ const DiagnosticWithoutArguments assetNotString =
       correctionMessage: "Try converting the value to be a string.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'PubspecWarningCode.ASSET_NOT_STRING',
+      uniqueName: 'ASSET_NOT_STRING',
       expectedTypes: [],
     );
 
@@ -639,7 +637,7 @@ const DiagnosticWithoutArguments assetNotStringOrMap =
       correctionMessage: "Try converting the value to be a string or map.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'PubspecWarningCode.ASSET_NOT_STRING_OR_MAP',
+      uniqueName: 'ASSET_NOT_STRING_OR_MAP',
       expectedTypes: [],
     );
 
@@ -651,7 +649,7 @@ const DiagnosticWithoutArguments assetPathNotString =
       correctionMessage: "Try converting the value to be a string.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'PubspecWarningCode.ASSET_PATH_NOT_STRING',
+      uniqueName: 'ASSET_PATH_NOT_STRING',
       expectedTypes: [],
     );
 
@@ -670,7 +668,7 @@ assignmentOfDoNotStore = DiagnosticWithArguments(
   correctionMessage: "Try removing the assignment.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.ASSIGNMENT_OF_DO_NOT_STORE',
+  uniqueName: 'ASSIGNMENT_OF_DO_NOT_STORE',
   withArguments: _withArgumentsAssignmentOfDoNotStore,
   expectedTypes: [ExpectedType.string],
 );
@@ -686,7 +684,7 @@ assignmentToConst = DiagnosticWithoutArgumentsImpl(
       "variable.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.ASSIGNMENT_TO_CONST',
+  uniqueName: 'ASSIGNMENT_TO_CONST',
   expectedTypes: [],
 );
 
@@ -702,7 +700,7 @@ assignmentToFinal = DiagnosticWithArguments(
       "Try finding a different setter, or making '{0}' non-final.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.ASSIGNMENT_TO_FINAL',
+  uniqueName: 'ASSIGNMENT_TO_FINAL',
   withArguments: _withArgumentsAssignmentToFinal,
   expectedTypes: [ExpectedType.string],
 );
@@ -718,7 +716,7 @@ assignmentToFinalLocal = DiagnosticWithArguments(
   correctionMessage: "Try making '{0}' non-final.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL',
+  uniqueName: 'ASSIGNMENT_TO_FINAL_LOCAL',
   withArguments: _withArgumentsAssignmentToFinalLocal,
   expectedTypes: [ExpectedType.string],
 );
@@ -737,7 +735,7 @@ assignmentToFinalNoSetter = DiagnosticWithArguments(
       "the setter.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER',
+  uniqueName: 'ASSIGNMENT_TO_FINAL_NO_SETTER',
   withArguments: _withArgumentsAssignmentToFinalNoSetter,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -749,7 +747,7 @@ const DiagnosticWithoutArguments assignmentToFunction =
       problemMessage: "Functions can't be assigned a value.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION',
+      uniqueName: 'ASSIGNMENT_TO_FUNCTION',
       expectedTypes: [],
     );
 
@@ -760,7 +758,7 @@ const DiagnosticWithoutArguments assignmentToMethod =
       problemMessage: "Methods can't be assigned a value.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.ASSIGNMENT_TO_METHOD',
+      uniqueName: 'ASSIGNMENT_TO_METHOD',
       expectedTypes: [],
     );
 
@@ -771,7 +769,7 @@ const DiagnosticWithoutArguments assignmentToType =
       problemMessage: "Types can't be assigned a value.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.ASSIGNMENT_TO_TYPE',
+      uniqueName: 'ASSIGNMENT_TO_TYPE',
       expectedTypes: [],
     );
 
@@ -786,7 +784,7 @@ const DiagnosticWithoutArguments asyncForInWrongContext =
           "removing the 'await' before the for-in loop.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT',
+      uniqueName: 'ASYNC_FOR_IN_WRONG_CONTEXT',
       expectedTypes: [],
     );
 
@@ -802,7 +800,7 @@ const DiagnosticWithoutArguments asyncKeywordUsedAsIdentifier =
           "The keywords 'await' and 'yield' can't be used as identifiers in an "
           "asynchronous or generator function.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER',
+      uniqueName: 'ASYNC_KEYWORD_USED_AS_IDENTIFIER',
       expectedTypes: [],
     );
 
@@ -818,8 +816,7 @@ augmentationExtendsClauseAlreadyPresent = DiagnosticWithoutArgumentsImpl(
       "Try removing the 'extends' clause, either here or in the augmentation "
       "target.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT',
+  uniqueName: 'AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT',
   expectedTypes: [],
 );
 
@@ -836,7 +833,7 @@ augmentationModifierExtra = DiagnosticWithArguments(
   correctionMessage:
       "Try removing the '{0}' modifier, or adding it to the declaration.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA',
+  uniqueName: 'AUGMENTATION_MODIFIER_EXTRA',
   withArguments: _withArgumentsAugmentationModifierExtra,
   expectedTypes: [ExpectedType.object],
 );
@@ -853,7 +850,7 @@ augmentationModifierMissing = DiagnosticWithArguments(
   correctionMessage:
       "Try adding the '{0}' modifier, or removing it from the declaration.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING',
+  uniqueName: 'AUGMENTATION_MODIFIER_MISSING',
   withArguments: _withArgumentsAugmentationModifierMissing,
   expectedTypes: [ExpectedType.object],
 );
@@ -870,7 +867,7 @@ augmentationOfDifferentDeclarationKind = DiagnosticWithArguments(
   correctionMessage:
       "Try changing the augmentation to match the declaration kind.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND',
+  uniqueName: 'AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND',
   withArguments: _withArgumentsAugmentationOfDifferentDeclarationKind,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -886,7 +883,7 @@ const DiagnosticWithoutArguments augmentationTypeParameterBound =
           "Try changing the augmentation to match the declaration type "
           "parameters.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_BOUND',
+      uniqueName: 'AUGMENTATION_TYPE_PARAMETER_BOUND',
       expectedTypes: [],
     );
 
@@ -901,7 +898,7 @@ augmentationTypeParameterCount = DiagnosticWithoutArgumentsImpl(
       "Try changing the augmentation to match the declaration type "
       "parameters.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT',
+  uniqueName: 'AUGMENTATION_TYPE_PARAMETER_COUNT',
   expectedTypes: [],
 );
 
@@ -916,7 +913,7 @@ const DiagnosticWithoutArguments augmentationTypeParameterName =
           "Try changing the augmentation to match the declaration type "
           "parameters.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME',
+      uniqueName: 'AUGMENTATION_TYPE_PARAMETER_NAME',
       expectedTypes: [],
     );
 
@@ -928,7 +925,7 @@ const DiagnosticWithoutArguments augmentationWithoutDeclaration =
       correctionMessage:
           "Try changing the augmentation to match an existing declaration.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION',
+      uniqueName: 'AUGMENTATION_WITHOUT_DECLARATION',
       expectedTypes: [],
     );
 
@@ -941,7 +938,7 @@ augmentedExpressionIsNotSetter = DiagnosticWithoutArgumentsImpl(
       "value.",
   correctionMessage: "Try assigning a value to a setter.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER',
+  uniqueName: 'AUGMENTED_EXPRESSION_IS_NOT_SETTER',
   expectedTypes: [],
 );
 
@@ -953,7 +950,7 @@ augmentedExpressionIsSetter = DiagnosticWithoutArgumentsImpl(
       "The augmented declaration is a setter, it can't be used to read a value.",
   correctionMessage: "Try assigning a value to the augmented setter.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER',
+  uniqueName: 'AUGMENTED_EXPRESSION_IS_SETTER',
   expectedTypes: [],
 );
 
@@ -968,7 +965,7 @@ augmentedExpressionNotOperator = DiagnosticWithArguments(
       "The enclosing augmentation doesn't augment the operator '{0}'.",
   correctionMessage: "Try augmenting or invoking the correct operator.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR',
+  uniqueName: 'AUGMENTED_EXPRESSION_NOT_OPERATOR',
   withArguments: _withArgumentsAugmentedExpressionNotOperator,
   expectedTypes: [ExpectedType.object],
 );
@@ -985,8 +982,7 @@ const DiagnosticWithoutArguments awaitInLateLocalVariableInitializer =
           "without using the 'await' expression.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER',
+      uniqueName: 'AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER',
       expectedTypes: [],
     );
 
@@ -1003,7 +999,7 @@ const DiagnosticWithoutArguments awaitInWrongContext =
       correctionMessage:
           "Try marking the function body with either 'async' or 'async*'.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT',
+      uniqueName: 'AWAIT_IN_WRONG_CONTEXT',
       expectedTypes: [],
     );
 
@@ -1019,7 +1015,7 @@ awaitOfIncompatibleType = DiagnosticWithoutArgumentsImpl(
       "'Future'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE',
+  uniqueName: 'AWAIT_OF_INCOMPATIBLE_TYPE',
   expectedTypes: [],
 );
 
@@ -1035,7 +1031,7 @@ baseClassImplementedOutsideOfLibrary = DiagnosticWithArguments(
       "a base class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
+  uniqueName: 'BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
   withArguments: _withArgumentsBaseClassImplementedOutsideOfLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -1046,7 +1042,7 @@ const DiagnosticWithoutArguments baseEnum = DiagnosticWithoutArgumentsImpl(
   problemMessage: "Enums can't be declared to be 'base'.",
   correctionMessage: "Try removing the keyword 'base'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.BASE_ENUM',
+  uniqueName: 'BASE_ENUM',
   expectedTypes: [],
 );
 
@@ -1062,7 +1058,7 @@ baseMixinImplementedOutsideOfLibrary = DiagnosticWithArguments(
       "a base mixin.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
+  uniqueName: 'BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
   withArguments: _withArgumentsBaseMixinImplementedOutsideOfLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -1083,7 +1079,7 @@ binaryOperatorWrittenOut = DiagnosticWithArguments(
       "word.",
   correctionMessage: "Try replacing '{0}' with '{1}'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT',
+  uniqueName: 'BINARY_OPERATOR_WRITTEN_OUT',
   withArguments: _withArgumentsBinaryOperatorWrittenOut,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -1102,7 +1098,7 @@ bodyMightCompleteNormally = DiagnosticWithArguments(
       "Try adding either a return or a throw statement at the end.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY',
+  uniqueName: 'BODY_MIGHT_COMPLETE_NORMALLY',
   withArguments: _withArgumentsBodyMightCompleteNormally,
   expectedTypes: [ExpectedType.type],
 );
@@ -1120,7 +1116,7 @@ bodyMightCompleteNormallyCatchError = DiagnosticWithArguments(
   correctionMessage: "Try adding a return statement.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR',
+  uniqueName: 'BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR',
   withArguments: _withArgumentsBodyMightCompleteNormallyCatchError,
   expectedTypes: [ExpectedType.type],
 );
@@ -1140,7 +1136,7 @@ bodyMightCompleteNormallyNullable = DiagnosticWithArguments(
       "changing the return type to 'void'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE',
+  uniqueName: 'BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE',
   withArguments: _withArgumentsBodyMightCompleteNormallyNullable,
   expectedTypes: [ExpectedType.type],
 );
@@ -1153,7 +1149,7 @@ const DiagnosticWithoutArguments breakLabelOnSwitchMember =
           "A break label resolves to the 'case' or 'default' statement.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER',
+      uniqueName: 'BREAK_LABEL_ON_SWITCH_MEMBER',
       expectedTypes: [],
     );
 
@@ -1165,7 +1161,7 @@ breakOutsideOfLoop = DiagnosticWithoutArgumentsImpl(
       "A break statement can't be used outside of a loop or switch statement.",
   correctionMessage: "Try removing the break statement.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.BREAK_OUTSIDE_OF_LOOP',
+  uniqueName: 'BREAK_OUTSIDE_OF_LOOP',
   expectedTypes: [],
 );
 
@@ -1181,7 +1177,7 @@ builtInIdentifierAsExtensionName = DiagnosticWithArguments(
   correctionMessage: "Try choosing a different name for the extension.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME',
+  uniqueName: 'BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME',
   withArguments: _withArgumentsBuiltInIdentifierAsExtensionName,
   expectedTypes: [ExpectedType.string],
 );
@@ -1198,7 +1194,7 @@ builtInIdentifierAsExtensionTypeName = DiagnosticWithArguments(
   correctionMessage: "Try choosing a different name for the extension type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME',
+  uniqueName: 'BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME',
   withArguments: _withArgumentsBuiltInIdentifierAsExtensionTypeName,
   expectedTypes: [ExpectedType.string],
 );
@@ -1215,7 +1211,7 @@ builtInIdentifierAsPrefixName = DiagnosticWithArguments(
   correctionMessage: "Try choosing a different name for the prefix.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME',
+  uniqueName: 'BUILT_IN_IDENTIFIER_AS_PREFIX_NAME',
   withArguments: _withArgumentsBuiltInIdentifierAsPrefixName,
   expectedTypes: [ExpectedType.string],
 );
@@ -1231,7 +1227,7 @@ builtInIdentifierAsType = DiagnosticWithArguments(
   correctionMessage: "Try correcting the name to match an existing type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE',
+  uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE',
   withArguments: _withArgumentsBuiltInIdentifierAsType,
   expectedTypes: [ExpectedType.string],
 );
@@ -1248,7 +1244,7 @@ builtInIdentifierAsTypedefName = DiagnosticWithArguments(
   correctionMessage: "Try choosing a different name for the typedef.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME',
+  uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME',
   withArguments: _withArgumentsBuiltInIdentifierAsTypedefName,
   expectedTypes: [ExpectedType.string],
 );
@@ -1264,7 +1260,7 @@ builtInIdentifierAsTypeName = DiagnosticWithArguments(
   correctionMessage: "Try choosing a different name for the type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME',
+  uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE_NAME',
   withArguments: _withArgumentsBuiltInIdentifierAsTypeName,
   expectedTypes: [ExpectedType.string],
 );
@@ -1281,7 +1277,7 @@ builtInIdentifierAsTypeParameterName = DiagnosticWithArguments(
   correctionMessage: "Try choosing a different name for the type parameter.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME',
+  uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME',
   withArguments: _withArgumentsBuiltInIdentifierAsTypeParameterName,
   expectedTypes: [ExpectedType.string],
 );
@@ -1303,7 +1299,7 @@ cameraPermissionsIncompatible = DiagnosticWithoutArgumentsImpl(
       "android:name=\"android.hardware.camera.autofocus\"  "
       "android:required=\"false\">`.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE',
+  uniqueName: 'CAMERA_PERMISSIONS_INCOMPATIBLE',
   expectedTypes: [],
 );
 
@@ -1318,7 +1314,7 @@ caseExpressionTypeImplementsEquals = DiagnosticWithArguments(
       "The switch case expression type '{0}' can't override the '==' operator.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS',
+  uniqueName: 'CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS',
   withArguments: _withArgumentsCaseExpressionTypeImplementsEquals,
   expectedTypes: [ExpectedType.type],
 );
@@ -1336,8 +1332,7 @@ caseExpressionTypeIsNotSwitchExpressionSubtype = DiagnosticWithArguments(
       "expression type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE',
+  uniqueName: 'CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE',
   withArguments: _withArgumentsCaseExpressionTypeIsNotSwitchExpressionSubtype,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -1357,7 +1352,7 @@ castFromNullableAlwaysFails = DiagnosticWithArguments(
       "on every execution path.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.CAST_FROM_NULLABLE_ALWAYS_FAILS',
+  uniqueName: 'CAST_FROM_NULLABLE_ALWAYS_FAILS',
   withArguments: _withArgumentsCastFromNullableAlwaysFails,
   expectedTypes: [ExpectedType.string],
 );
@@ -1371,7 +1366,7 @@ const DiagnosticWithoutArguments castFromNullAlwaysFails =
           "evaluates to 'null'.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.CAST_FROM_NULL_ALWAYS_FAILS',
+      uniqueName: 'CAST_FROM_NULL_ALWAYS_FAILS',
       expectedTypes: [],
     );
 
@@ -1389,7 +1384,7 @@ castToNonType = DiagnosticWithArguments(
       "type with the name '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CAST_TO_NON_TYPE',
+  uniqueName: 'CAST_TO_NON_TYPE',
   withArguments: _withArgumentsCastToNonType,
   expectedTypes: [ExpectedType.string],
 );
@@ -1403,7 +1398,7 @@ const DiagnosticWithoutArguments catchSyntax = DiagnosticWithoutArgumentsImpl(
       "No types are needed, the first is given by 'on', the second is always "
       "'StackTrace'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.CATCH_SYNTAX',
+  uniqueName: 'CATCH_SYNTAX',
   expectedTypes: [],
 );
 
@@ -1417,7 +1412,7 @@ catchSyntaxExtraParameters = DiagnosticWithoutArgumentsImpl(
       "No types are needed, the first is given by 'on', the second is always "
       "'StackTrace'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.CATCH_SYNTAX_EXTRA_PARAMETERS',
+  uniqueName: 'CATCH_SYNTAX_EXTRA_PARAMETERS',
   expectedTypes: [],
 );
 
@@ -1427,7 +1422,7 @@ const DiagnosticWithoutArguments classInClass = DiagnosticWithoutArgumentsImpl(
   problemMessage: "Classes can't be declared inside other classes.",
   correctionMessage: "Try moving the class to the top-level.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.CLASS_IN_CLASS',
+  uniqueName: 'CLASS_IN_CLASS',
   expectedTypes: [],
 );
 
@@ -1443,8 +1438,7 @@ classInstantiationAccessToInstanceMember = DiagnosticWithArguments(
   correctionMessage:
       "Try changing the member name to the name of a constructor.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER',
+  uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER',
   withArguments: _withArgumentsClassInstantiationAccessToInstanceMember,
   expectedTypes: [ExpectedType.string],
 );
@@ -1462,8 +1456,7 @@ classInstantiationAccessToStaticMember = DiagnosticWithArguments(
       "Try removing the type arguments from the class name, or changing the "
       "member name to the name of a constructor.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER',
+  uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER',
   withArguments: _withArgumentsClassInstantiationAccessToStaticMember,
   expectedTypes: [ExpectedType.string],
 );
@@ -1481,8 +1474,7 @@ classInstantiationAccessToUnknownMember = DiagnosticWithArguments(
       "Try invoking a different constructor, or defining a constructor named "
       "'{1}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER',
+  uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER',
   withArguments: _withArgumentsClassInstantiationAccessToUnknownMember,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -1499,7 +1491,7 @@ classUsedAsMixin = DiagnosticWithArguments(
       "class nor a mixin.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CLASS_USED_AS_MIXIN',
+  uniqueName: 'CLASS_USED_AS_MIXIN',
   withArguments: _withArgumentsClassUsedAsMixin,
   expectedTypes: [ExpectedType.string],
 );
@@ -1511,7 +1503,7 @@ const DiagnosticWithoutArguments colonInPlaceOfIn =
       problemMessage: "For-in loops use 'in' rather than a colon.",
       correctionMessage: "Try replacing the colon with the keyword 'in'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.COLON_IN_PLACE_OF_IN',
+      uniqueName: 'COLON_IN_PLACE_OF_IN',
       expectedTypes: [],
     );
 
@@ -1526,7 +1518,7 @@ compoundImplementsFinalizable = DiagnosticWithArguments(
   correctionMessage: "Try removing the implements clause from '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.COMPOUND_IMPLEMENTS_FINALIZABLE',
+  uniqueName: 'COMPOUND_IMPLEMENTS_FINALIZABLE',
   withArguments: _withArgumentsCompoundImplementsFinalizable,
   expectedTypes: [ExpectedType.string],
 );
@@ -1540,7 +1532,7 @@ const DiagnosticWithoutArguments concreteClassHasEnumSuperinterface =
           "Try specifying a different interface, or remove it from the list.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE',
+      uniqueName: 'CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE',
       expectedTypes: [],
     );
 
@@ -1556,7 +1548,7 @@ concreteClassWithAbstractMember = DiagnosticWithArguments(
   correctionMessage: "Try making '{1}' abstract, or adding a body to '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER',
+  uniqueName: 'CONCRETE_CLASS_WITH_ABSTRACT_MEMBER',
   withArguments: _withArgumentsConcreteClassWithAbstractMember,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -1574,7 +1566,7 @@ conflictingConstructorAndStaticField = DiagnosticWithArguments(
   correctionMessage: "Try renaming either the constructor or the field.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD',
+  uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD',
   withArguments: _withArgumentsConflictingConstructorAndStaticField,
   expectedTypes: [ExpectedType.string],
 );
@@ -1592,7 +1584,7 @@ conflictingConstructorAndStaticGetter = DiagnosticWithArguments(
   correctionMessage: "Try renaming either the constructor or the getter.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER',
+  uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER',
   withArguments: _withArgumentsConflictingConstructorAndStaticGetter,
   expectedTypes: [ExpectedType.string],
 );
@@ -1610,7 +1602,7 @@ conflictingConstructorAndStaticMethod = DiagnosticWithArguments(
   correctionMessage: "Try renaming either the constructor or the method.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD',
+  uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD',
   withArguments: _withArgumentsConflictingConstructorAndStaticMethod,
   expectedTypes: [ExpectedType.string],
 );
@@ -1628,7 +1620,7 @@ conflictingConstructorAndStaticSetter = DiagnosticWithArguments(
   correctionMessage: "Try renaming either the constructor or the setter.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER',
+  uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER',
   withArguments: _withArgumentsConflictingConstructorAndStaticSetter,
   expectedTypes: [ExpectedType.string],
 );
@@ -1658,7 +1650,7 @@ conflictingFieldAndMethod = DiagnosticWithArguments(
       "Try converting the getter to a method, or renaming the field to a "
       "name that doesn't conflict.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD',
+  uniqueName: 'CONFLICTING_FIELD_AND_METHOD',
   withArguments: _withArgumentsConflictingFieldAndMethod,
   expectedTypes: [
     ExpectedType.string,
@@ -1688,7 +1680,7 @@ conflictingGenericInterfaces = DiagnosticWithArguments(
       "arguments are different.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES',
+  uniqueName: 'CONFLICTING_GENERIC_INTERFACES',
   withArguments: _withArgumentsConflictingGenericInterfaces,
   expectedTypes: [
     ExpectedType.string,
@@ -1719,7 +1711,7 @@ conflictingInheritedMethodAndSetter = DiagnosticWithArguments(
   problemMessage:
       "The {0} '{1}' can't inherit both a method and a setter named '{2}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER',
+  uniqueName: 'CONFLICTING_INHERITED_METHOD_AND_SETTER',
   withArguments: _withArgumentsConflictingInheritedMethodAndSetter,
   expectedTypes: [
     ExpectedType.string,
@@ -1753,7 +1745,7 @@ conflictingMethodAndField = DiagnosticWithArguments(
       "Try converting the method to a getter, or renaming the method to a "
       "name that doesn't conflict.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD',
+  uniqueName: 'CONFLICTING_METHOD_AND_FIELD',
   withArguments: _withArgumentsConflictingMethodAndField,
   expectedTypes: [
     ExpectedType.string,
@@ -1776,7 +1768,7 @@ conflictingModifiers = DiagnosticWithArguments(
   problemMessage: "Members can't be declared to be both '{0}' and '{1}'.",
   correctionMessage: "Try removing one of the keywords.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.CONFLICTING_MODIFIERS',
+  uniqueName: 'CONFLICTING_MODIFIERS',
   withArguments: _withArgumentsConflictingModifiers,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -1804,7 +1796,7 @@ conflictingStaticAndInstance = DiagnosticWithArguments(
       "'{2}.{1}' with the same name.",
   correctionMessage: "Try renaming the member to a name that doesn't conflict.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE',
+  uniqueName: 'CONFLICTING_STATIC_AND_INSTANCE',
   withArguments: _withArgumentsConflictingStaticAndInstance,
   expectedTypes: [
     ExpectedType.string,
@@ -1826,7 +1818,7 @@ conflictingTypeVariableAndClass = DiagnosticWithArguments(
   correctionMessage: "Try renaming either the type parameter or the class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS',
+  uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_CLASS',
   withArguments: _withArgumentsConflictingTypeVariableAndClass,
   expectedTypes: [ExpectedType.string],
 );
@@ -1844,7 +1836,7 @@ conflictingTypeVariableAndEnum = DiagnosticWithArguments(
   correctionMessage: "Try renaming either the type parameter or the enum.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_ENUM',
+  uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_ENUM',
   withArguments: _withArgumentsConflictingTypeVariableAndEnum,
   expectedTypes: [ExpectedType.string],
 );
@@ -1862,7 +1854,7 @@ conflictingTypeVariableAndExtension = DiagnosticWithArguments(
   correctionMessage: "Try renaming either the type parameter or the extension.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION',
+  uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_EXTENSION',
   withArguments: _withArgumentsConflictingTypeVariableAndExtension,
   expectedTypes: [ExpectedType.string],
 );
@@ -1880,8 +1872,7 @@ conflictingTypeVariableAndExtensionType = DiagnosticWithArguments(
   correctionMessage: "Try renaming either the type parameter or the extension.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE',
+  uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE',
   withArguments: _withArgumentsConflictingTypeVariableAndExtensionType,
   expectedTypes: [ExpectedType.string],
 );
@@ -1899,7 +1890,7 @@ conflictingTypeVariableAndMemberClass = DiagnosticWithArguments(
   correctionMessage: "Try renaming either the type parameter or the member.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS',
+  uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS',
   withArguments: _withArgumentsConflictingTypeVariableAndMemberClass,
   expectedTypes: [ExpectedType.string],
 );
@@ -1917,7 +1908,7 @@ conflictingTypeVariableAndMemberEnum = DiagnosticWithArguments(
   correctionMessage: "Try renaming either the type parameter or the member.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM',
+  uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM',
   withArguments: _withArgumentsConflictingTypeVariableAndMemberEnum,
   expectedTypes: [ExpectedType.string],
 );
@@ -1935,8 +1926,7 @@ conflictingTypeVariableAndMemberExtension = DiagnosticWithArguments(
   correctionMessage: "Try renaming either the type parameter or the member.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION',
+  uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION',
   withArguments: _withArgumentsConflictingTypeVariableAndMemberExtension,
   expectedTypes: [ExpectedType.string],
 );
@@ -1954,8 +1944,7 @@ conflictingTypeVariableAndMemberExtensionType = DiagnosticWithArguments(
   correctionMessage: "Try renaming either the type parameter or the member.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE',
+  uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE',
   withArguments: _withArgumentsConflictingTypeVariableAndMemberExtensionType,
   expectedTypes: [ExpectedType.string],
 );
@@ -1973,7 +1962,7 @@ conflictingTypeVariableAndMemberMixin = DiagnosticWithArguments(
   correctionMessage: "Try renaming either the type parameter or the member.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN',
+  uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN',
   withArguments: _withArgumentsConflictingTypeVariableAndMemberMixin,
   expectedTypes: [ExpectedType.string],
 );
@@ -1991,7 +1980,7 @@ conflictingTypeVariableAndMixin = DiagnosticWithArguments(
   correctionMessage: "Try renaming either the type parameter or the mixin.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN',
+  uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MIXIN',
   withArguments: _withArgumentsConflictingTypeVariableAndMixin,
   expectedTypes: [ExpectedType.string],
 );
@@ -2002,7 +1991,7 @@ const DiagnosticWithoutArguments constAndFinal = DiagnosticWithoutArgumentsImpl(
   problemMessage: "Members can't be declared to be both 'const' and 'final'.",
   correctionMessage: "Try removing either the 'const' or 'final' keyword.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.CONST_AND_FINAL',
+  uniqueName: 'CONST_AND_FINAL',
   expectedTypes: [],
 );
 
@@ -2021,7 +2010,7 @@ constantPatternNeverMatchesValueType = DiagnosticWithArguments(
       "Try a constant of the same type as the matched value type.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE',
+  uniqueName: 'CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE',
   withArguments: _withArgumentsConstantPatternNeverMatchesValueType,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -2035,8 +2024,7 @@ const DiagnosticWithoutArguments constantPatternWithNonConstantExpression =
       correctionMessage: "Try making the expression a valid constant.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION',
+      uniqueName: 'CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION',
       expectedTypes: [],
     );
 
@@ -2049,7 +2037,7 @@ const DiagnosticWithoutArguments constClass = DiagnosticWithoutArgumentsImpl(
       "instances of the class can be constants, place the 'const' keyword on "
       " the class' constructor(s).",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.CONST_CLASS',
+  uniqueName: 'CONST_CLASS',
   expectedTypes: [],
 );
 
@@ -2065,8 +2053,7 @@ constConstructorConstantFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
       "keyword 'deferred' from the import.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY',
+  uniqueName: 'CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY',
   expectedTypes: [],
 );
 
@@ -2091,7 +2078,7 @@ constConstructorFieldTypeMismatch = DiagnosticWithArguments(
       "field '{1}', which has type '{2}'.",
   correctionMessage: "Try using a subtype, or removing the keyword 'const'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH',
+  uniqueName: 'CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH',
   withArguments: _withArgumentsConstConstructorFieldTypeMismatch,
   expectedTypes: [
     ExpectedType.object,
@@ -2117,7 +2104,7 @@ constConstructorParamTypeMismatch = DiagnosticWithArguments(
   correctionMessage: "Try using a subtype, or removing the keyword 'const'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
+  uniqueName: 'CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
   withArguments: _withArgumentsConstConstructorParamTypeMismatch,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -2133,7 +2120,7 @@ const DiagnosticWithoutArguments constConstructorThrowsException =
       correctionMessage:
           "Try removing the throw statement, or removing the keyword 'const'.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION',
+      uniqueName: 'CONST_CONSTRUCTOR_THROWS_EXCEPTION',
       expectedTypes: [],
     );
 
@@ -2144,7 +2131,7 @@ const DiagnosticWithoutArguments constConstructorWithBody =
       problemMessage: "Const constructors can't have a body.",
       correctionMessage: "Try removing either the 'const' keyword or the body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY',
+      uniqueName: 'CONST_CONSTRUCTOR_WITH_BODY',
       expectedTypes: [],
     );
 
@@ -2163,8 +2150,7 @@ constConstructorWithFieldInitializedByNonConst = DiagnosticWithArguments(
       "keyword 'const' from the constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST',
+  uniqueName: 'CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST',
   withArguments: _withArgumentsConstConstructorWithFieldInitializedByNonConst,
   expectedTypes: [ExpectedType.string],
 );
@@ -2193,7 +2179,7 @@ constConstructorWithMixinWithField = DiagnosticWithArguments(
       "Try removing the 'const' keyword or removing the 'with' clause from "
       "the class declaration, or removing the field from the mixin class.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
+  uniqueName: 'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
   withArguments: _withArgumentsConstConstructorWithMixinWithField,
   expectedTypes: [ExpectedType.string],
 );
@@ -2222,7 +2208,7 @@ constConstructorWithMixinWithFields = DiagnosticWithArguments(
       "Try removing the 'const' keyword or removing the 'with' clause from "
       "the class declaration, or removing the fields from the mixin classes.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS',
+  uniqueName: 'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS',
   withArguments: _withArgumentsConstConstructorWithMixinWithFields,
   expectedTypes: [ExpectedType.string],
 );
@@ -2242,7 +2228,7 @@ constConstructorWithNonConstSuper = DiagnosticWithArguments(
       "keyword 'const' from the constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER',
+  uniqueName: 'CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER',
   withArguments: _withArgumentsConstConstructorWithNonConstSuper,
   expectedTypes: [ExpectedType.string],
 );
@@ -2258,7 +2244,7 @@ const DiagnosticWithoutArguments constConstructorWithNonFinalField =
           "from the constructor.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD',
+      uniqueName: 'CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD',
       expectedTypes: [],
     );
 
@@ -2272,7 +2258,7 @@ constDeferredClass = DiagnosticWithoutArgumentsImpl(
       "be deferred.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_DEFERRED_CLASS',
+  uniqueName: 'CONST_DEFERRED_CLASS',
   expectedTypes: [],
 );
 
@@ -2282,7 +2268,7 @@ const DiagnosticWithoutArguments constEvalAssertionFailure =
       name: 'CONST_EVAL_ASSERTION_FAILURE',
       problemMessage: "The assertion in this constant expression failed.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE',
+      uniqueName: 'CONST_EVAL_ASSERTION_FAILURE',
       expectedTypes: [],
     );
 
@@ -2295,7 +2281,7 @@ constEvalAssertionFailureWithMessage = DiagnosticWithArguments(
   name: 'CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE',
   problemMessage: "An assertion failed with message '{0}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE',
+  uniqueName: 'CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE',
   withArguments: _withArgumentsConstEvalAssertionFailureWithMessage,
   expectedTypes: [ExpectedType.object],
 );
@@ -2307,7 +2293,7 @@ const DiagnosticWithoutArguments constEvalExtensionMethod =
       problemMessage:
           "Extension methods can't be used in constant expressions.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD',
+      uniqueName: 'CONST_EVAL_EXTENSION_METHOD',
       expectedTypes: [],
     );
 
@@ -2318,7 +2304,7 @@ const DiagnosticWithoutArguments constEvalExtensionTypeMethod =
       problemMessage:
           "Extension type methods can't be used in constant expressions.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD',
+      uniqueName: 'CONST_EVAL_EXTENSION_TYPE_METHOD',
       expectedTypes: [],
     );
 
@@ -2330,7 +2316,7 @@ const DiagnosticWithoutArguments constEvalForElement =
       correctionMessage:
           "Try replacing the 'for' element with a spread, or removing 'const'.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT',
+      uniqueName: 'CONST_EVAL_FOR_ELEMENT',
       expectedTypes: [],
     );
 
@@ -2340,7 +2326,7 @@ const DiagnosticWithoutArguments constEvalMethodInvocation =
       name: 'CONST_EVAL_METHOD_INVOCATION',
       problemMessage: "Methods can't be invoked in constant expressions.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION',
+      uniqueName: 'CONST_EVAL_METHOD_INVOCATION',
       expectedTypes: [],
     );
 
@@ -2355,7 +2341,7 @@ constEvalPrimitiveEquality = DiagnosticWithoutArgumentsImpl(
       "In constant expressions, operands of the equality operator must have "
       "primitive equality.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY',
+  uniqueName: 'CONST_EVAL_PRIMITIVE_EQUALITY',
   expectedTypes: [],
 );
 
@@ -2374,7 +2360,7 @@ constEvalPropertyAccess = DiagnosticWithArguments(
       "The property '{0}' can't be accessed on the type '{1}' in a constant "
       "expression.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS',
+  uniqueName: 'CONST_EVAL_PROPERTY_ACCESS',
   withArguments: _withArgumentsConstEvalPropertyAccess,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -2389,7 +2375,7 @@ const DiagnosticWithoutArguments constEvalThrowsException =
       problemMessage:
           "Evaluation of this constant expression throws an exception.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION',
+      uniqueName: 'CONST_EVAL_THROWS_EXCEPTION',
       expectedTypes: [],
     );
 
@@ -2404,7 +2390,7 @@ const DiagnosticWithoutArguments constEvalThrowsIdbze =
           "Evaluation of this constant expression throws an "
           "IntegerDivisionByZeroException.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE',
+      uniqueName: 'CONST_EVAL_THROWS_IDBZE',
       expectedTypes: [],
     );
 
@@ -2420,7 +2406,7 @@ const DiagnosticWithoutArguments constEvalTypeBool =
           "In constant expressions, operands of this operator must be of type "
           "'bool'.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL',
+      uniqueName: 'CONST_EVAL_TYPE_BOOL',
       expectedTypes: [],
     );
 
@@ -2435,7 +2421,7 @@ constEvalTypeBoolInt = DiagnosticWithoutArgumentsImpl(
       "In constant expressions, operands of this operator must be of type 'bool' "
       "or 'int'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT',
+  uniqueName: 'CONST_EVAL_TYPE_BOOL_INT',
   expectedTypes: [],
 );
 
@@ -2450,7 +2436,7 @@ const DiagnosticWithoutArguments constEvalTypeBoolNumString =
           "In constant expressions, operands of this operator must be of type "
           "'bool', 'num', 'String' or 'null'.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING',
+      uniqueName: 'CONST_EVAL_TYPE_BOOL_NUM_STRING',
       expectedTypes: [],
     );
 
@@ -2465,7 +2451,7 @@ constEvalTypeInt = DiagnosticWithoutArgumentsImpl(
   problemMessage:
       "In constant expressions, operands of this operator must be of type 'int'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_EVAL_TYPE_INT',
+  uniqueName: 'CONST_EVAL_TYPE_INT',
   expectedTypes: [],
 );
 
@@ -2479,7 +2465,7 @@ constEvalTypeNum = DiagnosticWithoutArgumentsImpl(
   problemMessage:
       "In constant expressions, operands of this operator must be of type 'num'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_EVAL_TYPE_NUM',
+  uniqueName: 'CONST_EVAL_TYPE_NUM',
   expectedTypes: [],
 );
 
@@ -2494,7 +2480,7 @@ constEvalTypeNumString = DiagnosticWithoutArgumentsImpl(
       "In constant expressions, operands of this operator must be of type 'num' "
       "or 'String'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_EVAL_TYPE_NUM_STRING',
+  uniqueName: 'CONST_EVAL_TYPE_NUM_STRING',
   expectedTypes: [],
 );
 
@@ -2506,7 +2492,7 @@ const DiagnosticWithoutArguments constEvalTypeString =
           "In constant expressions, operands of this operator must be of type "
           "'String'.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONST_EVAL_TYPE_STRING',
+      uniqueName: 'CONST_EVAL_TYPE_STRING',
       expectedTypes: [],
     );
 
@@ -2518,7 +2504,7 @@ const DiagnosticWithoutArguments constEvalTypeType =
           "In constant expressions, operands of this operator must be of type "
           "'Type'.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONST_EVAL_TYPE_TYPE',
+      uniqueName: 'CONST_EVAL_TYPE_TYPE',
       expectedTypes: [],
     );
 
@@ -2531,7 +2517,7 @@ const DiagnosticWithoutArguments constFactory = DiagnosticWithoutArgumentsImpl(
       "Try removing the 'const' keyword, or replacing the body with '=' "
       "followed by a valid target.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.CONST_FACTORY',
+  uniqueName: 'CONST_FACTORY',
   expectedTypes: [],
 );
 
@@ -2549,23 +2535,24 @@ constFieldInitializerNotAssignable = DiagnosticWithArguments(
   correctionMessage: "Try using a subtype, or removing the 'const' keyword",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE',
+  uniqueName: 'CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE',
   withArguments: _withArgumentsConstFieldInitializerNotAssignable,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-constInitializedWithNonConstantValue = DiagnosticWithoutArgumentsImpl(
-  name: 'CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE',
-  problemMessage: "Const variables must be initialized with a constant value.",
-  correctionMessage:
-      "Try changing the initializer to be a constant expression.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments constInitializedWithNonConstantValue =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE',
+      problemMessage:
+          "Const variables must be initialized with a constant value.",
+      correctionMessage:
+          "Try changing the initializer to be a constant expression.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments
@@ -2581,7 +2568,7 @@ constInitializedWithNonConstantValueFromDeferredLibrary =
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
       uniqueName:
-          'CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
+          'CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
       expectedTypes: [],
     );
 
@@ -2594,7 +2581,7 @@ const DiagnosticWithoutArguments constInstanceField =
           "Try declaring the field as final, or adding the keyword 'static'.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONST_INSTANCE_FIELD',
+      uniqueName: 'CONST_INSTANCE_FIELD',
       expectedTypes: [],
     );
 
@@ -2613,7 +2600,7 @@ constMapKeyNotPrimitiveEquality = DiagnosticWithArguments(
       "'const' from the map.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY',
+  uniqueName: 'CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY',
   withArguments: _withArgumentsConstMapKeyNotPrimitiveEquality,
   expectedTypes: [ExpectedType.type],
 );
@@ -2625,7 +2612,7 @@ const DiagnosticWithoutArguments constMethod = DiagnosticWithoutArgumentsImpl(
       "Getters, setters and methods can't be declared to be 'const'.",
   correctionMessage: "Try removing the 'const' keyword.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.CONST_METHOD',
+  uniqueName: 'CONST_METHOD',
   expectedTypes: [],
 );
 
@@ -2640,7 +2627,7 @@ constNotInitialized = DiagnosticWithArguments(
   correctionMessage: "Try adding an initialization to the declaration.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_NOT_INITIALIZED',
+  uniqueName: 'CONST_NOT_INITIALIZED',
   withArguments: _withArgumentsConstNotInitialized,
   expectedTypes: [ExpectedType.string],
 );
@@ -2652,7 +2639,7 @@ const DiagnosticWithoutArguments constructorWithReturnType =
       problemMessage: "Constructors can't have a return type.",
       correctionMessage: "Try removing the return type.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE',
+      uniqueName: 'CONSTRUCTOR_WITH_RETURN_TYPE',
       expectedTypes: [],
     );
 
@@ -2666,7 +2653,7 @@ constructorWithTypeArguments = DiagnosticWithoutArgumentsImpl(
   correctionMessage:
       "Try removing the type arguments or placing them after the class name.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS',
+  uniqueName: 'CONSTRUCTOR_WITH_TYPE_ARGUMENTS',
   expectedTypes: [],
 );
 
@@ -2685,7 +2672,7 @@ constSetElementNotPrimitiveEquality = DiagnosticWithArguments(
       "'const' from the set.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY',
+  uniqueName: 'CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY',
   withArguments: _withArgumentsConstSetElementNotPrimitiveEquality,
   expectedTypes: [ExpectedType.type],
 );
@@ -2697,7 +2684,7 @@ const DiagnosticWithoutArguments constSpreadExpectedListOrSet =
       problemMessage: "A list or a set is expected in this spread.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET',
+      uniqueName: 'CONST_SPREAD_EXPECTED_LIST_OR_SET',
       expectedTypes: [],
     );
 
@@ -2708,7 +2695,7 @@ const DiagnosticWithoutArguments constSpreadExpectedMap =
       problemMessage: "A map is expected in this spread.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP',
+      uniqueName: 'CONST_SPREAD_EXPECTED_MAP',
       expectedTypes: [],
     );
 
@@ -2720,7 +2707,7 @@ const DiagnosticWithoutArguments constTypeParameter =
       correctionMessage:
           "Try replacing the type parameter with a different type.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONST_TYPE_PARAMETER',
+      uniqueName: 'CONST_TYPE_PARAMETER',
       expectedTypes: [],
     );
 
@@ -2733,7 +2720,7 @@ const DiagnosticWithoutArguments constWithNonConst =
           "Try removing 'const' from the constructor invocation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONST_WITH_NON_CONST',
+      uniqueName: 'CONST_WITH_NON_CONST',
       expectedTypes: [],
     );
 
@@ -2748,7 +2735,7 @@ const DiagnosticWithoutArguments constWithNonConstantArgument =
           "constructor.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT',
+      uniqueName: 'CONST_WITH_NON_CONSTANT_ARGUMENT',
       expectedTypes: [],
     );
 
@@ -2764,7 +2751,7 @@ constWithNonType = DiagnosticWithArguments(
   hasPublishedDocs: true,
   isUnresolvedIdentifier: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_WITH_NON_TYPE',
+  uniqueName: 'CONST_WITH_NON_TYPE',
   withArguments: _withArgumentsConstWithNonType,
   expectedTypes: [ExpectedType.string],
 );
@@ -2779,7 +2766,7 @@ constWithoutPrimaryConstructor = DiagnosticWithoutArgumentsImpl(
       "Try removing the 'const' keyword or adding a primary constructor "
       "declaration.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.CONST_WITHOUT_PRIMARY_CONSTRUCTOR',
+  uniqueName: 'CONST_WITHOUT_PRIMARY_CONSTRUCTOR',
   expectedTypes: [],
 );
 
@@ -2793,7 +2780,7 @@ const DiagnosticWithoutArguments constWithTypeParameters =
           "Try replacing the type parameter with a different type.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS',
+      uniqueName: 'CONST_WITH_TYPE_PARAMETERS',
       expectedTypes: [],
     );
 
@@ -2808,8 +2795,7 @@ const DiagnosticWithoutArguments constWithTypeParametersConstructorTearoff =
           "Try replacing the type parameter with a different type.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF',
+      uniqueName: 'CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF',
       expectedTypes: [],
     );
 
@@ -2824,8 +2810,7 @@ const DiagnosticWithoutArguments constWithTypeParametersFunctionTearoff =
           "Try replacing the type parameter with a different type.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF',
+      uniqueName: 'CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF',
       expectedTypes: [],
     );
 
@@ -2843,7 +2828,7 @@ constWithUndefinedConstructor = DiagnosticWithArguments(
   problemMessage: "The class '{0}' doesn't have a constant constructor '{1}'.",
   correctionMessage: "Try calling a different constructor.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR',
+  uniqueName: 'CONST_WITH_UNDEFINED_CONSTRUCTOR',
   withArguments: _withArgumentsConstWithUndefinedConstructor,
   expectedTypes: [ExpectedType.object, ExpectedType.string],
 );
@@ -2862,7 +2847,7 @@ constWithUndefinedConstructorDefault = DiagnosticWithArguments(
       "The class '{0}' doesn't have an unnamed constant constructor.",
   correctionMessage: "Try calling a different constructor.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
+  uniqueName: 'CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
   withArguments: _withArgumentsConstWithUndefinedConstructorDefault,
   expectedTypes: [ExpectedType.string],
 );
@@ -2876,7 +2861,7 @@ continueLabelInvalid = DiagnosticWithoutArgumentsImpl(
       "or a switch member.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.CONTINUE_LABEL_INVALID',
+  uniqueName: 'CONTINUE_LABEL_INVALID',
   expectedTypes: [],
 );
 
@@ -2888,7 +2873,7 @@ continueOutsideOfLoop = DiagnosticWithoutArgumentsImpl(
       "A continue statement can't be used outside of a loop or switch statement.",
   correctionMessage: "Try removing the continue statement.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP',
+  uniqueName: 'CONTINUE_OUTSIDE_OF_LOOP',
   expectedTypes: [],
 );
 
@@ -2902,7 +2887,7 @@ continueWithoutLabelInCase = DiagnosticWithoutArgumentsImpl(
       "Try adding a label associated with one of the case clauses to the "
       "continue statement.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE',
+  uniqueName: 'CONTINUE_WITHOUT_LABEL_IN_CASE',
   expectedTypes: [],
 );
 
@@ -2916,7 +2901,7 @@ couldNotInfer = DiagnosticWithArguments(
   name: 'COULD_NOT_INFER',
   problemMessage: "Couldn't infer type parameter '{0}'.{1}",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.COULD_NOT_INFER',
+  uniqueName: 'COULD_NOT_INFER',
   withArguments: _withArgumentsCouldNotInfer,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -2930,7 +2915,7 @@ const DiagnosticWithoutArguments covariantAndStatic =
       correctionMessage:
           "Try removing either the 'covariant' or 'static' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.COVARIANT_AND_STATIC',
+      uniqueName: 'COVARIANT_AND_STATIC',
       expectedTypes: [],
     );
 
@@ -2941,7 +2926,7 @@ const DiagnosticWithoutArguments covariantConstructor =
       problemMessage: "A constructor can't be declared to be 'covariant'.",
       correctionMessage: "Try removing the keyword 'covariant'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.COVARIANT_CONSTRUCTOR',
+      uniqueName: 'COVARIANT_CONSTRUCTOR',
       expectedTypes: [],
     );
 
@@ -2953,7 +2938,7 @@ const DiagnosticWithoutArguments covariantMember =
           "Getters, setters and methods can't be declared to be 'covariant'.",
       correctionMessage: "Try removing the 'covariant' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.COVARIANT_MEMBER',
+      uniqueName: 'COVARIANT_MEMBER',
       expectedTypes: [],
     );
 
@@ -2968,7 +2953,7 @@ creationOfStructOrUnion = DiagnosticWithoutArgumentsImpl(
       "Try allocating it via allocation, or load from a 'Pointer'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.CREATION_OF_STRUCT_OR_UNION',
+  uniqueName: 'CREATION_OF_STRUCT_OR_UNION',
   expectedTypes: [],
 );
 
@@ -2984,7 +2969,7 @@ const DiagnosticWithoutArguments deadCode = DiagnosticWithoutArgumentsImpl(
       "reached.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DEAD_CODE',
+  uniqueName: 'DEAD_CODE',
   expectedTypes: [],
 );
 
@@ -3003,7 +2988,7 @@ deadCodeCatchFollowingCatch = DiagnosticWithoutArgumentsImpl(
       "removing the unreachable catch clauses.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH',
+  uniqueName: 'DEAD_CODE_CATCH_FOLLOWING_CATCH',
   expectedTypes: [],
 );
 
@@ -3019,7 +3004,7 @@ deadCodeLateWildcardVariableInitializer = DiagnosticWithoutArgumentsImpl(
       "variable to a non-wildcard.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER',
+  uniqueName: 'DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER',
   expectedTypes: [],
 );
 
@@ -3043,7 +3028,7 @@ deadCodeOnCatchSubtype = DiagnosticWithArguments(
       "or removing the unreachable catch clause.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE',
+  uniqueName: 'DEAD_CODE_ON_CATCH_SUBTYPE',
   withArguments: _withArgumentsDeadCodeOnCatchSubtype,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -3057,7 +3042,7 @@ deadNullAwareExpression = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try removing the operator and the right operand.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION',
+  uniqueName: 'DEAD_NULL_AWARE_EXPRESSION',
   expectedTypes: [],
 );
 
@@ -3070,7 +3055,7 @@ const DiagnosticWithoutArguments defaultInSwitchExpression =
       problemMessage: "A switch expression may not use the `default` keyword.",
       correctionMessage: "Try replacing `default` with `_`.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION',
+      uniqueName: 'DEFAULT_IN_SWITCH_EXPRESSION',
       expectedTypes: [],
     );
 
@@ -3083,7 +3068,7 @@ const DiagnosticWithoutArguments defaultValueInFunctionType =
       correctionMessage: "Try removing the default value.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE',
+      uniqueName: 'DEFAULT_VALUE_IN_FUNCTION_TYPE',
       expectedTypes: [],
     );
 
@@ -3097,8 +3082,7 @@ defaultValueInRedirectingFactoryConstructor = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try removing the default value.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR',
+  uniqueName: 'DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR',
   expectedTypes: [],
 );
 
@@ -3111,7 +3095,7 @@ const DiagnosticWithoutArguments defaultValueOnRequiredParameter =
           "Try removing either the default value or the 'required' modifier.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER',
+      uniqueName: 'DEFAULT_VALUE_ON_REQUIRED_PARAMETER',
       expectedTypes: [],
     );
 
@@ -3124,7 +3108,7 @@ deferredAfterPrefix = DiagnosticWithoutArgumentsImpl(
       "clause).",
   correctionMessage: "Try moving the deferred keyword before the prefix.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.DEFERRED_AFTER_PREFIX',
+  uniqueName: 'DEFERRED_AFTER_PREFIX',
   expectedTypes: [],
 );
 
@@ -3138,7 +3122,7 @@ const DiagnosticWithoutArguments deferredImportOfExtension =
           "reference or a hide combinator listing all of the extensions.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION',
+      uniqueName: 'DEFERRED_IMPORT_OF_EXTENSION',
       expectedTypes: [],
     );
 
@@ -3154,7 +3138,7 @@ definitelyUnassignedLateLocalVariable = DiagnosticWithArguments(
   correctionMessage: "Ensure that it is assigned on necessary execution paths.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE',
+  uniqueName: 'DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE',
   withArguments: _withArgumentsDefinitelyUnassignedLateLocalVariable,
   expectedTypes: [ExpectedType.string],
 );
@@ -3170,7 +3154,7 @@ dependenciesFieldNotMap = DiagnosticWithArguments(
   correctionMessage: "Try converting the value to be a map.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP',
+  uniqueName: 'DEPENDENCIES_FIELD_NOT_MAP',
   withArguments: _withArgumentsDependenciesFieldNotMap,
   expectedTypes: [ExpectedType.string],
 );
@@ -3188,7 +3172,7 @@ deprecatedColonForDefaultValue = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try replacing the colon with an equal sign.",
   hasPublishedDocs: true,
   type: DiagnosticType.HINT,
-  uniqueName: 'HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE',
+  uniqueName: 'DEPRECATED_COLON_FOR_DEFAULT_VALUE',
   expectedTypes: [],
 );
 
@@ -3203,7 +3187,7 @@ deprecatedExportUse = DiagnosticWithArguments(
   correctionMessage: "Try importing '{0}' directly.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DEPRECATED_EXPORT_USE',
+  uniqueName: 'DEPRECATED_EXPORT_USE',
   withArguments: _withArgumentsDeprecatedExportUse,
   expectedTypes: [ExpectedType.string],
 );
@@ -3219,7 +3203,7 @@ deprecatedExtend = DiagnosticWithArguments(
   correctionMessage: "Try removing the 'extends' clause.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DEPRECATED_EXTEND',
+  uniqueName: 'DEPRECATED_EXTEND',
   withArguments: _withArgumentsDeprecatedExtend,
   expectedTypes: [ExpectedType.object],
 );
@@ -3232,7 +3216,7 @@ const DiagnosticWithoutArguments deprecatedExtendsFunction =
       correctionMessage: "Try removing 'Function' from the 'extends' clause.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.DEPRECATED_EXTENDS_FUNCTION',
+      uniqueName: 'DEPRECATED_EXTENDS_FUNCTION',
       expectedTypes: [],
     );
 
@@ -3247,7 +3231,7 @@ deprecatedField = DiagnosticWithArguments(
   correctionMessage: "Try removing the field.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PubspecWarningCode.DEPRECATED_FIELD',
+  uniqueName: 'DEPRECATED_FIELD',
   withArguments: _withArgumentsDeprecatedField,
   expectedTypes: [ExpectedType.string],
 );
@@ -3263,7 +3247,7 @@ deprecatedImplement = DiagnosticWithArguments(
   correctionMessage: "Try removing '{0}' from the 'implements' clause.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DEPRECATED_IMPLEMENT',
+  uniqueName: 'DEPRECATED_IMPLEMENT',
   withArguments: _withArgumentsDeprecatedImplement,
   expectedTypes: [ExpectedType.object],
 );
@@ -3277,7 +3261,7 @@ const DiagnosticWithoutArguments deprecatedImplementsFunction =
           "Try removing 'Function' from the 'implements' clause.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION',
+      uniqueName: 'DEPRECATED_IMPLEMENTS_FUNCTION',
       expectedTypes: [],
     );
 
@@ -3292,7 +3276,7 @@ deprecatedInstantiate = DiagnosticWithArguments(
   correctionMessage: "Try instantiating a non-abstract class.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DEPRECATED_INSTANTIATE',
+  uniqueName: 'DEPRECATED_INSTANTIATE',
   withArguments: _withArgumentsDeprecatedInstantiate,
   expectedTypes: [ExpectedType.object],
 );
@@ -3309,7 +3293,7 @@ deprecatedLint = DiagnosticWithArguments(
   problemMessage: "'{0}' is a deprecated lint rule and should not be used.",
   correctionMessage: "Try removing '{0}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.DEPRECATED_LINT',
+  uniqueName: 'DEPRECATED_LINT',
   withArguments: _withArgumentsDeprecatedLint,
   expectedTypes: [ExpectedType.string],
 );
@@ -3327,7 +3311,7 @@ deprecatedLintWithReplacement = DiagnosticWithArguments(
   problemMessage: "'{0}' is deprecated and should be replaced by '{1}'.",
   correctionMessage: "Try replacing '{0}' with '{1}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.DEPRECATED_LINT_WITH_REPLACEMENT',
+  uniqueName: 'DEPRECATED_LINT_WITH_REPLACEMENT',
   withArguments: _withArgumentsDeprecatedLintWithReplacement,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -3344,7 +3328,7 @@ deprecatedMemberUse = DiagnosticWithArguments(
       "Try replacing the use of the deprecated member with the replacement.",
   hasPublishedDocs: true,
   type: DiagnosticType.HINT,
-  uniqueName: 'HintCode.DEPRECATED_MEMBER_USE',
+  uniqueName: 'DEPRECATED_MEMBER_USE',
   withArguments: _withArgumentsDeprecatedMemberUse,
   expectedTypes: [ExpectedType.string],
 );
@@ -3362,7 +3346,7 @@ deprecatedMemberUseWithMessage = DiagnosticWithArguments(
       "Try replacing the use of the deprecated member with the replacement.",
   hasPublishedDocs: true,
   type: DiagnosticType.HINT,
-  uniqueName: 'HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE',
+  uniqueName: 'DEPRECATED_MEMBER_USE_WITH_MESSAGE',
   withArguments: _withArgumentsDeprecatedMemberUseWithMessage,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -3378,7 +3362,7 @@ deprecatedMixin = DiagnosticWithArguments(
   correctionMessage: "Try removing '{0}' from the 'with' clause.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DEPRECATED_MIXIN',
+  uniqueName: 'DEPRECATED_MIXIN',
   withArguments: _withArgumentsDeprecatedMixin,
   expectedTypes: [ExpectedType.object],
 );
@@ -3391,7 +3375,7 @@ const DiagnosticWithoutArguments deprecatedMixinFunction =
       correctionMessage: "Try removing 'Function' from the 'with' clause.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.DEPRECATED_MIXIN_FUNCTION',
+      uniqueName: 'DEPRECATED_MIXIN_FUNCTION',
       expectedTypes: [],
     );
 
@@ -3404,7 +3388,7 @@ const DiagnosticWithoutArguments deprecatedNewInCommentReference =
       correctionMessage: "Try referring to a constructor by its name.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE',
+      uniqueName: 'DEPRECATED_NEW_IN_COMMENT_REFERENCE',
       expectedTypes: [],
     );
 
@@ -3419,7 +3403,7 @@ deprecatedOptional = DiagnosticWithArguments(
   correctionMessage: "Try passing an argument for '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DEPRECATED_OPTIONAL',
+  uniqueName: 'DEPRECATED_OPTIONAL',
   withArguments: _withArgumentsDeprecatedOptional,
   expectedTypes: [ExpectedType.object],
 );
@@ -3437,7 +3421,7 @@ deprecatedSubclass = DiagnosticWithArguments(
       "'implements' clause.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DEPRECATED_SUBCLASS',
+  uniqueName: 'DEPRECATED_SUBCLASS',
   withArguments: _withArgumentsDeprecatedSubclass,
   expectedTypes: [ExpectedType.object],
 );
@@ -3449,7 +3433,7 @@ const DiagnosticWithoutArguments directiveAfterDeclaration =
       problemMessage: "Directives must appear before any declarations.",
       correctionMessage: "Try moving the directive before any declarations.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.DIRECTIVE_AFTER_DECLARATION',
+      uniqueName: 'DIRECTIVE_AFTER_DECLARATION',
       expectedTypes: [],
     );
 
@@ -3466,8 +3450,7 @@ const DiagnosticWithoutArguments disallowedTypeInstantiationExpression =
           "constructor.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION',
+      uniqueName: 'DISALLOWED_TYPE_INSTANTIATION_EXPRESSION',
       expectedTypes: [],
     );
 
@@ -3482,7 +3465,7 @@ docDirectiveArgumentWrongFormat = DiagnosticWithArguments(
   problemMessage: "The '{0}' argument must be formatted as {1}.",
   correctionMessage: "Try formatting '{0}' as {1}.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT',
+  uniqueName: 'DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT',
   withArguments: _withArgumentsDocDirectiveArgumentWrongFormat,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -3504,7 +3487,7 @@ docDirectiveHasExtraArguments = DiagnosticWithArguments(
       "The '{0}' directive has '{1}' arguments, but only '{2}' are expected.",
   correctionMessage: "Try removing the extra arguments.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS',
+  uniqueName: 'DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS',
   withArguments: _withArgumentsDocDirectiveHasExtraArguments,
   expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.int],
 );
@@ -3521,7 +3504,7 @@ docDirectiveHasUnexpectedNamedArgument = DiagnosticWithArguments(
       "The '{0}' directive has an unexpected named argument, '{1}'.",
   correctionMessage: "Try removing the unexpected argument.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT',
+  uniqueName: 'DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT',
   withArguments: _withArgumentsDocDirectiveHasUnexpectedNamedArgument,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -3533,7 +3516,7 @@ const DiagnosticWithoutArguments docDirectiveMissingClosingBrace =
       problemMessage: "Doc directive is missing a closing curly brace ('}').",
       correctionMessage: "Try closing the directive with a curly brace.",
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE',
+      uniqueName: 'DOC_DIRECTIVE_MISSING_CLOSING_BRACE',
       expectedTypes: [],
     );
 
@@ -3548,7 +3531,7 @@ docDirectiveMissingClosingTag = DiagnosticWithArguments(
   correctionMessage:
       "Try closing the directive with the appropriate closing tag, '{0}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG',
+  uniqueName: 'DOC_DIRECTIVE_MISSING_CLOSING_TAG',
   withArguments: _withArgumentsDocDirectiveMissingClosingTag,
   expectedTypes: [ExpectedType.string],
 );
@@ -3564,7 +3547,7 @@ docDirectiveMissingOneArgument = DiagnosticWithArguments(
   problemMessage: "The '{0}' directive is missing a '{1}' argument.",
   correctionMessage: "Try adding a '{1}' argument before the closing '}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT',
+  uniqueName: 'DOC_DIRECTIVE_MISSING_ONE_ARGUMENT',
   withArguments: _withArgumentsDocDirectiveMissingOneArgument,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -3580,7 +3563,7 @@ docDirectiveMissingOpeningTag = DiagnosticWithArguments(
   correctionMessage:
       "Try opening the directive with the appropriate opening tag, '{0}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG',
+  uniqueName: 'DOC_DIRECTIVE_MISSING_OPENING_TAG',
   withArguments: _withArgumentsDocDirectiveMissingOpeningTag,
   expectedTypes: [ExpectedType.string],
 );
@@ -3604,7 +3587,7 @@ docDirectiveMissingThreeArguments = DiagnosticWithArguments(
       "The '{0}' directive is missing a '{1}', a '{2}', and a '{3}' argument.",
   correctionMessage: "Try adding the missing arguments before the closing '}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS',
+  uniqueName: 'DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS',
   withArguments: _withArgumentsDocDirectiveMissingThreeArguments,
   expectedTypes: [
     ExpectedType.string,
@@ -3631,7 +3614,7 @@ docDirectiveMissingTwoArguments = DiagnosticWithArguments(
       "The '{0}' directive is missing a '{1}' and a '{2}' argument.",
   correctionMessage: "Try adding the missing arguments before the closing '}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS',
+  uniqueName: 'DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS',
   withArguments: _withArgumentsDocDirectiveMissingTwoArguments,
   expectedTypes: [
     ExpectedType.string,
@@ -3650,7 +3633,7 @@ docDirectiveUnknown = DiagnosticWithArguments(
   problemMessage: "Doc directive '{0}' is unknown.",
   correctionMessage: "Try using one of the supported doc directives.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DOC_DIRECTIVE_UNKNOWN',
+  uniqueName: 'DOC_DIRECTIVE_UNKNOWN',
   withArguments: _withArgumentsDocDirectiveUnknown,
   expectedTypes: [ExpectedType.string],
 );
@@ -3663,7 +3646,7 @@ const DiagnosticWithoutArguments docImportCannotBeDeferred =
       correctionMessage: "Try removing the 'deferred' keyword.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED',
+      uniqueName: 'DOC_IMPORT_CANNOT_BE_DEFERRED',
       expectedTypes: [],
     );
 
@@ -3675,7 +3658,7 @@ const DiagnosticWithoutArguments docImportCannotHaveCombinators =
       correctionMessage: "Try removing the combinator.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.DOC_IMPORT_CANNOT_HAVE_COMBINATORS',
+      uniqueName: 'DOC_IMPORT_CANNOT_HAVE_COMBINATORS',
       expectedTypes: [],
     );
 
@@ -3687,7 +3670,7 @@ const DiagnosticWithoutArguments docImportCannotHaveConfigurations =
       correctionMessage: "Try removing the configurations.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS',
+      uniqueName: 'DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS',
       expectedTypes: [],
     );
 
@@ -3699,7 +3682,7 @@ const DiagnosticWithoutArguments docImportCannotHavePrefix =
       correctionMessage: "Try removing the prefix.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.DOC_IMPORT_CANNOT_HAVE_PREFIX',
+      uniqueName: 'DOC_IMPORT_CANNOT_HAVE_PREFIX',
       expectedTypes: [],
     );
 
@@ -3711,7 +3694,7 @@ const DiagnosticWithoutArguments dotShorthandMissingContext =
           "A dot shorthand can't be used where there is no context type.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT',
+      uniqueName: 'DOT_SHORTHAND_MISSING_CONTEXT',
       expectedTypes: [],
     );
 
@@ -3731,7 +3714,7 @@ dotShorthandUndefinedGetter = DiagnosticWithArguments(
       "defining a getter or field named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER',
+  uniqueName: 'DOT_SHORTHAND_UNDEFINED_GETTER',
   withArguments: _withArgumentsDotShorthandUndefinedGetter,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -3753,7 +3736,7 @@ dotShorthandUndefinedInvocation = DiagnosticWithArguments(
       "constructor, or defining a static method or constructor named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION',
+  uniqueName: 'DOT_SHORTHAND_UNDEFINED_INVOCATION',
   withArguments: _withArgumentsDotShorthandUndefinedInvocation,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -3766,7 +3749,7 @@ const DiagnosticWithoutArguments duplicateConstructorDefault =
       correctionMessage: "Try giving one of the constructors a name.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT',
+      uniqueName: 'DUPLICATE_CONSTRUCTOR_DEFAULT',
       expectedTypes: [],
     );
 
@@ -3781,7 +3764,7 @@ duplicateConstructorName = DiagnosticWithArguments(
   correctionMessage: "Try renaming one of the constructors.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME',
+  uniqueName: 'DUPLICATE_CONSTRUCTOR_NAME',
   withArguments: _withArgumentsDuplicateConstructorName,
   expectedTypes: [ExpectedType.string],
 );
@@ -3794,7 +3777,7 @@ const DiagnosticWithoutArguments duplicateDeferred =
           "An import directive can only have one 'deferred' keyword.",
       correctionMessage: "Try removing all but one 'deferred' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.DUPLICATE_DEFERRED',
+      uniqueName: 'DUPLICATE_DEFERRED',
       expectedTypes: [],
     );
 
@@ -3809,7 +3792,7 @@ duplicateDefinition = DiagnosticWithArguments(
   correctionMessage: "Try renaming one of the declarations.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.DUPLICATE_DEFINITION',
+  uniqueName: 'DUPLICATE_DEFINITION',
   withArguments: _withArgumentsDuplicateDefinition,
   expectedTypes: [ExpectedType.object],
 );
@@ -3824,7 +3807,7 @@ const DiagnosticCode duplicatedModifier = DiagnosticCodeWithExpectedTypes(
   problemMessage: "The modifier '{0}' was already specified.",
   correctionMessage: "Try removing all but one occurrence of the modifier.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.DUPLICATED_MODIFIER',
+  uniqueName: 'DUPLICATED_MODIFIER',
   expectedTypes: [ExpectedType.token],
 );
 
@@ -3838,7 +3821,7 @@ const DiagnosticWithoutArguments duplicateExport =
       correctionMessage: "Try removing all but one export of the library.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.DUPLICATE_EXPORT',
+      uniqueName: 'DUPLICATE_EXPORT',
       expectedTypes: [],
     );
 
@@ -3856,7 +3839,7 @@ duplicateFieldFormalParameter = DiagnosticWithArguments(
       "Try removing one of the parameters, or using different fields.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER',
+  uniqueName: 'DUPLICATE_FIELD_FORMAL_PARAMETER',
   withArguments: _withArgumentsDuplicateFieldFormalParameter,
   expectedTypes: [ExpectedType.object],
 );
@@ -3872,7 +3855,7 @@ duplicateFieldName = DiagnosticWithArguments(
   correctionMessage: "Try renaming the field.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.DUPLICATE_FIELD_NAME',
+  uniqueName: 'DUPLICATE_FIELD_NAME',
   withArguments: _withArgumentsDuplicateFieldName,
   expectedTypes: [ExpectedType.object],
 );
@@ -3886,7 +3869,7 @@ const DiagnosticWithoutArguments duplicateHiddenName =
           "Try removing the repeated name from the list of hidden members.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.DUPLICATE_HIDDEN_NAME',
+      uniqueName: 'DUPLICATE_HIDDEN_NAME',
       expectedTypes: [],
     );
 
@@ -3905,7 +3888,7 @@ duplicateIgnore = DiagnosticWithArguments(
       "this is the only name in the list.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.DUPLICATE_IGNORE',
+  uniqueName: 'DUPLICATE_IGNORE',
   withArguments: _withArgumentsDuplicateIgnore,
   expectedTypes: [ExpectedType.string],
 );
@@ -3920,7 +3903,7 @@ const DiagnosticWithoutArguments duplicateImport =
       correctionMessage: "Try removing all but one import of the library.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.DUPLICATE_IMPORT',
+      uniqueName: 'DUPLICATE_IMPORT',
       expectedTypes: [],
     );
 
@@ -3936,7 +3919,7 @@ const DiagnosticCode duplicateLabelInSwitchStatement =
           "The label '{0}' was already used in this switch statement.",
       correctionMessage: "Try choosing a different name for this label.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT',
+      uniqueName: 'DUPLICATE_LABEL_IN_SWITCH_STATEMENT',
       expectedTypes: [ExpectedType.name],
     );
 
@@ -3954,7 +3937,7 @@ duplicateNamedArgument = DiagnosticWithArguments(
       "names to reference a different named parameter.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT',
+  uniqueName: 'DUPLICATE_NAMED_ARGUMENT',
   withArguments: _withArgumentsDuplicateNamedArgument,
   expectedTypes: [ExpectedType.string],
 );
@@ -3969,7 +3952,7 @@ duplicatePart = DiagnosticWithArguments(
       "Try removing all except one of the duplicated part directives.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.DUPLICATE_PART',
+  uniqueName: 'DUPLICATE_PART',
   withArguments: _withArgumentsDuplicatePart,
   expectedTypes: [ExpectedType.uri],
 );
@@ -3985,7 +3968,7 @@ duplicatePatternAssignmentVariable = DiagnosticWithArguments(
   correctionMessage: "Try renaming the variable.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE',
+  uniqueName: 'DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE',
   withArguments: _withArgumentsDuplicatePatternAssignmentVariable,
   expectedTypes: [ExpectedType.object],
 );
@@ -4001,7 +3984,7 @@ duplicatePatternField = DiagnosticWithArguments(
   correctionMessage: "Try removing the duplicate field.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD',
+  uniqueName: 'DUPLICATE_PATTERN_FIELD',
   withArguments: _withArgumentsDuplicatePatternField,
   expectedTypes: [ExpectedType.object],
 );
@@ -4014,7 +3997,7 @@ const DiagnosticWithoutArguments duplicatePrefix =
           "An import directive can only have one prefix ('as' clause).",
       correctionMessage: "Try removing all but one prefix.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.DUPLICATE_PREFIX',
+      uniqueName: 'DUPLICATE_PREFIX',
       expectedTypes: [],
     );
 
@@ -4027,7 +4010,7 @@ const DiagnosticWithoutArguments duplicateRestElementInPattern =
       correctionMessage: "Try removing the duplicate rest element.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN',
+      uniqueName: 'DUPLICATE_REST_ELEMENT_IN_PATTERN',
       expectedTypes: [],
     );
 
@@ -4044,7 +4027,7 @@ duplicateRule = DiagnosticWithArguments(
       "The rule {0} is already specified and doesn't need to be specified again.",
   correctionMessage: "Try removing all but one specification of the rule.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.DUPLICATE_RULE',
+  uniqueName: 'DUPLICATE_RULE',
   withArguments: _withArgumentsDuplicateRule,
   expectedTypes: [ExpectedType.string],
 );
@@ -4058,7 +4041,7 @@ const DiagnosticWithoutArguments duplicateShownName =
           "Try removing the repeated name from the list of shown members.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.DUPLICATE_SHOWN_NAME',
+      uniqueName: 'DUPLICATE_SHOWN_NAME',
       expectedTypes: [],
     );
 
@@ -4073,7 +4056,7 @@ duplicateVariablePattern = DiagnosticWithArguments(
   correctionMessage: "Try renaming the variable.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN',
+  uniqueName: 'DUPLICATE_VARIABLE_PATTERN',
   withArguments: _withArgumentsDuplicateVariablePattern,
   expectedTypes: [ExpectedType.object],
 );
@@ -4084,7 +4067,7 @@ const DiagnosticWithoutArguments emptyEnumBody = DiagnosticWithoutArgumentsImpl(
   problemMessage: "An enum must declare at least one constant name.",
   correctionMessage: "Try declaring a constant.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.EMPTY_ENUM_BODY',
+  uniqueName: 'EMPTY_ENUM_BODY',
   expectedTypes: [],
 );
 
@@ -4096,7 +4079,7 @@ const DiagnosticWithoutArguments emptyMapPattern =
       correctionMessage: "Try replacing it with an object pattern 'Map()'.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.EMPTY_MAP_PATTERN',
+      uniqueName: 'EMPTY_MAP_PATTERN',
       expectedTypes: [],
     );
 
@@ -4109,7 +4092,7 @@ const DiagnosticWithoutArguments emptyRecordLiteralWithComma =
       correctionMessage: "Try removing the trailing comma.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EMPTY_RECORD_LITERAL_WITH_COMMA',
+      uniqueName: 'EMPTY_RECORD_LITERAL_WITH_COMMA',
       expectedTypes: [],
     );
 
@@ -4122,7 +4105,7 @@ const DiagnosticWithoutArguments emptyRecordTypeNamedFieldsList =
       correctionMessage: "Try adding a named field to the list.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST',
+      uniqueName: 'EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST',
       expectedTypes: [],
     );
 
@@ -4135,7 +4118,7 @@ const DiagnosticWithoutArguments emptyRecordTypeWithComma =
       correctionMessage: "Try removing the trailing comma.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EMPTY_RECORD_TYPE_WITH_COMMA',
+      uniqueName: 'EMPTY_RECORD_TYPE_WITH_COMMA',
       expectedTypes: [],
     );
 
@@ -4153,7 +4136,7 @@ emptyStruct = DiagnosticWithArguments(
       "Try adding a field to '{0}' or use a different superclass.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.EMPTY_STRUCT',
+  uniqueName: 'EMPTY_STRUCT',
   withArguments: _withArgumentsEmptyStruct,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -4163,7 +4146,7 @@ const DiagnosticWithoutArguments encoding = DiagnosticWithoutArgumentsImpl(
   name: 'ENCODING',
   problemMessage: "Unable to decode bytes as UTF-8.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ScannerErrorCode.ENCODING',
+  uniqueName: 'ENCODING',
   expectedTypes: [],
 );
 
@@ -4174,8 +4157,7 @@ const DiagnosticWithoutArguments enumConstantInvokesFactoryConstructor =
       problemMessage: "An enum value can't invoke a factory constructor.",
       correctionMessage: "Try using a generative constructor.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR',
+      uniqueName: 'ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR',
       expectedTypes: [],
     );
 
@@ -4188,7 +4170,7 @@ const DiagnosticWithoutArguments enumConstantSameNameAsEnclosing =
       correctionMessage: "Try renaming the constant.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
+      uniqueName: 'ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
       expectedTypes: [],
     );
 
@@ -4198,22 +4180,21 @@ const DiagnosticWithoutArguments enumInClass = DiagnosticWithoutArgumentsImpl(
   problemMessage: "Enums can't be declared inside classes.",
   correctionMessage: "Try moving the enum to the top-level.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.ENUM_IN_CLASS',
+  uniqueName: 'ENUM_IN_CLASS',
   expectedTypes: [],
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-enumInstantiatedToBoundsIsNotWellBounded = DiagnosticWithoutArgumentsImpl(
-  name: 'ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED',
-  problemMessage:
-      "The result of instantiating the enum to bounds is not well-bounded.",
-  correctionMessage: "Try using different bounds for type parameters.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments enumInstantiatedToBoundsIsNotWellBounded =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED',
+      problemMessage:
+          "The result of instantiating the enum to bounds is not well-bounded.",
+      correctionMessage: "Try using different bounds for type parameters.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments enumMixinWithInstanceVariable =
@@ -4223,7 +4204,7 @@ const DiagnosticWithoutArguments enumMixinWithInstanceVariable =
       correctionMessage: "Try replacing the instance variables with getters.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE',
+      uniqueName: 'ENUM_MIXIN_WITH_INSTANCE_VARIABLE',
       expectedTypes: [],
     );
 
@@ -4239,7 +4220,7 @@ enumWithAbstractMember = DiagnosticWithArguments(
   correctionMessage: "Try adding a body to '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER',
+  uniqueName: 'ENUM_WITH_ABSTRACT_MEMBER',
   withArguments: _withArgumentsEnumWithAbstractMember,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -4252,7 +4233,7 @@ const DiagnosticWithoutArguments enumWithNameValues =
       correctionMessage: "Try using a different name.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.ENUM_WITH_NAME_VALUES',
+      uniqueName: 'ENUM_WITH_NAME_VALUES',
       expectedTypes: [],
     );
 
@@ -4263,7 +4244,7 @@ const DiagnosticWithoutArguments enumWithoutConstants =
       problemMessage: "The enum must have at least one enum constant.",
       correctionMessage: "Try declaring an enum constant.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS',
+      uniqueName: 'ENUM_WITHOUT_CONSTANTS',
       expectedTypes: [],
     );
 
@@ -4275,7 +4256,7 @@ const DiagnosticWithoutArguments equalElementsInConstSet =
       correctionMessage: "Change or remove the duplicate element.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET',
+      uniqueName: 'EQUAL_ELEMENTS_IN_CONST_SET',
       expectedTypes: [],
     );
 
@@ -4287,7 +4268,7 @@ const DiagnosticWithoutArguments equalElementsInSet =
       correctionMessage: "Change or remove the duplicate element.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.EQUAL_ELEMENTS_IN_SET',
+      uniqueName: 'EQUAL_ELEMENTS_IN_SET',
       expectedTypes: [],
     );
 
@@ -4301,7 +4282,7 @@ const DiagnosticWithoutArguments equalityCannotBeEqualityOperand =
       correctionMessage:
           "Try putting parentheses around one of the comparisons.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND',
+      uniqueName: 'EQUALITY_CANNOT_BE_EQUALITY_OPERAND',
       expectedTypes: [],
     );
 
@@ -4313,7 +4294,7 @@ const DiagnosticWithoutArguments equalKeysInConstMap =
       correctionMessage: "Change or remove the duplicate key.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP',
+      uniqueName: 'EQUAL_KEYS_IN_CONST_MAP',
       expectedTypes: [],
     );
 
@@ -4325,7 +4306,7 @@ const DiagnosticWithoutArguments equalKeysInMap =
       correctionMessage: "Change or remove the duplicate key.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.EQUAL_KEYS_IN_MAP',
+      uniqueName: 'EQUAL_KEYS_IN_MAP',
       expectedTypes: [],
     );
 
@@ -4337,7 +4318,7 @@ const DiagnosticWithoutArguments equalKeysInMapPattern =
       correctionMessage: "Change or remove the duplicate key.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN',
+      uniqueName: 'EQUAL_KEYS_IN_MAP_PATTERN',
       expectedTypes: [],
     );
 
@@ -4348,7 +4329,7 @@ const DiagnosticWithoutArguments expectedCaseOrDefault =
       problemMessage: "Expected 'case' or 'default'.",
       correctionMessage: "Try placing this code inside a case clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_CASE_OR_DEFAULT',
+      uniqueName: 'EXPECTED_CASE_OR_DEFAULT',
       expectedTypes: [],
     );
 
@@ -4359,7 +4340,7 @@ const DiagnosticWithoutArguments expectedCatchClauseBody =
       problemMessage: "A catch clause must have a body, even if it is empty.",
       correctionMessage: "Try adding an empty body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY',
+      uniqueName: 'EXPECTED_CATCH_CLAUSE_BODY',
       expectedTypes: [],
     );
 
@@ -4371,7 +4352,7 @@ const DiagnosticWithoutArguments expectedClassBody =
           "A class declaration must have a body, even if it is empty.",
       correctionMessage: "Try adding an empty body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_CLASS_BODY',
+      uniqueName: 'EXPECTED_CLASS_BODY',
       expectedTypes: [],
     );
 
@@ -4382,7 +4363,7 @@ const DiagnosticWithoutArguments expectedClassMember =
       problemMessage: "Expected a class member.",
       correctionMessage: "Try placing this code inside a class member.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_CLASS_MEMBER',
+      uniqueName: 'EXPECTED_CLASS_MEMBER',
       expectedTypes: [],
     );
 
@@ -4392,7 +4373,7 @@ const DiagnosticWithoutArguments expectedElseOrComma =
       name: 'EXPECTED_ELSE_OR_COMMA',
       problemMessage: "Expected 'else' or comma.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_ELSE_OR_COMMA',
+      uniqueName: 'EXPECTED_ELSE_OR_COMMA',
       expectedTypes: [],
     );
 
@@ -4404,7 +4385,7 @@ expectedExecutable = DiagnosticWithoutArgumentsImpl(
   correctionMessage:
       "This appears to be incomplete code. Try removing it or completing it.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.EXPECTED_EXECUTABLE',
+  uniqueName: 'EXPECTED_EXECUTABLE',
   expectedTypes: [],
 );
 
@@ -4416,7 +4397,7 @@ const DiagnosticWithoutArguments expectedExtensionBody =
           "An extension declaration must have a body, even if it is empty.",
       correctionMessage: "Try adding an empty body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_EXTENSION_BODY',
+      uniqueName: 'EXPECTED_EXTENSION_BODY',
       expectedTypes: [],
     );
 
@@ -4428,7 +4409,7 @@ expectedExtensionTypeBody = DiagnosticWithoutArgumentsImpl(
       "An extension type declaration must have a body, even if it is empty.",
   correctionMessage: "Try adding an empty body.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.EXPECTED_EXTENSION_TYPE_BODY',
+  uniqueName: 'EXPECTED_EXTENSION_TYPE_BODY',
   expectedTypes: [],
 );
 
@@ -4439,7 +4420,7 @@ const DiagnosticWithoutArguments expectedFinallyClauseBody =
       problemMessage: "A finally clause must have a body, even if it is empty.",
       correctionMessage: "Try adding an empty body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_FINALLY_CLAUSE_BODY',
+      uniqueName: 'EXPECTED_FINALLY_CLAUSE_BODY',
       expectedTypes: [],
     );
 
@@ -4453,7 +4434,7 @@ const DiagnosticCode expectedIdentifierButGotKeyword =
       correctionMessage:
           "Try renaming this to be an identifier that isn't a keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD',
+      uniqueName: 'EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD',
       expectedTypes: [ExpectedType.token],
     );
 
@@ -4466,7 +4447,7 @@ expectedInstead = DiagnosticWithArguments(
   name: 'EXPECTED_INSTEAD',
   problemMessage: "Expected '{0}' instead of this.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.EXPECTED_INSTEAD',
+  uniqueName: 'EXPECTED_INSTEAD',
   withArguments: _withArgumentsExpectedInstead,
   expectedTypes: [ExpectedType.string],
 );
@@ -4479,7 +4460,7 @@ const DiagnosticWithoutArguments expectedListOrMapLiteral =
       correctionMessage:
           "Try inserting a list or map literal, or remove the type arguments.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL',
+      uniqueName: 'EXPECTED_LIST_OR_MAP_LITERAL',
       expectedTypes: [],
     );
 
@@ -4491,7 +4472,7 @@ const DiagnosticWithoutArguments expectedMixinBody =
           "A mixin declaration must have a body, even if it is empty.",
       correctionMessage: "Try adding an empty body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_MIXIN_BODY',
+      uniqueName: 'EXPECTED_MIXIN_BODY',
       expectedTypes: [],
     );
 
@@ -4503,7 +4484,7 @@ const DiagnosticWithoutArguments expectedNamedTypeExtends =
       correctionMessage:
           "Try using a class name, possibly with type arguments.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS',
+      uniqueName: 'EXPECTED_NAMED_TYPE_EXTENDS',
       expectedTypes: [],
     );
 
@@ -4515,7 +4496,7 @@ const DiagnosticWithoutArguments expectedNamedTypeImplements =
       correctionMessage:
           "Try using a class or mixin name, possibly with type arguments.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS',
+      uniqueName: 'EXPECTED_NAMED_TYPE_IMPLEMENTS',
       expectedTypes: [],
     );
 
@@ -4527,7 +4508,7 @@ const DiagnosticWithoutArguments expectedNamedTypeOn =
       correctionMessage:
           "Try using a class or mixin name, possibly with type arguments.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_NAMED_TYPE_ON',
+      uniqueName: 'EXPECTED_NAMED_TYPE_ON',
       expectedTypes: [],
     );
 
@@ -4539,7 +4520,7 @@ const DiagnosticWithoutArguments expectedNamedTypeWith =
       correctionMessage:
           "Try using a mixin name, possibly with type arguments.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_NAMED_TYPE_WITH',
+      uniqueName: 'EXPECTED_NAMED_TYPE_WITH',
       expectedTypes: [],
     );
 
@@ -4553,7 +4534,7 @@ expectedOneListPatternTypeArguments = DiagnosticWithArguments(
   correctionMessage: "Try adjusting the number of type arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS',
+  uniqueName: 'EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS',
   withArguments: _withArgumentsExpectedOneListPatternTypeArguments,
   expectedTypes: [ExpectedType.int],
 );
@@ -4568,7 +4549,7 @@ expectedOneListTypeArguments = DiagnosticWithArguments(
   correctionMessage: "Try adjusting the number of type arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS',
+  uniqueName: 'EXPECTED_ONE_LIST_TYPE_ARGUMENTS',
   withArguments: _withArgumentsExpectedOneListTypeArguments,
   expectedTypes: [ExpectedType.int],
 );
@@ -4583,7 +4564,7 @@ expectedOneSetTypeArguments = DiagnosticWithArguments(
   correctionMessage: "Try adjusting the number of type arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS',
+  uniqueName: 'EXPECTED_ONE_SET_TYPE_ARGUMENTS',
   withArguments: _withArgumentsExpectedOneSetTypeArguments,
   expectedTypes: [ExpectedType.int],
 );
@@ -4596,7 +4577,7 @@ const DiagnosticWithoutArguments expectedRepresentationField =
       correctionMessage:
           "Try providing the representation field for this extension type.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_REPRESENTATION_FIELD',
+      uniqueName: 'EXPECTED_REPRESENTATION_FIELD',
       expectedTypes: [],
     );
 
@@ -4608,7 +4589,7 @@ const DiagnosticWithoutArguments expectedRepresentationType =
       correctionMessage:
           "Try providing the representation type for this extension type.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_REPRESENTATION_TYPE',
+      uniqueName: 'EXPECTED_REPRESENTATION_TYPE',
       expectedTypes: [],
     );
 
@@ -4618,7 +4599,7 @@ const DiagnosticWithoutArguments expectedStringLiteral =
       name: 'EXPECTED_STRING_LITERAL',
       problemMessage: "Expected a string literal.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_STRING_LITERAL',
+      uniqueName: 'EXPECTED_STRING_LITERAL',
       expectedTypes: [],
     );
 
@@ -4630,7 +4611,7 @@ const DiagnosticWithoutArguments expectedSwitchExpressionBody =
           "A switch expression must have a body, even if it is empty.",
       correctionMessage: "Try adding an empty body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_SWITCH_EXPRESSION_BODY',
+      uniqueName: 'EXPECTED_SWITCH_EXPRESSION_BODY',
       expectedTypes: [],
     );
 
@@ -4642,7 +4623,7 @@ const DiagnosticWithoutArguments expectedSwitchStatementBody =
           "A switch statement must have a body, even if it is empty.",
       correctionMessage: "Try adding an empty body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY',
+      uniqueName: 'EXPECTED_SWITCH_STATEMENT_BODY',
       expectedTypes: [],
     );
 
@@ -4655,7 +4636,7 @@ expectedToken = DiagnosticWithArguments(
   name: 'EXPECTED_TOKEN',
   problemMessage: "Expected to find '{0}'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.EXPECTED_TOKEN',
+  uniqueName: 'EXPECTED_TOKEN',
   withArguments: _withArgumentsExpectedToken,
   expectedTypes: [ExpectedType.string],
 );
@@ -4667,7 +4648,7 @@ const DiagnosticWithoutArguments expectedTryStatementBody =
       problemMessage: "A try statement must have a body, even if it is empty.",
       correctionMessage: "Try adding an empty body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_TRY_STATEMENT_BODY',
+      uniqueName: 'EXPECTED_TRY_STATEMENT_BODY',
       expectedTypes: [],
     );
 
@@ -4681,7 +4662,7 @@ expectedTwoMapPatternTypeArguments = DiagnosticWithArguments(
   correctionMessage: "Try adjusting the number of type arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS',
+  uniqueName: 'EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS',
   withArguments: _withArgumentsExpectedTwoMapPatternTypeArguments,
   expectedTypes: [ExpectedType.int],
 );
@@ -4696,7 +4677,7 @@ expectedTwoMapTypeArguments = DiagnosticWithArguments(
   correctionMessage: "Try adjusting the number of type arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS',
+  uniqueName: 'EXPECTED_TWO_MAP_TYPE_ARGUMENTS',
   withArguments: _withArgumentsExpectedTwoMapTypeArguments,
   expectedTypes: [ExpectedType.int],
 );
@@ -4707,7 +4688,7 @@ const DiagnosticWithoutArguments expectedTypeName =
       name: 'EXPECTED_TYPE_NAME',
       problemMessage: "Expected a type name.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPECTED_TYPE_NAME',
+      uniqueName: 'EXPECTED_TYPE_NAME',
       expectedTypes: [],
     );
 
@@ -4721,7 +4702,7 @@ experimentalMemberUse = DiagnosticWithArguments(
   problemMessage:
       "'{0}' is experimental and could be removed or changed at any time.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.EXPERIMENTAL_MEMBER_USE',
+  uniqueName: 'EXPERIMENTAL_MEMBER_USE',
   withArguments: _withArgumentsExperimentalMemberUse,
   expectedTypes: [ExpectedType.string],
 );
@@ -4742,7 +4723,7 @@ experimentNotEnabled = DiagnosticWithArguments(
       "Try updating your pubspec.yaml to set the minimum SDK constraint to "
       "{1} or higher, and running 'pub get'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.EXPERIMENT_NOT_ENABLED',
+  uniqueName: 'EXPERIMENT_NOT_ENABLED',
   withArguments: _withArgumentsExperimentNotEnabled,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -4759,7 +4740,7 @@ experimentNotEnabledOffByDefault = DiagnosticWithArguments(
   correctionMessage:
       "Try passing the '--enable-experiment={0}' command line option.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT',
+  uniqueName: 'EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT',
   withArguments: _withArgumentsExperimentNotEnabledOffByDefault,
   expectedTypes: [ExpectedType.string],
 );
@@ -4772,7 +4753,7 @@ const DiagnosticWithoutArguments exportDirectiveAfterPartDirective =
       correctionMessage:
           "Try moving the export directives before the part directives.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
+      uniqueName: 'EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
       expectedTypes: [],
     );
 
@@ -4786,7 +4767,7 @@ exportInternalLibrary = DiagnosticWithArguments(
   problemMessage: "The library '{0}' is internal and can't be exported.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY',
+  uniqueName: 'EXPORT_INTERNAL_LIBRARY',
   withArguments: _withArgumentsExportInternalLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -4802,7 +4783,7 @@ exportOfNonLibrary = DiagnosticWithArguments(
   correctionMessage: "Try exporting the library that the part is a part of.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY',
+  uniqueName: 'EXPORT_OF_NON_LIBRARY',
   withArguments: _withArgumentsExportOfNonLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -4816,7 +4797,7 @@ const DiagnosticWithoutArguments expressionInMap =
           "Try removing the expression or converting it to be a map entry.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.EXPRESSION_IN_MAP',
+      uniqueName: 'EXPRESSION_IN_MAP',
       expectedTypes: [],
     );
 
@@ -4830,7 +4811,7 @@ const DiagnosticWithoutArguments extendsDeferredClass =
           "clause.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS',
+      uniqueName: 'EXTENDS_DEFERRED_CLASS',
       expectedTypes: [],
     );
 
@@ -4847,7 +4828,7 @@ extendsDisallowedClass = DiagnosticWithArguments(
       "clause.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS',
+  uniqueName: 'EXTENDS_DISALLOWED_CLASS',
   withArguments: _withArgumentsExtendsDisallowedClass,
   expectedTypes: [ExpectedType.type],
 );
@@ -4863,7 +4844,7 @@ const DiagnosticWithoutArguments extendsNonClass =
       hasPublishedDocs: true,
       isUnresolvedIdentifier: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.EXTENDS_NON_CLASS',
+      uniqueName: 'EXTENDS_NON_CLASS',
       expectedTypes: [],
     );
 
@@ -4879,8 +4860,7 @@ const DiagnosticWithoutArguments extendsTypeAliasExpandsToTypeParameter =
           "clause.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+      uniqueName: 'EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
       expectedTypes: [],
     );
 
@@ -4895,7 +4875,7 @@ extensionAsExpression = DiagnosticWithArguments(
   correctionMessage: "Try replacing it with a valid expression.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXTENSION_AS_EXPRESSION',
+  uniqueName: 'EXTENSION_AS_EXPRESSION',
   withArguments: _withArgumentsExtensionAsExpression,
   expectedTypes: [ExpectedType.string],
 );
@@ -4909,7 +4889,7 @@ const DiagnosticWithoutArguments extensionAugmentationHasOnClause =
       problemMessage: "Extension augmentations can't have 'on' clauses.",
       correctionMessage: "Try removing the 'on' clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE',
+      uniqueName: 'EXTENSION_AUGMENTATION_HAS_ON_CLAUSE',
       expectedTypes: [],
     );
 
@@ -4926,7 +4906,7 @@ extensionConflictingStaticAndInstance = DiagnosticWithArguments(
   correctionMessage: "Try renaming the member to a name that doesn't conflict.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE',
+  uniqueName: 'EXTENSION_CONFLICTING_STATIC_AND_INSTANCE',
   withArguments: _withArgumentsExtensionConflictingStaticAndInstance,
   expectedTypes: [ExpectedType.string],
 );
@@ -4941,7 +4921,7 @@ const DiagnosticWithoutArguments extensionDeclaresAbstractMember =
       correctionMessage: "Try providing an implementation for the member.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER',
+      uniqueName: 'EXTENSION_DECLARES_ABSTRACT_MEMBER',
       expectedTypes: [],
     );
 
@@ -4955,7 +4935,7 @@ const DiagnosticWithoutArguments extensionDeclaresConstructor =
       correctionMessage: "Try removing the constructor declaration.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR',
+      uniqueName: 'EXTENSION_DECLARES_CONSTRUCTOR',
       expectedTypes: [],
     );
 
@@ -4967,7 +4947,7 @@ const DiagnosticWithoutArguments extensionDeclaresInstanceField =
       correctionMessage: "Try replacing the field with a getter.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD',
+      uniqueName: 'EXTENSION_DECLARES_INSTANCE_FIELD',
       expectedTypes: [],
     );
 
@@ -4981,7 +4961,7 @@ extensionDeclaresMemberOfObject = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try specifying a different name for the member.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT',
+  uniqueName: 'EXTENSION_DECLARES_MEMBER_OF_OBJECT',
   expectedTypes: [],
 );
 
@@ -4995,7 +4975,7 @@ extensionOverrideAccessToStaticMember = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try using just the name of the extension.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER',
+  uniqueName: 'EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER',
   expectedTypes: [],
 );
 
@@ -5012,7 +4992,7 @@ extensionOverrideArgumentNotAssignable = DiagnosticWithArguments(
       "to the extended type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE',
+  uniqueName: 'EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE',
   withArguments: _withArgumentsExtensionOverrideArgumentNotAssignable,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -5027,7 +5007,7 @@ extensionOverrideWithCascade = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try using '.' instead of '..'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE',
+  uniqueName: 'EXTENSION_OVERRIDE_WITH_CASCADE',
   expectedTypes: [],
 );
 
@@ -5040,37 +5020,36 @@ const DiagnosticWithoutArguments extensionOverrideWithoutAccess =
       correctionMessage: "Consider adding an access to an instance member.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS',
+      uniqueName: 'EXTENSION_OVERRIDE_WITHOUT_ACCESS',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
-extensionTypeConstructorWithSuperFormalParameter = DiagnosticWithoutArgumentsImpl(
-  name: 'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER',
-  problemMessage:
-      "Extension type constructors can't declare super formal parameters.",
-  correctionMessage: "Try removing the super formal parameter declaration.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER',
-  expectedTypes: [],
-);
+extensionTypeConstructorWithSuperFormalParameter =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER',
+      problemMessage:
+          "Extension type constructors can't declare super formal parameters.",
+      correctionMessage: "Try removing the super formal parameter declaration.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER',
+      expectedTypes: [],
+    );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-extensionTypeConstructorWithSuperInvocation = DiagnosticWithoutArgumentsImpl(
-  name: 'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
-  problemMessage:
-      "Extension type constructors can't include super initializers.",
-  correctionMessage: "Try removing the super constructor invocation.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments extensionTypeConstructorWithSuperInvocation =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
+      problemMessage:
+          "Extension type constructors can't include super initializers.",
+      correctionMessage: "Try removing the super constructor invocation.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments extensionTypeDeclaresInstanceField =
@@ -5080,7 +5059,7 @@ const DiagnosticWithoutArguments extensionTypeDeclaresInstanceField =
       correctionMessage: "Try replacing the field with a getter.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD',
+      uniqueName: 'EXTENSION_TYPE_DECLARES_INSTANCE_FIELD',
       expectedTypes: [],
     );
 
@@ -5094,7 +5073,7 @@ extensionTypeDeclaresMemberOfObject = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try specifying a different name for the member.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT',
+  uniqueName: 'EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT',
   expectedTypes: [],
 );
 
@@ -5108,7 +5087,7 @@ const DiagnosticWithoutArguments extensionTypeExtends =
           "Try removing the 'extends' clause or replacing the 'extends' with "
           "'implements'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXTENSION_TYPE_EXTENDS',
+      uniqueName: 'EXTENSION_TYPE_EXTENDS',
       expectedTypes: [],
     );
 
@@ -5124,7 +5103,7 @@ extensionTypeImplementsDisallowedType = DiagnosticWithArguments(
       "Try specifying a different type, or remove the type from the list.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE',
+  uniqueName: 'EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE',
   withArguments: _withArgumentsExtensionTypeImplementsDisallowedType,
   expectedTypes: [ExpectedType.type],
 );
@@ -5138,7 +5117,7 @@ extensionTypeImplementsItself = DiagnosticWithoutArgumentsImpl(
       "Try removing the superinterface that references this extension type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF',
+  uniqueName: 'EXTENSION_TYPE_IMPLEMENTS_ITSELF',
   expectedTypes: [],
 );
 
@@ -5155,7 +5134,7 @@ extensionTypeImplementsNotSupertype = DiagnosticWithArguments(
       "Try specifying a different type, or remove the type from the list.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE',
+  uniqueName: 'EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE',
   withArguments: _withArgumentsExtensionTypeImplementsNotSupertype,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -5182,8 +5161,7 @@ extensionTypeImplementsRepresentationNotSupertype = DiagnosticWithArguments(
       "Try specifying a different type, or remove the type from the list.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE',
+  uniqueName: 'EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE',
   withArguments:
       _withArgumentsExtensionTypeImplementsRepresentationNotSupertype,
   expectedTypes: [
@@ -5209,23 +5187,23 @@ extensionTypeInheritedMemberConflict = DiagnosticWithArguments(
       "Try redeclaring the corresponding member in this extension type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT',
+  uniqueName: 'EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT',
   withArguments: _withArgumentsExtensionTypeInheritedMemberConflict,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-extensionTypeRepresentationDependsOnItself = DiagnosticWithoutArgumentsImpl(
-  name: 'EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF',
-  problemMessage: "The extension type representation can't depend on itself.",
-  correctionMessage: "Try specifying a different type.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments extensionTypeRepresentationDependsOnItself =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF',
+      problemMessage:
+          "The extension type representation can't depend on itself.",
+      correctionMessage: "Try specifying a different type.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments extensionTypeRepresentationTypeBottom =
@@ -5235,8 +5213,7 @@ const DiagnosticWithoutArguments extensionTypeRepresentationTypeBottom =
       correctionMessage: "Try specifying a different type.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM',
+      uniqueName: 'EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM',
       expectedTypes: [],
     );
 
@@ -5250,7 +5227,7 @@ const DiagnosticWithoutArguments extensionTypeWith =
           "Try removing the 'with' clause or replacing the 'with' with "
           "'implements'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXTENSION_TYPE_WITH',
+      uniqueName: 'EXTENSION_TYPE_WITH',
       expectedTypes: [],
     );
 
@@ -5267,7 +5244,7 @@ extensionTypeWithAbstractMember = DiagnosticWithArguments(
   correctionMessage: "Try adding a body to '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXTENSION_TYPE_WITH_ABSTRACT_MEMBER',
+  uniqueName: 'EXTENSION_TYPE_WITH_ABSTRACT_MEMBER',
   withArguments: _withArgumentsExtensionTypeWithAbstractMember,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -5278,7 +5255,7 @@ const DiagnosticWithoutArguments externalClass = DiagnosticWithoutArgumentsImpl(
   problemMessage: "Classes can't be declared to be 'external'.",
   correctionMessage: "Try removing the keyword 'external'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.EXTERNAL_CLASS',
+  uniqueName: 'EXTERNAL_CLASS',
   expectedTypes: [],
 );
 
@@ -5291,8 +5268,7 @@ const DiagnosticWithoutArguments externalConstructorWithFieldInitializers =
           "Try removing the field initializers, or removing the keyword "
           "'external'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName:
-          'ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS',
+      uniqueName: 'EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS',
       expectedTypes: [],
     );
 
@@ -5302,7 +5278,7 @@ const DiagnosticWithoutArguments externalConstructorWithInitializer =
       name: 'EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER',
       problemMessage: "An external constructor can't have any initializers.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER',
+      uniqueName: 'EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER',
       expectedTypes: [],
     );
 
@@ -5312,7 +5288,7 @@ const DiagnosticWithoutArguments externalEnum = DiagnosticWithoutArgumentsImpl(
   problemMessage: "Enums can't be declared to be 'external'.",
   correctionMessage: "Try removing the keyword 'external'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.EXTERNAL_ENUM',
+  uniqueName: 'EXTERNAL_ENUM',
   expectedTypes: [],
 );
 
@@ -5323,7 +5299,7 @@ const DiagnosticWithoutArguments externalFactoryRedirection =
       problemMessage: "A redirecting factory can't be external.",
       correctionMessage: "Try removing the 'external' modifier.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXTERNAL_FACTORY_REDIRECTION',
+      uniqueName: 'EXTERNAL_FACTORY_REDIRECTION',
       expectedTypes: [],
     );
 
@@ -5336,7 +5312,7 @@ const DiagnosticWithoutArguments externalFactoryWithBody =
           "Try removing the body of the factory, or removing the keyword "
           "'external'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXTERNAL_FACTORY_WITH_BODY',
+      uniqueName: 'EXTERNAL_FACTORY_WITH_BODY',
       expectedTypes: [],
     );
 
@@ -5350,7 +5326,7 @@ externalFieldConstructorInitializer = DiagnosticWithoutArgumentsImpl(
       "field declaration.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER',
+  uniqueName: 'EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER',
   expectedTypes: [],
 );
 
@@ -5363,7 +5339,7 @@ const DiagnosticWithoutArguments externalFieldInitializer =
           "Try removing the initializer or the 'external' keyword.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.EXTERNAL_FIELD_INITIALIZER',
+      uniqueName: 'EXTERNAL_FIELD_INITIALIZER',
       expectedTypes: [],
     );
 
@@ -5376,7 +5352,7 @@ const DiagnosticWithoutArguments externalGetterWithBody =
           "Try removing the body of the getter, or removing the keyword "
           "'external'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXTERNAL_GETTER_WITH_BODY',
+      uniqueName: 'EXTERNAL_GETTER_WITH_BODY',
       expectedTypes: [],
     );
 
@@ -5387,7 +5363,7 @@ const DiagnosticWithoutArguments externalLateField =
       problemMessage: "External fields cannot be late.",
       correctionMessage: "Try removing the 'external' or 'late' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXTERNAL_LATE_FIELD',
+      uniqueName: 'EXTERNAL_LATE_FIELD',
       expectedTypes: [],
     );
 
@@ -5397,7 +5373,7 @@ const DiagnosticWithoutArguments externalMethodWithBody =
       name: 'EXTERNAL_METHOD_WITH_BODY',
       problemMessage: "An external or native method can't have a body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXTERNAL_METHOD_WITH_BODY',
+      uniqueName: 'EXTERNAL_METHOD_WITH_BODY',
       expectedTypes: [],
     );
 
@@ -5410,7 +5386,7 @@ const DiagnosticWithoutArguments externalOperatorWithBody =
           "Try removing the body of the operator, or removing the keyword "
           "'external'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY',
+      uniqueName: 'EXTERNAL_OPERATOR_WITH_BODY',
       expectedTypes: [],
     );
 
@@ -5423,7 +5399,7 @@ const DiagnosticWithoutArguments externalSetterWithBody =
           "Try removing the body of the setter, or removing the keyword "
           "'external'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXTERNAL_SETTER_WITH_BODY',
+      uniqueName: 'EXTERNAL_SETTER_WITH_BODY',
       expectedTypes: [],
     );
 
@@ -5434,7 +5410,7 @@ const DiagnosticWithoutArguments externalTypedef =
       problemMessage: "Typedefs can't be declared to be 'external'.",
       correctionMessage: "Try removing the keyword 'external'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXTERNAL_TYPEDEF',
+      uniqueName: 'EXTERNAL_TYPEDEF',
       expectedTypes: [],
     );
 
@@ -5447,7 +5423,7 @@ const DiagnosticWithoutArguments externalVariableInitializer =
           "Try removing the initializer or the 'external' keyword.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.EXTERNAL_VARIABLE_INITIALIZER',
+      uniqueName: 'EXTERNAL_VARIABLE_INITIALIZER',
       expectedTypes: [],
     );
 
@@ -5461,7 +5437,7 @@ extraAnnotationOnStructField = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try removing the extra annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD',
+  uniqueName: 'EXTRA_ANNOTATION_ON_STRUCT_FIELD',
   expectedTypes: [],
 );
 
@@ -5472,7 +5448,7 @@ const DiagnosticCode extraneousModifier = DiagnosticCodeWithExpectedTypes(
   problemMessage: "Can't have modifier '{0}' here.",
   correctionMessage: "Try removing '{0}'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.EXTRANEOUS_MODIFIER',
+  uniqueName: 'EXTRANEOUS_MODIFIER',
   expectedTypes: [ExpectedType.token],
 );
 
@@ -5484,7 +5460,7 @@ const DiagnosticCode extraneousModifierInExtensionType =
       problemMessage: "Can't have modifier '{0}' in an extension type.",
       correctionMessage: "Try removing '{0}'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE',
+      uniqueName: 'EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE',
       expectedTypes: [ExpectedType.token],
     );
 
@@ -5496,7 +5472,7 @@ const DiagnosticCode extraneousModifierInPrimaryConstructor =
       problemMessage: "Can't have modifier '{0}' in a primary constructor.",
       correctionMessage: "Try removing '{0}'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR',
+      uniqueName: 'EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR',
       expectedTypes: [ExpectedType.token],
     );
 
@@ -5512,7 +5488,7 @@ extraPositionalArguments = DiagnosticWithArguments(
   correctionMessage: "Try removing the extra arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS',
+  uniqueName: 'EXTRA_POSITIONAL_ARGUMENTS',
   withArguments: _withArgumentsExtraPositionalArguments,
   expectedTypes: [ExpectedType.int, ExpectedType.int],
 );
@@ -5531,7 +5507,7 @@ extraPositionalArgumentsCouldBeNamed = DiagnosticWithArguments(
       "for named arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED',
+  uniqueName: 'EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED',
   withArguments: _withArgumentsExtraPositionalArgumentsCouldBeNamed,
   expectedTypes: [ExpectedType.int, ExpectedType.int],
 );
@@ -5544,7 +5520,7 @@ const DiagnosticWithoutArguments extraSizeAnnotationCarray =
       correctionMessage: "Try removing the extra annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FfiCode.EXTRA_SIZE_ANNOTATION_CARRAY',
+      uniqueName: 'EXTRA_SIZE_ANNOTATION_CARRAY',
       expectedTypes: [],
     );
 
@@ -5556,7 +5532,7 @@ const DiagnosticWithoutArguments factoryConstructorNewName =
       correctionMessage:
           "Try removing the 'new' keyword or changing it to a different name.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.FACTORY_CONSTRUCTOR_NEW_NAME',
+      uniqueName: 'FACTORY_CONSTRUCTOR_NEW_NAME',
       expectedTypes: [],
     );
 
@@ -5568,7 +5544,7 @@ const DiagnosticWithoutArguments factoryTopLevelDeclaration =
           "Top-level declarations can't be declared to be 'factory'.",
       correctionMessage: "Try removing the keyword 'factory'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION',
+      uniqueName: 'FACTORY_TOP_LEVEL_DECLARATION',
       expectedTypes: [],
     );
 
@@ -5581,7 +5557,7 @@ const DiagnosticWithoutArguments factoryWithInitializers =
           "Try removing the 'factory' keyword to make this a generative "
           "constructor, or removing the initializers.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.FACTORY_WITH_INITIALIZERS',
+      uniqueName: 'FACTORY_WITH_INITIALIZERS',
       expectedTypes: [],
     );
 
@@ -5593,7 +5569,7 @@ const DiagnosticWithoutArguments factoryWithoutBody =
           "A non-redirecting 'factory' constructor must have a body.",
       correctionMessage: "Try adding a body to the constructor.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.FACTORY_WITHOUT_BODY',
+      uniqueName: 'FACTORY_WITHOUT_BODY',
       expectedTypes: [],
     );
 
@@ -5606,7 +5582,7 @@ const DiagnosticWithoutArguments ffiNativeInvalidDuplicateDefaultAsset =
       correctionMessage: "Try removing the extra annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FfiCode.FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET',
+      uniqueName: 'FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET',
       expectedTypes: [],
     );
 
@@ -5619,7 +5595,7 @@ ffiNativeInvalidMultipleAnnotations = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try removing the extra annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS',
+  uniqueName: 'FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS',
   expectedTypes: [],
 );
 
@@ -5631,7 +5607,7 @@ const DiagnosticWithoutArguments ffiNativeMustBeExternal =
       correctionMessage: "Add the `external` keyword to the function.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL',
+      uniqueName: 'FFI_NATIVE_MUST_BE_EXTERNAL',
       expectedTypes: [],
     );
 
@@ -5647,7 +5623,7 @@ ffiNativeOnlyClassesExtendingNativefieldwrapperclass1CanBePointer =
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
       uniqueName:
-          'FfiCode.FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER',
+          'FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER',
       expectedTypes: [],
     );
 
@@ -5665,7 +5641,7 @@ ffiNativeUnexpectedNumberOfParameters = DiagnosticWithArguments(
   correctionMessage: "Make sure parameters match the function annotated.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS',
+  uniqueName: 'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS',
   withArguments: _withArgumentsFfiNativeUnexpectedNumberOfParameters,
   expectedTypes: [ExpectedType.int, ExpectedType.int],
 );
@@ -5687,8 +5663,7 @@ ffiNativeUnexpectedNumberOfParametersWithReceiver = DiagnosticWithArguments(
       "first parameter for the receiver.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER',
+  uniqueName: 'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER',
   withArguments:
       _withArgumentsFfiNativeUnexpectedNumberOfParametersWithReceiver,
   expectedTypes: [ExpectedType.int, ExpectedType.int],
@@ -5706,7 +5681,7 @@ fieldInitializedByMultipleInitializers = DiagnosticWithArguments(
   correctionMessage: "Try removing one of the initializations.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS',
+  uniqueName: 'FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS',
   withArguments: _withArgumentsFieldInitializedByMultipleInitializers,
   expectedTypes: [ExpectedType.string],
 );
@@ -5721,8 +5696,7 @@ fieldInitializedInInitializerAndDeclaration = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try removing one of the initializations.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION',
+  uniqueName: 'FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION',
   expectedTypes: [],
 );
 
@@ -5736,8 +5710,7 @@ const DiagnosticWithoutArguments fieldInitializedInParameterAndInitializer =
       correctionMessage: "Try removing one of the initializations.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER',
+      uniqueName: 'FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER',
       expectedTypes: [],
     );
 
@@ -5750,7 +5723,7 @@ const DiagnosticWithoutArguments fieldInitializedOutsideDeclaringClass =
           "Try passing a value into the superclass constructor, or moving the "
           "initialization into the constructor body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS',
+      uniqueName: 'FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS',
       expectedTypes: [],
     );
 
@@ -5763,7 +5736,7 @@ fieldInitializerFactoryConstructor = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try using a normal parameter.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR',
+  uniqueName: 'FIELD_INITIALIZER_FACTORY_CONSTRUCTOR',
   expectedTypes: [],
 );
 
@@ -5779,7 +5752,7 @@ fieldInitializerNotAssignable = DiagnosticWithArguments(
       "The initializer type '{0}' can't be assigned to the field type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE',
+  uniqueName: 'FIELD_INITIALIZER_NOT_ASSIGNABLE',
   withArguments: _withArgumentsFieldInitializerNotAssignable,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -5793,22 +5766,23 @@ const DiagnosticWithoutArguments fieldInitializerOutsideConstructor =
       correctionMessage: "Try removing 'this.'.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
+      uniqueName: 'FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
       expectedTypes: [],
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-fieldInitializerRedirectingConstructor = DiagnosticWithoutArgumentsImpl(
-  name: 'FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR',
-  problemMessage: "The redirecting constructor can't have a field initializer.",
-  correctionMessage:
-      "Try initializing the field in the constructor being redirected to.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments fieldInitializerRedirectingConstructor =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR',
+      problemMessage:
+          "The redirecting constructor can't have a field initializer.",
+      correctionMessage:
+          "Try initializing the field in the constructor being redirected to.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// Type p0: the name of the type of the field formal parameter
@@ -5825,7 +5799,7 @@ fieldInitializingFormalNotAssignable = DiagnosticWithArguments(
       "field's type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE',
+  uniqueName: 'FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE',
   withArguments: _withArgumentsFieldInitializingFormalNotAssignable,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -5839,7 +5813,7 @@ const DiagnosticWithoutArguments fieldMustBeExternalInStruct =
       correctionMessage: "Try adding the 'external' modifier.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT',
+      uniqueName: 'FIELD_MUST_BE_EXTERNAL_IN_STRUCT',
       expectedTypes: [],
     );
 
@@ -5852,7 +5826,7 @@ const DiagnosticWithoutArguments finalAndCovariant =
       correctionMessage:
           "Try removing either the 'final' or 'covariant' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.FINAL_AND_COVARIANT',
+      uniqueName: 'FINAL_AND_COVARIANT',
       expectedTypes: [],
     );
 
@@ -5867,7 +5841,7 @@ finalAndCovariantLateWithInitializer = DiagnosticWithoutArgumentsImpl(
       "Try removing either the 'final' or 'covariant' keyword, or removing "
       "the initializer.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER',
+  uniqueName: 'FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER',
   expectedTypes: [],
 );
 
@@ -5877,7 +5851,7 @@ const DiagnosticWithoutArguments finalAndVar = DiagnosticWithoutArgumentsImpl(
   problemMessage: "Members can't be declared to be both 'final' and 'var'.",
   correctionMessage: "Try removing the keyword 'var'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.FINAL_AND_VAR',
+  uniqueName: 'FINAL_AND_VAR',
   expectedTypes: [],
 );
 
@@ -5893,7 +5867,7 @@ finalClassExtendedOutsideOfLibrary = DiagnosticWithArguments(
       "final class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
+  uniqueName: 'FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
   withArguments: _withArgumentsFinalClassExtendedOutsideOfLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -5910,7 +5884,7 @@ finalClassImplementedOutsideOfLibrary = DiagnosticWithArguments(
       "a final class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
+  uniqueName: 'FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
   withArguments: _withArgumentsFinalClassImplementedOutsideOfLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -5928,8 +5902,7 @@ finalClassUsedAsMixinConstraintOutsideOfLibrary = DiagnosticWithArguments(
       "its library because it's a final class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY',
+  uniqueName: 'FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY',
   withArguments: _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -5941,7 +5914,7 @@ const DiagnosticWithoutArguments finalConstructor =
       problemMessage: "A constructor can't be declared to be 'final'.",
       correctionMessage: "Try removing the keyword 'final'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.FINAL_CONSTRUCTOR',
+      uniqueName: 'FINAL_CONSTRUCTOR',
       expectedTypes: [],
     );
 
@@ -5951,7 +5924,7 @@ const DiagnosticWithoutArguments finalEnum = DiagnosticWithoutArgumentsImpl(
   problemMessage: "Enums can't be declared to be 'final'.",
   correctionMessage: "Try removing the keyword 'final'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.FINAL_ENUM',
+  uniqueName: 'FINAL_ENUM',
   expectedTypes: [],
 );
 
@@ -5968,8 +5941,7 @@ finalInitializedInDeclarationAndConstructor = DiagnosticWithArguments(
   correctionMessage: "Try removing one of the initializations.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR',
+  uniqueName: 'FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR',
   withArguments: _withArgumentsFinalInitializedInDeclarationAndConstructor,
   expectedTypes: [ExpectedType.string],
 );
@@ -5981,7 +5953,7 @@ const DiagnosticWithoutArguments finalMethod = DiagnosticWithoutArgumentsImpl(
       "Getters, setters and methods can't be declared to be 'final'.",
   correctionMessage: "Try removing the keyword 'final'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.FINAL_METHOD',
+  uniqueName: 'FINAL_METHOD',
   expectedTypes: [],
 );
 
@@ -5991,7 +5963,7 @@ const DiagnosticWithoutArguments finalMixin = DiagnosticWithoutArgumentsImpl(
   problemMessage: "A mixin can't be declared 'final'.",
   correctionMessage: "Try removing the 'final' keyword.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.FINAL_MIXIN',
+  uniqueName: 'FINAL_MIXIN',
   expectedTypes: [],
 );
 
@@ -6002,7 +5974,7 @@ const DiagnosticWithoutArguments finalMixinClass =
       problemMessage: "A mixin class can't be declared 'final'.",
       correctionMessage: "Try removing the 'final' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.FINAL_MIXIN_CLASS',
+      uniqueName: 'FINAL_MIXIN_CLASS',
       expectedTypes: [],
     );
 
@@ -6017,7 +5989,7 @@ finalNotInitialized = DiagnosticWithArguments(
   correctionMessage: "Try initializing the variable.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.FINAL_NOT_INITIALIZED',
+  uniqueName: 'FINAL_NOT_INITIALIZED',
   withArguments: _withArgumentsFinalNotInitialized,
   expectedTypes: [ExpectedType.string],
 );
@@ -6033,7 +6005,7 @@ finalNotInitializedConstructor1 = DiagnosticWithArguments(
   correctionMessage: "Try adding an initializer for the field.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
+  uniqueName: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
   withArguments: _withArgumentsFinalNotInitializedConstructor1,
   expectedTypes: [ExpectedType.string],
 );
@@ -6051,7 +6023,7 @@ finalNotInitializedConstructor2 = DiagnosticWithArguments(
   correctionMessage: "Try adding initializers for the fields.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
+  uniqueName: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
   withArguments: _withArgumentsFinalNotInitializedConstructor2,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -6076,7 +6048,7 @@ finalNotInitializedConstructor3Plus = DiagnosticWithArguments(
   correctionMessage: "Try adding initializers for the fields.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS',
+  uniqueName: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS',
   withArguments: _withArgumentsFinalNotInitializedConstructor3Plus,
   expectedTypes: [ExpectedType.string, ExpectedType.string, ExpectedType.int],
 );
@@ -6092,7 +6064,7 @@ fixme = DiagnosticWithArguments(
   name: 'FIXME',
   problemMessage: "{0}",
   type: DiagnosticType.TODO,
-  uniqueName: 'TodoCode.FIXME',
+  uniqueName: 'FIXME',
   withArguments: _withArgumentsFixme,
   expectedTypes: [ExpectedType.string],
 );
@@ -6106,7 +6078,7 @@ const DiagnosticWithoutArguments flutterFieldNotMap =
       correctionMessage: "Try converting the value to be a map.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'PubspecWarningCode.FLUTTER_FIELD_NOT_MAP',
+      uniqueName: 'FLUTTER_FIELD_NOT_MAP',
       expectedTypes: [],
     );
 
@@ -6129,7 +6101,7 @@ forInOfInvalidElementType = DiagnosticWithArguments(
       "argument that can be assigned to '{2}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE',
+  uniqueName: 'FOR_IN_OF_INVALID_ELEMENT_TYPE',
   withArguments: _withArgumentsForInOfInvalidElementType,
   expectedTypes: [ExpectedType.type, ExpectedType.string, ExpectedType.type],
 );
@@ -6146,7 +6118,7 @@ forInOfInvalidType = DiagnosticWithArguments(
   problemMessage: "The type '{0}' used in the 'for' loop must implement '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE',
+  uniqueName: 'FOR_IN_OF_INVALID_TYPE',
   withArguments: _withArgumentsForInOfInvalidType,
   expectedTypes: [ExpectedType.type, ExpectedType.string],
 );
@@ -6161,7 +6133,7 @@ const DiagnosticWithoutArguments forInWithConstVariable =
           "different variable.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE',
+      uniqueName: 'FOR_IN_WITH_CONST_VARIABLE',
       expectedTypes: [],
     );
 
@@ -6174,7 +6146,7 @@ functionTypedParameterVar = DiagnosticWithoutArgumentsImpl(
       "place of a return type.",
   correctionMessage: "Try replacing the keyword with a return type.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR',
+  uniqueName: 'FUNCTION_TYPED_PARAMETER_VAR',
   expectedTypes: [],
 );
 
@@ -6191,7 +6163,7 @@ genericFunctionTypeCannotBeBound = DiagnosticWithoutArgumentsImpl(
       "Try making the free variable in the function type part of the larger "
       "declaration signature.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
+  uniqueName: 'GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
   expectedTypes: [],
 );
 
@@ -6207,8 +6179,7 @@ genericFunctionTypeCannotBeTypeArgument = DiagnosticWithoutArgumentsImpl(
       "Try removing type parameters from the generic function type, or using "
       "'dynamic' as the type argument here.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT',
+  uniqueName: 'GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT',
   expectedTypes: [],
 );
 
@@ -6224,8 +6195,7 @@ genericMethodTypeInstantiationOnDynamic = DiagnosticWithoutArgumentsImpl(
       "the method tear-off.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC',
+  uniqueName: 'GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC',
   expectedTypes: [],
 );
 
@@ -6242,7 +6212,7 @@ genericStructSubclass = DiagnosticWithArguments(
   correctionMessage: "Try removing the type parameters from '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.GENERIC_STRUCT_SUBCLASS',
+  uniqueName: 'GENERIC_STRUCT_SUBCLASS',
   withArguments: _withArgumentsGenericStructSubclass,
   expectedTypes: [ExpectedType.string],
 );
@@ -6254,7 +6224,7 @@ const DiagnosticWithoutArguments getterConstructor =
       problemMessage: "Constructors can't be a getter.",
       correctionMessage: "Try removing 'get'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.GETTER_CONSTRUCTOR',
+      uniqueName: 'GETTER_CONSTRUCTOR',
       expectedTypes: [],
     );
 
@@ -6267,7 +6237,7 @@ const DiagnosticWithoutArguments getterInFunction =
           "Try moving the getter outside the method or function, or converting "
           "the getter to a function.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.GETTER_IN_FUNCTION',
+      uniqueName: 'GETTER_IN_FUNCTION',
       expectedTypes: [],
     );
 
@@ -6291,7 +6261,7 @@ getterNotAssignableSetterTypes = DiagnosticWithArguments(
       "type '{2}' of its setter '{3}'.",
   correctionMessage: "Try changing the types so that they are compatible.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES',
+  uniqueName: 'GETTER_NOT_ASSIGNABLE_SETTER_TYPES',
   withArguments: _withArgumentsGetterNotAssignableSetterTypes,
   expectedTypes: [
     ExpectedType.object,
@@ -6322,7 +6292,7 @@ getterNotSubtypeSetterTypes = DiagnosticWithArguments(
   correctionMessage: "Try changing the types so that they are compatible.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES',
+  uniqueName: 'GETTER_NOT_SUBTYPE_SETTER_TYPES',
   withArguments: _withArgumentsGetterNotSubtypeSetterTypes,
   expectedTypes: [
     ExpectedType.object,
@@ -6341,7 +6311,7 @@ const DiagnosticWithoutArguments getterWithParameters =
           "Try removing the parameter list, or removing the keyword 'get' to "
           "define a method rather than a getter.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.GETTER_WITH_PARAMETERS',
+      uniqueName: 'GETTER_WITH_PARAMETERS',
       expectedTypes: [],
     );
 
@@ -6356,7 +6326,7 @@ hack = DiagnosticWithArguments(
   name: 'HACK',
   problemMessage: "{0}",
   type: DiagnosticType.TODO,
-  uniqueName: 'TodoCode.HACK',
+  uniqueName: 'HACK',
   withArguments: _withArgumentsHack,
   expectedTypes: [ExpectedType.string],
 );
@@ -6370,7 +6340,7 @@ ifElementConditionFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
       "condition inside a const collection literal.",
   correctionMessage: "Try making the deferred import non-deferred.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY',
+  uniqueName: 'IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY',
   expectedTypes: [],
 );
 
@@ -6380,7 +6350,7 @@ const DiagnosticWithoutArguments illegalAssignmentToNonAssignable =
       name: 'ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE',
       problemMessage: "Illegal assignment to non-assignable expression.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE',
+      uniqueName: 'ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE',
       expectedTypes: [],
     );
 
@@ -6396,7 +6366,7 @@ illegalAsyncGeneratorReturnType = DiagnosticWithoutArgumentsImpl(
       "'async*' from the function body.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE',
+  uniqueName: 'ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE',
   expectedTypes: [],
 );
 
@@ -6412,7 +6382,7 @@ illegalAsyncReturnType = DiagnosticWithoutArgumentsImpl(
       "'async' from the function body.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE',
+  uniqueName: 'ILLEGAL_ASYNC_RETURN_TYPE',
   expectedTypes: [],
 );
 
@@ -6425,7 +6395,7 @@ illegalCharacter = DiagnosticWithArguments(
   name: 'ILLEGAL_CHARACTER',
   problemMessage: "Illegal character '{0}'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ScannerErrorCode.ILLEGAL_CHARACTER',
+  uniqueName: 'ILLEGAL_CHARACTER',
   withArguments: _withArgumentsIllegalCharacter,
   expectedTypes: [ExpectedType.object],
 );
@@ -6443,7 +6413,7 @@ illegalConcreteEnumMemberDeclaration = DiagnosticWithArguments(
   correctionMessage: "Try using a different name.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION',
+  uniqueName: 'ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION',
   withArguments: _withArgumentsIllegalConcreteEnumMemberDeclaration,
   expectedTypes: [ExpectedType.string],
 );
@@ -6462,7 +6432,7 @@ illegalConcreteEnumMemberInheritance = DiagnosticWithArguments(
   correctionMessage: "Try using a different name.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE',
+  uniqueName: 'ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE',
   withArguments: _withArgumentsIllegalConcreteEnumMemberInheritance,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -6477,7 +6447,7 @@ const DiagnosticWithoutArguments illegalEnumValuesDeclaration =
       correctionMessage: "Try using a different name.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION',
+      uniqueName: 'ILLEGAL_ENUM_VALUES_DECLARATION',
       expectedTypes: [],
     );
 
@@ -6494,7 +6464,7 @@ illegalEnumValuesInheritance = DiagnosticWithArguments(
   correctionMessage: "Try using a different name.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE',
+  uniqueName: 'ILLEGAL_ENUM_VALUES_INHERITANCE',
   withArguments: _withArgumentsIllegalEnumValuesInheritance,
   expectedTypes: [ExpectedType.string],
 );
@@ -6510,7 +6480,7 @@ illegalLanguageVersionOverride = DiagnosticWithArguments(
   correctionMessage:
       "Try removing the language version override and migrating the code.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE',
+  uniqueName: 'ILLEGAL_LANGUAGE_VERSION_OVERRIDE',
   withArguments: _withArgumentsIllegalLanguageVersionOverride,
   expectedTypes: [ExpectedType.string],
 );
@@ -6527,7 +6497,7 @@ const DiagnosticCode illegalPatternAssignmentVariableName =
           "A variable assigned by a pattern assignment can't be named '{0}'.",
       correctionMessage: "Choose a different name.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME',
+      uniqueName: 'ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME',
       expectedTypes: [ExpectedType.token],
     );
 
@@ -6542,7 +6512,7 @@ const DiagnosticCode illegalPatternIdentifierName =
       problemMessage: "A pattern can't refer to an identifier named '{0}'.",
       correctionMessage: "Match the identifier using '==",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.ILLEGAL_PATTERN_IDENTIFIER_NAME',
+      uniqueName: 'ILLEGAL_PATTERN_IDENTIFIER_NAME',
       expectedTypes: [ExpectedType.token],
     );
 
@@ -6558,7 +6528,7 @@ const DiagnosticCode illegalPatternVariableName =
           "The variable declared by a variable pattern can't be named '{0}'.",
       correctionMessage: "Choose a different name.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.ILLEGAL_PATTERN_VARIABLE_NAME',
+      uniqueName: 'ILLEGAL_PATTERN_VARIABLE_NAME',
       expectedTypes: [ExpectedType.token],
     );
 
@@ -6574,7 +6544,7 @@ illegalSyncGeneratorReturnType = DiagnosticWithoutArgumentsImpl(
       "'sync*' from the function body.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE',
+  uniqueName: 'ILLEGAL_SYNC_GENERATOR_RETURN_TYPE',
   expectedTypes: [],
 );
 
@@ -6587,7 +6557,7 @@ const DiagnosticWithoutArguments implementsBeforeExtends =
       correctionMessage:
           "Try moving the extends clause before the implements clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS',
+      uniqueName: 'IMPLEMENTS_BEFORE_EXTENDS',
       expectedTypes: [],
     );
 
@@ -6599,7 +6569,7 @@ const DiagnosticWithoutArguments implementsBeforeOn =
       correctionMessage:
           "Try moving the on clause before the implements clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.IMPLEMENTS_BEFORE_ON',
+      uniqueName: 'IMPLEMENTS_BEFORE_ON',
       expectedTypes: [],
     );
 
@@ -6611,7 +6581,7 @@ const DiagnosticWithoutArguments implementsBeforeWith =
       correctionMessage:
           "Try moving the with clause before the implements clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.IMPLEMENTS_BEFORE_WITH',
+      uniqueName: 'IMPLEMENTS_BEFORE_WITH',
       expectedTypes: [],
     );
 
@@ -6625,7 +6595,7 @@ const DiagnosticWithoutArguments implementsDeferredClass =
           "list, or changing the import to not be deferred.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS',
+      uniqueName: 'IMPLEMENTS_DEFERRED_CLASS',
       expectedTypes: [],
     );
 
@@ -6642,7 +6612,7 @@ implementsDisallowedClass = DiagnosticWithArguments(
       "list.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS',
+  uniqueName: 'IMPLEMENTS_DISALLOWED_CLASS',
   withArguments: _withArgumentsImplementsDisallowedClass,
   expectedTypes: [ExpectedType.type],
 );
@@ -6657,7 +6627,7 @@ const DiagnosticWithoutArguments implementsNonClass =
           "Try specifying a class or mixin, or remove the name from the list.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.IMPLEMENTS_NON_CLASS',
+      uniqueName: 'IMPLEMENTS_NON_CLASS',
       expectedTypes: [],
     );
 
@@ -6672,7 +6642,7 @@ implementsRepeated = DiagnosticWithArguments(
   correctionMessage: "Try removing all but one occurrence of the class name.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.IMPLEMENTS_REPEATED',
+  uniqueName: 'IMPLEMENTS_REPEATED',
   withArguments: _withArgumentsImplementsRepeated,
   expectedTypes: [ExpectedType.string],
 );
@@ -6690,24 +6660,24 @@ implementsSuperClass = DiagnosticWithArguments(
   correctionMessage: "Try removing one of the occurrences.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS',
+  uniqueName: 'IMPLEMENTS_SUPER_CLASS',
   withArguments: _withArgumentsImplementsSuperClass,
   expectedTypes: [ExpectedType.element],
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-implementsTypeAliasExpandsToTypeParameter = DiagnosticWithoutArgumentsImpl(
-  name: 'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
-  problemMessage:
-      "A type alias that expands to a type parameter can't be implemented.",
-  correctionMessage: "Try specifying a class or mixin, or removing the list.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments implementsTypeAliasExpandsToTypeParameter =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
+      problemMessage:
+          "A type alias that expands to a type parameter can't be implemented.",
+      correctionMessage:
+          "Try specifying a class or mixin, or removing the list.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// Type p0: the name of the superclass
@@ -6723,8 +6693,7 @@ implicitSuperInitializerMissingArguments = DiagnosticWithArguments(
       "Try adding an explicit super parameter with the required arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS',
+  uniqueName: 'IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS',
   withArguments: _withArgumentsImplicitSuperInitializerMissingArguments,
   expectedTypes: [ExpectedType.type],
 );
@@ -6743,7 +6712,7 @@ implicitThisReferenceInInitializer = DiagnosticWithArguments(
       "expression",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER',
+  uniqueName: 'IMPLICIT_THIS_REFERENCE_IN_INITIALIZER',
   withArguments: _withArgumentsImplicitThisReferenceInInitializer,
   expectedTypes: [ExpectedType.string],
 );
@@ -6760,7 +6729,7 @@ importDeferredLibraryWithLoadFunction = DiagnosticWithoutArgumentsImpl(
       "the imported library.",
   hasPublishedDocs: true,
   type: DiagnosticType.HINT,
-  uniqueName: 'HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
+  uniqueName: 'IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
   expectedTypes: [],
 );
 
@@ -6772,7 +6741,7 @@ const DiagnosticWithoutArguments importDirectiveAfterPartDirective =
       correctionMessage:
           "Try moving the import directives before the part directives.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
+      uniqueName: 'IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
       expectedTypes: [],
     );
 
@@ -6786,7 +6755,7 @@ importInternalLibrary = DiagnosticWithArguments(
   problemMessage: "The library '{0}' is internal and can't be imported.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY',
+  uniqueName: 'IMPORT_INTERNAL_LIBRARY',
   withArguments: _withArgumentsImportInternalLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -6802,7 +6771,7 @@ importOfNonLibrary = DiagnosticWithArguments(
   correctionMessage: "Try importing the library that the part is a part of.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY',
+  uniqueName: 'IMPORT_OF_NON_LIBRARY',
   withArguments: _withArgumentsImportOfNonLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -6829,7 +6798,7 @@ includedFileParseError = DiagnosticWithArguments(
   name: 'INCLUDED_FILE_PARSE_ERROR',
   problemMessage: "{3} in {0}({1}..{2})",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR',
+  uniqueName: 'INCLUDED_FILE_PARSE_ERROR',
   withArguments: _withArgumentsIncludedFileParseError,
   expectedTypes: [
     ExpectedType.object,
@@ -6860,7 +6829,7 @@ includedFileWarning = DiagnosticWithArguments(
   name: 'INCLUDED_FILE_WARNING',
   problemMessage: "Warning in the included options file {0}({1}..{2}): {3}",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING',
+  uniqueName: 'INCLUDED_FILE_WARNING',
   withArguments: _withArgumentsIncludedFileWarning,
   expectedTypes: [
     ExpectedType.object,
@@ -6888,7 +6857,7 @@ includeFileNotFound = DiagnosticWithArguments(
   problemMessage:
       "The include file '{0}' in '{1}' can't be found when analyzing '{2}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND',
+  uniqueName: 'INCLUDE_FILE_NOT_FOUND',
   withArguments: _withArgumentsIncludeFileNotFound,
   expectedTypes: [
     ExpectedType.object,
@@ -6912,7 +6881,7 @@ incompatibleLint = DiagnosticWithArguments(
   problemMessage: "The rule '{0}' is incompatible with {1}.",
   correctionMessage: "Try removing all but one of the incompatible rules.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.INCOMPATIBLE_LINT',
+  uniqueName: 'INCOMPATIBLE_LINT',
   withArguments: _withArgumentsIncompatibleLint,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -6934,7 +6903,7 @@ incompatibleLintFiles = DiagnosticWithArguments(
       "Try locally disabling all but one of the conflicting rules or "
       "removing one of the incompatible files.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.INCOMPATIBLE_LINT_FILES',
+  uniqueName: 'INCOMPATIBLE_LINT_FILES',
   withArguments: _withArgumentsIncompatibleLintFiles,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -6963,7 +6932,7 @@ incompatibleLintIncluded = DiagnosticWithArguments(
       "Try locally disabling all but one of the conflicting rules or "
       "removing one of the incompatible files.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.INCOMPATIBLE_LINT_INCLUDED',
+  uniqueName: 'INCOMPATIBLE_LINT_INCLUDED',
   withArguments: _withArgumentsIncompatibleLintIncluded,
   expectedTypes: [
     ExpectedType.string,
@@ -6988,7 +6957,7 @@ inconsistentCaseExpressionTypes = DiagnosticWithArguments(
   problemMessage:
       "Case expressions must have the same types, '{0}' isn't a '{1}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES',
+  uniqueName: 'INCONSISTENT_CASE_EXPRESSION_TYPES',
   withArguments: _withArgumentsInconsistentCaseExpressionTypes,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -7007,7 +6976,7 @@ inconsistentInheritance = DiagnosticWithArguments(
       "inherited members.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INCONSISTENT_INHERITANCE',
+  uniqueName: 'INCONSISTENT_INHERITANCE',
   withArguments: _withArgumentsInconsistentInheritance,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -7040,7 +7009,7 @@ inconsistentInheritanceGetterAndMethod = DiagnosticWithArguments(
       "Try adjusting the supertypes of this class to remove the "
       "inconsistency.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD',
+  uniqueName: 'INCONSISTENT_INHERITANCE_GETTER_AND_METHOD',
   withArguments: _withArgumentsInconsistentInheritanceGetterAndMethod,
   expectedTypes: [
     ExpectedType.string,
@@ -7058,7 +7027,7 @@ const DiagnosticWithoutArguments inconsistentLanguageVersionOverride =
           "library.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE',
+      uniqueName: 'INCONSISTENT_LANGUAGE_VERSION_OVERRIDE',
       expectedTypes: [],
     );
 
@@ -7077,7 +7046,7 @@ inconsistentPatternVariableLogicalOr = DiagnosticWithArguments(
       "both branches.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR',
+  uniqueName: 'INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR',
   withArguments: _withArgumentsInconsistentPatternVariableLogicalOr,
   expectedTypes: [ExpectedType.string],
 );
@@ -7096,7 +7065,7 @@ inferenceFailureOnCollectionLiteral = DiagnosticWithArguments(
   correctionMessage: "Use explicit type argument(s) for '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL',
+  uniqueName: 'INFERENCE_FAILURE_ON_COLLECTION_LITERAL',
   withArguments: _withArgumentsInferenceFailureOnCollectionLiteral,
   expectedTypes: [ExpectedType.string],
 );
@@ -7116,7 +7085,7 @@ inferenceFailureOnFunctionInvocation = DiagnosticWithArguments(
   correctionMessage: "Use explicit type argument(s) for '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION',
+  uniqueName: 'INFERENCE_FAILURE_ON_FUNCTION_INVOCATION',
   withArguments: _withArgumentsInferenceFailureOnFunctionInvocation,
   expectedTypes: [ExpectedType.string],
 );
@@ -7139,7 +7108,7 @@ inferenceFailureOnFunctionReturnType = DiagnosticWithArguments(
   correctionMessage: "Declare the return type of '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
+  uniqueName: 'INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
   withArguments: _withArgumentsInferenceFailureOnFunctionReturnType,
   expectedTypes: [ExpectedType.string],
 );
@@ -7160,7 +7129,7 @@ inferenceFailureOnGenericInvocation = DiagnosticWithArguments(
   correctionMessage: "Use explicit type argument(s) for '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION',
+  uniqueName: 'INFERENCE_FAILURE_ON_GENERIC_INVOCATION',
   withArguments: _withArgumentsInferenceFailureOnGenericInvocation,
   expectedTypes: [ExpectedType.string],
 );
@@ -7181,7 +7150,7 @@ inferenceFailureOnInstanceCreation = DiagnosticWithArguments(
   correctionMessage: "Use explicit type argument(s) for '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION',
+  uniqueName: 'INFERENCE_FAILURE_ON_INSTANCE_CREATION',
   withArguments: _withArgumentsInferenceFailureOnInstanceCreation,
   expectedTypes: [ExpectedType.string],
 );
@@ -7201,7 +7170,7 @@ inferenceFailureOnUninitializedVariable = DiagnosticWithArguments(
   correctionMessage: "Try specifying the type of the variable.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE',
+  uniqueName: 'INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE',
   withArguments: _withArgumentsInferenceFailureOnUninitializedVariable,
   expectedTypes: [ExpectedType.string],
 );
@@ -7220,7 +7189,7 @@ inferenceFailureOnUntypedParameter = DiagnosticWithArguments(
       "The type of {0} can't be inferred; a type must be explicitly provided.",
   correctionMessage: "Try specifying the type of the parameter.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER',
+  uniqueName: 'INFERENCE_FAILURE_ON_UNTYPED_PARAMETER',
   withArguments: _withArgumentsInferenceFailureOnUntypedParameter,
   expectedTypes: [ExpectedType.string],
 );
@@ -7234,7 +7203,7 @@ const DiagnosticWithoutArguments initializedVariableInForEach =
       correctionMessage:
           "Try removing the initializer, or using a different kind of loop.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH',
+      uniqueName: 'INITIALIZED_VARIABLE_IN_FOR_EACH',
       expectedTypes: [],
     );
 
@@ -7252,7 +7221,7 @@ initializerForNonExistentField = DiagnosticWithArguments(
       "field named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD',
+  uniqueName: 'INITIALIZER_FOR_NON_EXISTENT_FIELD',
   withArguments: _withArgumentsInitializerForNonExistentField,
   expectedTypes: [ExpectedType.string],
 );
@@ -7271,7 +7240,7 @@ initializerForStaticField = DiagnosticWithArguments(
   correctionMessage: "Try removing the initialization.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD',
+  uniqueName: 'INITIALIZER_FOR_STATIC_FIELD',
   withArguments: _withArgumentsInitializerForStaticField,
   expectedTypes: [ExpectedType.string],
 );
@@ -7290,7 +7259,7 @@ initializingFormalForNonExistentField = DiagnosticWithArguments(
       "field named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD',
+  uniqueName: 'INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD',
   withArguments: _withArgumentsInitializingFormalForNonExistentField,
   expectedTypes: [ExpectedType.string],
 );
@@ -7316,7 +7285,7 @@ instanceAccessToStaticMember = DiagnosticWithArguments(
   correctionMessage: "Try using the {3} '{2}' to access the {1}.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER',
+  uniqueName: 'INSTANCE_ACCESS_TO_STATIC_MEMBER',
   withArguments: _withArgumentsInstanceAccessToStaticMember,
   expectedTypes: [
     ExpectedType.string,
@@ -7338,8 +7307,7 @@ instanceAccessToStaticMemberOfUnnamedExtension = DiagnosticWithArguments(
   problemMessage: "The static {1} '{0}' can't be accessed through an instance.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION',
+  uniqueName: 'INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION',
   withArguments: _withArgumentsInstanceAccessToStaticMemberOfUnnamedExtension,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -7353,7 +7321,7 @@ const DiagnosticWithoutArguments instanceMemberAccessFromFactory =
       correctionMessage: "Try removing the reference to the instance member.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY',
+      uniqueName: 'INSTANCE_MEMBER_ACCESS_FROM_FACTORY',
       expectedTypes: [],
     );
 
@@ -7368,7 +7336,7 @@ const DiagnosticWithoutArguments instanceMemberAccessFromStatic =
           "keyword 'static' from the method.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC',
+      uniqueName: 'INSTANCE_MEMBER_ACCESS_FROM_STATIC',
       expectedTypes: [],
     );
 
@@ -7380,7 +7348,7 @@ const DiagnosticWithoutArguments instantiateAbstractClass =
       correctionMessage: "Try creating an instance of a concrete subtype.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS',
+      uniqueName: 'INSTANTIATE_ABSTRACT_CLASS',
       expectedTypes: [],
     );
 
@@ -7392,23 +7360,22 @@ const DiagnosticWithoutArguments instantiateEnum =
       correctionMessage: "Try using one of the defined constants.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.INSTANTIATE_ENUM',
+      uniqueName: 'INSTANTIATE_ENUM',
       expectedTypes: [],
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-instantiateTypeAliasExpandsToTypeParameter = DiagnosticWithoutArgumentsImpl(
-  name: 'INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
-  problemMessage:
-      "Type aliases that expand to a type parameter can't be instantiated.",
-  correctionMessage: "Try replacing it with a class.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments instantiateTypeAliasExpandsToTypeParameter =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+      problemMessage:
+          "Type aliases that expand to a type parameter can't be instantiated.",
+      correctionMessage: "Try replacing it with a class.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String p0: the lexeme of the integer
@@ -7426,7 +7393,7 @@ integerLiteralImpreciseAsDouble = DiagnosticWithArguments(
       "'{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE',
+  uniqueName: 'INTEGER_LITERAL_IMPRECISE_AS_DOUBLE',
   withArguments: _withArgumentsIntegerLiteralImpreciseAsDouble,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -7444,7 +7411,7 @@ integerLiteralOutOfRange = DiagnosticWithArguments(
       "9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE',
+  uniqueName: 'INTEGER_LITERAL_OUT_OF_RANGE',
   withArguments: _withArgumentsIntegerLiteralOutOfRange,
   expectedTypes: [ExpectedType.string],
 );
@@ -7461,8 +7428,7 @@ interfaceClassExtendedOutsideOfLibrary = DiagnosticWithArguments(
       "interface class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
+  uniqueName: 'INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
   withArguments: _withArgumentsInterfaceClassExtendedOutsideOfLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -7473,7 +7439,7 @@ const DiagnosticWithoutArguments interfaceEnum = DiagnosticWithoutArgumentsImpl(
   problemMessage: "Enums can't be declared to be 'interface'.",
   correctionMessage: "Try removing the keyword 'interface'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.INTERFACE_ENUM',
+  uniqueName: 'INTERFACE_ENUM',
   expectedTypes: [],
 );
 
@@ -7484,7 +7450,7 @@ const DiagnosticWithoutArguments interfaceMixin =
       problemMessage: "A mixin can't be declared 'interface'.",
       correctionMessage: "Try removing the 'interface' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.INTERFACE_MIXIN',
+      uniqueName: 'INTERFACE_MIXIN',
       expectedTypes: [],
     );
 
@@ -7495,7 +7461,7 @@ const DiagnosticWithoutArguments interfaceMixinClass =
       problemMessage: "A mixin class can't be declared 'interface'.",
       correctionMessage: "Try removing the 'interface' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.INTERFACE_MIXIN_CLASS',
+      uniqueName: 'INTERFACE_MIXIN_CLASS',
       expectedTypes: [],
     );
 
@@ -7508,25 +7474,25 @@ invalidAnnotation = DiagnosticWithoutArgumentsImpl(
       "invocation.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_ANNOTATION',
+  uniqueName: 'INVALID_ANNOTATION',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
-invalidAnnotationConstantValueFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
-  problemMessage:
-      "Constant values from a deferred library can't be used in annotations.",
-  correctionMessage:
-      "Try moving the constant from the deferred library, or removing "
-      "'deferred' from the import.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
-  expectedTypes: [],
-);
+invalidAnnotationConstantValueFromDeferredLibrary =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
+      problemMessage:
+          "Constant values from a deferred library can't be used in annotations.",
+      correctionMessage:
+          "Try moving the constant from the deferred library, or removing "
+          "'deferred' from the import.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments
@@ -7539,7 +7505,7 @@ invalidAnnotationFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
       "deferred.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY',
+  uniqueName: 'INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY',
   expectedTypes: [],
 );
 
@@ -7554,7 +7520,7 @@ invalidAnnotationTarget = DiagnosticWithArguments(
   problemMessage: "The annotation '{0}' can only be used on {1}.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_ANNOTATION_TARGET',
+  uniqueName: 'INVALID_ANNOTATION_TARGET',
   withArguments: _withArgumentsInvalidAnnotationTarget,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -7574,7 +7540,7 @@ invalidAssignment = DiagnosticWithArguments(
       "to '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_ASSIGNMENT',
+  uniqueName: 'INVALID_ASSIGNMENT',
   withArguments: _withArgumentsInvalidAssignment,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -7588,7 +7554,7 @@ const DiagnosticWithoutArguments invalidAwaitInFor =
       correctionMessage:
           "Try removing the keyword, or use a for-each statement.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.INVALID_AWAIT_IN_FOR',
+      uniqueName: 'INVALID_AWAIT_IN_FOR',
       expectedTypes: [],
     );
 
@@ -7601,7 +7567,7 @@ const DiagnosticWithoutArguments invalidAwaitNotRequiredAnnotation =
           "Future-returning function, or a Future-typed field.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.INVALID_AWAIT_NOT_REQUIRED_ANNOTATION',
+      uniqueName: 'INVALID_AWAIT_NOT_REQUIRED_ANNOTATION',
       expectedTypes: [],
     );
 
@@ -7624,7 +7590,7 @@ invalidCastFunction = DiagnosticWithArguments(
       "The function '{0}' has type '{1}' that isn't of expected type '{2}'. This "
       "means its parameter or return type doesn't match what is expected.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_CAST_FUNCTION',
+  uniqueName: 'INVALID_CAST_FUNCTION',
   withArguments: _withArgumentsInvalidCastFunction,
   expectedTypes: [
     ExpectedType.object,
@@ -7648,7 +7614,7 @@ invalidCastFunctionExpr = DiagnosticWithArguments(
       "parameter or return type doesn't match what is expected. Consider "
       "changing parameter type(s) or the returned type(s).",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_CAST_FUNCTION_EXPR',
+  uniqueName: 'INVALID_CAST_FUNCTION_EXPR',
   withArguments: _withArgumentsInvalidCastFunctionExpr,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -7671,7 +7637,7 @@ invalidCastLiteral = DiagnosticWithArguments(
   problemMessage:
       "The literal '{0}' with type '{1}' isn't of expected type '{2}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_CAST_LITERAL',
+  uniqueName: 'INVALID_CAST_LITERAL',
   withArguments: _withArgumentsInvalidCastLiteral,
   expectedTypes: [
     ExpectedType.object,
@@ -7695,7 +7661,7 @@ invalidCastLiteralList = DiagnosticWithArguments(
       "can be changed with an explicit generic type argument or by changing "
       "the element types.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST',
+  uniqueName: 'INVALID_CAST_LITERAL_LIST',
   withArguments: _withArgumentsInvalidCastLiteralList,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -7715,7 +7681,7 @@ invalidCastLiteralMap = DiagnosticWithArguments(
       "can be changed with an explicit generic type arguments or by changing "
       "the key and value types.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP',
+  uniqueName: 'INVALID_CAST_LITERAL_MAP',
   withArguments: _withArgumentsInvalidCastLiteralMap,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -7735,7 +7701,7 @@ invalidCastLiteralSet = DiagnosticWithArguments(
       "can be changed with an explicit generic type argument or by changing "
       "the element types.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_CAST_LITERAL_SET',
+  uniqueName: 'INVALID_CAST_LITERAL_SET',
   withArguments: _withArgumentsInvalidCastLiteralSet,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -7760,7 +7726,7 @@ invalidCastMethod = DiagnosticWithArguments(
       "'{2}'. This means its parameter or return type doesn't match what is "
       "expected.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_CAST_METHOD',
+  uniqueName: 'INVALID_CAST_METHOD',
   withArguments: _withArgumentsInvalidCastMethod,
   expectedTypes: [
     ExpectedType.object,
@@ -7782,7 +7748,7 @@ invalidCastNewExpr = DiagnosticWithArguments(
   problemMessage:
       "The constructor returns type '{0}' that isn't of expected type '{1}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_CAST_NEW_EXPR',
+  uniqueName: 'INVALID_CAST_NEW_EXPR',
   withArguments: _withArgumentsInvalidCastNewExpr,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -7796,7 +7762,7 @@ invalidCodePoint = DiagnosticWithArguments(
   name: 'INVALID_CODE_POINT',
   problemMessage: "The escape sequence '{0}' isn't a valid code point.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.INVALID_CODE_POINT',
+  uniqueName: 'INVALID_CODE_POINT',
   withArguments: _withArgumentsInvalidCodePoint,
   expectedTypes: [ExpectedType.string],
 );
@@ -7809,7 +7775,7 @@ invalidCommentReference = DiagnosticWithoutArgumentsImpl(
       "Comment references should contain a possibly prefixed identifier and can "
       "start with 'new', but shouldn't contain anything else.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.INVALID_COMMENT_REFERENCE',
+  uniqueName: 'INVALID_COMMENT_REFERENCE',
   expectedTypes: [],
 );
 
@@ -7825,7 +7791,7 @@ const DiagnosticWithoutArguments invalidConstant =
       name: 'INVALID_CONSTANT',
       problemMessage: "Invalid constant value.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.INVALID_CONSTANT',
+      uniqueName: 'INVALID_CONSTANT',
       expectedTypes: [],
     );
 
@@ -7837,7 +7803,7 @@ invalidConstantConstPrefix = DiagnosticWithoutArgumentsImpl(
       "The expression can't be prefixed by 'const' to form a constant pattern.",
   correctionMessage: "Try wrapping the expression in 'const ( ... )' instead.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.INVALID_CONSTANT_CONST_PREFIX',
+  uniqueName: 'INVALID_CONSTANT_CONST_PREFIX',
   expectedTypes: [],
 );
 
@@ -7850,7 +7816,7 @@ const DiagnosticCode invalidConstantPatternBinary =
           "The binary operator {0} is not supported as a constant pattern.",
       correctionMessage: "Try wrapping the expression in 'const ( ... )'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY',
+      uniqueName: 'INVALID_CONSTANT_PATTERN_BINARY',
       expectedTypes: [ExpectedType.name],
     );
 
@@ -7861,7 +7827,7 @@ const DiagnosticWithoutArguments invalidConstantPatternDuplicateConst =
       problemMessage: "Duplicate 'const' keyword in constant expression.",
       correctionMessage: "Try removing one of the 'const' keywords.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.INVALID_CONSTANT_PATTERN_DUPLICATE_CONST',
+      uniqueName: 'INVALID_CONSTANT_PATTERN_DUPLICATE_CONST',
       expectedTypes: [],
     );
 
@@ -7872,8 +7838,7 @@ const DiagnosticWithoutArguments invalidConstantPatternEmptyRecordLiteral =
       problemMessage:
           "The empty record literal is not supported as a constant pattern.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName:
-          'ParserErrorCode.INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL',
+      uniqueName: 'INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL',
       expectedTypes: [],
     );
 
@@ -7884,7 +7849,7 @@ const DiagnosticWithoutArguments invalidConstantPatternGeneric =
       problemMessage: "This expression is not supported as a constant pattern.",
       correctionMessage: "Try wrapping the expression in 'const ( ... )'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.INVALID_CONSTANT_PATTERN_GENERIC',
+      uniqueName: 'INVALID_CONSTANT_PATTERN_GENERIC',
       expectedTypes: [],
     );
 
@@ -7896,7 +7861,7 @@ invalidConstantPatternNegation = DiagnosticWithoutArgumentsImpl(
       "Only negation of a numeric literal is supported as a constant pattern.",
   correctionMessage: "Try wrapping the expression in 'const ( ... )'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.INVALID_CONSTANT_PATTERN_NEGATION',
+  uniqueName: 'INVALID_CONSTANT_PATTERN_NEGATION',
   expectedTypes: [],
 );
 
@@ -7909,7 +7874,7 @@ const DiagnosticCode invalidConstantPatternUnary =
           "The unary operator {0} is not supported as a constant pattern.",
       correctionMessage: "Try wrapping the expression in 'const ( ... )'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.INVALID_CONSTANT_PATTERN_UNARY',
+      uniqueName: 'INVALID_CONSTANT_PATTERN_UNARY',
       expectedTypes: [ExpectedType.name],
     );
 
@@ -7920,7 +7885,7 @@ invalidConstructorName = DiagnosticWithoutArgumentsImpl(
   problemMessage:
       "The name of a constructor must match the name of the enclosing class.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.INVALID_CONSTRUCTOR_NAME',
+  uniqueName: 'INVALID_CONSTRUCTOR_NAME',
   expectedTypes: [],
 );
 
@@ -7937,7 +7902,7 @@ invalidDependency = DiagnosticWithArguments(
       "publishing or remove the {0} dependency.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PubspecWarningCode.INVALID_DEPENDENCY',
+  uniqueName: 'INVALID_DEPENDENCY',
   withArguments: _withArgumentsInvalidDependency,
   expectedTypes: [ExpectedType.string],
 );
@@ -7952,7 +7917,7 @@ invalidDeprecatedExtendAnnotation = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try removing the '@Deprecated.extend' annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_DEPRECATED_EXTEND_ANNOTATION',
+  uniqueName: 'INVALID_DEPRECATED_EXTEND_ANNOTATION',
   expectedTypes: [],
 );
 
@@ -7966,7 +7931,7 @@ const DiagnosticWithoutArguments invalidDeprecatedImplementAnnotation =
       correctionMessage: "Try removing the '@Deprecated.implement' annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.INVALID_DEPRECATED_IMPLEMENT_ANNOTATION',
+      uniqueName: 'INVALID_DEPRECATED_IMPLEMENT_ANNOTATION',
       expectedTypes: [],
     );
 
@@ -7979,7 +7944,7 @@ invalidDeprecatedInstantiateAnnotation = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try removing the '@Deprecated.instantiate' annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_DEPRECATED_INSTANTIATE_ANNOTATION',
+  uniqueName: 'INVALID_DEPRECATED_INSTANTIATE_ANNOTATION',
   expectedTypes: [],
 );
 
@@ -7995,7 +7960,7 @@ const DiagnosticWithoutArguments invalidDeprecatedMixinAnnotation =
       correctionMessage: "Try removing the '@Deprecated.mixin' annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.INVALID_DEPRECATED_MIXIN_ANNOTATION',
+      uniqueName: 'INVALID_DEPRECATED_MIXIN_ANNOTATION',
       expectedTypes: [],
     );
 
@@ -8012,7 +7977,7 @@ invalidDeprecatedOptionalAnnotation = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try removing the '@Deprecated.optional' annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_DEPRECATED_OPTIONAL_ANNOTATION',
+  uniqueName: 'INVALID_DEPRECATED_OPTIONAL_ANNOTATION',
   expectedTypes: [],
 );
 
@@ -8026,7 +7991,7 @@ invalidDeprecatedSubclassAnnotation = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try removing the '@Deprecated.subclass' annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_DEPRECATED_SUBCLASS_ANNOTATION',
+  uniqueName: 'INVALID_DEPRECATED_SUBCLASS_ANNOTATION',
   expectedTypes: [],
 );
 
@@ -8044,7 +8009,7 @@ invalidExceptionValue = DiagnosticWithArguments(
   correctionMessage: "Try removing the exceptional return value.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.INVALID_EXCEPTION_VALUE',
+  uniqueName: 'INVALID_EXCEPTION_VALUE',
   withArguments: _withArgumentsInvalidExceptionValue,
   expectedTypes: [ExpectedType.string],
 );
@@ -8061,7 +8026,7 @@ invalidExportOfInternalElement = DiagnosticWithArguments(
   correctionMessage: "Try using a hide clause to hide '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT',
+  uniqueName: 'INVALID_EXPORT_OF_INTERNAL_ELEMENT',
   withArguments: _withArgumentsInvalidExportOfInternalElement,
   expectedTypes: [ExpectedType.string],
 );
@@ -8081,7 +8046,7 @@ invalidExportOfInternalElementIndirectly = DiagnosticWithArguments(
   correctionMessage: "Try using a hide clause to hide '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY',
+  uniqueName: 'INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY',
   withArguments: _withArgumentsInvalidExportOfInternalElementIndirectly,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -8096,7 +8061,7 @@ invalidExtensionArgumentCount = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try specifying exactly one argument.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT',
+  uniqueName: 'INVALID_EXTENSION_ARGUMENT_COUNT',
   expectedTypes: [],
 );
 
@@ -8110,7 +8075,7 @@ invalidFactoryMethodDecl = DiagnosticWithArguments(
   problemMessage: "Factory method '{0}' must have a return type.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_FACTORY_METHOD_DECL',
+  uniqueName: 'INVALID_FACTORY_METHOD_DECL',
   withArguments: _withArgumentsInvalidFactoryMethodDecl,
   expectedTypes: [ExpectedType.string],
 );
@@ -8126,7 +8091,7 @@ invalidFactoryMethodImpl = DiagnosticWithArguments(
       "Factory method '{0}' doesn't return a newly allocated object.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_FACTORY_METHOD_IMPL',
+  uniqueName: 'INVALID_FACTORY_METHOD_IMPL',
   withArguments: _withArgumentsInvalidFactoryMethodImpl,
   expectedTypes: [ExpectedType.string],
 );
@@ -8140,7 +8105,7 @@ invalidFactoryNameNotAClass = DiagnosticWithoutArgumentsImpl(
       "immediately enclosing class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS',
+  uniqueName: 'INVALID_FACTORY_NAME_NOT_A_CLASS',
   expectedTypes: [],
 );
 
@@ -8153,7 +8118,7 @@ const DiagnosticWithoutArguments invalidFieldNameFromObject =
       correctionMessage: "Try using a different name for the field.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT',
+      uniqueName: 'INVALID_FIELD_NAME_FROM_OBJECT',
       expectedTypes: [],
     );
 
@@ -8167,7 +8132,7 @@ invalidFieldNamePositional = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try using a different name for the field.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL',
+  uniqueName: 'INVALID_FIELD_NAME_POSITIONAL',
   expectedTypes: [],
 );
 
@@ -8179,7 +8144,7 @@ const DiagnosticWithoutArguments invalidFieldNamePrivate =
       correctionMessage: "Try removing the leading underscore.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE',
+      uniqueName: 'INVALID_FIELD_NAME_PRIVATE',
       expectedTypes: [],
     );
 
@@ -8199,7 +8164,7 @@ invalidFieldTypeInStruct = DiagnosticWithArguments(
       "or 'Union'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.INVALID_FIELD_TYPE_IN_STRUCT',
+  uniqueName: 'INVALID_FIELD_TYPE_IN_STRUCT',
   withArguments: _withArgumentsInvalidFieldTypeInStruct,
   expectedTypes: [ExpectedType.string],
 );
@@ -8213,7 +8178,7 @@ invalidGenericFunctionType = DiagnosticWithoutArgumentsImpl(
       "Try using a generic function type (returnType 'Function(' parameters "
       "')').",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE',
+  uniqueName: 'INVALID_GENERIC_FUNCTION_TYPE',
   expectedTypes: [],
 );
 
@@ -8225,7 +8190,7 @@ invalidHexEscape = DiagnosticWithoutArgumentsImpl(
       "An escape sequence starting with '\\x' must be followed by 2 hexadecimal "
       "digits.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.INVALID_HEX_ESCAPE',
+  uniqueName: 'INVALID_HEX_ESCAPE',
   expectedTypes: [],
 );
 
@@ -8254,7 +8219,7 @@ invalidImplementationOverride = DiagnosticWithArguments(
       "('{4}').",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE',
+  uniqueName: 'INVALID_IMPLEMENTATION_OVERRIDE',
   withArguments: _withArgumentsInvalidImplementationOverride,
   expectedTypes: [
     ExpectedType.object,
@@ -8290,7 +8255,7 @@ invalidImplementationOverrideSetter = DiagnosticWithArguments(
       "'{3}.{0}' ('{4}').",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE_SETTER',
+  uniqueName: 'INVALID_IMPLEMENTATION_OVERRIDE_SETTER',
   withArguments: _withArgumentsInvalidImplementationOverrideSetter,
   expectedTypes: [
     ExpectedType.object,
@@ -8309,7 +8274,7 @@ const DiagnosticWithoutArguments invalidInitializer =
       correctionMessage:
           "To initialize a field, use the syntax 'name = value'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.INVALID_INITIALIZER',
+      uniqueName: 'INVALID_INITIALIZER',
       expectedTypes: [],
     );
 
@@ -8325,7 +8290,7 @@ invalidInlineFunctionType = DiagnosticWithoutArgumentsImpl(
       "')').",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE',
+  uniqueName: 'INVALID_INLINE_FUNCTION_TYPE',
   expectedTypes: [],
 );
 
@@ -8342,7 +8307,7 @@ invalidInsideUnaryPattern = DiagnosticWithoutArgumentsImpl(
       "Try combining into a single pattern if possible, or enclose the inner "
       "pattern in parentheses.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN',
+  uniqueName: 'INVALID_INSIDE_UNARY_PATTERN',
   expectedTypes: [],
 );
 
@@ -8355,7 +8320,7 @@ invalidInternalAnnotation = DiagnosticWithoutArgumentsImpl(
       "internal.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_INTERNAL_ANNOTATION',
+  uniqueName: 'INVALID_INTERNAL_ANNOTATION',
   expectedTypes: [],
 );
 
@@ -8370,7 +8335,7 @@ const DiagnosticWithoutArguments invalidLanguageVersionOverrideAtSign =
           "@dart = 2.0'.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN',
+      uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN',
       expectedTypes: [],
     );
 
@@ -8386,7 +8351,7 @@ invalidLanguageVersionOverrideEquals = DiagnosticWithoutArgumentsImpl(
       "@dart = 2.0'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS',
+  uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS',
   expectedTypes: [],
 );
 
@@ -8404,7 +8369,7 @@ invalidLanguageVersionOverrideGreater = DiagnosticWithArguments(
   correctionMessage: "Try removing the language version override.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER',
+  uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER',
   withArguments: _withArgumentsInvalidLanguageVersionOverrideGreater,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -8420,7 +8385,7 @@ invalidLanguageVersionOverrideLocation = DiagnosticWithoutArgumentsImpl(
       "Try moving the language version override to the top of the file.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION',
+  uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION',
   expectedTypes: [],
 );
 
@@ -8436,7 +8401,7 @@ invalidLanguageVersionOverrideLowerCase = DiagnosticWithoutArgumentsImpl(
       "@dart = 2.0'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE',
+  uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE',
   expectedTypes: [],
 );
 
@@ -8452,7 +8417,7 @@ const DiagnosticWithoutArguments invalidLanguageVersionOverrideNumber =
           "@dart = 2.0'.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER',
+      uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER',
       expectedTypes: [],
     );
 
@@ -8468,7 +8433,7 @@ const DiagnosticWithoutArguments invalidLanguageVersionOverridePrefix =
           "@dart = 2.0'.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX',
+      uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX',
       expectedTypes: [],
     );
 
@@ -8485,8 +8450,7 @@ invalidLanguageVersionOverrideTrailingCharacters =
           "@dart = 2.0'.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName:
-          'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS',
+      uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS',
       expectedTypes: [],
     );
 
@@ -8502,7 +8466,7 @@ invalidLanguageVersionOverrideTwoSlashes = DiagnosticWithoutArgumentsImpl(
       "@dart = 2.0'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES',
+  uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES',
   expectedTypes: [],
 );
 
@@ -8514,7 +8478,7 @@ const DiagnosticWithoutArguments invalidLiteralAnnotation =
           "Only const constructors can have the `@literal` annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.INVALID_LITERAL_ANNOTATION',
+      uniqueName: 'INVALID_LITERAL_ANNOTATION',
       expectedTypes: [],
     );
 
@@ -8526,7 +8490,7 @@ const DiagnosticWithoutArguments invalidLiteralInConfiguration =
           "The literal in a configuration can't contain interpolation.",
       correctionMessage: "Try removing the interpolation expressions.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION',
+      uniqueName: 'INVALID_LITERAL_IN_CONFIGURATION',
       expectedTypes: [],
     );
 
@@ -8542,7 +8506,7 @@ invalidModifierOnConstructor = DiagnosticWithArguments(
   correctionMessage: "Try removing the modifier.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR',
+  uniqueName: 'INVALID_MODIFIER_ON_CONSTRUCTOR',
   withArguments: _withArgumentsInvalidModifierOnConstructor,
   expectedTypes: [ExpectedType.string],
 );
@@ -8555,7 +8519,7 @@ const DiagnosticWithoutArguments invalidModifierOnSetter =
       correctionMessage: "Try removing the modifier.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER',
+      uniqueName: 'INVALID_MODIFIER_ON_SETTER',
       expectedTypes: [],
     );
 
@@ -8572,7 +8536,7 @@ invalidNonVirtualAnnotation = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try removing '@nonVirtual'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_NON_VIRTUAL_ANNOTATION',
+  uniqueName: 'INVALID_NON_VIRTUAL_ANNOTATION',
   expectedTypes: [],
 );
 
@@ -8585,7 +8549,7 @@ invalidNullAwareElement = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try removing the operator '?'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'StaticWarningCode.INVALID_NULL_AWARE_ELEMENT',
+  uniqueName: 'INVALID_NULL_AWARE_ELEMENT',
   expectedTypes: [],
 );
 
@@ -8599,7 +8563,7 @@ const DiagnosticWithoutArguments invalidNullAwareMapEntryKey =
       correctionMessage: "Try removing the operator '?'.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY',
+      uniqueName: 'INVALID_NULL_AWARE_MAP_ENTRY_KEY',
       expectedTypes: [],
     );
 
@@ -8613,7 +8577,7 @@ invalidNullAwareMapEntryValue = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try removing the operator '?'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE',
+  uniqueName: 'INVALID_NULL_AWARE_MAP_ENTRY_VALUE',
   expectedTypes: [],
 );
 
@@ -8632,7 +8596,7 @@ invalidNullAwareOperator = DiagnosticWithArguments(
   correctionMessage: "Try replacing the operator '{0}' with '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'StaticWarningCode.INVALID_NULL_AWARE_OPERATOR',
+  uniqueName: 'INVALID_NULL_AWARE_OPERATOR',
   withArguments: _withArgumentsInvalidNullAwareOperator,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -8652,8 +8616,7 @@ invalidNullAwareOperatorAfterShortCircuit = DiagnosticWithArguments(
   correctionMessage: "Try replacing the operator '{0}' with '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName:
-      'StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT',
+  uniqueName: 'INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT',
   withArguments: _withArgumentsInvalidNullAwareOperatorAfterShortCircuit,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -8667,7 +8630,7 @@ const DiagnosticCode invalidOperator = DiagnosticCodeWithExpectedTypes(
   name: 'INVALID_OPERATOR',
   problemMessage: "The string '{0}' isn't a user-definable operator.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.INVALID_OPERATOR',
+  uniqueName: 'INVALID_OPERATOR',
   expectedTypes: [ExpectedType.token],
 );
 
@@ -8683,7 +8646,7 @@ invalidOperatorForSuper = DiagnosticWithArguments(
   name: 'INVALID_OPERATOR_FOR_SUPER',
   problemMessage: "The operator '{0}' can't be used with 'super'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.INVALID_OPERATOR_FOR_SUPER',
+  uniqueName: 'INVALID_OPERATOR_FOR_SUPER',
   withArguments: _withArgumentsInvalidOperatorForSuper,
   expectedTypes: [ExpectedType.object],
 );
@@ -8697,7 +8660,7 @@ invalidOperatorQuestionmarkPeriodForSuper = DiagnosticWithoutArgumentsImpl(
       "null.",
   correctionMessage: "Try replacing '?.' with '.'",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER',
+  uniqueName: 'INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER',
   expectedTypes: [],
 );
 
@@ -8714,7 +8677,7 @@ invalidOption = DiagnosticWithArguments(
   name: 'INVALID_OPTION',
   problemMessage: "Invalid option specified for '{0}': {1}",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.INVALID_OPTION',
+  uniqueName: 'INVALID_OPTION',
   withArguments: _withArgumentsInvalidOption,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -8740,7 +8703,7 @@ invalidOverride = DiagnosticWithArguments(
       "'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_OVERRIDE',
+  uniqueName: 'INVALID_OVERRIDE',
   withArguments: _withArgumentsInvalidOverride,
   expectedTypes: [
     ExpectedType.string,
@@ -8767,7 +8730,7 @@ invalidOverrideOfNonVirtualMember = DiagnosticWithArguments(
       "in subclasses.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER',
+  uniqueName: 'INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER',
   withArguments: _withArgumentsInvalidOverrideOfNonVirtualMember,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -8793,7 +8756,7 @@ invalidOverrideSetter = DiagnosticWithArguments(
       "The setter '{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_OVERRIDE_SETTER',
+  uniqueName: 'INVALID_OVERRIDE_SETTER',
   withArguments: _withArgumentsInvalidOverrideSetter,
   expectedTypes: [
     ExpectedType.object,
@@ -8814,7 +8777,7 @@ const DiagnosticWithoutArguments invalidPlatformsField =
           "Try changing the 'platforms' field to a map with platforms as keys.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'PubspecWarningCode.INVALID_PLATFORMS_FIELD',
+      uniqueName: 'INVALID_PLATFORMS_FIELD',
       expectedTypes: [],
     );
 
@@ -8827,23 +8790,22 @@ invalidReferenceToGenerativeEnumConstructor = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try using an enum value, or a factory constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
+  uniqueName: 'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
-invalidReferenceToGenerativeEnumConstructorTearoff = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
-  problemMessage: "Generative enum constructors can't be torn off.",
-  correctionMessage: "Try using an enum value, or a factory constructor.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR_TEAROFF',
-  expectedTypes: [],
-);
+invalidReferenceToGenerativeEnumConstructorTearoff =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
+      problemMessage: "Generative enum constructors can't be torn off.",
+      correctionMessage: "Try using an enum value, or a factory constructor.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR_TEAROFF',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidReferenceToThis =
@@ -8852,7 +8814,7 @@ const DiagnosticWithoutArguments invalidReferenceToThis =
       problemMessage: "Invalid reference to 'this' expression.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS',
+      uniqueName: 'INVALID_REFERENCE_TO_THIS',
       expectedTypes: [],
     );
 
@@ -8869,7 +8831,7 @@ const DiagnosticWithoutArguments invalidReopenAnnotation =
       correctionMessage: "Try removing the '@reopen' annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.INVALID_REOPEN_ANNOTATION',
+      uniqueName: 'INVALID_REOPEN_ANNOTATION',
       expectedTypes: [],
     );
 
@@ -8884,7 +8846,7 @@ invalidSectionFormat = DiagnosticWithArguments(
   name: 'INVALID_SECTION_FORMAT',
   problemMessage: "Invalid format for the '{0}' section.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT',
+  uniqueName: 'INVALID_SECTION_FORMAT',
   withArguments: _withArgumentsInvalidSectionFormat,
   expectedTypes: [ExpectedType.string],
 );
@@ -8897,7 +8859,7 @@ invalidStarAfterAsync = DiagnosticWithoutArgumentsImpl(
       "The modifier 'async*' isn't allowed for an expression function body.",
   correctionMessage: "Try converting the body to a block.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.INVALID_STAR_AFTER_ASYNC',
+  uniqueName: 'INVALID_STAR_AFTER_ASYNC',
   expectedTypes: [],
 );
 
@@ -8913,7 +8875,7 @@ invalidSuperFormalParameterLocation = DiagnosticWithoutArgumentsImpl(
       "non-redirecting and generative.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION',
+  uniqueName: 'INVALID_SUPER_FORMAL_PARAMETER_LOCATION',
   expectedTypes: [],
 );
 
@@ -8925,7 +8887,7 @@ const DiagnosticWithoutArguments invalidSuperInInitializer =
           "Can only use 'super' in an initializer for calling the superclass "
           "constructor (e.g. 'super()' or 'super.namedConstructor()')",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.INVALID_SUPER_IN_INITIALIZER',
+      uniqueName: 'INVALID_SUPER_IN_INITIALIZER',
       expectedTypes: [],
     );
 
@@ -8936,7 +8898,7 @@ const DiagnosticWithoutArguments invalidSync = DiagnosticWithoutArgumentsImpl(
       "The modifier 'sync' isn't allowed for an expression function body.",
   correctionMessage: "Try converting the body to a block.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.INVALID_SYNC',
+  uniqueName: 'INVALID_SYNC',
   expectedTypes: [],
 );
 
@@ -8949,7 +8911,7 @@ invalidThisInInitializer = DiagnosticWithoutArgumentsImpl(
       "'this.x = something') and constructor redirection (e.g. 'this()' or "
       "'this.namedConstructor())",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.INVALID_THIS_IN_INITIALIZER',
+  uniqueName: 'INVALID_THIS_IN_INITIALIZER',
   expectedTypes: [],
 );
 
@@ -8966,7 +8928,7 @@ invalidTypeArgumentInConstList = DiagnosticWithArguments(
   correctionMessage: "Try replacing the type parameter with a different type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST',
+  uniqueName: 'INVALID_TYPE_ARGUMENT_IN_CONST_LIST',
   withArguments: _withArgumentsInvalidTypeArgumentInConstList,
   expectedTypes: [ExpectedType.object],
 );
@@ -8984,7 +8946,7 @@ invalidTypeArgumentInConstMap = DiagnosticWithArguments(
   correctionMessage: "Try replacing the type parameter with a different type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP',
+  uniqueName: 'INVALID_TYPE_ARGUMENT_IN_CONST_MAP',
   withArguments: _withArgumentsInvalidTypeArgumentInConstMap,
   expectedTypes: [ExpectedType.object],
 );
@@ -9002,7 +8964,7 @@ invalidTypeArgumentInConstSet = DiagnosticWithArguments(
   correctionMessage: "Try replacing the type parameter with a different type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET',
+  uniqueName: 'INVALID_TYPE_ARGUMENT_IN_CONST_SET',
   withArguments: _withArgumentsInvalidTypeArgumentInConstSet,
   expectedTypes: [ExpectedType.string],
 );
@@ -9015,7 +8977,7 @@ const DiagnosticWithoutArguments invalidUnicodeEscapeStarted =
       correctionMessage:
           "Try adding another backslash (\\) to escape the '\\'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.INVALID_UNICODE_ESCAPE_STARTED',
+      uniqueName: 'INVALID_UNICODE_ESCAPE_STARTED',
       expectedTypes: [],
     );
 
@@ -9027,7 +8989,7 @@ const DiagnosticWithoutArguments invalidUnicodeEscapeUBracket =
           "An escape sequence starting with '\\u{' must be followed by 1 to 6 "
           "hexadecimal digits followed by a '}'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET',
+      uniqueName: 'INVALID_UNICODE_ESCAPE_U_BRACKET',
       expectedTypes: [],
     );
 
@@ -9039,7 +9001,7 @@ invalidUnicodeEscapeUNoBracket = DiagnosticWithoutArgumentsImpl(
       "An escape sequence starting with '\\u' must be followed by 4 hexadecimal "
       "digits.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.INVALID_UNICODE_ESCAPE_U_NO_BRACKET',
+  uniqueName: 'INVALID_UNICODE_ESCAPE_U_NO_BRACKET',
   expectedTypes: [],
 );
 
@@ -9051,7 +9013,7 @@ invalidUnicodeEscapeUStarted = DiagnosticWithoutArgumentsImpl(
       "An escape sequence starting with '\\u' must be followed by 4 hexadecimal "
       "digits or from 1 to 6 digits between '{' and '}'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.INVALID_UNICODE_ESCAPE_U_STARTED',
+  uniqueName: 'INVALID_UNICODE_ESCAPE_U_STARTED',
   expectedTypes: [],
 );
 
@@ -9065,7 +9027,7 @@ invalidUri = DiagnosticWithArguments(
   problemMessage: "Invalid URI syntax: '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVALID_URI',
+  uniqueName: 'INVALID_URI',
   withArguments: _withArgumentsInvalidUri,
   expectedTypes: [ExpectedType.string],
 );
@@ -9081,7 +9043,7 @@ const DiagnosticWithoutArguments invalidUseOfCovariant =
           "methods or before non-final instance fields.",
       correctionMessage: "Try removing the 'covariant' keyword.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.INVALID_USE_OF_COVARIANT',
+      uniqueName: 'INVALID_USE_OF_COVARIANT',
       expectedTypes: [],
     );
 
@@ -9096,7 +9058,7 @@ const DiagnosticCode invalidUseOfCovariantInExtension =
       correctionMessage: "Try removing '{0}'.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION',
+      uniqueName: 'INVALID_USE_OF_COVARIANT_IN_EXTENSION',
       expectedTypes: [ExpectedType.token],
     );
 
@@ -9111,7 +9073,7 @@ invalidUseOfDoNotSubmitMember = DiagnosticWithArguments(
   correctionMessage: "Try removing the reference to '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER',
+  uniqueName: 'INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER',
   withArguments: _withArgumentsInvalidUseOfDoNotSubmitMember,
   expectedTypes: [ExpectedType.string],
 );
@@ -9125,7 +9087,7 @@ invalidUseOfIdentifierAugmented = DiagnosticWithoutArgumentsImpl(
       "declaration inside an augmentation.",
   correctionMessage: "Try using a different identifier.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.INVALID_USE_OF_IDENTIFIER_AUGMENTED',
+  uniqueName: 'INVALID_USE_OF_IDENTIFIER_AUGMENTED',
   expectedTypes: [],
 );
 
@@ -9139,7 +9101,7 @@ invalidUseOfInternalMember = DiagnosticWithArguments(
   problemMessage: "The member '{0}' can only be used within its package.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_USE_OF_INTERNAL_MEMBER',
+  uniqueName: 'INVALID_USE_OF_INTERNAL_MEMBER',
   withArguments: _withArgumentsInvalidUseOfInternalMember,
   expectedTypes: [ExpectedType.string],
 );
@@ -9153,7 +9115,7 @@ const DiagnosticWithoutArguments invalidUseOfNullValue =
       correctionMessage: "Try changing the type of the expression.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE',
+      uniqueName: 'INVALID_USE_OF_NULL_VALUE',
       expectedTypes: [],
     );
 
@@ -9173,7 +9135,7 @@ invalidUseOfProtectedMember = DiagnosticWithArguments(
       "of '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_USE_OF_PROTECTED_MEMBER',
+  uniqueName: 'INVALID_USE_OF_PROTECTED_MEMBER',
   withArguments: _withArgumentsInvalidUseOfProtectedMember,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -9188,7 +9150,7 @@ invalidUseOfVisibleForOverridingMember = DiagnosticWithArguments(
   problemMessage: "The member '{0}' can only be used for overriding.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER',
+  uniqueName: 'INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER',
   withArguments: _withArgumentsInvalidUseOfVisibleForOverridingMember,
   expectedTypes: [ExpectedType.string],
 );
@@ -9207,7 +9169,7 @@ invalidUseOfVisibleForTemplateMember = DiagnosticWithArguments(
   problemMessage:
       "The member '{0}' can only be used within '{1}' or a template library.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER',
+  uniqueName: 'INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER',
   withArguments: _withArgumentsInvalidUseOfVisibleForTemplateMember,
   expectedTypes: [ExpectedType.string, ExpectedType.uri],
 );
@@ -9226,7 +9188,7 @@ invalidUseOfVisibleForTestingMember = DiagnosticWithArguments(
   problemMessage: "The member '{0}' can only be used within '{1}' or a test.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER',
+  uniqueName: 'INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER',
   withArguments: _withArgumentsInvalidUseOfVisibleForTestingMember,
   expectedTypes: [ExpectedType.string, ExpectedType.uri],
 );
@@ -9247,7 +9209,7 @@ invalidVisibilityAnnotation = DiagnosticWithArguments(
       "meaningful on declarations of public members.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_VISIBILITY_ANNOTATION',
+  uniqueName: 'INVALID_VISIBILITY_ANNOTATION',
   withArguments: _withArgumentsInvalidVisibilityAnnotation,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -9261,7 +9223,7 @@ invalidVisibleForOverridingAnnotation = DiagnosticWithoutArgumentsImpl(
       "instance member that can be overridden.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION',
+  uniqueName: 'INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION',
   expectedTypes: [],
 );
 
@@ -9275,7 +9237,7 @@ invalidVisibleOutsideTemplateAnnotation = DiagnosticWithoutArgumentsImpl(
       "'visibleForTemplate'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION',
+  uniqueName: 'INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION',
   expectedTypes: [],
 );
 
@@ -9288,7 +9250,7 @@ invalidWidgetPreviewApplication = DiagnosticWithoutArgumentsImpl(
       "accessible constructors and functions.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION',
+  uniqueName: 'INVALID_WIDGET_PREVIEW_APPLICATION',
   expectedTypes: [],
 );
 
@@ -9306,7 +9268,7 @@ invalidWidgetPreviewPrivateArgument = DiagnosticWithArguments(
   correctionMessage: "Rename private symbol '{0}' to '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT',
+  uniqueName: 'INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT',
   withArguments: _withArgumentsInvalidWidgetPreviewPrivateArgument,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -9323,7 +9285,7 @@ invocationOfExtensionWithoutCall = DiagnosticWithArguments(
       "be used in an invocation.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL',
+  uniqueName: 'INVOCATION_OF_EXTENSION_WITHOUT_CALL',
   withArguments: _withArgumentsInvocationOfExtensionWithoutCall,
   expectedTypes: [ExpectedType.string],
 );
@@ -9341,7 +9303,7 @@ invocationOfNonFunction = DiagnosticWithArguments(
       "method or function named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION',
+  uniqueName: 'INVOCATION_OF_NON_FUNCTION',
   withArguments: _withArgumentsInvocationOfNonFunction,
   expectedTypes: [ExpectedType.string],
 );
@@ -9354,7 +9316,7 @@ invocationOfNonFunctionExpression = DiagnosticWithoutArgumentsImpl(
       "The expression doesn't evaluate to a function, so it can't be invoked.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION',
+  uniqueName: 'INVOCATION_OF_NON_FUNCTION_EXPRESSION',
   expectedTypes: [],
 );
 
@@ -9368,7 +9330,7 @@ labelInOuterScope = DiagnosticWithArguments(
   problemMessage: "Can't reference label '{0}' declared in an outer method.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE',
+  uniqueName: 'LABEL_IN_OUTER_SCOPE',
   withArguments: _withArgumentsLabelInOuterScope,
   expectedTypes: [ExpectedType.string],
 );
@@ -9386,7 +9348,7 @@ labelUndefined = DiagnosticWithArguments(
       "label.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.LABEL_UNDEFINED',
+  uniqueName: 'LABEL_UNDEFINED',
   withArguments: _withArgumentsLabelUndefined,
   expectedTypes: [ExpectedType.string],
 );
@@ -9403,8 +9365,7 @@ const DiagnosticWithoutArguments lateFinalFieldWithConstConstructor =
           "constructors.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR',
+      uniqueName: 'LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR',
       expectedTypes: [],
     );
 
@@ -9417,7 +9378,7 @@ const DiagnosticWithoutArguments lateFinalLocalAlreadyAssigned =
           "Try removing the 'final' modifier, or don't reassign the value.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED',
+      uniqueName: 'LATE_FINAL_LOCAL_ALREADY_ASSIGNED',
       expectedTypes: [],
     );
 
@@ -9431,7 +9392,7 @@ const DiagnosticWithoutArguments latePatternVariableDeclaration =
           "A pattern variable declaration may not use the `late` keyword.",
       correctionMessage: "Try removing the keyword `late`.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION',
+      uniqueName: 'LATE_PATTERN_VARIABLE_DECLARATION',
       expectedTypes: [],
     );
 
@@ -9443,7 +9404,7 @@ const DiagnosticWithoutArguments leafCallMustNotReturnHandle =
       correctionMessage: "Try changing the return type to primitive or struct.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE',
+      uniqueName: 'LEAF_CALL_MUST_NOT_RETURN_HANDLE',
       expectedTypes: [],
     );
 
@@ -9456,7 +9417,7 @@ const DiagnosticWithoutArguments leafCallMustNotTakeHandle =
           "Try changing the argument type to primitive or struct.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE',
+      uniqueName: 'LEAF_CALL_MUST_NOT_TAKE_HANDLE',
       expectedTypes: [],
     );
 
@@ -9469,7 +9430,7 @@ const DiagnosticWithoutArguments libraryDirectiveNotFirst =
       correctionMessage:
           "Try moving the library directive before any other directives.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST',
+      uniqueName: 'LIBRARY_DIRECTIVE_NOT_FIRST',
       expectedTypes: [],
     );
 
@@ -9485,7 +9446,7 @@ listElementTypeNotAssignable = DiagnosticWithArguments(
       "The element type '{0}' can't be assigned to the list type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
+  uniqueName: 'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
   withArguments: _withArgumentsListElementTypeNotAssignable,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -9502,8 +9463,7 @@ listElementTypeNotAssignableNullability = DiagnosticWithArguments(
       "The element type '{0}' can't be assigned to the list type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY',
+  uniqueName: 'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY',
   withArguments: _withArgumentsListElementTypeNotAssignableNullability,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -9516,7 +9476,7 @@ const DiagnosticCode literalWithClass = DiagnosticCodeWithExpectedTypes(
   problemMessage: "A {0} literal can't be prefixed by '{1}'.",
   correctionMessage: "Try removing '{1}'",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.LITERAL_WITH_CLASS',
+  uniqueName: 'LITERAL_WITH_CLASS',
   expectedTypes: [ExpectedType.string, ExpectedType.token],
 );
 
@@ -9528,7 +9488,7 @@ const DiagnosticCode literalWithClassAndNew = DiagnosticCodeWithExpectedTypes(
   problemMessage: "A {0} literal can't be prefixed by 'new {1}'.",
   correctionMessage: "Try removing 'new' and '{1}'",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.LITERAL_WITH_CLASS_AND_NEW',
+  uniqueName: 'LITERAL_WITH_CLASS_AND_NEW',
   expectedTypes: [ExpectedType.string, ExpectedType.token],
 );
 
@@ -9539,7 +9499,7 @@ const DiagnosticWithoutArguments literalWithNew =
       problemMessage: "A literal can't be prefixed by 'new'.",
       correctionMessage: "Try removing 'new'",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.LITERAL_WITH_NEW',
+      uniqueName: 'LITERAL_WITH_NEW',
       expectedTypes: [],
     );
 
@@ -9551,7 +9511,7 @@ const DiagnosticWithoutArguments localFunctionDeclarationModifier =
           "Local function declarations can't specify any modifiers.",
       correctionMessage: "Try removing the modifier.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER',
+      uniqueName: 'LOCAL_FUNCTION_DECLARATION_MODIFIER',
       expectedTypes: [],
     );
 
@@ -9565,7 +9525,7 @@ mainFirstPositionalParameterType = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try changing the type of the parameter.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE',
+  uniqueName: 'MAIN_FIRST_POSITIONAL_PARAMETER_TYPE',
   expectedTypes: [],
 );
 
@@ -9580,26 +9540,25 @@ const DiagnosticWithoutArguments mainHasRequiredNamedParameters =
           "'required' modifier.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS',
+      uniqueName: 'MAIN_HAS_REQUIRED_NAMED_PARAMETERS',
       expectedTypes: [],
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-mainHasTooManyRequiredPositionalParameters = DiagnosticWithoutArgumentsImpl(
-  name: 'MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS',
-  problemMessage:
-      "The function 'main' can't have more than two required positional "
-      "parameters.",
-  correctionMessage:
-      "Try using a different name for the function, or removing extra "
-      "parameters.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments mainHasTooManyRequiredPositionalParameters =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS',
+      problemMessage:
+          "The function 'main' can't have more than two required positional "
+          "parameters.",
+      correctionMessage:
+          "Try using a different name for the function, or removing extra "
+          "parameters.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments mainIsNotFunction =
@@ -9609,7 +9568,7 @@ const DiagnosticWithoutArguments mainIsNotFunction =
       correctionMessage: "Try using a different name for this declaration.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION',
+      uniqueName: 'MAIN_IS_NOT_FUNCTION',
       expectedTypes: [],
     );
 
@@ -9622,7 +9581,7 @@ const DiagnosticWithoutArguments mapEntryNotInMap =
           "Try converting the collection to a map or removing the map entry.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP',
+      uniqueName: 'MAP_ENTRY_NOT_IN_MAP',
       expectedTypes: [],
     );
 
@@ -9638,7 +9597,7 @@ mapKeyTypeNotAssignable = DiagnosticWithArguments(
       "The element type '{0}' can't be assigned to the map key type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE',
+  uniqueName: 'MAP_KEY_TYPE_NOT_ASSIGNABLE',
   withArguments: _withArgumentsMapKeyTypeNotAssignable,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -9655,7 +9614,7 @@ mapKeyTypeNotAssignableNullability = DiagnosticWithArguments(
       "The element type '{0}' can't be assigned to the map key type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY',
+  uniqueName: 'MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY',
   withArguments: _withArgumentsMapKeyTypeNotAssignableNullability,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -9672,7 +9631,7 @@ mapValueTypeNotAssignable = DiagnosticWithArguments(
       "The element type '{0}' can't be assigned to the map value type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE',
+  uniqueName: 'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
   withArguments: _withArgumentsMapValueTypeNotAssignable,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -9689,7 +9648,7 @@ mapValueTypeNotAssignableNullability = DiagnosticWithArguments(
       "The element type '{0}' can't be assigned to the map value type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY',
+  uniqueName: 'MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY',
   withArguments: _withArgumentsMapValueTypeNotAssignableNullability,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -9702,7 +9661,7 @@ const DiagnosticWithoutArguments memberWithClassName =
           "A class member can't have the same name as the enclosing class.",
       correctionMessage: "Try renaming the member.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MEMBER_WITH_CLASS_NAME',
+      uniqueName: 'MEMBER_WITH_CLASS_NAME',
       expectedTypes: [],
     );
 
@@ -9717,7 +9676,7 @@ const DiagnosticWithoutArguments mismatchedAnnotationOnStructField =
           "match.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FfiCode.MISMATCHED_ANNOTATION_ON_STRUCT_FIELD',
+      uniqueName: 'MISMATCHED_ANNOTATION_ON_STRUCT_FIELD',
       expectedTypes: [],
     );
 
@@ -9735,7 +9694,7 @@ missingAnnotationOnStructField = DiagnosticWithArguments(
   correctionMessage: "Try adding an annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD',
+  uniqueName: 'MISSING_ANNOTATION_ON_STRUCT_FIELD',
   withArguments: _withArgumentsMissingAnnotationOnStructField,
   expectedTypes: [ExpectedType.type, ExpectedType.string],
 );
@@ -9747,7 +9706,7 @@ const DiagnosticWithoutArguments missingAssignableSelector =
       problemMessage: "Missing selector such as '.identifier' or '[0]'.",
       correctionMessage: "Try adding a selector.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR',
+      uniqueName: 'MISSING_ASSIGNABLE_SELECTOR',
       expectedTypes: [],
     );
 
@@ -9759,7 +9718,7 @@ const DiagnosticWithoutArguments missingAssignmentInInitializer =
       correctionMessage:
           "To initialize a field, use the syntax 'name = value'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER',
+      uniqueName: 'MISSING_ASSIGNMENT_IN_INITIALIZER',
       expectedTypes: [],
     );
 
@@ -9773,7 +9732,7 @@ missingCatchOrFinally = DiagnosticWithoutArgumentsImpl(
       "Try adding either a catch or finally clause, or remove the try "
       "statement.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.MISSING_CATCH_OR_FINALLY',
+  uniqueName: 'MISSING_CATCH_OR_FINALLY',
   expectedTypes: [],
 );
 
@@ -9784,7 +9743,7 @@ const DiagnosticWithoutArguments missingClosingParenthesis =
       problemMessage: "The closing parenthesis is missing.",
       correctionMessage: "Try adding the closing parenthesis.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MISSING_CLOSING_PARENTHESIS',
+      uniqueName: 'MISSING_CLOSING_PARENTHESIS',
       expectedTypes: [],
     );
 
@@ -9798,7 +9757,7 @@ missingConstFinalVarOrType = DiagnosticWithoutArgumentsImpl(
   correctionMessage:
       "Try adding the name of the type of the variable or the keyword 'var'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE',
+  uniqueName: 'MISSING_CONST_FINAL_VAR_OR_TYPE',
   expectedTypes: [],
 );
 
@@ -9814,7 +9773,7 @@ const DiagnosticWithoutArguments missingConstInListLiteral =
       problemMessage:
           "Seeing this message constitutes a bug. Please report it.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL',
+      uniqueName: 'MISSING_CONST_IN_LIST_LITERAL',
       expectedTypes: [],
     );
 
@@ -9830,7 +9789,7 @@ const DiagnosticWithoutArguments missingConstInMapLiteral =
       problemMessage:
           "Seeing this message constitutes a bug. Please report it.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL',
+      uniqueName: 'MISSING_CONST_IN_MAP_LITERAL',
       expectedTypes: [],
     );
 
@@ -9846,7 +9805,7 @@ const DiagnosticWithoutArguments missingConstInSetLiteral =
       problemMessage:
           "Seeing this message constitutes a bug. Please report it.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL',
+      uniqueName: 'MISSING_CONST_IN_SET_LITERAL',
       expectedTypes: [],
     );
 
@@ -9861,7 +9820,7 @@ missingDartLibrary = DiagnosticWithArguments(
   correctionMessage: "Re-install the Dart or Flutter SDK.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.MISSING_DART_LIBRARY',
+  uniqueName: 'MISSING_DART_LIBRARY',
   withArguments: _withArgumentsMissingDartLibrary,
   expectedTypes: [ExpectedType.object],
 );
@@ -9881,7 +9840,7 @@ missingDefaultValueForParameter = DiagnosticWithArguments(
       "'required' modifier.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER',
+  uniqueName: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
   withArguments: _withArgumentsMissingDefaultValueForParameter,
   expectedTypes: [ExpectedType.string],
 );
@@ -9899,26 +9858,24 @@ missingDefaultValueForParameterPositional = DiagnosticWithArguments(
   correctionMessage: "Try adding an explicit non-'null' default value.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL',
+  uniqueName: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL',
   withArguments: _withArgumentsMissingDefaultValueForParameterPositional,
   expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-missingDefaultValueForParameterWithAnnotation = DiagnosticWithoutArgumentsImpl(
-  name: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
-  problemMessage:
-      "With null safety, use the 'required' keyword, not the '@required' "
-      "annotation.",
-  correctionMessage: "Try removing the '@'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments missingDefaultValueForParameterWithAnnotation =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
+      problemMessage:
+          "With null safety, use the 'required' keyword, not the '@required' "
+          "annotation.",
+      correctionMessage: "Try removing the '@'.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String p0: the list of packages missing from the dependencies and the list
@@ -9933,7 +9890,7 @@ missingDependency = DiagnosticWithArguments(
   correctionMessage: "Try adding {0}.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PubspecWarningCode.MISSING_DEPENDENCY',
+  uniqueName: 'MISSING_DEPENDENCY',
   withArguments: _withArgumentsMissingDependency,
   expectedTypes: [ExpectedType.string],
 );
@@ -9943,7 +9900,7 @@ const DiagnosticWithoutArguments missingDigit = DiagnosticWithoutArgumentsImpl(
   name: 'MISSING_DIGIT',
   problemMessage: "Decimal digit expected.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ScannerErrorCode.MISSING_DIGIT',
+  uniqueName: 'MISSING_DIGIT',
   expectedTypes: [],
 );
 
@@ -9955,7 +9912,7 @@ missingEnumBody = DiagnosticWithoutArgumentsImpl(
       "An enum definition must have a body with at least one constant name.",
   correctionMessage: "Try adding a body and defining at least one constant.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.MISSING_ENUM_BODY',
+  uniqueName: 'MISSING_ENUM_BODY',
   expectedTypes: [],
 );
 
@@ -9972,7 +9929,7 @@ missingEnumConstantInSwitch = DiagnosticWithArguments(
       "default clause.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH',
+  uniqueName: 'MISSING_ENUM_CONSTANT_IN_SWITCH',
   withArguments: _withArgumentsMissingEnumConstantInSwitch,
   expectedTypes: [ExpectedType.string],
 );
@@ -9991,7 +9948,7 @@ missingExceptionValue = DiagnosticWithArguments(
   correctionMessage: "Try adding an exceptional return value.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.MISSING_EXCEPTION_VALUE',
+  uniqueName: 'MISSING_EXCEPTION_VALUE',
   withArguments: _withArgumentsMissingExceptionValue,
   expectedTypes: [ExpectedType.string],
 );
@@ -10005,7 +9962,7 @@ const DiagnosticWithoutArguments missingExpressionInInitializer =
           "Try adding the value to be assigned, or remove the assignment "
           "operator.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MISSING_EXPRESSION_IN_INITIALIZER',
+      uniqueName: 'MISSING_EXPRESSION_IN_INITIALIZER',
       expectedTypes: [],
     );
 
@@ -10018,7 +9975,7 @@ const DiagnosticWithoutArguments missingExpressionInThrow =
           "Add an expression after 'throw' or use 'rethrow' to throw a caught "
           "exception",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MISSING_EXPRESSION_IN_THROW',
+      uniqueName: 'MISSING_EXPRESSION_IN_THROW',
       expectedTypes: [],
     );
 
@@ -10032,7 +9989,7 @@ missingFieldTypeInStruct = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try using 'int', 'double' or 'Pointer'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.MISSING_FIELD_TYPE_IN_STRUCT',
+  uniqueName: 'MISSING_FIELD_TYPE_IN_STRUCT',
   expectedTypes: [],
 );
 
@@ -10043,7 +10000,7 @@ const DiagnosticWithoutArguments missingFunctionBody =
       problemMessage: "A function body must be provided.",
       correctionMessage: "Try adding a function body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MISSING_FUNCTION_BODY',
+      uniqueName: 'MISSING_FUNCTION_BODY',
       expectedTypes: [],
     );
 
@@ -10056,7 +10013,7 @@ missingFunctionKeyword = DiagnosticWithoutArgumentsImpl(
       "list.",
   correctionMessage: "Try adding the keyword 'Function'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.MISSING_FUNCTION_KEYWORD',
+  uniqueName: 'MISSING_FUNCTION_KEYWORD',
   expectedTypes: [],
 );
 
@@ -10067,7 +10024,7 @@ const DiagnosticWithoutArguments missingFunctionParameters =
       problemMessage: "Functions must have an explicit list of parameters.",
       correctionMessage: "Try adding a parameter list.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MISSING_FUNCTION_PARAMETERS',
+      uniqueName: 'MISSING_FUNCTION_PARAMETERS',
       expectedTypes: [],
     );
 
@@ -10077,7 +10034,7 @@ const DiagnosticWithoutArguments missingGet = DiagnosticWithoutArgumentsImpl(
   problemMessage: "Getters must have the keyword 'get' before the getter name.",
   correctionMessage: "Try adding the keyword 'get'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.MISSING_GET',
+  uniqueName: 'MISSING_GET',
   expectedTypes: [],
 );
 
@@ -10087,7 +10044,7 @@ const DiagnosticWithoutArguments missingHexDigit =
       name: 'MISSING_HEX_DIGIT',
       problemMessage: "Hexadecimal digit expected.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ScannerErrorCode.MISSING_HEX_DIGIT',
+      uniqueName: 'MISSING_HEX_DIGIT',
       expectedTypes: [],
     );
 
@@ -10097,7 +10054,7 @@ const DiagnosticWithoutArguments missingIdentifier =
       name: 'MISSING_IDENTIFIER',
       problemMessage: "Expected an identifier.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MISSING_IDENTIFIER',
+      uniqueName: 'MISSING_IDENTIFIER',
       expectedTypes: [],
     );
 
@@ -10107,7 +10064,7 @@ const DiagnosticWithoutArguments missingInitializer =
       name: 'MISSING_INITIALIZER',
       problemMessage: "Expected an initializer.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MISSING_INITIALIZER',
+      uniqueName: 'MISSING_INITIALIZER',
       expectedTypes: [],
     );
 
@@ -10119,7 +10076,7 @@ const DiagnosticWithoutArguments missingKeywordOperator =
           "Operator declarations must be preceded by the keyword 'operator'.",
       correctionMessage: "Try adding the keyword 'operator'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MISSING_KEYWORD_OPERATOR',
+      uniqueName: 'MISSING_KEYWORD_OPERATOR',
       expectedTypes: [],
     );
 
@@ -10130,7 +10087,7 @@ const DiagnosticWithoutArguments missingMethodParameters =
       problemMessage: "Methods must have an explicit list of parameters.",
       correctionMessage: "Try adding a parameter list.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MISSING_METHOD_PARAMETERS',
+      uniqueName: 'MISSING_METHOD_PARAMETERS',
       expectedTypes: [],
     );
 
@@ -10141,7 +10098,7 @@ const DiagnosticWithoutArguments missingName = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try adding a field named 'name'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PubspecWarningCode.MISSING_NAME',
+  uniqueName: 'MISSING_NAME',
   expectedTypes: [],
 );
 
@@ -10157,7 +10114,7 @@ missingNamedPatternFieldName = DiagnosticWithoutArgumentsImpl(
       "pattern.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME',
+  uniqueName: 'MISSING_NAMED_PATTERN_FIELD_NAME',
   expectedTypes: [],
 );
 
@@ -10169,7 +10126,7 @@ missingNameForNamedParameter = DiagnosticWithoutArgumentsImpl(
   correctionMessage:
       "Try providing a name for the parameter or removing the curly braces.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER',
+  uniqueName: 'MISSING_NAME_FOR_NAMED_PARAMETER',
   expectedTypes: [],
 );
 
@@ -10182,7 +10139,7 @@ missingNameInLibraryDirective = DiagnosticWithoutArgumentsImpl(
       "Try adding a library name after the keyword 'library', or remove the "
       "library directive if the library doesn't have any parts.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE',
+  uniqueName: 'MISSING_NAME_IN_LIBRARY_DIRECTIVE',
   expectedTypes: [],
 );
 
@@ -10193,7 +10150,7 @@ const DiagnosticWithoutArguments missingNameInPartOfDirective =
       problemMessage: "Part-of directives must include a library name.",
       correctionMessage: "Try adding a library name after the 'of'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE',
+      uniqueName: 'MISSING_NAME_IN_PART_OF_DIRECTIVE',
       expectedTypes: [],
     );
 
@@ -10208,7 +10165,7 @@ missingOverrideOfMustBeOverriddenOne = DiagnosticWithArguments(
   correctionMessage: "Try overriding the missing member.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE',
+  uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE',
   withArguments: _withArgumentsMissingOverrideOfMustBeOverriddenOne,
   expectedTypes: [ExpectedType.string],
 );
@@ -10231,7 +10188,7 @@ missingOverrideOfMustBeOverriddenThreePlus = DiagnosticWithArguments(
   correctionMessage: "Try overriding the missing members.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS',
+  uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS',
   withArguments: _withArgumentsMissingOverrideOfMustBeOverriddenThreePlus,
   expectedTypes: [
     ExpectedType.string,
@@ -10255,7 +10212,7 @@ missingOverrideOfMustBeOverriddenTwo = DiagnosticWithArguments(
   correctionMessage: "Try overriding the missing members.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO',
+  uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO',
   withArguments: _withArgumentsMissingOverrideOfMustBeOverriddenTwo,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -10268,7 +10225,7 @@ const DiagnosticWithoutArguments missingPrefixInDeferredImport =
       correctionMessage:
           "Try adding a prefix to the import by adding an 'as' clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT',
+      uniqueName: 'MISSING_PREFIX_IN_DEFERRED_IMPORT',
       expectedTypes: [],
     );
 
@@ -10282,7 +10239,7 @@ const DiagnosticWithoutArguments missingPrimaryConstructor =
       correctionMessage:
           "Try adding a primary constructor to the extension type declaration.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR',
+      uniqueName: 'MISSING_PRIMARY_CONSTRUCTOR',
       expectedTypes: [],
     );
 
@@ -10295,7 +10252,7 @@ const DiagnosticWithoutArguments missingPrimaryConstructorParameters =
       correctionMessage:
           "Try adding formal parameters after the primary constructor name.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS',
+      uniqueName: 'MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS',
       expectedTypes: [],
     );
 
@@ -10304,7 +10261,7 @@ const DiagnosticWithoutArguments missingQuote = DiagnosticWithoutArgumentsImpl(
   name: 'MISSING_QUOTE',
   problemMessage: "Expected quote (' or \").",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ScannerErrorCode.MISSING_QUOTE',
+  uniqueName: 'MISSING_QUOTE',
   expectedTypes: [],
 );
 
@@ -10321,7 +10278,7 @@ missingRequiredArgument = DiagnosticWithArguments(
   correctionMessage: "Try adding the required argument.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT',
+  uniqueName: 'MISSING_REQUIRED_ARGUMENT',
   withArguments: _withArgumentsMissingRequiredArgument,
   expectedTypes: [ExpectedType.string],
 );
@@ -10339,7 +10296,7 @@ missingRequiredParam = DiagnosticWithArguments(
   problemMessage: "The parameter '{0}' is required.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.MISSING_REQUIRED_PARAM',
+  uniqueName: 'MISSING_REQUIRED_PARAM',
   withArguments: _withArgumentsMissingRequiredParam,
   expectedTypes: [ExpectedType.string],
 );
@@ -10358,7 +10315,7 @@ missingRequiredParamWithDetails = DiagnosticWithArguments(
   problemMessage: "The parameter '{0}' is required. {1}.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS',
+  uniqueName: 'MISSING_REQUIRED_PARAM_WITH_DETAILS',
   withArguments: _withArgumentsMissingRequiredParamWithDetails,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -10374,7 +10331,7 @@ const DiagnosticWithoutArguments missingSizeAnnotationCarray =
           "annotations.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FfiCode.MISSING_SIZE_ANNOTATION_CARRAY',
+      uniqueName: 'MISSING_SIZE_ANNOTATION_CARRAY',
       expectedTypes: [],
     );
 
@@ -10385,7 +10342,7 @@ const DiagnosticWithoutArguments missingStarAfterSync =
       problemMessage: "The modifier 'sync' must be followed by a star ('*').",
       correctionMessage: "Try removing the modifier, or add a star.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MISSING_STAR_AFTER_SYNC',
+      uniqueName: 'MISSING_STAR_AFTER_SYNC',
       expectedTypes: [],
     );
 
@@ -10395,7 +10352,7 @@ const DiagnosticWithoutArguments missingStatement =
       name: 'MISSING_STATEMENT',
       problemMessage: "Expected a statement.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MISSING_STATEMENT',
+      uniqueName: 'MISSING_STATEMENT',
       expectedTypes: [],
     );
 
@@ -10409,7 +10366,7 @@ missingTerminatorForParameterGroup = DiagnosticWithArguments(
   problemMessage: "There is no '{0}' to close the parameter group.",
   correctionMessage: "Try inserting a '{0}' at the end of the group.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP',
+  uniqueName: 'MISSING_TERMINATOR_FOR_PARAMETER_GROUP',
   withArguments: _withArgumentsMissingTerminatorForParameterGroup,
   expectedTypes: [ExpectedType.object],
 );
@@ -10421,7 +10378,7 @@ const DiagnosticWithoutArguments missingTypedefParameters =
       problemMessage: "Typedefs must have an explicit list of parameters.",
       correctionMessage: "Try adding a parameter list.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MISSING_TYPEDEF_PARAMETERS',
+      uniqueName: 'MISSING_TYPEDEF_PARAMETERS',
       expectedTypes: [],
     );
 
@@ -10434,7 +10391,7 @@ missingVariableInForEach = DiagnosticWithoutArgumentsImpl(
       "none was found.",
   correctionMessage: "Try declaring a loop variable.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH',
+  uniqueName: 'MISSING_VARIABLE_IN_FOR_EACH',
   expectedTypes: [],
 );
 
@@ -10451,7 +10408,7 @@ missingVariablePattern = DiagnosticWithArguments(
   correctionMessage: "Try declaring this variable pattern in the branch.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.MISSING_VARIABLE_PATTERN',
+  uniqueName: 'MISSING_VARIABLE_PATTERN',
   withArguments: _withArgumentsMissingVariablePattern,
   expectedTypes: [ExpectedType.string],
 );
@@ -10465,7 +10422,7 @@ mixedParameterGroups = DiagnosticWithoutArgumentsImpl(
       "list.",
   correctionMessage: "Try choosing a single style of optional parameters.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.MIXED_PARAMETER_GROUPS',
+  uniqueName: 'MIXED_PARAMETER_GROUPS',
   expectedTypes: [],
 );
 
@@ -10488,8 +10445,7 @@ mixinApplicationConcreteSuperInvokedMemberType = DiagnosticWithArguments(
       "member in the class has the type '{2}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE',
+  uniqueName: 'MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE',
   withArguments: _withArgumentsMixinApplicationConcreteSuperInvokedMemberType,
   expectedTypes: [ExpectedType.string, ExpectedType.type, ExpectedType.type],
 );
@@ -10507,8 +10463,7 @@ mixinApplicationNoConcreteSuperInvokedMember = DiagnosticWithArguments(
       "member '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
+  uniqueName: 'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
   withArguments: _withArgumentsMixinApplicationNoConcreteSuperInvokedMember,
   expectedTypes: [ExpectedType.string],
 );
@@ -10526,8 +10481,7 @@ mixinApplicationNoConcreteSuperInvokedSetter = DiagnosticWithArguments(
       "setter '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER',
+  uniqueName: 'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER',
   withArguments: _withArgumentsMixinApplicationNoConcreteSuperInvokedSetter,
   expectedTypes: [ExpectedType.string],
 );
@@ -10550,8 +10504,7 @@ mixinApplicationNotImplementedInterface = DiagnosticWithArguments(
   correctionMessage: "Try extending the class '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
+  uniqueName: 'MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
   withArguments: _withArgumentsMixinApplicationNotImplementedInterface,
   expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.type],
 );
@@ -10571,7 +10524,7 @@ mixinClassDeclarationExtendsNotObject = DiagnosticWithArguments(
       "'Object'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT',
+  uniqueName: 'MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT',
   withArguments: _withArgumentsMixinClassDeclarationExtendsNotObject,
   expectedTypes: [ExpectedType.string],
 );
@@ -10588,7 +10541,7 @@ mixinClassDeclaresConstructor = DiagnosticWithArguments(
       "constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR',
+  uniqueName: 'MIXIN_CLASS_DECLARES_CONSTRUCTOR',
   withArguments: _withArgumentsMixinClassDeclaresConstructor,
   expectedTypes: [ExpectedType.string],
 );
@@ -10599,7 +10552,7 @@ const DiagnosticWithoutArguments mixinDeclaresConstructor =
       name: 'MIXIN_DECLARES_CONSTRUCTOR',
       problemMessage: "Mixins can't declare constructors.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR',
+      uniqueName: 'MIXIN_DECLARES_CONSTRUCTOR',
       expectedTypes: [],
     );
 
@@ -10611,7 +10564,7 @@ const DiagnosticWithoutArguments mixinDeferredClass =
       correctionMessage: "Try changing the import to not be deferred.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.MIXIN_DEFERRED_CLASS',
+      uniqueName: 'MIXIN_DEFERRED_CLASS',
       expectedTypes: [],
     );
 
@@ -10627,7 +10580,7 @@ mixinInheritsFromNotObject = DiagnosticWithArguments(
       "than 'Object'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT',
+  uniqueName: 'MIXIN_INHERITS_FROM_NOT_OBJECT',
   withArguments: _withArgumentsMixinInheritsFromNotObject,
   expectedTypes: [ExpectedType.string],
 );
@@ -10639,7 +10592,7 @@ const DiagnosticWithoutArguments mixinInstantiate =
       problemMessage: "Mixins can't be instantiated.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.MIXIN_INSTANTIATE',
+      uniqueName: 'MIXIN_INSTANTIATE',
       expectedTypes: [],
     );
 
@@ -10656,7 +10609,7 @@ mixinOfDisallowedClass = DiagnosticWithArguments(
       "mixin from the list.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS',
+  uniqueName: 'MIXIN_OF_DISALLOWED_CLASS',
   withArguments: _withArgumentsMixinOfDisallowedClass,
   expectedTypes: [ExpectedType.type],
 );
@@ -10668,7 +10621,7 @@ const DiagnosticWithoutArguments mixinOfNonClass =
       problemMessage: "Classes can only mix in mixins and classes.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.MIXIN_OF_NON_CLASS',
+      uniqueName: 'MIXIN_OF_NON_CLASS',
       expectedTypes: [],
     );
 
@@ -10680,8 +10633,7 @@ const DiagnosticWithoutArguments mixinOfTypeAliasExpandsToTypeParameter =
           "A type alias that expands to a type parameter can't be mixed in.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+      uniqueName: 'MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
       expectedTypes: [],
     );
 
@@ -10704,7 +10656,7 @@ mixinOnSealedClass = DiagnosticWithArguments(
       "information.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.MIXIN_ON_SEALED_CLASS',
+  uniqueName: 'MIXIN_ON_SEALED_CLASS',
   withArguments: _withArgumentsMixinOnSealedClass,
   expectedTypes: [ExpectedType.string],
 );
@@ -10718,8 +10670,7 @@ const DiagnosticWithoutArguments mixinOnTypeAliasExpandsToTypeParameter =
           "superclass constraint.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+      uniqueName: 'MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
       expectedTypes: [],
     );
 
@@ -10736,7 +10687,7 @@ mixinsSuperClass = DiagnosticWithArguments(
   correctionMessage: "Try removing one of the occurrences.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.MIXINS_SUPER_CLASS',
+  uniqueName: 'MIXINS_SUPER_CLASS',
   withArguments: _withArgumentsMixinsSuperClass,
   expectedTypes: [ExpectedType.element],
 );
@@ -10753,7 +10704,7 @@ mixinSubtypeOfBaseIsNotBase = DiagnosticWithArguments(
       "The mixin '{0}' must be 'base' because the supertype '{1}' is 'base'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE',
+  uniqueName: 'MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE',
   withArguments: _withArgumentsMixinSubtypeOfBaseIsNotBase,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -10770,7 +10721,7 @@ mixinSubtypeOfFinalIsNotBase = DiagnosticWithArguments(
       "The mixin '{0}' must be 'base' because the supertype '{1}' is 'final'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE',
+  uniqueName: 'MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE',
   withArguments: _withArgumentsMixinSubtypeOfFinalIsNotBase,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -10784,8 +10735,7 @@ const DiagnosticWithoutArguments mixinSuperClassConstraintDeferredClass =
       correctionMessage: "Try changing the import to not be deferred.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS',
+      uniqueName: 'MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS',
       expectedTypes: [],
     );
 
@@ -10802,8 +10752,7 @@ mixinSuperClassConstraintDisallowedClass = DiagnosticWithArguments(
       "clause.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS',
+  uniqueName: 'MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS',
   withArguments: _withArgumentsMixinSuperClassConstraintDisallowedClass,
   expectedTypes: [ExpectedType.type],
 );
@@ -10816,8 +10765,7 @@ const DiagnosticWithoutArguments mixinSuperClassConstraintNonInterface =
           "Only classes and mixins can be used as superclass constraints.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE',
+      uniqueName: 'MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE',
       expectedTypes: [],
     );
 
@@ -10827,7 +10775,7 @@ const DiagnosticWithoutArguments mixinWithClause =
       name: 'MIXIN_WITH_CLAUSE',
       problemMessage: "A mixin can't have a with clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MIXIN_WITH_CLAUSE',
+      uniqueName: 'MIXIN_WITH_CLAUSE',
       expectedTypes: [],
     );
 
@@ -10840,7 +10788,7 @@ const DiagnosticWithoutArguments mixinWithNonClassSuperclass =
       name: 'MIXIN_WITH_NON_CLASS_SUPERCLASS',
       problemMessage: "Mixin can only be applied to class.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS',
+      uniqueName: 'MIXIN_WITH_NON_CLASS_SUPERCLASS',
       expectedTypes: [],
     );
 
@@ -10858,7 +10806,7 @@ modifierOutOfOrder = DiagnosticWithArguments(
   problemMessage: "The modifier '{0}' should be before the modifier '{1}'.",
   correctionMessage: "Try re-ordering the modifiers.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.MODIFIER_OUT_OF_ORDER',
+  uniqueName: 'MODIFIER_OUT_OF_ORDER',
   withArguments: _withArgumentsModifierOutOfOrder,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -10878,7 +10826,7 @@ multipleClauses = DiagnosticWithArguments(
   correctionMessage:
       "Try combining all of the '{1}' clauses into a single clause.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.MULTIPLE_CLAUSES',
+  uniqueName: 'MULTIPLE_CLAUSES',
   withArguments: _withArgumentsMultipleClauses,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -10893,7 +10841,7 @@ multipleCombinators = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try using a single combinator.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.MULTIPLE_COMBINATORS',
+  uniqueName: 'MULTIPLE_COMBINATORS',
   expectedTypes: [],
 );
 
@@ -10907,7 +10855,7 @@ const DiagnosticWithoutArguments multipleExtendsClauses =
           "Try choosing one superclass and define your class to implement (or "
           "mix in) the others.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES',
+      uniqueName: 'MULTIPLE_EXTENDS_CLAUSES',
       expectedTypes: [],
     );
 
@@ -10920,7 +10868,7 @@ multipleImplementsClauses = DiagnosticWithoutArgumentsImpl(
   correctionMessage:
       "Try combining all of the implements clauses into a single clause.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES',
+  uniqueName: 'MULTIPLE_IMPLEMENTS_CLAUSES',
   expectedTypes: [],
 );
 
@@ -10931,7 +10879,7 @@ const DiagnosticWithoutArguments multipleLibraryDirectives =
       problemMessage: "Only one library directive may be declared in a file.",
       correctionMessage: "Try removing all but one of the library directives.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES',
+      uniqueName: 'MULTIPLE_LIBRARY_DIRECTIVES',
       expectedTypes: [],
     );
 
@@ -10944,7 +10892,7 @@ multipleNamedParameterGroups = DiagnosticWithoutArgumentsImpl(
       "list.",
   correctionMessage: "Try combining all of the groups into a single group.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS',
+  uniqueName: 'MULTIPLE_NAMED_PARAMETER_GROUPS',
   expectedTypes: [],
 );
 
@@ -10956,7 +10904,7 @@ const DiagnosticWithoutArguments multipleOnClauses =
       correctionMessage:
           "Try combining all of the on clauses into a single clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MULTIPLE_ON_CLAUSES',
+      uniqueName: 'MULTIPLE_ON_CLAUSES',
       expectedTypes: [],
     );
 
@@ -10967,7 +10915,7 @@ const DiagnosticWithoutArguments multiplePartOfDirectives =
       problemMessage: "Only one part-of directive may be declared in a file.",
       correctionMessage: "Try removing all but one of the part-of directives.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES',
+      uniqueName: 'MULTIPLE_PART_OF_DIRECTIVES',
       expectedTypes: [],
     );
 
@@ -10983,7 +10931,7 @@ multiplePlugins = DiagnosticWithArguments(
   problemMessage: "Multiple plugins can't be enabled.",
   correctionMessage: "Remove all plugins following the first, '{0}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.MULTIPLE_PLUGINS',
+  uniqueName: 'MULTIPLE_PLUGINS',
   withArguments: _withArgumentsMultiplePlugins,
   expectedTypes: [ExpectedType.string],
 );
@@ -10997,7 +10945,7 @@ multiplePositionalParameterGroups = DiagnosticWithoutArgumentsImpl(
       "list.",
   correctionMessage: "Try combining all of the groups into a single group.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS',
+  uniqueName: 'MULTIPLE_POSITIONAL_PARAMETER_GROUPS',
   expectedTypes: [],
 );
 
@@ -11010,8 +10958,7 @@ const DiagnosticWithoutArguments multipleRedirectingConstructorInvocations =
       correctionMessage: "Try removing all but one of the redirections.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS',
+      uniqueName: 'MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS',
       expectedTypes: [],
     );
 
@@ -11024,7 +10971,7 @@ const DiagnosticWithoutArguments multipleRepresentationFields =
       correctionMessage:
           "Try combining fields into a record, or removing extra fields.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MULTIPLE_REPRESENTATION_FIELDS',
+      uniqueName: 'MULTIPLE_REPRESENTATION_FIELDS',
       expectedTypes: [],
     );
 
@@ -11037,7 +10984,7 @@ const DiagnosticWithoutArguments multipleSuperInitializers =
           "Try removing all but one of the 'super' initializers.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS',
+      uniqueName: 'MULTIPLE_SUPER_INITIALIZERS',
       expectedTypes: [],
     );
 
@@ -11054,7 +11001,7 @@ multipleVariablesInForEach = DiagnosticWithArguments(
   correctionMessage:
       "Try moving all but one of the declarations inside the loop body.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH',
+  uniqueName: 'MULTIPLE_VARIABLES_IN_FOR_EACH',
   withArguments: _withArgumentsMultipleVariablesInForEach,
   expectedTypes: [ExpectedType.object],
 );
@@ -11068,7 +11015,7 @@ const DiagnosticWithoutArguments multipleVarianceModifiers =
       correctionMessage:
           "Use at most one of the 'in', 'out', or 'inout' modifiers.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS',
+      uniqueName: 'MULTIPLE_VARIANCE_MODIFIERS',
       expectedTypes: [],
     );
 
@@ -11080,7 +11027,7 @@ const DiagnosticWithoutArguments multipleWithClauses =
       correctionMessage:
           "Try combining all of the with clauses into a single clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.MULTIPLE_WITH_CLAUSES',
+      uniqueName: 'MULTIPLE_WITH_CLAUSES',
       expectedTypes: [],
     );
 
@@ -11100,7 +11047,7 @@ mustBeANativeFunctionType = DiagnosticWithArguments(
       "Try changing the type to only use members for 'dart:ffi'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE',
+  uniqueName: 'MUST_BE_A_NATIVE_FUNCTION_TYPE',
   withArguments: _withArgumentsMustBeANativeFunctionType,
   expectedTypes: [ExpectedType.object, ExpectedType.string],
 );
@@ -11123,7 +11070,7 @@ mustBeASubtype = DiagnosticWithArguments(
   correctionMessage: "Try changing one or both of the type arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.MUST_BE_A_SUBTYPE',
+  uniqueName: 'MUST_BE_A_SUBTYPE',
   withArguments: _withArgumentsMustBeASubtype,
   expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
 );
@@ -11144,7 +11091,7 @@ mustBeImmutable = DiagnosticWithArguments(
       "{0}",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.MUST_BE_IMMUTABLE',
+  uniqueName: 'MUST_BE_IMMUTABLE',
   withArguments: _withArgumentsMustBeImmutable,
   expectedTypes: [ExpectedType.string],
 );
@@ -11161,7 +11108,7 @@ mustCallSuper = DiagnosticWithArguments(
       "but doesn't invoke the overridden method.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.MUST_CALL_SUPER',
+  uniqueName: 'MUST_CALL_SUPER',
   withArguments: _withArgumentsMustCallSuper,
   expectedTypes: [ExpectedType.string],
 );
@@ -11179,7 +11126,7 @@ mustReturnVoid = DiagnosticWithArguments(
   correctionMessage: "Try changing the return type to 'void'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.MUST_RETURN_VOID',
+  uniqueName: 'MUST_RETURN_VOID',
   withArguments: _withArgumentsMustReturnVoid,
   expectedTypes: [ExpectedType.type],
 );
@@ -11193,7 +11140,7 @@ const DiagnosticWithoutArguments namedFunctionExpression =
           "Try removing the name, or moving the function expression to a "
           "function declaration statement.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.NAMED_FUNCTION_EXPRESSION',
+      uniqueName: 'NAMED_FUNCTION_EXPRESSION',
       expectedTypes: [],
     );
 
@@ -11204,7 +11151,7 @@ const DiagnosticWithoutArguments namedFunctionType =
       problemMessage: "Function types can't be named.",
       correctionMessage: "Try replacing the name with the keyword 'Function'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.NAMED_FUNCTION_TYPE',
+      uniqueName: 'NAMED_FUNCTION_TYPE',
       expectedTypes: [],
     );
 
@@ -11217,7 +11164,7 @@ const DiagnosticWithoutArguments namedParameterOutsideGroup =
       correctionMessage:
           "Try surrounding the named parameters in curly braces.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP',
+      uniqueName: 'NAMED_PARAMETER_OUTSIDE_GROUP',
       expectedTypes: [],
     );
 
@@ -11228,7 +11175,7 @@ const DiagnosticWithoutArguments nameNotString = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try converting the value to be a string.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PubspecWarningCode.NAME_NOT_STRING',
+  uniqueName: 'NAME_NOT_STRING',
   expectedTypes: [],
 );
 
@@ -11241,7 +11188,7 @@ nativeClauseInNonSdkCode = DiagnosticWithoutArgumentsImpl(
       "native extensions.",
   correctionMessage: "Try removing the native clause.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE',
+  uniqueName: 'NATIVE_CLAUSE_IN_NON_SDK_CODE',
   expectedTypes: [],
 );
 
@@ -11254,7 +11201,7 @@ const DiagnosticWithoutArguments nativeClauseShouldBeAnnotation =
           "Try removing this native clause and adding @native() or "
           "@native('native-name') before the declaration.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION',
+      uniqueName: 'NATIVE_CLAUSE_SHOULD_BE_ANNOTATION',
       expectedTypes: [],
     );
 
@@ -11273,7 +11220,7 @@ nativeFieldInvalidType = DiagnosticWithArguments(
       "type, a pointer, array, or a compound class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.NATIVE_FIELD_INVALID_TYPE',
+  uniqueName: 'NATIVE_FIELD_INVALID_TYPE',
   withArguments: _withArgumentsNativeFieldInvalidType,
   expectedTypes: [ExpectedType.type],
 );
@@ -11290,7 +11237,7 @@ nativeFieldMissingType = DiagnosticWithoutArgumentsImpl(
       "annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.NATIVE_FIELD_MISSING_TYPE',
+  uniqueName: 'NATIVE_FIELD_MISSING_TYPE',
   expectedTypes: [],
 );
 
@@ -11302,7 +11249,7 @@ const DiagnosticWithoutArguments nativeFieldNotStatic =
       correctionMessage: "Try adding the modifier 'static' to this field.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FfiCode.NATIVE_FIELD_NOT_STATIC',
+      uniqueName: 'NATIVE_FIELD_NOT_STATIC',
       expectedTypes: [],
     );
 
@@ -11315,7 +11262,7 @@ nativeFunctionBodyInNonSdkCode = DiagnosticWithoutArgumentsImpl(
       "through native extensions.",
   correctionMessage: "Try removing the word 'native'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE',
+  uniqueName: 'NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE',
   expectedTypes: [],
 );
 
@@ -11331,7 +11278,7 @@ const DiagnosticWithoutArguments nativeFunctionMissingType =
           "annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FfiCode.NATIVE_FUNCTION_MISSING_TYPE',
+      uniqueName: 'NATIVE_FUNCTION_MISSING_TYPE',
       expectedTypes: [],
     );
 
@@ -11344,7 +11291,7 @@ negativeVariableDimension = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try using a value that is zero or greater.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.NEGATIVE_VARIABLE_DIMENSION',
+  uniqueName: 'NEGATIVE_VARIABLE_DIMENSION',
   expectedTypes: [],
 );
 
@@ -11357,7 +11304,7 @@ const DiagnosticWithoutArguments newConstructorNewName =
       correctionMessage:
           "Try removing the second 'new' or changing it to a different name.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.NEW_CONSTRUCTOR_NEW_NAME',
+      uniqueName: 'NEW_CONSTRUCTOR_NEW_NAME',
       expectedTypes: [],
     );
 
@@ -11371,7 +11318,7 @@ newConstructorQualifiedName = DiagnosticWithoutArgumentsImpl(
       "Try removing the class name prefix from the qualified name or "
       "removing the 'new' keyword.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.NEW_CONSTRUCTOR_QUALIFIED_NAME',
+  uniqueName: 'NEW_CONSTRUCTOR_QUALIFIED_NAME',
   expectedTypes: [],
 );
 
@@ -11387,7 +11334,7 @@ newWithNonType = DiagnosticWithArguments(
   hasPublishedDocs: true,
   isUnresolvedIdentifier: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NEW_WITH_NON_TYPE',
+  uniqueName: 'NEW_WITH_NON_TYPE',
   withArguments: _withArgumentsNewWithNonType,
   expectedTypes: [ExpectedType.string],
 );
@@ -11417,7 +11364,7 @@ newWithUndefinedConstructor = DiagnosticWithArguments(
       "Try invoking a different constructor, or define a constructor named "
       "'{1}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR',
+  uniqueName: 'NEW_WITH_UNDEFINED_CONSTRUCTOR',
   withArguments: _withArgumentsNewWithUndefinedConstructor,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -11434,7 +11381,7 @@ newWithUndefinedConstructorDefault = DiagnosticWithArguments(
       "Try using one of the named constructors defined in '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
+  uniqueName: 'NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
   withArguments: _withArgumentsNewWithUndefinedConstructorDefault,
   expectedTypes: [ExpectedType.string],
 );
@@ -11447,7 +11394,7 @@ const DiagnosticWithoutArguments noAnnotationConstructorArguments =
       correctionMessage: "Try adding an empty argument list.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS',
+      uniqueName: 'NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS',
       expectedTypes: [],
     );
 
@@ -11466,7 +11413,7 @@ noCombinedSuperSignature = DiagnosticWithArguments(
       "type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE',
+  uniqueName: 'NO_COMBINED_SUPER_SIGNATURE',
   withArguments: _withArgumentsNoCombinedSuperSignature,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -11485,7 +11432,7 @@ noDefaultSuperConstructorExplicit = DiagnosticWithArguments(
       "Try declaring a zero argument constructor in '{0}', or explicitly "
       "invoking a different constructor in '{0}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT',
+  uniqueName: 'NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT',
   withArguments: _withArgumentsNoDefaultSuperConstructorExplicit,
   expectedTypes: [ExpectedType.object],
 );
@@ -11506,7 +11453,7 @@ noDefaultSuperConstructorImplicit = DiagnosticWithArguments(
       "Try declaring a zero argument constructor in '{0}', or declaring a "
       "constructor in {1} that explicitly invokes a constructor in '{0}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT',
+  uniqueName: 'NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT',
   withArguments: _withArgumentsNoDefaultSuperConstructorImplicit,
   expectedTypes: [ExpectedType.type, ExpectedType.string],
 );
@@ -11529,7 +11476,7 @@ noGenerativeConstructorsInSuperclass = DiagnosticWithArguments(
       "subclass.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS',
+  uniqueName: 'NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS',
   withArguments: _withArgumentsNoGenerativeConstructorsInSuperclass,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -11558,8 +11505,7 @@ nonAbstractClassInheritsAbstractMemberFivePlus = DiagnosticWithArguments(
       "Try implementing the missing methods, or make the class abstract.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS',
+  uniqueName: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS',
   withArguments: _withArgumentsNonAbstractClassInheritsAbstractMemberFivePlus,
   expectedTypes: [
     ExpectedType.string,
@@ -11591,8 +11537,7 @@ nonAbstractClassInheritsAbstractMemberFour = DiagnosticWithArguments(
       "Try implementing the missing methods, or make the class abstract.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR',
+  uniqueName: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR',
   withArguments: _withArgumentsNonAbstractClassInheritsAbstractMemberFour,
   expectedTypes: [
     ExpectedType.string,
@@ -11614,8 +11559,7 @@ nonAbstractClassInheritsAbstractMemberOne = DiagnosticWithArguments(
       "Try implementing the missing method, or make the class abstract.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE',
+  uniqueName: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE',
   withArguments: _withArgumentsNonAbstractClassInheritsAbstractMemberOne,
   expectedTypes: [ExpectedType.string],
 );
@@ -11639,8 +11583,7 @@ nonAbstractClassInheritsAbstractMemberThree = DiagnosticWithArguments(
       "Try implementing the missing methods, or make the class abstract.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE',
+  uniqueName: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE',
   withArguments: _withArgumentsNonAbstractClassInheritsAbstractMemberThree,
   expectedTypes: [
     ExpectedType.string,
@@ -11662,8 +11605,7 @@ nonAbstractClassInheritsAbstractMemberTwo = DiagnosticWithArguments(
       "Try implementing the missing methods, or make the class abstract.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO',
+  uniqueName: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO',
   withArguments: _withArgumentsNonAbstractClassInheritsAbstractMemberTwo,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -11676,7 +11618,7 @@ const DiagnosticWithoutArguments nonBoolCondition =
       correctionMessage: "Try changing the condition.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NON_BOOL_CONDITION',
+      uniqueName: 'NON_BOOL_CONDITION',
       expectedTypes: [],
     );
 
@@ -11688,7 +11630,7 @@ const DiagnosticWithoutArguments nonBoolExpression =
       correctionMessage: "Try changing the expression.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NON_BOOL_EXPRESSION',
+      uniqueName: 'NON_BOOL_EXPRESSION',
       expectedTypes: [],
     );
 
@@ -11700,7 +11642,7 @@ const DiagnosticWithoutArguments nonBoolNegationExpression =
       correctionMessage: "Try changing the operand to the '!' operator.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION',
+      uniqueName: 'NON_BOOL_NEGATION_EXPRESSION',
       expectedTypes: [],
     );
 
@@ -11715,7 +11657,7 @@ nonBoolOperand = DiagnosticWithArguments(
       "The operands of the operator '{0}' must be assignable to 'bool'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NON_BOOL_OPERAND',
+  uniqueName: 'NON_BOOL_OPERAND',
   withArguments: _withArgumentsNonBoolOperand,
   expectedTypes: [ExpectedType.string],
 );
@@ -11727,7 +11669,7 @@ const DiagnosticWithoutArguments nonConstantAnnotationConstructor =
       problemMessage: "Annotation creation can only call a const constructor.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR',
+      uniqueName: 'NON_CONSTANT_ANNOTATION_CONSTRUCTOR',
       expectedTypes: [],
     );
 
@@ -11738,26 +11680,25 @@ const DiagnosticWithoutArguments nonConstantCaseExpression =
       problemMessage: "Case expressions must be constant.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION',
+      uniqueName: 'NON_CONSTANT_CASE_EXPRESSION',
       expectedTypes: [],
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-nonConstantCaseExpressionFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-  name: 'NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY',
-  problemMessage:
-      "Constant values from a deferred library can't be used as a case "
-      "expression.",
-  correctionMessage:
-      "Try re-writing the switch as a series of if statements, or changing "
-      "the import to not be deferred.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments nonConstantCaseExpressionFromDeferredLibrary =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY',
+      problemMessage:
+          "Constant values from a deferred library can't be used as a case "
+          "expression.",
+      correctionMessage:
+          "Try re-writing the switch as a series of if statements, or changing "
+          "the import to not be deferred.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonConstantDefaultValue =
@@ -11767,26 +11708,25 @@ const DiagnosticWithoutArguments nonConstantDefaultValue =
           "The default value of an optional parameter must be constant.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE',
+      uniqueName: 'NON_CONSTANT_DEFAULT_VALUE',
       expectedTypes: [],
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-nonConstantDefaultValueFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-  name: 'NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY',
-  problemMessage:
-      "Constant values from a deferred library can't be used as a default "
-      "parameter value.",
-  correctionMessage:
-      "Try leaving the default as 'null' and initializing the parameter "
-      "inside the function body.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments nonConstantDefaultValueFromDeferredLibrary =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY',
+      problemMessage:
+          "Constant values from a deferred library can't be used as a default "
+          "parameter value.",
+      correctionMessage:
+          "Try leaving the default as 'null' and initializing the parameter "
+          "inside the function body.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonConstantListElement =
@@ -11797,7 +11737,7 @@ const DiagnosticWithoutArguments nonConstantListElement =
           "Try removing the keyword 'const' from the list literal.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT',
+      uniqueName: 'NON_CONSTANT_LIST_ELEMENT',
       expectedTypes: [],
     );
 
@@ -11813,8 +11753,7 @@ nonConstantListElementFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
       "the keyword 'deferred' from the import.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY',
+  uniqueName: 'NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY',
   expectedTypes: [],
 );
 
@@ -11827,7 +11766,7 @@ const DiagnosticWithoutArguments nonConstantMapElement =
           "Try removing the keyword 'const' from the map literal.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT',
+      uniqueName: 'NON_CONSTANT_MAP_ELEMENT',
       expectedTypes: [],
     );
 
@@ -11840,7 +11779,7 @@ const DiagnosticWithoutArguments nonConstantMapKey =
           "Try removing the keyword 'const' from the map literal.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_MAP_KEY',
+      uniqueName: 'NON_CONSTANT_MAP_KEY',
       expectedTypes: [],
     );
 
@@ -11856,7 +11795,7 @@ nonConstantMapKeyFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
       "keyword 'deferred' from the import.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY',
+  uniqueName: 'NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY',
   expectedTypes: [],
 );
 
@@ -11868,7 +11807,7 @@ const DiagnosticWithoutArguments nonConstantMapPatternKey =
       correctionMessage: "Try using constants instead.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY',
+      uniqueName: 'NON_CONSTANT_MAP_PATTERN_KEY',
       expectedTypes: [],
     );
 
@@ -11881,7 +11820,7 @@ const DiagnosticWithoutArguments nonConstantMapValue =
           "Try removing the keyword 'const' from the map literal.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE',
+      uniqueName: 'NON_CONSTANT_MAP_VALUE',
       expectedTypes: [],
     );
 
@@ -11897,8 +11836,7 @@ nonConstantMapValueFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
       "keyword 'deferred' from the import.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY',
+  uniqueName: 'NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY',
   expectedTypes: [],
 );
 
@@ -11910,7 +11848,7 @@ const DiagnosticWithoutArguments nonConstantRecordField =
       correctionMessage:
           "Try removing the keyword 'const' from the record literal.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD',
+      uniqueName: 'NON_CONSTANT_RECORD_FIELD',
       expectedTypes: [],
     );
 
@@ -11925,8 +11863,7 @@ nonConstantRecordFieldFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
       "Try removing the keyword 'const' from the record literal or removing "
       "the keyword 'deferred' from the import.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY',
+  uniqueName: 'NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY',
   expectedTypes: [],
 );
 
@@ -11938,8 +11875,7 @@ const DiagnosticWithoutArguments nonConstantRelationalPatternExpression =
       correctionMessage: "Try using a constant instead.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION',
+      uniqueName: 'NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION',
       expectedTypes: [],
     );
 
@@ -11952,7 +11888,7 @@ const DiagnosticWithoutArguments nonConstantSetElement =
           "Try removing the keyword 'const' from the set literal.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT',
+      uniqueName: 'NON_CONSTANT_SET_ELEMENT',
       expectedTypes: [],
     );
 
@@ -11970,7 +11906,7 @@ nonConstantTypeArgument = DiagnosticWithArguments(
   correctionMessage: "Try changing the type argument to be a constant type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.NON_CONSTANT_TYPE_ARGUMENT',
+  uniqueName: 'NON_CONSTANT_TYPE_ARGUMENT',
   withArguments: _withArgumentsNonConstantTypeArgument,
   expectedTypes: [ExpectedType.string],
 );
@@ -11986,7 +11922,7 @@ nonConstArgumentForConstParameter = DiagnosticWithArguments(
   correctionMessage: "Try replacing the argument with a constant.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER',
+  uniqueName: 'NON_CONST_ARGUMENT_FOR_CONST_PARAMETER',
   withArguments: _withArgumentsNonConstArgumentForConstParameter,
   expectedTypes: [ExpectedType.string],
 );
@@ -12007,7 +11943,7 @@ nonConstCallToLiteralConstructor = DiagnosticWithArguments(
   correctionMessage: "Try adding a 'const' keyword.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
+  uniqueName: 'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
   withArguments: _withArgumentsNonConstCallToLiteralConstructor,
   expectedTypes: [ExpectedType.string],
 );
@@ -12028,7 +11964,7 @@ nonConstCallToLiteralConstructorUsingNew = DiagnosticWithArguments(
   correctionMessage: "Try replacing the 'new' keyword with 'const'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
+  uniqueName: 'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
   withArguments: _withArgumentsNonConstCallToLiteralConstructorUsingNew,
   expectedTypes: [ExpectedType.string],
 );
@@ -12041,7 +11977,7 @@ const DiagnosticWithoutArguments nonConstGenerativeEnumConstructor =
       correctionMessage: "Try adding the keyword 'const'.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR',
+      uniqueName: 'NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR',
       expectedTypes: [],
     );
 
@@ -12057,7 +11993,7 @@ nonConstMapAsExpressionStatement = DiagnosticWithoutArgumentsImpl(
       "A non-constant map or set literal without type arguments can't be used as "
       "an expression statement.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT',
+  uniqueName: 'NON_CONST_MAP_AS_EXPRESSION_STATEMENT',
   expectedTypes: [],
 );
 
@@ -12068,26 +12004,27 @@ const DiagnosticWithoutArguments nonConstructorFactory =
       problemMessage: "Only a constructor can be declared to be a factory.",
       correctionMessage: "Try removing the keyword 'factory'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.NON_CONSTRUCTOR_FACTORY',
+      uniqueName: 'NON_CONSTRUCTOR_FACTORY',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
-nonCovariantTypeParameterPositionInRepresentationType = DiagnosticWithoutArgumentsImpl(
-  name: 'NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE',
-  problemMessage:
-      "An extension type parameter can't be used in a non-covariant position of "
-      "its representation type.",
-  correctionMessage:
-      "Try removing the type parameters from function parameter types and "
-      "type parameter bounds.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE',
-  expectedTypes: [],
-);
+nonCovariantTypeParameterPositionInRepresentationType =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE',
+      problemMessage:
+          "An extension type parameter can't be used in a non-covariant position of "
+          "its representation type.",
+      correctionMessage:
+          "Try removing the type parameters from function parameter types and "
+          "type parameter bounds.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName:
+          'NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// Type type: the type of the switch scrutinee
@@ -12108,7 +12045,7 @@ nonExhaustiveSwitchExpression = DiagnosticWithArguments(
   correctionMessage: "Try adding a wildcard pattern or cases that match '{2}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION',
+  uniqueName: 'NON_EXHAUSTIVE_SWITCH_EXPRESSION',
   withArguments: _withArgumentsNonExhaustiveSwitchExpression,
   expectedTypes: [ExpectedType.type, ExpectedType.string, ExpectedType.string],
 );
@@ -12126,7 +12063,7 @@ nonExhaustiveSwitchExpressionPrivate = DiagnosticWithArguments(
   correctionMessage: "Try adding a wildcard pattern.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION_PRIVATE',
+  uniqueName: 'NON_EXHAUSTIVE_SWITCH_EXPRESSION_PRIVATE',
   withArguments: _withArgumentsNonExhaustiveSwitchExpressionPrivate,
   expectedTypes: [ExpectedType.type],
 );
@@ -12150,7 +12087,7 @@ nonExhaustiveSwitchStatement = DiagnosticWithArguments(
   correctionMessage: "Try adding a default case or cases that match '{2}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT',
+  uniqueName: 'NON_EXHAUSTIVE_SWITCH_STATEMENT',
   withArguments: _withArgumentsNonExhaustiveSwitchStatement,
   expectedTypes: [ExpectedType.type, ExpectedType.string, ExpectedType.string],
 );
@@ -12168,7 +12105,7 @@ nonExhaustiveSwitchStatementPrivate = DiagnosticWithArguments(
   correctionMessage: "Try adding a default case.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT_PRIVATE',
+  uniqueName: 'NON_EXHAUSTIVE_SWITCH_STATEMENT_PRIVATE',
   withArguments: _withArgumentsNonExhaustiveSwitchStatementPrivate,
   expectedTypes: [ExpectedType.type],
 );
@@ -12181,7 +12118,7 @@ const DiagnosticWithoutArguments nonFinalFieldInEnum =
       correctionMessage: "Try making the field final.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM',
+      uniqueName: 'NON_FINAL_FIELD_IN_ENUM',
       expectedTypes: [],
     );
 
@@ -12199,7 +12136,7 @@ nonGenerativeConstructor = DiagnosticWithArguments(
       "called constructor not be a factory constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR',
+  uniqueName: 'NON_GENERATIVE_CONSTRUCTOR',
   withArguments: _withArgumentsNonGenerativeConstructor,
   expectedTypes: [ExpectedType.element],
 );
@@ -12227,7 +12164,7 @@ nonGenerativeImplicitConstructor = DiagnosticWithArguments(
       "be a factory constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR',
+  uniqueName: 'NON_GENERATIVE_IMPLICIT_CONSTRUCTOR',
   withArguments: _withArgumentsNonGenerativeImplicitConstructor,
   expectedTypes: [
     ExpectedType.string,
@@ -12243,7 +12180,7 @@ const DiagnosticWithoutArguments nonIdentifierLibraryName =
       problemMessage: "The name of a library must be an identifier.",
       correctionMessage: "Try using an identifier as the name of the library.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME',
+      uniqueName: 'NON_IDENTIFIER_LIBRARY_NAME',
       expectedTypes: [],
     );
 
@@ -12262,7 +12199,7 @@ nonNativeFunctionTypeArgumentToPointer = DiagnosticWithArguments(
       "NativeTypes.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER',
+  uniqueName: 'NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER',
   withArguments: _withArgumentsNonNativeFunctionTypeArgumentToPointer,
   expectedTypes: [ExpectedType.type],
 );
@@ -12276,7 +12213,7 @@ const DiagnosticWithoutArguments nonNullableEqualsParameter =
       correctionMessage: "Try using a non-nullable type.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.NON_NULLABLE_EQUALS_PARAMETER',
+      uniqueName: 'NON_NULLABLE_EQUALS_PARAMETER',
       expectedTypes: [],
     );
 
@@ -12289,7 +12226,7 @@ nonPartOfDirectiveInPart = DiagnosticWithoutArgumentsImpl(
       "Try removing the other directives, or moving them to the library for "
       "which this is a part.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART',
+  uniqueName: 'NON_PART_OF_DIRECTIVE_IN_PART',
   expectedTypes: [],
 );
 
@@ -12301,7 +12238,7 @@ const DiagnosticWithoutArguments nonPositiveArrayDimension =
       correctionMessage: "Try changing the input to a positive number.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FfiCode.NON_POSITIVE_ARRAY_DIMENSION',
+      uniqueName: 'NON_POSITIVE_ARRAY_DIMENSION',
       expectedTypes: [],
     );
 
@@ -12316,8 +12253,7 @@ nonRedirectingGenerativeConstructorWithPrimary = DiagnosticWithoutArgumentsImpl(
       "Try making the constructor redirect to the primary constructor, or "
       "remove the primary constructor.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.NON_REDIRECTING_GENERATIVE_CONSTRUCTOR_WITH_PRIMARY',
+  uniqueName: 'NON_REDIRECTING_GENERATIVE_CONSTRUCTOR_WITH_PRIMARY',
   expectedTypes: [],
 );
 
@@ -12334,7 +12270,7 @@ nonResizableActivity = DiagnosticWithoutArgumentsImpl(
       "Consider declaring the corresponding activity element with "
       "`resizableActivity=\"true\"` attribute.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'ManifestWarningCode.NON_RESIZABLE_ACTIVITY',
+  uniqueName: 'NON_RESIZABLE_ACTIVITY',
   expectedTypes: [],
 );
 
@@ -12355,7 +12291,7 @@ nonSizedTypeArgument = DiagnosticWithArguments(
       "of 'Struct', 'Union', or 'AbiSpecificInteger'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.NON_SIZED_TYPE_ARGUMENT',
+  uniqueName: 'NON_SIZED_TYPE_ARGUMENT',
   withArguments: _withArgumentsNonSizedTypeArgument,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
@@ -12368,7 +12304,7 @@ const DiagnosticWithoutArguments nonStringLiteralAsUri =
       correctionMessage:
           "Try enclosing the URI in either single or double quotes.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.NON_STRING_LITERAL_AS_URI',
+      uniqueName: 'NON_STRING_LITERAL_AS_URI',
       expectedTypes: [],
     );
 
@@ -12379,7 +12315,7 @@ const DiagnosticWithoutArguments nonSyncFactory =
       problemMessage: "Factory bodies can't use 'async', 'async*', or 'sync*'.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NON_SYNC_FACTORY',
+      uniqueName: 'NON_SYNC_FACTORY',
       expectedTypes: [],
     );
 
@@ -12398,7 +12334,7 @@ nonTypeAsTypeArgument = DiagnosticWithArguments(
   hasPublishedDocs: true,
   isUnresolvedIdentifier: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT',
+  uniqueName: 'NON_TYPE_AS_TYPE_ARGUMENT',
   withArguments: _withArgumentsNonTypeAsTypeArgument,
   expectedTypes: [ExpectedType.string],
 );
@@ -12415,7 +12351,7 @@ nonTypeInCatchClause = DiagnosticWithArguments(
   correctionMessage: "Try correcting the name to match an existing class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE',
+  uniqueName: 'NON_TYPE_IN_CATCH_CLAUSE',
   withArguments: _withArgumentsNonTypeInCatchClause,
   expectedTypes: [ExpectedType.string],
 );
@@ -12429,7 +12365,7 @@ nonUserDefinableOperator = DiagnosticWithArguments(
   name: 'NON_USER_DEFINABLE_OPERATOR',
   problemMessage: "The operator '{0}' isn't user definable.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.NON_USER_DEFINABLE_OPERATOR',
+  uniqueName: 'NON_USER_DEFINABLE_OPERATOR',
   withArguments: _withArgumentsNonUserDefinableOperator,
   expectedTypes: [ExpectedType.object],
 );
@@ -12442,7 +12378,7 @@ const DiagnosticWithoutArguments nonVoidReturnForOperator =
       correctionMessage: "Try changing the return type to 'void'.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NON_VOID_RETURN_FOR_OPERATOR',
+      uniqueName: 'NON_VOID_RETURN_FOR_OPERATOR',
       expectedTypes: [],
     );
 
@@ -12456,7 +12392,7 @@ const DiagnosticWithoutArguments nonVoidReturnForSetter =
           "setter.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER',
+      uniqueName: 'NON_VOID_RETURN_FOR_SETTER',
       expectedTypes: [],
     );
 
@@ -12470,7 +12406,7 @@ const DiagnosticWithoutArguments normalBeforeOptionalParameters =
           "Try moving all of the normal parameters before the optional "
           "parameters.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS',
+      uniqueName: 'NORMAL_BEFORE_OPTIONAL_PARAMETERS',
       expectedTypes: [],
     );
 
@@ -12489,8 +12425,7 @@ notAssignedPotentiallyNonNullableLocalVariable = DiagnosticWithArguments(
       "on every execution path.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE',
+  uniqueName: 'NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE',
   withArguments: _withArgumentsNotAssignedPotentiallyNonNullableLocalVariable,
   expectedTypes: [ExpectedType.string],
 );
@@ -12506,7 +12441,7 @@ notAType = DiagnosticWithArguments(
   correctionMessage: "Try correcting the name to match an existing type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NOT_A_TYPE',
+  uniqueName: 'NOT_A_TYPE',
   withArguments: _withArgumentsNotAType,
   expectedTypes: [ExpectedType.string],
 );
@@ -12521,7 +12456,7 @@ notBinaryOperator = DiagnosticWithArguments(
   problemMessage: "'{0}' isn't a binary operator.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NOT_BINARY_OPERATOR',
+  uniqueName: 'NOT_BINARY_OPERATOR',
   withArguments: _withArgumentsNotBinaryOperator,
   expectedTypes: [ExpectedType.string],
 );
@@ -12543,8 +12478,7 @@ notEnoughPositionalArgumentsNamePlural = DiagnosticWithArguments(
   correctionMessage: "Try adding the missing arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL',
+  uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL',
   withArguments: _withArgumentsNotEnoughPositionalArgumentsNamePlural,
   expectedTypes: [ExpectedType.int, ExpectedType.int, ExpectedType.string],
 );
@@ -12560,8 +12494,7 @@ notEnoughPositionalArgumentsNameSingular = DiagnosticWithArguments(
   correctionMessage: "Try adding the missing argument.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR',
+  uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR',
   withArguments: _withArgumentsNotEnoughPositionalArgumentsNameSingular,
   expectedTypes: [ExpectedType.string],
 );
@@ -12578,7 +12511,7 @@ notEnoughPositionalArgumentsPlural = DiagnosticWithArguments(
   correctionMessage: "Try adding the missing arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL',
+  uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL',
   withArguments: _withArgumentsNotEnoughPositionalArgumentsPlural,
   expectedTypes: [ExpectedType.int, ExpectedType.int],
 );
@@ -12591,8 +12524,7 @@ const DiagnosticWithoutArguments notEnoughPositionalArgumentsSingular =
       correctionMessage: "Try adding the missing argument.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR',
+      uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR',
       expectedTypes: [],
     );
 
@@ -12609,8 +12541,7 @@ notInitializedNonNullableInstanceField = DiagnosticWithArguments(
       "that initializes it, or mark it 'late'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
+  uniqueName: 'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
   withArguments: _withArgumentsNotInitializedNonNullableInstanceField,
   expectedTypes: [ExpectedType.string],
 );
@@ -12628,8 +12559,7 @@ notInitializedNonNullableInstanceFieldConstructor = DiagnosticWithArguments(
       "this constructor, or mark it 'late'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR',
+  uniqueName: 'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR',
   withArguments:
       _withArgumentsNotInitializedNonNullableInstanceFieldConstructor,
   expectedTypes: [ExpectedType.string],
@@ -12646,7 +12576,7 @@ notInitializedNonNullableVariable = DiagnosticWithArguments(
   correctionMessage: "Try adding an initializer expression.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE',
+  uniqueName: 'NOT_INITIALIZED_NON_NULLABLE_VARIABLE',
   withArguments: _withArgumentsNotInitializedNonNullableVariable,
   expectedTypes: [ExpectedType.string],
 );
@@ -12659,7 +12589,7 @@ const DiagnosticWithoutArguments notInstantiatedBound =
       correctionMessage:
           "Try adding type arguments to the type parameter bound.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NOT_INSTANTIATED_BOUND',
+      uniqueName: 'NOT_INSTANTIATED_BOUND',
       expectedTypes: [],
     );
 
@@ -12671,7 +12601,7 @@ const DiagnosticWithoutArguments notIterableSpread =
           "Spread elements in list or set literals must implement 'Iterable'.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NOT_ITERABLE_SPREAD',
+      uniqueName: 'NOT_ITERABLE_SPREAD',
       expectedTypes: [],
     );
 
@@ -12681,7 +12611,7 @@ const DiagnosticWithoutArguments notMapSpread = DiagnosticWithoutArgumentsImpl(
   problemMessage: "Spread elements in map literals must implement 'Map'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NOT_MAP_SPREAD',
+  uniqueName: 'NOT_MAP_SPREAD',
   expectedTypes: [],
 );
 
@@ -12692,7 +12622,7 @@ notNullAwareNullSpread = DiagnosticWithoutArgumentsImpl(
   problemMessage:
       "The Null-typed expression can't be used with a non-null-aware spread.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD',
+  uniqueName: 'NOT_NULL_AWARE_NULL_SPREAD',
   expectedTypes: [],
 );
 
@@ -12711,7 +12641,7 @@ noTouchscreenFeature = DiagnosticWithoutArgumentsImpl(
       "android:name=\"android.hardware.touchscreen\" android:required=\"false\" "
       "/> to the manifest.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'ManifestWarningCode.NO_TOUCHSCREEN_FEATURE',
+  uniqueName: 'NO_TOUCHSCREEN_FEATURE',
   expectedTypes: [],
 );
 
@@ -12725,7 +12655,7 @@ nullableTypeInCatchClause = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try using a non-nullable type.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE',
+  uniqueName: 'NULLABLE_TYPE_IN_CATCH_CLAUSE',
   expectedTypes: [],
 );
 
@@ -12737,7 +12667,7 @@ const DiagnosticWithoutArguments nullableTypeInExtendsClause =
       correctionMessage: "Try removing the question mark.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE',
+      uniqueName: 'NULLABLE_TYPE_IN_EXTENDS_CLAUSE',
       expectedTypes: [],
     );
 
@@ -12750,7 +12680,7 @@ const DiagnosticWithoutArguments nullableTypeInImplementsClause =
       correctionMessage: "Try removing the question mark.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE',
+      uniqueName: 'NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE',
       expectedTypes: [],
     );
 
@@ -12763,7 +12693,7 @@ const DiagnosticWithoutArguments nullableTypeInOnClause =
       correctionMessage: "Try removing the question mark.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE',
+      uniqueName: 'NULLABLE_TYPE_IN_ON_CLAUSE',
       expectedTypes: [],
     );
 
@@ -12775,7 +12705,7 @@ const DiagnosticWithoutArguments nullableTypeInWithClause =
       correctionMessage: "Try removing the question mark.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE',
+      uniqueName: 'NULLABLE_TYPE_IN_WITH_CLAUSE',
       expectedTypes: [],
     );
 
@@ -12793,7 +12723,7 @@ nullArgumentToNonNullType = DiagnosticWithArguments(
   correctionMessage: "Try adding a non-null argument.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE',
+  uniqueName: 'NULL_ARGUMENT_TO_NON_NULL_TYPE',
   withArguments: _withArgumentsNullArgumentToNonNullType,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -12808,7 +12738,7 @@ nullAwareCascadeOutOfOrder = DiagnosticWithoutArgumentsImpl(
       "Try moving the '?..' operator to be the first cascade operator in the "
       "sequence.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.NULL_AWARE_CASCADE_OUT_OF_ORDER',
+  uniqueName: 'NULL_AWARE_CASCADE_OUT_OF_ORDER',
   expectedTypes: [],
 );
 
@@ -12821,7 +12751,7 @@ nullCheckAlwaysFails = DiagnosticWithoutArgumentsImpl(
       "will always evaluate to 'null'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.NULL_CHECK_ALWAYS_FAILS',
+  uniqueName: 'NULL_CHECK_ALWAYS_FAILS',
   expectedTypes: [],
 );
 
@@ -12834,7 +12764,7 @@ const DiagnosticWithoutArguments objectCannotExtendAnotherClass =
       name: 'OBJECT_CANNOT_EXTEND_ANOTHER_CLASS',
       problemMessage: "The class 'Object' can't extend any other class.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS',
+      uniqueName: 'OBJECT_CANNOT_EXTEND_ANOTHER_CLASS',
       expectedTypes: [],
     );
 
@@ -12848,7 +12778,7 @@ const DiagnosticWithoutArguments obsoleteColonForDefaultValue =
       correctionMessage: "Try replacing the colon with an equal sign.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE',
+      uniqueName: 'OBSOLETE_COLON_FOR_DEFAULT_VALUE',
       expectedTypes: [],
     );
 
@@ -12864,7 +12794,7 @@ onRepeated = DiagnosticWithArguments(
   correctionMessage: "Try removing all except one occurrence of the type name.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.ON_REPEATED',
+  uniqueName: 'ON_REPEATED',
   withArguments: _withArgumentsOnRepeated,
   expectedTypes: [ExpectedType.string],
 );
@@ -12878,7 +12808,7 @@ const DiagnosticWithoutArguments optionalParameterInOperator =
       correctionMessage: "Try removing the optional parameters.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR',
+      uniqueName: 'OPTIONAL_PARAMETER_IN_OPERATOR',
       expectedTypes: [],
     );
 
@@ -12896,7 +12826,7 @@ outOfOrderClauses = DiagnosticWithArguments(
   problemMessage: "The '{0}' clause must come before the '{1}' clause.",
   correctionMessage: "Try moving the '{0}' clause before the '{1}' clause.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.OUT_OF_ORDER_CLAUSES',
+  uniqueName: 'OUT_OF_ORDER_CLAUSES',
   withArguments: _withArgumentsOutOfOrderClauses,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -12914,7 +12844,7 @@ const DiagnosticWithoutArguments overrideOnNonOverridingField =
           "override annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD',
+      uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_FIELD',
       expectedTypes: [],
     );
 
@@ -12930,7 +12860,7 @@ const DiagnosticWithoutArguments overrideOnNonOverridingGetter =
           "override annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER',
+      uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_GETTER',
       expectedTypes: [],
     );
 
@@ -12946,7 +12876,7 @@ const DiagnosticWithoutArguments overrideOnNonOverridingMethod =
           "override annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD',
+      uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_METHOD',
       expectedTypes: [],
     );
 
@@ -12962,7 +12892,7 @@ const DiagnosticWithoutArguments overrideOnNonOverridingSetter =
           "override annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.OVERRIDE_ON_NON_OVERRIDING_SETTER',
+      uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_SETTER',
       expectedTypes: [],
     );
 
@@ -12974,7 +12904,7 @@ const DiagnosticWithoutArguments packedAnnotation =
       correctionMessage: "Try removing extra 'Packed' annotations.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FfiCode.PACKED_ANNOTATION',
+      uniqueName: 'PACKED_ANNOTATION',
       expectedTypes: [],
     );
 
@@ -12987,7 +12917,7 @@ packedAnnotationAlignment = DiagnosticWithoutArgumentsImpl(
       "Try changing the 'Packed' annotation alignment to 1, 2, 4, 8, or 16.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.PACKED_ANNOTATION_ALIGNMENT',
+  uniqueName: 'PACKED_ANNOTATION_ALIGNMENT',
   expectedTypes: [],
 );
 
@@ -13002,7 +12932,7 @@ parseError = DiagnosticWithArguments(
   name: 'PARSE_ERROR',
   problemMessage: "{0}",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'AnalysisOptionsErrorCode.PARSE_ERROR',
+  uniqueName: 'PARSE_ERROR',
   withArguments: _withArgumentsParseError,
   expectedTypes: [ExpectedType.object],
 );
@@ -13022,7 +12952,7 @@ partOfDifferentLibrary = DiagnosticWithArguments(
       "in the part's part-of directive.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY',
+  uniqueName: 'PART_OF_DIFFERENT_LIBRARY',
   withArguments: _withArgumentsPartOfDifferentLibrary,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -13034,7 +12964,7 @@ const DiagnosticWithoutArguments partOfName = DiagnosticWithoutArgumentsImpl(
       "The 'part of' directive can't use a name with the enhanced-parts feature.",
   correctionMessage: "Try using 'part of' with a URI instead.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.PART_OF_NAME',
+  uniqueName: 'PART_OF_NAME',
   expectedTypes: [],
 );
 
@@ -13049,7 +12979,7 @@ partOfNonPart = DiagnosticWithArguments(
   correctionMessage: "Try adding a part-of directive to '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.PART_OF_NON_PART',
+  uniqueName: 'PART_OF_NON_PART',
   withArguments: _withArgumentsPartOfNonPart,
   expectedTypes: [ExpectedType.string],
 );
@@ -13070,7 +13000,7 @@ partOfUnnamedLibrary = DiagnosticWithArguments(
       "different part.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY',
+  uniqueName: 'PART_OF_UNNAMED_LIBRARY',
   withArguments: _withArgumentsPartOfUnnamedLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -13087,7 +13017,7 @@ pathDoesNotExist = DiagnosticWithArguments(
       "Try creating the referenced path or using a path that exists.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PubspecWarningCode.PATH_DOES_NOT_EXIST',
+  uniqueName: 'PATH_DOES_NOT_EXIST',
   withArguments: _withArgumentsPathDoesNotExist,
   expectedTypes: [ExpectedType.string],
 );
@@ -13103,7 +13033,7 @@ pathNotPosix = DiagnosticWithArguments(
   correctionMessage: "Try converting the value to a POSIX-style path.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PubspecWarningCode.PATH_NOT_POSIX',
+  uniqueName: 'PATH_NOT_POSIX',
   withArguments: _withArgumentsPathNotPosix,
   expectedTypes: [ExpectedType.string],
 );
@@ -13121,7 +13051,7 @@ pathPubspecDoesNotExist = DiagnosticWithArguments(
       "that has a pubspec.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST',
+  uniqueName: 'PATH_PUBSPEC_DOES_NOT_EXIST',
   withArguments: _withArgumentsPathPubspecDoesNotExist,
   expectedTypes: [ExpectedType.string],
 );
@@ -13137,7 +13067,7 @@ const DiagnosticCode patternAssignmentDeclaresVariable =
           "Try using a preexisting variable or changing the assignment to a "
           "pattern variable declaration.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE',
+      uniqueName: 'PATTERN_ASSIGNMENT_DECLARES_VARIABLE',
       expectedTypes: [ExpectedType.name],
     );
 
@@ -13150,7 +13080,7 @@ const DiagnosticWithoutArguments patternAssignmentNotLocalVariable =
       correctionMessage: "Try assigning to a local variable.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE',
+      uniqueName: 'PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE',
       expectedTypes: [],
     );
 
@@ -13163,7 +13093,7 @@ const DiagnosticWithoutArguments patternConstantFromDeferredLibrary =
       correctionMessage: "Try removing the keyword 'deferred' from the import.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY',
+      uniqueName: 'PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY',
       expectedTypes: [],
     );
 
@@ -13180,7 +13110,7 @@ patternNeverMatchesValueType = DiagnosticWithArguments(
   correctionMessage: "Try using a different pattern.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE',
+  uniqueName: 'PATTERN_NEVER_MATCHES_VALUE_TYPE',
   withArguments: _withArgumentsPatternNeverMatchesValueType,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -13201,8 +13131,7 @@ patternTypeMismatchInIrrefutableContext = DiagnosticWithArguments(
       "type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT',
+  uniqueName: 'PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT',
   withArguments: _withArgumentsPatternTypeMismatchInIrrefutableContext,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -13217,7 +13146,7 @@ patternVariableAssignmentInsideGuard = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try assigning to a different variable.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD',
+  uniqueName: 'PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD',
   expectedTypes: [],
 );
 
@@ -13225,19 +13154,19 @@ patternVariableAssignmentInsideGuard = DiagnosticWithoutArgumentsImpl(
 ///
 /// No parameters.
 const DiagnosticWithoutArguments
-patternVariableDeclarationOutsideFunctionOrMethod = DiagnosticWithoutArgumentsImpl(
-  name: 'PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD',
-  problemMessage:
-      "A pattern variable declaration may not appear outside a function or "
-      "method.",
-  correctionMessage:
-      "Try declaring ordinary variables and assigning from within a function "
-      "or method.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName:
-      'ParserErrorCode.PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD',
-  expectedTypes: [],
-);
+patternVariableDeclarationOutsideFunctionOrMethod =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD',
+      problemMessage:
+          "A pattern variable declaration may not appear outside a function or "
+          "method.",
+      correctionMessage:
+          "Try declaring ordinary variables and assigning from within a function "
+          "or method.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String p0: the name of the pattern variable
@@ -13254,8 +13183,7 @@ patternVariableSharedCaseScopeDifferentFinalityOrType = DiagnosticWithArguments(
       "all cases.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE',
+  uniqueName: 'PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE',
   withArguments:
       _withArgumentsPatternVariableSharedCaseScopeDifferentFinalityOrType,
   expectedTypes: [ExpectedType.string],
@@ -13276,8 +13204,7 @@ patternVariableSharedCaseScopeHasLabel = DiagnosticWithArguments(
       "body.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL',
+  uniqueName: 'PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL',
   withArguments: _withArgumentsPatternVariableSharedCaseScopeHasLabel,
   expectedTypes: [ExpectedType.string],
 );
@@ -13297,8 +13224,7 @@ patternVariableSharedCaseScopeNotAllCases = DiagnosticWithArguments(
       "all cases.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES',
+  uniqueName: 'PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES',
   withArguments: _withArgumentsPatternVariableSharedCaseScopeNotAllCases,
   expectedTypes: [ExpectedType.string],
 );
@@ -13320,7 +13246,7 @@ permissionImpliesUnsupportedHardware = DiagnosticWithArguments(
       " Try adding `<uses-feature android:name=\"{0}\"  "
       "android:required=\"false\">`.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'ManifestWarningCode.PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
+  uniqueName: 'PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
   withArguments: _withArgumentsPermissionImpliesUnsupportedHardware,
   expectedTypes: [ExpectedType.object],
 );
@@ -13333,7 +13259,7 @@ const DiagnosticWithoutArguments platformValueDisallowed =
       correctionMessage: "Try removing the value, while keeping the key.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'PubspecWarningCode.PLATFORM_VALUE_DISALLOWED',
+      uniqueName: 'PLATFORM_VALUE_DISALLOWED',
       expectedTypes: [],
     );
 
@@ -13353,7 +13279,7 @@ pluginsInInnerOptions = DiagnosticWithArguments(
   correctionMessage:
       "Try specifying plugins in an analysis options file at '{0}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.PLUGINS_IN_INNER_OPTIONS',
+  uniqueName: 'PLUGINS_IN_INNER_OPTIONS',
   withArguments: _withArgumentsPluginsInInnerOptions,
   expectedTypes: [ExpectedType.string],
 );
@@ -13367,7 +13293,7 @@ const DiagnosticWithoutArguments positionalAfterNamedArgument =
           "Try moving all of the positional arguments before the named "
           "arguments.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT',
+      uniqueName: 'POSITIONAL_AFTER_NAMED_ARGUMENT',
       expectedTypes: [],
     );
 
@@ -13379,7 +13305,7 @@ const DiagnosticWithoutArguments positionalFieldInObjectPattern =
       correctionMessage: "Try specifying the field name.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.POSITIONAL_FIELD_IN_OBJECT_PATTERN',
+      uniqueName: 'POSITIONAL_FIELD_IN_OBJECT_PATTERN',
       expectedTypes: [],
     );
 
@@ -13392,26 +13318,26 @@ positionalParameterOutsideGroup = DiagnosticWithoutArgumentsImpl(
   correctionMessage:
       "Try surrounding the positional parameters in square brackets.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP',
+  uniqueName: 'POSITIONAL_PARAMETER_OUTSIDE_GROUP',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
-positionalSuperFormalParameterWithPositionalArgument = DiagnosticWithoutArgumentsImpl(
-  name: 'POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT',
-  problemMessage:
-      "Positional super parameters can't be used when the super constructor "
-      "invocation has a positional argument.",
-  correctionMessage:
-      "Try making all the positional parameters passed to the super "
-      "constructor be either all super parameters or all normal parameters.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT',
-  expectedTypes: [],
-);
+positionalSuperFormalParameterWithPositionalArgument =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT',
+      problemMessage:
+          "Positional super parameters can't be used when the super constructor "
+          "invocation has a positional argument.",
+      correctionMessage:
+          "Try making all the positional parameters passed to the super "
+          "constructor be either all super parameters or all normal parameters.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments
@@ -13421,7 +13347,7 @@ prefixAfterCombinator = DiagnosticWithoutArgumentsImpl(
       "The prefix ('as' clause) should come before any show/hide combinators.",
   correctionMessage: "Try moving the prefix before the combinators.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.PREFIX_AFTER_COMBINATOR',
+  uniqueName: 'PREFIX_AFTER_COMBINATOR',
   expectedTypes: [],
 );
 
@@ -13438,7 +13364,7 @@ prefixCollidesWithTopLevelMember = DiagnosticWithArguments(
   correctionMessage: "Try renaming either the top-level element or the prefix.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER',
+  uniqueName: 'PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER',
   withArguments: _withArgumentsPrefixCollidesWithTopLevelMember,
   expectedTypes: [ExpectedType.object],
 );
@@ -13457,7 +13383,7 @@ prefixIdentifierNotFollowedByDot = DiagnosticWithArguments(
       "renaming the prefix.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT',
+  uniqueName: 'PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT',
   withArguments: _withArgumentsPrefixIdentifierNotFollowedByDot,
   expectedTypes: [ExpectedType.string],
 );
@@ -13475,7 +13401,7 @@ prefixShadowedByLocalDeclaration = DiagnosticWithArguments(
   correctionMessage: "Try renaming either the prefix or the local declaration.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION',
+  uniqueName: 'PREFIX_SHADOWED_BY_LOCAL_DECLARATION',
   withArguments: _withArgumentsPrefixShadowedByLocalDeclaration,
   expectedTypes: [ExpectedType.string],
 );
@@ -13499,7 +13425,7 @@ privateCollisionInMixinApplication = DiagnosticWithArguments(
   correctionMessage: "Try removing '{1}' from the 'with' clause.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION',
+  uniqueName: 'PRIVATE_COLLISION_IN_MIXIN_APPLICATION',
   withArguments: _withArgumentsPrivateCollisionInMixinApplication,
   expectedTypes: [
     ExpectedType.string,
@@ -13517,7 +13443,7 @@ privateNamedNonFieldParameter = DiagnosticWithoutArgumentsImpl(
       "underscore.",
   hasPublishedDocs: true,
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.PRIVATE_NAMED_NON_FIELD_PARAMETER',
+  uniqueName: 'PRIVATE_NAMED_NON_FIELD_PARAMETER',
   expectedTypes: [],
 );
 
@@ -13534,8 +13460,7 @@ privateNamedParameterDuplicatePublicName = DiagnosticWithArguments(
       "parameter.",
   correctionMessage: "Try renaming one of the parameters.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.PRIVATE_NAMED_PARAMETER_DUPLICATE_PUBLIC_NAME',
+  uniqueName: 'PRIVATE_NAMED_PARAMETER_DUPLICATE_PUBLIC_NAME',
   withArguments: _withArgumentsPrivateNamedParameterDuplicatePublicName,
   expectedTypes: [ExpectedType.string],
 );
@@ -13548,8 +13473,7 @@ privateNamedParameterWithoutPublicName = DiagnosticWithoutArgumentsImpl(
       "A private named parameter must be a public identifier after removing the "
       "leading underscore.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME',
+  uniqueName: 'PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME',
   expectedTypes: [],
 );
 
@@ -13560,7 +13484,7 @@ const DiagnosticWithoutArguments privateOptionalParameter =
       problemMessage: "Named parameters can't start with an underscore.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.PRIVATE_OPTIONAL_PARAMETER',
+      uniqueName: 'PRIVATE_OPTIONAL_PARAMETER',
       expectedTypes: [],
     );
 
@@ -13577,7 +13501,7 @@ privateSetter = DiagnosticWithArguments(
   correctionMessage: "Try making it public.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.PRIVATE_SETTER',
+  uniqueName: 'PRIVATE_SETTER',
   withArguments: _withArgumentsPrivateSetter,
   expectedTypes: [ExpectedType.string],
 );
@@ -13595,7 +13519,7 @@ readPotentiallyUnassignedFinal = DiagnosticWithArguments(
   correctionMessage: "Ensure that it is assigned on necessary execution paths.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL',
+  uniqueName: 'READ_POTENTIALLY_UNASSIGNED_FINAL',
   withArguments: _withArgumentsReadPotentiallyUnassignedFinal,
   expectedTypes: [ExpectedType.string],
 );
@@ -13620,7 +13544,7 @@ receiverOfTypeNever = DiagnosticWithoutArgumentsImpl(
   correctionMessage:
       "Try checking for throw expressions or type errors in the receiver",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.RECEIVER_OF_TYPE_NEVER',
+  uniqueName: 'RECEIVER_OF_TYPE_NEVER',
   expectedTypes: [],
 );
 
@@ -13634,7 +13558,7 @@ recordLiteralOnePositionalNoTrailingComma = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try adding a trailing comma.",
   hasPublishedDocs: true,
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
+  uniqueName: 'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
   expectedTypes: [],
 );
 
@@ -13653,8 +13577,7 @@ recordLiteralOnePositionalNoTrailingCommaByType = DiagnosticWithoutArgumentsImpl
   correctionMessage: "Try adding a trailing comma.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA_BY_TYPE',
+  uniqueName: 'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA_BY_TYPE',
   expectedTypes: [],
 );
 
@@ -13668,8 +13591,7 @@ const DiagnosticWithoutArguments recordTypeOnePositionalNoTrailingComma =
       correctionMessage: "Try adding a trailing comma.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName:
-          'ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA',
+      uniqueName: 'RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA',
       expectedTypes: [],
     );
 
@@ -13680,7 +13602,7 @@ const DiagnosticWithoutArguments recursiveCompileTimeConstant =
       problemMessage: "The compile-time constant expression depends on itself.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT',
+      uniqueName: 'RECURSIVE_COMPILE_TIME_CONSTANT',
       expectedTypes: [],
     );
 
@@ -13690,7 +13612,7 @@ const DiagnosticWithoutArguments recursiveConstantConstructor =
       name: 'RECURSIVE_CONSTANT_CONSTRUCTOR',
       problemMessage: "The constant constructor depends on itself.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR',
+      uniqueName: 'RECURSIVE_CONSTANT_CONSTRUCTOR',
       expectedTypes: [],
     );
 
@@ -13710,7 +13632,7 @@ recursiveConstructorRedirect = DiagnosticWithoutArgumentsImpl(
       "Try changing one of the constructors in the loop to not redirect.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT',
+  uniqueName: 'RECURSIVE_CONSTRUCTOR_REDIRECT',
   expectedTypes: [],
 );
 
@@ -13724,7 +13646,7 @@ recursiveFactoryRedirect = DiagnosticWithoutArgumentsImpl(
       "Try changing one of the constructors in the loop to not redirect.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT',
+  uniqueName: 'RECURSIVE_FACTORY_REDIRECT',
   expectedTypes: [],
 );
 
@@ -13743,7 +13665,7 @@ recursiveIncludeFile = DiagnosticWithArguments(
   correctionMessage:
       "Try changing the chain of 'include's to not re-include this file.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE',
+  uniqueName: 'RECURSIVE_INCLUDE_FILE',
   withArguments: _withArgumentsRecursiveIncludeFile,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -13759,7 +13681,7 @@ recursiveInterfaceInheritance = DiagnosticWithArguments(
   problemMessage: "'{0}' can't be a superinterface of itself: {1}.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE',
+  uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE',
   withArguments: _withArgumentsRecursiveInterfaceInheritance,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -13783,7 +13705,7 @@ recursiveInterfaceInheritanceExtends = DiagnosticWithArguments(
   problemMessage: "'{0}' can't extend itself.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS',
+  uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_EXTENDS',
   withArguments: _withArgumentsRecursiveInterfaceInheritanceExtends,
   expectedTypes: [ExpectedType.string],
 );
@@ -13807,7 +13729,7 @@ recursiveInterfaceInheritanceImplements = DiagnosticWithArguments(
   problemMessage: "'{0}' can't implement itself.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS',
+  uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS',
   withArguments: _withArgumentsRecursiveInterfaceInheritanceImplements,
   expectedTypes: [ExpectedType.string],
 );
@@ -13822,7 +13744,7 @@ recursiveInterfaceInheritanceOn = DiagnosticWithArguments(
   problemMessage: "'{0}' can't use itself as a superclass constraint.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON',
+  uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_ON',
   withArguments: _withArgumentsRecursiveInterfaceInheritanceOn,
   expectedTypes: [ExpectedType.string],
 );
@@ -13846,7 +13768,7 @@ recursiveInterfaceInheritanceWith = DiagnosticWithArguments(
   problemMessage: "'{0}' can't use itself as a mixin.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH',
+  uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_WITH',
   withArguments: _withArgumentsRecursiveInterfaceInheritanceWith,
   expectedTypes: [ExpectedType.string],
 );
@@ -13867,7 +13789,7 @@ redeclareOnNonRedeclaringMember = DiagnosticWithArguments(
       "or removing the redeclare annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER',
+  uniqueName: 'REDECLARE_ON_NON_REDECLARING_MEMBER',
   withArguments: _withArgumentsRedeclareOnNonRedeclaringMember,
   expectedTypes: [ExpectedType.string],
 );
@@ -13886,24 +13808,23 @@ redirectGenerativeToMissingConstructor = DiagnosticWithArguments(
       "constructor named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR',
+  uniqueName: 'REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR',
   withArguments: _withArgumentsRedirectGenerativeToMissingConstructor,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-redirectGenerativeToNonGenerativeConstructor = DiagnosticWithoutArgumentsImpl(
-  name: 'REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR',
-  problemMessage:
-      "Generative constructors can't redirect to a factory constructor.",
-  correctionMessage: "Try redirecting to a different constructor.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments redirectGenerativeToNonGenerativeConstructor =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR',
+      problemMessage:
+          "Generative constructors can't redirect to a factory constructor.",
+      correctionMessage: "Try redirecting to a different constructor.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments
@@ -13913,7 +13834,7 @@ redirectingConstructorWithBody = DiagnosticWithoutArgumentsImpl(
   correctionMessage:
       "Try removing the body, or not making this a redirecting constructor.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY',
+  uniqueName: 'REDIRECTING_CONSTRUCTOR_WITH_BODY',
   expectedTypes: [],
 );
 
@@ -13925,7 +13846,7 @@ const DiagnosticWithoutArguments redirectionInNonFactoryConstructor =
       correctionMessage:
           "Try making this a factory constructor, or remove the redirection.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR',
+      uniqueName: 'REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR',
       expectedTypes: [],
     );
 
@@ -13944,7 +13865,7 @@ redirectToAbstractClassConstructor = DiagnosticWithArguments(
   correctionMessage: "Try redirecting to a constructor of a different class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR',
+  uniqueName: 'REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR',
   withArguments: _withArgumentsRedirectToAbstractClassConstructor,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -13962,7 +13883,7 @@ redirectToInvalidFunctionType = DiagnosticWithArguments(
   correctionMessage: "Try redirecting to a different constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.REDIRECT_TO_INVALID_FUNCTION_TYPE',
+  uniqueName: 'REDIRECT_TO_INVALID_FUNCTION_TYPE',
   withArguments: _withArgumentsRedirectToInvalidFunctionType,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -13981,7 +13902,7 @@ redirectToInvalidReturnType = DiagnosticWithArguments(
   correctionMessage: "Try redirecting to a different constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.REDIRECT_TO_INVALID_RETURN_TYPE',
+  uniqueName: 'REDIRECT_TO_INVALID_RETURN_TYPE',
   withArguments: _withArgumentsRedirectToInvalidReturnType,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -14000,7 +13921,7 @@ redirectToMissingConstructor = DiagnosticWithArguments(
       "named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR',
+  uniqueName: 'REDIRECT_TO_MISSING_CONSTRUCTOR',
   withArguments: _withArgumentsRedirectToMissingConstructor,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
@@ -14018,7 +13939,7 @@ redirectToNonClass = DiagnosticWithArguments(
   correctionMessage: "Try redirecting to a different constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.REDIRECT_TO_NON_CLASS',
+  uniqueName: 'REDIRECT_TO_NON_CLASS',
   withArguments: _withArgumentsRedirectToNonClass,
   expectedTypes: [ExpectedType.string],
 );
@@ -14033,7 +13954,7 @@ const DiagnosticWithoutArguments redirectToNonConstConstructor =
       correctionMessage: "Try redirecting to a different constructor.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR',
+      uniqueName: 'REDIRECT_TO_NON_CONST_CONSTRUCTOR',
       expectedTypes: [],
     );
 
@@ -14047,8 +13968,7 @@ redirectToTypeAliasExpandsToTypeParameter = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try replacing it with a class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+  uniqueName: 'REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
   expectedTypes: [],
 );
 
@@ -14067,7 +13987,7 @@ referencedBeforeDeclaration = DiagnosticWithArguments(
       "scope.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION',
+  uniqueName: 'REFERENCED_BEFORE_DECLARATION',
   withArguments: _withArgumentsReferencedBeforeDeclaration,
   expectedTypes: [ExpectedType.object],
 );
@@ -14082,7 +14002,7 @@ refutablePatternInIrrefutableContext = DiagnosticWithoutArgumentsImpl(
       "instead.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT',
+  uniqueName: 'REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT',
   expectedTypes: [],
 );
 
@@ -14104,8 +14024,7 @@ relationalPatternOperandTypeNotAssignable = DiagnosticWithArguments(
       "type '{1}' of the '{2}' operator.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE',
+  uniqueName: 'RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE',
   withArguments: _withArgumentsRelationalPatternOperandTypeNotAssignable,
   expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
 );
@@ -14123,7 +14042,7 @@ relationalPatternOperatorReturnTypeNotAssignableToBool =
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
       uniqueName:
-          'CompileTimeErrorCode.RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL',
+          'RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL',
       expectedTypes: [],
     );
 
@@ -14140,7 +14059,7 @@ removedLint = DiagnosticWithArguments(
   problemMessage: "'{0}' was removed in Dart '{1}'",
   correctionMessage: "Remove the reference to '{0}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.REMOVED_LINT',
+  uniqueName: 'REMOVED_LINT',
   withArguments: _withArgumentsRemovedLint,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -14159,7 +14078,7 @@ removedLintUse = DiagnosticWithArguments(
   correctionMessage: "Remove the reference to '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.REMOVED_LINT_USE',
+  uniqueName: 'REMOVED_LINT_USE',
   withArguments: _withArgumentsRemovedLintUse,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -14182,7 +14101,7 @@ replacedLint = DiagnosticWithArguments(
   problemMessage: "'{0}' was replaced by '{2}' in Dart '{1}'.",
   correctionMessage: "Replace '{0}' with '{1}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.REPLACED_LINT',
+  uniqueName: 'REPLACED_LINT',
   withArguments: _withArgumentsReplacedLint,
   expectedTypes: [
     ExpectedType.string,
@@ -14209,7 +14128,7 @@ replacedLintUse = DiagnosticWithArguments(
   problemMessage: "'{0}' was replaced by '{2}' in Dart '{1}'.",
   correctionMessage: "Replace '{0}' with '{1}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.REPLACED_LINT_USE',
+  uniqueName: 'REPLACED_LINT_USE',
   withArguments: _withArgumentsReplacedLintUse,
   expectedTypes: [
     ExpectedType.object,
@@ -14225,7 +14144,7 @@ const DiagnosticWithoutArguments representationFieldModifier =
       problemMessage: "Representation fields can't have modifiers.",
       correctionMessage: "Try removing the modifier.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.REPRESENTATION_FIELD_MODIFIER',
+      uniqueName: 'REPRESENTATION_FIELD_MODIFIER',
       expectedTypes: [],
     );
 
@@ -14236,7 +14155,7 @@ const DiagnosticWithoutArguments representationFieldTrailingComma =
       problemMessage: "The representation field can't have a trailing comma.",
       correctionMessage: "Try removing the trailing comma.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA',
+      uniqueName: 'REPRESENTATION_FIELD_TRAILING_COMMA',
       expectedTypes: [],
     );
 
@@ -14248,7 +14167,7 @@ const DiagnosticWithoutArguments restElementInMapPattern =
       correctionMessage: "Try removing the rest pattern.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN',
+      uniqueName: 'REST_ELEMENT_IN_MAP_PATTERN',
       expectedTypes: [],
     );
 
@@ -14262,7 +14181,7 @@ const DiagnosticWithoutArguments rethrowOutsideCatch =
           "expression.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH',
+      uniqueName: 'RETHROW_OUTSIDE_CATCH',
       expectedTypes: [],
     );
 
@@ -14275,7 +14194,7 @@ const DiagnosticWithoutArguments returnInGenerativeConstructor =
           "Try removing the return statement or using a factory constructor.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR',
+      uniqueName: 'RETURN_IN_GENERATIVE_CONSTRUCTOR',
       expectedTypes: [],
     );
 
@@ -14291,7 +14210,7 @@ returnInGenerator = DiagnosticWithoutArgumentsImpl(
       "changing the method body modifier.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.RETURN_IN_GENERATOR',
+  uniqueName: 'RETURN_IN_GENERATOR',
   expectedTypes: [],
 );
 
@@ -14309,7 +14228,7 @@ returnOfDoNotStore = DiagnosticWithArguments(
   correctionMessage: "Annotate '{1}' with 'doNotStore'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.RETURN_OF_DO_NOT_STORE',
+  uniqueName: 'RETURN_OF_DO_NOT_STORE',
   withArguments: _withArgumentsReturnOfDoNotStore,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -14327,7 +14246,7 @@ returnOfInvalidTypeFromCatchError = DiagnosticWithArguments(
       "it must be assignable to '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR',
+  uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR',
   withArguments: _withArgumentsReturnOfInvalidTypeFromCatchError,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -14345,7 +14264,7 @@ returnOfInvalidTypeFromClosure = DiagnosticWithArguments(
       "required by the closure's context.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE',
+  uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_CLOSURE',
   withArguments: _withArgumentsReturnOfInvalidTypeFromClosure,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -14368,7 +14287,7 @@ returnOfInvalidTypeFromConstructor = DiagnosticWithArguments(
       "because it has a return type of '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR',
+  uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR',
   withArguments: _withArgumentsReturnOfInvalidTypeFromConstructor,
   expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
 );
@@ -14391,7 +14310,7 @@ returnOfInvalidTypeFromFunction = DiagnosticWithArguments(
       "it has a return type of '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION',
+  uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_FUNCTION',
   withArguments: _withArgumentsReturnOfInvalidTypeFromFunction,
   expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
 );
@@ -14414,7 +14333,7 @@ returnOfInvalidTypeFromMethod = DiagnosticWithArguments(
       "has a return type of '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD',
+  uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_METHOD',
   withArguments: _withArgumentsReturnOfInvalidTypeFromMethod,
   expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
 );
@@ -14432,7 +14351,7 @@ returnTypeInvalidForCatchError = DiagnosticWithArguments(
       "'Future.catchError'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR',
+  uniqueName: 'RETURN_TYPE_INVALID_FOR_CATCH_ERROR',
   withArguments: _withArgumentsReturnTypeInvalidForCatchError,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -14444,7 +14363,7 @@ const DiagnosticWithoutArguments returnWithoutValue =
       problemMessage: "The return value is missing after 'return'.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.RETURN_WITHOUT_VALUE',
+      uniqueName: 'RETURN_WITHOUT_VALUE',
       expectedTypes: [],
     );
 
@@ -14465,7 +14384,7 @@ sdkVersionConstructorTearoffs = DiagnosticWithoutArgumentsImpl(
       "2.15 or higher, and running 'pub get'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS',
+  uniqueName: 'SDK_VERSION_CONSTRUCTOR_TEAROFFS',
   expectedTypes: [],
 );
 
@@ -14479,7 +14398,7 @@ sdkVersionGtGtGtOperator = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try updating the SDK constraints.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR',
+  uniqueName: 'SDK_VERSION_GT_GT_GT_OPERATOR',
   expectedTypes: [],
 );
 
@@ -14496,7 +14415,7 @@ sdkVersionSince = DiagnosticWithArguments(
       "guarantee it.",
   correctionMessage: "Try updating the SDK constraints.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.SDK_VERSION_SINCE',
+  uniqueName: 'SDK_VERSION_SINCE',
   withArguments: _withArgumentsSdkVersionSince,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -14514,7 +14433,7 @@ sealedClassSubtypeOutsideOfLibrary = DiagnosticWithArguments(
       "its library because it's a sealed class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY',
+  uniqueName: 'SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY',
   withArguments: _withArgumentsSealedClassSubtypeOutsideOfLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -14525,7 +14444,7 @@ const DiagnosticWithoutArguments sealedEnum = DiagnosticWithoutArgumentsImpl(
   problemMessage: "Enums can't be declared to be 'sealed'.",
   correctionMessage: "Try removing the keyword 'sealed'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.SEALED_ENUM',
+  uniqueName: 'SEALED_ENUM',
   expectedTypes: [],
 );
 
@@ -14535,7 +14454,7 @@ const DiagnosticWithoutArguments sealedMixin = DiagnosticWithoutArgumentsImpl(
   problemMessage: "A mixin can't be declared 'sealed'.",
   correctionMessage: "Try removing the 'sealed' keyword.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.SEALED_MIXIN',
+  uniqueName: 'SEALED_MIXIN',
   expectedTypes: [],
 );
 
@@ -14546,7 +14465,7 @@ const DiagnosticWithoutArguments sealedMixinClass =
       problemMessage: "A mixin class can't be declared 'sealed'.",
       correctionMessage: "Try removing the 'sealed' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.SEALED_MIXIN_CLASS',
+      uniqueName: 'SEALED_MIXIN_CLASS',
       expectedTypes: [],
     );
 
@@ -14562,7 +14481,7 @@ setElementFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
       "keyword 'deferred' from the import.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY',
+  uniqueName: 'SET_ELEMENT_FROM_DEFERRED_LIBRARY',
   expectedTypes: [],
 );
 
@@ -14578,7 +14497,7 @@ setElementTypeNotAssignable = DiagnosticWithArguments(
       "The element type '{0}' can't be assigned to the set type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
+  uniqueName: 'SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
   withArguments: _withArgumentsSetElementTypeNotAssignable,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -14595,8 +14514,7 @@ setElementTypeNotAssignableNullability = DiagnosticWithArguments(
       "The element type '{0}' can't be assigned to the set type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY',
+  uniqueName: 'SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY',
   withArguments: _withArgumentsSetElementTypeNotAssignableNullability,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -14608,7 +14526,7 @@ const DiagnosticWithoutArguments setterConstructor =
       problemMessage: "Constructors can't be a setter.",
       correctionMessage: "Try removing 'set'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.SETTER_CONSTRUCTOR',
+      uniqueName: 'SETTER_CONSTRUCTOR',
       expectedTypes: [],
     );
 
@@ -14620,7 +14538,7 @@ const DiagnosticWithoutArguments setterInFunction =
       correctionMessage:
           "Try moving the setter outside the method or function.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.SETTER_IN_FUNCTION',
+      uniqueName: 'SETTER_IN_FUNCTION',
       expectedTypes: [],
     );
 
@@ -14638,7 +14556,7 @@ settingOrientationOnActivity = DiagnosticWithoutArgumentsImpl(
       "Consider declaring the corresponding activity element with "
       "`screenOrientation=\"unspecified\"` or `\"fullSensor\"` attribute.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'ManifestWarningCode.SETTING_ORIENTATION_ON_ACTIVITY',
+  uniqueName: 'SETTING_ORIENTATION_ON_ACTIVITY',
   expectedTypes: [],
 );
 
@@ -14651,7 +14569,7 @@ sharedDeferredPrefix = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try renaming one of the prefixes.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.SHARED_DEFERRED_PREFIX',
+  uniqueName: 'SHARED_DEFERRED_PREFIX',
   expectedTypes: [],
 );
 
@@ -14664,7 +14582,7 @@ sizeAnnotationDimensions = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try adjusting the arguments in the 'Array' annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.SIZE_ANNOTATION_DIMENSIONS',
+  uniqueName: 'SIZE_ANNOTATION_DIMENSIONS',
   expectedTypes: [],
 );
 
@@ -14677,7 +14595,7 @@ spreadExpressionFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
       "literal.",
   correctionMessage: "Try making the deferred import non-deferred.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY',
+  uniqueName: 'SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY',
   expectedTypes: [],
 );
 
@@ -14687,7 +14605,7 @@ const DiagnosticWithoutArguments stackOverflow = DiagnosticWithoutArgumentsImpl(
   problemMessage: "The file has too many nested expressions or statements.",
   correctionMessage: "Try simplifying the code.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.STACK_OVERFLOW',
+  uniqueName: 'STACK_OVERFLOW',
   expectedTypes: [],
 );
 
@@ -14702,7 +14620,7 @@ staticAccessToInstanceMember = DiagnosticWithArguments(
       "Instance member '{0}' can't be accessed using static access.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER',
+  uniqueName: 'STATIC_ACCESS_TO_INSTANCE_MEMBER',
   withArguments: _withArgumentsStaticAccessToInstanceMember,
   expectedTypes: [ExpectedType.string],
 );
@@ -14714,7 +14632,7 @@ const DiagnosticWithoutArguments staticConstructor =
       problemMessage: "Constructors can't be static.",
       correctionMessage: "Try removing the keyword 'static'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.STATIC_CONSTRUCTOR',
+      uniqueName: 'STATIC_CONSTRUCTOR',
       expectedTypes: [],
     );
 
@@ -14726,7 +14644,7 @@ const DiagnosticWithoutArguments staticGetterWithoutBody =
       correctionMessage:
           "Try adding a body to the getter, or removing the keyword 'static'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.STATIC_GETTER_WITHOUT_BODY',
+      uniqueName: 'STATIC_GETTER_WITHOUT_BODY',
       expectedTypes: [],
     );
 
@@ -14737,7 +14655,7 @@ const DiagnosticWithoutArguments staticOperator =
       problemMessage: "Operators can't be static.",
       correctionMessage: "Try removing the keyword 'static'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.STATIC_OPERATOR',
+      uniqueName: 'STATIC_OPERATOR',
       expectedTypes: [],
     );
 
@@ -14749,7 +14667,7 @@ const DiagnosticWithoutArguments staticSetterWithoutBody =
       correctionMessage:
           "Try adding a body to the setter, or removing the keyword 'static'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.STATIC_SETTER_WITHOUT_BODY',
+      uniqueName: 'STATIC_SETTER_WITHOUT_BODY',
       expectedTypes: [],
     );
 
@@ -14769,7 +14687,7 @@ strictRawType = DiagnosticWithArguments(
       "The generic type '{0}' should have explicit type arguments but doesn't.",
   correctionMessage: "Use explicit type arguments for '{0}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.STRICT_RAW_TYPE',
+  uniqueName: 'STRICT_RAW_TYPE',
   withArguments: _withArgumentsStrictRawType,
   expectedTypes: [ExpectedType.type],
 );
@@ -14788,8 +14706,7 @@ subtypeOfBaseIsNotBaseFinalOrSealed = DiagnosticWithArguments(
       "'{1}' is 'base'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED',
+  uniqueName: 'SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED',
   withArguments: _withArgumentsSubtypeOfBaseIsNotBaseFinalOrSealed,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -14808,8 +14725,7 @@ subtypeOfFinalIsNotBaseFinalOrSealed = DiagnosticWithArguments(
       "'{1}' is 'final'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
+  uniqueName: 'SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
   withArguments: _withArgumentsSubtypeOfFinalIsNotBaseFinalOrSealed,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -14829,7 +14745,7 @@ subtypeOfSealedClass = DiagnosticWithArguments(
       "'{0}' for more information.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.SUBTYPE_OF_SEALED_CLASS',
+  uniqueName: 'SUBTYPE_OF_SEALED_CLASS',
   withArguments: _withArgumentsSubtypeOfSealedClass,
   expectedTypes: [ExpectedType.string],
 );
@@ -14849,7 +14765,7 @@ subtypeOfStructClassInExtends = DiagnosticWithArguments(
       "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS',
+  uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS',
   withArguments: _withArgumentsSubtypeOfStructClassInExtends,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -14869,7 +14785,7 @@ subtypeOfStructClassInImplements = DiagnosticWithArguments(
       "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS',
+  uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS',
   withArguments: _withArgumentsSubtypeOfStructClassInImplements,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -14889,7 +14805,7 @@ subtypeOfStructClassInWith = DiagnosticWithArguments(
       "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH',
+  uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_WITH',
   withArguments: _withArgumentsSubtypeOfStructClassInWith,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -14909,26 +14825,24 @@ superFormalParameterTypeIsNotSubtypeOfAssociated = DiagnosticWithArguments(
       "Try removing the explicit type annotation from the parameter.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED',
+  uniqueName: 'SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED',
   withArguments: _withArgumentsSuperFormalParameterTypeIsNotSubtypeOfAssociated,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-superFormalParameterWithoutAssociatedNamed = DiagnosticWithoutArgumentsImpl(
-  name: 'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED',
-  problemMessage: "No associated named super constructor parameter.",
-  correctionMessage:
-      "Try changing the name to the name of an existing named super "
-      "constructor parameter, or creating such named parameter.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments superFormalParameterWithoutAssociatedNamed =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED',
+      problemMessage: "No associated named super constructor parameter.",
+      correctionMessage:
+          "Try changing the name to the name of an existing named super "
+          "constructor parameter, or creating such named parameter.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments
@@ -14940,8 +14854,7 @@ superFormalParameterWithoutAssociatedPositional = DiagnosticWithoutArgumentsImpl
       "the super constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL',
+  uniqueName: 'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL',
   expectedTypes: [],
 );
 
@@ -14953,7 +14866,7 @@ const DiagnosticWithoutArguments superInEnumConstructor =
       correctionMessage: "Try removing the 'super' invocation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR',
+      uniqueName: 'SUPER_IN_ENUM_CONSTRUCTOR',
       expectedTypes: [],
     );
 
@@ -14966,7 +14879,7 @@ superInExtension = DiagnosticWithoutArgumentsImpl(
       "doesn't have a superclass.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.SUPER_IN_EXTENSION',
+  uniqueName: 'SUPER_IN_EXTENSION',
   expectedTypes: [],
 );
 
@@ -14979,7 +14892,7 @@ const DiagnosticWithoutArguments superInExtensionType =
           "extension type doesn't have a superclass.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE',
+      uniqueName: 'SUPER_IN_EXTENSION_TYPE',
       expectedTypes: [],
     );
 
@@ -14990,7 +14903,7 @@ const DiagnosticWithoutArguments superInInvalidContext =
       problemMessage: "Invalid context for 'super' invocation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT',
+      uniqueName: 'SUPER_IN_INVALID_CONTEXT',
       expectedTypes: [],
     );
 
@@ -15005,7 +14918,7 @@ const DiagnosticWithoutArguments superInitializerInObject =
       problemMessage:
           "The class 'Object' can't invoke a constructor from a superclass.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT',
+      uniqueName: 'SUPER_INITIALIZER_IN_OBJECT',
       expectedTypes: [],
     );
 
@@ -15017,7 +14930,7 @@ const DiagnosticWithoutArguments superInRedirectingConstructor =
           "The redirecting constructor can't have a 'super' initializer.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR',
+      uniqueName: 'SUPER_IN_REDIRECTING_CONSTRUCTOR',
       expectedTypes: [],
     );
 
@@ -15032,7 +14945,7 @@ superInvocationNotLast = DiagnosticWithArguments(
       "The superconstructor call must be last in an initializer list: '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST',
+  uniqueName: 'SUPER_INVOCATION_NOT_LAST',
   withArguments: _withArgumentsSuperInvocationNotLast,
   expectedTypes: [ExpectedType.string],
 );
@@ -15045,7 +14958,7 @@ const DiagnosticWithoutArguments switchCaseCompletesNormally =
       correctionMessage: "Try adding 'break', 'return', or 'throw'.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY',
+      uniqueName: 'SWITCH_CASE_COMPLETES_NORMALLY',
       expectedTypes: [],
     );
 
@@ -15058,7 +14971,7 @@ const DiagnosticWithoutArguments switchHasCaseAfterDefaultCase =
       correctionMessage:
           "Try moving the default case after the other case clauses.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE',
+      uniqueName: 'SWITCH_HAS_CASE_AFTER_DEFAULT_CASE',
       expectedTypes: [],
     );
 
@@ -15069,25 +14982,24 @@ const DiagnosticWithoutArguments switchHasMultipleDefaultCases =
       problemMessage: "The 'default' case can only be declared once.",
       correctionMessage: "Try removing all but one default case.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES',
+      uniqueName: 'SWITCH_HAS_MULTIPLE_DEFAULT_CASES',
       expectedTypes: [],
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-tearoffOfGenerativeConstructorOfAbstractClass = DiagnosticWithoutArgumentsImpl(
-  name: 'TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS',
-  problemMessage:
-      "A generative constructor of an abstract class can't be torn off.",
-  correctionMessage:
-      "Try tearing off a constructor of a concrete class, or a "
-      "non-generative constructor.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments tearoffOfGenerativeConstructorOfAbstractClass =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS',
+      problemMessage:
+          "A generative constructor of an abstract class can't be torn off.",
+      correctionMessage:
+          "Try tearing off a constructor of a concrete class, or a "
+          "non-generative constructor.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String p0: the unicode sequence of the code point.
@@ -15104,7 +15016,7 @@ textDirectionCodePointInComment = DiagnosticWithArguments(
       "'\\u{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
+  uniqueName: 'TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
   withArguments: _withArgumentsTextDirectionCodePointInComment,
   expectedTypes: [ExpectedType.string],
 );
@@ -15124,7 +15036,7 @@ textDirectionCodePointInLiteral = DiagnosticWithArguments(
       "'\\u{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL',
+  uniqueName: 'TEXT_DIRECTION_CODE_POINT_IN_LITERAL',
   withArguments: _withArgumentsTextDirectionCodePointInLiteral,
   expectedTypes: [ExpectedType.string],
 );
@@ -15140,7 +15052,7 @@ throwOfInvalidType = DiagnosticWithArguments(
       "The type '{0}' of the thrown expression must be assignable to 'Object'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.THROW_OF_INVALID_TYPE',
+  uniqueName: 'THROW_OF_INVALID_TYPE',
   withArguments: _withArgumentsThrowOfInvalidType,
   expectedTypes: [ExpectedType.type],
 );
@@ -15156,7 +15068,7 @@ todo = DiagnosticWithArguments(
   name: 'TODO',
   problemMessage: "{0}",
   type: DiagnosticType.TODO,
-  uniqueName: 'TodoCode.TODO',
+  uniqueName: 'TODO',
   withArguments: _withArgumentsTodo,
   expectedTypes: [ExpectedType.string],
 );
@@ -15177,7 +15089,7 @@ topLevelCycle = DiagnosticWithArguments(
       "cycle in order to break the cycle.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.TOP_LEVEL_CYCLE',
+  uniqueName: 'TOP_LEVEL_CYCLE',
   withArguments: _withArgumentsTopLevelCycle,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15191,7 +15103,7 @@ topLevelOperator = DiagnosticWithoutArgumentsImpl(
       "Try removing the operator, moving it to a class, or converting it to "
       "be a function.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.TOP_LEVEL_OPERATOR',
+  uniqueName: 'TOP_LEVEL_OPERATOR',
   expectedTypes: [],
 );
 
@@ -15204,7 +15116,7 @@ typeAliasCannotReferenceItself = DiagnosticWithoutArgumentsImpl(
       "typedef.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF',
+  uniqueName: 'TYPE_ALIAS_CANNOT_REFERENCE_ITSELF',
   expectedTypes: [],
 );
 
@@ -15224,7 +15136,7 @@ typeAnnotationDeferredClass = DiagnosticWithArguments(
       "deferred.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS',
+  uniqueName: 'TYPE_ANNOTATION_DEFERRED_CLASS',
   withArguments: _withArgumentsTypeAnnotationDeferredClass,
   expectedTypes: [ExpectedType.string],
 );
@@ -15248,7 +15160,7 @@ typeArgumentNotMatchingBounds = DiagnosticWithArguments(
   correctionMessage: "Try using a type that is or is a subclass of '{2}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS',
+  uniqueName: 'TYPE_ARGUMENT_NOT_MATCHING_BOUNDS',
   withArguments: _withArgumentsTypeArgumentNotMatchingBounds,
   expectedTypes: [ExpectedType.type, ExpectedType.string, ExpectedType.type],
 );
@@ -15261,7 +15173,7 @@ const DiagnosticCode typeArgumentsOnTypeVariable =
       problemMessage: "Can't use type arguments with type variable '{0}'.",
       correctionMessage: "Try removing the type arguments.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE',
+      uniqueName: 'TYPE_ARGUMENTS_ON_TYPE_VARIABLE',
       expectedTypes: [ExpectedType.name],
     );
 
@@ -15272,7 +15184,7 @@ const DiagnosticWithoutArguments typeBeforeFactory =
       problemMessage: "Factory constructors cannot have a return type.",
       correctionMessage: "Try removing the type appearing before 'factory'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.TYPE_BEFORE_FACTORY',
+      uniqueName: 'TYPE_BEFORE_FACTORY',
       expectedTypes: [],
     );
 
@@ -15284,7 +15196,7 @@ const DiagnosticWithoutArguments typeCheckIsNotNull =
       correctionMessage: "Try replacing the 'is! Null' check with '!= null'.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.TYPE_CHECK_IS_NOT_NULL',
+      uniqueName: 'TYPE_CHECK_IS_NOT_NULL',
       expectedTypes: [],
     );
 
@@ -15296,7 +15208,7 @@ const DiagnosticWithoutArguments typeCheckIsNull =
       correctionMessage: "Try replacing the 'is Null' check with '== null'.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.TYPE_CHECK_IS_NULL',
+      uniqueName: 'TYPE_CHECK_IS_NULL',
       expectedTypes: [],
     );
 
@@ -15307,7 +15219,7 @@ const DiagnosticWithoutArguments typedefInClass =
       problemMessage: "Typedefs can't be declared inside classes.",
       correctionMessage: "Try moving the typedef to the top-level.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.TYPEDEF_IN_CLASS',
+      uniqueName: 'TYPEDEF_IN_CLASS',
       expectedTypes: [],
     );
 
@@ -15318,7 +15230,7 @@ const DiagnosticWithoutArguments typeParameterOnConstructor =
       problemMessage: "Constructors can't have type parameters.",
       correctionMessage: "Try removing the type parameters.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR',
+      uniqueName: 'TYPE_PARAMETER_ON_CONSTRUCTOR',
       expectedTypes: [],
     );
 
@@ -15333,7 +15245,7 @@ const DiagnosticWithoutArguments typeParameterOnOperator =
           "Types parameters aren't allowed when defining an operator.",
       correctionMessage: "Try removing the type parameters.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.TYPE_PARAMETER_ON_OPERATOR',
+      uniqueName: 'TYPE_PARAMETER_ON_OPERATOR',
       expectedTypes: [],
     );
 
@@ -15348,7 +15260,7 @@ const DiagnosticWithoutArguments typeParameterReferencedByStatic =
           "member an instance member.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC',
+      uniqueName: 'TYPE_PARAMETER_REFERENCED_BY_STATIC',
       expectedTypes: [],
     );
 
@@ -15367,7 +15279,7 @@ typeParameterSupertypeOfItsBound = DiagnosticWithArguments(
       "Try using a type that is the same as or a subclass of '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',
+  uniqueName: 'TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',
   withArguments: _withArgumentsTypeParameterSupertypeOfItsBound,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
@@ -15384,7 +15296,7 @@ typeTestWithNonType = DiagnosticWithArguments(
   correctionMessage: "Try correcting the name to match an existing type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE',
+  uniqueName: 'TYPE_TEST_WITH_NON_TYPE',
   withArguments: _withArgumentsTypeTestWithNonType,
   expectedTypes: [ExpectedType.string],
 );
@@ -15403,7 +15315,7 @@ typeTestWithUndefinedName = DiagnosticWithArguments(
       "type with the name '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME',
+  uniqueName: 'TYPE_TEST_WITH_UNDEFINED_NAME',
   withArguments: _withArgumentsTypeTestWithUndefinedName,
   expectedTypes: [ExpectedType.string],
 );
@@ -15417,7 +15329,7 @@ unableGetContent = DiagnosticWithArguments(
   name: 'UNABLE_GET_CONTENT',
   problemMessage: "Unable to get content of '{0}'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ScannerErrorCode.UNABLE_GET_CONTENT',
+  uniqueName: 'UNABLE_GET_CONTENT',
   withArguments: _withArgumentsUnableGetContent,
   expectedTypes: [ExpectedType.object],
 );
@@ -15431,7 +15343,7 @@ uncheckedInvocationOfNullableValue = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try adding a null check ('!').",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE',
+  uniqueName: 'UNCHECKED_INVOCATION_OF_NULLABLE_VALUE',
   expectedTypes: [],
 );
 
@@ -15450,8 +15362,7 @@ uncheckedMethodInvocationOfNullableValue = DiagnosticWithArguments(
       "to the target ('!').",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE',
+  uniqueName: 'UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE',
   withArguments: _withArgumentsUncheckedMethodInvocationOfNullableValue,
   expectedTypes: [ExpectedType.string],
 );
@@ -15469,8 +15380,7 @@ uncheckedOperatorInvocationOfNullableValue = DiagnosticWithArguments(
   correctionMessage: "Try adding a null check to the target ('!').",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE',
+  uniqueName: 'UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE',
   withArguments: _withArgumentsUncheckedOperatorInvocationOfNullableValue,
   expectedTypes: [ExpectedType.string],
 );
@@ -15490,8 +15400,7 @@ uncheckedPropertyAccessOfNullableValue = DiagnosticWithArguments(
       "to the target ('!').",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE',
+  uniqueName: 'UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE',
   withArguments: _withArgumentsUncheckedPropertyAccessOfNullableValue,
   expectedTypes: [ExpectedType.string],
 );
@@ -15506,8 +15415,7 @@ const DiagnosticWithoutArguments uncheckedUseOfNullableValueAsCondition =
           "condition.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION',
+      uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION',
       expectedTypes: [],
     );
 
@@ -15522,8 +15430,7 @@ uncheckedUseOfNullableValueAsIterator = DiagnosticWithoutArgumentsImpl(
       "iterator.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR',
+  uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR',
   expectedTypes: [],
 );
 
@@ -15537,7 +15444,7 @@ uncheckedUseOfNullableValueInSpread = DiagnosticWithoutArgumentsImpl(
       "or use a null-aware spread.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD',
+  uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD',
   expectedTypes: [],
 );
 
@@ -15552,8 +15459,7 @@ const DiagnosticWithoutArguments uncheckedUseOfNullableValueInYieldEach =
           "yield-each statement.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH',
+      uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH',
       expectedTypes: [],
     );
 
@@ -15570,7 +15476,7 @@ undefinedAnnotation = DiagnosticWithArguments(
   hasPublishedDocs: true,
   isUnresolvedIdentifier: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_ANNOTATION',
+  uniqueName: 'UNDEFINED_ANNOTATION',
   withArguments: _withArgumentsUndefinedAnnotation,
   expectedTypes: [ExpectedType.string],
 );
@@ -15589,7 +15495,7 @@ undefinedClass = DiagnosticWithArguments(
   hasPublishedDocs: true,
   isUnresolvedIdentifier: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_CLASS',
+  uniqueName: 'UNDEFINED_CLASS',
   withArguments: _withArgumentsUndefinedClass,
   expectedTypes: [ExpectedType.string],
 );
@@ -15609,7 +15515,7 @@ undefinedClassBoolean = DiagnosticWithArguments(
   hasPublishedDocs: true,
   isUnresolvedIdentifier: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN',
+  uniqueName: 'UNDEFINED_CLASS_BOOLEAN',
   withArguments: _withArgumentsUndefinedClassBoolean,
   expectedTypes: [ExpectedType.string],
 );
@@ -15629,7 +15535,7 @@ undefinedConstructorInInitializer = DiagnosticWithArguments(
       "different constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER',
+  uniqueName: 'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER',
   withArguments: _withArgumentsUndefinedConstructorInInitializer,
   expectedTypes: [ExpectedType.type, ExpectedType.string],
 );
@@ -15648,8 +15554,7 @@ undefinedConstructorInInitializerDefault = DiagnosticWithArguments(
       "constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT',
+  uniqueName: 'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT',
   withArguments: _withArgumentsUndefinedConstructorInInitializerDefault,
   expectedTypes: [ExpectedType.object],
 );
@@ -15668,7 +15573,7 @@ undefinedEnumConstant = DiagnosticWithArguments(
       "defining a constant named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT',
+  uniqueName: 'UNDEFINED_ENUM_CONSTANT',
   withArguments: _withArgumentsUndefinedEnumConstant,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15686,7 +15591,7 @@ undefinedEnumConstructorNamed = DiagnosticWithArguments(
       "defining constructor with the name '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED',
+  uniqueName: 'UNDEFINED_ENUM_CONSTRUCTOR_NAMED',
   withArguments: _withArgumentsUndefinedEnumConstructorNamed,
   expectedTypes: [ExpectedType.string],
 );
@@ -15701,7 +15606,7 @@ const DiagnosticWithoutArguments undefinedEnumConstructorUnnamed =
           "unnamed constructor.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED',
+      uniqueName: 'UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED',
       expectedTypes: [],
     );
 
@@ -15719,7 +15624,7 @@ undefinedExtensionGetter = DiagnosticWithArguments(
       "defining a getter named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER',
+  uniqueName: 'UNDEFINED_EXTENSION_GETTER',
   withArguments: _withArgumentsUndefinedExtensionGetter,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15738,7 +15643,7 @@ undefinedExtensionMethod = DiagnosticWithArguments(
       "defining a method named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD',
+  uniqueName: 'UNDEFINED_EXTENSION_METHOD',
   withArguments: _withArgumentsUndefinedExtensionMethod,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15755,7 +15660,7 @@ undefinedExtensionOperator = DiagnosticWithArguments(
   correctionMessage: "Try defining the operator '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR',
+  uniqueName: 'UNDEFINED_EXTENSION_OPERATOR',
   withArguments: _withArgumentsUndefinedExtensionOperator,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15774,7 +15679,7 @@ undefinedExtensionSetter = DiagnosticWithArguments(
       "defining a setter named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER',
+  uniqueName: 'UNDEFINED_EXTENSION_SETTER',
   withArguments: _withArgumentsUndefinedExtensionSetter,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15793,7 +15698,7 @@ undefinedFunction = DiagnosticWithArguments(
   hasPublishedDocs: true,
   isUnresolvedIdentifier: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_FUNCTION',
+  uniqueName: 'UNDEFINED_FUNCTION',
   withArguments: _withArgumentsUndefinedFunction,
   expectedTypes: [ExpectedType.string],
 );
@@ -15814,7 +15719,7 @@ undefinedGetter = DiagnosticWithArguments(
       "'{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_GETTER',
+  uniqueName: 'UNDEFINED_GETTER',
   withArguments: _withArgumentsUndefinedGetter,
   expectedTypes: [ExpectedType.string, ExpectedType.object],
 );
@@ -15833,7 +15738,7 @@ undefinedGetterOnFunctionType = DiagnosticWithArguments(
       "access '{0}' as an extension getter on 'Type'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE',
+  uniqueName: 'UNDEFINED_GETTER_ON_FUNCTION_TYPE',
   withArguments: _withArgumentsUndefinedGetterOnFunctionType,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15851,7 +15756,7 @@ undefinedHiddenName = DiagnosticWithArguments(
   correctionMessage: "Try removing the name from the list of hidden members.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.UNDEFINED_HIDDEN_NAME',
+  uniqueName: 'UNDEFINED_HIDDEN_NAME',
   withArguments: _withArgumentsUndefinedHiddenName,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15869,7 +15774,7 @@ undefinedIdentifier = DiagnosticWithArguments(
   hasPublishedDocs: true,
   isUnresolvedIdentifier: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_IDENTIFIER',
+  uniqueName: 'UNDEFINED_IDENTIFIER',
   withArguments: _withArgumentsUndefinedIdentifier,
   expectedTypes: [ExpectedType.string],
 );
@@ -15885,7 +15790,7 @@ undefinedIdentifierAwait = DiagnosticWithoutArgumentsImpl(
       "adding 'async' to the enclosing function body.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT',
+  uniqueName: 'UNDEFINED_IDENTIFIER_AWAIT',
   expectedTypes: [],
 );
 
@@ -15901,7 +15806,7 @@ undefinedLint = DiagnosticWithArguments(
   problemMessage: "'{0}' is not a recognized lint rule.",
   correctionMessage: "Try using the name of a recognized lint rule.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.UNDEFINED_LINT',
+  uniqueName: 'UNDEFINED_LINT',
   withArguments: _withArgumentsUndefinedLint,
   expectedTypes: [ExpectedType.string],
 );
@@ -15920,7 +15825,7 @@ undefinedMethod = DiagnosticWithArguments(
       "defining a method named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_METHOD',
+  uniqueName: 'UNDEFINED_METHOD',
   withArguments: _withArgumentsUndefinedMethod,
   expectedTypes: [ExpectedType.string, ExpectedType.object],
 );
@@ -15939,7 +15844,7 @@ undefinedMethodOnFunctionType = DiagnosticWithArguments(
       "access '{0}' as an extension method on 'Type'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE',
+  uniqueName: 'UNDEFINED_METHOD_ON_FUNCTION_TYPE',
   withArguments: _withArgumentsUndefinedMethodOnFunctionType,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15957,7 +15862,7 @@ undefinedNamedParameter = DiagnosticWithArguments(
       "defining a named parameter with the name '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER',
+  uniqueName: 'UNDEFINED_NAMED_PARAMETER',
   withArguments: _withArgumentsUndefinedNamedParameter,
   expectedTypes: [ExpectedType.string],
 );
@@ -15975,7 +15880,7 @@ undefinedOperator = DiagnosticWithArguments(
   correctionMessage: "Try defining the operator '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_OPERATOR',
+  uniqueName: 'UNDEFINED_OPERATOR',
   withArguments: _withArgumentsUndefinedOperator,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
@@ -15996,7 +15901,7 @@ undefinedPrefixedName = DiagnosticWithArguments(
       "'{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME',
+  uniqueName: 'UNDEFINED_PREFIXED_NAME',
   withArguments: _withArgumentsUndefinedPrefixedName,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -16012,7 +15917,7 @@ undefinedReferencedParameter = DiagnosticWithArguments(
   problemMessage: "The parameter '{0}' isn't defined by '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.UNDEFINED_REFERENCED_PARAMETER',
+  uniqueName: 'UNDEFINED_REFERENCED_PARAMETER',
   withArguments: _withArgumentsUndefinedReferencedParameter,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -16033,7 +15938,7 @@ undefinedSetter = DiagnosticWithArguments(
       "'{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_SETTER',
+  uniqueName: 'UNDEFINED_SETTER',
   withArguments: _withArgumentsUndefinedSetter,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
@@ -16052,7 +15957,7 @@ undefinedSetterOnFunctionType = DiagnosticWithArguments(
       "access '{0}' as an extension getter on 'Type'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE',
+  uniqueName: 'UNDEFINED_SETTER_ON_FUNCTION_TYPE',
   withArguments: _withArgumentsUndefinedSetterOnFunctionType,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -16070,7 +15975,7 @@ undefinedShownName = DiagnosticWithArguments(
   correctionMessage: "Try removing the name from the list of shown members.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.UNDEFINED_SHOWN_NAME',
+  uniqueName: 'UNDEFINED_SHOWN_NAME',
   withArguments: _withArgumentsUndefinedShownName,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -16090,7 +15995,7 @@ undefinedSuperGetter = DiagnosticWithArguments(
       "defining a getter or field named '{0}' in a superclass.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_SUPER_GETTER',
+  uniqueName: 'UNDEFINED_SUPER_GETTER',
   withArguments: _withArgumentsUndefinedSuperGetter,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
@@ -16109,7 +16014,7 @@ undefinedSuperMethod = DiagnosticWithArguments(
       "defining a method named '{0}' in a superclass.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_SUPER_METHOD',
+  uniqueName: 'UNDEFINED_SUPER_METHOD',
   withArguments: _withArgumentsUndefinedSuperMethod,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -16127,7 +16032,7 @@ undefinedSuperOperator = DiagnosticWithArguments(
   correctionMessage: "Try defining the operator '{0}' in a superclass.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR',
+  uniqueName: 'UNDEFINED_SUPER_OPERATOR',
   withArguments: _withArgumentsUndefinedSuperOperator,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
@@ -16147,7 +16052,7 @@ undefinedSuperSetter = DiagnosticWithArguments(
       "defining a setter or field named '{0}' in a superclass.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.UNDEFINED_SUPER_SETTER',
+  uniqueName: 'UNDEFINED_SUPER_SETTER',
   withArguments: _withArgumentsUndefinedSuperSetter,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
@@ -16163,7 +16068,7 @@ undone = DiagnosticWithArguments(
   name: 'UNDONE',
   problemMessage: "{0}",
   type: DiagnosticType.TODO,
-  uniqueName: 'TodoCode.UNDONE',
+  uniqueName: 'UNDONE',
   withArguments: _withArgumentsUndone,
   expectedTypes: [ExpectedType.string],
 );
@@ -16177,7 +16082,7 @@ unexpectedDollarInString = DiagnosticWithoutArgumentsImpl(
       "identifier or an expression in curly braces ({}).",
   correctionMessage: "Try adding a backslash (\\) to escape the '\$'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING',
+  uniqueName: 'UNEXPECTED_DOLLAR_IN_STRING',
   expectedTypes: [],
 );
 
@@ -16190,7 +16095,7 @@ unexpectedSeparatorInNumber = DiagnosticWithoutArgumentsImpl(
       "digits.",
   correctionMessage: "Try removing the '_'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ScannerErrorCode.UNEXPECTED_SEPARATOR_IN_NUMBER',
+  uniqueName: 'UNEXPECTED_SEPARATOR_IN_NUMBER',
   expectedTypes: [],
 );
 
@@ -16204,7 +16109,7 @@ unexpectedTerminatorForParameterGroup = DiagnosticWithArguments(
   problemMessage: "There is no '{0}' to open a parameter group.",
   correctionMessage: "Try inserting the '{0}' at the appropriate location.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP',
+  uniqueName: 'UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP',
   withArguments: _withArgumentsUnexpectedTerminatorForParameterGroup,
   expectedTypes: [ExpectedType.object],
 );
@@ -16219,7 +16124,7 @@ unexpectedToken = DiagnosticWithArguments(
   problemMessage: "Unexpected text '{0}'.",
   correctionMessage: "Try removing the text.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.UNEXPECTED_TOKEN',
+  uniqueName: 'UNEXPECTED_TOKEN',
   withArguments: _withArgumentsUnexpectedToken,
   expectedTypes: [ExpectedType.string],
 );
@@ -16230,7 +16135,7 @@ const DiagnosticWithoutArguments unexpectedTokens =
       name: 'UNEXPECTED_TOKENS',
       problemMessage: "Unexpected tokens.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.UNEXPECTED_TOKENS',
+      uniqueName: 'UNEXPECTED_TOKENS',
       expectedTypes: [],
     );
 
@@ -16246,7 +16151,7 @@ unignorableIgnore = DiagnosticWithArguments(
       "Try removing the name from the list, or removing the whole comment if "
       "this is the only name in the list.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.UNIGNORABLE_IGNORE',
+  uniqueName: 'UNIGNORABLE_IGNORE',
   withArguments: _withArgumentsUnignorableIgnore,
   expectedTypes: [ExpectedType.object],
 );
@@ -16262,7 +16167,7 @@ unknownPlatform = DiagnosticWithArguments(
   correctionMessage: "Try correcting the platform name or removing it.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PubspecWarningCode.UNKNOWN_PLATFORM',
+  uniqueName: 'UNKNOWN_PLATFORM',
   withArguments: _withArgumentsUnknownPlatform,
   expectedTypes: [ExpectedType.object],
 );
@@ -16275,7 +16180,7 @@ const DiagnosticWithoutArguments unnecessaryCast =
       correctionMessage: "Try removing the cast.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.UNNECESSARY_CAST',
+      uniqueName: 'UNNECESSARY_CAST',
       expectedTypes: [],
     );
 
@@ -16287,7 +16192,7 @@ const DiagnosticWithoutArguments unnecessaryCastPattern =
       correctionMessage: "Try removing the cast pattern.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.UNNECESSARY_CAST_PATTERN',
+      uniqueName: 'UNNECESSARY_CAST_PATTERN',
       expectedTypes: [],
     );
 
@@ -16304,7 +16209,7 @@ unnecessaryDevDependency = DiagnosticWithArguments(
   correctionMessage: "Try removing the dev dependency.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY',
+  uniqueName: 'UNNECESSARY_DEV_DEPENDENCY',
   withArguments: _withArgumentsUnnecessaryDevDependency,
   expectedTypes: [ExpectedType.string],
 );
@@ -16319,7 +16224,7 @@ unnecessaryFinal = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try removing the 'final'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.UNNECESSARY_FINAL',
+  uniqueName: 'UNNECESSARY_FINAL',
   expectedTypes: [],
 );
 
@@ -16337,7 +16242,7 @@ unnecessaryImport = DiagnosticWithArguments(
   correctionMessage: "Try removing the import directive.",
   hasPublishedDocs: true,
   type: DiagnosticType.HINT,
-  uniqueName: 'HintCode.UNNECESSARY_IMPORT',
+  uniqueName: 'UNNECESSARY_IMPORT',
   withArguments: _withArgumentsUnnecessaryImport,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -16351,7 +16256,7 @@ unnecessaryNanComparisonFalse = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try using 'double.isNan', or removing the condition.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE',
+  uniqueName: 'UNNECESSARY_NAN_COMPARISON_FALSE',
   expectedTypes: [],
 );
 
@@ -16364,7 +16269,7 @@ unnecessaryNanComparisonTrue = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try using 'double.isNan', or removing the condition.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE',
+  uniqueName: 'UNNECESSARY_NAN_COMPARISON_TRUE',
   expectedTypes: [],
 );
 
@@ -16377,7 +16282,7 @@ const DiagnosticWithoutArguments unnecessaryNonNullAssertion =
       correctionMessage: "Try removing the '!' operator.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION',
+      uniqueName: 'UNNECESSARY_NON_NULL_ASSERTION',
       expectedTypes: [],
     );
 
@@ -16389,7 +16294,7 @@ const DiagnosticWithoutArguments unnecessaryNoSuchMethod =
       correctionMessage: "Try removing the declaration of 'noSuchMethod'.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.UNNECESSARY_NO_SUCH_METHOD',
+      uniqueName: 'UNNECESSARY_NO_SUCH_METHOD',
       expectedTypes: [],
     );
 
@@ -16404,7 +16309,7 @@ unnecessaryNullAssertPattern = DiagnosticWithoutArgumentsImpl(
       "Try replacing the null-assert pattern with its nested pattern.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN',
+  uniqueName: 'UNNECESSARY_NULL_ASSERT_PATTERN',
   expectedTypes: [],
 );
 
@@ -16419,7 +16324,7 @@ unnecessaryNullCheckPattern = DiagnosticWithoutArgumentsImpl(
       "Try replacing the null-check pattern with its nested pattern.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN',
+  uniqueName: 'UNNECESSARY_NULL_CHECK_PATTERN',
   expectedTypes: [],
 );
 
@@ -16432,7 +16337,7 @@ const DiagnosticWithoutArguments unnecessaryNullComparisonAlwaysNullFalse =
       correctionMessage: "Remove the condition.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE',
+      uniqueName: 'UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE',
       expectedTypes: [],
     );
 
@@ -16445,7 +16350,7 @@ const DiagnosticWithoutArguments unnecessaryNullComparisonAlwaysNullTrue =
       correctionMessage: "Remove the condition.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE',
+      uniqueName: 'UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE',
       expectedTypes: [],
     );
 
@@ -16460,7 +16365,7 @@ const DiagnosticWithoutArguments unnecessaryNullComparisonNeverNullFalse =
           "conditional statement.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE',
+      uniqueName: 'UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE',
       expectedTypes: [],
     );
 
@@ -16473,7 +16378,7 @@ const DiagnosticWithoutArguments unnecessaryNullComparisonNeverNullTrue =
       correctionMessage: "Remove the condition.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE',
+      uniqueName: 'UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE',
       expectedTypes: [],
     );
 
@@ -16488,7 +16393,7 @@ unnecessaryQuestionMark = DiagnosticWithArguments(
       "The '?' is unnecessary because '{0}' is nullable without it.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.UNNECESSARY_QUESTION_MARK',
+  uniqueName: 'UNNECESSARY_QUESTION_MARK',
   withArguments: _withArgumentsUnnecessaryQuestionMark,
   expectedTypes: [ExpectedType.string],
 );
@@ -16502,7 +16407,7 @@ const DiagnosticWithoutArguments unnecessarySetLiteral =
       correctionMessage: "Try removing the set literal around the expression.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.UNNECESSARY_SET_LITERAL',
+      uniqueName: 'UNNECESSARY_SET_LITERAL',
       expectedTypes: [],
     );
 
@@ -16515,7 +16420,7 @@ const DiagnosticWithoutArguments unnecessaryTypeCheckFalse =
           "Try correcting the type check, or removing the type check.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.UNNECESSARY_TYPE_CHECK_FALSE',
+      uniqueName: 'UNNECESSARY_TYPE_CHECK_FALSE',
       expectedTypes: [],
     );
 
@@ -16528,7 +16433,7 @@ const DiagnosticWithoutArguments unnecessaryTypeCheckTrue =
           "Try correcting the type check, or removing the type check.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.UNNECESSARY_TYPE_CHECK_TRUE',
+      uniqueName: 'UNNECESSARY_TYPE_CHECK_TRUE',
       expectedTypes: [],
     );
 
@@ -16540,7 +16445,7 @@ const DiagnosticWithoutArguments unnecessaryWildcardPattern =
       correctionMessage: "Try removing the wildcard pattern.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.UNNECESSARY_WILDCARD_PATTERN',
+      uniqueName: 'UNNECESSARY_WILDCARD_PATTERN',
       expectedTypes: [],
     );
 
@@ -16561,8 +16466,7 @@ unqualifiedReferenceToNonLocalStaticMember = DiagnosticWithArguments(
   correctionMessage: "Try adding '{0}.' before the name.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER',
+  uniqueName: 'UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER',
   withArguments: _withArgumentsUnqualifiedReferenceToNonLocalStaticMember,
   expectedTypes: [ExpectedType.string],
 );
@@ -16580,8 +16484,7 @@ unqualifiedReferenceToStaticMemberOfExtendedType = DiagnosticWithArguments(
   correctionMessage: "Try adding '{0}.' before the name.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE',
+  uniqueName: 'UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE',
   withArguments: _withArgumentsUnqualifiedReferenceToStaticMemberOfExtendedType,
   expectedTypes: [ExpectedType.string],
 );
@@ -16596,7 +16499,7 @@ const DiagnosticWithoutArguments unreachableSwitchCase =
           "patterns.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.UNREACHABLE_SWITCH_CASE',
+      uniqueName: 'UNREACHABLE_SWITCH_CASE',
       expectedTypes: [],
     );
 
@@ -16610,7 +16513,7 @@ const DiagnosticWithoutArguments unreachableSwitchDefault =
           "patterns.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WarningCode.UNREACHABLE_SWITCH_DEFAULT',
+      uniqueName: 'UNREACHABLE_SWITCH_DEFAULT',
       expectedTypes: [],
     );
 
@@ -16626,7 +16529,7 @@ unrecognizedErrorCode = DiagnosticWithArguments(
   name: 'UNRECOGNIZED_ERROR_CODE',
   problemMessage: "'{0}' isn't a recognized error code.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE',
+  uniqueName: 'UNRECOGNIZED_ERROR_CODE',
   withArguments: _withArgumentsUnrecognizedErrorCode,
   expectedTypes: [ExpectedType.string],
 );
@@ -16646,7 +16549,7 @@ unsupportedChromeOsFeature = DiagnosticWithArguments(
   correctionMessage:
       "Try changing to `android:required=\"false\"` for this feature.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE',
+  uniqueName: 'UNSUPPORTED_CHROME_OS_FEATURE',
   withArguments: _withArgumentsUnsupportedChromeOsFeature,
   expectedTypes: [ExpectedType.string],
 );
@@ -16667,7 +16570,7 @@ unsupportedChromeOsHardware = DiagnosticWithArguments(
   correctionMessage:
       "Try adding `android:required=\"false\"` for this feature.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE',
+  uniqueName: 'UNSUPPORTED_CHROME_OS_HARDWARE',
   withArguments: _withArgumentsUnsupportedChromeOsHardware,
   expectedTypes: [ExpectedType.string],
 );
@@ -16681,7 +16584,7 @@ unsupportedOperator = DiagnosticWithArguments(
   name: 'UNSUPPORTED_OPERATOR',
   problemMessage: "The '{0}' operator is not supported.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ScannerErrorCode.UNSUPPORTED_OPERATOR',
+  uniqueName: 'UNSUPPORTED_OPERATOR',
   withArguments: _withArgumentsUnsupportedOperator,
   expectedTypes: [ExpectedType.string],
 );
@@ -16706,7 +16609,7 @@ unsupportedOptionWithLegalValue = DiagnosticWithArguments(
       "The option '{1}' isn't supported by '{0}'. Try using the only supported "
       "option: '{2}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE',
+  uniqueName: 'UNSUPPORTED_OPTION_WITH_LEGAL_VALUE',
   withArguments: _withArgumentsUnsupportedOptionWithLegalValue,
   expectedTypes: [
     ExpectedType.string,
@@ -16734,7 +16637,7 @@ unsupportedOptionWithLegalValues = DiagnosticWithArguments(
   problemMessage: "The option '{1}' isn't supported by '{0}'.",
   correctionMessage: "Try using one of the supported options: {2}.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
+  uniqueName: 'UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
   withArguments: _withArgumentsUnsupportedOptionWithLegalValues,
   expectedTypes: [
     ExpectedType.string,
@@ -16756,7 +16659,7 @@ unsupportedOptionWithoutValues = DiagnosticWithArguments(
   name: 'UNSUPPORTED_OPTION_WITHOUT_VALUES',
   problemMessage: "The option '{1}' isn't supported by '{0}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES',
+  uniqueName: 'UNSUPPORTED_OPTION_WITHOUT_VALUES',
   withArguments: _withArgumentsUnsupportedOptionWithoutValues,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -16780,7 +16683,7 @@ unsupportedValue = DiagnosticWithArguments(
   problemMessage: "The value '{1}' isn't supported by '{0}'.",
   correctionMessage: "Try using one of the supported options: {2}.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'AnalysisOptionsWarningCode.UNSUPPORTED_VALUE',
+  uniqueName: 'UNSUPPORTED_VALUE',
   withArguments: _withArgumentsUnsupportedValue,
   expectedTypes: [
     ExpectedType.string,
@@ -16798,7 +16701,7 @@ const DiagnosticWithoutArguments unterminatedMultiLineComment =
           "Try terminating the comment with '*/', or removing any unbalanced "
           "occurrences of '/*' (because comments nest in Dart).",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT',
+      uniqueName: 'UNTERMINATED_MULTI_LINE_COMMENT',
       expectedTypes: [],
     );
 
@@ -16808,7 +16711,7 @@ const DiagnosticWithoutArguments unterminatedStringLiteral =
       name: 'UNTERMINATED_STRING_LITERAL',
       problemMessage: "Unterminated string literal.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ScannerErrorCode.UNTERMINATED_STRING_LITERAL',
+      uniqueName: 'UNTERMINATED_STRING_LITERAL',
       expectedTypes: [],
     );
 
@@ -16825,7 +16728,7 @@ unusedCatchClause = DiagnosticWithArguments(
   correctionMessage: "Try removing the catch clause.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.UNUSED_CATCH_CLAUSE',
+  uniqueName: 'UNUSED_CATCH_CLAUSE',
   withArguments: _withArgumentsUnusedCatchClause,
   expectedTypes: [ExpectedType.object],
 );
@@ -16842,7 +16745,7 @@ unusedCatchStack = DiagnosticWithArguments(
   correctionMessage: "Try removing the stack trace variable, or using it.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.UNUSED_CATCH_STACK',
+  uniqueName: 'UNUSED_CATCH_STACK',
   withArguments: _withArgumentsUnusedCatchStack,
   expectedTypes: [ExpectedType.object],
 );
@@ -16858,7 +16761,7 @@ unusedElement = DiagnosticWithArguments(
   correctionMessage: "Try removing the declaration of '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.UNUSED_ELEMENT',
+  uniqueName: 'UNUSED_ELEMENT',
   withArguments: _withArgumentsUnusedElement,
   expectedTypes: [ExpectedType.object],
 );
@@ -16874,7 +16777,7 @@ unusedElementParameter = DiagnosticWithArguments(
   correctionMessage: "Try removing the unused parameter.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.UNUSED_ELEMENT_PARAMETER',
+  uniqueName: 'UNUSED_ELEMENT_PARAMETER',
   withArguments: _withArgumentsUnusedElementParameter,
   expectedTypes: [ExpectedType.object],
 );
@@ -16890,7 +16793,7 @@ unusedField = DiagnosticWithArguments(
   correctionMessage: "Try removing the field, or using it.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.UNUSED_FIELD',
+  uniqueName: 'UNUSED_FIELD',
   withArguments: _withArgumentsUnusedField,
   expectedTypes: [ExpectedType.object],
 );
@@ -16906,7 +16809,7 @@ unusedImport = DiagnosticWithArguments(
   correctionMessage: "Try removing the import directive.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.UNUSED_IMPORT',
+  uniqueName: 'UNUSED_IMPORT',
   withArguments: _withArgumentsUnusedImport,
   expectedTypes: [ExpectedType.string],
 );
@@ -16924,7 +16827,7 @@ unusedLabel = DiagnosticWithArguments(
       "statement.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.UNUSED_LABEL',
+  uniqueName: 'UNUSED_LABEL',
   withArguments: _withArgumentsUnusedLabel,
   expectedTypes: [ExpectedType.string],
 );
@@ -16940,7 +16843,7 @@ unusedLocalVariable = DiagnosticWithArguments(
   correctionMessage: "Try removing the variable or using it.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.UNUSED_LOCAL_VARIABLE',
+  uniqueName: 'UNUSED_LOCAL_VARIABLE',
   withArguments: _withArgumentsUnusedLocalVariable,
   expectedTypes: [ExpectedType.object],
 );
@@ -16958,7 +16861,7 @@ unusedResult = DiagnosticWithArguments(
       "or returning it from this function.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.UNUSED_RESULT',
+  uniqueName: 'UNUSED_RESULT',
   withArguments: _withArgumentsUnusedResult,
   expectedTypes: [ExpectedType.string],
 );
@@ -16981,7 +16884,7 @@ unusedResultWithMessage = DiagnosticWithArguments(
       "or returning it from this function.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.UNUSED_RESULT_WITH_MESSAGE',
+  uniqueName: 'UNUSED_RESULT_WITH_MESSAGE',
   withArguments: _withArgumentsUnusedResultWithMessage,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -16997,7 +16900,7 @@ unusedShownName = DiagnosticWithArguments(
   correctionMessage: "Try removing the name from the list of shown members.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.UNUSED_SHOWN_NAME',
+  uniqueName: 'UNUSED_SHOWN_NAME',
   withArguments: _withArgumentsUnusedShownName,
   expectedTypes: [ExpectedType.string],
 );
@@ -17015,7 +16918,7 @@ uriDoesNotExist = DiagnosticWithArguments(
       "file that does exist.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.URI_DOES_NOT_EXIST',
+  uniqueName: 'URI_DOES_NOT_EXIST',
   withArguments: _withArgumentsUriDoesNotExist,
   expectedTypes: [ExpectedType.string],
 );
@@ -17033,7 +16936,7 @@ uriDoesNotExistInDocImport = DiagnosticWithArguments(
       "file that does exist.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT',
+  uniqueName: 'URI_DOES_NOT_EXIST_IN_DOC_IMPORT',
   withArguments: _withArgumentsUriDoesNotExistInDocImport,
   expectedTypes: [ExpectedType.string],
 );
@@ -17051,7 +16954,7 @@ uriHasNotBeenGenerated = DiagnosticWithArguments(
       "the URI.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED',
+  uniqueName: 'URI_HAS_NOT_BEEN_GENERATED',
   withArguments: _withArgumentsUriHasNotBeenGenerated,
   expectedTypes: [ExpectedType.string],
 );
@@ -17063,7 +16966,7 @@ const DiagnosticWithoutArguments uriWithInterpolation =
       problemMessage: "URIs can't use string interpolation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.URI_WITH_INTERPOLATION',
+      uniqueName: 'URI_WITH_INTERPOLATION',
       expectedTypes: [],
     );
 
@@ -17076,7 +16979,7 @@ useOfNativeExtension = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try using dart:ffi for C interop.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION',
+  uniqueName: 'USE_OF_NATIVE_EXTENSION',
   expectedTypes: [],
 );
 
@@ -17092,7 +16995,7 @@ useOfVoidResult = DiagnosticWithoutArgumentsImpl(
       "parameters and variables which might also be void.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.USE_OF_VOID_RESULT',
+  uniqueName: 'USE_OF_VOID_RESULT',
   expectedTypes: [],
 );
 
@@ -17104,7 +17007,7 @@ const DiagnosticWithoutArguments valuesDeclarationInEnum =
       correctionMessage: "Try using a different name.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM',
+      uniqueName: 'VALUES_DECLARATION_IN_ENUM',
       expectedTypes: [],
     );
 
@@ -17115,7 +17018,7 @@ const DiagnosticWithoutArguments varAndType = DiagnosticWithoutArgumentsImpl(
       "Variables can't be declared using both 'var' and a type name.",
   correctionMessage: "Try removing 'var.'",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.VAR_AND_TYPE',
+  uniqueName: 'VAR_AND_TYPE',
   expectedTypes: [],
 );
 
@@ -17124,7 +17027,7 @@ const DiagnosticWithoutArguments varAsTypeName = DiagnosticWithoutArgumentsImpl(
   name: 'VAR_AS_TYPE_NAME',
   problemMessage: "The keyword 'var' can't be used as a type name.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.VAR_AS_TYPE_NAME',
+  uniqueName: 'VAR_AS_TYPE_NAME',
   expectedTypes: [],
 );
 
@@ -17134,7 +17037,7 @@ const DiagnosticWithoutArguments varClass = DiagnosticWithoutArgumentsImpl(
   problemMessage: "Classes can't be declared to be 'var'.",
   correctionMessage: "Try removing the keyword 'var'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.VAR_CLASS',
+  uniqueName: 'VAR_CLASS',
   expectedTypes: [],
 );
 
@@ -17144,7 +17047,7 @@ const DiagnosticWithoutArguments varEnum = DiagnosticWithoutArgumentsImpl(
   problemMessage: "Enums can't be declared to be 'var'.",
   correctionMessage: "Try removing the keyword 'var'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.VAR_ENUM',
+  uniqueName: 'VAR_ENUM',
   expectedTypes: [],
 );
 
@@ -17157,7 +17060,7 @@ variableLengthArrayNotLast = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try adjusting the arguments in the 'Array' annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FfiCode.VARIABLE_LENGTH_ARRAY_NOT_LAST',
+  uniqueName: 'VARIABLE_LENGTH_ARRAY_NOT_LAST',
   expectedTypes: [],
 );
 
@@ -17173,7 +17076,7 @@ variablePatternKeywordInDeclarationContext = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try removing the keyword.",
   hasPublishedDocs: true,
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT',
+  uniqueName: 'VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT',
   expectedTypes: [],
 );
 
@@ -17194,7 +17097,7 @@ variableTypeMismatch = DiagnosticWithArguments(
   correctionMessage: "Try using a subtype, or removing the 'const' keyword",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH',
+  uniqueName: 'VARIABLE_TYPE_MISMATCH',
   withArguments: _withArgumentsVariableTypeMismatch,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -17207,7 +17110,7 @@ const DiagnosticWithoutArguments varReturnType = DiagnosticWithoutArgumentsImpl(
       "Try removing the keyword 'var', or replacing it with the name of the "
       "return type.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.VAR_RETURN_TYPE',
+  uniqueName: 'VAR_RETURN_TYPE',
   expectedTypes: [],
 );
 
@@ -17219,7 +17122,7 @@ const DiagnosticWithoutArguments varTypedef = DiagnosticWithoutArgumentsImpl(
       "Try removing the keyword 'var', or replacing it with the name of the "
       "return type.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.VAR_TYPEDEF',
+  uniqueName: 'VAR_TYPEDEF',
   expectedTypes: [],
 );
 
@@ -17230,7 +17133,7 @@ const DiagnosticWithoutArguments voidWithTypeArguments =
       problemMessage: "Type 'void' can't have type arguments.",
       correctionMessage: "Try removing the type arguments.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.VOID_WITH_TYPE_ARGUMENTS',
+      uniqueName: 'VOID_WITH_TYPE_ARGUMENTS',
       expectedTypes: [],
     );
 
@@ -17242,7 +17145,7 @@ const DiagnosticWithoutArguments withBeforeExtends =
       correctionMessage:
           "Try moving the extends clause before the with clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.WITH_BEFORE_EXTENDS',
+      uniqueName: 'WITH_BEFORE_EXTENDS',
       expectedTypes: [],
     );
 
@@ -17257,7 +17160,7 @@ workspaceFieldNotList = DiagnosticWithoutArgumentsImpl(
       "Try converting the value to be a list of relative file paths.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PubspecWarningCode.WORKSPACE_FIELD_NOT_LIST',
+  uniqueName: 'WORKSPACE_FIELD_NOT_LIST',
   expectedTypes: [],
 );
 
@@ -17270,7 +17173,7 @@ const DiagnosticWithoutArguments workspaceValueNotString =
       correctionMessage: "Try converting the value to be a string.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING',
+      uniqueName: 'WORKSPACE_VALUE_NOT_STRING',
       expectedTypes: [],
     );
 
@@ -17287,7 +17190,7 @@ workspaceValueNotSubdirectory = DiagnosticWithArguments(
       "Try using a subdirectory of the directory containing the "
       "'pubspec.yaml' file.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY',
+  uniqueName: 'WORKSPACE_VALUE_NOT_SUBDIRECTORY',
   withArguments: _withArgumentsWorkspaceValueNotSubdirectory,
   expectedTypes: [ExpectedType.string],
 );
@@ -17324,8 +17227,7 @@ wrongExplicitTypeParameterVarianceInSuperinterface = DiagnosticWithArguments(
       "Try using 'in' type parameters in 'in' positions and 'out' type "
       "parameters in 'out' positions in the superinterface.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
+  uniqueName: 'WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
   withArguments:
       _withArgumentsWrongExplicitTypeParameterVarianceInSuperinterface,
   expectedTypes: [
@@ -17353,7 +17255,7 @@ wrongNumberOfParametersForOperator = DiagnosticWithArguments(
       "Operator '{0}' should declare exactly {1} parameters, but {2} found.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR',
+  uniqueName: 'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR',
   withArguments: _withArgumentsWrongNumberOfParametersForOperator,
   expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.int],
 );
@@ -17370,8 +17272,7 @@ wrongNumberOfParametersForOperatorMinus = DiagnosticWithArguments(
       "Operator '-' should declare 0 or 1 parameter, but {0} found.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS',
+  uniqueName: 'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS',
   withArguments: _withArgumentsWrongNumberOfParametersForOperatorMinus,
   expectedTypes: [ExpectedType.int],
 );
@@ -17384,7 +17285,7 @@ const DiagnosticWithoutArguments wrongNumberOfParametersForSetter =
           "Setters must declare exactly one required positional parameter.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ParserErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER',
+      uniqueName: 'WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER',
       expectedTypes: [],
     );
 
@@ -17409,7 +17310,7 @@ wrongNumberOfTypeArguments = DiagnosticWithArguments(
       "type parameters.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS',
+  uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS',
   withArguments: _withArgumentsWrongNumberOfTypeArguments,
   expectedTypes: [ExpectedType.object, ExpectedType.int, ExpectedType.int],
 );
@@ -17432,8 +17333,7 @@ wrongNumberOfTypeArgumentsAnonymousFunction = DiagnosticWithArguments(
       "Try adjusting the number of type arguments to match the number of "
       "type parameters.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION',
+  uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION',
   withArguments: _withArgumentsWrongNumberOfTypeArgumentsAnonymousFunction,
   expectedTypes: [ExpectedType.int, ExpectedType.int],
 );
@@ -17450,7 +17350,7 @@ wrongNumberOfTypeArgumentsConstructor = DiagnosticWithArguments(
   correctionMessage: "Try moving type arguments to after the type name.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
+  uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
   withArguments: _withArgumentsWrongNumberOfTypeArgumentsConstructor,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -17469,8 +17369,7 @@ wrongNumberOfTypeArgumentsDotShorthandConstructor = DiagnosticWithArguments(
       "the type arguments, then the constructor name.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR',
+  uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR',
   withArguments:
       _withArgumentsWrongNumberOfTypeArgumentsDotShorthandConstructor,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
@@ -17490,7 +17389,7 @@ wrongNumberOfTypeArgumentsEnum = DiagnosticWithArguments(
   correctionMessage: "Try adjusting the number of type arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM',
+  uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM',
   withArguments: _withArgumentsWrongNumberOfTypeArgumentsEnum,
   expectedTypes: [ExpectedType.int, ExpectedType.int],
 );
@@ -17514,7 +17413,7 @@ wrongNumberOfTypeArgumentsExtension = DiagnosticWithArguments(
   correctionMessage: "Try adjusting the number of type arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION',
+  uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION',
   withArguments: _withArgumentsWrongNumberOfTypeArgumentsExtension,
   expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.int],
 );
@@ -17539,7 +17438,7 @@ wrongNumberOfTypeArgumentsFunction = DiagnosticWithArguments(
       "Try adjusting the number of type arguments to match the number of "
       "type parameters.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION',
+  uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION',
   withArguments: _withArgumentsWrongNumberOfTypeArgumentsFunction,
   expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.int],
 );
@@ -17563,7 +17462,7 @@ wrongNumberOfTypeArgumentsMethod = DiagnosticWithArguments(
   correctionMessage: "Try adjusting the number of type arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD',
+  uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD',
   withArguments: _withArgumentsWrongNumberOfTypeArgumentsMethod,
   expectedTypes: [ExpectedType.type, ExpectedType.int, ExpectedType.int],
 );
@@ -17576,7 +17475,7 @@ wrongSeparatorForPositionalParameter = DiagnosticWithoutArgumentsImpl(
       "The default value of a positional parameter should be preceded by '='.",
   correctionMessage: "Try replacing the ':' with '='.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER',
+  uniqueName: 'WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER',
   expectedTypes: [],
 );
 
@@ -17591,7 +17490,7 @@ wrongTerminatorForParameterGroup = DiagnosticWithArguments(
   problemMessage: "Expected '{0}' to close parameter group.",
   correctionMessage: "Try replacing '{0}' with '{1}'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP',
+  uniqueName: 'WRONG_TERMINATOR_FOR_PARAMETER_GROUP',
   withArguments: _withArgumentsWrongTerminatorForParameterGroup,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -17615,8 +17514,7 @@ wrongTypeParameterVarianceInSuperinterface = DiagnosticWithArguments(
       "function types, nor in explicitly contravariant or invariant "
       "superinterfaces.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName:
-      'CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
+  uniqueName: 'WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
   withArguments: _withArgumentsWrongTypeParameterVarianceInSuperinterface,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
@@ -17653,7 +17551,7 @@ wrongTypeParameterVariancePosition = DiagnosticWithArguments(
       "modifier declaration for the type parameter to another one of 'in', "
       "'out', or 'inout'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION',
+  uniqueName: 'WRONG_TYPE_PARAMETER_VARIANCE_POSITION',
   withArguments: _withArgumentsWrongTypeParameterVariancePosition,
   expectedTypes: [
     ExpectedType.object,
@@ -17673,7 +17571,7 @@ yieldEachInNonGenerator = DiagnosticWithoutArgumentsImpl(
       "Try adding 'async*' or 'sync*' to the enclosing function.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR',
+  uniqueName: 'YIELD_EACH_IN_NON_GENERATOR',
   expectedTypes: [],
 );
 
@@ -17690,7 +17588,7 @@ yieldEachOfInvalidType = DiagnosticWithArguments(
       "'{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE',
+  uniqueName: 'YIELD_EACH_OF_INVALID_TYPE',
   withArguments: _withArgumentsYieldEachOfInvalidType,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -17709,7 +17607,7 @@ yieldInNonGenerator = DiagnosticWithoutArgumentsImpl(
       "Try adding 'async*' or 'sync*' to the enclosing function.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.YIELD_IN_NON_GENERATOR',
+  uniqueName: 'YIELD_IN_NON_GENERATOR',
   expectedTypes: [],
 );
 
@@ -17724,7 +17622,7 @@ yieldOfInvalidType = DiagnosticWithArguments(
   problemMessage: "A yielded value of type '{0}' must be assignable to '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CompileTimeErrorCode.YIELD_OF_INVALID_TYPE',
+  uniqueName: 'YIELD_OF_INVALID_TYPE',
   withArguments: _withArgumentsYieldOfInvalidType,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );

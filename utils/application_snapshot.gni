@@ -168,6 +168,9 @@ template("application_snapshot") {
       # "kernel_snapshot" passes this if needed, we always pass it)
       "-Dsdk_hash=$sdk_hash",
       "-Ddart.vm.product=$is_product_flag",
+      "-Ddart.vm.asan=$is_asan",
+      "-Ddart.vm.msan=$is_msan",
+      "-Ddart.vm.tsan=$is_tsan",
     ]
     args += gen_kernel_args
     args += [ rebase_path(main_dart, root_build_dir) ]

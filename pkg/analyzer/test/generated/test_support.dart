@@ -500,8 +500,5 @@ extension on DiagnosticCode {
   ///
   /// For example, if the unique name is `TestClass.MY_ERROR`, this method will
   /// return `diag.myError`.
-  String get constantName => switch (uniqueName.split('.')) {
-    [_, var snakeCaseName] => 'diag.${snakeCaseName.toCamelCase()}',
-    _ => throw StateError('Malformed DiagnosticCode: $uniqueName'),
-  };
+  String get constantName => 'diag.${uniqueName.toCamelCase()}';
 }

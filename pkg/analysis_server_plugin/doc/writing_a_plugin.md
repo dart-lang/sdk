@@ -36,6 +36,9 @@ final plugin = SimplePlugin();
 
 class SimplePlugin extends Plugin {
   @override
+  String get name => 'Simple plugin';
+
+  @override
   void register(PluginRegistry registry) {
     // Here we register analysis rules, quick fixes, and quick assists.
   }

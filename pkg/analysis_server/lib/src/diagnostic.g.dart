@@ -26,7 +26,7 @@ conflictingKey = DiagnosticWithArguments(
   name: 'conflicting_key',
   problemMessage: "The key '{0}' can't be used when '{1}' is also used.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TransformSetErrorCode.conflicting_key',
+  uniqueName: 'conflicting_key',
   withArguments: _withArgumentsConflictingKey,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -37,7 +37,7 @@ const DiagnosticWithoutArguments expectedPrimary =
       name: 'expected_primary',
       problemMessage: "Expected either an identifier or a string literal.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'TransformSetErrorCode.expected_primary',
+      uniqueName: 'expected_primary',
       expectedTypes: [],
     );
 
@@ -52,7 +52,7 @@ incompatibleElementKind = DiagnosticWithArguments(
   problemMessage:
       "An element of kind '{0}' can't be replaced by an element of kind '{1}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TransformSetErrorCode.incompatible_element_kind',
+  uniqueName: 'incompatible_element_kind',
   withArguments: _withArgumentsIncompatibleElementKind,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -68,7 +68,7 @@ invalidChangeForKind = DiagnosticWithArguments(
   problemMessage:
       "A change of type '{0}' can't be used for an element of kind '{1}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TransformSetErrorCode.invalid_change_for_kind',
+  uniqueName: 'invalid_change_for_kind',
   withArguments: _withArgumentsInvalidChangeForKind,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -82,7 +82,7 @@ invalidCharacter = DiagnosticWithArguments(
   name: 'invalid_character',
   problemMessage: "Invalid character '{0}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TransformSetErrorCode.invalid_character',
+  uniqueName: 'invalid_character',
   withArguments: _withArgumentsInvalidCharacter,
   expectedTypes: [ExpectedType.object],
 );
@@ -96,7 +96,7 @@ invalidKey = DiagnosticWithArguments(
   name: 'invalid_key',
   problemMessage: "Keys must be of type 'String' but found the type '{0}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TransformSetErrorCode.invalid_key',
+  uniqueName: 'invalid_key',
   withArguments: _withArgumentsInvalidKey,
   expectedTypes: [ExpectedType.object],
 );
@@ -110,7 +110,7 @@ invalidParameterStyle = DiagnosticWithArguments(
   name: 'invalid_parameter_style',
   problemMessage: "The parameter style must be one of the following: {0}.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TransformSetErrorCode.invalid_parameter_style',
+  uniqueName: 'invalid_parameter_style',
   withArguments: _withArgumentsInvalidParameterStyle,
   expectedTypes: [ExpectedType.object],
 );
@@ -122,7 +122,7 @@ invalidRequiredIf = DiagnosticWithoutArgumentsImpl(
   problemMessage:
       "The key 'requiredIf' can only be used with optional named parameters.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TransformSetErrorCode.invalid_required_if',
+  uniqueName: 'invalid_required_if',
   expectedTypes: [],
 );
 
@@ -142,7 +142,7 @@ invalidValue = DiagnosticWithArguments(
   problemMessage:
       "The value of '{0}' should be of type '{1}' but is of type '{2}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TransformSetErrorCode.invalid_value',
+  uniqueName: 'invalid_value',
   withArguments: _withArgumentsInvalidValue,
   expectedTypes: [
     ExpectedType.object,
@@ -161,7 +161,7 @@ invalidValueOneOf = DiagnosticWithArguments(
   name: 'invalid_value_one_of',
   problemMessage: "The value of '{0}' must be one of the following: '{1}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TransformSetErrorCode.invalid_value_one_of',
+  uniqueName: 'invalid_value_one_of',
   withArguments: _withArgumentsInvalidValueOneOf,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -175,7 +175,7 @@ missingKey = DiagnosticWithArguments(
   name: 'missing_key',
   problemMessage: "Missing the required key '{0}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TransformSetErrorCode.missing_key',
+  uniqueName: 'missing_key',
   withArguments: _withArgumentsMissingKey,
   expectedTypes: [ExpectedType.object],
 );
@@ -189,7 +189,7 @@ missingOneOfMultipleKeys = DiagnosticWithArguments(
   name: 'missing_one_of_multiple_keys',
   problemMessage: "Exactly one of the following keys must be provided: {0}.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TransformSetErrorCode.missing_one_of_multiple_keys',
+  uniqueName: 'missing_one_of_multiple_keys',
   withArguments: _withArgumentsMissingOneOfMultipleKeys,
   expectedTypes: [ExpectedType.object],
 );
@@ -200,7 +200,7 @@ const DiagnosticWithoutArguments missingTemplateEnd =
       name: 'missing_template_end',
       problemMessage: "Missing the end brace for the template.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'TransformSetErrorCode.missing_template_end',
+      uniqueName: 'missing_template_end',
       expectedTypes: [],
     );
 
@@ -213,7 +213,7 @@ missingToken = DiagnosticWithArguments(
   name: 'missing_token',
   problemMessage: "Expected to find {0}.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TransformSetErrorCode.missing_token',
+  uniqueName: 'missing_token',
   withArguments: _withArgumentsMissingToken,
   expectedTypes: [ExpectedType.object],
 );
@@ -223,7 +223,7 @@ const DiagnosticWithoutArguments missingUri = DiagnosticWithoutArgumentsImpl(
   name: 'missing_uri',
   problemMessage: "At least one URI must be provided.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TransformSetErrorCode.missing_uri',
+  uniqueName: 'missing_uri',
   expectedTypes: [],
 );
 
@@ -236,7 +236,7 @@ undefinedVariable = DiagnosticWithArguments(
   name: 'undefined_variable',
   problemMessage: "The variable '{0}' isn't defined.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TransformSetErrorCode.undefined_variable',
+  uniqueName: 'undefined_variable',
   withArguments: _withArgumentsUndefinedVariable,
   expectedTypes: [ExpectedType.object],
 );
@@ -250,7 +250,7 @@ unexpectedTransformSetToken = DiagnosticWithArguments(
   name: 'unexpected_transform_set_token',
   problemMessage: "Didn't expect to find {0}.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TransformSetErrorCode.unexpected_transform_set_token',
+  uniqueName: 'unexpected_transform_set_token',
   withArguments: _withArgumentsUnexpectedTransformSetToken,
   expectedTypes: [ExpectedType.object],
 );
@@ -264,7 +264,7 @@ unknownAccessor = DiagnosticWithArguments(
   name: 'unknown_accessor',
   problemMessage: "The accessor '{0}' is invalid.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TransformSetErrorCode.unknown_accessor',
+  uniqueName: 'unknown_accessor',
   withArguments: _withArgumentsUnknownAccessor,
   expectedTypes: [ExpectedType.object],
 );
@@ -278,7 +278,7 @@ unsupportedKey = DiagnosticWithArguments(
   name: 'unsupported_key',
   problemMessage: "The key '{0}' isn't supported.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TransformSetErrorCode.unsupported_key',
+  uniqueName: 'unsupported_key',
   withArguments: _withArgumentsUnsupportedKey,
   expectedTypes: [ExpectedType.object],
 );
@@ -291,7 +291,7 @@ const DiagnosticWithoutArguments unsupportedStatic =
           "The key 'static' is only supported for elements in a class, enum, "
           "extension, or mixin.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'TransformSetErrorCode.unsupported_static',
+      uniqueName: 'unsupported_static',
       expectedTypes: [],
     );
 
@@ -301,7 +301,7 @@ const DiagnosticWithoutArguments unsupportedVersion =
       name: 'unsupported_version',
       problemMessage: "Only version '1' is supported at this time.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'TransformSetErrorCode.unsupported_version',
+      uniqueName: 'unsupported_version',
       expectedTypes: [],
     );
 
@@ -315,7 +315,7 @@ wrongToken = DiagnosticWithArguments(
   name: 'wrong_token',
   problemMessage: "Expected to find {0}, but found {1}.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TransformSetErrorCode.wrong_token',
+  uniqueName: 'wrong_token',
   withArguments: _withArgumentsWrongToken,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -329,7 +329,7 @@ yamlSyntaxError = DiagnosticWithArguments(
   name: 'yaml_syntax_error',
   problemMessage: "Parse error: {0}",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TransformSetErrorCode.yaml_syntax_error',
+  uniqueName: 'yaml_syntax_error',
   withArguments: _withArgumentsYamlSyntaxError,
   expectedTypes: [ExpectedType.object],
 );
