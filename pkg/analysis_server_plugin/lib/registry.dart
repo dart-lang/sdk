@@ -16,7 +16,7 @@ abstract class PluginRegistry {
 
   /// Registers this [rule] with the analyzer's rule registry.
   ///
-  /// Lints are off by default and can be enabled using
+  /// Lint rules are disabled by default and can be enabled using
   /// the analysis options file.
   ///
   /// Use [registerWarningRule] for rules that are enabled by
@@ -25,7 +25,7 @@ abstract class PluginRegistry {
 
   /// Registers this [rule] with the analyzer's rule registry.
   ///
-  /// Warnings are on by default and can be disabled using
+  /// Warning rules are enabled by default and can be disabled using
   /// the analysis options file.
   ///
   /// Use [registerLintRule] for rules that are disabled by
