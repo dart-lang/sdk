@@ -13,10 +13,13 @@ abstract interface class ProjectGenerator {
   String get description;
 
   /// Performs any work necessary to initialize the project and returns the
-  /// [Directory] under which it was created.
-  Future<Directory> setUp();
+  /// workspace [Directory]s that were created.
+  ///
+  /// Note that the order these are returned in should be deterministic and
+  /// match the original project order.
+  Future<Iterable<Directory>> setUp();
 
   /// Invoked once the project is no longer needed, should perform any
-  /// necessary cleanup for the project.
-  Future<void> tearDown(Directory projectDir);
+  /// necessary cleanup for the workspaces.
+  Future<void> tearDown(Iterable<Directory> workspaceDirs);
 }

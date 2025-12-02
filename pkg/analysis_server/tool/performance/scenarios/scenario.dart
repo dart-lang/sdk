@@ -13,9 +13,8 @@ import '../project_generator/project_generator.dart';
 
 final dartSdkRoot = p.dirname(p.dirname(Platform.resolvedExecutable));
 
-/// A [Scenario] represents a combination of a [project], a [logFile], and a
-/// [serverProtocol] which can be used to reproduce specific set of actions
-/// against a codebase.
+/// A [Scenario] represents a combination of a [project] and a [logFile] to
+/// replay in that project.
 class Scenario {
   final File logFile;
   final ProjectGenerator project;
@@ -31,18 +30,22 @@ class Scenario {
     log('Initializing scenario for project: ${project.description}');
 
     log('Setting up project');
-    var projectDir = await project.setUp();
+    var projectDirs = await project.setUp();
 
     log('Reading logs');
     var logs = Log.fromFile(logFile, {
-      '{{workspaceRoot}}': projectDir.path,
+      for (var i = 0; i < projectDirs.length; i++)
+        '{{workspaceFolder-$i}}': projectDirs.elementAt(i).path,
       '{{dartSdkRoot}}': dartSdkRoot,
     });
 
     log('Creating log player');
     var logPlayer = LogPlayer(log: logs);
 
-    log('Scenario initialized with project at ${projectDir.path}');
+    log(
+      'Scenario initialized with workpace dirs:\n'
+      '${projectDirs.map((dir) => '  - ${dir.path}').join('\n')}',
+    );
     try {
       var scenarioWatch = Stopwatch()..start();
       log('Replaying scenario');
@@ -57,7 +60,7 @@ $s
 ''');
     } finally {
       log('Tearing down scenario for project');
-      await project.tearDown(projectDir);
+      await project.tearDown(projectDirs);
       log('Scenario cleaned up');
     }
   }

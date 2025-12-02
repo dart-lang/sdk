@@ -22,16 +22,16 @@ class GitCloneProjectGenerator implements ProjectGenerator {
   String get description => 'Cloning git repo "$repo" at ref "$ref"';
 
   @override
-  Future<Directory> setUp() async {
+  Future<Iterable<Directory>> setUp() async {
     var outputDir = await Directory.systemTemp.createTemp('as_git_clone');
     await runGitCommand(['clone', repo, '.'], outputDir);
     await runGitCommand(['fetch', 'origin', ref], outputDir);
     await runGitCommand(['checkout', ref], outputDir);
-    return outputDir;
+    return [outputDir];
   }
 
   @override
-  Future<void> tearDown(Directory projectDir) async {
-    await projectDir.delete(recursive: true);
+  Future<void> tearDown(Iterable<Directory> workspaceDirs) async {
+    await Future.wait(workspaceDirs.map((dir) => dir.delete(recursive: true)));
   }
 }

@@ -23,7 +23,7 @@ class GitWorktreeProjectGenerator implements ProjectGenerator {
       'Creating git worktree for "${originalRepo.path}" at ref "$ref"';
 
   @override
-  Future<Directory> setUp() async {
+  Future<Iterable<Directory>> setUp() async {
     var projectDir = await Directory.systemTemp.createTemp('as_git_worktree');
     await runGitCommand([
       'worktree',
@@ -31,16 +31,19 @@ class GitWorktreeProjectGenerator implements ProjectGenerator {
       '-d',
       projectDir.path,
     ], originalRepo);
-    return projectDir;
+    return [projectDir];
   }
 
   @override
-  Future<void> tearDown(Directory projectDir) async {
+  Future<void> tearDown(Iterable<Directory> workspaceDirs) async {
+    if (workspaceDirs.length != 1) {
+      throw StateError('Expected exactly one workspace directory');
+    }
     await runGitCommand([
       'worktree',
       'remove',
       '-f',
-      projectDir.path,
+      workspaceDirs.single.path,
     ], originalRepo);
   }
 }
