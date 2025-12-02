@@ -214,9 +214,8 @@ implicit unnamed constructor, sometimes refered to as the "default" constructor.
 
 ### Enums
 
-An enum declaration has two implicit members (in addition to the possible
-default constructor). The first is the implicit instance member `index`, the
-second is the implicit static member `values`.
+In addition to the possible default constructor, an enum declaration has an
+implicit static member named `values`.
 
 ### Built-in types
 
@@ -270,7 +269,7 @@ This has implications for features like navigation.
 ### Primary constructors
 
 The parameters for a primary constructor are declared in the header of the
-class (or emun), but the body of the constructor can be provided in the list of
+class (or enum), but the body of the constructor can be provided in the list of
 members.
 
 ### Augmentations
@@ -281,10 +280,9 @@ or in a different part.
 
 ### Pattern variables in switch statements
 
-When there are multiple cases that share a body, or when there's an and-pattern,
-if any of those cases (or operand in the and-pattern) define a pattern variable,
-then every case (and operand in the and-pattern) must define a pattern variable
-with the same name.
+When there are multiple cases that share a body, or when there's an or-pattern,
+if any of those cases (or operands) define a pattern variable, then every case
+(and operand) must define a pattern variable with the same name.
 
-There's only one variable with that name, in the case body, but the declaration
-is split across all of the cases (or operands in the and-pattern).
+There's only one variable with that name in the case body, but the declaration
+is split across all of the cases (or operands).
