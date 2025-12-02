@@ -1,5 +1,7 @@
 ## 3.10.3
 
+**Released on:** 2025-12-02
+
 This is a patch release that:
 
 - Fixes an issue with the color picker not working with dot shorthands. (issue
