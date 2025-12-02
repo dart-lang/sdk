@@ -2,16 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
 import 'package:front_end/src/api_unstable/vm.dart' show printDiagnosticMessage;
-import 'package:kernel/kernel.dart';
-import 'package:path/path.dart' as path;
 
 import 'compile.dart';
 import 'compiler_options.dart';
+import 'io_util.dart';
 
 export 'package:dart2wasm/compiler_options.dart';
 
@@ -61,25 +58,9 @@ Future<int> generateWasm(WasmCompilerOptions options,
         '  - watch points = [${translatorOptions.watchPoints.map((p) => p.toString()).join(',')}]');
   }
 
-  String moduleNameToWasmOutputFile(String moduleName) {
-    return path.join(path.dirname(options.outputFile), moduleName);
-  }
-
-  String moduleNameToSourceMapFile(String moduleName) {
-    return '${moduleNameToWasmOutputFile(moduleName)}.map';
-  }
-
-  Uri moduleNameToRelativeSourceMapUri(String moduleName) {
-    return Uri.file(path.basename(moduleNameToSourceMapFile(moduleName)));
-  }
-
-  final relativeSourceMapUrlMapper = translatorOptions.generateSourceMaps
-      ? moduleNameToRelativeSourceMapUri
-      : null;
-
+  final fileSystem = StandardFileSystem.instance;
   CompilationResult result = await compile(
-      options, StandardFileSystem.instance, relativeSourceMapUrlMapper,
-      (message) {
+      options, CompilerPhaseInputOutputManager(fileSystem, options), (message) {
     if (!options.dryRun) printDiagnosticMessage(message, errorPrinter);
   });
 
@@ -107,36 +88,6 @@ Future<int> generateWasm(WasmCompilerOptions options,
     }
 
     return 255;
-  }
-
-  switch (result) {
-    case CfeResult(:final component):
-      await File(options.outputFile)
-          .writeAsBytes(writeComponentToBytes(component));
-    case TfaResult(:final component):
-      await File(options.outputFile)
-          .writeAsBytes(writeComponentToBytes(component));
-    case CodegenResult(:final wasmModules, :final jsRuntime, :final supportJs):
-      final writeFutures = <Future>[];
-      wasmModules.forEach((moduleName, moduleInfo) {
-        final (:moduleBytes, :sourceMap) = moduleInfo;
-        final File outFile = File(moduleNameToWasmOutputFile(moduleName));
-        outFile.parent.createSync(recursive: true);
-        writeFutures.add(outFile.writeAsBytes(moduleBytes));
-
-        if (sourceMap != null) {
-          writeFutures.add(File(moduleNameToSourceMapFile(moduleName))
-              .writeAsString(sourceMap));
-        }
-      });
-      await Future.wait(writeFutures);
-
-      final jsFile = path.setExtension(options.outputFile, '.mjs');
-      await File(jsFile).writeAsString(jsRuntime);
-
-      final supportJsFile =
-          path.setExtension(options.outputFile, '.support.js');
-      await File(supportJsFile).writeAsString(supportJs);
   }
 
   return 0;
