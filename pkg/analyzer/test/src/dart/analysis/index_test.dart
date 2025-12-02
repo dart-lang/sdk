@@ -843,8 +843,8 @@ class A {
 ''');
     var element = findElement2.getter('foo');
     assertElementIndexText(element, r'''
-35 2:16 |foo| IS_REFERENCED_BY qualified
-62 3:16 || IS_REFERENCED_BY qualified
+35 2:16 |foo| IS_REFERENCED_BY_PATTERN_FIELD qualified
+62 3:16 || IS_REFERENCED_BY_PATTERN_FIELD qualified
 ''');
   }
 
@@ -861,8 +861,8 @@ class A {
 ''');
     var element = findElement2.method('foo');
     assertElementIndexText(element, r'''
-35 2:16 |foo| IS_REFERENCED_BY qualified
-62 3:16 || IS_REFERENCED_BY qualified
+35 2:16 |foo| IS_REFERENCED_BY_PATTERN_FIELD qualified
+62 3:16 || IS_REFERENCED_BY_PATTERN_FIELD qualified
 ''');
   }
 

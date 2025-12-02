@@ -173,6 +173,55 @@ void f() {
     );
   }
 
+  Future<void> test_pattern() async {
+    await indexTestUnit('''
+extension A on String {
+  int get test => 1;
+}
+void f(String a) {
+  if (a case String(:var test)) {}
+}
+''');
+    var element = findElement2.getter('test', of: 'A');
+    _createRefactoringForElement(element);
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+extension A on String {
+  int test() => 1;
+}
+void f(String a) {
+  if (a case String(:var test)) {}
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/62139')
+  Future<void> test_pattern_localVariableReferenced() async {
+    await indexTestUnit('''
+extension A on String {
+  int get test => 1;
+}
+void f(String a) {
+  if (a case String(:var test)) {
+    print(test);
+  }
+}
+''');
+    var element = findElement2.getter('test', of: 'A');
+    _createRefactoringForElement(element);
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+extension A on String {
+  int test() => 1;
+}
+void f(String a) {
+  if (a case String(:var test)) {
+    print(test());
+  }
+}
+''');
+  }
+
   Future<void> _assertInitialConditions_fatal(String message) async {
     var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(

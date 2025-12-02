@@ -28,7 +28,6 @@ List<SourceReference> getSourceReferences(List<SearchMatch> matches) {
     var oldReference = uniqueReferences[newReference];
     if (oldReference == null) {
       uniqueReferences[newReference] = newReference;
-      oldReference = newReference;
     }
   }
   return uniqueReferences.keys.toList();
@@ -88,6 +87,9 @@ class SourceReference {
 
   bool get isInvocationByEnumConstantWithoutArguments =>
       _match.kind == MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS;
+
+  bool get isReferenceInPatternField =>
+      _match.kind == MatchKind.REFERENCE_IN_PATTERN_FIELD;
 
   bool get isResolved => _match.isResolved;
 

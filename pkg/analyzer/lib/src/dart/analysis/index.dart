@@ -1112,7 +1112,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitPatternField(PatternField node) {
+  void visitPatternField(PatternField node) {
     var nameNode = node.name;
     if (nameNode != null) {
       var nameToken = nameNode.name;
@@ -1127,13 +1127,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
       }
       recordRelationOffset(
         node.element,
-        IndexRelationKind.IS_REFERENCED_BY,
+        IndexRelationKind.IS_REFERENCED_BY_PATTERN_FIELD,
         offset,
         length,
         true,
       );
     }
-    return super.visitPatternField(node);
+    super.visitPatternField(node);
   }
 
   @override
