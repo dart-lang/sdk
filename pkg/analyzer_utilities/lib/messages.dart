@@ -150,9 +150,6 @@ List<T> _loadCfeStyleMessages<T extends CfeStyleMessage>(
 /// This class implements [Comparable], so lists of it can be safely
 /// [List.sort]ed.
 class AnalyzerCode implements Comparable<AnalyzerCode> {
-  /// The class containing the constant for this diagnostic.
-  final DiagnosticClassInfo diagnosticClass;
-
   /// The diagnostic name.
   ///
   /// The diagnostic name is in "snake case", meaning it consists of words
@@ -162,7 +159,7 @@ class AnalyzerCode implements Comparable<AnalyzerCode> {
   // case, and remove [lowerSnakeCaseName].
   final String snakeCaseName;
 
-  AnalyzerCode({required this.diagnosticClass, required this.snakeCaseName});
+  AnalyzerCode({required this.snakeCaseName});
 
   /// The string that should be generated into analyzer source code to refer to
   /// this diagnostic code.
@@ -172,7 +169,7 @@ class AnalyzerCode implements Comparable<AnalyzerCode> {
   String get camelCaseName => snakeCaseName.toCamelCase();
 
   @override
-  int get hashCode => Object.hash(diagnosticClass, snakeCaseName);
+  int get hashCode => snakeCaseName.hashCode;
 
   /// The diagnostic name, converted to lower snake case.
   String get lowerSnakeCaseName => snakeCaseName.toLowerCase();
@@ -182,25 +179,15 @@ class AnalyzerCode implements Comparable<AnalyzerCode> {
 
   @override
   bool operator ==(Object other) =>
-      other is AnalyzerCode &&
-      diagnosticClass == other.diagnosticClass &&
-      snakeCaseName == other.snakeCaseName;
+      other is AnalyzerCode && snakeCaseName == other.snakeCaseName;
 
   @override
   int compareTo(AnalyzerCode other) {
-    // Compare the diagnostic classes by name. This works because we know that
-    // the diagnostic classes are unique (this is verified by the
-    // `DiagnosticClassInfo.byName` method).
-    var className = diagnosticClass.name;
-    var otherClassName = other.diagnosticClass.name;
-    if (className.compareTo(otherClassName) case var result when result != 0) {
-      return result;
-    }
     return snakeCaseName.compareTo(other.snakeCaseName);
   }
 
   @override
-  String toString() => [diagnosticClass.name, snakeCaseName].join('.');
+  String toString() => snakeCaseName;
 }
 
 /// In-memory representation of diagnostic information obtained from a
@@ -454,14 +441,6 @@ class DiagnosticTables {
             .add(message);
         var package = message.package;
         var type = message.type;
-        if (analyzerCode.diagnosticClass.type != type) {
-          throw LocatedError(
-            'Diagnostic type is ${type.name}, but its diagnostic class '
-            '(${analyzerCode.diagnosticClass.name}) implies a type of '
-            '${analyzerCode.diagnosticClass.type.name}',
-            span: message.keySpan,
-          );
-        }
         if (!package.permittedTypes.contains(type)) {
           throw LocatedError(
             'Diagnostic type is ${type.name}, which may not be used in '
@@ -965,12 +944,9 @@ class SharedMessage extends CfeStyleMessage with MessageWithAnalyzerCode {
     switch (node) {
       case YamlScalar(value: String s):
         switch (s.split('.')) {
-          case [var className, var snakeCaseName]
+          case [_, var snakeCaseName]
               when snakeCaseName == snakeCaseName.toUpperCase():
-            return AnalyzerCode(
-              diagnosticClass: DiagnosticClassInfo.byName(className),
-              snakeCaseName: snakeCaseName,
-            );
+            return AnalyzerCode(snakeCaseName: snakeCaseName);
         }
     }
     throw 'Analyzer codes must take the form ClassName.DIAGNOSTIC_NAME.';

@@ -196,10 +196,7 @@ List<AnalyzerMessage> decodeAnalyzerMessagesYaml(
         key: keyNode,
         value: diagnosticValue,
         decoder: (messageYaml) {
-          var analyzerCode = AnalyzerCode(
-            diagnosticClass: DiagnosticClassInfo.byName(className),
-            snakeCaseName: diagnosticName,
-          );
+          var analyzerCode = AnalyzerCode(snakeCaseName: diagnosticName);
           return AnalyzerMessage(
             messageYaml,
             analyzerCode: analyzerCode,
@@ -585,9 +582,6 @@ mixin MessageWithAnalyzerCode on Message {
       );
     }
   }();
-
-  late final DiagnosticClassInfo diagnosticClassInfo =
-      analyzerCode.diagnosticClass;
 
   /// The code used by the analyzer to refer to this diagnostic message.
   AnalyzerCode get analyzerCode;
