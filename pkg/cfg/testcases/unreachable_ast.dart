@@ -25,7 +25,7 @@ void unreachable2(A obj) {
 }
 
 void unreachableBreak1(int n) {
-  for (int i = 0; i < n; ++i) {
+  for (var i = 0; i < n; ++i) {
     if (i > 2) {
       throw 'Bye';
       break;
@@ -34,7 +34,7 @@ void unreachableBreak1(int n) {
 }
 
 void unreachableBreak2(int n) {
-  for (int i = 0; i < n; ++i) {
+  for (var i = 0; i < n; ++i) {
     if (i > 2) {
       throw 'Bye';
       break;

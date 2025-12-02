@@ -67,7 +67,7 @@ abstract base class LivenessAnalysis {
   /// Update [liveOut] for [block] using the following rule:
   /// liveOut(block) = Union(liveIn(succ) for all successors, liveIn(exceptionHandler)).
   bool _updateLiveOut(Block block) {
-    bool changed = false;
+    var changed = false;
     final live = liveOut(block);
     for (final succ in block.successors) {
       if (live.addAll(liveIn(succ))) {
@@ -86,7 +86,7 @@ abstract base class LivenessAnalysis {
   /// Update [liveIn] for [block] using the following rule:
   /// liveIn(block) = Union(liveIn(block), liveOut(block) - kill(block), liveIn(exceptionHandler))
   bool _updateLiveIn(Block block) {
-    bool changed = false;
+    var changed = false;
     final live = liveIn(block);
     if (live.addSubtraction(liveOut(block), kill(block))) {
       changed = true;

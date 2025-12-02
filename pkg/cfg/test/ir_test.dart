@@ -130,7 +130,7 @@ class Difference {
 Difference findFirstDifference(String actual, String expected) {
   final actualLines = actual.split('\n');
   final expectedLines = expected.split('\n');
-  int i = 0;
+  var i = 0;
   for (; i < actualLines.length && i < expectedLines.length; ++i) {
     if (actualLines[i] != expectedLines[i]) {
       return Difference(i + 1, actualLines[i], expectedLines[i]);

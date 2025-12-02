@@ -81,7 +81,7 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
       assert(input.getInstruction(graph) == instr);
       final def = input.getDefinition(graph);
       // Check that input can be found in the use list of 'def'.
-      bool seen = false;
+      var seen = false;
       for (final use in def.inputUses) {
         if (use == input) {
           assert(!seen);

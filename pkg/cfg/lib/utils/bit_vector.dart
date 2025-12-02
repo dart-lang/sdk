@@ -57,7 +57,7 @@ extension type BitVector._(Int64List _bits) {
 
   /// Clears all bits.
   void clear() {
-    for (int i = 0; i < _bits.length; ++i) {
+    for (var i = 0; i < _bits.length; ++i) {
       _bits[i] = 0;
     }
   }
@@ -65,7 +65,7 @@ extension type BitVector._(Int64List _bits) {
   /// Bitwise [this] = [this] & [other].
   void intersect(BitVector other) {
     assert(this._bits.length == other._bits.length);
-    for (int i = 0; i < _bits.length; ++i) {
+    for (var i = 0; i < _bits.length; ++i) {
       _bits[i] = _bits[i] & other._bits[i];
     }
   }
@@ -74,8 +74,8 @@ extension type BitVector._(Int64List _bits) {
   /// Returns true iff [this] has changed.
   bool addAll(BitVector other) {
     assert(this._bits.length == other._bits.length);
-    bool changed = false;
-    for (int i = 0; i < _bits.length; ++i) {
+    var changed = false;
+    for (var i = 0; i < _bits.length; ++i) {
       final before = _bits[i];
       final after = before | other._bits[i];
       if (before != after) {
@@ -91,8 +91,8 @@ extension type BitVector._(Int64List _bits) {
   bool addSubtraction(BitVector a, BitVector b) {
     assert(this._bits.length == a._bits.length);
     assert(this._bits.length == b._bits.length);
-    bool changed = false;
-    for (int i = 0; i < _bits.length; ++i) {
+    var changed = false;
+    for (var i = 0; i < _bits.length; ++i) {
       final before = _bits[i];
       final after = before | (a._bits[i] & ~b._bits[i]);
       if (before != after) {
@@ -108,8 +108,8 @@ extension type BitVector._(Int64List _bits) {
   bool addIntersection(BitVector a, BitVector b) {
     assert(this._bits.length == a._bits.length);
     assert(this._bits.length == b._bits.length);
-    bool changed = false;
-    for (int i = 0; i < _bits.length; ++i) {
+    var changed = false;
+    for (var i = 0; i < _bits.length; ++i) {
       final before = _bits[i];
       final after = before | (a._bits[i] & b._bits[i]);
       if (before != after) {

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 void example1(bool c1, bool c2, bool c3, bool c4, bool c5) {
-  int x = 0;
+  var x = 0;
   if (c1) {
     if (c2) {
       print(x);

@@ -26,7 +26,7 @@ void main() {
   });
 
   test('indexing add remove', () {
-    for (int n in [20, 63, 64, 65, 200, 2000]) {
+    for (var n in [20, 63, 64, 65, 200, 2000]) {
       final mid = n ~/ 2;
       final bv = BitVector(n);
 
@@ -71,22 +71,22 @@ void main() {
   });
 
   test('bulk operations', () {
-    for (int n in [20, 63, 64, 65, 200, 2000]) {
+    for (var n in [20, 63, 64, 65, 200, 2000]) {
       final bv1 = BitVector(n);
       final bv2 = BitVector(n);
       final bv3 = BitVector(n);
 
-      for (int i = 0; i < n; i += 3) {
+      for (var i = 0; i < n; i += 3) {
         bv2[i] = true;
       }
-      for (int i = 0; i < n; i += 5) {
+      for (var i = 0; i < n; i += 5) {
         bv3[i] = true;
       }
 
       expect(bv1.addAll(bv2), isTrue);
       expect(bv1.addAll(bv2), isFalse);
       bv1.intersect(bv3);
-      for (int i = 0; i < n; ++i) {
+      for (var i = 0; i < n; ++i) {
         expect(bv1[i], equals(i % 15 == 0));
         expect(bv2[i], equals(i % 3 == 0));
         expect(bv3[i], equals(i % 5 == 0));
@@ -94,14 +94,14 @@ void main() {
 
       expect(bv2.addAll(bv1), isFalse);
       expect(bv3.addAll(bv1), isFalse);
-      for (int i = 0; i < n; ++i) {
+      for (var i = 0; i < n; ++i) {
         expect(bv1[i], equals(i % 15 == 0));
         expect(bv2[i], equals(i % 3 == 0));
         expect(bv3[i], equals(i % 5 == 0));
       }
 
       expect(bv2.addSubtraction(bv3, bv1), isTrue);
-      for (int i = 0; i < n; ++i) {
+      for (var i = 0; i < n; ++i) {
         expect(bv1[i], equals(i % 15 == 0));
         expect(bv2[i], equals(i % 3 == 0 || i % 5 == 0));
         expect(bv3[i], equals(i % 5 == 0));
@@ -110,18 +110,18 @@ void main() {
 
       expect(bv3.addIntersection(bv1, bv2), isFalse);
       expect(bv1.addIntersection(bv2, bv3), isTrue);
-      for (int i = 0; i < n; ++i) {
+      for (var i = 0; i < n; ++i) {
         expect(bv1[i], equals(i % 5 == 0));
         expect(bv2[i], equals(i % 3 == 0 || i % 5 == 0));
         expect(bv3[i], equals(i % 5 == 0));
       }
 
       bv3.clear();
-      for (int i = 0; i < n; ++i) {
+      for (var i = 0; i < n; ++i) {
         expect(bv3[i], isFalse);
       }
 
-      int k = 0;
+      var k = 0;
       for (int bit in bv1.elements) {
         expect(bit, equals(k * 5));
         ++k;

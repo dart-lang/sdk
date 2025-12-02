@@ -50,7 +50,7 @@ abstract base class Instruction {
       _inputs = inputCount == 0
           ? graph.emptyUsesArray
           : UsesArray.allocate(graph, inputCount) {
-    for (int i = 0; i < inputCount; ++i) {
+    for (var i = 0; i < inputCount; ++i) {
       _inputs.at(graph, i).init(graph, this);
     }
     graph.instructions.add(this);

@@ -5,8 +5,8 @@
 int add(int a, int b) => a + b;
 
 int intArithmetic(int a, int b, List<int> data) {
-  int sum = 0;
-  for (int i = 0; i < data.length; ++i) {
+  var sum = 0;
+  for (var i = 0; i < data.length; ++i) {
     sum += (data[(i ~/ a * b >> 1) - 2] << a) % b;
   }
   return sum.remainder(3);
@@ -14,7 +14,7 @@ int intArithmetic(int a, int b, List<int> data) {
 
 double doubleArithmetic(double a, int b, List<double> data) {
   double sum = 0;
-  for (int i = 0; i < data.length; ++i) {
+  for (var i = 0; i < data.length; ++i) {
     sum += b - ((data[i] + 3) * a / b).roundToDouble();
   }
   return sum.remainder(3);

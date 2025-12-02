@@ -65,7 +65,7 @@ void main() {
     arena[p2 + 2] = 0xf00d0003;
     final size3 = Uint32Arena.initialSize << 3;
     final p3 = arena.allocate(size3);
-    for (int i = 0; i < size3; ++i) {
+    for (var i = 0; i < size3; ++i) {
       arena[p3 + i] = i << 3;
     }
     expect(arena[p1], equals(0x11111111));
@@ -82,10 +82,10 @@ void main() {
   });
 
   test('double linked list', () {
-    final int n = 10;
+    final n = 10;
     final nodes = <ArenaPointer>[];
     ArenaPointer prev = ArenaPointer.Null;
-    for (int i = 0; i < n; ++i) {
+    for (var i = 0; i < n; ++i) {
       ArenaPointer node = arena.allocate(3); // 3 fields: payload, prev, next.
       nodes.add(node);
       arena[node] = i; // node.payload = i
@@ -97,7 +97,7 @@ void main() {
       prev = node;
     }
     // Forward iteration.
-    int i = 0;
+    var i = 0;
     for (
       ArenaPointer node = nodes.first;
       node != ArenaPointer.Null;

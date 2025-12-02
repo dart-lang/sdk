@@ -3,14 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 void nested(int i) {
-  for (int i = 0; i < 10; ++i) {
+  for (var i = 0; i < 10; ++i) {
     while (i < 5) {
       print(++i);
     }
   }
   print(i);
   while (i < 10) {
-    for (int j = 0; j < 3; ++j) {
+    for (var j = 0; j < 3; ++j) {
       i += j;
     }
   }
