@@ -93,8 +93,6 @@ transform set.
   ),
 ];
 
-const String generatedLintCodesPath = 'linter/lib/src/lint_codes.g.dart';
-
 /// Base diagnostic classes used for lint messages.
 const linterBaseClasses = DiagnosticBaseClasses(
   requiresTypeArgument: false,

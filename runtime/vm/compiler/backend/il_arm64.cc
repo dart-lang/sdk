@@ -610,19 +610,17 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       intptr_t temp = true_value;
       true_value = false_value;
       false_value = temp;
-    } else {
       true_condition = InvertCondition(true_condition);
     }
   }
 
-  __ cset(result, true_condition);
-
   if (is_power_of_two_kind) {
     const intptr_t shift =
         Utils::ShiftForPowerOfTwo(Utils::Maximum(true_value, false_value));
+    __ cset(result, true_condition);
     __ LslImmediate(result, result, shift + kSmiTagSize);
   } else {
-    __ sub(result, result, compiler::Operand(1));
+    __ csetm(result, true_condition);  // result = cond ? -1 : 0
     const int64_t val = Smi::RawValue(true_value) - Smi::RawValue(false_value);
     __ AndImmediate(result, result, val);
     if (false_value != 0) {

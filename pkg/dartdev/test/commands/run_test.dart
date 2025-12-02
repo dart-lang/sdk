@@ -963,6 +963,33 @@ void residentRun() {
     });
   });
 
+  test('resident compiler invocation has working resolvePackageUri', () async {
+    p = project(name: 'foo');
+    p.file('pubspec.yaml', '''
+name: foo
+environment:
+  sdk: '>=2.12.0<3.0.0'
+
+dependencies:
+  path: ^1.9.0
+''');
+    p.file('bin/main.dart', r'''
+import 'dart:isolate';
+Future<void> main() async {
+  print(await Isolate.resolvePackageUri(Uri.parse('package:path/')));
+}
+''');
+
+    ProcessResult pubGetResult = await p.run(['pub', 'get']);
+    expect(pubGetResult.stderr, isEmpty);
+    expect(pubGetResult.exitCode, 0);
+
+    ProcessResult result = await p.run(['run', '--resident', 'bin/main.dart']);
+
+    expect(result.stdout, contains('file://'));
+    expect(result.exitCode, 0);
+  });
+
   test(
       'passing --resident is a prerequisite for passing --resident-compiler-info-file',
       () async {

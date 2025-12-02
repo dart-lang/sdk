@@ -2528,7 +2528,7 @@ class Assembler : public AssemblerBase {
       return static_cast<Condition>((instr & kCondMask) >> kCondShift);
     }
     ASSERT(IsCompareAndBranch(instr));
-    return (instr & B24) ? EQ : NE;  // cbz : cbnz
+    return (instr & B24) != 0 ? EQ : NE;  // cbz : cbnz
   }
 
   int32_t EncodeImm19BranchCondition(Condition cond, int32_t instr) {
@@ -2542,7 +2542,7 @@ class Assembler : public AssemblerBase {
 
   Condition DecodeImm14BranchCondition(int32_t instr) {
     ASSERT(IsTestAndBranch(instr));
-    return (instr & B24) ? EQ : NE;  // tbz : tbnz
+    return (instr & B24) != 0 ? EQ : NE;  // tbz : tbnz
   }
 
   int32_t EncodeImm14BranchCondition(Condition cond, int32_t instr) {

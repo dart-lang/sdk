@@ -2833,7 +2833,7 @@ class AstBuilder extends StackListener {
             );
         }
         if (firstFormalParameter.keyword case var keyword?) {
-          if (_featureSet.isEnabled(Feature.declaring_constructors)) {
+          if (_featureSet.isEnabled(Feature.primary_constructors)) {
             switch (keyword.keyword) {
               case Keyword.CONST:
               case Keyword.FINAL:
@@ -2917,9 +2917,9 @@ class AstBuilder extends StackListener {
         ),
       );
     } else {
-      if (!_featureSet.isEnabled(Feature.declaring_constructors)) {
+      if (!_featureSet.isEnabled(Feature.primary_constructors)) {
         _reportFeatureNotEnabled(
-          feature: Feature.declaring_constructors,
+          feature: Feature.primary_constructors,
           startToken: beginToken,
         );
       }
@@ -6139,7 +6139,7 @@ class AstBuilder extends StackListener {
       case null:
         break;
       case SimpleIdentifierImpl():
-        if (_featureSet.isEnabled(Feature.declaring_constructors)) {
+        if (_featureSet.isEnabled(Feature.primary_constructors)) {
           // Consider a factory constructor declaration of the form
           // `factory C(...` optionally starting with zero or more of the
           // modifiers `const`, `augment`, or `external`. Assume that `C` is

@@ -486,7 +486,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitIsolateGroupBoundIsolate,
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitIsolateGroupBoundIsolate,
                            T1, T2);
     } else {
       const intptr_t kPCRelativeLoadOffset = 12;

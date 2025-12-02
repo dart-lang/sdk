@@ -1817,7 +1817,7 @@ class FragmentFactoryImpl implements FragmentFactory {
         // Erroneous case reported in the parser, normalize `Class`.
         name = '';
         fullName = className;
-      } else if (isFactory && libraryFeatures.declaringConstructors.isEnabled) {
+      } else if (isFactory && libraryFeatures.primaryConstructors.isEnabled) {
         fullName = '$className.$name';
       } else {
         _problemReporting.addProblem(

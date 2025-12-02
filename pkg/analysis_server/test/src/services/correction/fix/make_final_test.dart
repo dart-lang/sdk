@@ -467,8 +467,7 @@ class PreferFinalParametersBulkTest extends BulkFixProcessorTest {
   @override
   List<String> get experiments => super.experiments
       .where(
-        (experiment) =>
-            experiment != Feature.declaring_constructors.enableString,
+        (experiment) => experiment != Feature.primary_constructors.enableString,
       )
       .toList();
 
@@ -496,8 +495,7 @@ class PreferFinalParametersTest extends FixProcessorLintTest {
   @override
   List<String> get experiments => super.experiments
       .where(
-        (experiment) =>
-            experiment != Feature.declaring_constructors.enableString,
+        (experiment) => experiment != Feature.primary_constructors.enableString,
       )
       .toList();
 

@@ -74,14 +74,6 @@ enum ExperimentalFlag {
     experimentReleasedVersion: defaultLanguageVersion,
   ),
 
-  declaringConstructors(
-    name: 'declaring-constructors',
-    isEnabledByDefault: false,
-    isExpired: false,
-    experimentEnabledVersion: defaultLanguageVersion,
-    experimentReleasedVersion: defaultLanguageVersion,
-  ),
-
   digitSeparators(
     name: 'digit-separators',
     isEnabledByDefault: true,
@@ -240,6 +232,14 @@ enum ExperimentalFlag {
     isExpired: true,
     experimentEnabledVersion: const Version(3, 0),
     experimentReleasedVersion: const Version(3, 0),
+  ),
+
+  primaryConstructors(
+    name: 'primary-constructors',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
   ),
 
   privateNamedParameters(

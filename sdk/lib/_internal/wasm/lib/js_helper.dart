@@ -716,3 +716,6 @@ external T JS<T>(
   arg18,
   arg19,
 ]);
+
+@pragma("wasm:intrinsic")
+external WasmExternRef get thisModule;

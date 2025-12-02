@@ -134,15 +134,6 @@ class ExperimentalFlag {
     experimentReleasedVersion: defaultLanguageVersion,
   );
 
-  static const ExperimentalFlag declaringConstructors = const ExperimentalFlag(
-    name: 'declaring-constructors',
-    isEnabledByDefault: false,
-    isExpired: false,
-    enabledVersion: defaultLanguageVersion,
-    experimentEnabledVersion: defaultLanguageVersion,
-    experimentReleasedVersion: defaultLanguageVersion,
-  );
-
   static const ExperimentalFlag digitSeparators = const ExperimentalFlag(
     name: 'digit-separators',
     isEnabledByDefault: true,
@@ -321,6 +312,15 @@ class ExperimentalFlag {
     enabledVersion: const Version(3, 0),
     experimentEnabledVersion: const Version(3, 0),
     experimentReleasedVersion: const Version(3, 0),
+  );
+
+  static const ExperimentalFlag primaryConstructors = const ExperimentalFlag(
+    name: 'primary-constructors',
+    isEnabledByDefault: false,
+    isExpired: false,
+    enabledVersion: defaultLanguageVersion,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
   );
 
   static const ExperimentalFlag privateNamedParameters = const ExperimentalFlag(
@@ -561,10 +561,6 @@ class GlobalFeatures {
   GlobalFeature get dataAssets =>
       _dataAssets ??= _computeGlobalFeature(ExperimentalFlag.dataAssets);
 
-  GlobalFeature? _declaringConstructors;
-  GlobalFeature get declaringConstructors => _declaringConstructors ??=
-      _computeGlobalFeature(ExperimentalFlag.declaringConstructors);
-
   GlobalFeature? _digitSeparators;
   GlobalFeature get digitSeparators => _digitSeparators ??=
       _computeGlobalFeature(ExperimentalFlag.digitSeparators);
@@ -644,6 +640,10 @@ class GlobalFeatures {
   GlobalFeature? _patterns;
   GlobalFeature get patterns =>
       _patterns ??= _computeGlobalFeature(ExperimentalFlag.patterns);
+
+  GlobalFeature? _primaryConstructors;
+  GlobalFeature get primaryConstructors => _primaryConstructors ??=
+      _computeGlobalFeature(ExperimentalFlag.primaryConstructors);
 
   GlobalFeature? _privateNamedParameters;
   GlobalFeature get privateNamedParameters => _privateNamedParameters ??=
@@ -785,14 +785,6 @@ class LibraryFeatures {
   LibraryFeature get dataAssets =>
       _dataAssets ??= globalFeatures._computeLibraryFeature(
         ExperimentalFlag.dataAssets,
-        canonicalUri,
-        libraryVersion,
-      );
-
-  LibraryFeature? _declaringConstructors;
-  LibraryFeature get declaringConstructors =>
-      _declaringConstructors ??= globalFeatures._computeLibraryFeature(
-        ExperimentalFlag.declaringConstructors,
         canonicalUri,
         libraryVersion,
       );
@@ -957,6 +949,14 @@ class LibraryFeatures {
         libraryVersion,
       );
 
+  LibraryFeature? _primaryConstructors;
+  LibraryFeature get primaryConstructors =>
+      _primaryConstructors ??= globalFeatures._computeLibraryFeature(
+        ExperimentalFlag.primaryConstructors,
+        canonicalUri,
+        libraryVersion,
+      );
+
   LibraryFeature? _privateNamedParameters;
   LibraryFeature get privateNamedParameters =>
       _privateNamedParameters ??= globalFeatures._computeLibraryFeature(
@@ -1098,8 +1098,6 @@ class LibraryFeatures {
         return controlFlowCollections;
       case shared.ExperimentalFlag.dataAssets:
         return dataAssets;
-      case shared.ExperimentalFlag.declaringConstructors:
-        return declaringConstructors;
       case shared.ExperimentalFlag.digitSeparators:
         return digitSeparators;
       case shared.ExperimentalFlag.dotShorthands:
@@ -1140,6 +1138,8 @@ class LibraryFeatures {
         return nullAwareElements;
       case shared.ExperimentalFlag.patterns:
         return patterns;
+      case shared.ExperimentalFlag.primaryConstructors:
+        return primaryConstructors;
       case shared.ExperimentalFlag.privateNamedParameters:
         return privateNamedParameters;
       case shared.ExperimentalFlag.recordUse:
@@ -1194,8 +1194,6 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.controlFlowCollections;
     case "data-assets":
       return ExperimentalFlag.dataAssets;
-    case "declaring-constructors":
-      return ExperimentalFlag.declaringConstructors;
     case "digit-separators":
       return ExperimentalFlag.digitSeparators;
     case "dot-shorthands":
@@ -1236,6 +1234,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.nullAwareElements;
     case "patterns":
       return ExperimentalFlag.patterns;
+    case "primary-constructors":
+      return ExperimentalFlag.primaryConstructors;
     case "private-named-parameters":
       return ExperimentalFlag.privateNamedParameters;
     case "record-use":
@@ -1288,8 +1288,6 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.controlFlowCollections:
       ExperimentalFlag.controlFlowCollections.isEnabledByDefault,
   ExperimentalFlag.dataAssets: ExperimentalFlag.dataAssets.isEnabledByDefault,
-  ExperimentalFlag.declaringConstructors:
-      ExperimentalFlag.declaringConstructors.isEnabledByDefault,
   ExperimentalFlag.digitSeparators:
       ExperimentalFlag.digitSeparators.isEnabledByDefault,
   ExperimentalFlag.dotShorthands:
@@ -1326,6 +1324,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.nullAwareElements:
       ExperimentalFlag.nullAwareElements.isEnabledByDefault,
   ExperimentalFlag.patterns: ExperimentalFlag.patterns.isEnabledByDefault,
+  ExperimentalFlag.primaryConstructors:
+      ExperimentalFlag.primaryConstructors.isEnabledByDefault,
   ExperimentalFlag.privateNamedParameters:
       ExperimentalFlag.privateNamedParameters.isEnabledByDefault,
   ExperimentalFlag.recordUse: ExperimentalFlag.recordUse.isEnabledByDefault,
@@ -1373,8 +1373,6 @@ ExperimentalFlag fromSharedExperimentalFlag(
   shared.ExperimentalFlag.controlFlowCollections =>
     ExperimentalFlag.controlFlowCollections,
   shared.ExperimentalFlag.dataAssets => ExperimentalFlag.dataAssets,
-  shared.ExperimentalFlag.declaringConstructors =>
-    ExperimentalFlag.declaringConstructors,
   shared.ExperimentalFlag.digitSeparators => ExperimentalFlag.digitSeparators,
   shared.ExperimentalFlag.dotShorthands => ExperimentalFlag.dotShorthands,
   shared.ExperimentalFlag.enhancedEnums => ExperimentalFlag.enhancedEnums,
@@ -1400,6 +1398,8 @@ ExperimentalFlag fromSharedExperimentalFlag(
   shared.ExperimentalFlag.nullAwareElements =>
     ExperimentalFlag.nullAwareElements,
   shared.ExperimentalFlag.patterns => ExperimentalFlag.patterns,
+  shared.ExperimentalFlag.primaryConstructors =>
+    ExperimentalFlag.primaryConstructors,
   shared.ExperimentalFlag.privateNamedParameters =>
     ExperimentalFlag.privateNamedParameters,
   shared.ExperimentalFlag.recordUse => ExperimentalFlag.recordUse,

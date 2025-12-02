@@ -2446,7 +2446,7 @@ NewConstructorQualifiedName:
   correctionMessage: "Try removing the class name prefix from the qualified name or removing the 'new' keyword."
   analyzerCode: ParserErrorCode.NEW_CONSTRUCTOR_QUALIFIED_NAME
   hasPublishedDocs: false
-  experiments: declaring-constructors
+  experiments: primary-constructors
   script: |
     class C {
       new C.named();
@@ -2459,7 +2459,7 @@ NewConstructorNewName:
   correctionMessage: "Try removing the second 'new' or changing it to a different name."
   analyzerCode: ParserErrorCode.NEW_CONSTRUCTOR_NEW_NAME
   hasPublishedDocs: false
-  experiments: declaring-constructors
+  experiments: primary-constructors
   script: |
     class C {
       new new();
@@ -2472,7 +2472,7 @@ FactoryConstructorNewName:
   correctionMessage: "Try removing the 'new' keyword or changing it to a different name."
   analyzerCode: ParserErrorCode.FACTORY_CONSTRUCTOR_NEW_NAME
   hasPublishedDocs: false
-  experiments: declaring-constructors
+  experiments: primary-constructors
   script: |
     class C {
       factory new() => throw '';

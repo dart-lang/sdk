@@ -12,7 +12,7 @@ parser/general/new_as_identifier:16:44: Expected a function body, but got 'new'.
   C.constructor_field_initializer() : this.new = null;
                                            ^^^
 
-parser/general/new_as_identifier:16:44: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/general/new_as_identifier:16:44: This requires the experimental 'primary-constructors' language feature to be enabled.
   C.constructor_field_initializer() : this.new = null;
                                            ^^^
 
@@ -95,7 +95,7 @@ beginCompilationUnit(class)
         beginMetadataStar(new)
         endMetadataStar(0)
         beginMember()
-          handleExperimentNotEnabled(ExperimentalFlag.declaringConstructors, new, new)
+          handleExperimentNotEnabled(ExperimentalFlag.primaryConstructors, new, new)
           beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, new, new, C)
             handleNoType(})
             handleNoIdentifier(new, methodDeclaration)

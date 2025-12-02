@@ -325,8 +325,8 @@ class Parser {
   /// `true` if the 'enhanced-parts' feature is enabled.
   final bool _isEnhancedPartsFeatureEnabled;
 
-  /// `true` if the 'declaring-constructors' feature is enabled.
-  final bool _isDeclaringConstructorsFeatureEnabled;
+  /// `true` if the 'primary-constructors' feature is enabled.
+  final bool _isPrimaryConstructorsFeatureEnabled;
 
   /// `true` if the 'private-named-parameters' feature is enabled.
   final bool _isPrivateNamedParametersEnabled;
@@ -354,8 +354,8 @@ class Parser {
        ),
        _isEnhancedPartsFeatureEnabled = experimentalFeatures
            .isExperimentEnabled(ExperimentalFlag.enhancedParts),
-       _isDeclaringConstructorsFeatureEnabled = experimentalFeatures
-           .isExperimentEnabled(ExperimentalFlag.declaringConstructors),
+       _isPrimaryConstructorsFeatureEnabled = experimentalFeatures
+           .isExperimentEnabled(ExperimentalFlag.primaryConstructors),
        _isPrivateNamedParametersEnabled = experimentalFeatures
            .isExperimentEnabled(ExperimentalFlag.privateNamedParameters);
 
@@ -2215,9 +2215,9 @@ class Parser {
                 codes.codeFunctionTypedParameterVar,
               );
             } else {
-              if (!_isDeclaringConstructorsFeatureEnabled) {
+              if (!_isPrimaryConstructorsFeatureEnabled) {
                 reportExperimentNotEnabled(
-                  ExperimentalFlag.declaringConstructors,
+                  ExperimentalFlag.primaryConstructors,
                   varFinalOrConst,
                   varFinalOrConst,
                 );
@@ -2237,9 +2237,9 @@ class Parser {
             codes.codeFunctionTypedParameterVar,
           );
         } else {
-          if (!_isDeclaringConstructorsFeatureEnabled) {
+          if (!_isPrimaryConstructorsFeatureEnabled) {
             reportExperimentNotEnabled(
-              ExperimentalFlag.declaringConstructors,
+              ExperimentalFlag.primaryConstructors,
               varFinalOrConst,
               varFinalOrConst,
             );
@@ -2258,9 +2258,9 @@ class Parser {
           if (memberKind != MemberKind.PrimaryConstructor) {
             reportRecoverableError(varFinalOrConst, codes.codeTypeAfterVar);
           } else {
-            if (!_isDeclaringConstructorsFeatureEnabled) {
+            if (!_isPrimaryConstructorsFeatureEnabled) {
               reportExperimentNotEnabled(
-                ExperimentalFlag.declaringConstructors,
+                ExperimentalFlag.primaryConstructors,
                 varOrFinal,
                 varOrFinal,
               );
@@ -3072,9 +3072,9 @@ class Parser {
     token = parseClassHeaderOpt(token, beginToken, classKeyword);
     if (token.next!.isA(TokenType.SEMICOLON)) {
       Token semicolonToken = token = token.next!;
-      if (!_isDeclaringConstructorsFeatureEnabled) {
+      if (!_isPrimaryConstructorsFeatureEnabled) {
         reportExperimentNotEnabled(
-          ExperimentalFlag.declaringConstructors,
+          ExperimentalFlag.primaryConstructors,
           semicolonToken,
           semicolonToken,
         );
@@ -3787,9 +3787,9 @@ class Parser {
     token = parseClassOrMixinOrEnumImplementsOpt(token);
     if (token.next!.isA(TokenType.SEMICOLON)) {
       Token semicolonToken = token = token.next!;
-      if (!_isDeclaringConstructorsFeatureEnabled) {
+      if (!_isPrimaryConstructorsFeatureEnabled) {
         reportExperimentNotEnabled(
-          ExperimentalFlag.declaringConstructors,
+          ExperimentalFlag.primaryConstructors,
           semicolonToken,
           semicolonToken,
         );
@@ -5209,9 +5209,9 @@ class Parser {
     bool nameIsRecovered = false;
     if (next.isA(Keyword.NEW)) {
       newToken = next;
-      if (!_isDeclaringConstructorsFeatureEnabled) {
+      if (!_isPrimaryConstructorsFeatureEnabled) {
         reportExperimentNotEnabled(
-          ExperimentalFlag.declaringConstructors,
+          ExperimentalFlag.primaryConstructors,
           newToken,
           newToken,
         );
@@ -5253,7 +5253,7 @@ class Parser {
           );
           listener.endMember();
           return token;
-        } else if (_isDeclaringConstructorsFeatureEnabled &&
+        } else if (_isPrimaryConstructorsFeatureEnabled &&
             next2.isA(TokenType.OPEN_PAREN)) {
           if (typeInfo == noType &&
               covariantToken == null &&
@@ -5350,9 +5350,9 @@ class Parser {
         if (next2.isA(TokenType.COLON) ||
             next2.isA(TokenType.SEMICOLON) ||
             next2.isA(TokenType.OPEN_CURLY_BRACKET)) {
-          if (!_isDeclaringConstructorsFeatureEnabled) {
+          if (!_isPrimaryConstructorsFeatureEnabled) {
             reportExperimentNotEnabled(
-              ExperimentalFlag.declaringConstructors,
+              ExperimentalFlag.primaryConstructors,
               next,
               next,
             );
