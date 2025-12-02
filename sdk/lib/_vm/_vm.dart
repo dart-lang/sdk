@@ -37,21 +37,19 @@ final class ThreadLocal<T> {
     _clearValue(_id);
   }
 
-  @pragma("vm:external-name", "ThreadLocal_allocateId")
+  @pragma("vm:external-name", "ScopedThreadLocal_allocateId")
   external static int _allocateId();
 
-  @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:external-name", "ThreadLocal_hasValue")
+  @pragma("vm:external-name", "ScopedThreadLocal_hasValue")
   external static bool _hasValue(int id);
 
-  @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:external-name", "ThreadLocal_getValue")
+  @pragma("vm:external-name", "ScopedThreadLocal_getValue")
   external static Object? _getValue(int id);
 
-  @pragma("vm:external-name", "ThreadLocal_setValue")
+  @pragma("vm:external-name", "ScopedThreadLocal_setValue")
   external static void _setValue(int id, Object? value);
 
-  @pragma("vm:external-name", "ThreadLocal_clearValue")
+  @pragma("vm:external-name", "ScopedThreadLocal_clearValue")
   external static void _clearValue(int id);
 
   final int _id;
@@ -67,13 +65,13 @@ final class ScopedThreadLocal<T> {
 
   /// Execute [f] binding this [ScopedThreadLocal] to the given
   /// [value] for the duration of the execution.
-  R runWith<R>(T newValue, R Function(T) f) {
-    bool hadValue = variable.hasValue;
-    T? previousValue = hadValue ? variable.value : null;
-    variable.value = newValue;
-    R result = f(newValue);
-    if (hadValue) {
-      variable.value = previousValue as T;
+  R runWith<R>(T new_value, R Function(T) f) {
+    bool had_value = variable.hasValue;
+    T? previous_value = had_value ? variable.value : null;
+    variable.value = new_value;
+    R result = f(new_value);
+    if (had_value) {
+      variable.value = previous_value as T;
     } else {
       variable.clearValue();
     }
@@ -83,8 +81,8 @@ final class ScopedThreadLocal<T> {
   /// Execute [f] initializing this [ScopedThreadLocal] using default initializer if needed.
   /// Throws [StateError] if this [ScopedThreadLocal] does not have an initializer.
   R runInitialized<R>(R Function(T) f) {
-    bool hadValue = variable.hasValue;
-    T? previousValue = hadValue ? variable.value : null;
+    bool had_value = variable.hasValue;
+    T? previous_value = had_value ? variable.value : null;
     if (!variable.hasValue) {
       if (_initializer == null) {
         throw StateError(
@@ -94,8 +92,8 @@ final class ScopedThreadLocal<T> {
       variable.value = _initializer!();
     }
     R result = f(variable.value);
-    if (hadValue) {
-      variable.value = previousValue as T;
+    if (had_value) {
+      variable.value = previous_value as T;
     } else {
       variable.clearValue();
     }
@@ -128,11 +126,9 @@ final class FinalThreadLocal<T> {
   /// Returns the value bound to [FinalThreadLocal].
   T get value {
     if (!variable.hasValue) {
-      final v = _initializer();
-      variable.value = v;
-      return v;
+      variable.value = _initializer();
     }
-    return unsafeCast<T>(ThreadLocal._getValue(variable._id));
+    return variable.value;
   }
 
   set value(_) {

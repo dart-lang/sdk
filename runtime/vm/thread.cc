@@ -93,10 +93,10 @@ Thread::Thread(bool is_vm_isolate)
 #else
       service_extension_stream_(nullptr),
 #endif
-      thread_locals_(Array::null()),
       thread_lock_(),
       reusable_handles_(),
       sticky_error_(Error::null()),
+      thread_locals_(GrowableObjectArray::null()),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
           REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
@@ -268,7 +268,7 @@ void Thread::set_default_tag(const UserTag& tag) {
   default_tag_ = tag.ptr();
 }
 
-void Thread::set_thread_locals(const Array& thread_locals) {
+void Thread::set_thread_locals(const GrowableObjectArray& thread_locals) {
   thread_locals_ = thread_locals.ptr();
 }
 
@@ -421,10 +421,6 @@ void Thread::EnterIsolate(Isolate* isolate) {
                              /*bypass_safepoint=*/false);
     thread->SetupMutatorState();
     thread->SetupDartMutatorState(isolate);
-
-    if (!isolate->is_vm_isolate()) {
-      thread->set_thread_locals(Array::empty_array());
-    }
   }
 
   isolate->scheduled_mutator_thread_ = thread;
@@ -573,7 +569,6 @@ void Thread::EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
   thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
 #endif
 
-  thread->set_thread_locals(Array::empty_array());
   thread->AssertDartMutatorInvariants();
 
   StackZone zone(thread);
@@ -779,7 +774,7 @@ void Thread::FreeActiveThread(Thread* thread,
   thread->ResetStateLocked();
   thread->current_tag_ = UserTag::null();
   thread->default_tag_ = UserTag::null();
-  thread->thread_locals_ = Array::null();
+  thread->thread_locals_ = GrowableObjectArray::null();
 
   thread->AssertEmptyThreadInvariants();
   thread_registry->ReturnThreadLocked(thread);

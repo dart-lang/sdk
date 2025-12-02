@@ -10763,7 +10763,7 @@ class GenericCheckBoundInstr : public CheckBoundBaseInstr {
 
     // Phantom checks serve as dependencies inhibiting illegal code motion but
     // are removed before code generation. Phantom checks are inserted due to
-    // unsafe annotations. An early-phase path-sensitive bounds check removal
+    // unsafe annotations. An early-phaee path-sensitive bounds check removal
     // optimization can be implemented by replacing a real check with a phantom
     // check.
     kPhantom

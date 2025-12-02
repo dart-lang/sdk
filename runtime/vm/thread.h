@@ -184,7 +184,6 @@ class Thread;
 
 #define CACHED_NON_VM_STUB_LIST(V)                                             \
   V(ObjectPtr, object_null_, Object::null(), nullptr)                          \
-  V(SentinelPtr, object_sentinel_, Object::sentinel().ptr(), nullptr)          \
   V(BoolPtr, bool_true_, Object::bool_true().ptr(), nullptr)                   \
   V(BoolPtr, bool_false_, Object::bool_false().ptr(), nullptr)                 \
   V(ArrayPtr, empty_array_, Object::empty_array().ptr(), nullptr)              \
@@ -1392,12 +1391,8 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
 
   static void VisitMutators(MutatorThreadVisitor* visitor);
 
-  ArrayPtr thread_locals() const { return thread_locals_; }
-  void set_thread_locals(const Array& thread_locals);
-
-  static intptr_t thread_locals_offset() {
-    return OFFSET_OF(Thread, thread_locals_);
-  }
+  GrowableObjectArrayPtr thread_locals() const { return thread_locals_; }
+  void set_thread_locals(const GrowableObjectArray& thread_locals);
 
  private:
   template <class T>
@@ -1548,7 +1543,6 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   UserTagPtr default_tag_;
   TimelineStream* const dart_stream_;
   StreamInfo* const service_extension_stream_;
-  ArrayPtr thread_locals_ = nullptr;
 
   // ---- End accessed from generated code. ----
 
@@ -1592,6 +1586,8 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   ObjectPtr* shared_field_table_values() const {
     return shared_field_table_values_;
   }
+
+  GrowableObjectArrayPtr thread_locals_ = nullptr;
 
 // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object) object* object##_handle_;
