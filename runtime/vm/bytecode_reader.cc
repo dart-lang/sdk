@@ -1123,6 +1123,13 @@ ObjectPtr BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
             cls.ptr() == scoped_function_class_.ptr()) {
           return scoped_function_.ptr();
         }
+        // If this is a reference to the expression evaluation function, then
+        // reading the class has substituted in the real class.
+        if (name.ptr() == Symbols::DebugProcedureName().ptr() &&
+            cls.ptr() == thread_->bytecode_loader()
+                             ->GetExpressionEvaluationRealClass()) {
+          return thread_->bytecode_loader()->GetExpressionEvaluationFunction();
+        }
         FunctionPtr function = Function::null();
         if ((flags & kFlagIsConstructor) != 0) {
           if (cls.EnsureIsAllocateFinalized(thread_) == Error::null()) {
@@ -2109,6 +2116,13 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     FunctionScope function_scope(this, function, name, cls);
     FunctionTypeScope function_type_scope(this, signature);
 
+    // Set the expression evaluation function now so that references to it
+    // can be appropriately substituted as needed when reading objects below.
+    if (is_expression_evaluation) {
+      ASSERT(!function.is_abstract());
+      thread_->bytecode_loader()->SetExpressionEvaluationFunction(function);
+    }
+
     function.set_has_pragma(has_pragma);
     NOT_IN_PRECOMPILED(function.set_end_token_pos(end_position));
     function.set_is_synthetic((flags & kIsNoSuchMethodForwarderFlag) != 0);
@@ -2222,17 +2236,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     }
 
     if (is_expression_evaluation) {
-      ASSERT(!function.is_abstract());
-      BytecodeLoader* loader = thread_->bytecode_loader();
-      ASSERT(loader != nullptr);
-      loader->SetExpressionEvaluationFunction(function);
-      // Read bytecode of expression evaluation function within FunctionScope.
-      // Replace class of the function in scope as we're going to look for
-      // expression evaluation function in a real class.
-      if (!cls.IsTopLevel()) {
-        scoped_function_class_ = loader->GetExpressionEvaluationRealClass();
-      }
-      ReadCode(function, loader->GetOffset(function));
+      ReadCode(function, thread_->bytecode_loader()->GetOffset(function));
     }
 
     functions_->SetAt(function_index_++, function);
