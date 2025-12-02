@@ -1317,7 +1317,7 @@ class _FindLibraryDeclarations {
   void _addConstructors(List<ConstructorElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      if (!element.isSynthetic) {
+      if (element.isOriginDeclaration) {
         _addDeclaration(element, element.name!);
       }
     }

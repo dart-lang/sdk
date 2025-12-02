@@ -169,10 +169,11 @@ class A {
     await resolveTestCode(r'''
 class A {}
 ''');
-    var element = findElement2.unnamedConstructor('A').firstFragment;
-    expect(element.isSynthetic, isTrue);
+    var element = findElement2.unnamedConstructor('A');
+    expect(element.isOriginImplicitDefault, isTrue);
 
-    var result = await getFragmentDeclaration(element);
+    var fragment = element.firstFragment;
+    var result = await getFragmentDeclaration(fragment);
     expect(result, isNull);
   }
 

@@ -325,6 +325,10 @@ class _Element2Writer extends _AbstractElementWriter {
     });
   }
 
+  void _assertHasExactlyOneTrue(List<bool> flags) {
+    expect(flags.where((flag) => flag).length, 1);
+  }
+
   void _assertNonSyntheticElementSelf(Element element) {
     expect(element.isSynthetic, isFalse);
     expect(element.nonSynthetic, same(element));
@@ -352,13 +356,24 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.writeIndentedLine(() {
+      // ignore: deprecated_member_use_from_same_package
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isExternal, 'external ');
       _sink.writeIf(e.isConst, 'const ');
       _sink.writeIf(e.isDeclaring, 'declaring ');
       _sink.writeIf(e.isFactory, 'factory ');
       _sink.writeIf(e.isExtensionTypeMember, 'isExtensionTypeMember ');
-      _sink.writeIf(e.isPrimary, 'primary ');
+
+      _assertHasExactlyOneTrue([
+        e.isOriginDeclaration,
+        e.isOriginImplicitDefault,
+        e.isOriginMixinApplication,
+      ]);
+      _sink.writeIf(e.isOriginDeclaration, 'isOriginDeclaration ');
+      _sink.writeIf(e.isOriginImplicitDefault, 'isOriginImplicitDefault ');
+      _sink.writeIf(e.isOriginMixinApplication, 'isOriginMixinApplication ');
+
+      _sink.writeIf(e.isPrimary, 'isPrimary ');
       expect(e.isAbstract, isFalse);
       _writeElementName(e);
     });
@@ -411,10 +426,22 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
+      // ignore: deprecated_member_use_from_same_package
       _sink.writeIf(f.isSynthetic, 'synthetic ');
       _sink.writeIf(f.isExternal, 'external ');
       _sink.writeIf(f.isConst, 'const ');
       _sink.writeIf(f.isFactory, 'factory ');
+
+      _assertHasExactlyOneTrue([
+        f.isOriginDeclaration,
+        f.isOriginImplicitDefault,
+        f.isOriginMixinApplication,
+      ]);
+      _sink.writeIf(f.isOriginDeclaration, 'isOriginDeclaration ');
+      _sink.writeIf(f.isOriginImplicitDefault, 'isOriginImplicitDefault ');
+      _sink.writeIf(f.isOriginMixinApplication, 'isOriginMixinApplication ');
+
+      _sink.writeIf(f.isPrimary, 'isPrimary ');
       expect(f.isAbstract, isFalse);
       _writeFragmentName(f);
     });

@@ -42,7 +42,7 @@ library
         #F1 class B (nameOffset:104) (firstTokenOffset:98) (offset:104)
           element: <testLibrary>::@class::B
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -51,7 +51,7 @@ library
       firstFragment: #F1
       supertype: A
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F2
           superConstructor: package:test/foo.dart::@class::A::@constructor::new
@@ -90,7 +90,7 @@ library
         #F1 class B (nameOffset:104) (firstTokenOffset:98) (offset:104)
           element: <testLibrary>::@class::B
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -99,7 +99,7 @@ library
       firstFragment: #F1
       supertype: A
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F2
           superConstructor: package:test/foo_io.dart::@class::A::@constructor::new
@@ -138,7 +138,7 @@ library
         #F1 class B (nameOffset:124) (firstTokenOffset:118) (offset:124)
           element: <testLibrary>::@class::B
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:124)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:124)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -147,7 +147,7 @@ library
       firstFragment: #F1
       supertype: A
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F2
           superConstructor: package:test/foo_io.dart::@class::A::@constructor::new
@@ -186,7 +186,7 @@ library
         #F1 class B (nameOffset:104) (firstTokenOffset:98) (offset:104)
           element: <testLibrary>::@class::B
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -195,7 +195,7 @@ library
       firstFragment: #F1
       supertype: A
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F2
           superConstructor: package:test/foo_html.dart::@class::A::@constructor::new
@@ -234,7 +234,7 @@ library
         #F1 class B (nameOffset:124) (firstTokenOffset:118) (offset:124)
           element: <testLibrary>::@class::B
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:124)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:124)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -243,7 +243,7 @@ library
       firstFragment: #F1
       supertype: A
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F2
           superConstructor: package:test/foo_html.dart::@class::A::@constructor::new
@@ -586,13 +586,13 @@ library
         #F1 class C (nameOffset:31) (firstTokenOffset:25) (offset:31)
           element: <testLibrary>::@class::C
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
         #F3 class D (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@class::D
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+            #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
   classes
@@ -600,7 +600,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
     class D
@@ -608,7 +608,7 @@ library
       firstFragment: #F3
       supertype: C
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F4
           superConstructor: <testLibrary>::@class::C::@constructor::new

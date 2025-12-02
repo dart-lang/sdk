@@ -737,7 +737,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // invocation with the name of the class.
     var defaultConstructor = declaredElement.constructors.singleOrNull;
     if (defaultConstructor is ConstructorElementImpl &&
-        defaultConstructor.isSynthetic) {
+        defaultConstructor.isOriginImplicitDefault) {
       defaultConstructor.isDefaultConstructor;
       var superConstructor = defaultConstructor.superConstructor;
       if (superConstructor != null) {
@@ -1381,7 +1381,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
     ConstructorElement? constructor,
   ) {
     var seenConstructors = <ConstructorElement?>{};
-    while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
+    while (constructor is ConstructorElementImpl &&
+        constructor.isOriginMixinApplication) {
       var enclosing = constructor.enclosingElement;
       if (enclosing is ClassElementImpl && enclosing.isMixinApplication) {
         var superInvocation = constructor.firstFragment.constantInitializers

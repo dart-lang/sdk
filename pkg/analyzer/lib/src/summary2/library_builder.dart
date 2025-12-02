@@ -155,7 +155,8 @@ class LibraryBuilder {
       if (classElement.isMixinApplication) continue;
       if (classElement.constructors.isNotEmpty) continue;
 
-      var fragment = ConstructorFragmentImpl(name: 'new')..isSynthetic = true;
+      var fragment = ConstructorFragmentImpl(name: 'new');
+      fragment.isOriginImplicitDefault = true;
       fragment.typeName = classElement.name;
       classElement.firstFragment.constructors = [fragment].toFixedList();
 
@@ -233,8 +234,8 @@ class LibraryBuilder {
       if (hasConstructor(enumElement)) continue;
 
       var constructorFragment = ConstructorFragmentImpl(name: 'new')
+        ..isOriginImplicitDefault = true
         ..isConst = true
-        ..isSynthetic = true
         ..typeName = enumElement.name;
       enumElement.firstFragment.addConstructor(constructorFragment);
 

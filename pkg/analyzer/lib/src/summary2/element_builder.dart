@@ -1116,6 +1116,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     var fragmentName = _getFragmentName(node.name) ?? 'new';
     var fragment = ConstructorFragmentImpl(name: fragmentName);
+    fragment.isOriginDeclaration = true;
     fragment.isAugmentation = node.augmentKeyword != null;
     fragment.isConst = node.constKeyword != null;
     fragment.isExternal = node.externalKeyword != null;
@@ -1796,6 +1797,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     }
 
     var fragment = ConstructorFragmentImpl(name: fragmentName);
+    fragment.isOriginDeclaration = true;
     fragment.isConst =
         node.constKeyword != null || node.parent is EnumDeclarationImpl;
     fragment.isDeclaring = true;
@@ -2071,6 +2073,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
           ConstructorFragmentImpl(
               name: primaryConstructor.constructorName?.name.lexeme ?? 'new',
             )
+            ..isOriginDeclaration = true
             ..isAugmentation = extensionFragment.isAugmentation
             ..isConst = primaryConstructor.constKeyword != null
             ..isDeclaring = true

@@ -21,6 +21,8 @@
 * Deprecate `LintCode.new`'s `hasPublishedDocs` parameter.
 * Add `RemovedAnalysisRule` as the preferred way to represent removed lint
   rules. Deprecated `RuleState.removed` (which was the previous way to do so).
+* Deprecate `ConstructorElement.isSynthetic`.
+  Use `isOriginDeclaration`, `isOriginImplicitDefault`, `isOriginMixinApplication` instead.
 
 ## 9.0.0
 * Remove deprecated field `Diagnostic.data`.

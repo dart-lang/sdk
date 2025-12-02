@@ -60,7 +60,7 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 12
@@ -69,7 +69,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       constructors
-        new
+        isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
 ''');
@@ -93,7 +93,7 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
@@ -104,7 +104,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
       methods
@@ -170,7 +170,7 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 12
@@ -179,7 +179,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       constructors
-        new
+        isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
 ''');
@@ -207,7 +207,7 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
@@ -218,7 +218,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
       methods

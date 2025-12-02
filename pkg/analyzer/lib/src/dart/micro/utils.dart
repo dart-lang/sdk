@@ -59,7 +59,8 @@ ConstructorElement? _getActualConstructorElement(
   ConstructorElement? constructor,
 ) {
   var seenConstructors = <ConstructorElement?>{};
-  while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
+  while (constructor is ConstructorElementImpl &&
+      constructor.isOriginMixinApplication) {
     var enclosing = constructor.enclosingElement;
     if (enclosing is ClassElementImpl && enclosing.isMixinApplication) {
       var superInvocation = constructor.constantInitializers

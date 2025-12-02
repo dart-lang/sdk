@@ -104,7 +104,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       reference.addEdit(change, replacement);
     }
     // Update the declaration.
-    if (element.isSynthetic) {
+    if (element.isOriginImplicitDefault) {
       await _replaceSynthetic();
     } else {
       doSourceChange_addSourceEdit(

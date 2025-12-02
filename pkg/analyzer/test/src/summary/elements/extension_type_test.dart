@@ -118,7 +118,7 @@ library
             #F2 it (nameOffset:27) (firstTokenOffset:23) (offset:27)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 const new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
+            #F3 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 21
@@ -143,7 +143,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        const declaring isExtensionTypeMember primary new
+        const declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -179,14 +179,14 @@ library
             #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
                 #F4 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-            #F5 factory named (nameOffset:37) (firstTokenOffset:29) (offset:37)
+            #F5 factory isOriginDeclaration named (nameOffset:37) (firstTokenOffset:29) (offset:37)
               element: <testLibrary>::@extensionType::A::@constructor::named
               factoryKeywordOffset: 29
               typeName: null
@@ -211,7 +211,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -219,7 +219,7 @@ library
               firstFragment: #F4
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
-        factory isExtensionTypeMember named
+        factory isExtensionTypeMember isOriginDeclaration named
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F5
           formalParameters
@@ -254,7 +254,7 @@ library
             #F2 it (nameOffset:29) (firstTokenOffset:25) (offset:29)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 primary (nameOffset:17) (firstTokenOffset:15) (offset:17)
+            #F3 isOriginDeclaration isPrimary primary (nameOffset:17) (firstTokenOffset:15) (offset:17)
               element: <testLibrary>::@extensionType::A::@constructor::primary
               typeName: A
               typeNameOffset: 15
@@ -262,7 +262,7 @@ library
               formalParameters
                 #F4 requiredPositional final this.it (nameOffset:29) (firstTokenOffset:25) (offset:29)
                   element: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
-            #F5 factory new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
+            #F5 factory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@extensionType::A::@constructor::new
               factoryKeywordOffset: 37
               typeName: null
@@ -287,7 +287,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary primary
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary primary
           reference: <testLibrary>::@extensionType::A::@constructor::primary
           firstFragment: #F3
           formalParameters
@@ -295,7 +295,7 @@ library
               firstFragment: #F4
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
-        factory isExtensionTypeMember new
+        factory isExtensionTypeMember isOriginDeclaration new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -330,7 +330,7 @@ library
             #F2 it (nameOffset:27) (firstTokenOffset:23) (offset:27)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 named (nameOffset:17) (firstTokenOffset:15) (offset:17)
+            #F3 isOriginDeclaration isPrimary named (nameOffset:17) (firstTokenOffset:15) (offset:17)
               element: <testLibrary>::@extensionType::A::@constructor::named
               codeOffset: 15
               codeLength: 15
@@ -358,7 +358,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary named
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary named
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F3
           formalParameters
@@ -394,14 +394,14 @@ library
             #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
                 #F4 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-            #F5 named (nameOffset:33) (firstTokenOffset:29) (offset:33)
+            #F5 isOriginDeclaration named (nameOffset:33) (firstTokenOffset:29) (offset:33)
               element: <testLibrary>::@extensionType::A::@constructor::named
               newKeywordOffset: 29
               typeName: null
@@ -426,7 +426,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -434,7 +434,7 @@ library
               firstFragment: #F4
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
-        isExtensionTypeMember named
+        isExtensionTypeMember isOriginDeclaration named
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F5
           formalParameters
@@ -470,14 +470,14 @@ library
             #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
                 #F4 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-            #F5 const named (nameOffset:39) (firstTokenOffset:29) (offset:39)
+            #F5 const isOriginDeclaration named (nameOffset:39) (firstTokenOffset:29) (offset:39)
               element: <testLibrary>::@extensionType::A::@constructor::named
               newKeywordOffset: 35
               typeName: null
@@ -502,7 +502,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -510,7 +510,7 @@ library
               firstFragment: #F4
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
-        const isExtensionTypeMember named
+        const isExtensionTypeMember isOriginDeclaration named
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F5
           formalParameters
@@ -546,7 +546,7 @@ library
             #F2 it (nameOffset:29) (firstTokenOffset:25) (offset:29)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 primary (nameOffset:17) (firstTokenOffset:15) (offset:17)
+            #F3 isOriginDeclaration isPrimary primary (nameOffset:17) (firstTokenOffset:15) (offset:17)
               element: <testLibrary>::@extensionType::A::@constructor::primary
               typeName: A
               typeNameOffset: 15
@@ -554,7 +554,7 @@ library
               formalParameters
                 #F4 requiredPositional final this.it (nameOffset:29) (firstTokenOffset:25) (offset:29)
                   element: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
-            #F5 new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
+            #F5 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@extensionType::A::@constructor::new
               newKeywordOffset: 37
               typeName: null
@@ -579,7 +579,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary primary
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary primary
           reference: <testLibrary>::@extensionType::A::@constructor::primary
           firstFragment: #F3
           formalParameters
@@ -587,7 +587,7 @@ library
               firstFragment: #F4
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
-        isExtensionTypeMember new
+        isExtensionTypeMember isOriginDeclaration new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -623,7 +623,7 @@ library
             #F2 it (nameOffset:29) (firstTokenOffset:25) (offset:29)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 primary (nameOffset:17) (firstTokenOffset:15) (offset:17)
+            #F3 isOriginDeclaration isPrimary primary (nameOffset:17) (firstTokenOffset:15) (offset:17)
               element: <testLibrary>::@extensionType::A::@constructor::primary
               typeName: A
               typeNameOffset: 15
@@ -631,7 +631,7 @@ library
               formalParameters
                 #F4 requiredPositional final this.it (nameOffset:29) (firstTokenOffset:25) (offset:29)
                   element: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
-            #F5 const new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
+            #F5 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@extensionType::A::@constructor::new
               newKeywordOffset: 43
               typeName: null
@@ -656,7 +656,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary primary
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary primary
           reference: <testLibrary>::@extensionType::A::@constructor::primary
           firstFragment: #F3
           formalParameters
@@ -664,7 +664,7 @@ library
               firstFragment: #F4
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
-        const isExtensionTypeMember new
+        const isExtensionTypeMember isOriginDeclaration new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -701,14 +701,14 @@ library
             #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
                 #F4 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-            #F5 named (nameOffset:31) (firstTokenOffset:29) (offset:31)
+            #F5 isOriginDeclaration named (nameOffset:31) (firstTokenOffset:29) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 29
@@ -734,7 +734,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -742,7 +742,7 @@ library
               firstFragment: #F4
               type: num
               field: <testLibrary>::@extensionType::A::@field::it
-        isExtensionTypeMember named
+        isExtensionTypeMember isOriginDeclaration named
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F5
           formalParameters
@@ -779,14 +779,14 @@ library
             #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
                 #F4 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-            #F5 named (nameOffset:31) (firstTokenOffset:29) (offset:31)
+            #F5 isOriginDeclaration named (nameOffset:31) (firstTokenOffset:29) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 29
@@ -812,7 +812,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -820,7 +820,7 @@ library
               firstFragment: #F4
               type: num
               field: <testLibrary>::@extensionType::A::@field::it
-        isExtensionTypeMember named
+        isExtensionTypeMember isOriginDeclaration named
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F5
           formalParameters
@@ -857,14 +857,14 @@ library
             #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
                 #F4 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-            #F5 const named (nameOffset:37) (firstTokenOffset:29) (offset:37)
+            #F5 const isOriginDeclaration named (nameOffset:37) (firstTokenOffset:29) (offset:37)
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 35
@@ -890,7 +890,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -898,7 +898,7 @@ library
               firstFragment: #F4
               type: num
               field: <testLibrary>::@extensionType::A::@field::it
-        const isExtensionTypeMember named
+        const isExtensionTypeMember isOriginDeclaration named
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F5
           formalParameters
@@ -944,7 +944,7 @@ library
             #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 9
@@ -971,7 +971,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -1008,7 +1008,7 @@ library
             #F2 it (nameOffset:30) (firstTokenOffset:26) (offset:30)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 new (nameOffset:<null>) (firstTokenOffset:24) (offset:24)
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:24) (offset:24)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 24
@@ -1034,7 +1034,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -1278,7 +1278,7 @@ library
                     staticType: null
                   element: package:test/a.dart::@getter::foo
           constructors
-            #F3 new (nameOffset:<null>) (firstTokenOffset:32) (offset:32)
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:32) (offset:32)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 32
@@ -1319,7 +1319,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -1935,7 +1935,7 @@ library
             #F2 it (nameOffset:43) (firstTokenOffset:39) (offset:43)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F3 new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 37
@@ -1960,7 +1960,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -2169,7 +2169,7 @@ library
             #F2 <null-name> (nameOffset:<null>) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@extensionType::A::@field::0
           constructors
-            #F3 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 3
@@ -2195,7 +2195,7 @@ library
           type: InvalidType
           getter: <testLibrary>::@extensionType::A::@getter::1
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -2816,7 +2816,7 @@ library
             #F4 it (nameOffset:45) (firstTokenOffset:35) (offset:45)
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
-            #F5 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -2848,7 +2848,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -2893,7 +2893,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
-            #F5 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -2915,7 +2915,7 @@ library
               previousFragment: #F3
               nextFragment: #F11
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:52) (offset:52)
+            #F8 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:52) (offset:52)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 52
@@ -2934,7 +2934,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
           constructors
-            #F13 augment new (nameOffset:<null>) (firstTokenOffset:89) (offset:89)
+            #F13 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:89) (offset:89)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 89
@@ -2958,7 +2958,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -3005,7 +3005,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
-            #F5 augment new (nameOffset:<null>) (firstTokenOffset:23) (offset:23)
+            #F5 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 23
@@ -3028,7 +3028,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:78) (offset:78)
+            #F8 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:78) (offset:78)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 78
@@ -3055,7 +3055,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -3105,7 +3105,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
-            #F5 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -3125,7 +3125,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:52) (offset:52)
+            #F8 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:52) (offset:52)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 52
@@ -3134,7 +3134,7 @@ library
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F6
               previousFragment: #F5
-            #F10 named (nameOffset:68) (firstTokenOffset:66) (offset:68)
+            #F10 isOriginDeclaration named (nameOffset:68) (firstTokenOffset:66) (offset:68)
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 66
@@ -3154,7 +3154,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -3162,7 +3162,7 @@ library
               firstFragment: #F6
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
-        isExtensionTypeMember named
+        isExtensionTypeMember isOriginDeclaration named
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F10
       getters
@@ -3202,7 +3202,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F7 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -3226,7 +3226,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:55) (offset:55)
+            #F10 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:55) (offset:55)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 55
@@ -3235,7 +3235,7 @@ library
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   previousFragment: #F8
               previousFragment: #F7
-            #F12 named (nameOffset:74) (firstTokenOffset:72) (offset:74)
+            #F12 isOriginDeclaration named (nameOffset:74) (firstTokenOffset:72) (offset:74)
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 72
@@ -3261,7 +3261,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -3269,7 +3269,7 @@ library
               firstFragment: #F8
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
-        isExtensionTypeMember named
+        isExtensionTypeMember isOriginDeclaration named
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F12
           formalParameters
@@ -3309,7 +3309,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
-            #F5 named (nameOffset:17) (firstTokenOffset:15) (offset:17)
+            #F5 isOriginDeclaration isPrimary named (nameOffset:17) (firstTokenOffset:15) (offset:17)
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 15
@@ -3330,7 +3330,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F8 augment named (nameOffset:60) (firstTokenOffset:58) (offset:60)
+            #F8 augment isOriginDeclaration isPrimary named (nameOffset:60) (firstTokenOffset:58) (offset:60)
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 58
@@ -3340,7 +3340,7 @@ library
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
                   previousFragment: #F6
               previousFragment: #F5
-            #F10 new (nameOffset:<null>) (firstTokenOffset:78) (offset:78)
+            #F10 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:78) (offset:78)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 78
@@ -3359,7 +3359,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary named
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary named
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F5
           formalParameters
@@ -3367,7 +3367,7 @@ library
               firstFragment: #F6
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
-        isExtensionTypeMember new
+        isExtensionTypeMember isOriginDeclaration new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F10
       getters
@@ -3408,7 +3408,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::foo
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F7 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -3439,7 +3439,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
+            #F10 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
@@ -3469,7 +3469,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::foo
           setter: <testLibrary>::@extensionType::A::@setter::foo
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -3534,7 +3534,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::foo
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F7 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -3568,7 +3568,7 @@ library
               previousFragment: #F5
               nextFragment: #F17
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
+            #F10 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
@@ -3590,7 +3590,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F6
           constructors
-            #F19 augment new (nameOffset:<null>) (firstTokenOffset:143) (offset:143)
+            #F19 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:143) (offset:143)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 143
@@ -3620,7 +3620,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::foo
           setter: <testLibrary>::@extensionType::A::@setter::foo
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -3685,7 +3685,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::foo
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F7 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -3716,7 +3716,7 @@ library
               previousFragment: #F3
               nextFragment: #F17
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
+            #F10 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
@@ -3742,7 +3742,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
           constructors
-            #F19 augment new (nameOffset:<null>) (firstTokenOffset:148) (offset:148)
+            #F19 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:148) (offset:148)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 148
@@ -3772,7 +3772,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::foo
           setter: <testLibrary>::@extensionType::A::@setter::foo
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -3837,7 +3837,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::foo
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F7 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -3868,7 +3868,7 @@ library
               previousFragment: #F3
               nextFragment: #F17
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
+            #F10 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
@@ -3897,7 +3897,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
           constructors
-            #F19 augment new (nameOffset:<null>) (firstTokenOffset:148) (offset:148)
+            #F19 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:148) (offset:148)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 148
@@ -3927,7 +3927,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::foo
           setter: <testLibrary>::@extensionType::A::@setter::foo
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -3988,7 +3988,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::foo
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F7 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -4019,7 +4019,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
+            #F10 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
@@ -4049,7 +4049,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::foo
           setter: <testLibrary>::@extensionType::A::@setter::foo
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -4112,7 +4112,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::foo
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F7 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -4137,7 +4137,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:80) (offset:80)
+            #F10 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:80) (offset:80)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 80
@@ -4166,7 +4166,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::foo
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -4216,7 +4216,7 @@ library
             #F5 hasInitializer foo1 (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo1
           constructors
-            #F6 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -4246,7 +4246,7 @@ library
             #F14 hasInitializer foo2 (nameOffset:101) (firstTokenOffset:101) (offset:101)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:76)
+            #F9 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:76) (offset:76)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 76
@@ -4291,7 +4291,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::foo2
           setter: <testLibrary>::@extensionType::A::@setter::foo2
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -4365,7 +4365,7 @@ library
             #F5 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo1
           constructors
-            #F6 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -4389,7 +4389,7 @@ library
             #F12 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:74) (offset:74)
+            #F9 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:74) (offset:74)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 74
@@ -4426,7 +4426,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::foo2
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -4485,7 +4485,7 @@ library
             #F7 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo1
           constructors
-            #F8 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F8 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -4513,7 +4513,7 @@ library
             #F14 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F11 augment new (nameOffset:<null>) (firstTokenOffset:70) (offset:70)
+            #F11 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:70) (offset:70)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 70
@@ -4555,7 +4555,7 @@ library
           type: T
           getter: <testLibrary>::@extensionType::A::@getter::foo2
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F8
           formalParameters
@@ -4612,7 +4612,7 @@ library
             #F5 hasInitializer foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo
           constructors
-            #F6 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -4641,7 +4641,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
+            #F9 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
@@ -4675,7 +4675,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::foo
           setter: <testLibrary>::@extensionType::A::@setter::foo
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -4739,7 +4739,7 @@ library
             #F5 hasInitializer foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo
           constructors
-            #F6 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -4770,7 +4770,7 @@ library
               previousFragment: #F3
               nextFragment: #F16
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
+            #F9 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
@@ -4794,7 +4794,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
           constructors
-            #F18 augment new (nameOffset:<null>) (firstTokenOffset:148) (offset:148)
+            #F18 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:148) (offset:148)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 148
@@ -4828,7 +4828,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::foo
           setter: <testLibrary>::@extensionType::A::@setter::foo
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -4891,7 +4891,7 @@ library
             #F6 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F7 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -4916,7 +4916,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:95) (offset:95)
+            #F10 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:95) (offset:95)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 95
@@ -4954,7 +4954,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::foo2
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -5013,7 +5013,7 @@ library
             #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo
           constructors
-            #F6 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -5038,7 +5038,7 @@ library
               previousFragment: #F3
               nextFragment: #F14
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:73) (offset:73)
+            #F9 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:73) (offset:73)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 73
@@ -5062,7 +5062,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
           constructors
-            #F16 augment new (nameOffset:<null>) (firstTokenOffset:139) (offset:139)
+            #F16 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:139) (offset:139)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 139
@@ -5095,7 +5095,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::foo
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -5258,7 +5258,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
-            #F5 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -5276,7 +5276,7 @@ library
             #F11 it (nameOffset:64) (firstTokenOffset:60) (offset:64)
               element: <testLibrary>::@extensionType::I1::@field::it
           constructors
-            #F12 new (nameOffset:<null>) (firstTokenOffset:57) (offset:57)
+            #F12 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:57) (offset:57)
               element: <testLibrary>::@extensionType::I1::@constructor::new
               typeName: I1
               typeNameOffset: 57
@@ -5296,7 +5296,7 @@ library
               previousFragment: #F3
               nextFragment: #F16
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:95) (offset:95)
+            #F8 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:95) (offset:95)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 95
@@ -5313,7 +5313,7 @@ library
             #F20 it (nameOffset:144) (firstTokenOffset:140) (offset:144)
               element: <testLibrary>::@extensionType::I2::@field::it
           constructors
-            #F21 new (nameOffset:<null>) (firstTokenOffset:137) (offset:137)
+            #F21 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:137) (offset:137)
               element: <testLibrary>::@extensionType::I2::@constructor::new
               typeName: I2
               typeNameOffset: 137
@@ -5331,7 +5331,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
           constructors
-            #F18 augment new (nameOffset:<null>) (firstTokenOffset:175) (offset:175)
+            #F18 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:175) (offset:175)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 175
@@ -5346,7 +5346,7 @@ library
             #F25 it (nameOffset:224) (firstTokenOffset:220) (offset:224)
               element: <testLibrary>::@extensionType::I3::@field::it
           constructors
-            #F26 new (nameOffset:<null>) (firstTokenOffset:217) (offset:217)
+            #F26 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:217) (offset:217)
               element: <testLibrary>::@extensionType::I3::@constructor::new
               typeName: I3
               typeNameOffset: 217
@@ -5375,7 +5375,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -5403,7 +5403,7 @@ library
           getter: <testLibrary>::@extensionType::I1::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::I1::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::I1::@constructor::new
           firstFragment: #F12
           formalParameters
@@ -5431,7 +5431,7 @@ library
           getter: <testLibrary>::@extensionType::I2::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::I2::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::I2::@constructor::new
           firstFragment: #F21
           formalParameters
@@ -5459,7 +5459,7 @@ library
           getter: <testLibrary>::@extensionType::I3::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::I3::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::I3::@constructor::new
           firstFragment: #F26
           formalParameters
@@ -5504,7 +5504,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F7 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -5522,7 +5522,7 @@ library
             #F13 it (nameOffset:67) (firstTokenOffset:63) (offset:67)
               element: <testLibrary>::@extensionType::I1::@field::it
           constructors
-            #F14 new (nameOffset:<null>) (firstTokenOffset:60) (offset:60)
+            #F14 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:60) (offset:60)
               element: <testLibrary>::@extensionType::I1::@constructor::new
               typeName: I1
               typeNameOffset: 60
@@ -5544,7 +5544,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:98) (offset:98)
+            #F10 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:98) (offset:98)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 98
@@ -5562,7 +5562,7 @@ library
             #F19 it (nameOffset:156) (firstTokenOffset:152) (offset:156)
               element: <testLibrary>::@extensionType::I2::@field::it
           constructors
-            #F20 new (nameOffset:<null>) (firstTokenOffset:146) (offset:146)
+            #F20 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:146) (offset:146)
               element: <testLibrary>::@extensionType::I2::@constructor::new
               typeName: I2
               typeNameOffset: 146
@@ -5593,7 +5593,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -5621,7 +5621,7 @@ library
           getter: <testLibrary>::@extensionType::I1::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::I1::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::I1::@constructor::new
           firstFragment: #F14
           formalParameters
@@ -5652,7 +5652,7 @@ library
           getter: <testLibrary>::@extensionType::I2::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::I2::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::I2::@constructor::new
           firstFragment: #F20
           formalParameters
@@ -5697,7 +5697,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F7 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -5715,7 +5715,7 @@ library
             #F13 it (nameOffset:67) (firstTokenOffset:63) (offset:67)
               element: <testLibrary>::@extensionType::I1::@field::it
           constructors
-            #F14 new (nameOffset:<null>) (firstTokenOffset:60) (offset:60)
+            #F14 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:60) (offset:60)
               element: <testLibrary>::@extensionType::I1::@constructor::new
               typeName: I1
               typeNameOffset: 60
@@ -5737,7 +5737,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:98) (offset:98)
+            #F10 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:98) (offset:98)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 98
@@ -5755,7 +5755,7 @@ library
             #F19 it (nameOffset:159) (firstTokenOffset:155) (offset:159)
               element: <testLibrary>::@extensionType::I2::@field::it
           constructors
-            #F20 new (nameOffset:<null>) (firstTokenOffset:149) (offset:149)
+            #F20 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:149) (offset:149)
               element: <testLibrary>::@extensionType::I2::@constructor::new
               typeName: I2
               typeNameOffset: 149
@@ -5786,7 +5786,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -5814,7 +5814,7 @@ library
           getter: <testLibrary>::@extensionType::I1::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::I1::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::I1::@constructor::new
           firstFragment: #F14
           formalParameters
@@ -5845,7 +5845,7 @@ library
           getter: <testLibrary>::@extensionType::I2::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::I2::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::I2::@constructor::new
           firstFragment: #F20
           formalParameters
@@ -5888,7 +5888,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
-            #F5 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -5911,7 +5911,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:69) (offset:69)
+            #F8 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:69) (offset:69)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 69
@@ -5938,7 +5938,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -5991,7 +5991,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
-            #F5 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -6017,7 +6017,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:87) (offset:87)
+            #F8 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:87) (offset:87)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 87
@@ -6045,7 +6045,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -6101,7 +6101,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
-            #F5 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -6127,7 +6127,7 @@ library
               previousFragment: #F3
               nextFragment: #F13
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:69) (offset:69)
+            #F8 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:69) (offset:69)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 69
@@ -6151,7 +6151,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
           constructors
-            #F15 augment new (nameOffset:<null>) (firstTokenOffset:131) (offset:131)
+            #F15 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:131) (offset:131)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 131
@@ -6179,7 +6179,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -6231,7 +6231,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F7 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -6258,7 +6258,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:78) (offset:78)
+            #F10 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:78) (offset:78)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 78
@@ -6288,7 +6288,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -6346,7 +6346,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F6
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F7 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -6374,7 +6374,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:78) (offset:78)
+            #F10 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:78) (offset:78)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 78
@@ -6405,7 +6405,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -6455,7 +6455,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               nextFragment: #F4
           constructors
-            #F5 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -6481,7 +6481,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:85) (offset:85)
+            #F8 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:85) (offset:85)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 85
@@ -6509,7 +6509,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -6563,7 +6563,7 @@ library
             #F5 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo1
           constructors
-            #F6 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -6591,7 +6591,7 @@ library
             #F13 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:74) (offset:74)
+            #F9 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:74) (offset:74)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 74
@@ -6631,7 +6631,7 @@ library
           type: int
           setter: <testLibrary>::@extensionType::A::@setter::foo2
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -6695,7 +6695,7 @@ library
             #F5 hasInitializer foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@extensionType::A::@field::foo
           constructors
-            #F6 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -6724,7 +6724,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
+            #F9 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
@@ -6761,7 +6761,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::foo
           setter: <testLibrary>::@extensionType::A::@setter::foo
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -6824,7 +6824,7 @@ library
             #F6 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F7 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -6856,7 +6856,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:95) (offset:95)
+            #F10 augment isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:95) (offset:95)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 95
@@ -6897,7 +6897,7 @@ library
           type: int
           setter: <testLibrary>::@extensionType::A::@setter::foo2
       constructors
-        declaring isExtensionTypeMember primary new
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters

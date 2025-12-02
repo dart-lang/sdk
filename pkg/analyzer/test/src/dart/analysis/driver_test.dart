@@ -7179,7 +7179,7 @@ class B extends A {}
       class B
         supertype: A
         constructors
-          synthetic new
+          synthetic isOriginImplicitDefault new
 ''',
       updatedA: r'''
 class A {
@@ -7262,7 +7262,7 @@ class A {
       class B
         supertype: A
         constructors
-          synthetic new
+          synthetic isOriginImplicitDefault new
 ''',
     );
   }
@@ -9319,7 +9319,7 @@ class B extends A {}
       class B
         supertype: A
         constructors
-          synthetic new
+          synthetic isOriginImplicitDefault new
 ''',
       updatedA: r'''
 class A {
@@ -9399,7 +9399,7 @@ class A {
       class B
         supertype: A
         constructors
-          synthetic new
+          synthetic isOriginImplicitDefault new
 ''',
     );
   }
@@ -22790,10 +22790,10 @@ class C {}
     classes
       class B
         constructors
-          synthetic new
+          synthetic isOriginImplicitDefault new
       class C
         constructors
-          synthetic new
+          synthetic isOriginImplicitDefault new
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@class::A
       declared <testLibrary>::@class::B
@@ -22837,10 +22837,10 @@ class C {}
     classes
       class B
         constructors
-          synthetic new
+          synthetic isOriginImplicitDefault new
       class C
         constructors
-          synthetic new
+          synthetic isOriginImplicitDefault new
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@class::A
       declared <testLibrary>::@class::B
@@ -22909,7 +22909,7 @@ class B {}
     classes
       class B
         constructors
-          synthetic new
+          synthetic isOriginImplicitDefault new
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@class::A
       declared <testLibrary>::@class::B
@@ -22980,7 +22980,7 @@ class C {}
     classes
       class B
         constructors
-          synthetic new
+          synthetic isOriginImplicitDefault new
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@class::A
       exported[(0, 0)] package:test/a.dart::@class::C

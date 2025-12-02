@@ -49,7 +49,7 @@ library
         #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           constructors
-            #F2 named (nameOffset:55) (firstTokenOffset:53) (offset:55)
+            #F2 isOriginDeclaration named (nameOffset:55) (firstTokenOffset:53) (offset:55)
               element: dart:foo::@class::A::@constructor::named
               typeName: A
               typeNameOffset: 53
@@ -57,7 +57,7 @@ library
         #F3 class B (nameOffset:73) (firstTokenOffset:67) (offset:73)
           element: dart:foo::@class::B
           constructors
-            #F4 named (nameOffset:81) (firstTokenOffset:79) (offset:81)
+            #F4 isOriginDeclaration named (nameOffset:81) (firstTokenOffset:79) (offset:81)
               element: dart:foo::@class::B::@constructor::named
               typeName: B
               typeNameOffset: 79
@@ -68,7 +68,7 @@ library
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       constructors
-        named
+        isOriginDeclaration named
           reference: dart:foo::@class::A::@constructor::named
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -76,7 +76,7 @@ library
       reference: dart:foo::@class::B
       firstFragment: #F3
       constructors
-        named
+        isOriginDeclaration named
           reference: dart:foo::@class::B::@constructor::named
           firstFragment: #F4
 ''');
