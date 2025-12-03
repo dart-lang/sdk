@@ -56,7 +56,9 @@ String? verifyErrorFixStatus() {
   var lintRuleCodes = {
     for (var rule in Registry.ruleRegistry.rules) ...rule.diagnosticCodes,
   };
-  var lintRuleNames = {for (var lintCode in lintRuleCodes) lintCode.uniqueName};
+  var lintRuleNames = {
+    for (var lintCode in lintRuleCodes) lintCode.uniqueName.toLowerCase(),
+  };
 
   var errorData = ErrorData();
   for (var code in diagnosticCodeValues) {
@@ -66,7 +68,7 @@ String? verifyErrorFixStatus() {
       continue;
     }
 
-    var info = statusInfo.nodes[name];
+    var info = statusInfo.nodes[name.toLowerCase()];
     if (info == null) {
       errorData.codesWithNoEntry.add(name);
     } else if (info is YamlMap) {
@@ -84,7 +86,7 @@ String? verifyErrorFixStatus() {
   }
   for (var lintCode in lintRuleCodes) {
     var name = lintCode.uniqueName;
-    var info = statusInfo.nodes[name];
+    var info = statusInfo.nodes[name.toLowerCase()];
     if (info == null) {
       errorData.codesWithNoEntry.add(name);
     } else if (info is YamlMap) {
@@ -101,7 +103,9 @@ String? verifyErrorFixStatus() {
     }
   }
 
-  var codeNames = {for (var code in diagnosticCodeValues) code.uniqueName};
+  var codeNames = {
+    for (var code in diagnosticCodeValues) code.uniqueName.toLowerCase(),
+  };
   for (var key in statusInfo.keys) {
     if (key is String) {
       if (!codeNames.contains(key) && !lintRuleNames.contains(key)) {
