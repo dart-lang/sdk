@@ -276,7 +276,7 @@ List<Element> getMembers(InterfaceElement clazz) {
 /// its variable, otherwise returns [element].
 Element getSyntheticAccessorVariable(Element element) {
   if (element is PropertyAccessorElement) {
-    if (element.isSynthetic) {
+    if (element.isOriginVariable) {
       return element.variable;
     }
   }

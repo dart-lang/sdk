@@ -248,8 +248,8 @@ extension on Expression? {
 extension on Element? {
   /// Returns whether this is a `final` variable or property and not `late`.
   bool get isFinal => switch (this) {
-    PropertyAccessorElement(:var isSynthetic, :var variable) =>
-      isSynthetic && variable.isFinal && !variable.isLate,
+    PropertyAccessorElement(:var isOriginVariable, :var variable) =>
+      isOriginVariable && variable.isFinal && !variable.isLate,
     VariableElement(:var isLate, :var isFinal) => isFinal && !isLate,
     // TODO(pq): [element model] this preserves existing v1 semantics but looks fishy
     _ => true,

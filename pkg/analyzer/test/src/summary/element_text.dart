@@ -294,7 +294,7 @@ class _Element2Writer extends _AbstractElementWriter {
         'getters',
         e,
         e.getters.where((getter) {
-          if (!configuration.withSyntheticGetters && getter.isSynthetic) {
+          if (!configuration.withSyntheticGetters && getter.isOriginVariable) {
             return false;
           }
           return true;
@@ -942,12 +942,12 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.writeIndentedLine(() {
+      // ignore: deprecated_member_use_from_same_package
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
       _sink.writeIf(e.isExternal, 'external ');
       _sink.writeIf(e.isExtensionTypeMember, 'isExtensionTypeMember ');
-
       _writeElementName(e);
     });
 
@@ -998,7 +998,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
       _sink.writeIf(f.isSynthetic, 'synthetic ');
-
       _writeFragmentName(f);
       // _writeBodyModifiers(e);
     });
@@ -1539,12 +1538,12 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.writeIndentedLine(() {
+      // ignore: deprecated_member_use_from_same_package
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
       _sink.writeIf(e.isExternal, 'external ');
       _sink.writeIf(e.isExtensionTypeMember, 'isExtensionTypeMember ');
-
       _writeElementName(e);
     });
 
@@ -1595,7 +1594,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
       _sink.writeIf(f.isSynthetic, 'synthetic ');
-
       _writeFragmentName(f);
       // _writeBodyModifiers(f);
     });

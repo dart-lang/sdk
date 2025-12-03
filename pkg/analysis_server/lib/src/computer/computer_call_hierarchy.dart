@@ -385,7 +385,7 @@ class DartCallHierarchyComputer {
 
     // Don't consider synthetic getter/setter for a field to be executable
     // since they don't contain any executable code.
-    if (element is PropertyAccessorElement && element.isSynthetic) {
+    if (element is PropertyAccessorElement && element.isOriginVariable) {
       return null;
     }
 

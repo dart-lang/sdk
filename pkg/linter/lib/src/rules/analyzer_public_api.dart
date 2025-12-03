@@ -435,7 +435,7 @@ extension on String {
 extension on Element {
   bool get isInAnalyzerPublicApi {
     if (this case PropertyAccessorElement(
-      isSynthetic: true,
+      isOriginVariable: true,
       :var variable,
     ) when variable.isInAnalyzerPublicApi) {
       return true;

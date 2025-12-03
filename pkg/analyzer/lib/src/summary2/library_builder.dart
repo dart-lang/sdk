@@ -944,7 +944,7 @@ class _FieldPromotability
     }
 
     for (var getter in class_.getters) {
-      if (getter.isStatic || getter.isSynthetic) {
+      if (getter.isStatic || getter.isOriginVariable) {
         continue;
       }
 

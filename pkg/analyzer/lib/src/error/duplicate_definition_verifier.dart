@@ -545,7 +545,7 @@ class MemberDuplicateDefinitionVerifier {
           element: PropertyAccessorElementImpl staticMember2,
         ):
           DiagnosticCode errorCode;
-          if (staticMember2.isSynthetic) {
+          if (staticMember2.isOriginVariable) {
             errorCode = diag.conflictingConstructorAndStaticField;
           } else if (staticMember2 is GetterElementImpl) {
             errorCode = diag.conflictingConstructorAndStaticGetter;
@@ -566,7 +566,7 @@ class MemberDuplicateDefinitionVerifier {
         case _ScopeEntryGetterSetterPair():
           _diagnosticReporter.atElement2(
             constructor.asElement2,
-            state.getter.isSynthetic
+            state.getter.isOriginVariable
                 ? diag.conflictingConstructorAndStaticField
                 : diag.conflictingConstructorAndStaticGetter,
             arguments: [name],

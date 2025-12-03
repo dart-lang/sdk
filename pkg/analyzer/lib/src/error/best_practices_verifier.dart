@@ -1653,7 +1653,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _getSubExpressionsMarkedDoNotStore(body.expression, addTo: expressions);
       }
     }
-    if (element is PropertyAccessorElement && element.isSynthetic) {
+    if (element is PropertyAccessorElement && element.isOriginVariable) {
       element = element.variable;
     }
 
@@ -1674,7 +1674,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   static bool _hasNonVirtualAnnotation(ExecutableElement element) {
-    if (element is PropertyAccessorElement && element.isSynthetic) {
+    if (element is PropertyAccessorElement && element.isOriginVariable) {
       if (element.variable.metadata.hasNonVirtual) {
         return true;
       }

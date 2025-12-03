@@ -341,6 +341,36 @@ mixin _NonParameterVariableFragmentImplMixin {
   void setModifier(Modifier modifier, bool value);
 }
 
+mixin _PropertyAccessorFragmentImplMixin {
+  bool get isOriginDeclaration {
+    return hasModifier(Modifier.ORIGIN_DECLARATION);
+  }
+
+  set isOriginDeclaration(bool value) {
+    setModifier(Modifier.ORIGIN_DECLARATION, value);
+  }
+
+  bool get isOriginInterface {
+    return hasModifier(Modifier.ORIGIN_INTERFACE);
+  }
+
+  set isOriginInterface(bool value) {
+    setModifier(Modifier.ORIGIN_INTERFACE, value);
+  }
+
+  bool get isOriginVariable {
+    return hasModifier(Modifier.ORIGIN_VARIABLE);
+  }
+
+  set isOriginVariable(bool value) {
+    setModifier(Modifier.ORIGIN_VARIABLE, value);
+  }
+
+  bool hasModifier(Modifier modifier);
+
+  void setModifier(Modifier modifier, bool value);
+}
+
 mixin _PropertyInducingFragmentImplMixin {
   bool get isOriginDeclaration {
     return hasModifier(Modifier.ORIGIN_DECLARATION);

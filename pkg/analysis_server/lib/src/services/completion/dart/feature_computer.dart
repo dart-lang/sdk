@@ -382,7 +382,7 @@ class FeatureComputer {
       return 1.0;
     } else if (element is TopLevelVariableElement && element.isConst) {
       return 1.0;
-    } else if (element is PropertyAccessorElement && element.isSynthetic) {
+    } else if (element is PropertyAccessorElement && element.isOriginVariable) {
       var variable = element.variable;
       if (variable.isStatic && variable.isConst) {
         return 1.0;

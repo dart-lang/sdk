@@ -663,7 +663,7 @@ extension on Element {
 
   bool isInPublicApiOf(String packageName) {
     if (this case PropertyAccessorElement(
-      isSynthetic: true,
+      isOriginVariable: true,
       :var variable,
     ) when variable.isInPublicApiOf(packageName)) {
       return true;

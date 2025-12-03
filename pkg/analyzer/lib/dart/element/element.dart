@@ -2931,6 +2931,29 @@ abstract class PropertyAccessorElement implements ExecutableElement {
   @override
   List<PropertyAccessorFragment> get fragments;
 
+  /// Whether the property accessor is from an explicit [MethodDeclaration] or
+  /// [FunctionDeclaration].
+  ///
+  /// When this is `true`, [isOriginVariable] and [isOriginInterface] are `false`.
+  bool get isOriginDeclaration;
+
+  /// Whether the property accessor is created while building interface.
+  ///
+  /// When this is `true`, [isOriginDeclaration] and [isOriginVariable]
+  /// are `false`.
+  bool get isOriginInterface;
+
+  /// Whether the property accessor is from a [FieldElement] or
+  /// [TopLevelVariableElement].
+  ///
+  /// When this is `true`, [isOriginDeclaration] and [isOriginInterface] are
+  /// `false`.
+  bool get isOriginVariable;
+
+  @Deprecated('Use isOriginX instead')
+  @override
+  bool get isSynthetic;
+
   /// The field or top-level variable associated with this getter.
   ///
   /// If this getter was explicitly defined (is not synthetic) then the variable

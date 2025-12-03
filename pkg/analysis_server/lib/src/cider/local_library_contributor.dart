@@ -110,7 +110,7 @@ class LibraryElementSuggestionBuilder
         (opType.includeAnnotationSuggestions && variable.isConst)) {
       var parent = element.enclosingElement;
       if (parent is InterfaceElement || parent is ExtensionElement) {
-        if (element.isSynthetic) {
+        if (element.isOriginVariable) {
           if (variable is FieldElement) {
             builder.suggestField(variable, inheritanceDistance: 0.0);
           }
@@ -148,7 +148,7 @@ class LibraryElementSuggestionBuilder
         (opType.includeAnnotationSuggestions && variable.isConst)) {
       var parent = element.enclosingElement;
       if (parent is InterfaceElement || parent is ExtensionElement) {
-        if (!element.isSynthetic) {
+        if (!element.isOriginVariable) {
           builder.suggestSetter(element, inheritanceDistance: 0.0);
         }
       } else {

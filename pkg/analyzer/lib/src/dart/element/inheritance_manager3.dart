@@ -1030,6 +1030,7 @@ class InheritanceManager3 {
       var resultFragment = SetterFragmentImpl(name: executable.name);
       resultFragment.enclosingFragment = class_.firstFragment;
       resultFragment.isSynthetic = true;
+      resultFragment.isOriginInterface = true;
       resultFragment.formalParameters = transformedParameters
           .map((e) => e.firstFragment)
           .toList();
@@ -1150,6 +1151,7 @@ class InheritanceManager3 {
 
         var fragment = SetterFragmentImpl(name: fragmentName);
         resultFragment = fragment;
+        resultFragment.isOriginInterface = true;
 
         var element = SetterElementImpl(elementReference, fragment);
         element.returnType = resultType.returnType;

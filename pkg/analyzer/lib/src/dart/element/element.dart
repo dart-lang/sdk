@@ -2865,13 +2865,13 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   @trackedIncludedInId
   bool get isOriginDeclaringFormalParameter {
-    return firstFragment.isOriginDeclaringFormalParameter;
+    return _firstFragment.isOriginDeclaringFormalParameter;
   }
 
   @override
   @trackedIncludedInId
   bool get isOriginEnumValues {
-    return firstFragment.isOriginEnumValues;
+    return _firstFragment.isOriginEnumValues;
   }
 
   @override
@@ -4022,7 +4022,7 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   @override
   @trackedIndirectly
   Element get nonSynthetic {
-    if (isSynthetic) {
+    if (isOriginVariable) {
       return variable.nonSynthetic;
     } else {
       return this;
@@ -4032,7 +4032,7 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   @override
   @trackedIndirectly
   Version? get sinceSdkVersion {
-    if (isSynthetic) {
+    if (isOriginVariable) {
       return variable.sinceSdkVersion;
     }
     return super.sinceSdkVersion;
@@ -8151,8 +8151,14 @@ enum Modifier {
   /// constructors.
   ORIGIN_IMPLICIT_DEFAULT,
 
+  /// Whether the property accessor is created while building interface.
+  ORIGIN_INTERFACE,
+
   /// Whether the constructor was created for a mixin application.
   ORIGIN_MIXIN_APPLICATION,
+
+  /// Whether the property accessor is from a field or top-level variable.
+  ORIGIN_VARIABLE,
 
   /// Whether the constructor is primary.
   PRIMARY,
@@ -8736,6 +8742,28 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
   List<PropertyAccessorFragmentImpl> get fragments;
 
   @override
+  @trackedIncludedInId
+  bool get isOriginDeclaration {
+    return _firstFragment.isOriginDeclaration;
+  }
+
+  @override
+  @trackedIncludedInId
+  bool get isOriginInterface {
+    return _firstFragment.isOriginInterface;
+  }
+
+  @override
+  @trackedIncludedInId
+  bool get isOriginVariable {
+    return _firstFragment.isOriginVariable;
+  }
+
+  @Deprecated('Use isOriginX instead')
+  @override
+  bool get isSynthetic;
+
+  @override
   @trackedDirectlyOpaque
   PropertyAccessorFragmentImpl get lastFragment {
     globalResultRequirements?.recordOpaqueApiUse(
@@ -8767,9 +8795,14 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
   set variable(PropertyInducingElementImpl? value) {
     _variable3 = value;
   }
+
+  @override
+  PropertyAccessorFragmentImpl get _firstFragment;
 }
 
+@GenerateFragmentImpl(modifiers: _PropertyAccessorFragmentImplModifiers.values)
 sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
+    with _PropertyAccessorFragmentImplMixin
     implements PropertyAccessorFragment {
   @override
   final String? name;
@@ -8867,13 +8900,13 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   @override
   @trackedIncludedInId
   bool get isOriginDeclaration {
-    return firstFragment.isOriginDeclaration;
+    return _firstFragment.isOriginDeclaration;
   }
 
   @override
   @trackedIncludedInId
   bool get isOriginGetterSetter {
-    return firstFragment.isOriginGetterSetter;
+    return _firstFragment.isOriginGetterSetter;
   }
 
   @override
@@ -8930,13 +8963,13 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
     _type = value;
 
     if (getter case var getter?) {
-      if (getter.isSynthetic) {
+      if (getter.isOriginVariable) {
         getter.returnType = type;
       }
     }
 
     if (setter case var setter?) {
-      if (setter.isSynthetic) {
+      if (setter.isOriginVariable) {
         setter.returnType = VoidTypeImpl.instance;
         setter.valueFormalParameter.type = type;
       }
@@ -9090,7 +9123,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   @override
   @trackedIndirectly
   Element get nonSynthetic {
-    if (isSynthetic) {
+    if (isOriginVariable) {
       return variable.nonSynthetic;
     } else {
       return this;
@@ -9100,7 +9133,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   @override
   @trackedIndirectly
   Version? get sinceSdkVersion {
-    if (isSynthetic) {
+    if (isOriginVariable) {
       return variable.sinceSdkVersion;
     }
     return super.sinceSdkVersion;
@@ -10532,6 +10565,12 @@ enum _FragmentImplModifiers {
 enum _MixinFragmentImplModifiers { isBase }
 
 enum _NonParameterVariableFragmentImplModifiers { hasInitializer }
+
+enum _PropertyAccessorFragmentImplModifiers {
+  isOriginDeclaration,
+  isOriginInterface,
+  isOriginVariable,
+}
 
 enum _PropertyInducingFragmentImplModifiers {
   isOriginDeclaration,

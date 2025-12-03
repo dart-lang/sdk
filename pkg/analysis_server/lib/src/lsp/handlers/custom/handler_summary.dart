@@ -341,7 +341,7 @@ class SummaryWriter {
   }
 
   void summarizeGetter(GetterElement element) {
-    if (element.isSynthetic) return;
+    if (element.isOriginVariable) return;
 
     var name = element.name;
     if (name == null) return;
@@ -448,7 +448,7 @@ class SummaryWriter {
   }
 
   void summarizeSetter(SetterElement element) {
-    if (element.isSynthetic) return;
+    if (element.isOriginVariable) return;
 
     var name = element.name;
     if (name == null) return;

@@ -1433,7 +1433,7 @@ class _FindLibraryDeclarations {
   void _addGetters(List<GetterElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      if (!element.isSynthetic) {
+      if (element.isOriginDeclaration) {
         _addDeclaration(element, element.displayName);
       }
     }
@@ -1449,7 +1449,7 @@ class _FindLibraryDeclarations {
   void _addSetters(List<SetterElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      if (!element.isSynthetic) {
+      if (element.isOriginDeclaration) {
         _addDeclaration(element, element.displayName);
       }
     }

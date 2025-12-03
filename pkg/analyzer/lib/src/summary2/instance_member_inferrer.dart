@@ -102,13 +102,13 @@ class InstanceMemberInferrer {
     String elementName;
 
     if (getter != null) {
-      if (getter.isSynthetic || getter.isStatic) {
+      if (getter.isOriginVariable || getter.isStatic) {
         return;
       }
       elementLibraryUri = getter.library.uri;
       elementName = getter.displayName;
     } else if (setter != null) {
-      if (setter.isSynthetic || setter.isStatic) {
+      if (setter.isOriginVariable || setter.isStatic) {
         return;
       }
       elementLibraryUri = setter.library.uri;
