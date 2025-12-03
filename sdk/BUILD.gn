@@ -20,7 +20,7 @@ import("../utils/application_snapshot.gni")
 
 # If we're are embedded in another GN buildroot, such as Flutter, the sysroot
 # might already be imported from elsewhere.
-if (!defined(dart_sysroot)) {
+if (get_path_info(".", "abspath") == "//sdk/") {
   import("../build/config/sysroot.gni")
 }
 
@@ -388,7 +388,8 @@ copy_sanitizer_deps = []
 # and not useable outside our tree. If we're on Linux with musl-libc, the
 # sanitizers don't work. If we're are embedded in another GN buildroot, such as
 # Flutter, the sanitizer variant toolchains might not be defined.
-if (!using_sanitizer && current_os == "linux" && dart_sysroot != "alpine" &&
+if (!using_sanitizer && current_os == "linux" &&
+    !(defined(dart_sysroot) && dart_sysroot == "alpine") &&
     get_path_info(".", "abspath") == "//sdk/") {
   sanitizers = []
   if (current_cpu == "x64" || current_cpu == "arm64") {
