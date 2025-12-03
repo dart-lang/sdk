@@ -439,9 +439,10 @@ class PluginServer {
     for (var configuration in analysisOptions.pluginConfigurations) {
       if (!configuration.isEnabled) continue;
       // TODO(srawlins): Namespace rules by their plugin, to avoid collisions.
-      var rules = Registry.ruleRegistry.enabled(
-        configuration.diagnosticConfigs,
-      );
+      var rules = Registry.ruleRegistry.enabled({
+        for (var entry in configuration.diagnosticConfigs.entries)
+          entry.key.toLowerCase(): entry.value,
+      });
 
       for (var code in rules.expand((r) => r.diagnosticCodes)) {
         pluginCodeMapping.putIfAbsent(code, () => configuration.name);
