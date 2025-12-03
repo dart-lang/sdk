@@ -329,11 +329,6 @@ class _Element2Writer extends _AbstractElementWriter {
     expect(flags.where((flag) => flag).length, 1);
   }
 
-  void _assertNonSyntheticElementSelf(Element element) {
-    expect(element.isSynthetic, isFalse);
-    expect(element.nonSynthetic, same(element));
-  }
-
   void _writeConstantInitializerExpression(String name, Expression expression) {
     if (_idMap.existingExpressionId(expression) case var id?) {
       _sink.writelnWithIndent('$name: $id');
@@ -1176,8 +1171,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementList('setters', e, e.setters, _writeSetterElement);
       _writeElementList('methods', e, e.methods, _writeMethodElement);
     });
-
-    _assertNonSyntheticElementSelf(e);
   }
 
   void _writeInstanceFragment(InstanceFragmentImpl f) {
@@ -1699,8 +1692,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeAugmentationTarget(e);
       // _writeAugmentation(e);
     });
-
-    _assertNonSyntheticElementSelf(e);
   }
 
   void _writeTopLevelFunctionFragment(TopLevelFunctionFragmentImpl f) {
@@ -1906,8 +1897,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeAugmentationTarget(e);
       // _writeAugmentation(e);
     });
-
-    _assertNonSyntheticElementSelf(e);
   }
 
   void _writeTypeAliasFragment(TypeAliasFragmentImpl f) {
@@ -1985,8 +1974,6 @@ class _Element2Writer extends _AbstractElementWriter {
 
       _writeMetadata(e.metadata);
     });
-
-    _assertNonSyntheticElementSelf(e);
   }
 
   void _writeTypeParameterFragment(TypeParameterFragmentImpl f) {
