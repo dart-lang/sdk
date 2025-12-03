@@ -86,13 +86,25 @@ class ExecutableParameters {
     } else if (invocation is ConstructorReferenceNode) {
       element = invocation.element;
     }
-    var firstFragment = element?.firstFragment;
-    if (element is ExecutableElement &&
-        !element.isSynthetic &&
-        firstFragment is ExecutableFragment) {
-      return ExecutableParameters._(sessionHelper, element, firstFragment);
-    } else {
+
+    // Must be executable to have formal parameters.
+    if (element is! ExecutableElement) {
       return null;
     }
+
+    // Must be from a declaration.
+    switch (element) {
+      case ConstructorElement():
+        if (!element.isOriginDeclaration) {
+          return null;
+        }
+      case PropertyAccessorElement():
+        if (!element.isOriginDeclaration) {
+          return null;
+        }
+    }
+
+    var firstFragment = element.firstFragment;
+    return ExecutableParameters._(sessionHelper, element, firstFragment);
   }
 }

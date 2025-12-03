@@ -98,7 +98,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     var processor = RenameProcessor(workspace, sessionHelper, change, newName);
     // update declarations
     for (var renameElement in _validator.elements) {
-      if (renameElement.isSynthetic && renameElement is FieldElement) {
+      if (renameElement is FieldElement && renameElement.isOriginGetterSetter) {
         processor.addDeclarationEdit(renameElement.getter);
         processor.addDeclarationEdit(renameElement.setter);
       } else {

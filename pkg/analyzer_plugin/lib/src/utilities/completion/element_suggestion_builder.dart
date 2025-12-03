@@ -62,7 +62,7 @@ mixin ElementSuggestionBuilder {
       relevance: relevance,
     );
     if (suggestion != null) {
-      if (element.isSynthetic && element is PropertyAccessorElement) {
+      if (element is PropertyAccessorElement && element.isOriginVariable) {
         var cacheKey = element.name;
         if (cacheKey != null) {
           var existingSuggestion = _syntheticMap[cacheKey];

@@ -53,7 +53,7 @@ class ImplementedComputer {
   }
 
   void _addMemberIfImplemented(Element element) {
-    if (element.isSynthetic || _isStatic(element)) {
+    if (_isStatic(element)) {
       return;
     }
     if (_hasOverride(element)) {
@@ -76,9 +76,15 @@ class ImplementedComputer {
     subtypeMembers = await searchEngine.membersOfSubtypes(element);
     if (subtypeMembers != null) {
       _addImplementedClass(element);
-      element.getters.forEach(_addMemberIfImplemented);
-      element.setters.forEach(_addMemberIfImplemented);
-      element.fields.forEach(_addMemberIfImplemented);
+      element.getters
+          .where((e) => e.isOriginDeclaration)
+          .forEach(_addMemberIfImplemented);
+      element.setters
+          .where((e) => e.isOriginDeclaration)
+          .forEach(_addMemberIfImplemented);
+      element.fields
+          .where((e) => e.isOriginDeclaration)
+          .forEach(_addMemberIfImplemented);
       element.methods.forEach(_addMemberIfImplemented);
     }
   }

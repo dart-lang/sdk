@@ -129,18 +129,22 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   Future<void> fillChange() async {
     // prepare elements
     var elements = <Element>[];
-    if (element is PropertyInducingElement && element.isSynthetic) {
-      var property = element as PropertyInducingElement;
-      var getter = property.getter;
-      var setter = property.setter;
-      if (getter != null) {
-        elements.add(getter);
-      }
-      if (setter != null) {
-        elements.add(setter);
-      }
-    } else {
-      elements.add(element);
+    switch (element) {
+      case PropertyInducingElement element:
+        if (element.isOriginGetterSetter) {
+          var getter = element.getter;
+          var setter = element.setter;
+          if (getter != null) {
+            elements.add(getter);
+          }
+          if (setter != null) {
+            elements.add(setter);
+          }
+        } else {
+          elements.add(element);
+        }
+      default:
+        elements.add(element);
     }
 
     // Rename each element and references to it.

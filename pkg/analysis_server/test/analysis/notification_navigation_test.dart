@@ -841,6 +841,62 @@ int V = 42;
     expect(target.startColumn, greaterThan(0));
   }
 
+  Future<void> test_class_getter_originDeclaration() async {
+    addTestFile('''
+class A {
+  int get foo => 0;
+  void bar() {
+    foo;
+  }
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('foo;', 'foo =>');
+  }
+
+  Future<void> test_class_getter_originField() async {
+    addTestFile('''
+class A {
+  final int foo = 0;
+  void bar() {
+    foo;
+  }
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('foo;', 'foo = 0;');
+  }
+
+  Future<void> test_class_setter_originDeclaration() async {
+    addTestFile('''
+class A {
+  set foo(int _)
+  void bar() {
+    foo = 0;
+  }
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('foo = 0;', 'foo(int _)');
+  }
+
+  Future<void> test_class_setter_originField() async {
+    addTestFile('''
+class A {
+  int foo = 42;
+  void bar() {
+    foo = 0;
+  }
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('foo = 0;', 'foo = 42;');
+  }
+
   Future<void> test_enum_constant() async {
     addTestFile('''
 enum E { a, b }
