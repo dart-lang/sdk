@@ -282,7 +282,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     if (element is PropertyAccessorElement &&
         isIdentifierRead &&
         variable is TopLevelVariableElement) {
-      if (element.isSynthetic) {
+      if (element.isOriginVariable) {
         usedElements.addElement(variable);
       } else {
         usedElements.members.add(element);

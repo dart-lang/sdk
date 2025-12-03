@@ -131,7 +131,7 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor<void> {
     // Allow getters; getters with side effects were the main cause of false
     // positives.
     var element = node.identifier.element;
-    if (element is GetterElement && !element.isSynthetic) {
+    if (element is GetterElement && element.isOriginDeclaration) {
       return;
     }
 
@@ -152,7 +152,7 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor<void> {
     // Allow getters; previously getters with side effects were the main cause
     // of false positives.
     var element = node.propertyName.element;
-    if (element is GetterElement && !element.isSynthetic) {
+    if (element is GetterElement && element.isOriginDeclaration) {
       return;
     }
 
@@ -169,7 +169,7 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor<void> {
     // Allow getter (in this case with an implicit `this.`); previously, getters
     // with side effects were the main cause of false positives.
     var element = node.element;
-    if (element is GetterElement && !element.isSynthetic) {
+    if (element is GetterElement && element.isOriginDeclaration) {
       return;
     }
 

@@ -922,6 +922,15 @@ abstract class SubstitutedPropertyAccessorElementImpl
   PropertyAccessorFragmentImpl get firstFragment;
 
   @override
+  bool get isOriginDeclaration => baseElement.isOriginDeclaration;
+
+  @override
+  bool get isOriginInterface => baseElement.isOriginInterface;
+
+  @override
+  bool get isOriginVariable => baseElement.isOriginVariable;
+
+  @override
   Version? get sinceSdkVersion => baseElement.sinceSdkVersion;
 
   @override

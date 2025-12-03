@@ -131,7 +131,7 @@ library
         #F1 synthetic isOriginGetterSetter g (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@topLevelVariable::g
       getters
-        #F2 g (nameOffset:4) (firstTokenOffset:0) (offset:4)
+        #F2 isOriginDeclaration g (nameOffset:4) (firstTokenOffset:0) (offset:4)
           element: <testLibrary>::@getter::g
   topLevelVariables
     synthetic isOriginGetterSetter g
@@ -140,7 +140,7 @@ library
       type: dynamic
       getter: <testLibrary>::@getter::g
   getters
-    static g
+    static isOriginDeclaration g
       reference: <testLibrary>::@getter::g
       firstFragment: #F2
       returnType: dynamic

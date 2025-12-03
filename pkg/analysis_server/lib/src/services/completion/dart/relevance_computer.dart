@@ -641,7 +641,7 @@ class RelevanceComputer {
     double inheritanceDistance,
     bool isNotImportedLibrary,
   ) {
-    if (accessor.isSynthetic) {
+    if (accessor.isOriginVariable) {
       if (accessor is GetterElement) {
         var variable = accessor.variable;
         if (variable is FieldElement) {
@@ -698,7 +698,7 @@ class RelevanceComputer {
     PropertyAccessorElement accessor,
     bool isNotImportedLibrary,
   ) {
-    if (accessor.isSynthetic) {
+    if (accessor.isOriginVariable) {
       if (accessor is GetterElement) {
         var variable = accessor.variable;
         if (variable is TopLevelVariableElement) {

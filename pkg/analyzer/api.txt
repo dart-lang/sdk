@@ -4061,6 +4061,10 @@ package:analyzer/dart/element/element.dart:
     enclosingElement (getter: Element)
     firstFragment (getter: PropertyAccessorFragment)
     fragments (getter: List<PropertyAccessorFragment>)
+    isOriginDeclaration (getter: bool)
+    isOriginInterface (getter: bool)
+    isOriginVariable (getter: bool)
+    isSynthetic (getter: bool, deprecated)
     variable (getter: PropertyInducingElement)
   PropertyAccessorFragment (class extends Object implements ExecutableFragment):
     new (constructor: PropertyAccessorFragment Function())

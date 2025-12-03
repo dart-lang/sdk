@@ -242,7 +242,7 @@ bool _checkForSimpleGetter(MethodDeclaration getter, Expression? expression) {
       // the same
       if (staticElement.enclosingElement == enclosingElement) {
         var variable = staticElement.variable;
-        return staticElement.isSynthetic && variable.isPrivate;
+        return staticElement.isOriginVariable && variable.isPrivate;
       }
     }
   }
@@ -261,7 +261,7 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   var rightHandSide = expression.rightHandSide;
   if (leftHandSide is SimpleIdentifier && rightHandSide is SimpleIdentifier) {
     var leftElement = expression.writeElement;
-    if (leftElement is! SetterElement || !leftElement.isSynthetic) {
+    if (leftElement is! SetterElement || leftElement.isOriginDeclaration) {
       return false;
     }
 

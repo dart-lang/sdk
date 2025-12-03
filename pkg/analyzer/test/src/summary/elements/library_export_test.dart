@@ -1314,10 +1314,10 @@ library
         #F2 hasInitializer isOriginDeclaration a (nameOffset:25) (firstTokenOffset:25) (offset:25)
           element: <testLibrary>::@topLevelVariable::a
       getters
-        #F3 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+        #F3 synthetic isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
           element: <testLibrary>::@getter::a
       setters
-        #F4 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+        #F4 synthetic isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
           element: <testLibrary>::@setter::a
           formalParameters
             #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
@@ -1330,13 +1330,13 @@ library
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
   getters
-    synthetic static a
+    synthetic static isOriginVariable a
       reference: <testLibrary>::@getter::a
       firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::a
   setters
-    synthetic static a
+    synthetic static isOriginVariable a
       reference: <testLibrary>::@setter::a
       firstFragment: #F4
       formalParameters
@@ -1389,7 +1389,7 @@ library
               literal: 0 @31
               staticType: int
       getters
-        #F3 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+        #F3 synthetic isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
           element: <testLibrary>::@getter::a
   topLevelVariables
     const hasImplicitType hasInitializer isOriginDeclaration a
@@ -1401,7 +1401,7 @@ library
         expression: expression_0
       getter: <testLibrary>::@getter::a
   getters
-    synthetic static a
+    synthetic static isOriginVariable a
       reference: <testLibrary>::@getter::a
       firstFragment: #F3
       returnType: int

@@ -338,7 +338,7 @@ class _SuggestionBuilder {
         ...targetType.setters,
       ]) {
         if (!propertyAccessor.isStatic) {
-          if (propertyAccessor.isSynthetic) {
+          if (propertyAccessor.isOriginVariable) {
             // Avoid visiting a field twice
             if (propertyAccessor is GetterElement) {
               _addSuggestion(propertyAccessor.variable);

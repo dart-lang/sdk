@@ -227,7 +227,7 @@ class DefinitionHandler
     // For synthetic getters created for fields, we need to access the associated
     // variable to get the codeOffset/codeLength.
     if (codeFragment is PropertyAccessorFragment &&
-        codeFragment.element.isSynthetic) {
+        codeFragment.element.isOriginVariable) {
       codeFragment = codeFragment.element.nonSynthetic.firstFragment;
     }
 

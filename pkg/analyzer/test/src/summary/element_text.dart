@@ -294,7 +294,7 @@ class _Element2Writer extends _AbstractElementWriter {
         'getters',
         e,
         e.getters.where((getter) {
-          if (!configuration.withSyntheticGetters && getter.isSynthetic) {
+          if (!configuration.withSyntheticGetters && getter.isOriginVariable) {
             return false;
           }
           return true;
@@ -942,11 +942,16 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.writeIndentedLine(() {
+      // ignore: deprecated_member_use_from_same_package
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
       _sink.writeIf(e.isExternal, 'external ');
       _sink.writeIf(e.isExtensionTypeMember, 'isExtensionTypeMember ');
+
+      _assertHasExactlyOneTrue([e.isOriginDeclaration, e.isOriginVariable]);
+      _sink.writeIf(e.isOriginDeclaration, 'isOriginDeclaration ');
+      _sink.writeIf(e.isOriginVariable, 'isOriginVariable ');
 
       _writeElementName(e);
     });
@@ -998,6 +1003,10 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
       _sink.writeIf(f.isSynthetic, 'synthetic ');
+
+      _assertHasExactlyOneTrue([f.isOriginDeclaration, f.isOriginVariable]);
+      _sink.writeIf(f.isOriginDeclaration, 'isOriginDeclaration ');
+      _sink.writeIf(f.isOriginVariable, 'isOriginVariable ');
 
       _writeFragmentName(f);
       // _writeBodyModifiers(e);
@@ -1539,11 +1548,21 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.writeIndentedLine(() {
+      // ignore: deprecated_member_use_from_same_package
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
       _sink.writeIf(e.isExternal, 'external ');
       _sink.writeIf(e.isExtensionTypeMember, 'isExtensionTypeMember ');
+
+      _assertHasExactlyOneTrue([
+        e.isOriginDeclaration,
+        e.isOriginInterface,
+        e.isOriginVariable,
+      ]);
+      _sink.writeIf(e.isOriginDeclaration, 'isOriginDeclaration ');
+      _sink.writeIf(e.isOriginInterface, 'isOriginInterface ');
+      _sink.writeIf(e.isOriginVariable, 'isOriginVariable ');
 
       _writeElementName(e);
     });
@@ -1595,6 +1614,15 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
       _sink.writeIf(f.isSynthetic, 'synthetic ');
+
+      _assertHasExactlyOneTrue([
+        f.isOriginDeclaration,
+        f.isOriginInterface,
+        f.isOriginVariable,
+      ]);
+      _sink.writeIf(f.isOriginDeclaration, 'isOriginDeclaration ');
+      _sink.writeIf(f.isOriginInterface, 'isOriginInterface ');
+      _sink.writeIf(f.isOriginVariable, 'isOriginVariable ');
 
       _writeFragmentName(f);
       // _writeBodyModifiers(f);

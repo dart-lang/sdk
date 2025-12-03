@@ -384,6 +384,7 @@ class ElementBuilder {
 
     {
       var getterFragment = GetterFragmentImpl(name: fieldFragment.name)
+        ..isOriginVariable = true
         ..isSynthetic = true
         ..isAbstract = fieldFragment.isAbstract
         ..isStatic = fieldFragment.isStatic;
@@ -401,6 +402,7 @@ class ElementBuilder {
 
     if (fieldFragment.hasSetter) {
       var setterFragment = SetterFragmentImpl(name: fieldFragment.name)
+        ..isOriginVariable = true
         ..isSynthetic = true
         ..isAbstract = fieldFragment.isAbstract
         ..isStatic = fieldFragment.isStatic;
@@ -782,6 +784,7 @@ class ElementBuilder {
 
     {
       var getterFragment = GetterFragmentImpl(name: variableFragment.name)
+        ..isOriginVariable = true
         ..isSynthetic = true
         ..isStatic = true;
       libraryFragment.addGetter(getterFragment);
@@ -799,6 +802,7 @@ class ElementBuilder {
 
     if (variableFragment.hasSetter) {
       var setterFragment = SetterFragmentImpl(name: variableFragment.name)
+        ..isOriginVariable = true
         ..isSynthetic = true
         ..isStatic = true;
       libraryFragment.addSetter(setterFragment);
@@ -1503,6 +1507,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     if (node.isGetter) {
       var getterFragment = GetterFragmentImpl(name: name2);
       getterFragment.isAugmentation = node.augmentKeyword != null;
+      getterFragment.isOriginDeclaration = true;
       getterFragment.isStatic = true;
 
       getterFragment.enclosingFragment = _unitElement;
@@ -1512,6 +1517,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     } else if (node.isSetter) {
       var setterFragment = SetterFragmentImpl(name: name2);
       setterFragment.isAugmentation = node.augmentKeyword != null;
+      setterFragment.isOriginDeclaration = true;
       setterFragment.isStatic = true;
 
       setterFragment.enclosingFragment = _unitElement;
@@ -1702,6 +1708,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       var fragment = GetterFragmentImpl(name: _getFragmentName(nameToken));
       fragment.isAbstract = node.isAbstract;
       fragment.isAugmentation = node.augmentKeyword != null;
+      fragment.isOriginDeclaration = true;
       fragment.isStatic = node.isStatic;
       _addChildFragment(fragment);
       executableFragment = fragment;
@@ -1709,6 +1716,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       var fragment = SetterFragmentImpl(name: _getFragmentName(nameToken));
       fragment.isAbstract = node.isAbstract;
       fragment.isAugmentation = node.augmentKeyword != null;
+      fragment.isOriginDeclaration = true;
       fragment.isStatic = node.isStatic;
       _addChildFragment(fragment);
       executableFragment = fragment;

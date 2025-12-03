@@ -102,13 +102,13 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 synthetic aaa (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 synthetic isOriginVariable aaa (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::aaa
-            #F8 synthetic bbb (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F8 synthetic isOriginVariable bbb (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@getter::bbb
-            #F9 synthetic ccc (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F9 synthetic isOriginVariable ccc (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@enum::E::@getter::ccc
-            #F10 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F10 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -153,22 +153,22 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
       getters
-        synthetic static aaa
+        synthetic static isOriginVariable aaa
           reference: <testLibrary>::@enum::E::@getter::aaa
           firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::aaa
-        synthetic static bbb
+        synthetic static isOriginVariable bbb
           reference: <testLibrary>::@enum::E::@getter::bbb
           firstFragment: #F8
           returnType: E
           variable: <testLibrary>::@enum::E::@field::bbb
-        synthetic static ccc
+        synthetic static isOriginVariable ccc
           reference: <testLibrary>::@enum::E::@getter::ccc
           firstFragment: #F9
           returnType: E
           variable: <testLibrary>::@enum::E::@field::ccc
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F10
           returnType: List<E>
@@ -236,9 +236,9 @@ library
                 #F5 requiredPositional _ (nameOffset:41) (firstTokenOffset:34) (offset:41)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::_
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -271,12 +271,12 @@ library
               firstFragment: #F5
               type: Object
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F7
           returnType: List<E>
@@ -368,11 +368,11 @@ library
                 #F7 requiredPositional a (nameOffset:47) (firstTokenOffset:45) (offset:47)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           getters
-            #F8 synthetic int (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F8 synthetic isOriginVariable int (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::int
-            #F9 synthetic string (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F9 synthetic isOriginVariable string (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@getter::string
-            #F10 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F10 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -416,17 +416,17 @@ library
               firstFragment: #F7
               type: T
       getters
-        synthetic static int
+        synthetic static isOriginVariable int
           reference: <testLibrary>::@enum::E::@getter::int
           firstFragment: #F8
           returnType: E<int>
           variable: <testLibrary>::@enum::E::@field::int
-        synthetic static string
+        synthetic static isOriginVariable string
           reference: <testLibrary>::@enum::E::@getter::string
           firstFragment: #F9
           returnType: E<String>
           variable: <testLibrary>::@enum::E::@field::string
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F10
           returnType: List<E<dynamic>>
@@ -482,9 +482,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic _name (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 synthetic isOriginVariable _name (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::_name
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -513,12 +513,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static _name
+        synthetic static isOriginVariable _name
           reference: <testLibrary>::@enum::E::@getter::_name
           firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::_name
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F6
           returnType: List<E>
@@ -595,9 +595,9 @@ library
                 #F6 requiredPositional a (nameOffset:41) (firstTokenOffset:39) (offset:41)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -633,12 +633,12 @@ library
               firstFragment: #F6
               type: T
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F7
           returnType: E<double>
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F8
           returnType: List<E<dynamic>>
@@ -693,9 +693,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic _ (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 synthetic isOriginVariable _ (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::_
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -724,12 +724,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static _
+        synthetic static isOriginVariable _
           reference: <testLibrary>::@enum::E::@getter::_
           firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::_
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F6
           returnType: List<E>
@@ -791,9 +791,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -825,12 +825,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F7
           returnType: List<E>
@@ -888,9 +888,9 @@ library
               typeName: E
               typeNameOffset: 24
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -919,12 +919,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F6
           returnType: List<E>
@@ -984,9 +984,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -1018,12 +1018,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F7
           returnType: List<E>
@@ -1091,9 +1091,9 @@ library
               factoryKeywordOffset: 43
               typeName: null
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -1125,12 +1125,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F7
           returnType: List<E>
@@ -1196,11 +1196,11 @@ library
                     #F7 requiredPositional a (nameOffset:53) (firstTokenOffset:46) (offset:53)
                       element: a@53
           getters
-            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F10 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F10 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     enum E
@@ -1243,17 +1243,17 @@ library
                   type: double
               field: <testLibrary>::@enum::E::@field::x
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F8
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F9
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
-        synthetic x
+        synthetic isOriginVariable x
           reference: <testLibrary>::@enum::E::@getter::x
           firstFragment: #F10
           returnType: dynamic
@@ -1320,13 +1320,13 @@ library
                 #F7 requiredPositional final this.x (nameOffset:62) (firstTokenOffset:57) (offset:62)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F10 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F10 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::x::@def::0
-            #F11 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F11 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@enum::E::@getter::x::@def::1
   enums
     enum E
@@ -1370,22 +1370,22 @@ library
               type: int
               field: <testLibrary>::@enum::E::@field::x::@def::0
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F8
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F9
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
-        synthetic x
+        synthetic isOriginVariable x
           reference: <testLibrary>::@enum::E::@getter::x::@def::0
           firstFragment: #F10
           returnType: int
           variable: <testLibrary>::@enum::E::@field::x::@def::0
-        synthetic x
+        synthetic isOriginVariable x
           reference: <testLibrary>::@enum::E::@getter::x::@def::1
           firstFragment: #F11
           returnType: String
@@ -1445,9 +1445,9 @@ library
                 #F5 requiredPositional final this.x (nameOffset:29) (firstTokenOffset:24) (offset:29)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -1481,12 +1481,12 @@ library
               type: dynamic
               field: <null>
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F7
           returnType: List<E>
@@ -1561,11 +1561,11 @@ library
                       staticInvokeType: num Function(num)
                       staticType: int
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F9 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     enum E
@@ -1607,17 +1607,17 @@ library
                 expression: expression_2
               field: <testLibrary>::@enum::E::@field::x
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F8
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
-        synthetic x
+        synthetic isOriginVariable x
           reference: <testLibrary>::@enum::E::@getter::x
           firstFragment: #F9
           returnType: int
@@ -1680,11 +1680,11 @@ library
                 #F6 requiredPositional final this.x (nameOffset:48) (firstTokenOffset:39) (offset:48)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F9 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     enum E
@@ -1723,17 +1723,17 @@ library
               type: int
               field: <testLibrary>::@enum::E::@field::x
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F8
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
-        synthetic x
+        synthetic isOriginVariable x
           reference: <testLibrary>::@enum::E::@getter::x
           firstFragment: #F9
           returnType: num
@@ -1796,11 +1796,11 @@ library
                 #F6 requiredPositional final this.x (nameOffset:38) (firstTokenOffset:29) (offset:38)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F9 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     enum E
@@ -1839,17 +1839,17 @@ library
               type: int
               field: <testLibrary>::@enum::E::@field::x
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F8
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
-        synthetic x
+        synthetic isOriginVariable x
           reference: <testLibrary>::@enum::E::@getter::x
           firstFragment: #F9
           returnType: dynamic
@@ -1912,11 +1912,11 @@ library
                 #F6 requiredPositional final this.x (nameOffset:34) (firstTokenOffset:29) (offset:34)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F9 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     enum E
@@ -1955,17 +1955,17 @@ library
               type: dynamic
               field: <testLibrary>::@enum::E::@field::x
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F8
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
-        synthetic x
+        synthetic isOriginVariable x
           reference: <testLibrary>::@enum::E::@getter::x
           firstFragment: #F9
           returnType: dynamic
@@ -2035,9 +2035,9 @@ library
                 #F5 requiredPositional a (nameOffset:44) (firstTokenOffset:40) (offset:44)
                   element: <testLibrary>::@enum::E::@constructor::named::@formalParameter::a
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -2070,12 +2070,12 @@ library
               firstFragment: #F5
               type: int
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F7
           returnType: List<E>
@@ -2139,9 +2139,9 @@ library
                 #F5 requiredPositional a (nameOffset:32) (firstTokenOffset:28) (offset:32)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -2174,12 +2174,12 @@ library
               firstFragment: #F5
               type: int
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F7
           returnType: List<E>
@@ -2247,11 +2247,11 @@ library
                 #F7 requiredPositional a (nameOffset:45) (firstTokenOffset:42) (offset:45)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           getters
-            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F8 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::v
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F10 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F10 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     enum E
@@ -2317,17 +2317,17 @@ library
                 literal: 0 @70
                 staticType: int
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F8
           returnType: E<dynamic>
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F9
           returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
-        synthetic x
+        synthetic isOriginVariable x
           reference: <testLibrary>::@enum::E::@getter::x
           firstFragment: #F10
           returnType: int
@@ -2389,9 +2389,9 @@ library
               newKeywordOffset: 24
               typeName: null
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -2420,12 +2420,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::named
           firstFragment: #F4
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F6
           returnType: List<E>
@@ -2487,9 +2487,9 @@ library
               newKeywordOffset: 30
               typeName: null
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -2518,12 +2518,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::named
           firstFragment: #F4
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F6
           returnType: List<E>
@@ -2580,9 +2580,9 @@ library
               newKeywordOffset: 16
               typeName: null
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -2611,12 +2611,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F6
           returnType: List<E>
@@ -2673,9 +2673,9 @@ library
               newKeywordOffset: 22
               typeName: null
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -2704,12 +2704,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F6
           returnType: List<E>
@@ -2765,9 +2765,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -2797,12 +2797,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F6
           returnType: List<E>
@@ -2864,11 +2864,11 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F8 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F8 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@getter::foo
   enums
     enum E
@@ -2905,17 +2905,17 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F7
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::E::@getter::foo
           firstFragment: #F8
           returnType: int
@@ -2999,11 +2999,11 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F8 foo (nameOffset:23) (firstTokenOffset:15) (offset:23)
+            #F8 isOriginDeclaration foo (nameOffset:23) (firstTokenOffset:15) (offset:23)
               element: <testLibrary>::@enum::E::@getter::foo
   enums
     enum E
@@ -3037,17 +3037,17 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F7
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::E::@getter::foo
           firstFragment: #F8
           returnType: int
@@ -3110,9 +3110,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@getter::values
   classes
     class I
@@ -3151,12 +3151,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F8
           returnType: List<E>
@@ -3216,9 +3216,9 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@enum::E::@getter::values
       extensionTypes
         #F8 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
@@ -3227,7 +3227,7 @@ library
             #F9 isOriginDeclaringFormalParameter it (nameOffset:32) (firstTokenOffset:28) (offset:32)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
-            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F10 synthetic isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@extensionType::B::@getter::it
   classes
     class A
@@ -3262,12 +3262,12 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F7
           returnType: List<E>
@@ -3287,7 +3287,7 @@ library
           getter: <testLibrary>::@extensionType::B::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::B::@constructor::new::@formalParameter::it
       getters
-        synthetic isExtensionTypeMember it
+        synthetic isExtensionTypeMember isOriginVariable it
           reference: <testLibrary>::@extensionType::B::@getter::it
           firstFragment: #F10
           returnType: int
@@ -3358,9 +3358,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F9 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F9 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@enum::E::@getter::v
-            #F10 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F10 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::values
   classes
     class I
@@ -3405,12 +3405,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F8
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F9
           returnType: E<dynamic>
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F10
           returnType: List<E<dynamic>>
@@ -3480,9 +3480,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F9 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+            #F9 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
               element: <testLibrary>::@enum::E::@getter::v
-            #F10 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F10 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@getter::values
   classes
     class X
@@ -3529,12 +3529,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F8
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F9
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F10
           returnType: List<E>
@@ -3595,9 +3595,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
           methods
             #F8 foo (nameOffset:23) (firstTokenOffset:19) (offset:23)
@@ -3640,12 +3640,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F6
           returnType: E<dynamic>
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F7
           returnType: List<E<dynamic>>
@@ -3717,9 +3717,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
           methods
             #F7 toString (nameOffset:23) (firstTokenOffset:16) (offset:23)
@@ -3751,12 +3751,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F6
           returnType: List<E>
@@ -3814,9 +3814,9 @@ library
               element: <testLibrary>::@enum::0::@constructor::new
               typeName: null
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@enum::0::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
               element: <testLibrary>::@enum::0::@getter::values
   enums
     enum <null-name>
@@ -3845,12 +3845,12 @@ library
           reference: <testLibrary>::@enum::0::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::0::@getter::v
           firstFragment: #F5
           returnType: InvalidType
           variable: <testLibrary>::@enum::0::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::0::@getter::values
           firstFragment: #F6
           returnType: List<<null>>
@@ -3906,9 +3906,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@getter::values
       mixins
         #F7 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
@@ -3942,12 +3942,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F6
           returnType: List<E>
@@ -4013,9 +4013,9 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@enum::E::@getter::values
       extensionTypes
         #F8 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
@@ -4024,7 +4024,7 @@ library
             #F9 isOriginDeclaringFormalParameter it (nameOffset:32) (firstTokenOffset:28) (offset:32)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
-            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F10 synthetic isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@extensionType::B::@getter::it
   classes
     class A
@@ -4059,12 +4059,12 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F7
           returnType: List<E>
@@ -4084,7 +4084,7 @@ library
           getter: <testLibrary>::@extensionType::B::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::B::@constructor::new::@formalParameter::it
       getters
-        synthetic isExtensionTypeMember it
+        synthetic isExtensionTypeMember isOriginVariable it
           reference: <testLibrary>::@extensionType::B::@getter::it
           firstFragment: #F10
           returnType: int
@@ -4141,9 +4141,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@enum::E::@getter::values
       mixins
         #F7 mixin M1 (nameOffset:6) (firstTokenOffset:0) (offset:6)
@@ -4186,12 +4186,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F6
           returnType: List<E>
@@ -4266,12 +4266,12 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
           setters
-            #F8 foo (nameOffset:19) (firstTokenOffset:15) (offset:19)
+            #F8 isOriginDeclaration foo (nameOffset:19) (firstTokenOffset:15) (offset:19)
               element: <testLibrary>::@enum::E::@setter::foo
               formalParameters
                 #F9 requiredPositional _ (nameOffset:27) (firstTokenOffset:23) (offset:27)
@@ -4308,18 +4308,18 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F7
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
       setters
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::E::@setter::foo
           firstFragment: #F8
           formalParameters
@@ -4383,9 +4383,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -4417,12 +4417,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F6
           returnType: E<dynamic>
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F7
           returnType: List<E<dynamic>>
@@ -4484,9 +4484,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     notSimplyBounded enum E
@@ -4522,12 +4522,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F7
           returnType: E<num, num>
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F8
           returnType: List<E<num, num>>
@@ -4564,7 +4564,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     notSimplyBounded enum E
@@ -4589,7 +4589,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F5
           returnType: List<E<dynamic>>
@@ -4630,7 +4630,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     notSimplyBounded enum E
@@ -4661,7 +4661,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
       getters
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F7
           returnType: List<E<dynamic, num, dynamic>>
@@ -4698,7 +4698,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     notSimplyBounded enum E
@@ -4723,7 +4723,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F5
           returnType: List<E<dynamic>>
@@ -4760,7 +4760,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -4784,7 +4784,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F5
           returnType: List<E<dynamic>>
@@ -4821,7 +4821,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -4845,7 +4845,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F5
           returnType: List<E<dynamic>>
@@ -4882,7 +4882,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -4906,7 +4906,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F5
           returnType: List<E<dynamic>>
@@ -4947,7 +4947,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -4975,7 +4975,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
       getters
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F7
           returnType: List<E<dynamic, dynamic, dynamic>>
@@ -5052,11 +5052,11 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F6 synthetic isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@enum::E::@getter::a
-            #F7 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+            #F7 synthetic isOriginVariable b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: <testLibrary>::@enum::E::@getter::b
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -5093,17 +5093,17 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static a
+        synthetic static isOriginVariable a
           reference: <testLibrary>::@enum::E::@getter::a
           firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::a
-        synthetic static b
+        synthetic static isOriginVariable b
           reference: <testLibrary>::@enum::E::@getter::b
           firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::b
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F8
           returnType: List<E>
@@ -5201,11 +5201,11 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F6 synthetic isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@enum::E::@getter::a
-            #F7 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
+            #F7 synthetic isOriginVariable b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
               element: <testLibrary>::@enum::E::@getter::b
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
         #F9 hasInitializer isOriginDeclaration annotation (nameOffset:91) (firstTokenOffset:91) (offset:91)
@@ -5215,7 +5215,7 @@ library
               literal: 0 @104
               staticType: int
       getters
-        #F10 synthetic annotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
+        #F10 synthetic isOriginVariable annotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
           element: <testLibrary>::@getter::annotation
   enums
     enum E
@@ -5268,17 +5268,17 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static a
+        synthetic static isOriginVariable a
           reference: <testLibrary>::@enum::E::@getter::a
           firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::a
-        synthetic static b
+        synthetic static isOriginVariable b
           reference: <testLibrary>::@enum::E::@getter::b
           firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::b
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F8
           returnType: List<E>
@@ -5293,7 +5293,7 @@ library
         expression: expression_3
       getter: <testLibrary>::@getter::annotation
   getters
-    synthetic static annotation
+    synthetic static isOriginVariable annotation
       reference: <testLibrary>::@getter::annotation
       firstFragment: #F10
       returnType: int
@@ -5364,11 +5364,11 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+            #F7 synthetic isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
               element: <testLibrary>::@enum::E::@getter::1
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -5405,17 +5405,17 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static <null-name>
+        synthetic static isOriginVariable <null-name>
           reference: <testLibrary>::@enum::E::@getter::1
           firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::0
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F8
           returnType: List<E>
@@ -5484,11 +5484,11 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
+            #F6 synthetic isOriginVariable v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
               element: <testLibrary>::@enum::E::@getter::v1
-            #F7 synthetic v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+            #F7 synthetic isOriginVariable v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::E::@getter::v2
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -5525,17 +5525,17 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v1
+        synthetic static isOriginVariable v1
           reference: <testLibrary>::@enum::E::@getter::v1
           firstFragment: #F6
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v1
-        synthetic static v2
+        synthetic static isOriginVariable v2
           reference: <testLibrary>::@enum::E::@getter::v2
           firstFragment: #F7
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v2
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F8
           returnType: List<E>
@@ -5586,9 +5586,9 @@ library
               element: <testLibrary>::@enum::E1::@constructor::new
               typeName: E1
           getters
-            #F5 synthetic v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+            #F5 synthetic isOriginVariable v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
               element: <testLibrary>::@enum::E1::@getter::v1
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E1::@getter::values
         #F7 enum E2 (nameOffset:20) (firstTokenOffset:15) (offset:20)
           element: <testLibrary>::@enum::E2
@@ -5624,9 +5624,9 @@ library
               element: <testLibrary>::@enum::E2::@constructor::new
               typeName: E2
           getters
-            #F11 synthetic v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F11 synthetic isOriginVariable v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@enum::E2::@getter::v2
-            #F12 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F12 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E2::@getter::values
   enums
     enum E1
@@ -5655,12 +5655,12 @@ library
           reference: <testLibrary>::@enum::E1::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static v1
+        synthetic static isOriginVariable v1
           reference: <testLibrary>::@enum::E1::@getter::v1
           firstFragment: #F5
           returnType: E1
           variable: <testLibrary>::@enum::E1::@field::v1
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E1::@getter::values
           firstFragment: #F6
           returnType: List<E1>
@@ -5691,12 +5691,12 @@ library
           reference: <testLibrary>::@enum::E2::@constructor::new
           firstFragment: #F10
       getters
-        synthetic static v2
+        synthetic static isOriginVariable v2
           reference: <testLibrary>::@enum::E2::@getter::v2
           firstFragment: #F11
           returnType: E2
           variable: <testLibrary>::@enum::E2::@field::v2
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E2::@getter::values
           firstFragment: #F12
           returnType: List<E2>
@@ -5841,13 +5841,13 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F20 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+            #F20 synthetic isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
               element: <testLibrary>::@enum::E::@getter::a
-            #F21 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F21 synthetic isOriginVariable b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::b
-            #F22 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F22 synthetic isOriginVariable c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::c
-            #F23 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F23 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   classes
     class M
@@ -5958,22 +5958,22 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F19
       getters
-        synthetic static a
+        synthetic static isOriginVariable a
           reference: <testLibrary>::@enum::E::@getter::a
           firstFragment: #F20
           returnType: E
           variable: <testLibrary>::@enum::E::@field::a
-        synthetic static b
+        synthetic static isOriginVariable b
           reference: <testLibrary>::@enum::E::@getter::b
           firstFragment: #F21
           returnType: E
           variable: <testLibrary>::@enum::E::@field::b
-        synthetic static c
+        synthetic static isOriginVariable c
           reference: <testLibrary>::@enum::E::@getter::c
           firstFragment: #F22
           returnType: E
           variable: <testLibrary>::@enum::E::@field::c
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F23
           returnType: List<E>
@@ -6032,9 +6032,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
         #F7 hasInitializer isOriginDeclaration a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -6044,7 +6044,7 @@ library
               literal: 42 @10
               staticType: int
       getters
-        #F8 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F8 synthetic isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   enums
     enum E
@@ -6081,12 +6081,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F6
           returnType: List<E>
@@ -6101,7 +6101,7 @@ library
         expression: expression_2
       getter: <testLibrary>::@getter::a
   getters
-    synthetic static a
+    synthetic static isOriginVariable a
       reference: <testLibrary>::@getter::a
       firstFragment: #F8
       returnType: int
@@ -6143,7 +6143,7 @@ library
                 #F4 requiredPositional final this.value (nameOffset:48) (firstTokenOffset:43) (offset:48)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::value
           getters
-            #F5 synthetic value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F5 synthetic isOriginVariable value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::A::@getter::value
       enums
         #F6 enum E (nameOffset:64) (firstTokenOffset:59) (offset:64)
@@ -6246,13 +6246,13 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F12 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
+            #F12 synthetic isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
               element: <testLibrary>::@enum::E::@getter::a
-            #F13 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:83)
+            #F13 synthetic isOriginVariable b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:83)
               element: <testLibrary>::@enum::E::@getter::b
-            #F14 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:96)
+            #F14 synthetic isOriginVariable c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:96)
               element: <testLibrary>::@enum::E::@getter::c
-            #F15 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+            #F15 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@enum::E::@getter::values
   classes
     class A
@@ -6274,7 +6274,7 @@ library
               type: dynamic
               field: <testLibrary>::@class::A::@field::value
       getters
-        synthetic value
+        synthetic isOriginVariable value
           reference: <testLibrary>::@class::A::@getter::value
           firstFragment: #F5
           returnType: dynamic
@@ -6352,22 +6352,22 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F11
       getters
-        synthetic static a
+        synthetic static isOriginVariable a
           reference: <testLibrary>::@enum::E::@getter::a
           firstFragment: #F12
           returnType: E
           variable: <testLibrary>::@enum::E::@field::a
-        synthetic static b
+        synthetic static isOriginVariable b
           reference: <testLibrary>::@enum::E::@getter::b
           firstFragment: #F13
           returnType: E
           variable: <testLibrary>::@enum::E::@field::b
-        synthetic static c
+        synthetic static isOriginVariable c
           reference: <testLibrary>::@enum::E::@getter::c
           firstFragment: #F14
           returnType: E
           variable: <testLibrary>::@enum::E::@field::c
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F15
           returnType: List<E>
@@ -6431,9 +6431,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -6470,12 +6470,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F6
           returnType: List<E>
@@ -6542,9 +6542,9 @@ library
               typeName: E
               typeNameOffset: 41
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
         #F7 hasInitializer isOriginDeclaration a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -6554,7 +6554,7 @@ library
               literal: 42 @10
               staticType: int
       getters
-        #F8 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F8 synthetic isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   enums
     enum E
@@ -6591,12 +6591,12 @@ library
                 staticType: null
               element: <testLibrary>::@getter::a
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F6
           returnType: List<E>
@@ -6611,7 +6611,7 @@ library
         expression: expression_2
       getter: <testLibrary>::@getter::a
   getters
-    synthetic static a
+    synthetic static isOriginVariable a
       reference: <testLibrary>::@getter::a
       firstFragment: #F8
       returnType: int
@@ -6669,9 +6669,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::values
           methods
             #F7 foo (nameOffset:40) (firstTokenOffset:30) (offset:40)
@@ -6692,7 +6692,7 @@ library
               literal: 42 @10
               staticType: int
       getters
-        #F9 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F9 synthetic isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   enums
     enum E
@@ -6721,12 +6721,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F6
           returnType: List<E>
@@ -6754,7 +6754,7 @@ library
         expression: expression_2
       getter: <testLibrary>::@getter::a
   getters
-    synthetic static a
+    synthetic static isOriginVariable a
       reference: <testLibrary>::@getter::a
       firstFragment: #F9
       returnType: int
@@ -6834,11 +6834,11 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+            #F9 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@enum::E::@getter::foo
           methods
             #F10 bar (nameOffset:81) (firstTokenOffset:69) (offset:81)
@@ -6859,7 +6859,7 @@ library
               literal: 0 @12
               staticType: int
       getters
-        #F12 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F12 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::foo
   enums
     enum E
@@ -6907,17 +6907,17 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F7
           returnType: E<dynamic>
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F8
           returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
-        synthetic static foo
+        synthetic static isOriginVariable foo
           reference: <testLibrary>::@enum::E::@getter::foo
           firstFragment: #F9
           returnType: int
@@ -6945,7 +6945,7 @@ library
         expression: expression_3
       getter: <testLibrary>::@getter::foo
   getters
-    synthetic static foo
+    synthetic static isOriginVariable foo
       reference: <testLibrary>::@getter::foo
       firstFragment: #F12
       returnType: int
@@ -7014,9 +7014,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
         #F8 hasInitializer isOriginDeclaration a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -7026,7 +7026,7 @@ library
               literal: 42 @10
               staticType: int
       getters
-        #F9 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F9 synthetic isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   enums
     enum E
@@ -7066,12 +7066,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F6
           returnType: E<dynamic>
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F7
           returnType: List<E<dynamic>>
@@ -7086,7 +7086,7 @@ library
         expression: expression_2
       getter: <testLibrary>::@getter::a
   getters
-    synthetic static a
+    synthetic static isOriginVariable a
       reference: <testLibrary>::@getter::a
       firstFragment: #F9
       returnType: int
@@ -7137,9 +7137,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
         #F7 hasInitializer isOriginDeclaration a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -7149,7 +7149,7 @@ library
               literal: 42 @10
               staticType: int
       getters
-        #F8 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F8 synthetic isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   enums
     enum E
@@ -7178,12 +7178,12 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F5
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F6
           returnType: List<E>
@@ -7198,7 +7198,7 @@ library
         expression: expression_2
       getter: <testLibrary>::@getter::a
   getters
-    synthetic static a
+    synthetic static isOriginVariable a
       reference: <testLibrary>::@getter::a
       firstFragment: #F8
       returnType: int
@@ -7268,11 +7268,11 @@ library
                 #F6 optionalNamed final this.foo (nameOffset:19) (firstTokenOffset:8) (offset:19)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     enum A
@@ -7312,17 +7312,17 @@ library
               type: int?
               field: <testLibrary>::@enum::A::@field::foo
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F8
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F9
           returnType: int?
@@ -7385,11 +7385,11 @@ library
                 #F6 optionalPositional final this.foo (nameOffset:19) (firstTokenOffset:8) (offset:19)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     enum A
@@ -7429,17 +7429,17 @@ library
               type: int?
               field: <testLibrary>::@enum::A::@field::foo
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F8
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F9
           returnType: int?
@@ -7509,11 +7509,11 @@ library
                 #F6 requiredNamed final this.foo (nameOffset:27) (firstTokenOffset:8) (offset:27)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     enum A
@@ -7553,17 +7553,17 @@ library
               type: int
               field: <testLibrary>::@enum::A::@field::foo
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F8
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F9
           returnType: int
@@ -7626,11 +7626,11 @@ library
                 #F6 requiredPositional final this.foo (nameOffset:17) (firstTokenOffset:7) (offset:17)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     enum A
@@ -7670,17 +7670,17 @@ library
               type: int Function()
               field: <testLibrary>::@enum::A::@field::foo
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F8
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F9
           returnType: int Function()
@@ -7743,11 +7743,11 @@ library
                 #F6 requiredPositional final this.foo (nameOffset:17) (firstTokenOffset:7) (offset:17)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     enum A
@@ -7787,17 +7787,17 @@ library
               type: int
               field: <testLibrary>::@enum::A::@field::foo
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F8
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F9
           returnType: int
@@ -7860,14 +7860,14 @@ library
                 #F6 requiredPositional final this.foo (nameOffset:15) (firstTokenOffset:7) (offset:15)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::foo
           setters
-            #F10 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F10 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@setter::foo
               formalParameters
                 #F11 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
@@ -7911,23 +7911,23 @@ library
               type: int
               field: <testLibrary>::@enum::A::@field::foo
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F8
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F9
           returnType: int
           variable: <testLibrary>::@enum::A::@field::foo
       setters
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@setter::foo
           firstFragment: #F10
           formalParameters
@@ -7963,7 +7963,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F4 foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+            #F4 isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@class::A::@getter::foo
       enums
         #F5 enum B (nameOffset:37) (firstTokenOffset:32) (offset:37)
@@ -8010,11 +8010,11 @@ library
                 #F10 requiredPositional final this.foo (nameOffset:45) (firstTokenOffset:39) (offset:45)
                   element: <testLibrary>::@enum::B::@constructor::new::@formalParameter::foo
           getters
-            #F11 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+            #F11 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@enum::B::@getter::v
-            #F12 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F12 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@enum::B::@getter::values
-            #F13 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F13 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@enum::B::@getter::foo
   classes
     class A
@@ -8031,7 +8031,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
       getters
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@getter::foo
           firstFragment: #F4
           returnType: int
@@ -8076,17 +8076,17 @@ library
               type: int
               field: <testLibrary>::@enum::B::@field::foo
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::B::@getter::v
           firstFragment: #F11
           returnType: B
           variable: <testLibrary>::@enum::B::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::B::@getter::values
           firstFragment: #F12
           returnType: List<B>
           variable: <testLibrary>::@enum::B::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::B::@getter::foo
           firstFragment: #F13
           returnType: int
@@ -8154,11 +8154,11 @@ library
                 #F7 requiredPositional final this.foo (nameOffset:18) (firstTokenOffset:10) (offset:18)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F8 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F10 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F10 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     enum A
@@ -8202,17 +8202,17 @@ library
               type: T
               field: <testLibrary>::@enum::A::@field::foo
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F8
           returnType: A<int>
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F9
           returnType: List<A<dynamic>>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F10
           hasEnclosingTypeParameterReference: true
@@ -8274,9 +8274,9 @@ library
                 #F5 requiredPositional foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
   enums
     enum A
@@ -8309,12 +8309,12 @@ library
               firstFragment: #F5
               type: int Function()
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F6
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F7
           returnType: List<A>
@@ -8375,9 +8375,9 @@ library
                 #F5 requiredPositional foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
   enums
     enum A
@@ -8410,12 +8410,12 @@ library
               firstFragment: #F5
               type: int
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F6
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F7
           returnType: List<A>
@@ -8481,11 +8481,11 @@ library
                 #F6 requiredPositional final this.foo (nameOffset:12) (firstTokenOffset:7) (offset:12)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+            #F9 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     enum A
@@ -8524,17 +8524,17 @@ library
               type: int
               field: <testLibrary>::@enum::A::@field::foo
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F8
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F9
           returnType: int
@@ -8594,9 +8594,9 @@ library
               typeNameOffset: 11
               periodOffset: 12
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::A::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::values
   enums
     enum A
@@ -8625,12 +8625,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::named
           firstFragment: #F4
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F5
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F6
           returnType: List<A>
@@ -8690,9 +8690,9 @@ library
               typeNameOffset: 5
               periodOffset: 6
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::A::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
   enums
     enum A
@@ -8721,12 +8721,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::named
           firstFragment: #F4
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F5
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F6
           returnType: List<A>
@@ -8780,9 +8780,9 @@ library
               typeName: A
               typeNameOffset: 11
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::A::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::values
   enums
     enum A
@@ -8811,12 +8811,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F5
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F6
           returnType: List<A>
@@ -8870,9 +8870,9 @@ library
               typeName: A
               typeNameOffset: 5
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
               element: <testLibrary>::@enum::A::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
   enums
     enum A
@@ -8901,12 +8901,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F5
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F6
           returnType: List<A>
@@ -8971,9 +8971,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
             #F8 foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
@@ -9011,12 +9011,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F6
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F7
           returnType: List<A>
@@ -9131,9 +9131,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+            #F8 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@enum::A::@getter::values
     #F1 package:test/a1.dart
       element: <testLibrary>
@@ -9238,12 +9238,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F8
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F9
           returnType: List<A>
@@ -9295,7 +9295,7 @@ library
               element: <testLibrary>::@enum::A::@def::0::@constructor::new
               typeName: A
           getters
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+            #F4 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::A::@def::0::@getter::values
           methods
             #F5 foo1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
@@ -9335,9 +9335,9 @@ library
               element: <testLibrary>::@enum::A::@def::1::@constructor::new
               typeName: A
           getters
-            #F11 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+            #F11 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@enum::A::@def::1::@getter::v
-            #F12 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+            #F12 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@enum::A::@def::1::@getter::values
           methods
             #F13 foo2 (nameOffset:59) (firstTokenOffset:54) (offset:59)
@@ -9367,7 +9367,7 @@ library
           reference: <testLibrary>::@enum::A::@def::0::@constructor::new
           firstFragment: #F3
       getters
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@def::0::@getter::values
           firstFragment: #F4
           returnType: List<A>
@@ -9403,12 +9403,12 @@ library
           reference: <testLibrary>::@enum::A::@def::1::@constructor::new
           firstFragment: #F10
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@def::1::@getter::v
           firstFragment: #F11
           returnType: A
           variable: <testLibrary>::@enum::A::@def::1::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@def::1::@getter::values
           firstFragment: #F12
           returnType: List<A>
@@ -9459,7 +9459,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+            #F5 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::A::@getter::values
           methods
             #F6 foo1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
@@ -9489,7 +9489,7 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F4
       getters
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F5
           returnType: List<A>
@@ -9563,9 +9563,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 synthetic v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v1
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:30) (firstTokenOffset:17) (offset:30)
           element: <testLibrary>::@enum::A
@@ -9586,7 +9586,7 @@ library
                     rightParenthesis: ) @0
                   staticType: A
           getters
-            #F9 synthetic v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F9 synthetic isOriginVariable v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@enum::A::@getter::v2
   enums
     enum A
@@ -9623,17 +9623,17 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v1
+        synthetic static isOriginVariable v1
           reference: <testLibrary>::@enum::A::@getter::v1
           firstFragment: #F6
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v1
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F7
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic static v2
+        synthetic static isOriginVariable v2
           reference: <testLibrary>::@enum::A::@getter::v2
           firstFragment: #F9
           returnType: A
@@ -9706,9 +9706,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 synthetic v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v1
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:30) (firstTokenOffset:17) (offset:30)
           element: <testLibrary>::@enum::A
@@ -9730,7 +9730,7 @@ library
                     rightParenthesis: ) @0
                   staticType: A
           getters
-            #F10 synthetic v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F10 synthetic isOriginVariable v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@enum::A::@getter::v2
         #F8 enum A (nameOffset:55) (firstTokenOffset:42) (offset:55)
           element: <testLibrary>::@enum::A
@@ -9751,7 +9751,7 @@ library
                     rightParenthesis: ) @0
                   staticType: A
           getters
-            #F12 synthetic v3 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+            #F12 synthetic isOriginVariable v3 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
               element: <testLibrary>::@enum::A::@getter::v3
   enums
     enum A
@@ -9796,22 +9796,22 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v1
+        synthetic static isOriginVariable v1
           reference: <testLibrary>::@enum::A::@getter::v1
           firstFragment: #F6
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v1
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F7
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic static v2
+        synthetic static isOriginVariable v2
           reference: <testLibrary>::@enum::A::@getter::v2
           firstFragment: #F10
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v2
-        synthetic static v3
+        synthetic static isOriginVariable v3
           reference: <testLibrary>::@enum::A::@getter::v3
           firstFragment: #F12
           returnType: A
@@ -9881,9 +9881,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 synthetic v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v1
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:30) (firstTokenOffset:17) (offset:30)
           element: <testLibrary>::@enum::A
@@ -9920,7 +9920,7 @@ library
                   staticType: A
               previousFragment: #F8
           getters
-            #F10 synthetic v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F10 synthetic isOriginVariable v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@enum::A::@getter::v2
   enums
     enum A
@@ -9957,17 +9957,17 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v1
+        synthetic static isOriginVariable v1
           reference: <testLibrary>::@enum::A::@getter::v1
           firstFragment: #F6
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v1
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F7
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic static v2
+        synthetic static isOriginVariable v2
           reference: <testLibrary>::@enum::A::@getter::v2
           firstFragment: #F10
           returnType: A
@@ -10069,13 +10069,13 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F9 synthetic v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F9 synthetic isOriginVariable v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v1
-            #F10 synthetic v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F10 synthetic isOriginVariable v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@enum::A::@getter::v2
-            #F11 synthetic v3 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F11 synthetic isOriginVariable v3 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::A::@getter::v3
-            #F12 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F12 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:38) (firstTokenOffset:25) (offset:38)
           element: <testLibrary>::@enum::A
@@ -10139,22 +10139,22 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F8
       getters
-        synthetic static v1
+        synthetic static isOriginVariable v1
           reference: <testLibrary>::@enum::A::@getter::v1
           firstFragment: #F9
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v1
-        synthetic static v2
+        synthetic static isOriginVariable v2
           reference: <testLibrary>::@enum::A::@getter::v2
           firstFragment: #F10
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v2
-        synthetic static v3
+        synthetic static isOriginVariable v3
           reference: <testLibrary>::@enum::A::@getter::v3
           firstFragment: #F11
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v3
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F12
           returnType: List<A>
@@ -10251,11 +10251,11 @@ library
                 #F8 requiredPositional value (nameOffset:39) (firstTokenOffset:35) (offset:39)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::value
           getters
-            #F9 synthetic v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F9 synthetic isOriginVariable v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v1
-            #F10 synthetic v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F10 synthetic isOriginVariable v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@enum::A::@getter::v2
-            #F11 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F11 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:63) (firstTokenOffset:50) (offset:63)
           element: <testLibrary>::@enum::A
@@ -10319,17 +10319,17 @@ library
               firstFragment: #F8
               type: int
       getters
-        synthetic static v1
+        synthetic static isOriginVariable v1
           reference: <testLibrary>::@enum::A::@getter::v1
           firstFragment: #F9
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v1
-        synthetic static v2
+        synthetic static isOriginVariable v2
           reference: <testLibrary>::@enum::A::@getter::v2
           firstFragment: #F10
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v2
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F11
           returnType: List<A>
@@ -10412,11 +10412,11 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F8 synthetic isOriginVariable v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::A::@getter::v2
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:33) (firstTokenOffset:20) (offset:33)
           element: <testLibrary>::@enum::A
@@ -10468,17 +10468,17 @@ library
             expression: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static v2
+        synthetic static isOriginVariable v2
           reference: <testLibrary>::@enum::A::@getter::v2
           firstFragment: #F8
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v2
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F9
           returnType: List<A>
@@ -10541,9 +10541,9 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:38) (firstTokenOffset:25) (offset:38)
           element: <testLibrary>::@enum::A
@@ -10581,12 +10581,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::named
           firstFragment: #F7
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F5
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F6
           returnType: List<A>
@@ -10665,9 +10665,9 @@ library
                   rightBracket: ] @0
                   staticType: List<A<dynamic>>
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:45) (firstTokenOffset:32) (offset:45)
           element: <testLibrary>::@enum::A
@@ -10719,12 +10719,12 @@ library
               firstFragment: #F10
               type: T
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A<int>
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F8
           returnType: List<A<dynamic>>
@@ -10788,9 +10788,9 @@ library
               typeName: A
               typeNameOffset: 22
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:43) (firstTokenOffset:30) (offset:43)
           element: <testLibrary>::@enum::A
@@ -10831,12 +10831,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::named
           firstFragment: #F8
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F6
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F7
           returnType: List<A>
@@ -10894,9 +10894,9 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:30) (firstTokenOffset:17) (offset:30)
           element: <testLibrary>::@enum::A
@@ -10933,12 +10933,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F5
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F6
           returnType: List<A>
@@ -11003,9 +11003,9 @@ library
               typeNameOffset: 22
               periodOffset: 23
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:49) (firstTokenOffset:36) (offset:49)
           element: <testLibrary>::@enum::A
@@ -11045,12 +11045,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F8
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F6
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F7
           returnType: List<A>
@@ -11115,11 +11115,11 @@ library
             #F5 isOriginDeclaration f (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@enum::A::@field::f
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F8 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F8 synthetic isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::A::@getter::f
         #F2 enum A (nameOffset:48) (firstTokenOffset:35) (offset:48)
           element: <testLibrary>::@enum::A
@@ -11170,17 +11170,17 @@ library
               type: int
               field: <testLibrary>::@enum::A::@field::f
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F6
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F7
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic f
+        synthetic isOriginVariable f
           reference: <testLibrary>::@enum::A::@getter::f
           firstFragment: #F8
           returnType: int
@@ -11241,11 +11241,11 @@ library
             #F5 isOriginDeclaration f (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::f
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F8 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F8 synthetic isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::f
         #F2 enum A (nameOffset:45) (firstTokenOffset:32) (offset:45)
           element: <testLibrary>::@enum::A
@@ -11298,17 +11298,17 @@ library
                 literal: 0 @74
                 staticType: int
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F6
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F7
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic f
+        synthetic isOriginVariable f
           reference: <testLibrary>::@enum::A::@getter::f
           firstFragment: #F8
           returnType: int
@@ -11378,11 +11378,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F10 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F10 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::foo
         #F2 enum A (nameOffset:51) (firstTokenOffset:38) (offset:51)
           element: <testLibrary>::@enum::A
@@ -11430,17 +11430,17 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F8
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F9
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F10
           returnType: int
@@ -11514,11 +11514,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F10 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F10 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::foo
         #F2 enum A (nameOffset:51) (firstTokenOffset:38) (offset:51)
           element: <testLibrary>::@enum::A
@@ -11579,17 +11579,17 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F8
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F9
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F10
           returnType: int
@@ -11663,11 +11663,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F10 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F10 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::foo
               nextFragment: #F11
         #F2 enum A (nameOffset:51) (firstTokenOffset:38) (offset:51)
@@ -11675,7 +11675,7 @@ library
           previousFragment: #F1
           nextFragment: #F12
           getters
-            #F11 augment foo (nameOffset:74) (firstTokenOffset:58) (offset:74)
+            #F11 augment isOriginDeclaration foo (nameOffset:74) (firstTokenOffset:58) (offset:74)
               element: <testLibrary>::@enum::A::@getter::foo
               previousFragment: #F10
         #F12 enum A (nameOffset:100) (firstTokenOffset:87) (offset:100)
@@ -11724,17 +11724,17 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F8
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F9
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F10
           returnType: int
@@ -11808,18 +11808,18 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F10 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F10 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::foo
         #F2 enum A (nameOffset:51) (firstTokenOffset:38) (offset:51)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           nextFragment: #F11
           setters
-            #F12 augment foo (nameOffset:70) (firstTokenOffset:58) (offset:70)
+            #F12 augment isOriginDeclaration foo (nameOffset:70) (firstTokenOffset:58) (offset:70)
               element: <testLibrary>::@enum::A::@setter::foo
               formalParameters
                 #F13 requiredPositional _ (nameOffset:78) (firstTokenOffset:74) (offset:78)
@@ -11871,23 +11871,23 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F8
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F9
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F10
           returnType: int
           variable: <testLibrary>::@enum::A::@field::foo
       setters
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@setter::foo
           firstFragment: #F12
           formalParameters
@@ -11961,11 +11961,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F10 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F10 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::foo
         #F2 enum A (nameOffset:51) (firstTokenOffset:38) (offset:51)
           element: <testLibrary>::@enum::A
@@ -12013,17 +12013,17 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F8
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F9
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F10
           returnType: int
@@ -12097,11 +12097,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F10 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F10 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@enum::A::@getter::foo
         #F2 enum A (nameOffset:83) (firstTokenOffset:70) (offset:83)
           element: <testLibrary>::@enum::A
@@ -12150,17 +12150,17 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F8
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F9
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F10
           returnType: int Function()
@@ -12228,11 +12228,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F10 foo (nameOffset:24) (firstTokenOffset:16) (offset:24)
+            #F10 isOriginDeclaration foo (nameOffset:24) (firstTokenOffset:16) (offset:24)
               element: <testLibrary>::@enum::A::@getter::foo
         #F2 enum A (nameOffset:50) (firstTokenOffset:37) (offset:50)
           element: <testLibrary>::@enum::A
@@ -12280,17 +12280,17 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F8
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F9
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F10
           returnType: int
@@ -12359,11 +12359,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F9 synthetic isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::foo1
         #F2 enum A (nameOffset:52) (firstTokenOffset:39) (offset:52)
           element: <testLibrary>::@enum::A
@@ -12376,7 +12376,7 @@ library
                   literal: 0 @76
                   staticType: int
           getters
-            #F11 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+            #F11 synthetic isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@enum::A::@getter::foo2
   enums
     enum A
@@ -12421,22 +12421,22 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F8
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo1
+        synthetic isOriginVariable foo1
           reference: <testLibrary>::@enum::A::@getter::foo1
           firstFragment: #F9
           returnType: int
           variable: <testLibrary>::@enum::A::@field::foo1
-        synthetic foo2
+        synthetic isOriginVariable foo2
           reference: <testLibrary>::@enum::A::@getter::foo2
           firstFragment: #F11
           returnType: int
@@ -12515,11 +12515,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F9 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F9 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::A::@getter::v
-            #F10 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F10 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F11 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F11 synthetic isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@enum::A::@getter::foo1
         #F2 enum A (nameOffset:56) (firstTokenOffset:43) (offset:56)
           element: <testLibrary>::@enum::A
@@ -12532,7 +12532,7 @@ library
             #F12 isOriginDeclaration foo2 (nameOffset:74) (firstTokenOffset:74) (offset:74)
               element: <testLibrary>::@enum::A::@field::foo2
           getters
-            #F13 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
+            #F13 synthetic isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@enum::A::@getter::foo2
   enums
     enum A
@@ -12576,23 +12576,23 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F8
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F9
           returnType: A<int>
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F10
           returnType: List<A<dynamic>>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo1
+        synthetic isOriginVariable foo1
           reference: <testLibrary>::@enum::A::@getter::foo1
           firstFragment: #F11
           hasEnclosingTypeParameterReference: true
           returnType: T
           variable: <testLibrary>::@enum::A::@field::foo1
-        synthetic foo2
+        synthetic isOriginVariable foo2
           reference: <testLibrary>::@enum::A::@getter::foo2
           firstFragment: #F13
           hasEnclosingTypeParameterReference: true
@@ -12664,9 +12664,9 @@ library
                 #F6 requiredPositional final this.foo (nameOffset:32) (firstTokenOffset:27) (offset:32)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:54) (firstTokenOffset:41) (offset:54)
           element: <testLibrary>::@enum::A
@@ -12675,7 +12675,7 @@ library
             #F9 isOriginDeclaration foo (nameOffset:71) (firstTokenOffset:71) (offset:71)
               element: <testLibrary>::@enum::A::@field::foo
           getters
-            #F10 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+            #F10 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     enum A
@@ -12714,17 +12714,17 @@ library
               type: int
               field: <testLibrary>::@enum::A::@field::foo
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F8
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F10
           returnType: int
@@ -12788,9 +12788,9 @@ library
               typeName: A
               typeNameOffset: 22
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:53) (firstTokenOffset:40) (offset:53)
           element: <testLibrary>::@enum::A
@@ -12799,7 +12799,7 @@ library
             #F8 isOriginDeclaration foo (nameOffset:70) (firstTokenOffset:70) (offset:70)
               element: <testLibrary>::@enum::A::@field::foo
           getters
-            #F9 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
+            #F9 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     enum A
@@ -12843,17 +12843,17 @@ library
                 literal: 0 @34
                 staticType: int
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F6
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F7
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F9
           returnType: int
@@ -12918,11 +12918,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 foo1 (nameOffset:24) (firstTokenOffset:16) (offset:24)
+            #F9 isOriginDeclaration foo1 (nameOffset:24) (firstTokenOffset:16) (offset:24)
               element: <testLibrary>::@enum::A::@getter::foo1
         #F2 enum A (nameOffset:51) (firstTokenOffset:38) (offset:51)
           element: <testLibrary>::@enum::A
@@ -12931,7 +12931,7 @@ library
             #F10 synthetic isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@enum::A::@field::foo2
           getters
-            #F11 foo2 (nameOffset:66) (firstTokenOffset:58) (offset:66)
+            #F11 isOriginDeclaration foo2 (nameOffset:66) (firstTokenOffset:58) (offset:66)
               element: <testLibrary>::@enum::A::@getter::foo2
   enums
     enum A
@@ -12970,22 +12970,22 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F8
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        foo1
+        isOriginDeclaration foo1
           reference: <testLibrary>::@enum::A::@getter::foo1
           firstFragment: #F9
           returnType: int
           variable: <testLibrary>::@enum::A::@field::foo1
-        foo2
+        isOriginDeclaration foo2
           reference: <testLibrary>::@enum::A::@getter::foo2
           firstFragment: #F11
           returnType: int
@@ -13064,11 +13064,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F9 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F9 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::A::@getter::v
-            #F10 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F10 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F11 foo1 (nameOffset:32) (firstTokenOffset:26) (offset:32)
+            #F11 isOriginDeclaration foo1 (nameOffset:32) (firstTokenOffset:26) (offset:32)
               element: <testLibrary>::@enum::A::@getter::foo1
         #F2 enum A (nameOffset:54) (firstTokenOffset:41) (offset:54)
           element: <testLibrary>::@enum::A
@@ -13081,7 +13081,7 @@ library
             #F12 synthetic isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@enum::A::@field::foo2
           getters
-            #F13 foo2 (nameOffset:70) (firstTokenOffset:64) (offset:70)
+            #F13 isOriginDeclaration foo2 (nameOffset:70) (firstTokenOffset:64) (offset:70)
               element: <testLibrary>::@enum::A::@getter::foo2
   enums
     enum A
@@ -13125,23 +13125,23 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F8
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F9
           returnType: A<int>
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F10
           returnType: List<A<dynamic>>
           variable: <testLibrary>::@enum::A::@field::values
-        abstract foo1
+        abstract isOriginDeclaration foo1
           reference: <testLibrary>::@enum::A::@getter::foo1
           firstFragment: #F11
           hasEnclosingTypeParameterReference: true
           returnType: T
           variable: <testLibrary>::@enum::A::@field::foo1
-        abstract foo2
+        abstract isOriginDeclaration foo2
           reference: <testLibrary>::@enum::A::@getter::foo2
           firstFragment: #F13
           hasEnclosingTypeParameterReference: true
@@ -13211,18 +13211,18 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F9 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::foo
               nextFragment: #F10
         #F2 enum A (nameOffset:51) (firstTokenOffset:38) (offset:51)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           getters
-            #F10 augment foo (nameOffset:74) (firstTokenOffset:58) (offset:74)
+            #F10 augment isOriginDeclaration foo (nameOffset:74) (firstTokenOffset:58) (offset:74)
               element: <testLibrary>::@enum::A::@getter::foo
               previousFragment: #F9
   enums
@@ -13260,17 +13260,17 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F8
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F9
           returnType: int
@@ -13343,11 +13343,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F9 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::foo
               nextFragment: #F10
         #F2 enum A (nameOffset:51) (firstTokenOffset:38) (offset:51)
@@ -13355,7 +13355,7 @@ library
           previousFragment: #F1
           nextFragment: #F11
           getters
-            #F10 augment foo (nameOffset:74) (firstTokenOffset:58) (offset:74)
+            #F10 augment isOriginDeclaration foo (nameOffset:74) (firstTokenOffset:58) (offset:74)
               element: <testLibrary>::@enum::A::@getter::foo
               previousFragment: #F9
               nextFragment: #F12
@@ -13363,7 +13363,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F2
           getters
-            #F12 augment foo (nameOffset:123) (firstTokenOffset:107) (offset:123)
+            #F12 augment isOriginDeclaration foo (nameOffset:123) (firstTokenOffset:107) (offset:123)
               element: <testLibrary>::@enum::A::@getter::foo
               previousFragment: #F10
   enums
@@ -13401,17 +13401,17 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F8
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F9
           returnType: int
@@ -13479,20 +13479,20 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F10 foo1 (nameOffset:24) (firstTokenOffset:16) (offset:24)
+            #F10 isOriginDeclaration foo1 (nameOffset:24) (firstTokenOffset:16) (offset:24)
               element: <testLibrary>::@enum::A::@getter::foo1
               nextFragment: #F11
-            #F12 foo2 (nameOffset:45) (firstTokenOffset:37) (offset:45)
+            #F12 isOriginDeclaration foo2 (nameOffset:45) (firstTokenOffset:37) (offset:45)
               element: <testLibrary>::@enum::A::@getter::foo2
         #F2 enum A (nameOffset:72) (firstTokenOffset:59) (offset:72)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           getters
-            #F11 augment foo1 (nameOffset:95) (firstTokenOffset:79) (offset:95)
+            #F11 augment isOriginDeclaration foo1 (nameOffset:95) (firstTokenOffset:79) (offset:95)
               element: <testLibrary>::@enum::A::@getter::foo1
               previousFragment: #F10
   enums
@@ -13532,22 +13532,22 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F8
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F9
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        foo1
+        isOriginDeclaration foo1
           reference: <testLibrary>::@enum::A::@getter::foo1
           firstFragment: #F10
           returnType: int
           variable: <testLibrary>::@enum::A::@field::foo1
-        foo2
+        isOriginDeclaration foo2
           reference: <testLibrary>::@enum::A::@getter::foo2
           firstFragment: #F12
           returnType: int
@@ -13613,22 +13613,22 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 foo (nameOffset:24) (firstTokenOffset:16) (offset:24)
+            #F9 isOriginDeclaration foo (nameOffset:24) (firstTokenOffset:16) (offset:24)
               element: <testLibrary>::@enum::A::@getter::foo
               nextFragment: #F10
         #F2 enum A (nameOffset:50) (firstTokenOffset:37) (offset:50)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           getters
-            #F10 augment foo (nameOffset:73) (firstTokenOffset:57) (offset:73)
+            #F10 augment isOriginDeclaration foo (nameOffset:73) (firstTokenOffset:57) (offset:73)
               element: <testLibrary>::@enum::A::@getter::foo
               previousFragment: #F9
               nextFragment: #F11
-            #F11 augment foo (nameOffset:101) (firstTokenOffset:85) (offset:101)
+            #F11 augment isOriginDeclaration foo (nameOffset:101) (firstTokenOffset:85) (offset:101)
               element: <testLibrary>::@enum::A::@getter::foo
               previousFragment: #F10
   enums
@@ -13663,17 +13663,17 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F8
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F9
           returnType: int
@@ -13742,11 +13742,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 foo (nameOffset:24) (firstTokenOffset:16) (offset:24)
+            #F9 isOriginDeclaration foo (nameOffset:24) (firstTokenOffset:16) (offset:24)
               element: <testLibrary>::@enum::A::@getter::foo
               nextFragment: #F10
         #F2 enum A (nameOffset:50) (firstTokenOffset:37) (offset:50)
@@ -13754,7 +13754,7 @@ library
           previousFragment: #F1
           nextFragment: #F11
           getters
-            #F10 augment foo (nameOffset:73) (firstTokenOffset:57) (offset:73)
+            #F10 augment isOriginDeclaration foo (nameOffset:73) (firstTokenOffset:57) (offset:73)
               element: <testLibrary>::@enum::A::@getter::foo
               previousFragment: #F9
               nextFragment: #F12
@@ -13762,7 +13762,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F2
           getters
-            #F12 augment foo (nameOffset:122) (firstTokenOffset:106) (offset:122)
+            #F12 augment isOriginDeclaration foo (nameOffset:122) (firstTokenOffset:106) (offset:122)
               element: <testLibrary>::@enum::A::@getter::foo
               previousFragment: #F10
   enums
@@ -13797,17 +13797,17 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F8
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F9
           returnType: int
@@ -13867,9 +13867,9 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:29) (firstTokenOffset:16) (offset:29)
           element: <testLibrary>::@enum::A
@@ -13878,7 +13878,7 @@ library
             #F7 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::A::@field::foo
           getters
-            #F8 augment foo (nameOffset:52) (firstTokenOffset:36) (offset:52)
+            #F8 augment isOriginDeclaration foo (nameOffset:52) (firstTokenOffset:36) (offset:52)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     enum A
@@ -13908,17 +13908,17 @@ library
           type: int
           getter: <testLibrary>::@enum::A::@getter::foo
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F5
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F6
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F8
           returnType: int
@@ -13993,9 +13993,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F10 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F10 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@enum::A::@getter::v
-            #F11 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F11 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F6 enum A (nameOffset:55) (firstTokenOffset:42) (offset:55)
           element: <testLibrary>::@enum::A
@@ -14045,12 +14045,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F9
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F10
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F11
           returnType: List<A>
@@ -14134,9 +14134,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F12 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F12 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@enum::A::@getter::v
-            #F13 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F13 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F8 enum A (nameOffset:55) (firstTokenOffset:42) (offset:55)
           element: <testLibrary>::@enum::A
@@ -14198,12 +14198,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F11
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F12
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F13
           returnType: List<A>
@@ -14295,9 +14295,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F13 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F13 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@enum::A::@getter::v
-            #F14 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F14 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F7 enum A (nameOffset:65) (firstTokenOffset:52) (offset:65)
           element: <testLibrary>::@enum::A
@@ -14357,12 +14357,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F12
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F13
           returnType: A<int>
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F14
           returnType: List<A<dynamic>>
@@ -14446,9 +14446,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F13 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F13 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@enum::A::@getter::v
-            #F14 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F14 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F7 enum A (nameOffset:58) (firstTokenOffset:45) (offset:58)
           element: <testLibrary>::@enum::A
@@ -14508,12 +14508,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F12
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F13
           returnType: A<dynamic>
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F14
           returnType: List<A<dynamic>>
@@ -14576,9 +14576,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
             #F8 foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
@@ -14616,12 +14616,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F6
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F7
           returnType: List<A>
@@ -14691,9 +14691,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:29) (firstTokenOffset:16) (offset:29)
           element: <testLibrary>::@enum::A
@@ -14735,12 +14735,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F6
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F7
           returnType: List<A>
@@ -14816,9 +14816,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
             #F8 foo1 (nameOffset:21) (firstTokenOffset:16) (offset:21)
@@ -14860,12 +14860,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F6
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F7
           returnType: List<A>
@@ -14938,9 +14938,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
             #F8 foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
@@ -14984,12 +14984,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F6
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F7
           returnType: List<A>
@@ -15060,9 +15060,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
             #F8 foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
@@ -15111,12 +15111,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F6
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F7
           returnType: List<A>
@@ -15188,9 +15188,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
             #F8 foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
@@ -15239,12 +15239,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F6
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F7
           returnType: List<A>
@@ -15326,9 +15326,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F8 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
             #F10 foo (nameOffset:28) (firstTokenOffset:26) (offset:28)
@@ -15373,12 +15373,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F8
           returnType: A<int>
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F9
           returnType: List<A<dynamic>>
@@ -15466,9 +15466,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F8 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
             #F10 foo (nameOffset:28) (firstTokenOffset:26) (offset:28)
@@ -15515,12 +15515,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F8
           returnType: A<int>
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F9
           returnType: List<A<dynamic>>
@@ -15588,9 +15588,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:49) (firstTokenOffset:36) (offset:49)
           element: <testLibrary>::@enum::A
@@ -15630,12 +15630,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F6
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F7
           returnType: List<A>
@@ -15725,9 +15725,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F8 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:66) (firstTokenOffset:53) (offset:66)
           element: <testLibrary>::@enum::A
@@ -15795,12 +15795,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F8
           returnType: A<int>
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F9
           returnType: List<A<dynamic>>
@@ -15890,12 +15890,12 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           setters
-            #F9 foo1 (nameOffset:20) (firstTokenOffset:16) (offset:20)
+            #F9 isOriginDeclaration foo1 (nameOffset:20) (firstTokenOffset:16) (offset:20)
               element: <testLibrary>::@enum::A::@setter::foo1
               formalParameters
                 #F10 requiredPositional _ (nameOffset:29) (firstTokenOffset:25) (offset:29)
@@ -15907,7 +15907,7 @@ library
             #F11 synthetic isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@enum::A::@field::foo2
           setters
-            #F12 foo2 (nameOffset:62) (firstTokenOffset:58) (offset:62)
+            #F12 isOriginDeclaration foo2 (nameOffset:62) (firstTokenOffset:58) (offset:62)
               element: <testLibrary>::@enum::A::@setter::foo2
               formalParameters
                 #F13 requiredPositional _ (nameOffset:71) (firstTokenOffset:67) (offset:71)
@@ -15949,18 +15949,18 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F8
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
       setters
-        foo1
+        isOriginDeclaration foo1
           reference: <testLibrary>::@enum::A::@setter::foo1
           firstFragment: #F9
           formalParameters
@@ -15969,7 +15969,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@enum::A::@field::foo1
-        foo2
+        isOriginDeclaration foo2
           reference: <testLibrary>::@enum::A::@setter::foo2
           firstFragment: #F12
           formalParameters
@@ -16042,17 +16042,17 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F9 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::foo
         #F2 enum A (nameOffset:51) (firstTokenOffset:38) (offset:51)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           setters
-            #F10 augment foo (nameOffset:70) (firstTokenOffset:58) (offset:70)
+            #F10 augment isOriginDeclaration foo (nameOffset:70) (firstTokenOffset:58) (offset:70)
               element: <testLibrary>::@enum::A::@setter::foo
               formalParameters
                 #F11 requiredPositional _ (nameOffset:78) (firstTokenOffset:74) (offset:78)
@@ -16093,23 +16093,23 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F8
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F9
           returnType: int
           variable: <testLibrary>::@enum::A::@field::foo
       setters
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@setter::foo
           firstFragment: #F10
           formalParameters
@@ -16175,9 +16175,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:29) (firstTokenOffset:16) (offset:29)
           element: <testLibrary>::@enum::A
@@ -16186,7 +16186,7 @@ library
             #F8 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::A::@field::foo
           setters
-            #F9 augment foo (nameOffset:48) (firstTokenOffset:36) (offset:48)
+            #F9 augment isOriginDeclaration foo (nameOffset:48) (firstTokenOffset:36) (offset:48)
               element: <testLibrary>::@enum::A::@setter::foo
               formalParameters
                 #F10 requiredPositional _ (nameOffset:56) (firstTokenOffset:52) (offset:56)
@@ -16223,18 +16223,18 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F6
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F7
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
       setters
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@setter::foo
           firstFragment: #F9
           formalParameters
@@ -16306,18 +16306,18 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           setters
-            #F10 foo1 (nameOffset:20) (firstTokenOffset:16) (offset:20)
+            #F10 isOriginDeclaration foo1 (nameOffset:20) (firstTokenOffset:16) (offset:20)
               element: <testLibrary>::@enum::A::@setter::foo1
               formalParameters
                 #F11 requiredPositional _ (nameOffset:29) (firstTokenOffset:25) (offset:29)
                   element: <testLibrary>::@enum::A::@setter::foo1::@formalParameter::_
               nextFragment: #F12
-            #F13 foo2 (nameOffset:41) (firstTokenOffset:37) (offset:41)
+            #F13 isOriginDeclaration foo2 (nameOffset:41) (firstTokenOffset:37) (offset:41)
               element: <testLibrary>::@enum::A::@setter::foo2
               formalParameters
                 #F14 requiredPositional _ (nameOffset:50) (firstTokenOffset:46) (offset:50)
@@ -16326,7 +16326,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           setters
-            #F12 augment foo1 (nameOffset:91) (firstTokenOffset:79) (offset:91)
+            #F12 augment isOriginDeclaration foo1 (nameOffset:91) (firstTokenOffset:79) (offset:91)
               element: <testLibrary>::@enum::A::@setter::foo1
               formalParameters
                 #F15 requiredPositional _ (nameOffset:100) (firstTokenOffset:96) (offset:100)
@@ -16369,18 +16369,18 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F8
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F9
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
       setters
-        foo1
+        isOriginDeclaration foo1
           reference: <testLibrary>::@enum::A::@setter::foo1
           firstFragment: #F10
           formalParameters
@@ -16389,7 +16389,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@enum::A::@field::foo1
-        foo2
+        isOriginDeclaration foo2
           reference: <testLibrary>::@enum::A::@setter::foo2
           firstFragment: #F13
           formalParameters
@@ -16457,9 +16457,9 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
   classes
     class A
@@ -16488,12 +16488,12 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F6
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F7
           returnType: List<A>
@@ -16552,9 +16552,9 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           getters
-            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+            #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
               element: <testLibrary>::@enum::A::@def::0::@getter::v
-            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@def::0::@getter::values
         #F7 enum A (nameOffset:44) (firstTokenOffset:31) (offset:44)
           element: <testLibrary>::@enum::A::@def::1
@@ -16567,7 +16567,7 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           getters
-            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@enum::A::@def::1::@getter::values
   classes
     class A
@@ -16596,12 +16596,12 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::A::@def::0::@getter::values
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@def::0::@getter::v
           firstFragment: #F5
           returnType: A
           variable: <testLibrary>::@enum::A::@def::0::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@def::0::@getter::values
           firstFragment: #F6
           returnType: List<A>
@@ -16620,7 +16620,7 @@ library
             expression: expression_2
           getter: <testLibrary>::@enum::A::@def::1::@getter::values
       getters
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@def::1::@getter::values
           firstFragment: #F9
           returnType: List<A>
@@ -16695,9 +16695,9 @@ library
               periodOffset: 31
               nextFragment: #F6
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:57) (firstTokenOffset:44) (offset:57)
           element: <testLibrary>::@enum::A
@@ -16748,12 +16748,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::named
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F8
           returnType: List<A>
@@ -16823,9 +16823,9 @@ library
               periodOffset: 31
               nextFragment: #F6
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:57) (firstTokenOffset:44) (offset:57)
           element: <testLibrary>::@enum::A
@@ -16864,12 +16864,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::named
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F8
           returnType: List<A>
@@ -16933,9 +16933,9 @@ library
               typeNameOffset: 22
               nextFragment: #F6
           getters
-            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:43) (firstTokenOffset:30) (offset:43)
           element: <testLibrary>::@enum::A
@@ -16973,12 +16973,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F7
           returnType: A
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F8
           returnType: List<A>
@@ -17049,9 +17049,9 @@ library
               element: <testLibrary>::@enum::B::@constructor::new
               typeName: B
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
               element: <testLibrary>::@enum::B::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::B::@getter::values
         #F2 enum B (nameOffset:59) (firstTokenOffset:46) (offset:59)
           element: <testLibrary>::@enum::B
@@ -17091,12 +17091,12 @@ library
           reference: <testLibrary>::@enum::B::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::B::@getter::v
           firstFragment: #F6
           returnType: B
           variable: <testLibrary>::@enum::B::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::B::@getter::values
           firstFragment: #F7
           returnType: List<B>
@@ -17176,9 +17176,9 @@ library
               element: <testLibrary>::@enum::B::@constructor::new
               typeName: B
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::B::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@enum::B::@getter::values
           methods
             #F8 foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
@@ -17218,12 +17218,12 @@ library
           reference: <testLibrary>::@enum::B::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::B::@getter::v
           firstFragment: #F6
           returnType: B
           variable: <testLibrary>::@enum::B::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::B::@getter::values
           firstFragment: #F7
           returnType: List<B>
@@ -17303,9 +17303,9 @@ library
               element: <testLibrary>::@enum::B::@constructor::new
               typeName: B
           getters
-            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::B::@getter::v
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@enum::B::@getter::values
           methods
             #F8 foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
@@ -17345,12 +17345,12 @@ library
           reference: <testLibrary>::@enum::B::@constructor::new
           firstFragment: #F5
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::B::@getter::v
           firstFragment: #F6
           returnType: B
           variable: <testLibrary>::@enum::B::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::B::@getter::values
           firstFragment: #F7
           returnType: List<B>
@@ -17433,9 +17433,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F10 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F10 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@enum::A::@getter::v
-            #F11 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F11 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F4 enum A (nameOffset:53) (firstTokenOffset:40) (offset:53)
           element: <testLibrary>::@enum::A
@@ -17483,12 +17483,12 @@ library
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F9
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F10
           returnType: A<B>
           variable: <testLibrary>::@enum::A::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F11
           returnType: List<A<B>>
