@@ -118,7 +118,7 @@ library
                       typeArgumentTypes
                         dynamic
           getters
-            #F5 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+            #F5 synthetic isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
               element: <testLibrary>::@class::X::@getter::f
       typeAliases
         #F6 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
@@ -164,7 +164,7 @@ library
                 expression: expression_0
               field: <testLibrary>::@class::X::@field::f
       getters
-        synthetic f
+        synthetic isOriginVariable f
           reference: <testLibrary>::@class::X::@getter::f
           firstFragment: #F5
           returnType: void Function(dynamic)

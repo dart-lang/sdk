@@ -39,7 +39,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F4 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F4 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@class::A::@getter::x
   classes
     class A
@@ -56,7 +56,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
       getters
-        synthetic x
+        synthetic isOriginVariable x
           reference: <testLibrary>::@class::A::@getter::x
           firstFragment: #F4
           returnType: (int, String)
@@ -87,7 +87,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F4 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F4 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::A::@getter::x
   classes
     class A
@@ -104,7 +104,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
       getters
-        synthetic x
+        synthetic isOriginVariable x
           reference: <testLibrary>::@class::A::@getter::x
           firstFragment: #F4
           returnType: (int, bool)
@@ -524,7 +524,7 @@ library
         #F1 isOriginDeclaration x (nameOffset:20) (firstTokenOffset:20) (offset:20)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+        #F2 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
           element: <testLibrary>::@getter::x
   topLevelVariables
     final isOriginDeclaration x
@@ -533,7 +533,7 @@ library
       type: (int, String)
       getter: <testLibrary>::@getter::x
   getters
-    synthetic static x
+    synthetic static isOriginVariable x
       reference: <testLibrary>::@getter::x
       firstFragment: #F2
       returnType: (int, String)
@@ -555,7 +555,7 @@ library
         #F1 hasInitializer isOriginDeclaration x (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F2 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::x
   topLevelVariables
     final hasImplicitType hasInitializer isOriginDeclaration x
@@ -564,7 +564,7 @@ library
       type: (int, bool)
       getter: <testLibrary>::@getter::x
   getters
-    synthetic static x
+    synthetic static isOriginVariable x
       reference: <testLibrary>::@getter::x
       firstFragment: #F2
       returnType: (int, bool)
@@ -617,7 +617,7 @@ library
                 type: List<({int f1, String f2})>
               staticType: Type
       getters
-        #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F2 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::x
   topLevelVariables
     const hasImplicitType hasInitializer isOriginDeclaration x
@@ -629,7 +629,7 @@ library
         expression: expression_0
       getter: <testLibrary>::@getter::x
   getters
-    synthetic static x
+    synthetic static isOriginVariable x
       reference: <testLibrary>::@getter::x
       firstFragment: #F2
       returnType: Type
@@ -678,7 +678,7 @@ library
                 type: List<(int, String)>
               staticType: Type
       getters
-        #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F2 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::x
   topLevelVariables
     const hasImplicitType hasInitializer isOriginDeclaration x
@@ -690,7 +690,7 @@ library
         expression: expression_0
       getter: <testLibrary>::@getter::x
   getters
-    synthetic static x
+    synthetic static isOriginVariable x
       reference: <testLibrary>::@getter::x
       firstFragment: #F2
       returnType: Type

@@ -707,10 +707,10 @@ library
                       literal: 1 @68
                       staticType: int
           getters
-            #F7 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F7 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F8 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F8 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
@@ -750,13 +750,13 @@ library
                 expression: expression_1
               field: <testLibrary>::@class::C::@field::x
       getters
-        synthetic x
+        synthetic isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
           firstFragment: #F7
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
-        synthetic x
+        synthetic isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F8
           formalParameters

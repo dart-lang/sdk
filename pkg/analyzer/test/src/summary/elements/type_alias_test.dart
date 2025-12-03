@@ -1759,10 +1759,10 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F4 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+            #F4 synthetic isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@class::A::@getter::f
           setters
-            #F5 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+            #F5 synthetic isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@class::A::@setter::f
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
@@ -1792,7 +1792,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
       getters
-        synthetic f
+        synthetic isOriginVariable f
           reference: <testLibrary>::@class::A::@getter::f
           firstFragment: #F4
           returnType: int Function<T>(T)
@@ -1801,7 +1801,7 @@ library
                 int
           variable: <testLibrary>::@class::A::@field::f
       setters
-        synthetic f
+        synthetic isOriginVariable f
           reference: <testLibrary>::@class::A::@setter::f
           firstFragment: #F5
           formalParameters
