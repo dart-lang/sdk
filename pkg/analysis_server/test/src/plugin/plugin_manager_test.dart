@@ -7,6 +7,7 @@ import 'dart:io' as io;
 
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
@@ -527,8 +528,10 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
   }
 
   void test_pathsFor_newPlugin_withPubspec() {
+    late File packageConfigFile;
+
     processRunner.runSyncHandler = simpleRunSyncHandler(() {
-      newPackageConfigJsonFile('/plugin', '');
+      packageConfigFile = newPackageConfigJsonFile('/plugin', '');
     });
 
     // Build the minimal directory structure for a plugin package that includes
@@ -543,17 +546,19 @@ environment:
 
     var files = manager.filesFor(pluginDirPath, isLegacyPlugin: false);
     expect(files.execution, pluginFile);
-    expect(files.packageConfig.path, '/plugin/.dart_tool/package_config.json');
+    expect(files.packageConfig, packageConfigFile);
   }
 
   void test_pathsFor_newPlugin_withPubspec_withAot() {
+    late File packageConfigFile;
+
     processRunner.runSyncHandler = simpleRunSyncHandler(() {
-      newPackageConfigJsonFile('/plugin', '');
+      packageConfigFile = newPackageConfigJsonFile('/plugin', '');
     });
 
     // Build the minimal directory structure for a plugin package that includes
     // a 'pubspec.yaml' file.
-    var pluginDirPath = newFolder('/plugin').path;
+    var pluginDir = newFolder('/plugin');
     newFile('/plugin/bin/plugin.dart', '');
     newFile('/plugin/pubspec.yaml', '''
 name: my_plugin
@@ -562,12 +567,18 @@ environment:
 ''');
 
     var files = manager.filesFor(
-      pluginDirPath,
+      pluginDir.path,
       isLegacyPlugin: false,
       builtAsAot: true,
     );
-    expect(files.execution.path, '/plugin/bin/plugin.aot');
-    expect(files.packageConfig.path, '/plugin/.dart_tool/package_config.json');
+
+    expect(
+      files.execution,
+      pluginDir
+          .getChildAssumingFolder('bin')
+          .getChildAssumingFile('plugin.aot'),
+    );
+    expect(files.packageConfig, packageConfigFile);
   }
 
   void test_pluginsForContextRoot_none() {
