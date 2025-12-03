@@ -1316,6 +1316,30 @@ void f(Object? x) {
 ''');
   }
 
+  test_privateNamedParameter() async {
+    await assertNoErrorsInCode('''
+class C {
+  final int _x;
+  final int _y;
+  const C({required this._x, required this._y});
+  int get xy => _x + _y; // Avoid unused field warning.
+}
+const c = C(x: 123, y: 456);
+''');
+    var result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+C
+  _x: int 123
+  _y: int 456
+  constructorInvocation
+    constructor: <testLibrary>::@class::C::@constructor::new
+    namedArguments
+      x: int 123
+      y: int 456
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
   test_propertyAccess_nullAware_dynamic_length_notNull() async {
     await assertNoErrorsInCode(r'''
 const dynamic d = 'foo';
