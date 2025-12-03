@@ -278,6 +278,14 @@ main(List<String> args) {
       () => Encoding.getByName("us-ascii")!.encode("123abc"),
     ),
   );
+  Expect.identical(
+    ascii,
+    IsolateGroup.runSync(() => Encoding.getByName("us-ascii")),
+  );
+  Expect.identical(
+    utf8,
+    IsolateGroup.runSync(() => Encoding.getByName("utf-8")),
+  );
 
   print("All tests completed :)");
 }
