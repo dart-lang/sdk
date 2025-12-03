@@ -721,5 +721,54 @@ bool GraphIntrinsifier::Build_DoubleFlipSignBit(FlowGraph* flow_graph) {
   return true;
 }
 
+static Definition* GetThreadLocalValue(FlowGraph* flow_graph,
+                                       BlockBuilder* builder) {
+  Definition* thread = builder->AddDefinition(new LoadThreadInstr());
+  Definition* array = builder->AddDefinition(
+      new LoadFieldInstr(new Value(thread),
+                         /*slot=*/Slot::Thread_thread_locals(),
+                         InnerPointerAccess::kNotUntagged, builder->Source(),
+                         /*calls_initializer=*/false, DeoptId::kNone,
+                         compiler::Assembler::kRelaxedNonAtomic));
+  Definition* index = builder->AddParameter(0);
+
+  Definition* safe_index =
+      PrepareIndexedOp(flow_graph, builder, array, index, Slot::Array_length());
+
+  Definition* local = builder->AddDefinition(new LoadIndexedInstr(
+      new Value(array), new Value(safe_index), /*index_unboxed=*/false,
+      /*index_scale=*/target::Instance::ElementSizeFor(kArrayCid), kArrayCid,
+      kAlignedAccess, DeoptId::kNone, builder->Source(),
+      new CompileType(CompileType::FromAbstractType(
+          Type::ZoneHandle(Type::ObjectType()), CompileType::kCanBeNull,
+          CompileType::kCanBeSentinel))));
+  return local;
+}
+
+bool GraphIntrinsifier::Build_ThreadLocalGetValue(FlowGraph* flow_graph) {
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  auto normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
+  Definition* local = GetThreadLocalValue(flow_graph, &builder);
+
+  builder.AddReturn(new Value(local));
+  return true;
+}
+
+bool GraphIntrinsifier::Build_ThreadLocalHasValue(FlowGraph* flow_graph) {
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  auto normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
+  Definition* local = GetThreadLocalValue(flow_graph, &builder);
+
+  Definition* sentinel = flow_graph->GetConstant(Object::sentinel());
+  Definition* result = builder.AddDefinition(new StrictCompareInstr(
+      builder.Source(), Token::kNE_STRICT, new Value(local),
+      new Value(sentinel), /*needs_number_check=*/false, DeoptId::kNone));
+
+  builder.AddReturn(new Value(result));
+  return true;
+}
+
 }  // namespace compiler
 }  // namespace dart
