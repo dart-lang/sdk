@@ -11,9 +11,12 @@
 // VMOptions=--use-slow-path --stacktrace-every=100
 // VMOptions=--dwarf_stack_traces --no-retain_function_objects --no-retain_code_objects
 // VMOptions=--test_il_serialization
-// VMOptions=--profiler --profile_vm=true
-// VMOptions=--profiler --profile_vm=false
 // SharedObjects=ffi_test_functions
+
+// No profiler for this test. TSAN's vector clocks become more expensive as the
+// number of threads that touch a variable increases. This test creates many
+// threads, and the Mac/Windows/Fuchsia profilers will sample them from another
+// thread.
 
 import 'dart:async';
 import 'dart:ffi';
