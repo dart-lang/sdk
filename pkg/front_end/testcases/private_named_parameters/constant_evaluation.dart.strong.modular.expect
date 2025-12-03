@@ -1,0 +1,25 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object /*hasConstConstructor*/  {
+  final field core::int _x;
+  final field core::int _y;
+  const constructor •({required core::int x, required core::int y}) → self::C
+    : self::C::_x = x, self::C::_y = y, super core::Object::•()
+    ;
+}
+static const field self::C c = #C3;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 123
+  #C2 = 456
+  #C3 = self::C {_x:#C1, _y:#C2}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///constant_evaluation.dart:
+- C. (from org-dartlang-testcase:///constant_evaluation.dart:8:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
