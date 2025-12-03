@@ -27,7 +27,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 f (nameOffset:16) (firstTokenOffset:16) (offset:16)
+        #F1 isOriginDeclaration f (nameOffset:16) (firstTokenOffset:16) (offset:16)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F2 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
@@ -39,7 +39,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F1
       type: void Function()
@@ -75,7 +75,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 f (nameOffset:17) (firstTokenOffset:17) (offset:17)
+        #F1 isOriginDeclaration f (nameOffset:17) (firstTokenOffset:17) (offset:17)
           element: <testLibrary>::@topLevelVariable::f
       getters
         #F2 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
@@ -87,7 +87,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F1
       type: void Function()?
@@ -266,7 +266,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 v (nameOffset:30) (firstTokenOffset:30) (offset:30)
+        #F1 isOriginDeclaration v (nameOffset:30) (firstTokenOffset:30) (offset:30)
           element: <testLibrary>::@topLevelVariable::v
       getters
         #F2 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
@@ -278,7 +278,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    v
+    isOriginDeclaration v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: int Function(int, String)
@@ -383,7 +383,7 @@ library
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        #F4 hasInitializer v (nameOffset:62) (firstTokenOffset:62) (offset:62)
+        #F4 hasInitializer isOriginDeclaration v (nameOffset:62) (firstTokenOffset:62) (offset:62)
           element: <testLibrary>::@topLevelVariable::v
           metadata
             Annotation
@@ -450,7 +450,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
   topLevelVariables
-    hasImplicitType hasInitializer v
+    hasImplicitType hasInitializer isOriginDeclaration v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       metadata
@@ -545,7 +545,7 @@ library
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        #F4 hasInitializer v (nameOffset:35) (firstTokenOffset:35) (offset:35)
+        #F4 hasInitializer isOriginDeclaration v (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             InstanceCreationExpression
@@ -614,7 +614,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
   topLevelVariables
-    const hasImplicitType hasInitializer v
+    const hasImplicitType hasInitializer isOriginDeclaration v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       type: A<String Function({int? a})>
@@ -657,7 +657,7 @@ library
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        #F4 hasInitializer v (nameOffset:35) (firstTokenOffset:35) (offset:35)
+        #F4 hasInitializer isOriginDeclaration v (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             InstanceCreationExpression
@@ -726,7 +726,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
   topLevelVariables
-    const hasImplicitType hasInitializer v
+    const hasImplicitType hasInitializer isOriginDeclaration v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       type: A<String Function([int?])>
@@ -769,7 +769,7 @@ library
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        #F4 hasInitializer v (nameOffset:35) (firstTokenOffset:35) (offset:35)
+        #F4 hasInitializer isOriginDeclaration v (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             InstanceCreationExpression
@@ -838,7 +838,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
   topLevelVariables
-    const hasImplicitType hasInitializer v
+    const hasImplicitType hasInitializer isOriginDeclaration v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       type: A<String Function({required int a})>
@@ -881,7 +881,7 @@ library
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        #F4 hasInitializer v (nameOffset:35) (firstTokenOffset:35) (offset:35)
+        #F4 hasInitializer isOriginDeclaration v (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             InstanceCreationExpression
@@ -943,7 +943,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
   topLevelVariables
-    const hasImplicitType hasInitializer v
+    const hasImplicitType hasInitializer isOriginDeclaration v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       type: A<String Function(int)>

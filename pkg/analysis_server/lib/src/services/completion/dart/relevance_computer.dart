@@ -675,7 +675,7 @@ class RelevanceComputer {
     double inheritanceDistance,
     bool isNotImportedLibrary,
   ) {
-    if (element.isSynthetic) {
+    if (element.isOriginGetterSetter) {
       var getter = element.getter;
       if (getter != null) {
         var variable = getter.variable;

@@ -352,7 +352,7 @@ class DocumentationValidator {
         message.documentation,
       );
       if (docs != null) {
-        codeName = message.sharedName ?? message.analyzerCode.snakeCaseName;
+        codeName = (message.sharedName ?? message.analyzerCode).snakeCaseName;
         variableName = message.analyzerCode.lowerSnakeCaseName;
         if (unverifiedDocs.contains(variableName)) {
           continue;

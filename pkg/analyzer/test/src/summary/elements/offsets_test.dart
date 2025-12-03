@@ -909,15 +909,15 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasInitializer withInit (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F2 hasInitializer isOriginDeclaration withInit (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::withInit
-            #F3 withoutInit (nameOffset:37) (firstTokenOffset:37) (offset:37)
+            #F3 isOriginDeclaration withoutInit (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@class::C::@field::withoutInit
-            #F4 hasInitializer multiWithInit (nameOffset:57) (firstTokenOffset:57) (offset:57)
+            #F4 hasInitializer isOriginDeclaration multiWithInit (nameOffset:57) (firstTokenOffset:57) (offset:57)
               element: <testLibrary>::@class::C::@field::multiWithInit
-            #F5 multiWithoutInit (nameOffset:76) (firstTokenOffset:76) (offset:76)
+            #F5 isOriginDeclaration multiWithoutInit (nameOffset:76) (firstTokenOffset:76) (offset:76)
               element: <testLibrary>::@class::C::@field::multiWithoutInit
-            #F6 hasInitializer multiWithInit2 (nameOffset:94) (firstTokenOffset:94) (offset:94)
+            #F6 hasInitializer isOriginDeclaration multiWithInit2 (nameOffset:94) (firstTokenOffset:94) (offset:94)
               element: <testLibrary>::@class::C::@field::multiWithInit2
           constructors
             #F7 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -965,31 +965,31 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasInitializer withInit
+        hasInitializer isOriginDeclaration withInit
           reference: <testLibrary>::@class::C::@field::withInit
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::C::@getter::withInit
           setter: <testLibrary>::@class::C::@setter::withInit
-        withoutInit
+        isOriginDeclaration withoutInit
           reference: <testLibrary>::@class::C::@field::withoutInit
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@class::C::@getter::withoutInit
           setter: <testLibrary>::@class::C::@setter::withoutInit
-        hasInitializer multiWithInit
+        hasInitializer isOriginDeclaration multiWithInit
           reference: <testLibrary>::@class::C::@field::multiWithInit
           firstFragment: #F4
           type: int
           getter: <testLibrary>::@class::C::@getter::multiWithInit
           setter: <testLibrary>::@class::C::@setter::multiWithInit
-        multiWithoutInit
+        isOriginDeclaration multiWithoutInit
           reference: <testLibrary>::@class::C::@field::multiWithoutInit
           firstFragment: #F5
           type: int
           getter: <testLibrary>::@class::C::@getter::multiWithoutInit
           setter: <testLibrary>::@class::C::@setter::multiWithoutInit
-        hasInitializer multiWithInit2
+        hasInitializer isOriginDeclaration multiWithInit2
           reference: <testLibrary>::@class::C::@field::multiWithInit2
           firstFragment: #F6
           type: int
@@ -1111,11 +1111,11 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasDocComment (nameOffset:50) (firstTokenOffset:50) (offset:50)
+            #F2 isOriginDeclaration hasDocComment (nameOffset:50) (firstTokenOffset:50) (offset:50)
               element: <testLibrary>::@class::C::@field::hasDocComment
-            #F3 hasDocComment2 (nameOffset:65) (firstTokenOffset:65) (offset:65)
+            #F3 isOriginDeclaration hasDocComment2 (nameOffset:65) (firstTokenOffset:65) (offset:65)
               element: <testLibrary>::@class::C::@field::hasDocComment2
-            #F4 hasAnnotation (nameOffset:100) (firstTokenOffset:100) (offset:100)
+            #F4 isOriginDeclaration hasAnnotation (nameOffset:100) (firstTokenOffset:100) (offset:100)
               element: <testLibrary>::@class::C::@field::hasAnnotation
               metadata
                 Annotation
@@ -1128,7 +1128,7 @@ library
                     leftParenthesis: ( @91
                     rightParenthesis: ) @92
                   element: dart:core::@class::Object::@constructor::new
-            #F5 hasAnnotation2 (nameOffset:115) (firstTokenOffset:115) (offset:115)
+            #F5 isOriginDeclaration hasAnnotation2 (nameOffset:115) (firstTokenOffset:115) (offset:115)
               element: <testLibrary>::@class::C::@field::hasAnnotation2
               metadata
                 Annotation
@@ -1141,7 +1141,7 @@ library
                     leftParenthesis: ( @91
                     rightParenthesis: ) @92
                   element: dart:core::@class::Object::@constructor::new
-            #F6 annotationThenComment (nameOffset:184) (firstTokenOffset:184) (offset:184)
+            #F6 isOriginDeclaration annotationThenComment (nameOffset:184) (firstTokenOffset:184) (offset:184)
               element: <testLibrary>::@class::C::@field::annotationThenComment
               metadata
                 Annotation
@@ -1154,7 +1154,7 @@ library
                     leftParenthesis: ( @141
                     rightParenthesis: ) @142
                   element: dart:core::@class::Object::@constructor::new
-            #F7 annotationThenComment2 (nameOffset:207) (firstTokenOffset:207) (offset:207)
+            #F7 isOriginDeclaration annotationThenComment2 (nameOffset:207) (firstTokenOffset:207) (offset:207)
               element: <testLibrary>::@class::C::@field::annotationThenComment2
               metadata
                 Annotation
@@ -1167,7 +1167,7 @@ library
                     leftParenthesis: ( @141
                     rightParenthesis: ) @142
                   element: dart:core::@class::Object::@constructor::new
-            #F8 commentThenAnnotation (nameOffset:284) (firstTokenOffset:284) (offset:284)
+            #F8 isOriginDeclaration commentThenAnnotation (nameOffset:284) (firstTokenOffset:284) (offset:284)
               element: <testLibrary>::@class::C::@field::commentThenAnnotation
               metadata
                 Annotation
@@ -1180,7 +1180,7 @@ library
                     leftParenthesis: ( @275
                     rightParenthesis: ) @276
                   element: dart:core::@class::Object::@constructor::new
-            #F9 commentThenAnnotation2 (nameOffset:307) (firstTokenOffset:307) (offset:307)
+            #F9 isOriginDeclaration commentThenAnnotation2 (nameOffset:307) (firstTokenOffset:307) (offset:307)
               element: <testLibrary>::@class::C::@field::commentThenAnnotation2
               metadata
                 Annotation
@@ -1193,7 +1193,7 @@ library
                     leftParenthesis: ( @275
                     rightParenthesis: ) @276
                   element: dart:core::@class::Object::@constructor::new
-            #F10 commentAroundAnnotation (nameOffset:384) (firstTokenOffset:384) (offset:384)
+            #F10 isOriginDeclaration commentAroundAnnotation (nameOffset:384) (firstTokenOffset:384) (offset:384)
               element: <testLibrary>::@class::C::@field::commentAroundAnnotation
               metadata
                 Annotation
@@ -1206,7 +1206,7 @@ library
                     leftParenthesis: ( @358
                     rightParenthesis: ) @359
                   element: dart:core::@class::Object::@constructor::new
-            #F11 commentAroundAnnotation2 (nameOffset:409) (firstTokenOffset:409) (offset:409)
+            #F11 isOriginDeclaration commentAroundAnnotation2 (nameOffset:409) (firstTokenOffset:409) (offset:409)
               element: <testLibrary>::@class::C::@field::commentAroundAnnotation2
               metadata
                 Annotation
@@ -1300,19 +1300,19 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasDocComment
+        isOriginDeclaration hasDocComment
           reference: <testLibrary>::@class::C::@field::hasDocComment
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::C::@getter::hasDocComment
           setter: <testLibrary>::@class::C::@setter::hasDocComment
-        hasDocComment2
+        isOriginDeclaration hasDocComment2
           reference: <testLibrary>::@class::C::@field::hasDocComment2
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@class::C::@getter::hasDocComment2
           setter: <testLibrary>::@class::C::@setter::hasDocComment2
-        hasAnnotation
+        isOriginDeclaration hasAnnotation
           reference: <testLibrary>::@class::C::@field::hasAnnotation
           firstFragment: #F4
           metadata
@@ -1329,7 +1329,7 @@ library
           type: int
           getter: <testLibrary>::@class::C::@getter::hasAnnotation
           setter: <testLibrary>::@class::C::@setter::hasAnnotation
-        hasAnnotation2
+        isOriginDeclaration hasAnnotation2
           reference: <testLibrary>::@class::C::@field::hasAnnotation2
           firstFragment: #F5
           metadata
@@ -1346,7 +1346,7 @@ library
           type: int
           getter: <testLibrary>::@class::C::@getter::hasAnnotation2
           setter: <testLibrary>::@class::C::@setter::hasAnnotation2
-        annotationThenComment
+        isOriginDeclaration annotationThenComment
           reference: <testLibrary>::@class::C::@field::annotationThenComment
           firstFragment: #F6
           metadata
@@ -1363,7 +1363,7 @@ library
           type: int
           getter: <testLibrary>::@class::C::@getter::annotationThenComment
           setter: <testLibrary>::@class::C::@setter::annotationThenComment
-        annotationThenComment2
+        isOriginDeclaration annotationThenComment2
           reference: <testLibrary>::@class::C::@field::annotationThenComment2
           firstFragment: #F7
           metadata
@@ -1380,7 +1380,7 @@ library
           type: int
           getter: <testLibrary>::@class::C::@getter::annotationThenComment2
           setter: <testLibrary>::@class::C::@setter::annotationThenComment2
-        commentThenAnnotation
+        isOriginDeclaration commentThenAnnotation
           reference: <testLibrary>::@class::C::@field::commentThenAnnotation
           firstFragment: #F8
           metadata
@@ -1397,7 +1397,7 @@ library
           type: int
           getter: <testLibrary>::@class::C::@getter::commentThenAnnotation
           setter: <testLibrary>::@class::C::@setter::commentThenAnnotation
-        commentThenAnnotation2
+        isOriginDeclaration commentThenAnnotation2
           reference: <testLibrary>::@class::C::@field::commentThenAnnotation2
           firstFragment: #F9
           metadata
@@ -1414,7 +1414,7 @@ library
           type: int
           getter: <testLibrary>::@class::C::@getter::commentThenAnnotation2
           setter: <testLibrary>::@class::C::@setter::commentThenAnnotation2
-        commentAroundAnnotation
+        isOriginDeclaration commentAroundAnnotation
           reference: <testLibrary>::@class::C::@field::commentAroundAnnotation
           firstFragment: #F10
           metadata
@@ -1431,7 +1431,7 @@ library
           type: int
           getter: <testLibrary>::@class::C::@getter::commentAroundAnnotation
           setter: <testLibrary>::@class::C::@setter::commentAroundAnnotation
-        commentAroundAnnotation2
+        isOriginDeclaration commentAroundAnnotation2
           reference: <testLibrary>::@class::C::@field::commentAroundAnnotation2
           firstFragment: #F11
           metadata
@@ -2118,15 +2118,15 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer withInit (nameOffset:4) (firstTokenOffset:4) (offset:4)
+        #F1 hasInitializer isOriginDeclaration withInit (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::withInit
-        #F2 withoutInit (nameOffset:31) (firstTokenOffset:31) (offset:31)
+        #F2 isOriginDeclaration withoutInit (nameOffset:31) (firstTokenOffset:31) (offset:31)
           element: <testLibrary>::@topLevelVariable::withoutInit
-        #F3 hasInitializer multiWithInit (nameOffset:49) (firstTokenOffset:49) (offset:49)
+        #F3 hasInitializer isOriginDeclaration multiWithInit (nameOffset:49) (firstTokenOffset:49) (offset:49)
           element: <testLibrary>::@topLevelVariable::multiWithInit
-        #F4 multiWithoutInit (nameOffset:68) (firstTokenOffset:68) (offset:68)
+        #F4 isOriginDeclaration multiWithoutInit (nameOffset:68) (firstTokenOffset:68) (offset:68)
           element: <testLibrary>::@topLevelVariable::multiWithoutInit
-        #F5 hasInitializer multiWithInit2 (nameOffset:86) (firstTokenOffset:86) (offset:86)
+        #F5 hasInitializer isOriginDeclaration multiWithInit2 (nameOffset:86) (firstTokenOffset:86) (offset:86)
           element: <testLibrary>::@topLevelVariable::multiWithInit2
       getters
         #F6 synthetic withInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
@@ -2166,31 +2166,31 @@ library
             #F20 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:86)
               element: <testLibrary>::@setter::multiWithInit2::@formalParameter::value
   topLevelVariables
-    hasInitializer withInit
+    hasInitializer isOriginDeclaration withInit
       reference: <testLibrary>::@topLevelVariable::withInit
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::withInit
       setter: <testLibrary>::@setter::withInit
-    withoutInit
+    isOriginDeclaration withoutInit
       reference: <testLibrary>::@topLevelVariable::withoutInit
       firstFragment: #F2
       type: int
       getter: <testLibrary>::@getter::withoutInit
       setter: <testLibrary>::@setter::withoutInit
-    hasInitializer multiWithInit
+    hasInitializer isOriginDeclaration multiWithInit
       reference: <testLibrary>::@topLevelVariable::multiWithInit
       firstFragment: #F3
       type: int
       getter: <testLibrary>::@getter::multiWithInit
       setter: <testLibrary>::@setter::multiWithInit
-    multiWithoutInit
+    isOriginDeclaration multiWithoutInit
       reference: <testLibrary>::@topLevelVariable::multiWithoutInit
       firstFragment: #F4
       type: int
       getter: <testLibrary>::@getter::multiWithoutInit
       setter: <testLibrary>::@setter::multiWithoutInit
-    hasInitializer multiWithInit2
+    hasInitializer isOriginDeclaration multiWithInit2
       reference: <testLibrary>::@topLevelVariable::multiWithInit2
       firstFragment: #F5
       type: int
@@ -2303,13 +2303,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasDocComment (nameOffset:34) (firstTokenOffset:34) (offset:34)
+        #F1 isOriginDeclaration hasDocComment (nameOffset:34) (firstTokenOffset:34) (offset:34)
           element: <testLibrary>::@topLevelVariable::hasDocComment
           documentationComment: /// Comment 1.\n/// Comment 2.
-        #F2 hasDocComment2 (nameOffset:49) (firstTokenOffset:49) (offset:49)
+        #F2 isOriginDeclaration hasDocComment2 (nameOffset:49) (firstTokenOffset:49) (offset:49)
           element: <testLibrary>::@topLevelVariable::hasDocComment2
           documentationComment: /// Comment 1.\n/// Comment 2.
-        #F3 hasAnnotation (nameOffset:80) (firstTokenOffset:80) (offset:80)
+        #F3 isOriginDeclaration hasAnnotation (nameOffset:80) (firstTokenOffset:80) (offset:80)
           element: <testLibrary>::@topLevelVariable::hasAnnotation
           metadata
             Annotation
@@ -2322,7 +2322,7 @@ library
                 leftParenthesis: ( @73
                 rightParenthesis: ) @74
               element: dart:core::@class::Object::@constructor::new
-        #F4 hasAnnotation2 (nameOffset:95) (firstTokenOffset:95) (offset:95)
+        #F4 isOriginDeclaration hasAnnotation2 (nameOffset:95) (firstTokenOffset:95) (offset:95)
           element: <testLibrary>::@topLevelVariable::hasAnnotation2
           metadata
             Annotation
@@ -2335,7 +2335,7 @@ library
                 leftParenthesis: ( @73
                 rightParenthesis: ) @74
               element: dart:core::@class::Object::@constructor::new
-        #F5 annotationThenComment (nameOffset:156) (firstTokenOffset:156) (offset:156)
+        #F5 isOriginDeclaration annotationThenComment (nameOffset:156) (firstTokenOffset:156) (offset:156)
           element: <testLibrary>::@topLevelVariable::annotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -2349,7 +2349,7 @@ library
                 leftParenthesis: ( @119
                 rightParenthesis: ) @120
               element: dart:core::@class::Object::@constructor::new
-        #F6 annotationThenComment2 (nameOffset:179) (firstTokenOffset:179) (offset:179)
+        #F6 isOriginDeclaration annotationThenComment2 (nameOffset:179) (firstTokenOffset:179) (offset:179)
           element: <testLibrary>::@topLevelVariable::annotationThenComment2
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -2363,7 +2363,7 @@ library
                 leftParenthesis: ( @119
                 rightParenthesis: ) @120
               element: dart:core::@class::Object::@constructor::new
-        #F7 commentThenAnnotation (nameOffset:248) (firstTokenOffset:248) (offset:248)
+        #F7 isOriginDeclaration commentThenAnnotation (nameOffset:248) (firstTokenOffset:248) (offset:248)
           element: <testLibrary>::@topLevelVariable::commentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -2377,7 +2377,7 @@ library
                 leftParenthesis: ( @241
                 rightParenthesis: ) @242
               element: dart:core::@class::Object::@constructor::new
-        #F8 commentThenAnnotation2 (nameOffset:271) (firstTokenOffset:271) (offset:271)
+        #F8 isOriginDeclaration commentThenAnnotation2 (nameOffset:271) (firstTokenOffset:271) (offset:271)
           element: <testLibrary>::@topLevelVariable::commentThenAnnotation2
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -2391,7 +2391,7 @@ library
                 leftParenthesis: ( @241
                 rightParenthesis: ) @242
               element: dart:core::@class::Object::@constructor::new
-        #F9 commentAroundAnnotation (nameOffset:340) (firstTokenOffset:340) (offset:340)
+        #F9 isOriginDeclaration commentAroundAnnotation (nameOffset:340) (firstTokenOffset:340) (offset:340)
           element: <testLibrary>::@topLevelVariable::commentAroundAnnotation
           documentationComment: /// Comment 2.
           metadata
@@ -2405,7 +2405,7 @@ library
                 leftParenthesis: ( @318
                 rightParenthesis: ) @319
               element: dart:core::@class::Object::@constructor::new
-        #F10 commentAroundAnnotation2 (nameOffset:365) (firstTokenOffset:365) (offset:365)
+        #F10 isOriginDeclaration commentAroundAnnotation2 (nameOffset:365) (firstTokenOffset:365) (offset:365)
           element: <testLibrary>::@topLevelVariable::commentAroundAnnotation2
           documentationComment: /// Comment 2.
           metadata
@@ -2492,21 +2492,21 @@ library
             #F40 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:365)
               element: <testLibrary>::@setter::commentAroundAnnotation2::@formalParameter::value
   topLevelVariables
-    hasDocComment
+    isOriginDeclaration hasDocComment
       reference: <testLibrary>::@topLevelVariable::hasDocComment
       firstFragment: #F1
       documentationComment: /// Comment 1.\n/// Comment 2.
       type: int
       getter: <testLibrary>::@getter::hasDocComment
       setter: <testLibrary>::@setter::hasDocComment
-    hasDocComment2
+    isOriginDeclaration hasDocComment2
       reference: <testLibrary>::@topLevelVariable::hasDocComment2
       firstFragment: #F2
       documentationComment: /// Comment 1.\n/// Comment 2.
       type: int
       getter: <testLibrary>::@getter::hasDocComment2
       setter: <testLibrary>::@setter::hasDocComment2
-    hasAnnotation
+    isOriginDeclaration hasAnnotation
       reference: <testLibrary>::@topLevelVariable::hasAnnotation
       firstFragment: #F3
       metadata
@@ -2523,7 +2523,7 @@ library
       type: int
       getter: <testLibrary>::@getter::hasAnnotation
       setter: <testLibrary>::@setter::hasAnnotation
-    hasAnnotation2
+    isOriginDeclaration hasAnnotation2
       reference: <testLibrary>::@topLevelVariable::hasAnnotation2
       firstFragment: #F4
       metadata
@@ -2540,7 +2540,7 @@ library
       type: int
       getter: <testLibrary>::@getter::hasAnnotation2
       setter: <testLibrary>::@setter::hasAnnotation2
-    annotationThenComment
+    isOriginDeclaration annotationThenComment
       reference: <testLibrary>::@topLevelVariable::annotationThenComment
       firstFragment: #F5
       documentationComment: /// Comment 1.\n/// Comment 2.
@@ -2558,7 +2558,7 @@ library
       type: int
       getter: <testLibrary>::@getter::annotationThenComment
       setter: <testLibrary>::@setter::annotationThenComment
-    annotationThenComment2
+    isOriginDeclaration annotationThenComment2
       reference: <testLibrary>::@topLevelVariable::annotationThenComment2
       firstFragment: #F6
       documentationComment: /// Comment 1.\n/// Comment 2.
@@ -2576,7 +2576,7 @@ library
       type: int
       getter: <testLibrary>::@getter::annotationThenComment2
       setter: <testLibrary>::@setter::annotationThenComment2
-    commentThenAnnotation
+    isOriginDeclaration commentThenAnnotation
       reference: <testLibrary>::@topLevelVariable::commentThenAnnotation
       firstFragment: #F7
       documentationComment: /// Comment 1.\n/// Comment 2.
@@ -2594,7 +2594,7 @@ library
       type: int
       getter: <testLibrary>::@getter::commentThenAnnotation
       setter: <testLibrary>::@setter::commentThenAnnotation
-    commentThenAnnotation2
+    isOriginDeclaration commentThenAnnotation2
       reference: <testLibrary>::@topLevelVariable::commentThenAnnotation2
       firstFragment: #F8
       documentationComment: /// Comment 1.\n/// Comment 2.
@@ -2612,7 +2612,7 @@ library
       type: int
       getter: <testLibrary>::@getter::commentThenAnnotation2
       setter: <testLibrary>::@setter::commentThenAnnotation2
-    commentAroundAnnotation
+    isOriginDeclaration commentAroundAnnotation
       reference: <testLibrary>::@topLevelVariable::commentAroundAnnotation
       firstFragment: #F9
       documentationComment: /// Comment 2.
@@ -2630,7 +2630,7 @@ library
       type: int
       getter: <testLibrary>::@getter::commentAroundAnnotation
       setter: <testLibrary>::@setter::commentAroundAnnotation
-    commentAroundAnnotation2
+    isOriginDeclaration commentAroundAnnotation2
       reference: <testLibrary>::@topLevelVariable::commentAroundAnnotation2
       firstFragment: #F10
       documentationComment: /// Comment 2.
@@ -2938,7 +2938,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           fields
-            #F2 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F2 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::A::@field::foo
           constructors
             #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -2958,7 +2958,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -3003,7 +3003,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           fields
-            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
           constructors
             #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -3017,7 +3017,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -3102,7 +3102,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           fields
-            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
           constructors
             #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -3119,7 +3119,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -3405,13 +3405,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+        #F1 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
           element: <testLibrary>::@topLevelVariable::foo
       getters
         #F2 foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@getter::foo
   topLevelVariables
-    synthetic foo
+    synthetic isOriginGetterSetter foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int

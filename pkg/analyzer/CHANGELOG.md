@@ -23,6 +23,10 @@
   rules. Deprecated `RuleState.removed` (which was the previous way to do so).
 * Deprecate `ConstructorElement.isSynthetic`.
   Use `isOriginDeclaration`, `isOriginImplicitDefault`, `isOriginMixinApplication` instead.
+* Deprecate `TopLevelVariableElement.isSynthetic`.
+  Use `isOriginDeclaration`, `isOriginGetterSetter`.
+* Deprecate `FieldElement.isSynthetic`.
+  Use `isOriginDeclaration`, `isOriginGetterSetter`, `isOriginDeclaringFormalParameter`, `isOriginEnumValues` instead.
 
 ## 9.0.0
 * Remove deprecated field `Diagnostic.data`.

@@ -1039,6 +1039,8 @@ class InheritanceManager3 {
 
       var resultField = FieldFragmentImpl(name: executable.name);
       resultField.enclosingFragment = class_.firstFragment;
+      resultField.isOriginGetterSetter = true;
+      resultField.isSynthetic = true;
 
       var elementName = executable.name!;
       var fieldReference = class_.reference!
@@ -1117,6 +1119,8 @@ class InheritanceManager3 {
       var firstElement = first as InternalPropertyAccessorElement;
       var fragmentName = first.name!;
       var field = FieldFragmentImpl(name: fragmentName);
+      field.isOriginGetterSetter = true;
+      field.isSynthetic = true;
 
       PropertyAccessorFragmentImpl resultFragment;
       PropertyAccessorElementImpl resultElement;

@@ -209,7 +209,7 @@ extension ClassElementExtension on ClassElement {
     var enumConstants = <DartObject, Set<FieldElement>>{};
     for (var field in fields) {
       // Ensure static const.
-      if (field.isSynthetic || !field.isConst || !field.isStatic) {
+      if (field.isOriginGetterSetter || !field.isConst || !field.isStatic) {
         continue;
       }
       // Check for type equality.

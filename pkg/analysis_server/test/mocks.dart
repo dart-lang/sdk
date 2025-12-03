@@ -93,19 +93,43 @@ class MockProcess implements Process {
 }
 
 class MockProcessRunner implements ProcessRunner {
+  ProcessResult Function(
+    String executable,
+    List<String> arguments, {
+    String? workingDirectory,
+    Map<String, String>? environment,
+    Encoding? stderrEncoding,
+    Encoding? stdoutEncoding,
+  })
+  runSyncHandler =
+      (_, _, {workingDirectory, environment, stderrEncoding, stdoutEncoding}) =>
+          throw UnimplementedError();
+
   FutureOr<Process> Function(
     String executable,
     List<String> arguments, {
-    String? dir,
-    Map<String, String>? env,
+    String? workingDirectory,
+    Map<String, String>? environment,
   })
-  startHandler = (executable, arguments, {dir, env}) =>
+  startHandler = (_, _, {workingDirectory, environment}) =>
       throw UnimplementedError();
 
   @override
-  dynamic noSuchMethod(Invocation invocation) {
-    return super.noSuchMethod(invocation);
-  }
+  ProcessResult runSync(
+    String executable,
+    List<String> arguments, {
+    String? workingDirectory,
+    Map<String, String>? environment,
+    Encoding? stderrEncoding,
+    Encoding? stdoutEncoding,
+  }) => runSyncHandler(
+    executable,
+    arguments,
+    workingDirectory: workingDirectory,
+    environment: environment,
+    stderrEncoding: stderrEncoding,
+    stdoutEncoding: stdoutEncoding,
+  );
 
   @override
   Future<Process> start(
@@ -120,8 +144,8 @@ class MockProcessRunner implements ProcessRunner {
     return await startHandler(
       executable,
       arguments,
-      dir: workingDirectory,
-      env: environment,
+      workingDirectory: workingDirectory,
+      environment: environment,
     );
   }
 }

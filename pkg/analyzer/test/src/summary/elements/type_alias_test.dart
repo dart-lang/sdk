@@ -1752,7 +1752,7 @@ library
         #F1 class A (nameOffset:43) (firstTokenOffset:37) (offset:43)
           element: <testLibrary>::@class::A
           fields
-            #F2 f (nameOffset:58) (firstTokenOffset:58) (offset:58)
+            #F2 isOriginDeclaration f (nameOffset:58) (firstTokenOffset:58) (offset:58)
               element: <testLibrary>::@class::A::@field::f
           constructors
             #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
@@ -1778,7 +1778,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        f
+        isOriginDeclaration f
           reference: <testLibrary>::@class::A::@field::f
           firstFragment: #F2
           type: int Function<T>(T)

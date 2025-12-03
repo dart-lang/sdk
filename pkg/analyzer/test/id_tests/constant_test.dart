@@ -83,7 +83,7 @@ class ConstantsDataExtractor extends AstDataExtractor<String> {
       var element = node.element;
       if (element is PropertyAccessorElement && element.isSynthetic) {
         var variable = element.variable;
-        if (!variable.isSynthetic && variable.isConst) {
+        if (variable.isOriginDeclaration && variable.isConst) {
           var value = variable.computeConstantValue();
           if (value != null) return _stringify(value);
         }

@@ -535,6 +535,11 @@ class FieldItem extends VariableItem<FieldElementImpl> {
         flags.isCovariant == element.isCovariant &&
         flags.isEnumConstant == element.isEnumConstant &&
         flags.isExternal == element.isExternal &&
+        flags.isOriginDeclaration == element.isOriginDeclaration &&
+        flags.isOriginDeclaringFormalParameter ==
+            element.isOriginDeclaringFormalParameter &&
+        flags.isOriginEnumValues == element.isOriginEnumValues &&
+        flags.isOriginGetterSetter == element.isOriginGetterSetter &&
         flags.isPromotable == element.isPromotable;
   }
 
@@ -1483,7 +1488,9 @@ class TopLevelVariableItem extends VariableItem<TopLevelVariableElementImpl> {
   @override
   bool match(MatchContext context, TopLevelVariableElementImpl element) {
     return super.match(context, element) &&
-        flags.isExternal == element.isExternal;
+        flags.isExternal == element.isExternal &&
+        flags.isOriginDeclaration == element.isOriginDeclaration &&
+        flags.isOriginGetterSetter == element.isOriginGetterSetter;
   }
 }
 
@@ -1631,6 +1638,10 @@ enum _FieldItemFlag {
   isCovariant,
   isEnumConstant,
   isExternal,
+  isOriginDeclaration,
+  isOriginDeclaringFormalParameter,
+  isOriginEnumValues,
+  isOriginGetterSetter,
   isPromotable,
 }
 
@@ -1644,7 +1655,11 @@ enum _MethodItemFlag { isOperatorEqualWithParameterTypeFromObject }
 
 enum _MixinItemFlag { isBase }
 
-enum _TopLevelVariableItemFlag { isExternal }
+enum _TopLevelVariableItemFlag {
+  isExternal,
+  isOriginDeclaration,
+  isOriginGetterSetter,
+}
 
 enum _TypeAliasItemFlag { isProperRename, isSimplyBounded }
 
@@ -1957,6 +1972,18 @@ extension type _FieldItemFlags._(int _bits) implements _VariableItemFlags {
     if (element.isExternal) {
       bits |= _maskFor(_FieldItemFlag.isExternal);
     }
+    if (element.isOriginDeclaration) {
+      bits |= _maskFor(_FieldItemFlag.isOriginDeclaration);
+    }
+    if (element.isOriginDeclaringFormalParameter) {
+      bits |= _maskFor(_FieldItemFlag.isOriginDeclaringFormalParameter);
+    }
+    if (element.isOriginEnumValues) {
+      bits |= _maskFor(_FieldItemFlag.isOriginEnumValues);
+    }
+    if (element.isOriginGetterSetter) {
+      bits |= _maskFor(_FieldItemFlag.isOriginGetterSetter);
+    }
     if (element.isPromotable) {
       bits |= _maskFor(_FieldItemFlag.isPromotable);
     }
@@ -1985,6 +2012,22 @@ extension type _FieldItemFlags._(int _bits) implements _VariableItemFlags {
 
   bool get isExternal {
     return _has(_FieldItemFlag.isExternal);
+  }
+
+  bool get isOriginDeclaration {
+    return _has(_FieldItemFlag.isOriginDeclaration);
+  }
+
+  bool get isOriginDeclaringFormalParameter {
+    return _has(_FieldItemFlag.isOriginDeclaringFormalParameter);
+  }
+
+  bool get isOriginEnumValues {
+    return _has(_FieldItemFlag.isOriginEnumValues);
+  }
+
+  bool get isOriginGetterSetter {
+    return _has(_FieldItemFlag.isOriginGetterSetter);
   }
 
   bool get isPromotable {
@@ -2179,6 +2222,12 @@ extension type _TopLevelVariableItemFlags._(int _bits)
     if (element.isExternal) {
       bits |= _maskFor(_TopLevelVariableItemFlag.isExternal);
     }
+    if (element.isOriginDeclaration) {
+      bits |= _maskFor(_TopLevelVariableItemFlag.isOriginDeclaration);
+    }
+    if (element.isOriginGetterSetter) {
+      bits |= _maskFor(_TopLevelVariableItemFlag.isOriginGetterSetter);
+    }
     return _TopLevelVariableItemFlags._(bits);
   }
 
@@ -2188,6 +2237,14 @@ extension type _TopLevelVariableItemFlags._(int _bits)
 
   bool get isExternal {
     return _has(_TopLevelVariableItemFlag.isExternal);
+  }
+
+  bool get isOriginDeclaration {
+    return _has(_TopLevelVariableItemFlag.isOriginDeclaration);
+  }
+
+  bool get isOriginGetterSetter {
+    return _has(_TopLevelVariableItemFlag.isOriginGetterSetter);
   }
 
   void write(BinaryWriter writer) {

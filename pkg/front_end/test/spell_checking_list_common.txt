@@ -524,6 +524,8 @@ collection
 collections
 collector
 collects
+collide
+colliding
 colon
 colons
 color

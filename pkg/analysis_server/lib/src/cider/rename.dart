@@ -126,7 +126,7 @@ class CheckNameResponse {
   Future<RenameResponse?> computeRenameRanges2() async {
     var elements = <Element>[];
     var element = canRename.refactoringElement.element;
-    if (element is PropertyInducingElement && element.isSynthetic) {
+    if (element is PropertyInducingElement && element.isOriginGetterSetter) {
       var property = element;
       var getter = property.getter;
       var setter = property.setter;
@@ -231,7 +231,7 @@ class CheckNameResponse {
     String sourcePath,
   ) async {
     var infos = <ReplaceInfo>[];
-    if (element is PropertyInducingElement && element.isSynthetic) {
+    if (element is PropertyInducingElement && element.isOriginGetterSetter) {
       var getter = element.getter;
       if (getter != null) {
         infos.add(

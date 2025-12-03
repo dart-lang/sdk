@@ -461,6 +461,19 @@ class SubstitutedFieldElementImpl extends SubstitutedVariableElementImpl
   bool get isExternal => baseElement.isExternal;
 
   @override
+  bool get isOriginDeclaration => baseElement.isOriginDeclaration;
+
+  @override
+  bool get isOriginDeclaringFormalParameter =>
+      baseElement.isOriginDeclaringFormalParameter;
+
+  @override
+  bool get isOriginEnumValues => baseElement.isOriginEnumValues;
+
+  @override
+  bool get isOriginGetterSetter => baseElement.isOriginGetterSetter;
+
+  @override
   bool get isPromotable => baseElement.isPromotable;
 
   @override

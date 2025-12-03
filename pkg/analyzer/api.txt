@@ -3649,6 +3649,8 @@ package:analyzer/dart/element/element.dart:
     isCovariant (getter: bool)
     isEnumConstant (getter: bool)
     isExternal (getter: bool)
+    isOriginDeclaringFormalParameter (getter: bool)
+    isOriginEnumValues (getter: bool)
     isPromotable (getter: bool)
   FieldFormalParameterElement (class extends Object implements FormalParameterElement):
     new (constructor: FieldFormalParameterElement Function())
@@ -4071,6 +4073,9 @@ package:analyzer/dart/element/element.dart:
     fragments (getter: List<PropertyInducingFragment>)
     getter (getter: GetterElement?)
     hasInitializer (getter: bool)
+    isOriginDeclaration (getter: bool)
+    isOriginGetterSetter (getter: bool)
+    isSynthetic (getter: bool, deprecated)
     library (getter: LibraryElement)
     setter (getter: SetterElement?)
   PropertyInducingFragment (class extends Object implements VariableFragment):
@@ -4078,7 +4083,7 @@ package:analyzer/dart/element/element.dart:
     element (getter: PropertyInducingElement)
     hasInitializer (getter: bool)
     isAugmentation (getter: bool)
-    isSynthetic (getter: bool)
+    isSynthetic (getter: bool, deprecated)
     libraryFragment (getter: LibraryFragment)
     nextFragment (getter: PropertyInducingFragment?)
     previousFragment (getter: PropertyInducingFragment?)

@@ -196,10 +196,7 @@ List<AnalyzerMessage> decodeAnalyzerMessagesYaml(
         key: keyNode,
         value: diagnosticValue,
         decoder: (messageYaml) {
-          var analyzerCode = AnalyzerCode(
-            diagnosticClass: DiagnosticClassInfo.byName(className),
-            snakeCaseName: diagnosticName,
-          );
+          var analyzerCode = AnalyzerCode(snakeCaseName: diagnosticName);
           return AnalyzerMessage(
             messageYaml,
             analyzerCode: analyzerCode,
@@ -291,10 +288,7 @@ class AliasMessage extends AnalyzerMessage {
   String get aliasForClass => aliasFor.split('.').first;
 
   @override
-  void toAnalyzerCode({
-    String? sharedNameReference,
-    required MemberAccumulator memberAccumulator,
-  }) {
+  void toAnalyzerCode({required MemberAccumulator memberAccumulator}) {
     var constant = StringBuffer();
     outputConstantHeader(constant);
     constant.writeln('const $aliasForClass $constantName =');
@@ -586,9 +580,6 @@ mixin MessageWithAnalyzerCode on Message {
     }
   }();
 
-  late final DiagnosticClassInfo diagnosticClassInfo =
-      analyzerCode.diagnosticClass;
-
   /// The code used by the analyzer to refer to this diagnostic message.
   AnalyzerCode get analyzerCode;
 
@@ -619,10 +610,7 @@ mixin MessageWithAnalyzerCode on Message {
   /// in the diagnostic class [className].
   ///
   /// [diagnosticCode] is the name of the diagnostic to be generated.
-  void toAnalyzerCode({
-    String? sharedNameReference,
-    required MemberAccumulator memberAccumulator,
-  }) {
+  void toAnalyzerCode({required MemberAccumulator memberAccumulator}) {
     var diagnosticCode = analyzerCode.snakeCaseName;
     var correctionMessage = this.correctionMessage;
     String? withArgumentsName;
@@ -645,9 +633,8 @@ LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     outputConstantHeader(constant);
     constant.writeln('const $staticType $constantName =');
     constant.writeln('$concreteClassName(');
-    constant.writeln(
-      'name: ${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
-    );
+    var name = sharedName?.snakeCaseName ?? diagnosticCode;
+    constant.writeln("name: '$name',");
     var maxWidth = 80 - 8 /* indentation */ - 2 /* quotes */ - 1 /* comma */;
     var messageAsCode = convertTemplate(problemMessage);
     var messageLines = _splitText(

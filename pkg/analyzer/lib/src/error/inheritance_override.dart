@@ -709,7 +709,9 @@ class _ClassVerifier {
       return false;
     }
 
-    if (interfaceElement.fields.every((e) => e.isStatic || e.isSynthetic)) {
+    if (interfaceElement.fields.every(
+      (e) => e.isStatic || e.isOriginGetterSetter,
+    )) {
       return false;
     }
 

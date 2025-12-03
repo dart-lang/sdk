@@ -128,13 +128,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic g (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F1 synthetic isOriginGetterSetter g (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@topLevelVariable::g
       getters
         #F2 g (nameOffset:4) (firstTokenOffset:0) (offset:4)
           element: <testLibrary>::@getter::g
   topLevelVariables
-    synthetic g
+    synthetic isOriginGetterSetter g
       reference: <testLibrary>::@topLevelVariable::g
       firstFragment: #F1
       type: dynamic

@@ -212,7 +212,9 @@ mixin ElementsTypesMixin {
   }
 
   FieldFragmentImpl enumConstant_(String name) {
-    return FieldFragmentImpl(name: name)..isEnumConstant = true;
+    return FieldFragmentImpl(name: name)
+      ..isEnumConstant = true
+      ..isOriginDeclaration = true;
   }
 
   ExtensionFragmentImpl extension({
@@ -243,7 +245,8 @@ mixin ElementsTypesMixin {
     fragment.enclosingFragment = testLibrary.firstFragment;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
 
-    var fieldFragment = FieldFragmentImpl(name: representationName);
+    var fieldFragment = FieldFragmentImpl(name: representationName)
+      ..isOriginDeclaringFormalParameter = true;
     var fieldElement = FieldElementImpl(
       reference: Reference.root(),
       firstFragment: fieldFragment,
@@ -269,7 +272,8 @@ mixin ElementsTypesMixin {
     fragment.enclosingFragment = testLibrary.firstFragment;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
 
-    var fieldFragment = FieldFragmentImpl(name: representationName);
+    var fieldFragment = FieldFragmentImpl(name: representationName)
+      ..isOriginDeclaringFormalParameter = true;
     fragment.fields = [fieldFragment];
 
     var element = ExtensionTypeElementImpl(Reference.root(), fragment);

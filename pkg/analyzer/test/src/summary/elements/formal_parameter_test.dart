@@ -679,7 +679,7 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 x (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F2 isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
           constructors
             #F3 isOriginDeclaration positional (nameOffset:23) (firstTokenOffset:21) (offset:23)
@@ -720,7 +720,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasImplicitType x
+        hasImplicitType isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic

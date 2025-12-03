@@ -2012,7 +2012,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var variable = element.variable;
       if (variable.isConst) {
         diagnosticReporter.atNode(expression, diag.assignmentToConst);
-      } else if (variable is FieldElement && variable.isSynthetic) {
+      } else if (variable is FieldElement && variable.isOriginGetterSetter) {
         diagnosticReporter.atNode(
           highlightedNode,
           diag.assignmentToFinalNoSetter,
@@ -2658,7 +2658,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           if (field.isStatic) {
             return false;
           }
-          if (field.isSynthetic) {
+          if (field.isOriginGetterSetter) {
             return false;
           }
           // From the abstract and external fields specification:
@@ -3792,7 +3792,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     Element? staticElement,
   ) {
     if (staticElement is FieldElement) {
-      if (staticElement.isSynthetic) {
+      if (staticElement.isOriginGetterSetter) {
         diagnosticReporter.atNode(
           initializer,
           diag.initializerForNonExistentField,
@@ -5568,7 +5568,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var element = parameter.declaredFragment?.element;
     if (element is FieldFormalParameterElementImpl) {
       var fieldElement = element.field;
-      if (fieldElement == null || fieldElement.isSynthetic) {
+      if (fieldElement == null || fieldElement.isOriginGetterSetter) {
         diagnosticReporter.atNode(
           parameter,
           diag.initializingFormalForNonExistentField,
@@ -5579,7 +5579,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (parameterElement is FieldFormalParameterElementImpl) {
           var declaredType = parameterElement.type;
           var fieldType = fieldElement.type;
-          if (fieldElement.isSynthetic) {
+          if (fieldElement.isOriginGetterSetter) {
             diagnosticReporter.atNode(
               parameter,
               diag.initializingFormalForNonExistentField,
@@ -5599,7 +5599,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             );
           }
         } else {
-          if (fieldElement.isSynthetic) {
+          if (fieldElement.isOriginGetterSetter) {
             diagnosticReporter.atNode(
               parameter,
               diag.initializingFormalForNonExistentField,

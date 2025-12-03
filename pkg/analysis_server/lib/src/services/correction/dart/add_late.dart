@@ -68,7 +68,7 @@ class AddLate extends ResolvedCorrectionProducer {
           getter.isSynthetic &&
           getter.enclosingElement is InterfaceElement) {
         var variableElement = getter.variable;
-        if (!variableElement.isSynthetic &&
+        if (variableElement.isOriginDeclaration &&
             !variableElement.isLate &&
             variableElement.setter == null &&
             // It is currently too expensive to do a `getFragmentDeclaration`

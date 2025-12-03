@@ -98,7 +98,7 @@ library
         #F1 class X (nameOffset:57) (firstTokenOffset:51) (offset:57)
           element: <testLibrary>::@class::X
           fields
-            #F2 f (nameOffset:71) (firstTokenOffset:71) (offset:71)
+            #F2 isOriginDeclaration f (nameOffset:71) (firstTokenOffset:71) (offset:71)
               element: <testLibrary>::@class::X::@field::f
           constructors
             #F3 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:76) (offset:82)
@@ -140,7 +140,7 @@ library
       reference: <testLibrary>::@class::X
       firstFragment: #F1
       fields
-        final f
+        final isOriginDeclaration f
           reference: <testLibrary>::@class::X::@field::f
           firstFragment: #F2
           type: void Function(dynamic)

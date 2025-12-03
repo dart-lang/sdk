@@ -227,7 +227,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
     await _proposeClassOrMixinMember(builder, node.name, null, (element) {
       return element is FieldElement &&
           !exclusions.contains(element.name) &&
-          !element.isSynthetic &&
+          element.isOriginDeclaration &&
           !element.isExternal &&
           (type == null ||
               typeSystem.isAssignableTo(

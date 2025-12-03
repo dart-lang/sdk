@@ -923,7 +923,7 @@ class _FieldPromotability
     InterfaceElementImpl class_,
   ) {
     for (var field in class_.fields) {
-      if (field.isStatic || field.isSynthetic) {
+      if (field.isStatic || field.isOriginGetterSetter) {
         continue;
       }
 

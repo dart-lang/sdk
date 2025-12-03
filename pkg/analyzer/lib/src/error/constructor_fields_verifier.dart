@@ -73,7 +73,7 @@ class ConstructorFieldsVerifier {
     var fieldMap = <FieldElement, _InitState>{};
 
     for (var field in element.fields) {
-      if (field.isSynthetic) {
+      if (field.isOriginGetterSetter) {
         continue;
       }
       if (element is EnumElement && field.name == 'index') {

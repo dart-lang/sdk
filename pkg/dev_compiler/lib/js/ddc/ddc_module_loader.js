@@ -1341,7 +1341,7 @@ if (!self.deferred_loader) {
   };
 }
 
-(function (dartDevEmbedder) {
+(function(dartDevEmbedder) {
   'use strict';
 
   if (dartDevEmbedder) {
@@ -1447,8 +1447,8 @@ if (!self.deferred_loader) {
         this.pendingHotRestartLibraryInitializers[libraryName] = initializer;
       } else if (libraryName in this.libraryInitializers) {
         throw 'Library ' + libraryName +
-        ' was previously defined but DDC is not currently executing a hot ' +
-        ' reload or a hot restart. Failed to define the library.';
+            ' was previously defined but DDC is not currently executing a hot ' +
+            ' reload or a hot restart. Failed to define the library.';
       } else {
         this.libraryInitializers[libraryName] = initializer;
       }
@@ -1459,9 +1459,10 @@ if (!self.deferred_loader) {
      *
      * @param {string} libraryName Name of the library to be initialized and
      *   linked.
-     * @param {?function (Object)} installFn A function to call to install the
+     * @param {?function (Object?)} installFn A function to call to install the
      *   initialized library object into the context of an import. See
      *   `importLibrary` for more details.
+     * @return {!Object} The library object ready for use by the application.
      */
     initializeAndLinkLibrary(libraryName, installFn) {
       if (!this.triggeredSDKLibrariesWithSideEffects) {
@@ -1510,12 +1511,14 @@ if (!self.deferred_loader) {
 
       // Library initialization is lazy and only performed on the first access.
       return new Proxy(Object.create(null), {
-        get: function (_, property) {
-          let library = libraryManager.initializeAndLinkLibrary(libraryName, installFn);
+        get: function(_, property) {
+          let library =
+              libraryManager.initializeAndLinkLibrary(libraryName, installFn);
           return library[property];
         },
-        set: function (_, property, value) {
-          let library = libraryManager.initializeAndLinkLibrary(libraryName, installFn);
+        set: function(_, property, value) {
+          let library =
+              libraryManager.initializeAndLinkLibrary(libraryName, installFn);
           library[property] = value;
           return true;
         },
@@ -1553,8 +1556,8 @@ if (!self.deferred_loader) {
         try {
           let mainValue = entryPointLibrary.main(args);
           // Attach the error callback to main's future if it's async.
-          if (dartDevEmbedderConfig.mainErrorCallback != null && mainValue != null &&
-            mainValue.catchError != null) {
+          if (dartDevEmbedderConfig.mainErrorCallback != null &&
+              mainValue != null && mainValue.catchError != null) {
             mainValue.catchError((e) => {
               dartDevEmbedderConfig.mainErrorCallback();
               throw e;
@@ -1580,8 +1583,11 @@ if (!self.deferred_loader) {
     // See docs on `DartDevEmbedder.runMain`.
     runMain(entryPointLibraryName, dartSdkRuntimeOptions) {
       this.setDartSDKRuntimeOptions(dartSdkRuntimeOptions);
-      console.log('Starting application from main method in: ' + entryPointLibraryName + '.');
-      let entryPointLibrary = this.initializeAndLinkLibrary(entryPointLibraryName);
+      console.log(
+          'Starting application from main method in: ' + entryPointLibraryName +
+          '.');
+      let entryPointLibrary =
+          this.initializeAndLinkLibrary(entryPointLibraryName);
       this.savedEntryPointLibraryName = entryPointLibraryName;
       this.savedDartSdkRuntimeOptions = dartSdkRuntimeOptions;
       this._runMain(entryPointLibrary);
@@ -1601,16 +1607,17 @@ if (!self.deferred_loader) {
         dartRuntimeLibrary.nativeNonNullAsserts(options.nativeNonNullAsserts);
       }
       if (options.jsInteropNonNullAsserts != null) {
-        dartRuntimeLibrary.jsInteropNonNullAsserts(options.jsInteropNonNullAsserts);
+        dartRuntimeLibrary.jsInteropNonNullAsserts(
+            options.jsInteropNonNullAsserts);
       }
     }
 
     /**
      * Begins a hot reload operation.
      *
-     * @param {Array<String>} filesToLoad The urls of the files that contain
+     * @param {!Array<string>} filesToLoad The urls of the files that contain
      * the libraries to hot reload.
-     * @param {Array<String>} librariesToReload The names of the libraries to
+     * @param {!Array<string>} librariesToReload The names of the libraries to
      * hot reload.
      */
     async hotReloadStart(filesToLoad, librariesToReload) {
@@ -1622,11 +1629,9 @@ if (!self.deferred_loader) {
       // Trigger download of the new library versions.
       let reloadFilePromises = [];
       for (let file of this.pendingHotReloadFileUrls) {
-        reloadFilePromises.push(
-          new Promise((resolve) => {
-            self.$dartLoader.forceLoadScript(file, resolve);
-          })
-        );
+        reloadFilePromises.push(new Promise((resolve) => {
+          self.$dartLoader.forceLoadScript(file, resolve);
+        }));
       }
       await Promise.all(reloadFilePromises).then((_) => {
         if (dartDevEmbedderConfig.capturedHotReloadEndHandler != null) {
@@ -1694,7 +1699,7 @@ if (!self.deferred_loader) {
      */
     hotRestart() {
       if (!this.savedEntryPointLibraryName) {
-        throw "Error: Hot restart requested before application started.";
+        throw 'Error: Hot restart requested before application started.';
       }
       // Clear all libraries.
       this.libraries = Object.create(null);
@@ -1706,13 +1711,15 @@ if (!self.deferred_loader) {
         let initializer = this.pendingHotRestartLibraryInitializers[name];
         this.libraryInitializers[name] = initializer;
       }
-      let entryPointLibrary = this.initializeAndLinkLibrary(this.savedEntryPointLibraryName);
+      let entryPointLibrary =
+          this.initializeAndLinkLibrary(this.savedEntryPointLibraryName);
       // TODO(nshahan): Start sharing a single source of truth for the restart
       // generation between the dart:_runtime and this module system.
       this.hotRestartGeneration += 1;
-      console.log('Hot restarting application from main method in: ' +
-        this.savedEntryPointLibraryName + ' (generation: ' +
-        this.hotRestartGeneration + ').');
+      console.log(
+          'Hot restarting application from main method in: ' +
+          this.savedEntryPointLibraryName +
+          ' (generation: ' + this.hotRestartGeneration + ').');
       // Cleanup.
       this.hotRestartInProgress = false;
       this.pendingHotRestartLibraryInitializers = Object.create(null);
@@ -1741,8 +1748,8 @@ if (!self.deferred_loader) {
   const sourceMaps = {};
 
   /**
-     * Common debugging APIs that may be useful for metadata, invocations,
-     * developer extensions, bootstrapping, and more.
+   * Common debugging APIs that may be useful for metadata, invocations,
+   * developer extensions, bootstrapping, and more.
    */
   // TODO(56966): A number of APIs in this class consume and return Dart
   // objects, nested or otherwise. We should replace them with some kind of
@@ -1753,11 +1760,12 @@ if (!self.deferred_loader) {
      * Returns a JavaScript array of all class names in a Dart library.
      *
      * @param {string} libraryUri URI of the Dart library.
-     * @returns {Array<string>} Array containing the class names in the library.
+     * @return {!Array<string>} Array containing the class names in the library.
      */
     getClassesInLibrary(libraryUri) {
       libraryManager.initializeAndLinkLibrary(libraryUri);
-      return dartRuntimeLibrary().getLibraryMetadata(libraryUri, libraryManager.libraries);
+      return dartRuntimeLibrary().getLibraryMetadata(
+          libraryUri, libraryManager.libraries);
     }
 
     /**
@@ -1792,14 +1800,15 @@ if (!self.deferred_loader) {
      *
      * @param {string} libraryUri URI of the Dart library that the class is in.
      * @param {string} name Name of the Dart class.
-     * @param {any} objectInstance Optional instance of the Dart class that's
+     * @param {?Object} objectInstance Optional instance of the Dart class that's
      * needed to determine the type of any generic members.
-     * @returns {Object<String, any>} Object containing the metadata in the
+     * @return {?Object<string, !any>} Object containing the metadata in the
      * above format.
      */
     getClassMetadata(libraryUri, name, objectInstance) {
       libraryManager.initializeAndLinkLibrary(libraryUri);
-      return dartRuntimeLibrary().getClassMetadata(libraryUri, name, objectInstance, libraryManager.libraries);
+      return dartRuntimeLibrary().getClassMetadata(
+          libraryUri, name, objectInstance, libraryManager.libraries);
     }
 
     /**
@@ -1816,8 +1825,8 @@ if (!self.deferred_loader) {
      * }
      * ```
      *
-     * @param {Object} value Dart value for which metadata is computed.
-     * @returns {Object<String, any>} Object containing the metadata in the
+     * @param {!Object} value Dart value for which metadata is computed.
+     * @return {!Object<string, !any>} Object containing the metadata in the
      * above format.
      */
     getObjectMetadata(value) {
@@ -1828,8 +1837,8 @@ if (!self.deferred_loader) {
      * Returns the name of the given function. If it's bound to an object of
      * class `C`, returns `C.<name>` instead.
      *
-     * @param {Object} fun Dart function for which the name is returned.
-     * @returns {string} Name of the given function in the above format.
+     * @param {!Object} fun Dart function for which the name is returned.
+     * @return {string} Name of the given function in the above format.
      */
     getFunctionName(fun) {
       return dartRuntimeLibrary().getFunctionMetadata(fun);
@@ -1838,8 +1847,8 @@ if (!self.deferred_loader) {
     /**
      * Returns an array of all the field names in the Dart object.
      *
-     * @param {Object} object Dart object whose field names are collected.
-     * @returns {Array<string>} Array of field names.
+     * @param {!Object} object Dart object whose field names are collected.
+     * @return {!Array<string>} Array of field names.
      */
     getObjectFieldNames(object) {
       return dartRuntimeLibrary().getObjectFieldNames(object);
@@ -1852,10 +1861,10 @@ if (!self.deferred_loader) {
      * returned from this API should be treated as opaque pointers and should
      * not be interacted with.
      *
-     * @param {Object} object Dart object for which the sub-range is computed.
+     * @param {!Object} object Dart object for which the sub-range is computed.
      * @param {number} offset Integer index at which the sub-range should start.
      * @param {number} count Integer number of values in the sub-range.
-     * @returns {any} Either the sub-range or the original object.
+     * @return {!any} Either the sub-range or the original object.
      */
     getSubRange(object, offset, count) {
       return dartRuntimeLibrary().getSubRange(object, offset, count);
@@ -1875,8 +1884,8 @@ if (!self.deferred_loader) {
      * Any Dart values returned from this API should be treated as opaque
      * pointers and should not be interacted with.
      *
-     * @param {Object} map Dart `Map` whose entries will be copied.
-     * @returns {Object<String, Array>} Object containing the entries in
+     * @param {!Object} map Dart `Map` whose entries will be copied.
+     * @return {!Object<string, !Array>} Object containing the entries in
      * the above format.
      */
     getMapElements(map) {
@@ -1896,8 +1905,8 @@ if (!self.deferred_loader) {
      * Any Dart values returned from this API should be treated as opaque
      * pointers and should not be interacted with.
      *
-     * @param {Object} set Dart `Set` whose entries will be copied.
-     * @returns {Object<String, Array} Object containing the entries in the
+     * @param {!Object} set Dart `Set` whose entries will be copied.
+     * @return {!Object<string, !Array>} Object containing the entries in the
      * above format.
      */
     getSetElements(set) {
@@ -1919,8 +1928,8 @@ if (!self.deferred_loader) {
      * Any Dart values returned from this API should be treated as opaque
      * pointers and should not be interacted with.
      *
-     * @param {Object} record Dart `Record` whose metadata will be computed.
-     * @returns {Object<String, any>} Object containing the metadata in the
+     * @param {!Object} record Dart `Record` whose metadata will be computed.
+     * @return {!Object<string, ?any>} Object containing the metadata in the
      * above format.
      */
     getRecordFields(record) {
@@ -1942,9 +1951,9 @@ if (!self.deferred_loader) {
      * Any Dart values returned from this API should be treated as opaque
      * pointers and should not be interacted with.
      *
-     * @param {Object} recordType Dart `Type` of a `Record` whose metadata will
+     * @param {!Object} recordType Dart `Type` of a `Record` whose metadata will
      * be computed.
-     * @returns {Object<String, any>} Object containing the metadata in the
+     * @return {!Object<string, ?any>} Object containing the metadata in the
      * above format.
      */
     getRecordTypeFields(recordType) {
@@ -1958,10 +1967,10 @@ if (!self.deferred_loader) {
      * Any Dart values returned from this API should be treated as opaque
      * pointers and should not be interacted with.
      *
-     * @param {Object} instance Dart instance whose method will be called.
+     * @param {?Object} instance Dart instance whose method will be called.
      * @param {string} name Name of the method.
-     * @param {Array} args Array of arguments passed to the method.
-     * @returns {any} Result of calling the method.
+     * @param {!Array} args Array of arguments passed to the method.
+     * @return {?any} Result of calling the method.
      */
     callInstanceMethod(instance, name, args) {
       return dartRuntimeLibrary().dsendRepl(instance, name, args);
@@ -1974,10 +1983,10 @@ if (!self.deferred_loader) {
      * Any Dart values returned from this API should be treated as opaque
      * pointers and should not be interacted with.
      *
-     * @param {any} libraryUri Dart library URI in which the method exists.
+     * @param {string} libraryUri Dart library URI in which the method exists.
      * @param {string} name Name of the method.
-     * @param {Array} args Array of arguments passed to the method.
-     * @returns {any} Result of calling the method.
+     * @param {!Array} args Array of arguments passed to the method.
+     * @return {?any} Result of calling the method.
      */
     callLibraryMethod(libraryUri, name, args) {
       let library = libraryManager.initializeAndLinkLibrary(libraryUri);
@@ -1995,10 +2004,10 @@ if (!self.deferred_loader) {
     /**
      * Invoke a registered extension with the given name and encoded map.
      *
-     * @param {String} methodName The name of the registered extension.
-     * @param {String} encodedJson The encoded string map that will be passed as
+     * @param {string} methodName The name of the registered extension.
+     * @param {string} encodedJson The encoded string map that will be passed as
      * a parameter to the invoked method.
-     * @returns {Promise} Promise that will await the invocation of the
+     * @return {!Promise} Promise that will await the invocation of the
      * extension.
      */
     invokeExtension(methodName, encodedJson) {
@@ -2009,7 +2018,7 @@ if (!self.deferred_loader) {
      * Returns a JavaScript array containing the names of the extensions
      * registered in `dart:developer`.
      *
-     * @returns {Array<string>} Array containing the extension names.
+     * @return {!Array<string>} Array containing the extension names.
      */
     get extensionNames() {
       return dartDeveloperLibrary()._extensions.keys.toList();
@@ -2020,8 +2029,8 @@ if (!self.deferred_loader) {
      * error is a Dart error or JS `Error`, we use the built-in stack. If the
      * error is neither, we try to construct a stack trace if possible.
      *
-     * @param {any} error The error for which a stack trace will be produced.
-     * @returns {String} The stringified stack trace.
+     * @param {?any} error The error for which a stack trace will be produced.
+     * @return {string} The stringified stack trace.
      */
     stackTrace(error) {
       return dartRuntimeLibrary().stackTrace(error).toString();
@@ -2031,8 +2040,9 @@ if (!self.deferred_loader) {
      * Entrypoint for DDC-generated code to set a source map for a given
      * library bundle name.
      *
-     * @param {String} libraryBundleName The name of a compiled Dart library bundle.
-     * @param {String} sourceMap The stringified source map.
+     * @param {string} libraryBundleName The name of a compiled Dart library
+     *     bundle.
+     * @param {string} sourceMap The stringified source map.
      */
     // TODO(srujzs): If users shouldn't ever need to use this, can we make this
     // not accessible for them?
@@ -2044,8 +2054,9 @@ if (!self.deferred_loader) {
      * Returns the source map path for a given library bundle name, if one was
      * registered.
      *
-     * @param {String} libraryBundleName The name of a compiled Dart library bundle.
-     * @returns {?String} The stringified source map if it was registered.
+     * @param {string} libraryBundleName The name of a compiled Dart library
+     *     bundle.
+     * @return {?string} The stringified source map if it was registered.
      */
     getSourceMap(libraryBundleName) {
       return sourceMaps[libraryBundleName];
@@ -2054,11 +2065,12 @@ if (!self.deferred_loader) {
 
   const debugger_ = new Debugger();
 
-  /** Holds public configurations for the `DartDevEmbedder`.
+  /**
+   * Holds public configurations for the `DartDevEmbedder`.
    *  These properties may be modified during the runtime of the app.
    */
   class DartDevEmbedderConfiguration {
-    /*
+    /**
      * An optional handler that acts as a wrapper around the invocation of the
      * Dart program's 'main' method. Passed an opaque function as an argument
      * that invokes 'main' when called.
@@ -2066,13 +2078,13 @@ if (!self.deferred_loader) {
      */
     capturedMainHandler = null;
 
-    /*
+    /**
      * An optional callback that is invoked when 'main' throws.
      * @type {?function()}
      */
     mainErrorCallback = null;
 
-    /*
+    /**
      * An optional handler that acts as a wrapper around the push of the hot
      * reloaded libraries into the Dart runtime which completes the hot reload.
      * Passed an opaque function as an argument that pushes the libraries that
@@ -2090,19 +2102,24 @@ if (!self.deferred_loader) {
    */
   const linkSymbol = Symbol('link');
 
-  /** The API for embedding a Dart application in the page at development time
-   *  that supports stateful hot reloading.
+  /**
+   * The API for embedding a Dart application in the page at development time
+   * that supports stateful hot reloading.
    */
   class DartDevEmbedder {
     /**
-     * Expose the DartDevEmbedderConfig publicly.
+     * @return {!DartDevEmbedderConfiguration} The configururation object for
+     * this `DartDevEmbedder`.
      */
     get config() {
       return dartDevEmbedderConfig;
     }
 
     /**
-     * Expose the 'link' symbol for library compilation.
+     * @return {!Symbol} The symbol used to store the 'link' function on
+     * libraries.
+     *
+     * NOTE: This is intended to only be used by DDC generated code.
      */
     get linkSymbol() {
       return linkSymbol;
@@ -2116,7 +2133,7 @@ if (!self.deferred_loader) {
      *
      * @param {string} entryPointLibraryName The name of the library that
      * contains an entry point main method.
-     * @param {Object<String, boolean>} dartSdkRuntimeOptions An options bag for
+     * @param {!Object<string, boolean>} dartSdkRuntimeOptions An options bag for
      * setting the runtime options in the Dart SDK.
      */
     runMain(entryPointLibraryName, dartSdkRuntimeOptions) {
@@ -2133,7 +2150,7 @@ if (!self.deferred_loader) {
      *
      * @param {string} libraryName Name for referencing the library being
      *   defined.
-     * @param {function (Object): Object} initializer Function called to
+     * @param {function (!Object): !Object} initializer Function called to
      *   initialize the library. This callback takes a library object and
      *   installs the library members into it.
      */
@@ -2150,13 +2167,13 @@ if (!self.deferred_loader) {
      * the first member access.
      *
      * @param {string} libraryName Name of the library to import.
-     * @param {?function (Object)} installFn A callback invoked with the library
+     * @param {?function (!Object)} installFn A callback invoked with the library
      *  object after the library has been initialized and linked. This
      *  notification is used to improve performance. Callers may use this
      *  callback to replace the proxy object with the real library object and,
      *  in doing so, remove the overhead of jumping through an indirect proxy on
      *  every property access.
-     * @return A library object or a proxy to a library object.
+     * @return {!Object} A library object or a proxy to a library object.
      */
     importLibrary(libraryName, installFn) {
       return libraryManager.importLibrary(libraryName, installFn);
@@ -2168,9 +2185,9 @@ if (!self.deferred_loader) {
      * Previous generations may continue to run until all specified files
      * have been loaded and initialized.
      *
-     * @param {Array<String>} filesToLoad The urls of the files that contain
+     * @param {!Array<string>} filesToLoad The urls of the files that contain
      * the libraries to hot reload.
-     * @param {Array<String>} librariesToReload The names of the libraries to
+     * @param {!Array<string>} librariesToReload The names of the libraries to
      * hot reload.
      */
     async hotReload(filesToLoad, librariesToReload) {
@@ -2184,13 +2201,14 @@ if (!self.deferred_loader) {
     async hotRestart() {
       libraryManager.hotRestartInProgress = true;
       await self.$dartReloadModifiedModules(
-        libraryManager.savedEntryPointLibraryName,
-        () => { libraryManager.hotRestart(); });
+          libraryManager.savedEntryPointLibraryName, () => {
+            libraryManager.hotRestart();
+          });
     }
 
 
     /**
-     * @return {Number} The current hot reload generation of the running
+     * @return {number} The current hot reload generation of the running
      * application.
      */
     get hotReloadGeneration() {
@@ -2198,7 +2216,7 @@ if (!self.deferred_loader) {
     }
 
     /**
-     * @return {Number} The current hot restart generation of the running
+     * @return {number} The current hot restart generation of the running
      *  application.
      */
     get hotRestartGeneration() {
@@ -2206,7 +2224,7 @@ if (!self.deferred_loader) {
     }
 
     /**
-     * @return {Debugger} Common debugging APIs that may be useful for metadata,
+     * @return {!Debugger} Common debugging APIs that may be useful for metadata,
      * invocations, developer extensions, bootstrapping, and more.
      */
     get debugger() {
