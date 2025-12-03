@@ -3720,26 +3720,23 @@ void Assembler::SetIf(Condition condition, Register rd) {
     }
   } else if (deferred_compare_ == kTestImm) {
     uintx_t uimm = deferred_imm_;
-    if (deferred_imm_ == 1) {
-      switch (condition) {
-        case ZERO:
-          andi(rd, deferred_left_, 1);
-          xori(rd, rd, 1);
-          break;
-        case NOT_ZERO:
-          andi(rd, deferred_left_, 1);
-          break;
-        default:
-          UNREACHABLE();
+    if (Utils::IsPowerOfTwo(uimm)) {
+      int shamt = Utils::ShiftForPowerOfTwo(uimm);
+      if (shamt == 0) {
+        andi(rd, deferred_left_, 1);
+      } else if (shamt == XLEN - 1) {
+        sltz(rd, deferred_left_);
+      } else if (Supports(RV_Zbs)) {
+        bexti(rd, deferred_left_, shamt);
+      } else {
+        srli(rd, deferred_left_, shamt);
+        andi(rd, rd, 1);
       }
-    } else if (Supports(RV_Zbs) && Utils::IsPowerOfTwo(uimm)) {
       switch (condition) {
         case ZERO:
-          bexti(rd, deferred_left_, Utils::ShiftForPowerOfTwo(uimm));
           xori(rd, rd, 1);
           break;
         case NOT_ZERO:
-          bexti(rd, deferred_left_, Utils::ShiftForPowerOfTwo(uimm));
           break;
         default:
           UNREACHABLE();
@@ -3765,6 +3762,171 @@ void Assembler::SetIf(Condition condition, Register rd) {
         break;
       case NOT_ZERO:
         snez(rd, rd);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    UNREACHABLE();
+  }
+
+  deferred_compare_ = kNone;  // Consumed.
+}
+
+void Assembler::ZeroIf(Condition condition, Register rd, Register otherwise) {
+  ASSERT(deferred_compare_ != kNone);
+  ASSERT(rd != otherwise);
+
+  if (deferred_compare_ == kCompareImm) {
+    if (deferred_imm_ == 0) {
+      deferred_compare_ = kCompareReg;
+      deferred_reg_ = ZR;
+      ZeroIf(condition, rd, otherwise);
+      return;
+    }
+    if (!IsITypeImm(deferred_imm_) || !IsITypeImm(deferred_imm_ + 1)) {
+      LoadImmediate(TMP2, deferred_imm_);
+      deferred_compare_ = kCompareReg;
+      deferred_reg_ = TMP2;
+      ZeroIf(condition, rd, otherwise);
+      return;
+    }
+    Register left = deferred_left_;
+    intx_t right = deferred_imm_;
+    switch (condition) {
+      case EQUAL:
+        subi(rd, left, right);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case NOT_EQUAL:
+        subi(rd, left, right);
+        czeronez(rd, otherwise, rd);
+        break;
+      case LESS:
+        slti(rd, left, right);
+        czeronez(rd, otherwise, rd);
+        break;
+      case LESS_EQUAL:
+        slti(rd, left, right + 1);
+        czeronez(rd, otherwise, rd);
+        break;
+      case GREATER_EQUAL:
+        slti(rd, left, right);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case GREATER:
+        slti(rd, left, right + 1);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case UNSIGNED_LESS:
+        sltiu(rd, left, right);
+        czeronez(rd, otherwise, rd);
+        break;
+      case UNSIGNED_LESS_EQUAL:
+        sltiu(rd, left, right + 1);
+        czeronez(rd, otherwise, rd);
+        break;
+      case UNSIGNED_GREATER_EQUAL:
+        sltiu(rd, left, right);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case UNSIGNED_GREATER:
+        sltiu(rd, left, right + 1);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else if (deferred_compare_ == kCompareReg) {
+    Register left = deferred_left_;
+    Register right = deferred_reg_;
+    switch (condition) {
+      case EQUAL:
+        if (right == ZR) {
+          czeroeqz(rd, otherwise, left);
+        } else {
+          xor_(rd, left, right);
+          czeroeqz(rd, otherwise, rd);
+        }
+        break;
+      case NOT_EQUAL:
+        if (right == ZR) {
+          czeronez(rd, otherwise, left);
+        } else {
+          xor_(rd, left, right);
+          czeronez(rd, otherwise, rd);
+        }
+        break;
+      case LESS:
+        slt(rd, left, right);
+        czeronez(rd, otherwise, rd);
+        break;
+      case LESS_EQUAL:
+        slt(rd, right, left);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case GREATER_EQUAL:
+        slt(rd, left, right);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case GREATER:
+        slt(rd, right, left);
+        czeronez(rd, otherwise, rd);
+        break;
+      case UNSIGNED_LESS:
+        sltu(rd, left, right);
+        czeronez(rd, otherwise, rd);
+        break;
+      case UNSIGNED_LESS_EQUAL:
+        sltu(rd, right, left);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case UNSIGNED_GREATER_EQUAL:
+        sltu(rd, left, right);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case UNSIGNED_GREATER:
+        sltu(rd, right, left);
+        czeronez(rd, otherwise, rd);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else if (deferred_compare_ == kTestImm) {
+    uintx_t uimm = deferred_imm_;
+    if (IsITypeImm(deferred_imm_)) {
+      andi(rd, deferred_left_, deferred_imm_);
+    } else if (Utils::IsPowerOfTwo(uimm)) {
+      int shamt = Utils::ShiftForPowerOfTwo(uimm);
+      if (shamt == XLEN - 1) {
+        sltz(rd, deferred_left_);
+      } else if (Supports(RV_Zbs)) {
+        bexti(rd, deferred_left_, shamt);
+      } else {
+        srli(rd, deferred_left_, shamt);
+        andi(rd, rd, 1);
+      }
+    } else {
+      AndImmediate(rd, deferred_left_, deferred_imm_);
+    }
+    switch (condition) {
+      case ZERO:
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case NOT_ZERO:
+        czeronez(rd, otherwise, rd);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else if (deferred_compare_ == kTestReg) {
+    and_(rd, deferred_left_, deferred_reg_);
+    switch (condition) {
+      case ZERO:
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case NOT_ZERO:
+        czeronez(rd, otherwise, rd);
         break;
       default:
         UNREACHABLE();
@@ -4547,8 +4709,8 @@ void Assembler::CompareObject(Register reg, const Object& object) {
   } else if (target::IsSmi(object)) {
     CompareImmediate(reg, target::ToRawSmi(object), kObjectBytes);
   } else {
-    LoadObject(TMP, object);
-    CompareObjectRegisters(reg, TMP);
+    LoadObject(TMP2, object);
+    CompareObjectRegisters(reg, TMP2);
   }
 }
 

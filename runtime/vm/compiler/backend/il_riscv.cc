@@ -620,12 +620,6 @@ void DartReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ set_constant_pool_allowed(true);
 }
 
-// Detect pattern when one value is zero and another is a power of 2.
-static bool IsPowerOfTwoKind(intptr_t v1, intptr_t v2) {
-  return (Utils::IsPowerOfTwo(v1) && (v2 == 0)) ||
-         (Utils::IsPowerOfTwo(v2) && (v1 == 0));
-}
-
 LocationSummary* IfThenElseInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   condition()->InitializeLocationSummary(zone, opt);
@@ -646,40 +640,30 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Condition true_condition = condition()->EmitConditionCode(compiler, labels);
   ASSERT(true_condition != kInvalidCondition);
 
-  const bool is_power_of_two_kind = IsPowerOfTwoKind(if_true_, if_false_);
-
   intptr_t true_value = if_true_;
   intptr_t false_value = if_false_;
 
-  if (is_power_of_two_kind) {
-    if (true_value == 0) {
-      // We need to have zero in result on true_condition.
-      true_condition = InvertCondition(true_condition);
-    }
-  } else {
-    if (true_value == 0) {
-      // Swap values so that false_value is zero.
-      intptr_t temp = true_value;
-      true_value = false_value;
-      false_value = temp;
-    } else {
-      true_condition = InvertCondition(true_condition);
-    }
+  if (true_value == 0 || Utils::IsPowerOfTwo(false_value - true_value)) {
+    intptr_t temp = true_value;
+    true_value = false_value;
+    false_value = temp;
+    true_condition = InvertCondition(true_condition);
   }
 
-  __ SetIf(true_condition, result);
-
-  if (is_power_of_two_kind) {
-    const intptr_t shift =
-        Utils::ShiftForPowerOfTwo(Utils::Maximum(true_value, false_value));
-    __ slli(result, result, shift + kSmiTagSize);
+  const int64_t val = Smi::RawValue(true_value) - Smi::RawValue(false_value);
+  if (Utils::IsPowerOfTwo(val)) {
+    __ SetIf(true_condition, result);
+    __ slli(result, result, Utils::ShiftForPowerOfTwo(val));
+  } else if (__ Supports(RV_Zicond)) {
+    __ LoadImmediate(TMP, val);
+    __ ZeroIf(InvertCondition(true_condition), result, TMP);
   } else {
+    __ SetIf(InvertCondition(true_condition), result);
     __ subi(result, result, 1);
-    const int64_t val = Smi::RawValue(true_value) - Smi::RawValue(false_value);
     __ AndImmediate(result, result, val);
-    if (false_value != 0) {
-      __ AddImmediate(result, Smi::RawValue(false_value));
-    }
+  }
+  if (false_value != 0) {
+    __ AddImmediate(result, Smi::RawValue(false_value));
   }
 }
 

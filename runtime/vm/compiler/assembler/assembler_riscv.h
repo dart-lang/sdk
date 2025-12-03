@@ -1130,7 +1130,10 @@ class Assembler : public MicroAssembler {
                    Condition condition,
                    Label* label,
                    JumpDistance distance = kFarJump);
+  // rd <- cond ? 1 : 0
   void SetIf(Condition condition, Register rd);
+  // rd <- cond ? 0 : rs
+  void ZeroIf(Condition condition, Register rd, Register rs);
 
   void SmiUntag(Register reg) { SmiUntag(reg, reg); }
   void SmiUntag(Register dst, Register src) { srai(dst, src, kSmiTagSize); }

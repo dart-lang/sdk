@@ -404,8 +404,9 @@ class ContextLocatorImpl {
     Set<String> containingRootEnabledLegacyPlugins,
     List<LocatedGlob> excludedGlobs,
     File? optionsFile,
-    File? packagesFile,
-  ) {
+    File? packagesFile, {
+    File? optionsFileFromParentInSameRoot,
+  }) {
     var packagesFileToUse =
         packagesFile ?? _getPackagesFile(folder) ?? containingRoot.packagesFile;
     var buildGnFile = folder.getExistingFile(file_paths.buildGn);
@@ -413,6 +414,9 @@ class ContextLocatorImpl {
     var optionsFileToUse = optionsFile;
     if (optionsFileToUse == null) {
       optionsFileToUse = folder.existingAnalysisOptionsYamlFile;
+      // If this folder doesn't have one use the one from a parent folder if any,
+      // that will be the one we find anyway.
+      optionsFileToUse ??= optionsFileFromParentInSameRoot;
       if (optionsFileToUse == null) {
         var parentFolder = folder.parent;
         while (parentFolder != containingRoot.root) {
@@ -470,12 +474,14 @@ class ContextLocatorImpl {
     if (optionsFileToUse != null) {
       (containingRoot as ContextRootImpl).optionsFileMap[folder] =
           optionsFileToUse;
-      // Add excluded globs.
-      var excludes = _getExcludedGlobs(
-        optionsFileToUse,
-        containingRoot.workspace,
-      );
-      containingRoot.excludedGlobs.addAll(excludes);
+      if (optionsFileToUse != optionsFileFromParentInSameRoot) {
+        // Add excluded globs only if we found a new options file.
+        var excludes = _getExcludedGlobs(
+          optionsFileToUse,
+          containingRoot.workspace,
+        );
+        containingRoot.excludedGlobs.addAll(excludes);
+      }
     }
     _createContextRootsIn(
       roots,
@@ -487,6 +493,7 @@ class ContextLocatorImpl {
       excludedGlobs,
       optionsFile,
       packagesFile,
+      optionsFileToUseForFolder: usedThisRoot ? optionsFileToUse : null,
     );
 
     return usedThisRoot;
@@ -507,8 +514,9 @@ class ContextLocatorImpl {
     Set<String> containingRootEnabledLegacyPlugins,
     List<LocatedGlob> excludedGlobs,
     File? optionsFile,
-    File? packagesFile,
-  ) {
+    File? packagesFile, {
+    File? optionsFileToUseForFolder,
+  }) {
     bool isExcluded(Folder folder) {
       if (excludedFolders.contains(folder) ||
           folder.shortName.startsWith('.')) {
@@ -553,6 +561,7 @@ class ContextLocatorImpl {
               excludedGlobs,
               optionsFile,
               packagesFile,
+              optionsFileFromParentInSameRoot: optionsFileToUseForFolder,
             );
           }
         }

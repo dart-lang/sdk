@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
+import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -641,7 +642,11 @@ name: test
       name: 'test',
     );
 
-    newAnalysisOptionsYamlFile(testPackageRootPath, '');
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
+analyzer:
+  exclude:
+    - foo/**
+''');
     newFile('$testPackageLibPath/a.dart', '');
 
     var nestedPath = '$testPackageLibPath/nested';
@@ -662,7 +667,14 @@ analyzer:
     newFile('$nestedNestedPath/c.dart', '');
     newFile('$nestedNestedPath/excluded2/d.dart', '');
 
-    _assertWorkspaceCollectionText(workspaceRootPath, r'''
+    // There's still an issue here with these exclude globs being there twice:
+    // - foo/** in /home/test
+    // - foo in /home/test
+    // But at least that's it.
+    _assertWorkspaceCollectionText(
+      workspaceRootPath,
+      withExcludedGlobs: true,
+      r'''
 contexts
   /home/test
     packagesFile: /home/test/.dart_tool/package_config.json
@@ -680,6 +692,15 @@ contexts
         uri: package:test/nested/nested/c.dart
         analysisOptions_2
         workspacePackage_0_0
+    excludedGlobs
+      foo/** in /home/test
+      foo in /home/test
+      foo/** in /home/test
+      foo in /home/test
+      excluded/** in /home/test/lib/nested
+      excluded in /home/test/lib/nested
+      excluded2/** in /home/test/lib/nested/nested
+      excluded2 in /home/test/lib/nested/nested
 analysisOptions
   analysisOptions_0: /home/test/analysis_options.yaml
   analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
@@ -690,7 +711,8 @@ workspaces
     pubPackages
       workspacePackage_0_0: PubPackage
         root: /home/test
-''');
+''',
+    );
   }
 
   test_packageConfigWorkspace_multipleAnalysisOptions_outerExclude() async {
@@ -1686,6 +1708,7 @@ workspaces
   void _assertWorkspaceCollectionText(
     String workspaceRootPath,
     String expected, {
+    bool withExcludedGlobs = false,
     File? optionsFile,
     void Function({required AnalysisOptionsImpl analysisOptions})?
     updateAnalysisOptions,
@@ -1693,6 +1716,7 @@ workspaces
     if (optionsFile != null) {
       expect(optionsFile.exists, isTrue);
     }
+    configuration.withExcludedGlobs = withExcludedGlobs;
     var collection = AnalysisContextCollectionImpl(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
@@ -1809,6 +1833,13 @@ class _AnalysisContextCollectionPrinter {
           _writeDartFile(fsState, file);
         }
       });
+      if (configuration.withExcludedGlobs && contextRoot is ContextRootImpl) {
+        sink.writeElements('excludedGlobs', contextRoot.excludedGlobs, (glob) {
+          sink.writelnWithIndent(
+            '${glob.glob.pattern} in ${glob.parent.posixPath}',
+          );
+        });
+      }
     });
   }
 
@@ -1944,4 +1975,5 @@ class _AnalysisContextCollectionPrinterConfiguration {
   bool withEnabledFeatures = false;
   bool withLintRules = false;
   bool withOptionFilesForContext = false;
+  bool withExcludedGlobs = false;
 }
