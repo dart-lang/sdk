@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -57,8 +57,8 @@ foo(x) => 1;
 var v = const A(foo);
 ''',
       [
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 116, 3),
-        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 116, 3),
+        error(diag.argumentTypeNotAssignable, 116, 3),
+        error(diag.constConstructorParamTypeMismatch, 116, 3),
       ],
     );
   }
@@ -89,7 +89,7 @@ class A {
 }
 var v = const A('foo');
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 20, 10)],
+      [error(diag.undefinedClass, 20, 10)],
     );
   }
 
@@ -103,7 +103,7 @@ class A {
 }
 var v = const A(null);
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 20, 10)],
+      [error(diag.undefinedClass, 20, 10)],
     );
   }
 
@@ -198,8 +198,8 @@ class A {
 var v = const A();
 ''',
       [
-        error(CompileTimeErrorCode.invalidAssignment, 45, 5),
-        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 64, 9),
+        error(diag.invalidAssignment, 45, 5),
+        error(diag.constConstructorParamTypeMismatch, 64, 9),
       ],
     );
   }
@@ -221,8 +221,8 @@ const A u = const A();
 var v = const C(u);
 ''',
       [
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 143, 1),
-        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 143, 1),
+        error(diag.argumentTypeNotAssignable, 143, 1),
+        error(diag.constConstructorParamTypeMismatch, 143, 1),
       ],
     );
   }
@@ -241,8 +241,8 @@ int foo(String x) => 1;
 var v = const A(foo);
 ''',
       [
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 127, 3),
-        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 127, 3),
+        error(diag.argumentTypeNotAssignable, 127, 3),
+        error(diag.constConstructorParamTypeMismatch, 127, 3),
       ],
     );
   }
@@ -257,8 +257,8 @@ class A {
 var v = const A('foo');
 ''',
       [
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 62, 5),
-        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 62, 5),
+        error(diag.argumentTypeNotAssignable, 62, 5),
+        error(diag.constConstructorParamTypeMismatch, 62, 5),
       ],
     );
   }
@@ -272,7 +272,7 @@ class A {
 }
 var v = const A('foo');
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 18, 10)],
+      [error(diag.undefinedClass, 18, 10)],
     );
   }
 
@@ -285,8 +285,8 @@ class A<T> {
 var v = const A<int>('foo');
 ''',
       [
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 52, 5),
-        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 52, 5),
+        error(diag.argumentTypeNotAssignable, 52, 5),
+        error(diag.constConstructorParamTypeMismatch, 52, 5),
       ],
     );
   }
@@ -300,8 +300,8 @@ class A {
 var v = const A('foo');
 ''',
       [
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 46, 5),
-        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 46, 5),
+        error(diag.argumentTypeNotAssignable, 46, 5),
+        error(diag.constConstructorParamTypeMismatch, 46, 5),
       ],
     );
   }

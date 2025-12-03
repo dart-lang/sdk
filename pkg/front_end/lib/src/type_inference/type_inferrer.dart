@@ -41,12 +41,12 @@ abstract class TypeInferrer {
     TreeNode,
     Statement,
     Expression,
-    VariableDeclaration,
+    ExpressionVariable,
     SharedTypeView
   >
   get flowAnalysis;
 
-  AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables;
+  AssignedVariables<TreeNode, ExpressionVariable> get assignedVariables;
 
   /// Performs full type inference on the given field initializer.
   ExpressionInferenceResult inferFieldInitializer({
@@ -116,7 +116,7 @@ class TypeInferrerImpl implements TypeInferrer {
     TreeNode,
     Statement,
     Expression,
-    VariableDeclaration,
+    ExpressionVariable,
     SharedTypeView
   >
   flowAnalysis = new FlowAnalysis(
@@ -126,7 +126,7 @@ class TypeInferrerImpl implements TypeInferrer {
   );
 
   @override
-  final AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
+  final AssignedVariables<TreeNode, ExpressionVariable> assignedVariables;
 
   final InferenceDataForTesting? dataForTesting;
 
@@ -393,7 +393,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     InterfaceType? thisType,
     SourceLibraryBuilder libraryBuilder,
     this.extensionScope,
-    AssignedVariables<TreeNode, VariableDeclaration> assignedVariables,
+    AssignedVariables<TreeNode, ExpressionVariable> assignedVariables,
     InferenceDataForTesting? dataForTesting,
     this.benchmarker,
   ) : impl = new TypeInferrerImpl(
@@ -406,7 +406,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
       );
 
   @override
-  AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables =>
+  AssignedVariables<TreeNode, ExpressionVariable> get assignedVariables =>
       impl.assignedVariables;
 
   @override
@@ -414,7 +414,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     TreeNode,
     Statement,
     Expression,
-    VariableDeclaration,
+    ExpressionVariable,
     SharedTypeView
   >
   get flowAnalysis => impl.flowAnalysis;

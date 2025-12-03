@@ -15,7 +15,7 @@ extension type Option<V extends core::Object? = dynamic>(core::Object? _value) {
   constructor tearoff • = self::Option|constructor#_#new#tearOff;
 }
 static const field self::Option<Never>% /* erasure=core::Object?, declared=! */ Option|none = #C1;
-static extension-type-member method Option|constructor#<V extends core::Object? = dynamic>(core::Object? _value) → self::Option<self::Option|constructor#::V%>% /* erasure=core::Object?, declared=! */ {
+static extension-type-member const method Option|constructor#<V extends core::Object? = dynamic>(core::Object? _value) → self::Option<self::Option|constructor#::V%>% /* erasure=core::Object?, declared=! */ {
   lowered final self::Option<self::Option|constructor#::V%>% /* erasure=core::Object?, declared=! */ #this = _value;
   return #this;
 }

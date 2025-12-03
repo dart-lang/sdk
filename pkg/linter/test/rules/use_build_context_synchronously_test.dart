@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:linter/src/rules/use_build_context_synchronously.dart';
@@ -2613,7 +2614,7 @@ void foo(BuildContext context) async {
       [
         // Just don't crash when one argument references BuildContext, and not all
         // positional arguments are given.
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 95, 36),
+        error(diag.argumentTypeNotAssignable, 95, 36),
       ],
     );
   }

@@ -1,0 +1,142 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:8:41: Error: Duplicated parameter name '_foo'.
+//   C1({required this._foo, required this._foo}) {}
+//                                         ^^^^
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:8:21: Context: Other parameter named '_foo'.
+//   C1({required this._foo, required this._foo}) {}
+//                     ^^^^
+//
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:14:35: Error: A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').
+//   C2({required this._foo, String? _foo}) {}
+//                                   ^^^^
+//
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:14:35: Error: Duplicated parameter name '_foo'.
+//   C2({required this._foo, String? _foo}) {}
+//                                   ^^^^
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:14:21: Context: Other parameter named '_foo'.
+//   C2({required this._foo, String? _foo}) {}
+//                     ^^^^
+//
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:20:21: Error: The corresponding public name 'foo' is already the name of another parameter.
+//   C3({required this._foo, String? foo}) {}
+//                     ^^^^
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:20:35: Context: Other parameter named 'foo'.
+//   C3({required this._foo, String? foo}) {}
+//                                   ^^^
+//
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:26:15: Error: A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').
+//   C4({String? _foo, required this._foo}) {}
+//               ^^^^
+//
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:26:35: Error: Duplicated parameter name '_foo'.
+//   C4({String? _foo, required this._foo}) {}
+//                                   ^^^^
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:26:15: Context: Other parameter named '_foo'.
+//   C4({String? _foo, required this._foo}) {}
+//               ^^^^
+//
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:32:34: Error: Duplicated parameter name '_foo'.
+//   C5(String _foo, {required this._foo}) {}
+//                                  ^^^^
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:32:13: Context: Other parameter named '_foo'.
+//   C5(String _foo, {required this._foo}) {}
+//             ^^^^
+//
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:39:40: Error: The corresponding public name 'foo' is already the name of another parameter.
+//   C6({required this.foo, required this._foo}) {}
+//                                        ^^^^
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:39:21: Context: Other parameter named 'foo'.
+//   C6({required this.foo, required this._foo}) {}
+//                     ^^^
+//
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:45:34: Error: The corresponding public name 'foo' is already the name of another parameter.
+//   C7({String? foo, required this._foo}) {}
+//                                  ^^^^
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:45:15: Context: Other parameter named 'foo'.
+//   C7({String? foo, required this._foo}) {}
+//               ^^^
+//
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:51:34: Error: The corresponding public name 'foo' is already the name of another parameter.
+//   C8(String? foo, {required this._foo}) {}
+//                                  ^^^^
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:51:14: Context: Other parameter named 'foo'.
+//   C8(String? foo, {required this._foo}) {}
+//              ^^^
+//
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:57:45: Error: A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').
+//   C9(String? foo, {required this._foo, int? _foo, int? foo}) {}
+//                                             ^^^^
+//
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:57:45: Error: Duplicated parameter name '_foo'.
+//   C9(String? foo, {required this._foo, int? _foo, int? foo}) {}
+//                                             ^^^^
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:57:34: Context: Other parameter named '_foo'.
+//   C9(String? foo, {required this._foo, int? _foo, int? foo}) {}
+//                                  ^^^^
+//
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:57:56: Error: Duplicated parameter name 'foo'.
+//   C9(String? foo, {required this._foo, int? _foo, int? foo}) {}
+//                                                        ^^^
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:57:14: Context: Other parameter named 'foo'.
+//   C9(String? foo, {required this._foo, int? _foo, int? foo}) {}
+//              ^^^
+//
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:57:34: Error: The corresponding public name 'foo' is already the name of another parameter.
+//   C9(String? foo, {required this._foo, int? _foo, int? foo}) {}
+//                                  ^^^^
+// pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:57:14: Context: Other parameter named 'foo'.
+//   C9(String? foo, {required this._foo, int? _foo, int? foo}) {}
+//              ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  final field core::String? _foo;
+  constructor •({required core::String? foo, required core::String? foo}) → self::C1
+    ;
+}
+class C2 extends core::Object {
+  final field core::String? _foo;
+  constructor •({required core::String? foo, core::String? _foo = null}) → self::C2
+    ;
+}
+class C3 extends core::Object {
+  final field core::String? _foo;
+  constructor •({required core::String? foo, core::String? foo = null}) → self::C3
+    ;
+}
+class C4 extends core::Object {
+  final field core::String? _foo;
+  constructor •({core::String? _foo = null, required core::String? foo}) → self::C4
+    ;
+}
+class C5 extends core::Object {
+  final field core::String? _foo;
+  constructor •(core::String _foo, {required core::String? foo}) → self::C5
+    ;
+}
+class C6 extends core::Object {
+  final field core::String? foo;
+  final field core::String? _foo;
+  constructor •({required core::String? foo, required core::String? foo}) → self::C6
+    ;
+}
+class C7 extends core::Object {
+  final field core::String? _foo;
+  constructor •({core::String? foo = null, required core::String? foo}) → self::C7
+    ;
+}
+class C8 extends core::Object {
+  final field core::String? _foo;
+  constructor •(core::String? foo, {required core::String? foo}) → self::C8
+    ;
+}
+class C9 extends core::Object {
+  final field core::String? _foo;
+  constructor •(core::String? foo, {required core::String? foo, core::int? _foo = null, core::int? foo = null}) → self::C9
+    ;
+}

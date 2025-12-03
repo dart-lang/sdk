@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 /// Finds invalid, or misplaced language override comments.
 class LanguageVersionOverrideVerifier {
@@ -189,7 +189,7 @@ class LanguageVersionOverrideVerifier {
       _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
-        diagnosticCode: WarningCode.invalidLanguageVersionOverrideTwoSlashes,
+        diagnosticCode: diag.invalidLanguageVersionOverrideTwoSlashes,
       );
       return false;
     }
@@ -198,7 +198,7 @@ class LanguageVersionOverrideVerifier {
       _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
-        diagnosticCode: WarningCode.invalidLanguageVersionOverrideAtSign,
+        diagnosticCode: diag.invalidLanguageVersionOverrideAtSign,
       );
       return false;
     }
@@ -208,7 +208,7 @@ class LanguageVersionOverrideVerifier {
       _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
-        diagnosticCode: WarningCode.invalidLanguageVersionOverrideLowerCase,
+        diagnosticCode: diag.invalidLanguageVersionOverrideLowerCase,
       );
       return false;
     }
@@ -220,7 +220,7 @@ class LanguageVersionOverrideVerifier {
       _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
-        diagnosticCode: WarningCode.invalidLanguageVersionOverrideEquals,
+        diagnosticCode: diag.invalidLanguageVersionOverrideEquals,
       );
       return false;
     }
@@ -229,7 +229,7 @@ class LanguageVersionOverrideVerifier {
       _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
-        diagnosticCode: WarningCode.invalidLanguageVersionOverridePrefix,
+        diagnosticCode: diag.invalidLanguageVersionOverridePrefix,
       );
       return false;
     }
@@ -238,7 +238,7 @@ class LanguageVersionOverrideVerifier {
       _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
-        diagnosticCode: WarningCode.invalidLanguageVersionOverrideNumber,
+        diagnosticCode: diag.invalidLanguageVersionOverrideNumber,
       );
     }
 
@@ -274,8 +274,7 @@ class LanguageVersionOverrideVerifier {
     _diagnosticReporter.atOffset(
       offset: offset,
       length: length,
-      diagnosticCode:
-          WarningCode.invalidLanguageVersionOverrideTrailingCharacters,
+      diagnosticCode: diag.invalidLanguageVersionOverrideTrailingCharacters,
     );
     return false;
   }
@@ -304,8 +303,7 @@ class LanguageVersionOverrideVerifier {
             _diagnosticReporter.atOffset(
               offset: commentToken.offset + atDartStart,
               length: match.end - atDartStart,
-              diagnosticCode:
-                  WarningCode.invalidLanguageVersionOverrideLocation,
+              diagnosticCode: diag.invalidLanguageVersionOverrideLocation,
             );
           }
         }

@@ -503,6 +503,54 @@ abstract class C {}
     );
   }
 
+  test_class_primaryConstructorBody_body() {
+    _assertSameSignature(
+      r'''
+class C() {
+  this { 0; }
+}
+''',
+      r'''
+class C() {
+  this { 1; }
+}
+''',
+    );
+  }
+
+  test_class_primaryConstructorBody_initializer_const() {
+    _assertNotSameSignature(
+      r'''
+class const C() {
+  final int f;
+  this: f = 1;
+}
+''',
+      r'''
+class const C() {
+  final int f;
+  this: f = 2;
+}
+''',
+    );
+  }
+
+  test_class_primaryConstructorBody_metadata() {
+    _assertNotSameSignature(
+      r'''
+class C() {
+  this;
+}
+''',
+      r'''
+class C() {
+  @deprecated
+  this;
+}
+''',
+    );
+  }
+
   test_class_with() {
     _assertNotSameSignature(
       r'''

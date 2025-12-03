@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ A a = const A();
 ''',
       [
         error(
-          CompileTimeErrorCode.initializerForNonExistentField,
+          diag.initializerForNonExistentField,
           24,
           9,
           messageContains: ["'x'"],
@@ -46,7 +46,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.initializerForNonExistentField,
+          diag.initializerForNonExistentField,
           36,
           5,
           messageContains: ["'x'"],
@@ -62,7 +62,7 @@ class A {
   A() : x = 0 {}
 }
 ''',
-      [error(CompileTimeErrorCode.initializerForNonExistentField, 18, 5)],
+      [error(diag.initializerForNonExistentField, 18, 5)],
     );
   }
 }

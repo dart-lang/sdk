@@ -81,7 +81,7 @@ class A {}
     var element = findElement2.class_('A');
     var result = (await helper.getFragmentDeclaration(element.firstFragment))!;
     var node = result.node as ClassDeclaration;
-    expect(node.name.lexeme, 'A');
+    expect(node.namePart.typeName.lexeme, 'A');
   }
 
   test_getResolvedUnitByElement() async {

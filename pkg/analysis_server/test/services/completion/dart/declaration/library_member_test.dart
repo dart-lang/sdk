@@ -205,6 +205,7 @@ library libB;
 export "a.dart";
 class B0 {}
 @deprecated class B1 {}
+@Deprecated.extend() class B2 {}
 ''');
     await computeSuggestions('''
 import "b.dart" as foo;
@@ -222,6 +223,10 @@ suggestions
   B0
     kind: class
   B0
+    kind: constructorInvocation
+  B2
+    kind: class
+  B2
     kind: constructorInvocation
   B1
     kind: class

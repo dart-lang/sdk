@@ -48,7 +48,7 @@ class E extends core::_Enum /*isEnum*/  {
     ;
   static factory f2() → self::E
     ;
-  static factory f3() → self::E
+  static const factory f3() → self::E
     return invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:22:26: Error: Enum factory constructors can't redirect to generative constructors.
   const factory E.f3() = E; // Error.
                          ^";

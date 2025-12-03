@@ -9,7 +9,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/options_file_validator.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
@@ -97,7 +97,7 @@ analyzer:
   cannot-ignore:
     - not_an_error_code
 ''',
-      [AnalysisOptionsWarningCode.unrecognizedErrorCode],
+      [diag.unrecognizedErrorCode],
     );
   }
 
@@ -125,7 +125,7 @@ analyzer:
   cannot-ignore:
     one_error_code: true
 ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -145,7 +145,7 @@ analyzer:
     one_error_code:
       foo: bar
 ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -163,7 +163,7 @@ analyzer:
   enable-experiment:
     - not-an-experiment
     ''',
-      [AnalysisOptionsWarningCode.unsupportedOptionWithoutValues],
+      [diag.unsupportedOptionWithoutValues],
     );
   }
 
@@ -174,7 +174,7 @@ analyzer:
   enable-experiment:
     experiment: true
     ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -184,7 +184,7 @@ analyzer:
 analyzer:
   enable-experiment: 7
     ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -206,7 +206,7 @@ analyzer:
   errors:
     unused_local_variable: ftw
     ''',
-      [AnalysisOptionsWarningCode.unsupportedOptionWithLegalValues],
+      [diag.unsupportedOptionWithLegalValues],
     );
     expect(
       diagnostics.single.problemMessage.messageText(includeUrl: false),
@@ -221,7 +221,7 @@ analyzer:
   errors:
     unused_local_variable: null
     ''',
-      [AnalysisOptionsWarningCode.unsupportedOptionWithLegalValues],
+      [diag.unsupportedOptionWithLegalValues],
     );
     expect(
       diagnostics.single.problemMessage.messageText(includeUrl: false),
@@ -236,7 +236,7 @@ analyzer:
   errors:
     not_supported: ignore
     ''',
-      [AnalysisOptionsWarningCode.unrecognizedErrorCode],
+      [diag.unrecognizedErrorCode],
     );
     expect(
       diagnostics.single.problemMessage.messageText(includeUrl: false),
@@ -251,7 +251,7 @@ analyzer:
   errors:
     null: ignore
     ''',
-      [AnalysisOptionsWarningCode.unrecognizedErrorCode],
+      [diag.unrecognizedErrorCode],
     );
     expect(
       diagnostics.single.problemMessage.messageText(includeUrl: false),
@@ -267,7 +267,7 @@ analyzer:
     - invalid_annotation
     - unused_import
     ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -279,7 +279,7 @@ analyzer:
     invalid_annotation: ignore
     unused_import: [1, 2, 3]
     ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -290,7 +290,7 @@ analyzer:
   language:
     - notAnOption: true
 ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -300,7 +300,7 @@ analyzer:
 analyzer:
   language: true
 ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -318,7 +318,7 @@ analyzer:
   language:
     unsupported: true
 ''',
-      [AnalysisOptionsWarningCode.unsupportedOptionWithLegalValues],
+      [diag.unsupportedOptionWithLegalValues],
     );
   }
 
@@ -336,7 +336,7 @@ analyzer:
       '''
 analyzer: 7
     ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -354,7 +354,7 @@ analyzer:
 analyzer:
   not_supported: true
 ''',
-      [AnalysisOptionsWarningCode.unsupportedOptionWithLegalValues],
+      [diag.unsupportedOptionWithLegalValues],
     );
   }
 
@@ -373,7 +373,7 @@ analyzer:
   optional-checks:
     chromeos-manifest
 ''',
-      [AnalysisOptionsWarningCode.unsupportedOptionWithLegalValues],
+      [diag.unsupportedOptionWithLegalValues],
     );
   }
 
@@ -384,7 +384,7 @@ analyzer:
   optional-checks:
     - chrome-os-manifest-checks
 ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -401,7 +401,7 @@ code-style:
 code-style:
   format: 80
 ''',
-      [AnalysisOptionsWarningCode.unsupportedValue],
+      [diag.unsupportedValue],
     );
   }
 
@@ -417,7 +417,7 @@ code-style:
       '''
 code-style: 7
 ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -427,7 +427,7 @@ code-style: 7
 code-style:
   - format
 ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -436,7 +436,7 @@ code-style:
       '''
 code-style: format
 ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -446,7 +446,7 @@ code-style: format
 code-style:
   not_supported: true
 ''',
-      [AnalysisOptionsWarningCode.unsupportedOptionWithoutValues],
+      [diag.unsupportedOptionWithoutValues],
     );
   }
 
@@ -456,7 +456,7 @@ code-style:
 formatter:
   wrong: 123
 ''',
-      [AnalysisOptionsWarningCode.unsupportedOptionWithoutValues],
+      [diag.unsupportedOptionWithoutValues],
     );
   }
 
@@ -468,8 +468,8 @@ formatter:
   wrong2: 123
 ''',
       [
-        AnalysisOptionsWarningCode.unsupportedOptionWithoutValues,
-        AnalysisOptionsWarningCode.unsupportedOptionWithoutValues,
+        diag.unsupportedOptionWithoutValues,
+        diag.unsupportedOptionWithoutValues,
       ],
     );
   }
@@ -480,7 +480,7 @@ formatter:
 formatter:
   page_width: 123.45
 ''',
-      [AnalysisOptionsWarningCode.invalidOption],
+      [diag.invalidOption],
     );
   }
 
@@ -490,7 +490,7 @@ formatter:
 formatter:
   page_width: -123
 ''',
-      [AnalysisOptionsWarningCode.invalidOption],
+      [diag.invalidOption],
     );
   }
 
@@ -500,7 +500,7 @@ formatter:
 formatter:
   page_width: "123"
 ''',
-      [AnalysisOptionsWarningCode.invalidOption],
+      [diag.invalidOption],
     );
   }
 
@@ -510,7 +510,7 @@ formatter:
 formatter:
   page_width: 0
 ''',
-      [AnalysisOptionsWarningCode.invalidOption],
+      [diag.invalidOption],
     );
   }
 
@@ -528,7 +528,7 @@ formatter:
   trailing_commas:
     a: b
 ''',
-      [AnalysisOptionsWarningCode.invalidOption],
+      [diag.invalidOption],
     );
   }
 
@@ -538,7 +538,7 @@ formatter:
 formatter:
   trailing_commas: 1
 ''',
-      [AnalysisOptionsWarningCode.invalidOption],
+      [diag.invalidOption],
     );
   }
 
@@ -548,7 +548,7 @@ formatter:
 formatter:
   trailing_commas: foo
 ''',
-      [AnalysisOptionsWarningCode.invalidOption],
+      [diag.invalidOption],
     );
   }
 
@@ -580,7 +580,7 @@ linter:
 linter:
   unsupported: true
     ''',
-      [AnalysisOptionsWarningCode.unsupportedOptionWithLegalValue],
+      [diag.unsupportedOptionWithLegalValue],
     );
   }
 
@@ -612,13 +612,29 @@ plugins:
       '''
 plugins: 7
 ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
   test_plugins_valid_empty() {
     validate('''
 plugins:
+''', []);
+  }
+
+  test_propagate_linter_exceptions() {
+    validate('''
+analyzer:
+  optional-checks:
+    propagate-linter-exceptions
+''', []);
+  }
+
+  test_propagate_linter_exceptions_mapKey() {
+    validate('''
+analyzer:
+  optional-checks:
+    propagate-linter-exceptions: true
 ''', []);
   }
 
@@ -711,7 +727,7 @@ analyzer:
   plugins:
     - plugin_two
 ''',
-      [error(AnalysisOptionsWarningCode.multiplePlugins, 55, 10)],
+      [error(diag.multiplePlugins, 55, 10)],
     );
   }
 
@@ -729,7 +745,7 @@ analyzer:
     plugin_two:
       foo: bar
 ''',
-      [error(AnalysisOptionsWarningCode.multiplePlugins, 53, 10)],
+      [error(diag.multiplePlugins, 53, 10)],
     );
   }
 
@@ -745,7 +761,7 @@ include: other_options.yaml
 analyzer:
   plugins: plugin_two
 ''',
-      [error(AnalysisOptionsWarningCode.multiplePlugins, 49, 10)],
+      [error(diag.multiplePlugins, 49, 10)],
     );
   }
 
@@ -765,7 +781,7 @@ analyzer:
   plugins:
     - plugin_two
 ''',
-      [error(AnalysisOptionsWarningCode.multiplePlugins, 55, 10)],
+      [error(diag.multiplePlugins, 55, 10)],
     );
   }
 
@@ -785,7 +801,7 @@ analyzer:
       r'''
 include: other_options.yaml
 ''',
-      [error(AnalysisOptionsWarningCode.includedFileWarning, 9, 18)],
+      [error(diag.includedFileWarning, 9, 18)],
     );
   }
 
@@ -799,8 +815,8 @@ analyzer:
     - plugin_three
 ''',
       [
-        error(AnalysisOptionsWarningCode.multiplePlugins, 44, 10),
-        error(AnalysisOptionsWarningCode.multiplePlugins, 61, 12),
+        error(diag.multiplePlugins, 44, 10),
+        error(diag.multiplePlugins, 61, 12),
       ],
     );
   }
@@ -831,7 +847,7 @@ analyzer:
     plugin_one: yes
     plugin_two: sure
 ''',
-      [error(AnalysisOptionsWarningCode.multiplePlugins, 45, 10)],
+      [error(diag.multiplePlugins, 45, 10)],
     );
   }
 
@@ -843,7 +859,7 @@ analyzer:
     plugin_one: yes
     plugin_one: sure
 ''',
-      [error(AnalysisOptionsErrorCode.parseError, 45, 10)],
+      [error(diag.parseError, 45, 10)],
     );
   }
 
@@ -868,7 +884,7 @@ version: 0.0.1
     );
 
     assertErrorsInList(diagnostics, [
-      error(AnalysisOptionsWarningCode.pluginsInInnerOptions, 11, 12),
+      error(diag.pluginsInInnerOptions, 11, 12),
     ]);
   }
 
@@ -921,8 +937,7 @@ class TestRule extends AnalysisRule {
     'fantastic_test_rule',
     'Fantastic test rule.',
     correctionMessage: 'Try fantastic test rule.',
-    // ignore: deprecated_member_use_from_same_package
-    uniqueNameCheck: 'LintCode.fantastic_test_rule',
+    uniqueName: 'LintCode.fantastic_test_rule',
   );
 
   TestRule() : super(name: 'fantastic_test_rule', description: '');

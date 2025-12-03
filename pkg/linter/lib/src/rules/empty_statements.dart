@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid empty statements.';
 
@@ -18,7 +19,7 @@ class EmptyStatements extends AnalysisRule {
     : super(name: LintNames.empty_statements, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.emptyStatements;
+  DiagnosticCode get diagnosticCode => diag.emptyStatements;
 
   @override
   void registerNodeProcessors(

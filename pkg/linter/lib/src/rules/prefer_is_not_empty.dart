@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Use `isNotEmpty` for `Iterable`s and `Map`s.';
 
@@ -21,7 +22,7 @@ class PreferIsNotEmpty extends AnalysisRule {
     : super(name: LintNames.prefer_is_not_empty, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.preferIsNotEmpty;
+  DiagnosticCode get diagnosticCode => diag.preferIsNotEmpty;
 
   @override
   void registerNodeProcessors(

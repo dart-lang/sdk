@@ -8,8 +8,7 @@ library;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -111,9 +110,10 @@ class SimpleParserTest extends FastaParserTestCase {
 class C<@Foo.bar(const [], const [1], const{"":r""}, 0xFF + 2, .3, 4.5) T> {}
 ''');
     var clazz = unit.declarations[0] as ClassDeclaration;
-    expect(clazz.name.lexeme, 'C');
-    expect(clazz.typeParameters!.typeParameters, hasLength(1));
-    TypeParameter typeParameter = clazz.typeParameters!.typeParameters[0];
+    expect(clazz.namePart.typeName.lexeme, 'C');
+    expect(clazz.namePart.typeParameters!.typeParameters, hasLength(1));
+    TypeParameter typeParameter =
+        clazz.namePart.typeParameters!.typeParameters[0];
     expect(typeParameter.name.lexeme, 'T');
     expect(typeParameter.metadata, hasLength(1));
     Annotation metadata = typeParameter.metadata[0];
@@ -128,9 +128,9 @@ class C {
 }
 ''',
       diagnostics: [
-        expectedError(ParserErrorCode.invalidSuperInInitializer, 18, 5),
-        expectedError(ParserErrorCode.expectedIdentifierButGotKeyword, 24, 5),
-        expectedError(ParserErrorCode.missingIdentifier, 24, 5),
+        expectedError(diag.invalidSuperInInitializer, 18, 5),
+        expectedError(diag.expectedIdentifierButGotKeyword, 24, 5),
+        expectedError(diag.missingIdentifier, 24, 5),
       ],
     );
   }
@@ -143,11 +143,11 @@ class C {
 }
 ''',
       diagnostics: [
-        expectedError(ParserErrorCode.missingAssignmentInInitializer, 18, 4),
-        expectedError(ParserErrorCode.missingIdentifier, 23, 5),
-        expectedError(ParserErrorCode.missingFunctionBody, 23, 5),
-        expectedError(ParserErrorCode.constMethod, 23, 5),
-        expectedError(ParserErrorCode.missingIdentifier, 28, 1),
+        expectedError(diag.missingAssignmentInInitializer, 18, 4),
+        expectedError(diag.missingIdentifier, 23, 5),
+        expectedError(diag.missingFunctionBody, 23, 5),
+        expectedError(diag.constMethod, 23, 5),
+        expectedError(diag.missingIdentifier, 28, 1),
       ],
     );
   }
@@ -156,10 +156,11 @@ class C {
     // https://github.com/dart-lang/sdk/issues/37733
     var unit = parseCompilationUnit(
       r'class C { f(<T>()); }',
-      diagnostics: [expectedError(ParserErrorCode.missingIdentifier, 12, 1)],
+      diagnostics: [expectedError(diag.missingIdentifier, 12, 1)],
     );
     var classDeclaration = unit.declarations[0] as ClassDeclaration;
-    var method = classDeclaration.members[0] as MethodDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
+    var method = classBody.members[0] as MethodDeclaration;
     expect(method.parameters!.parameters, hasLength(1));
     var parameter =
         method.parameters!.parameters[0] as FunctionTypedFormalParameter;
@@ -736,7 +737,7 @@ class C {}
     createParser('{}');
     FunctionBody functionBody = parser.parseFunctionBody(
       false,
-      ParserErrorCode.missingFunctionBody,
+      diag.missingFunctionBody,
       false,
     );
     expectNotNullIfNoErrors(functionBody);
@@ -755,7 +756,7 @@ class C {}
     createParser('async {}');
     FunctionBody functionBody = parser.parseFunctionBody(
       false,
-      ParserErrorCode.missingFunctionBody,
+      diag.missingFunctionBody,
       false,
     );
     expectNotNullIfNoErrors(functionBody);
@@ -775,7 +776,7 @@ class C {}
     createParser('async* {}');
     FunctionBody functionBody = parser.parseFunctionBody(
       false,
-      ParserErrorCode.missingFunctionBody,
+      diag.missingFunctionBody,
       false,
     );
     expectNotNullIfNoErrors(functionBody);
@@ -795,7 +796,7 @@ class C {}
     createParser('sync* {}');
     FunctionBody functionBody = parser.parseFunctionBody(
       false,
-      ParserErrorCode.missingFunctionBody,
+      diag.missingFunctionBody,
       false,
     );
     expectNotNullIfNoErrors(functionBody);
@@ -815,7 +816,7 @@ class C {}
     createParser(';');
     FunctionBody functionBody = parser.parseFunctionBody(
       true,
-      ParserErrorCode.missingFunctionBody,
+      diag.missingFunctionBody,
       false,
     );
     expectNotNullIfNoErrors(functionBody);
@@ -829,7 +830,7 @@ class C {}
     createParser('=> y;');
     FunctionBody functionBody = parser.parseFunctionBody(
       false,
-      ParserErrorCode.missingFunctionBody,
+      diag.missingFunctionBody,
       false,
     );
     expectNotNullIfNoErrors(functionBody);
@@ -849,7 +850,7 @@ class C {}
     createParser('async => y;');
     FunctionBody functionBody = parser.parseFunctionBody(
       false,
-      ParserErrorCode.missingFunctionBody,
+      diag.missingFunctionBody,
       false,
     );
     expectNotNullIfNoErrors(functionBody);
@@ -1000,8 +1001,8 @@ void main() {final c = C<int, int Function(String)>();}
     parseCompilationUnit(
       'library <myLibId>;',
       diagnostics: [
-        expectedError(ParserErrorCode.missingFunctionParameters, 0, 7),
-        expectedError(ParserErrorCode.missingFunctionBody, 17, 1),
+        expectedError(diag.missingFunctionParameters, 0, 7),
+        expectedError(diag.missingFunctionBody, 17, 1),
       ],
     );
   }
@@ -1260,7 +1261,7 @@ Function<A>(core.List<core.int> x) m() => null;
     createParser('<>');
     TypeArgumentList argumentList = parser.parseTypeArgumentList();
     expectNotNullIfNoErrors(argumentList);
-    listener.assertErrorsWithCodes([ParserErrorCode.expectedTypeName]);
+    listener.assertErrorsWithCodes([diag.expectedTypeName]);
     expect(argumentList.leftBracket, isNotNull);
     expect(argumentList.arguments, hasLength(1));
     expect(argumentList.rightBracket, isNotNull);
@@ -1490,9 +1491,7 @@ Function<A>(core.List<core.int> x) m() => null;
     var statement =
         parseStatement('final late a;') as VariableDeclarationStatement;
     var declarationList = statement.variables;
-    assertErrors(
-      diagnostics: [expectedError(ParserErrorCode.modifierOutOfOrder, 6, 4)],
-    );
+    assertErrors(diagnostics: [expectedError(diag.modifierOutOfOrder, 6, 4)]);
     expect(declarationList.keyword!.lexeme, 'final');
     expect(declarationList.type, isNull);
     expect(declarationList.variables, hasLength(1));
@@ -1502,9 +1501,7 @@ Function<A>(core.List<core.int> x) m() => null;
     var statement = parseStatement('late a;') as VariableDeclarationStatement;
     var declarationList = statement.variables;
     assertErrors(
-      diagnostics: [
-        expectedError(ParserErrorCode.missingConstFinalVarOrType, 5, 1),
-      ],
+      diagnostics: [expectedError(diag.missingConstFinalVarOrType, 5, 1)],
     );
     expect(declarationList.keyword, isNull);
     expect(declarationList.type, isNull);
@@ -1526,9 +1523,7 @@ Function<A>(core.List<core.int> x) m() => null;
         parseStatement('late a = 0;') as VariableDeclarationStatement;
     var declarationList = statement.variables;
     assertErrors(
-      diagnostics: [
-        expectedError(ParserErrorCode.missingConstFinalVarOrType, 5, 1),
-      ],
+      diagnostics: [expectedError(diag.missingConstFinalVarOrType, 5, 1)],
     );
     expect(declarationList.keyword, isNull);
     expect(declarationList.type, isNull);
@@ -1597,12 +1592,12 @@ Function<A>(core.List<core.int> x) m() => null;
     var unit = parseCompilationUnit(
       r'typedef K=Function(<>($',
       diagnostics: [
-        expectedError(CompileTimeErrorCode.invalidInlineFunctionType, 19, 1),
-        expectedError(ParserErrorCode.missingIdentifier, 19, 1),
-        expectedError(ParserErrorCode.missingIdentifier, 20, 1),
-        expectedError(ParserErrorCode.expectedToken, 22, 1),
-        expectedError(ParserErrorCode.expectedToken, 23, 1),
-        expectedError(ParserErrorCode.expectedToken, 23, 1),
+        expectedError(diag.invalidInlineFunctionType, 19, 1),
+        expectedError(diag.missingIdentifier, 19, 1),
+        expectedError(diag.missingIdentifier, 20, 1),
+        expectedError(diag.expectedToken, 22, 1),
+        expectedError(diag.expectedToken, 23, 1),
+        expectedError(diag.expectedToken, 23, 1),
       ],
     );
     var typeAlias = unit.declarations[0] as GenericTypeAlias;
@@ -1618,8 +1613,8 @@ Function<A>(core.List<core.int> x) m() => null;
     var unit = parseCompilationUnit(
       r'typedef T=Function(<S>());',
       diagnostics: [
-        expectedError(CompileTimeErrorCode.invalidInlineFunctionType, 19, 1),
-        expectedError(ParserErrorCode.missingIdentifier, 19, 1),
+        expectedError(diag.invalidInlineFunctionType, 19, 1),
+        expectedError(diag.missingIdentifier, 19, 1),
       ],
     );
     var typeAlias = unit.declarations[0] as GenericTypeAlias;

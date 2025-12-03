@@ -29,7 +29,8 @@ class MachOWriter : public SharedObjectWriter {
               Type type,
               const char* id,
               const char* path = nullptr,
-              Dwarf* dwarf = nullptr);
+              Dwarf* dwarf = nullptr,
+              MachOWriter* object = nullptr);
 
 #if defined(TARGET_ARCH_ARM64)
   static constexpr intptr_t kPageSize = 16 * KB;
@@ -56,13 +57,7 @@ class MachOWriter : public SharedObjectWriter {
 
   void Finalize() override;
 
-  void AssertConsistency(const SharedObjectWriter* debug) const override {
-    if (auto* const debug_macho = debug->AsMachOWriter()) {
-      AssertConsistency(this, debug_macho);
-    } else {
-      FATAL("Expected both snapshot and debug to be MachO");
-    }
-  }
+  void AssertConsistency(const SharedObjectWriter* debug) const override;
 
   const MachOWriter* AsMachOWriter() const override { return this; }
 
@@ -70,6 +65,7 @@ class MachOWriter : public SharedObjectWriter {
   static void AssertConsistency(const MachOWriter* snapshot,
                                 const MachOWriter* debug_info);
 
+  MachOWriter* const object_writer_;
   MachOHeader& header_;
 };
 

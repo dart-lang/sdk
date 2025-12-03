@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,7 +25,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.duplicateFieldFormalParameter,
+          diag.duplicateFieldFormalParameter,
           41,
           1,
           contextMessages: [message(testFile, 29, 1)],
@@ -44,23 +43,15 @@ class A {
 }
 ''',
       [
-        error(WarningCode.unusedField, 16, 1),
+        error(diag.unusedField, 16, 1),
+        error(diag.privateNamedParameterWithoutPublicName, 29, 1),
         error(
-          CompileTimeErrorCode.privateNamedParameterWithoutPublicName,
-          29,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.duplicateFieldFormalParameter,
+          diag.duplicateFieldFormalParameter,
           41,
           1,
           contextMessages: [message(testFile, 29, 1)],
         ),
-        error(
-          CompileTimeErrorCode.privateNamedParameterWithoutPublicName,
-          41,
-          1,
-        ),
+        error(diag.privateNamedParameterWithoutPublicName, 41, 1),
       ],
     );
   }
@@ -77,11 +68,11 @@ class A {
 }
 ''',
       [
-        error(WarningCode.unusedField, 60, 1),
-        error(ParserErrorCode.experimentNotEnabledOffByDefault, 73, 1),
-        error(ParserErrorCode.experimentNotEnabledOffByDefault, 85, 1),
+        error(diag.unusedField, 60, 1),
+        error(diag.experimentNotEnabledOffByDefault, 73, 1),
+        error(diag.experimentNotEnabledOffByDefault, 85, 1),
         error(
-          CompileTimeErrorCode.duplicateFieldFormalParameter,
+          diag.duplicateFieldFormalParameter,
           85,
           1,
           contextMessages: [message(testFile, 73, 1)],
@@ -100,7 +91,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.duplicateFieldFormalParameter,
+          diag.duplicateFieldFormalParameter,
           41,
           1,
           contextMessages: [message(testFile, 29, 1)],
@@ -119,7 +110,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.duplicateFieldFormalParameter,
+          diag.duplicateFieldFormalParameter,
           43,
           1,
           contextMessages: [message(testFile, 31, 1)],
@@ -137,9 +128,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.unusedField, 18, 1),
+        error(diag.unusedField, 18, 1),
         error(
-          CompileTimeErrorCode.duplicateFieldFormalParameter,
+          diag.duplicateFieldFormalParameter,
           43,
           1,
           contextMessages: [message(testFile, 31, 1)],
@@ -160,9 +151,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.unusedField, 62, 1),
+        error(diag.unusedField, 62, 1),
         error(
-          CompileTimeErrorCode.duplicateFieldFormalParameter,
+          diag.duplicateFieldFormalParameter,
           87,
           1,
           contextMessages: [message(testFile, 75, 1)],
@@ -180,9 +171,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.unusedField, 16, 1),
+        error(diag.unusedField, 16, 1),
         error(
-          CompileTimeErrorCode.duplicateFieldFormalParameter,
+          diag.duplicateFieldFormalParameter,
           41,
           1,
           contextMessages: [message(testFile, 29, 1)],
@@ -203,9 +194,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.unusedField, 60, 1),
+        error(diag.unusedField, 60, 1),
         error(
-          CompileTimeErrorCode.duplicateFieldFormalParameter,
+          diag.duplicateFieldFormalParameter,
           85,
           1,
           contextMessages: [message(testFile, 73, 1)],
@@ -224,7 +215,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.duplicateFieldFormalParameter,
+          diag.duplicateFieldFormalParameter,
           55,
           1,
           contextMessages: [message(testFile, 38, 1)],
@@ -242,23 +233,15 @@ class A {
 }
 ''',
       [
-        error(WarningCode.unusedField, 16, 1),
+        error(diag.unusedField, 16, 1),
+        error(diag.privateNamedParameterWithoutPublicName, 38, 1),
         error(
-          CompileTimeErrorCode.privateNamedParameterWithoutPublicName,
-          38,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.duplicateFieldFormalParameter,
+          diag.duplicateFieldFormalParameter,
           55,
           1,
           contextMessages: [message(testFile, 38, 1)],
         ),
-        error(
-          CompileTimeErrorCode.privateNamedParameterWithoutPublicName,
-          55,
-          1,
-        ),
+        error(diag.privateNamedParameterWithoutPublicName, 55, 1),
       ],
     );
   }
@@ -275,11 +258,11 @@ class A {
 }
 ''',
       [
-        error(WarningCode.unusedField, 60, 1),
-        error(ParserErrorCode.experimentNotEnabledOffByDefault, 82, 1),
-        error(ParserErrorCode.experimentNotEnabledOffByDefault, 99, 1),
+        error(diag.unusedField, 60, 1),
+        error(diag.experimentNotEnabledOffByDefault, 82, 1),
+        error(diag.experimentNotEnabledOffByDefault, 99, 1),
         error(
-          CompileTimeErrorCode.duplicateFieldFormalParameter,
+          diag.duplicateFieldFormalParameter,
           99,
           1,
           contextMessages: [message(testFile, 82, 1)],
@@ -298,7 +281,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.duplicateFieldFormalParameter,
+          diag.duplicateFieldFormalParameter,
           36,
           1,
           contextMessages: [message(testFile, 28, 1)],
@@ -317,7 +300,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.duplicateFieldFormalParameter,
+          diag.duplicateFieldFormalParameter,
           38,
           1,
           contextMessages: [message(testFile, 30, 1)],
@@ -335,9 +318,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.unusedField, 18, 1),
+        error(diag.unusedField, 18, 1),
         error(
-          CompileTimeErrorCode.duplicateFieldFormalParameter,
+          diag.duplicateFieldFormalParameter,
           38,
           1,
           contextMessages: [message(testFile, 30, 1)],
@@ -358,9 +341,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.unusedField, 62, 1),
+        error(diag.unusedField, 62, 1),
         error(
-          CompileTimeErrorCode.duplicateFieldFormalParameter,
+          diag.duplicateFieldFormalParameter,
           82,
           1,
           contextMessages: [message(testFile, 74, 1)],
@@ -381,9 +364,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.unusedField, 61, 1),
+        error(diag.unusedField, 61, 1),
         error(
-          CompileTimeErrorCode.duplicateFieldFormalParameter,
+          diag.duplicateFieldFormalParameter,
           81,
           1,
           contextMessages: [message(testFile, 73, 1)],
@@ -402,9 +385,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.unusedField, 17, 1),
+        error(diag.unusedField, 17, 1),
         error(
-          CompileTimeErrorCode.duplicateFieldFormalParameter,
+          diag.duplicateFieldFormalParameter,
           37,
           1,
           contextMessages: [message(testFile, 29, 1)],

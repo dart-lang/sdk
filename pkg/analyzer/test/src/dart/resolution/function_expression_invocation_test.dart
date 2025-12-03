@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -318,7 +318,7 @@ void f((String,) a) {
   a();
 }
 ''',
-      [error(CompileTimeErrorCode.invocationOfNonFunctionExpression, 24, 1)],
+      [error(diag.invocationOfNonFunctionExpression, 24, 1)],
     );
     var node = findNode.functionExpressionInvocation('();');
     assertResolvedNodeText(node, r'''
@@ -416,7 +416,7 @@ void f(int Function() g, int a) {
   g(a);
 }
 ''',
-      [error(CompileTimeErrorCode.extraPositionalArguments, 38, 1)],
+      [error(diag.extraPositionalArguments, 38, 1)],
     );
 
     var node = findNode.singleFunctionExpressionInvocation;
@@ -526,7 +526,7 @@ const a = 0;
 const b = 0;
 const c = id(a, b);
 ''',
-      [error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 58, 8)],
+      [error(diag.constInitializedWithNonConstantValue, 58, 8)],
     );
 
     var node = findNode.singleFunctionExpressionInvocation;
@@ -563,10 +563,7 @@ void f(Never x) {
   x<int>(1 + 2);
 }
 ''',
-      [
-        error(WarningCode.receiverOfTypeNever, 20, 1),
-        error(WarningCode.deadCode, 26, 8),
-      ],
+      [error(diag.receiverOfTypeNever, 20, 1), error(diag.deadCode, 26, 8)],
     );
 
     var node = findNode.functionExpressionInvocation('x<int>(1 + 2)');
@@ -616,7 +613,7 @@ void f(Never? x) {
   x<int>(1 + 2);
 }
 ''',
-      [error(CompileTimeErrorCode.uncheckedInvocationOfNullableValue, 21, 1)],
+      [error(diag.uncheckedInvocationOfNullableValue, 21, 1)],
     );
 
     var node = findNode.functionExpressionInvocation('x<int>(1 + 2)');

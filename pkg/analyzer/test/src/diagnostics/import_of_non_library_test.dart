@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,7 +26,7 @@ import 'lib1.dart' deferred as p;
 ''',
       [
         error(
-          CompileTimeErrorCode.importOfNonLibrary,
+          diag.importOfNonLibrary,
           20,
           11,
           messageContains: ["library 'lib1.dart' "],
@@ -46,7 +46,7 @@ import 'part.dart';
 ''',
       [
         error(
-          CompileTimeErrorCode.importOfNonLibrary,
+          diag.importOfNonLibrary,
           20,
           11,
           messageContains: ["library 'part.dart' "],

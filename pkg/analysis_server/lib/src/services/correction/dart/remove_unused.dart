@@ -36,6 +36,10 @@ class RemoveUnusedElement extends _RemoveUnused {
       return;
     }
 
+    if (node is NameWithTypeParameters) {
+      node = node.parent!;
+    }
+
     Element? element;
     if (node is Declaration) {
       element = node.declaredFragment?.element;
@@ -76,11 +80,15 @@ class RemoveUnusedElement extends _RemoveUnused {
     required ConstructorDeclaration node,
   }) async {
     NodeList<ClassMember> members;
-    switch (node.parent) {
+    switch (node.parent?.parent) {
       case ClassDeclaration classDeclaration:
-        members = classDeclaration.members;
+        if (classDeclaration.body case BlockClassBody body) {
+          members = body.members;
+        } else {
+          return;
+        }
       case EnumDeclaration enumDeclaration:
-        members = enumDeclaration.members;
+        members = enumDeclaration.body.members;
       case _:
         return;
     }

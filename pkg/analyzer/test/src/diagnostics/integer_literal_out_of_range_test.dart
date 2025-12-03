@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +22,7 @@ int x = 0xFFFF_FFFF_FFFF_FFFF_FFFF;
 ''',
       [
         error(
-          CompileTimeErrorCode.integerLiteralOutOfRange,
+          diag.integerLiteralOutOfRange,
           8,
           26,
           messageContains: [RegExp('0xFFFF_FFFF_FFFF_FFFF_FFFF')],
@@ -36,7 +36,7 @@ int x = 0xFFFF_FFFF_FFFF_FFFF_FFFF;
       '''
 int x = -9223372036854775809;
 ''',
-      [error(CompileTimeErrorCode.integerLiteralOutOfRange, 9, 19)],
+      [error(diag.integerLiteralOutOfRange, 9, 19)],
     );
   }
 
@@ -45,7 +45,7 @@ int x = -9223372036854775809;
       '''
 int x = 9223372036854775808;
 ''',
-      [error(CompileTimeErrorCode.integerLiteralOutOfRange, 8, 19)],
+      [error(diag.integerLiteralOutOfRange, 8, 19)],
     );
   }
 
@@ -56,7 +56,7 @@ int x = 9_223_372_036_854_775_808;
 ''',
       [
         error(
-          CompileTimeErrorCode.integerLiteralOutOfRange,
+          diag.integerLiteralOutOfRange,
           8,
           25,
           messageContains: [RegExp('9_223_372_036_854_775_808')],

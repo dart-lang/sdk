@@ -10,6 +10,7 @@
 import "dart:_internal" show patch;
 
 import "dart:typed_data" show Uint32List;
+import "dart:_vm" show FinalThreadLocal;
 
 /// There are no parts of this patch library.
 
@@ -245,7 +246,10 @@ class _Random implements Random {
   static const _POW2_27_D = 1.0 * (1 << 27);
 
   // Use a singleton Random object to get a new seed if no seed was passed.
-  static final _prng = _Random._withState(_initialSeed());
+  @pragma('vm:shared')
+  static final _prng = FinalThreadLocal<_Random>(
+    () => _Random._withState(_initialSeed()),
+  );
 
   // Thomas Wang 64-bit mix.
   // http://www.concentric.net/~Ttwang/tech/inthash.htm
@@ -270,8 +274,8 @@ class _Random implements Random {
 
   static int _nextSeed() {
     // Trigger the PRNG once to change the internal state.
-    _prng._nextState();
-    return _prng._state & 0xFFFFFFFF;
+    _prng.value._nextState();
+    return _prng.value._state & 0xFFFFFFFF;
   }
 }
 

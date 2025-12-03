@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Prefer typing uninitialized variables and fields.';
@@ -23,8 +24,8 @@ class PreferTypingUninitializedVariables extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.preferTypingUninitializedVariablesForField,
-    LinterLintCode.preferTypingUninitializedVariablesForLocalVariable,
+    diag.preferTypingUninitializedVariablesForField,
+    diag.preferTypingUninitializedVariablesForLocalVariable,
   ];
 
   @override
@@ -49,8 +50,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var v in node.variables) {
       if (v.initializer == null && !v.isAugmentation) {
         var code = node.parent is FieldDeclaration
-            ? LinterLintCode.preferTypingUninitializedVariablesForField
-            : LinterLintCode.preferTypingUninitializedVariablesForLocalVariable;
+            ? diag.preferTypingUninitializedVariablesForField
+            : diag.preferTypingUninitializedVariablesForLocalVariable;
         rule.reportAtNode(v, diagnosticCode: code);
       }
     }

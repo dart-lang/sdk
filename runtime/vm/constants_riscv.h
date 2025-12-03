@@ -131,6 +131,43 @@ enum FRegister {
   kNoFpuRegister = -1,
 };
 
+enum VRegister {
+  V0 = 0,
+  V1 = 1,
+  V2 = 2,
+  V3 = 3,
+  V4 = 4,
+  V5 = 5,
+  V6 = 6,
+  V7 = 7,
+  V8 = 8,
+  V9 = 9,
+  V10 = 10,
+  V11 = 11,
+  V12 = 12,
+  V13 = 13,
+  V14 = 14,
+  V15 = 15,
+  V16 = 16,
+  V17 = 17,
+  V18 = 18,
+  V19 = 19,
+  V20 = 20,
+  V21 = 21,
+  V22 = 22,
+  V23 = 23,
+  V24 = 24,
+  V25 = 25,
+  V26 = 26,
+  V27 = 27,
+  V28 = 28,
+  V29 = 29,
+  V30 = 30,
+  V31 = 31,
+  kNumberOfVectorRegisters = 32,
+  kNoVectorRegister = -1,
+};
+
 // Register alias for floating point scratch register.
 const FRegister FTMP = FT11;
 
@@ -143,6 +180,7 @@ typedef double fpu_register_t;
 extern const char* const cpu_reg_names[kNumberOfCpuRegisters];
 extern const char* const cpu_reg_abi_names[kNumberOfCpuRegisters];
 extern const char* const fpu_reg_names[kNumberOfFpuRegisters];
+extern const char* const vector_reg_names[kNumberOfVectorRegisters];
 
 // Register aliases.
 constexpr Register TMP = A3;  // Used as scratch register by assembler.
@@ -741,11 +779,17 @@ enum Opcode {
   FNMSUB = 0b1001011,
   FNMADD = 0b1001111,
   OPFP = 0b1010011,
+  OPV = 0b1010111,
 };
 
 enum Funct12 {
   ECALL = 0,
   EBREAK = 1,
+
+  MOP_R_MASK = 0b101100111100,
+  MOP_R = 0b100000011100,
+  SSPOPCHK = 0b110011011100,
+  SSRDP = 0b110011011100,
 };
 
 enum Funct3 {
@@ -793,12 +837,14 @@ enum Funct3 {
   FENCE = 0b000,
   FENCEI = 0b001,
 
+  PRIV = 0b000,
   CSRRW = 0b001,
   CSRRS = 0b010,
   CSRRC = 0b011,
   CSRRWI = 0b101,
   CSRRSI = 0b110,
   CSRRCI = 0b111,
+  MOP = 0b100,
 
   MUL = 0b000,
   MULH = 0b001,
@@ -819,9 +865,17 @@ enum Funct3 {
   WIDTH16 = 0b001,
   WIDTH32 = 0b010,
   WIDTH64 = 0b011,
+  WIDTH128 = 0b100,
 
+  H = 0b001,
   S = 0b010,
   D = 0b011,
+  Q = 0b100,
+  E8 = 0b000,
+  E16 = 0b101,
+  E32 = 0b110,
+  E64 = 0b111,
+
   J = 0b000,
   JN = 0b001,
   JX = 0b010,
@@ -862,6 +916,15 @@ enum Funct3 {
 
   CZEROEQZ = 0b101,
   CZERONEZ = 0b111,
+
+  OPIVV = 0b000,
+  OPFVV = 0b001,
+  OPMVV = 0b010,
+  OPIVI = 0b011,
+  OPIVX = 0b100,
+  OPFVF = 0b101,
+  OPMVX = 0b110,
+  OPCFG = 0b111,
 };
 
 enum Funct7 {
@@ -913,6 +976,25 @@ enum Funct7 {
   BSET = 0b0010100,
 
   CZERO = 0b0000111,
+
+  MOP_RR_MASK = 0b1011001,
+  MOP_RR = 0b1000001,
+  SSPUSH = 0b1100111,
+};
+
+enum Funct6 {
+  VADD = 0b000000,
+  VSUB = 0b000010,
+  VRSUB = 0b000011,
+  VMINU = 0b000100,
+  VMIN = 0b000101,
+  VMAXU = 0b000110,
+  VMAX = 0b000111,
+  VAND = 0b001001,
+  VOR = 0b001010,
+  VXOR = 0b001011,
+
+  VMV = 0b010111,
 };
 
 enum Funct5 {
@@ -929,6 +1011,8 @@ enum Funct5 {
   AMOMAXU = 0b11100,
   LOADORDERED = 0b00110,
   STOREORDERED = 0b00111,
+  SSAMOSWAP = 0b01001,
+  AMOCAS = 0b00101,
 };
 
 enum Funct2 {
@@ -977,6 +1061,45 @@ enum HartEffects {
 
 const intptr_t kReleaseShift = 25;
 const intptr_t kAcquireShift = 26;
+
+enum ElementWidth {
+  e8 = 0b000,
+  e16 = 0b001,
+  e32 = 0b010,
+  e64 = 0b011,
+
+  reservedsew1 = 0b100,
+  reservedsew2 = 0b101,
+  reservedsew3 = 0b110,
+  reservedsew4 = 0b111,
+};
+
+enum LengthMultiplier {
+  mf8 = 0b101,
+  mf4 = 0b110,
+  mf2 = 0b111,
+  m1 = 0b000,
+  m2 = 0b001,
+  m4 = 0b010,
+  m8 = 0b011,
+
+  reservedlmul1 = 0b100,
+};
+
+enum MaskMode {
+  mu = 0,  // Mask undisturbed
+  ma = 1,  // Mask agnostic
+};
+
+enum TailMode {
+  tu = 0,  // Tail undisturbed
+  ta = 1,  // Mask agnosticagnostic
+};
+
+enum VectorMask {
+  v0t = 0,
+  unmasked = 1 << 25,
+};
 
 constexpr uint32_t kFlisConstants[32] = {
     0xbf800000,  // -1.0
@@ -1067,6 +1190,10 @@ DEFINE_REG_ENCODING(FRegister, FRd, 7)
 DEFINE_REG_ENCODING(FRegister, FRs1, 15)
 DEFINE_REG_ENCODING(FRegister, FRs2, 20)
 DEFINE_REG_ENCODING(FRegister, FRs3, 27)
+DEFINE_REG_ENCODING(VRegister, Vd, 7)
+DEFINE_REG_ENCODING(VRegister, Vs1, 15)
+DEFINE_REG_ENCODING(VRegister, Vs2, 20)
+DEFINE_REG_ENCODING(VRegister, Vs3, 7)
 #undef DEFINE_REG_ENCODING
 
 #define DEFINE_FUNCT_ENCODING(type, name, shift, mask)                         \
@@ -1085,6 +1212,7 @@ DEFINE_FUNCT_ENCODING(Opcode, Opcode, 0, 0x7F)
 DEFINE_FUNCT_ENCODING(Funct2, Funct2, 25, 0x3)
 DEFINE_FUNCT_ENCODING(Funct3, Funct3, 12, 0x7)
 DEFINE_FUNCT_ENCODING(Funct5, Funct5, 27, 0x1F)
+DEFINE_FUNCT_ENCODING(Funct6, Funct6, 26, 0x3F)
 DEFINE_FUNCT_ENCODING(Funct7, Funct7, 25, 0x7F)
 DEFINE_FUNCT_ENCODING(Funct12, Funct12, 20, 0xFFF)
 #if XLEN == 32
@@ -1186,6 +1314,40 @@ inline intptr_t DecodeSTypeImm(uint32_t encoded) {
   imm |= (((encoded >> 7) & 0x1f) << 0);
   return SignExtend(12, imm);
 }
+inline bool IsMoprn(intptr_t imm) {
+  return Utils::IsUint(5, imm);
+}
+inline uint32_t EncodeMoprn(intptr_t imm) {
+  ASSERT(IsMoprn(imm));
+  uint32_t encoded = 0;
+  encoded |= ((imm >> 4) & 0x1) << 30;
+  encoded |= ((imm >> 2) & 0x3) << 26;
+  encoded |= ((imm >> 0) & 0x3) << 20;
+  return encoded;
+}
+inline intptr_t DecodeMoprn(uint32_t encoded) {
+  uint32_t n = 0;
+  n |= (((encoded >> 30) & 0x1) << 4);
+  n |= (((encoded >> 26) & 0x3) << 2);
+  n |= (((encoded >> 20) & 0x3) << 0);
+  return n;
+}
+inline bool IsMoprrn(intptr_t imm) {
+  return Utils::IsUint(3, imm);
+}
+inline uint32_t EncodeMoprrn(intptr_t imm) {
+  ASSERT(IsMoprrn(imm));
+  uint32_t encoded = 0;
+  encoded |= ((imm >> 2) & 0x1) << 30;
+  encoded |= ((imm >> 0) & 0x3) << 26;
+  return encoded;
+}
+inline intptr_t DecodeMoprrn(uint32_t encoded) {
+  uint32_t n = 0;
+  n |= (((encoded >> 30) & 0x1) << 2);
+  n |= (((encoded >> 26) & 0x3) << 0);
+  return n;
+}
 
 inline bool IsCInstruction(uint16_t parcel) {
   return (parcel & 3) != 3;
@@ -1209,9 +1371,16 @@ class Instr {
   FRegister frs2() const { return DecodeFRs2(encoding_); }
   FRegister frs3() const { return DecodeFRs3(encoding_); }
 
+  VRegister vd() const { return DecodeVd(encoding_); }
+  VRegister vs1() const { return DecodeVs1(encoding_); }
+  VRegister vs2() const { return DecodeVs2(encoding_); }
+  VRegister vs3() const { return DecodeVs3(encoding_); }
+  bool vm() const { return (encoding_ & 1 << 25) == 0; }
+
   Funct2 funct2() const { return DecodeFunct2(encoding_); }
   Funct3 funct3() const { return DecodeFunct3(encoding_); }
   Funct5 funct5() const { return DecodeFunct5(encoding_); }
+  Funct6 funct6() const { return DecodeFunct6(encoding_); }
   Funct7 funct7() const { return DecodeFunct7(encoding_); }
   Funct12 funct12() const { return DecodeFunct12(encoding_); }
 
@@ -1571,6 +1740,21 @@ inline uint32_t DecodeCShamt(uint32_t encoding) {
   return imm;
 }
 
+inline bool IsCMopn(uint32_t imm) {
+  return (imm < 16) && ((imm & 1) == 1);
+}
+inline uint32_t EncodeCMopn(intptr_t imm) {
+  ASSERT(IsCMopn(imm));
+  uint32_t encoding = 0;
+  encoding |= ((imm >> 0) & 0xF) << 7;
+  return encoding;
+}
+inline intptr_t DecodeCMopn(uint32_t encoding) {
+  uint32_t imm = 0;
+  imm |= ((encoding >> 7) & 0xF) << 0;
+  return imm;
+}
+
 enum COpcode {
   C_OP_MASK = 0b1110000000000011,
 
@@ -1640,6 +1824,11 @@ enum COpcode {
   C_LHU = 0b1000010000000000,
   C_SB = 0b1000100000000000,
   C_SH = 0b1000110000000000,
+
+  C_MOP_MASK = 0b1111100011111111,
+  C_MOP = 0b0110000010000001,
+  C_SSPUSH = 0b0110000010000001,
+  C_SSPOPCHK = 0b0110001010000001,
 };
 
 class CInstr {
@@ -1752,25 +1941,31 @@ static constexpr Extension RV_M(1);  // Multiply/divide
 static constexpr Extension RV_A(2);  // Atomic
 static constexpr Extension RV_F(3);  // Single-precision floating point
 static constexpr Extension RV_D(4);  // Double-precision floating point
-static constexpr Extension RV_C(5);  // Compressed instructions
+static constexpr Extension RV_Q(5);  // Quad-precision floating point
+static constexpr Extension RV_C(6);  // Compressed instructions
 static constexpr ExtensionSet RV_G = RV_I | RV_M | RV_A | RV_F | RV_D;
 static constexpr ExtensionSet RV_GC = RV_G | RV_C;
 static constexpr ExtensionSet RVA20 = RV_GC;
-static constexpr Extension RV_Zba(6);  // Address generation
-static constexpr Extension RV_Zbb(7);  // Basic bit-manipulation
-static constexpr Extension RV_Zbs(8);  // Single-bit instructions
-static constexpr Extension RV_Zbc(9);  // Carry-less multiplication
+static constexpr Extension RV_Zba(7);   // Address generation
+static constexpr Extension RV_Zbb(8);   // Basic bit-manipulation
+static constexpr Extension RV_Zbs(9);   // Single-bit instructions
+static constexpr Extension RV_Zbc(10);  // Carry-less multiplication
 static constexpr ExtensionSet RV_B = RV_Zba | RV_Zbb | RV_Zbs;
 static constexpr ExtensionSet RV_GCB = RV_GC | RV_B;
 static constexpr ExtensionSet RVA22 = RV_GCB;
-static constexpr Extension RV_V(10);       // Vector
-static constexpr Extension RV_Zicond(11);  // Integer conditional operations
-static constexpr Extension RV_Zcb(12);     // More compressed instructions
-static constexpr Extension RV_Zfa(13);     // Additional floating-point
+static constexpr Extension RV_V(11);       // Vector
+static constexpr Extension RV_Zicond(12);  // Integer conditional operations
+static constexpr Extension RV_Zcb(13);     // More compressed instructions
+static constexpr Extension RV_Zfa(14);     // Additional floating-point
+static constexpr Extension RV_Zimop(15);   // May-be-operations
+static constexpr Extension RV_Zcmop(16);   // Compressed may-be-operations
 static constexpr ExtensionSet RVA23 =
-    RV_GCB | RV_V | RV_Zicond | RV_Zcb | RV_Zfa;
-static constexpr Extension RV_Zabha(14);   // Byte and halfword AMOs
-static constexpr Extension RV_Zalasr(15);  // Load-acquire, store-release
+    RVA22 | RV_V | RV_Zicond | RV_Zcb | RV_Zfa | RV_Zimop | RV_Zcmop;
+static constexpr Extension RV_Zicfiss(17);  // Shadow stack
+static constexpr Extension RV_Zabha(18);    // Byte and halfword AMOs
+static constexpr Extension RV_Zalasr(19);   // Load-acquire, store-release
+static constexpr Extension RV_Zfhmin(20);   // Load-acquire, store-release
+static constexpr Extension RV_Zacas(21);    // Compare-and-swap
 
 #if defined(DART_TARGET_OS_ANDROID)
 static constexpr ExtensionSet RV_baseline = RVA23;

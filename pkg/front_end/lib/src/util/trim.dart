@@ -212,6 +212,8 @@ class Trimmer extends RecursiveVisitor {
 
   @override
   void visitProcedure(Procedure node) {
+    // Keep bodies of const factories.
+    if (node.isConst) return;
     // Preserve method bodies of mixin declarations, these are copied when
     // mixins are applied in subtypes.
     if (!preserveMemberBodies) {

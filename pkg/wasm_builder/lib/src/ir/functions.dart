@@ -12,12 +12,7 @@ class Functions {
   /// Defined functions.
   final List<DefinedFunction> defined;
 
-  /// Declared functions.
-  late final List<BaseFunction> declared;
-
-  Functions(this.imported, this.defined, this.declared);
-
-  Functions.withoutDeclared(this.imported, this.defined);
+  Functions(this.imported, this.defined);
 
   BaseFunction operator [](int index) => index < imported.length
       ? imported[index]

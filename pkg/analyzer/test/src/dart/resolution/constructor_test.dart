@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -55,7 +55,7 @@ class A {
   A(var _) : v = _;
 }
 ''',
-      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 45, 1)],
+      [error(diag.implicitThisReferenceInInitializer, 45, 1)],
     );
 
     var node = findNode.constructorFieldInitializer('v = _');
@@ -87,7 +87,7 @@ class B {
     var node = findNode.constructorDeclaration('B(');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
-  returnType: SimpleIdentifier
+  typeName: SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
@@ -99,7 +99,7 @@ ConstructorDeclaration
         element: <testLibrary>::@class::a
         type: a
       name: a
-      declaredElement: <testLibraryFragment> a@28
+      declaredFragment: <testLibraryFragment> a@28
         element: isPublic
           type: a
     rightParenthesis: )
@@ -114,9 +114,126 @@ ConstructorDeclaration
             staticType: a
           semicolon: ;
       rightBracket: }
-  declaredElement: <testLibraryFragment> new@null
+  declaredFragment: <testLibraryFragment> new@null
     element: <testLibrary>::@class::B::@constructor::new
       type: B Function(a)
+''');
+  }
+
+  test_privateNamedParameter_accessInInitializer() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  int? _x;
+  int? _y;
+  C({this._x}) : _y = _x;
+}
+''',
+      [error(diag.unusedField, 17, 2), error(diag.unusedField, 28, 2)],
+    );
+
+    var node = findNode.singleConstructorFieldInitializer;
+    assertResolvedNodeText(node, r'''
+ConstructorFieldInitializer
+  fieldName: SimpleIdentifier
+    token: _y
+    element: <testLibrary>::@class::C::@field::_y
+    staticType: null
+  equals: =
+  expression: SimpleIdentifier
+    token: _x
+    element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+    staticType: int?
+''');
+  }
+
+  test_privateNamedParameter_fieldFormal() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  int? _x;
+  C({this._x});
+}
+''',
+      [error(diag.unusedField, 17, 2)],
+    );
+
+    var node = findNode.singleConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+    element: <testLibrary>::@class::C
+    staticType: null
+  parameters: FormalParameterList
+    leftParenthesis: (
+    leftDelimiter: {
+    parameter: DefaultFormalParameter
+      parameter: FieldFormalParameter
+        thisKeyword: this
+        period: .
+        name: _x
+        declaredFragment: <testLibraryFragment> x@31
+          element: hasImplicitType isFinal isPublic
+            type: int?
+            field: <testLibrary>::@class::C::@field::_x
+      declaredFragment: <testLibraryFragment> x@31
+        element: hasImplicitType isFinal isPublic
+          type: int?
+          field: <testLibrary>::@class::C::@field::_x
+    rightDelimiter: }
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@class::C::@constructor::new
+      type: C Function({int? x})
+''');
+  }
+
+  test_privateNamedParameter_nonFieldFormal() async {
+    // The user is incorrectly using a private named parameter for a non-field
+    // parameter. This is erroneous, but resolve using the private name.
+    await assertErrorsInCode(
+      r'''
+class C {
+  C({int? _x});
+}
+''',
+      [error(diag.privateNamedNonFieldParameter, 20, 2)],
+    );
+
+    var node = findNode.singleConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+    element: <testLibrary>::@class::C
+    staticType: null
+  parameters: FormalParameterList
+    leftParenthesis: (
+    leftDelimiter: {
+    parameter: DefaultFormalParameter
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: _x
+        declaredFragment: <testLibraryFragment> _x@20
+          element: isPrivate
+            type: int?
+      declaredFragment: <testLibraryFragment> _x@20
+        element: isPrivate
+          type: int?
+    rightDelimiter: }
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@class::C::@constructor::new
+      type: C Function({int? _x})
 ''');
   }
 
@@ -135,7 +252,7 @@ class B {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  returnType: SimpleIdentifier
+  typeName: SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
@@ -156,7 +273,7 @@ ConstructorDeclaration
     element: <testLibrary>::@class::A::@constructor::named
   body: EmptyFunctionBody
     semicolon: ;
-  declaredElement: <testLibraryFragment> new@null
+  declaredFragment: <testLibraryFragment> new@null
     element: <testLibrary>::@class::B::@constructor::new
       type: B Function()
 ''');
@@ -177,7 +294,7 @@ class B<U> {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  returnType: SimpleIdentifier
+  typeName: SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
@@ -210,7 +327,7 @@ ConstructorDeclaration
       substitution: {T: U}
   body: EmptyFunctionBody
     semicolon: ;
-  declaredElement: <testLibraryFragment> new@null
+  declaredFragment: <testLibraryFragment> new@null
     element: <testLibrary>::@class::B::@constructor::new
       type: B<U> Function()
 ''');
@@ -227,14 +344,14 @@ class B {
   factory B() = A.named;
 }
 ''',
-      [error(CompileTimeErrorCode.redirectToMissingConstructor, 59, 7)],
+      [error(diag.redirectToMissingConstructor, 59, 7)],
     );
 
     var node = findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  returnType: SimpleIdentifier
+  typeName: SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
@@ -255,7 +372,7 @@ ConstructorDeclaration
     element: <null>
   body: EmptyFunctionBody
     semicolon: ;
-  declaredElement: <testLibraryFragment> new@null
+  declaredFragment: <testLibraryFragment> new@null
     element: <testLibrary>::@class::B::@constructor::new
       type: B Function()
 ''');
@@ -276,7 +393,7 @@ class B {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  returnType: SimpleIdentifier
+  typeName: SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
@@ -294,7 +411,7 @@ ConstructorDeclaration
     element: <testLibrary>::@class::A::@constructor::new
   body: EmptyFunctionBody
     semicolon: ;
-  declaredElement: <testLibraryFragment> named@55
+  declaredFragment: <testLibraryFragment> named@55
     element: <testLibrary>::@class::B::@constructor::named
       type: B Function()
 ''');
@@ -315,7 +432,7 @@ class B<U> {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  returnType: SimpleIdentifier
+  typeName: SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
@@ -343,7 +460,7 @@ ConstructorDeclaration
       substitution: {T: U}
   body: EmptyFunctionBody
     semicolon: ;
-  declaredElement: <testLibraryFragment> named@64
+  declaredFragment: <testLibraryFragment> named@64
     element: <testLibrary>::@class::B::@constructor::named
       type: B<U> Function()
 ''');
@@ -360,14 +477,14 @@ class B {
   factory B.named() = A;
 }
 ''',
-      [error(CompileTimeErrorCode.redirectToMissingConstructor, 71, 1)],
+      [error(diag.redirectToMissingConstructor, 71, 1)],
     );
 
     var node = findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  returnType: SimpleIdentifier
+  typeName: SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
@@ -385,7 +502,7 @@ ConstructorDeclaration
     element: <null>
   body: EmptyFunctionBody
     semicolon: ;
-  declaredElement: <testLibraryFragment> named@61
+  declaredFragment: <testLibraryFragment> named@61
     element: <testLibrary>::@class::B::@constructor::named
       type: B Function()
 ''');

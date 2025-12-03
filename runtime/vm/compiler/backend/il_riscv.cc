@@ -1703,7 +1703,11 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ PushNativeCalleeSavedRegisters();
 
-#if defined(USING_SHADOW_CALL_STACK)
+#if defined(DART_TARGET_OS_FUCHSIA) || defined(DART_TARGET_OS_ANDROID)
+  __ sx(GP,
+        compiler::Address(
+            THR, compiler::target::Thread::saved_shadow_call_stack_offset()));
+#elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
 

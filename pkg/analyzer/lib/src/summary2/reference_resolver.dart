@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -85,11 +84,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     );
 
     node.metadata.accept(this);
-    if (useDeclaringConstructorsAst) {
-      node.namePart.accept(this);
-    } else {
-      node.typeParameters?.accept(this);
-    }
+    node.namePart.accept(this);
     node.extendsClause?.accept(this);
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
@@ -97,11 +92,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = InstanceScope(scope, element.asElement2);
     LinkingNodeContext(node, scope);
 
-    if (useDeclaringConstructorsAst) {
-      node.body.accept(this);
-    } else {
-      node.members.accept(this);
-    }
+    node.body.accept(this);
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
@@ -172,22 +163,14 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     );
 
     node.metadata.accept(this);
-    if (useDeclaringConstructorsAst) {
-      node.namePart.typeParameters?.accept(this);
-    } else {
-      node.typeParameters?.accept(this);
-    }
+    node.namePart.accept(this);
     node.implementsClause?.accept(this);
     node.withClause?.accept(this);
 
     scope = InstanceScope(scope, element);
     LinkingNodeContext(node, scope);
 
-    if (useDeclaringConstructorsAst) {
-      node.body.members.accept(this);
-    } else {
-      node.members.accept(this);
-    }
+    node.body.members.accept(this);
     nodesToBuildType.addDeclaration(node);
 
     for (var field in fragment.fields) {
@@ -226,11 +209,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = ExtensionScope(scope, fragment.asElement2);
     LinkingNodeContext(node, scope);
 
-    if (useDeclaringConstructorsAst) {
-      node.body.members.accept(this);
-    } else {
-      node.members.accept(this);
-    }
+    node.body.members.accept(this);
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
@@ -255,23 +234,13 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     );
 
     node.metadata.accept(this);
-    if (useDeclaringConstructorsAst) {
-      node.namePart.accept(this);
-    } else {
-      node.typeParameters?.accept(this);
-      node.representation.accept(this);
-    }
+    node.primaryConstructor.accept(this);
     node.implementsClause?.accept(this);
 
     scope = InstanceScope(scope, fragment.asElement2);
     LinkingNodeContext(node, scope);
-    if (useDeclaringConstructorsAst) {
-      node.body.accept(this);
-    } else {
-      LinkingNodeContext(node.representation, scope);
-      node.members.accept(this);
-    }
 
+    node.body.accept(this);
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
@@ -468,11 +437,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = InstanceScope(scope, fragment.asElement2);
     LinkingNodeContext(node, scope);
 
-    if (useDeclaringConstructorsAst) {
-      node.body.members.accept(this);
-    } else {
-      node.members.accept(this);
-    }
+    node.body.members.accept(this);
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
@@ -574,11 +539,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     RecordTypeAnnotationPositionalField node,
   ) {
     node.type.accept(this);
-  }
-
-  @override
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    node.fieldType.accept(this);
   }
 
   @override

@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/dart_type_utilities.dart' as type_utils;
 
@@ -52,8 +53,7 @@ class PreferConditionalAssignment extends AnalysisRule {
     : super(name: LintNames.prefer_conditional_assignment, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.preferConditionalAssignment;
+  DiagnosticCode get diagnosticCode => diag.preferConditionalAssignment;
 
   @override
   void registerNodeProcessors(

@@ -129,11 +129,12 @@ class _Generator {
         .nonNulls
         .toList();
 
+    var nodeBody = nodeImpl.body as BlockClassBodyImpl;
     return _ImplClass(
       node: nodeImpl,
       interfaceElement: interfaceElement,
       properties: properties,
-      leftBracketOffset: nodeImpl.leftBracket.offset,
+      leftBracketOffset: nodeBody.leftBracket.offset,
     );
   }
 
@@ -683,7 +684,7 @@ void visitChildren(AstVisitor visitor) {''');
   void _removeGeneratedMembers(ResolvedUnitResult astUnitResult) {
     var replacements = <_Replacement>[];
     for (var implClass in implClasses) {
-      for (var member in implClass.node.members) {
+      for (var member in implClass.members) {
         String memberName;
         switch (member) {
           case ConstructorDeclarationImpl():
@@ -708,6 +709,8 @@ void visitChildren(AstVisitor visitor) {''');
               implClass.doNotGenerateLookupNames.add(memberName);
               continue;
             }
+          case PrimaryConstructorBodyImpl():
+            throw UnimplementedError();
         }
         if (implClass.generatedLookupNames.contains(memberName)) {
           replacements.add(_Replacement(member.offset, member.end, ''));
@@ -844,8 +847,12 @@ class _ImplClass {
     );
   }
 
+  NodeListImpl<ClassMemberImpl> get members {
+    return (node.body as BlockClassBodyImpl).members;
+  }
+
   String get name {
-    return node.name.lexeme;
+    return node.namePart.typeName.lexeme;
   }
 }
 

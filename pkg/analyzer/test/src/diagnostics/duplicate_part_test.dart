@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,7 +25,7 @@ part of 'test.dart';
 part 'part.dart';
 part 'foo/../part.dart';
 ''',
-      [error(CompileTimeErrorCode.duplicatePart, 23, 18)],
+      [error(diag.duplicatePart, 23, 18)],
     );
   }
 
@@ -39,7 +39,7 @@ part of 'test.dart';
 part 'part.dart';
 part 'part.dart';
 ''',
-      [error(CompileTimeErrorCode.duplicatePart, 23, 11)],
+      [error(diag.duplicatePart, 23, 11)],
     );
   }
 
@@ -70,8 +70,6 @@ part 'b.dart';
 
     await assertErrorsInFile2(a, []);
 
-    await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.duplicatePart, 23, 8),
-    ]);
+    await assertErrorsInFile2(b, [error(diag.duplicatePart, 23, 8)]);
   }
 }

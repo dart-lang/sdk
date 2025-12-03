@@ -16,7 +16,8 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         intFromToken,
         lengthForToken,
         lengthOfSpan,
-        stripSeparators;
+        stripSeparators,
+        DeclarationKind;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart'
     show
         Quote,
@@ -163,7 +164,7 @@ abstract class BodyBuilder {
 
   BuildSingleExpressionResult buildSingleExpression({
     required Token token,
-    required List<VariableDeclarationImpl> extraKnownVariables,
+    required List<ExpressionVariable> extraKnownVariables,
     required List<NominalParameterBuilder>? typeParameterBuilders,
     required List<FormalParameterBuilder>? formals,
     required int fileOffset,
@@ -344,7 +345,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
   final LocalStack<LocalScope> _localScopes;
 
-  Set<VariableDeclaration>? declaredInCurrentGuard;
+  Set<ExpressionVariable>? declaredInCurrentGuard;
 
   JumpTarget? breakTarget;
 
@@ -617,7 +618,7 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  void registerVariableAssignment(VariableDeclaration variable) {
+  void registerVariableAssignment(ExpressionVariable variable) {
     assignedVariables.write(variable);
   }
 
@@ -806,11 +807,11 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   void wrapVariableInitializerInError(
-    VariableDeclaration variable,
+    ExpressionVariable variable,
     Template<Message Function(String name), Function> template,
     List<LocatedMessage> context,
   ) {
-    String name = variable.name!;
+    String name = variable.cosmeticName!;
     int offset = variable.fileOffset;
     Message message = template.withArgumentsOld(name);
     if (variable.initializer == null) {
@@ -831,8 +832,8 @@ class BodyBuilderImpl extends StackListenerImpl
     }
   }
 
-  void declareVariable(VariableDeclaration variable, LocalScope scope) {
-    String name = variable.name!;
+  void declareVariable(ExpressionVariable variable, LocalScope scope) {
+    String name = variable.cosmeticName!;
     Builder? existing = scope.lookupLocalVariable(name);
     if (existing != null) {
       // This reports an error for duplicated declarations in the same scope:
@@ -851,7 +852,7 @@ class BodyBuilderImpl extends StackListenerImpl
     if (isGuardScope(scope)) {
       (declaredInCurrentGuard ??= {}).add(variable);
     }
-    String variableName = variable.name!;
+    String variableName = variable.cosmeticName!;
     List<int>? previousOffsets = scope.declare(
       variableName,
       new VariableBuilderImpl(variableName, variable, uri),
@@ -1028,7 +1029,8 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  void endClassFields(
+  void endFields(
+    DeclarationKind kind,
     Token? abstractToken,
     Token? augmentToken,
     Token? externalToken,
@@ -1101,7 +1103,6 @@ class BodyBuilderImpl extends StackListenerImpl
                     fileOffset: formal.fileOffset,
                     length: formal.name.length,
                   ),
-                  formal.fileOffset,
                 ),
               ];
             } else {
@@ -1209,7 +1210,7 @@ class BodyBuilderImpl extends StackListenerImpl
       ];
     } else {
       Expression value = toValue(node);
-      if (!forest.isThrow(node)) {
+      if (value is! InvalidExpression) {
         // TODO(johnniwinther): Derive the message position from the [node]
         // and not the [value].  For instance this occurs for `super()?.foo()`
         // in an initializer list, pointing to `foo` as expecting an
@@ -1224,10 +1225,7 @@ class BodyBuilderImpl extends StackListenerImpl
         );
       }
       initializers = <Initializer>[
-        // TODO(johnniwinther): This should probably be [value] instead of
-        //  [node].
-        // TODO(jensj): Does this offset make sense?
-        buildInvalidInitializer(node as Expression, endToken.next!.charOffset),
+        buildInvalidInitializer(value as InvalidExpression),
       ];
     }
 
@@ -2342,7 +2340,7 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  Expression buildUnresolvedError(
+  InvalidExpression buildUnresolvedError(
     String name,
     int charOffset, {
     bool isSuper = false,
@@ -2416,8 +2414,7 @@ class BodyBuilderImpl extends StackListenerImpl
     );
   }
 
-  @override
-  Expression buildProblemFromLocatedMessage(LocatedMessage message) {
+  InvalidExpression _buildProblemFromLocatedMessage(LocatedMessage message) {
     return buildProblem(
       message: message.messageObject,
       fileUri: uri,
@@ -2588,8 +2585,9 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  void registerVariableRead(VariableDeclaration variable) {
-    if (!(variable as VariableDeclarationImpl).isLocalFunction &&
+  void registerVariableRead(ExpressionVariable variable) {
+    if (!(variable is InternalExpressionVariable &&
+            (variable as InternalExpressionVariable).isLocalFunction) &&
         !variable.isWildcard) {
       assignedVariables.read(variable);
     }
@@ -2598,7 +2596,7 @@ class BodyBuilderImpl extends StackListenerImpl
   /// Helper method to create a [VariableGet] of the [variable] using
   /// [charOffset] as the file offset.
   @override
-  VariableGet createVariableGet(VariableDeclaration variable, int charOffset) {
+  VariableGet createVariableGet(ExpressionVariable variable, int charOffset) {
     registerVariableRead(variable);
     return new VariableGet(variable)..fileOffset = charOffset;
   }
@@ -2607,7 +2605,7 @@ class BodyBuilderImpl extends StackListenerImpl
   /// using [token] and [charOffset] for offset information and [name]
   /// for `ExpressionGenerator._plainNameForRead`.
   ReadOnlyAccessGenerator _createReadOnlyVariableAccess(
-    VariableDeclaration variable,
+    ExpressionVariable variable,
     Token token,
     int charOffset,
     String? name,
@@ -2623,7 +2621,7 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  bool isDeclaredInEnclosingCase(VariableDeclaration variable) {
+  bool isDeclaredInEnclosingCase(ExpressionVariable variable) {
     return declaredInCurrentGuard?.contains(variable) ?? false;
   }
 
@@ -2758,7 +2756,7 @@ class BodyBuilderImpl extends StackListenerImpl
             cfe.codeNotAConstantExpression,
           );
         }
-        VariableDeclaration variable = getable.variable!;
+        ExpressionVariable variable = getable.variable!;
         // TODO(johnniwinther): The handling of for-in variables should be
         //  done through the builder.
         if (forStatementScope &&
@@ -3464,23 +3462,39 @@ class BodyBuilderImpl extends StackListenerImpl
       name = createWildcardVariableName(wildcardVariableIndex);
       wildcardVariableIndex++;
     }
-    VariableDeclaration variable =
-        new VariableDeclarationImpl(
-            name,
-            forSyntheticToken: identifier.token.isSynthetic,
-            initializer: initializer,
+    VariableInitialization variable;
+    if (isClosureContextLoweringEnabled) {
+      // Coverage-ignore-block(suite): Not run.
+      variable = new VariableInitialization(
+        variable: new InternalLocalVariable(
+          astVariable: new LocalVariable(
+            cosmeticName: name,
             type: currentLocalVariableType,
-            isFinal: isFinal,
-            isConst: isConst,
-            isLate: isLate,
-            isRequired: isRequired,
-            hasDeclaredInitializer: initializer != null,
-            isStaticLate: isFinal && initializer == null,
-            isWildcard: isWildcard,
-          )
-          ..fileOffset = identifier.nameOffset
-          ..fileEqualsOffset = offsetForToken(equalsToken);
-    assignedVariables.declare(variable);
+          ),
+          forSyntheticToken: identifier.token.isSynthetic,
+          isImplicitlyTyped: currentLocalVariableType == null,
+        ).asExpressionVariable,
+        initializer: initializer,
+      );
+    } else {
+      variable =
+          new VariableDeclarationImpl(
+              name,
+              forSyntheticToken: identifier.token.isSynthetic,
+              initializer: initializer,
+              type: currentLocalVariableType,
+              isFinal: isFinal,
+              isConst: isConst,
+              isLate: isLate,
+              isRequired: isRequired,
+              hasDeclaredInitializer: initializer != null,
+              isStaticLate: isFinal && initializer == null,
+              isWildcard: isWildcard,
+            )
+            ..fileOffset = identifier.nameOffset
+            ..fileEqualsOffset = offsetForToken(equalsToken);
+    }
+    assignedVariables.declare(variable.variable);
     push(variable);
   }
 
@@ -3528,15 +3542,17 @@ class BodyBuilderImpl extends StackListenerImpl
       push(node);
       return;
     }
-    VariableDeclaration variable = node as VariableDeclaration;
-    variable.fileOffset = nameToken.charOffset;
-    push(variable);
+    VariableInitialization variableInitialization =
+        node as VariableInitialization;
+    variableInitialization.fileOffset = nameToken.charOffset;
+    push(variableInitialization);
 
     // Avoid adding the local identifier to scope if it's a wildcard.
     // TODO(kallentu): Emit better error on lookup, rather than not adding it to
     // the scope.
-    if (!(libraryFeatures.wildcardVariables.isEnabled && variable.isWildcard)) {
-      declareVariable(variable, _localScope);
+    if (!(libraryFeatures.wildcardVariables.isEnabled &&
+        variableInitialization.isWildcard)) {
+      declareVariable(variableInitialization.variable, _localScope);
     }
   }
 
@@ -3583,15 +3599,18 @@ class BodyBuilderImpl extends StackListenerImpl
         push(node);
         return;
       }
-      VariableDeclaration variable = node as VariableDeclaration;
+      VariableInitialization variableInitialization =
+          node as VariableInitialization;
       if (annotations != null) {
         for (int i = 0; i < annotations.length; i++) {
-          variable.addAnnotation(annotations[i]);
+          variableInitialization.addAnnotation(annotations[i]);
         }
-        _registerSingleTargetAnnotations(variable);
-        //(variablesWithMetadata ??= <VariableDeclaration>[]).add(variable);
+        _registerSingleTargetAnnotations(variableInitialization);
+        // (variablesWithMetadata ??= <VariableDeclaration>[]).add(
+        //   variableInitialization,
+        // );
       }
-      push(variable);
+      push(variableInitialization);
     } else {
       List<VariableDeclaration>? variables =
           const FixedNullableList<VariableDeclaration>().popNonNullable(
@@ -5406,6 +5425,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Identifier? name = nameNode as Identifier?;
 
     // If it's a private named parameter, handle the public name.
+    String? publicName;
     if (libraryFeatures.privateNamedParameters.isEnabled &&
         kind.isNamed &&
         name != null &&
@@ -5413,10 +5433,13 @@ class BodyBuilderImpl extends StackListenerImpl
       // TODO(rnystrom): Also handle declaring field parameters.
       bool refersToField = thisKeyword != null;
 
-      // If you can't even use a private named parameter here at all, the
-      // parser has already reported an error about that. Don't bother reporting
-      // a second error about it being a bad private name.
-      if (refersToField && correspondingPublicName(name.name) == null) {
+      publicName = correspondingPublicName(name.name);
+
+      // Only report the error for no corresponding public name if this is a
+      // parameter that could be private and named. Otherwise, that's already
+      // an error (which has been reported by the parser), so don't report a
+      // second error on top.
+      if (refersToField && publicName == null) {
         handleRecoverableError(
           cfe.codePrivateNamedParameterWithoutPublicName,
           nameToken,
@@ -5466,6 +5489,7 @@ class BodyBuilderImpl extends StackListenerImpl
         fileUri: uri,
         hasImmediatelyDeclaredInitializer: initializerStart != null,
         isWildcard: isWildcard,
+        publicName: publicName,
       );
     }
     VariableDeclaration variable = parameter.build(libraryBuilder);
@@ -6597,7 +6621,6 @@ class BodyBuilderImpl extends StackListenerImpl
     }
 
     String? errorName;
-    LocatedMessage? message;
 
     if (typeDeclarationBuilder is TypeAliasBuilder) {
       errorName = debugName(typeDeclarationBuilder.name, name);
@@ -6644,15 +6667,18 @@ class BodyBuilderImpl extends StackListenerImpl
                 // Not found. Reported below.
                 target = null;
               } else if (result.isInvalidLookup) {
-                message = LookupResult.createDuplicateMessage(
-                  result,
-                  enclosingDeclaration: typeDeclarationBuilder,
-                  name: name,
-                  fileUri: uri,
-                  fileOffset: charOffset,
-                  length: noLength,
+                return new ErroneousConstructorResolutionResult(
+                  errorExpression: _buildProblemFromLocatedMessage(
+                    LookupResult.createDuplicateMessage(
+                      result,
+                      enclosingDeclaration: typeDeclarationBuilder,
+                      name: name,
+                      fileUri: uri,
+                      fileOffset: charOffset,
+                      length: noLength,
+                    ),
+                  ),
                 );
-                target = null;
               } else {
                 MemberBuilder? constructorBuilder = result.getable!;
                 if (constructorBuilder is ConstructorBuilder) {
@@ -6689,18 +6715,12 @@ class BodyBuilderImpl extends StackListenerImpl
                   ),
                 );
               } else {
-                if (message != null) {
-                  return new ErroneousConstructorResolutionResult(
-                    errorExpression: buildProblemFromLocatedMessage(message),
-                  );
-                } else {
-                  return new UnresolvedConstructorResolutionResult(
-                    helper: this,
-                    errorName: errorName,
-                    charOffset: nameLastToken.charOffset,
-                    unresolvedKind: unresolvedKind,
-                  );
-                }
+                return new UnresolvedConstructorResolutionResult(
+                  helper: this,
+                  errorName: errorName,
+                  charOffset: nameLastToken.charOffset,
+                  unresolvedKind: unresolvedKind,
+                );
               }
             case ExtensionTypeDeclarationBuilder():
               // TODO(johnniwinther): Add shared interface between
@@ -6710,13 +6730,17 @@ class BodyBuilderImpl extends StackListenerImpl
               MemberBuilder? constructorBuilder = result?.getable;
               if (result != null && result.isInvalidLookup) {
                 // Coverage-ignore-block(suite): Not run.
-                message = LookupResult.createDuplicateMessage(
-                  result,
-                  enclosingDeclaration: typeDeclarationBuilder,
-                  name: name,
-                  fileUri: uri,
-                  fileOffset: charOffset,
-                  length: noLength,
+                return new ErroneousConstructorResolutionResult(
+                  errorExpression: _buildProblemFromLocatedMessage(
+                    LookupResult.createDuplicateMessage(
+                      result,
+                      enclosingDeclaration: typeDeclarationBuilder,
+                      name: name,
+                      fileUri: uri,
+                      fileOffset: charOffset,
+                      length: noLength,
+                    ),
+                  ),
                 );
               } else if (constructorBuilder == null) {
                 // Not found. Reported below.
@@ -6735,19 +6759,12 @@ class BodyBuilderImpl extends StackListenerImpl
                   ),
                 );
               }
-              if (message != null) {
-                // Coverage-ignore-block(suite): Not run.
-                return new ErroneousConstructorResolutionResult(
-                  errorExpression: buildProblemFromLocatedMessage(message),
-                );
-              } else {
-                return new UnresolvedConstructorResolutionResult(
-                  helper: this,
-                  errorName: errorName,
-                  charOffset: nameLastToken.charOffset,
-                  unresolvedKind: unresolvedKind,
-                );
-              }
+              return new UnresolvedConstructorResolutionResult(
+                helper: this,
+                errorName: errorName,
+                charOffset: nameLastToken.charOffset,
+                unresolvedKind: unresolvedKind,
+              );
             case InvalidBuilder():
               // Coverage-ignore(suite): Not run.
               LocatedMessage message = typeDeclarationBuilder.message;
@@ -6976,13 +6993,17 @@ class BodyBuilderImpl extends StackListenerImpl
         MemberBuilder? constructorBuilder = result?.getable;
         Member? target;
         if (result != null && result.isInvalidLookup) {
-          message = LookupResult.createDuplicateMessage(
-            result,
-            enclosingDeclaration: typeDeclarationBuilder,
-            name: name,
-            fileUri: uri,
-            fileOffset: charOffset,
-            length: noLength,
+          return new ErroneousConstructorResolutionResult(
+            errorExpression: _buildProblemFromLocatedMessage(
+              LookupResult.createDuplicateMessage(
+                result,
+                enclosingDeclaration: typeDeclarationBuilder,
+                name: name,
+                fileUri: uri,
+                fileOffset: charOffset,
+                length: noLength,
+              ),
+            ),
           );
         } else if (constructorBuilder == null) {
           // Not found. Reported below.
@@ -7049,13 +7070,17 @@ class BodyBuilderImpl extends StackListenerImpl
         Member? target;
         if (result != null && result.isInvalidLookup) {
           // Coverage-ignore-block(suite): Not run.
-          message = LookupResult.createDuplicateMessage(
-            result,
-            enclosingDeclaration: typeDeclarationBuilder,
-            name: name,
-            fileUri: uri,
-            fileOffset: charOffset,
-            length: noLength,
+          return new ErroneousConstructorResolutionResult(
+            errorExpression: _buildProblemFromLocatedMessage(
+              LookupResult.createDuplicateMessage(
+                result,
+                enclosingDeclaration: typeDeclarationBuilder,
+                name: name,
+                fileUri: uri,
+                fileOffset: charOffset,
+                length: noLength,
+              ),
+            ),
           );
         } else if (constructorBuilder == null) {
           // Not found. Reported below.
@@ -7100,18 +7125,12 @@ class BodyBuilderImpl extends StackListenerImpl
           name,
         );
     }
-    if (message != null) {
-      return new ErroneousConstructorResolutionResult(
-        errorExpression: buildProblemFromLocatedMessage(message),
-      );
-    } else {
-      return new UnresolvedConstructorResolutionResult(
-        helper: this,
-        errorName: errorName,
-        charOffset: nameLastToken.charOffset,
-        unresolvedKind: unresolvedKind,
-      );
-    }
+    return new UnresolvedConstructorResolutionResult(
+      helper: this,
+      errorName: errorName,
+      charOffset: nameLastToken.charOffset,
+      unresolvedKind: unresolvedKind,
+    );
   }
 
   @override
@@ -7747,7 +7766,8 @@ class BodyBuilderImpl extends StackListenerImpl
 
     if (isClosureContextLoweringEnabled) {
       // TODO(cstefantsova): Add function parameters to the scope.
-      function.scope = new Scope([])..fileOffset = function.fileOffset;
+      function.scope = new Scope(contexts: [])
+        ..fileOffset = function.fileOffset;
     }
 
     if (declaration is FunctionDeclaration) {
@@ -9740,14 +9760,10 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  Initializer buildInvalidInitializer(
-    Expression expression, [
-    int charOffset = -1,
-  ]) {
+  Initializer buildInvalidInitializer(InvalidExpression expression) {
     _needsImplicitSuperInitializer = false;
-    return new ShadowInvalidInitializer(
-      new VariableDeclaration.forValue(expression),
-    )..fileOffset = charOffset;
+    return new InvalidInitializer(expression.message)
+      ..fileOffset = expression.fileOffset;
   }
 
   Initializer buildDuplicatedInitializer(
@@ -9809,7 +9825,6 @@ class BodyBuilderImpl extends StackListenerImpl
             fileOffset: fieldNameOffset,
             length: name.length,
           ),
-          fieldNameOffset,
         ),
       ];
     } else if (builder is SourcePropertyBuilder &&
@@ -9819,7 +9834,20 @@ class BodyBuilderImpl extends StackListenerImpl
         // Operating on an invalid field. Don't report anything though
         // as we've already reported that the field isn't valid.
         return <Initializer>[
-          buildInvalidInitializer(new InvalidExpression(null), fieldNameOffset),
+          buildInvalidInitializer(
+            new InvalidExpression(
+              compilerContext
+                  .format(
+                    codeExtensionTypeDeclaresInstanceField.withLocation(
+                      builder.fileUri,
+                      builder.fileOffset,
+                      builder.name.length,
+                    ),
+                    cfe.CfeSeverity.error,
+                  )
+                  .plain,
+            ),
+          ),
         ];
       }
 
@@ -9845,7 +9873,6 @@ class BodyBuilderImpl extends StackListenerImpl
               fileOffset: fieldNameOffset,
               length: name.length,
             ),
-            fieldNameOffset,
           ),
         ];
       } else if (builder.hasExternalField) {
@@ -9857,7 +9884,6 @@ class BodyBuilderImpl extends StackListenerImpl
               fileOffset: fieldNameOffset,
               length: name.length,
             ),
-            fieldNameOffset,
           ),
         ];
       } else if (builder.isFinal && builder.hasInitializer) {
@@ -9926,7 +9952,6 @@ class BodyBuilderImpl extends StackListenerImpl
             fileOffset: fieldNameOffset,
             length: name.length,
           ),
-          fieldNameOffset,
         ),
       ];
     }
@@ -9966,12 +9991,13 @@ class BodyBuilderImpl extends StackListenerImpl
         length = "this".length;
       }
       String fullName = constructorNameForDiagnostics(name.text);
-      LocatedMessage message = cfe.codeConstructorNotFound
-          .withArgumentsOld(fullName)
-          .withLocation(uri, fileOffset, length);
       return buildInvalidInitializer(
-        buildProblemFromLocatedMessage(message),
-        fileOffset,
+        buildProblem(
+          message: cfe.codeConstructorNotFound.withArgumentsOld(fullName),
+          fileUri: uri,
+          fileOffset: fileOffset,
+          length: length,
+        ),
       );
     } else {
       if (_context.isConstructorCyclic(name.text)) {
@@ -10737,7 +10763,7 @@ class BodyBuilderImpl extends StackListenerImpl
       variable,
     ).buildSimpleRead();
     if (variableUse is VariableGet) {
-      VariableDeclaration variableDeclaration = variableUse.variable;
+      ExpressionVariable variableDeclaration = variableUse.variable;
       pattern = forest.createAssignedVariablePattern(
         variable.charOffset,
         variableDeclaration,
@@ -11262,7 +11288,7 @@ class BodyBuilderImpl extends StackListenerImpl
   // Coverage-ignore(suite): Not run.
   BuildSingleExpressionResult buildSingleExpression({
     required Token token,
-    required List<VariableDeclarationImpl> extraKnownVariables,
+    required List<ExpressionVariable> extraKnownVariables,
     required List<NominalParameterBuilder>? typeParameterBuilders,
     required List<FormalParameterBuilder>? formals,
     required int fileOffset,
@@ -11299,7 +11325,7 @@ class BodyBuilderImpl extends StackListenerImpl
         kind: LocalScopeKind.ifElement,
       );
       enterLocalScope(extraKnownVariablesScope);
-      for (VariableDeclarationImpl extraVariable in extraKnownVariables) {
+      for (ExpressionVariable extraVariable in extraKnownVariables) {
         declareVariable(extraVariable, _localScope);
         assignedVariables.declare(extraVariable);
       }

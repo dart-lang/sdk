@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Sort unnamed constructor declarations first.';
 
@@ -21,8 +22,7 @@ class SortUnnamedConstructorsFirst extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.sortUnnamedConstructorsFirst;
+  DiagnosticCode get diagnosticCode => diag.sortUnnamedConstructorsFirst;
 
   @override
   void registerNodeProcessors(
@@ -48,7 +48,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (member is ConstructorDeclaration) {
         if (member.name == null) {
           if (seenConstructor) {
-            rule.reportAtNode(member.returnType);
+            // TODO(scheglov): support primary constructors
+            rule.reportAtNode(member.typeName);
           }
         } else {
           seenConstructor = true;
@@ -59,17 +60,21 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    check(node.members);
+    if (node.body case BlockClassBody body) {
+      check(body.members);
+    }
   }
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    check(node.members);
+    check(node.body.members);
   }
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    if (node.representation.constructorName == null) return;
-    check(node.members);
+    if (node.primaryConstructor.constructorName == null) return;
+    if (node.body case BlockClassBody body) {
+      check(body.members);
+    }
   }
 }

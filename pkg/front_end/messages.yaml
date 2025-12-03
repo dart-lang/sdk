@@ -1575,16 +1575,29 @@ PrivateNamedNonFieldParameter:
   pseudoSharedCode: PRIVATE_NAMED_NON_FIELD_PARAMETER
   parameters: none
   problemMessage: "A named parameter that doesn't refer to an instance variable can't start with an underscore ('_')."
+  experiments: private-named-parameters
   script: |
     void foo({int? _hello}) {}
 
 PrivateNamedParameterWithoutPublicName:
   parameters: none
   problemMessage: "A private named parameter must have a corresponding public name."
+  experiments: private-named-parameters
   script: |
     class C {
       int? _123;
       C({this._123});
+    }
+
+PrivateNamedParameterDuplicatePublicName:
+  parameters:
+    String name: the corresponding public name of private named parameter
+  problemMessage: "The corresponding public name '#name' is already the name of another parameter."
+  experiments: private-named-parameters
+  script: |
+    class C {
+      int? _x;
+      C(int x, {this._x});
     }
 
 GetterWithFormals:

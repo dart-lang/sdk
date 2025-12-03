@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -19,17 +19,13 @@ class AssertStatementTest extends PartialCodeTest {
       'assert_statement',
       [
         TestDescriptor('keyword', 'assert', [
-          ParserErrorCode.expectedToken,
-          ParserErrorCode.expectedToken,
+          diag.expectedToken,
+          diag.expectedToken,
         ], "assert (_s_);"),
         TestDescriptor(
           'leftParen',
           'assert (',
-          [
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.expectedToken,
-          ],
+          [diag.missingIdentifier, diag.expectedToken, diag.expectedToken],
           "assert (_s_);",
           failing: [
             'assert',
@@ -42,26 +38,26 @@ class AssertStatementTest extends PartialCodeTest {
           ],
         ),
         TestDescriptor('condition', 'assert (a', [
-          ParserErrorCode.expectedToken,
-          ParserErrorCode.expectedToken,
+          diag.expectedToken,
+          diag.expectedToken,
         ], "assert (a);"),
         TestDescriptor(
           'comma',
           'assert (a,',
-          [ParserErrorCode.expectedToken, ParserErrorCode.expectedToken],
+          [diag.expectedToken, diag.expectedToken],
           "assert (a,);",
           failing: allExceptEof,
         ),
         TestDescriptor('message', 'assert (a, b', [
-          ParserErrorCode.expectedToken,
-          ParserErrorCode.expectedToken,
+          diag.expectedToken,
+          diag.expectedToken,
         ], "assert (a, b);"),
         TestDescriptor('trailingComma', 'assert (a, b,', [
-          ParserErrorCode.expectedToken,
-          ParserErrorCode.expectedToken,
+          diag.expectedToken,
+          diag.expectedToken,
         ], "assert (a, b,);"),
         TestDescriptor('rightParen', 'assert (a, b)', [
-          ParserErrorCode.expectedToken,
+          diag.expectedToken,
         ], "assert (a, b);"),
       ],
       PartialCodeTest.statementSuffixes,

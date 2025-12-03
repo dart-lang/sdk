@@ -126,7 +126,7 @@ class CheckNameResponse {
   Future<RenameResponse?> computeRenameRanges2() async {
     var elements = <Element>[];
     var element = canRename.refactoringElement.element;
-    if (element is PropertyInducingElement && element.isSynthetic) {
+    if (element is PropertyInducingElement && element.isOriginGetterSetter) {
       var property = element;
       var getter = property.getter;
       var setter = property.setter;
@@ -164,7 +164,7 @@ class CheckNameResponse {
         }
         replaceMatches.addMatch(match.path, replaceInfo);
       }
-      if (element.isSynthetic) {
+      if (element.isOriginImplicitDefault) {
         var result = await _replaceSyntheticConstructor();
         if (result != null) {
           replaceMatches.addMatch(result.path, result.matches.toList());
@@ -231,7 +231,7 @@ class CheckNameResponse {
     String sourcePath,
   ) async {
     var infos = <ReplaceInfo>[];
-    if (element is PropertyInducingElement && element.isSynthetic) {
+    if (element is PropertyInducingElement && element.isOriginGetterSetter) {
       var getter = element.getter;
       if (getter != null) {
         infos.add(
@@ -376,7 +376,7 @@ class CheckNameResponse {
     }
 
     var node = result.node;
-    if (node is! NamedCompilationUnitMember) {
+    if (node is! CompilationUnitMember) {
       return null;
     }
     var edit = await buildEditForInsertedConstructor(

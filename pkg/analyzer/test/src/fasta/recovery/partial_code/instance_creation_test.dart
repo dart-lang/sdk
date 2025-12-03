@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -24,30 +24,30 @@ class InstanceCreationTest extends PartialCodeTest {
   List<TestDescriptor> forKeyword(String keyword) {
     return <TestDescriptor>[
       TestDescriptor('${keyword}_keyword', keyword, [
-        ParserErrorCode.missingIdentifier,
-        ParserErrorCode.expectedToken,
+        diag.missingIdentifier,
+        diag.expectedToken,
       ], "$keyword _s_()"),
       TestDescriptor('${keyword}_name_unnamed', '$keyword A', [
-        ParserErrorCode.expectedToken,
+        diag.expectedToken,
       ], "$keyword A()"),
       TestDescriptor('${keyword}_name_named', '$keyword A.b', [
-        ParserErrorCode.expectedToken,
+        diag.expectedToken,
       ], "$keyword A.b()"),
       TestDescriptor('${keyword}_name_dot', '$keyword A.', [
-        ParserErrorCode.missingIdentifier,
-        ParserErrorCode.expectedToken,
+        diag.missingIdentifier,
+        diag.expectedToken,
       ], "$keyword A._s_()"),
       TestDescriptor(
         '${keyword}_leftParen_unnamed',
         '$keyword A(',
-        [ParserErrorCode.expectedToken],
+        [diag.expectedToken],
         "$keyword A()",
         allFailing: true,
       ),
       TestDescriptor(
         '${keyword}_leftParen_named',
         '$keyword A.b(',
-        [ParserErrorCode.expectedToken],
+        [diag.expectedToken],
         "$keyword A.b()",
         allFailing: true,
       ),

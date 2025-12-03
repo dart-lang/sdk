@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Unnecessary `.new` constructor name.';
 
@@ -19,8 +20,7 @@ class UnnecessaryConstructorName extends AnalysisRule {
     : super(name: LintNames.unnecessary_constructor_name, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessaryConstructorName;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryConstructorName;
 
   @override
   void registerNodeProcessors(
@@ -29,7 +29,7 @@ class UnnecessaryConstructorName extends AnalysisRule {
   ) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
-    registry.addRepresentationConstructorName(this, visitor);
+    registry.addPrimaryConstructorName(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
   }
 }
@@ -41,9 +41,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var parent = node.parent;
+    var parent = node.parent?.parent;
     if (parent is ExtensionTypeDeclaration &&
-        parent.representation.constructorName == null) {
+        parent.primaryConstructor.constructorName == null) {
       return;
     }
 
@@ -56,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitRepresentationConstructorName(RepresentationConstructorName node) {
+  void visitPrimaryConstructorName(PrimaryConstructorName node) {
     _check(node.name);
   }
 

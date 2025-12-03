@@ -61,6 +61,17 @@ void f() {
 ''');
   }
 
+  Future<void> test_constructor_implicitSuper() async {
+    // https://github.com/dart-lang/sdk/issues/61927
+    await resolveTestCode('''
+class A {}
+class B extends A {
+  B({super.other});
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_constructor_noParameters() async {
     await resolveTestCode('''
 class A {
@@ -99,6 +110,27 @@ class A {
 
 void f() {
   new A.aaa(named: 42);
+}
+''');
+  }
+
+  Future<void> test_constructor_superParameter_differentConstructor() async {
+    await resolveTestCode('''
+class A {
+  A();
+  A.foo();
+}
+class B extends A {
+  B({super.other}) : super.foo();
+}
+''');
+    await assertHasFix('''
+class A {
+  A();
+  A.foo({Object? other});
+}
+class B extends A {
+  B({super.other}) : super.foo();
 }
 ''');
   }
@@ -226,6 +258,132 @@ class A {
   void f() {
     test(named: 42);
   }
+}
+''');
+  }
+
+  Future<void> test_subclass() async {
+    await resolveTestCode('''
+class A {
+  A();
+}
+
+class B extends A {
+  B() : super(named: 42);
+}
+''');
+    await assertHasFix('''
+class A {
+  A({required int named});
+}
+
+class B extends A {
+  B() : super(named: 42);
+}
+''');
+  }
+
+  Future<void> test_subclass_superParameter() async {
+    await resolveTestCode('''
+class A {
+  A();
+}
+
+class B extends A {
+  B({super.named});
+}
+''');
+    await assertHasFix('''
+class A {
+  A({Object? named});
+}
+
+class B extends A {
+  B({super.named});
+}
+''');
+  }
+
+  Future<void> test_subclass_superParameter_default() async {
+    await resolveTestCode('''
+class A {
+  A();
+}
+
+class B extends A {
+  B({super.named = 42});
+}
+''');
+    await assertHasFix('''
+class A {
+  A({required int named});
+}
+
+class B extends A {
+  B({super.named = 42});
+}
+''');
+  }
+
+  Future<void> test_subclass_superParameter_defaultNullable() async {
+    await resolveTestCode('''
+class A {
+  A();
+}
+
+class B extends A {
+  B(int? value) : super(named: value);
+}
+''');
+    await assertHasFix('''
+class A {
+  A({int? named});
+}
+
+class B extends A {
+  B(int? value) : super(named: value);
+}
+''');
+  }
+
+  Future<void> test_subclass_superParameter_nullable() async {
+    await resolveTestCode('''
+class A {
+  A();
+}
+
+class B extends A {
+  B({int? super.named});
+}
+''');
+    await assertHasFix('''
+class A {
+  A({int? named});
+}
+
+class B extends A {
+  B({int? super.named});
+}
+''');
+  }
+
+  Future<void> test_subclass_superParameter_required() async {
+    await resolveTestCode('''
+class A {
+  A();
+}
+
+class B extends A {
+  B({required int super.named});
+}
+''');
+    await assertHasFix('''
+class A {
+  A({required int named});
+}
+
+class B extends A {
+  B({required int super.named});
 }
 ''');
   }

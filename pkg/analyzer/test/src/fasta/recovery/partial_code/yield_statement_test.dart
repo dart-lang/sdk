@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -18,7 +18,7 @@ class YieldStatementTest extends PartialCodeTest {
         TestDescriptor(
           'keyword',
           'yield',
-          [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+          [diag.missingIdentifier, diag.expectedToken],
           "yield _s_;",
           failing: [
             'assert',
@@ -31,12 +31,12 @@ class YieldStatementTest extends PartialCodeTest {
           ],
         ),
         TestDescriptor('expression', 'yield a', [
-          ParserErrorCode.expectedToken,
+          diag.expectedToken,
         ], "yield a;"),
         TestDescriptor(
           'star',
           'yield *',
-          [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+          [diag.missingIdentifier, diag.expectedToken],
           "yield * _s_;",
           failing: [
             'assert',
@@ -49,7 +49,7 @@ class YieldStatementTest extends PartialCodeTest {
           ],
         ),
         TestDescriptor('star_expression', 'yield * a', [
-          ParserErrorCode.expectedToken,
+          diag.expectedToken,
         ], "yield * a;"),
       ],
       PartialCodeTest.statementSuffixes,

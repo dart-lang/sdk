@@ -20,7 +20,7 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart'
     show SubstitutedExecutableElementImpl;
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
@@ -106,6 +106,14 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
           (first, second) {
             usedElements.addElement(second);
           },
+        );
+      }
+    }
+
+    for (var parameter in node.parameters.parameters) {
+      if (parameter is SuperFormalParameter) {
+        usedElements.addElement(
+          parameter.declaredFragment!.element.superConstructorParameter,
         );
       }
     }
@@ -274,7 +282,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     if (element is PropertyAccessorElement &&
         isIdentifierRead &&
         variable is TopLevelVariableElement) {
-      if (element.isSynthetic) {
+      if (element.isOriginVariable) {
         usedElements.addElement(variable);
       } else {
         usedElements.members.add(element);
@@ -489,9 +497,9 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 }
 
 /// Instances of the class [UnusedLocalElementsVerifier] traverse an AST
-/// looking for cases of [WarningCode.unusedElement],
-/// [WarningCode.unusedField],
-/// [WarningCode.unusedLocalVariable], etc.
+/// looking for cases of [diag.unusedElement],
+/// [diag.unusedField],
+/// [diag.unusedLocalVariable], etc.
 class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   /// The error listener to which errors will be reported.
   final DiagnosticListener _diagnosticListener;
@@ -604,11 +612,9 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     for (var fragment in node.parameterFragments) {
       var element = fragment!.element;
       if (!_isUsedElement(element)) {
-        _reportDiagnosticForElement(
-          WarningCode.unusedElementParameter,
-          element,
-          [element.displayName],
-        );
+        _reportDiagnosticForElement(diag.unusedElementParameter, element, [
+          element.displayName,
+        ]);
       }
     }
     super.visitFormalParameterList(node);
@@ -696,7 +702,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         }
       }
       for (var element in elementsToReport) {
-        _reportDiagnosticForElement(WarningCode.unusedLocalVariable, element, [
+        _reportDiagnosticForElement(diag.unusedLocalVariable, element, [
           element.displayName,
         ]);
       }
@@ -1027,7 +1033,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   void _visitClassElement(InterfaceElement element) {
     if (!_isUsedElement(element)) {
-      _reportDiagnosticForElement(WarningCode.unusedElement, element, [
+      _reportDiagnosticForElement(diag.unusedElement, element, [
         element.displayName,
       ]);
     }
@@ -1040,7 +1046,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     // purpose, the constructor is "used."
     if (element.enclosingElement.constructors.length > 1 &&
         !_isUsedMember(element)) {
-      _reportDiagnosticForElement(WarningCode.unusedElement, element, [
+      _reportDiagnosticForElement(diag.unusedElement, element, [
         element.displayName,
       ]);
     }
@@ -1048,7 +1054,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   void _visitFieldElement(FieldElement element) {
     if (!_isReadMember(element)) {
-      _reportDiagnosticForElement(WarningCode.unusedField, element, [
+      _reportDiagnosticForElement(diag.unusedField, element, [
         element.displayName,
       ]);
     }
@@ -1057,7 +1063,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void _visitLocalFunctionElement(LocalFunctionElement element) {
     if (!_isUsedElement(element)) {
       if (_wildCardVariablesEnabled && _isNamedWildcard(element)) return;
-      _reportDiagnosticForElement(WarningCode.unusedElement, element, [
+      _reportDiagnosticForElement(diag.unusedElement, element, [
         element.displayName,
       ]);
     }
@@ -1067,11 +1073,11 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     if (!_isUsedElement(element) && !_isNamedWildcard(element)) {
       DiagnosticCode code;
       if (_usedElements.isCatchException(element)) {
-        code = WarningCode.unusedCatchClause;
+        code = diag.unusedCatchClause;
       } else if (_usedElements.isCatchStackTrace(element)) {
-        code = WarningCode.unusedCatchStack;
+        code = diag.unusedCatchStack;
       } else {
-        code = WarningCode.unusedLocalVariable;
+        code = diag.unusedLocalVariable;
       }
       _reportDiagnosticForElement(code, element, [element.displayName]);
     }
@@ -1079,7 +1085,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   void _visitMethodElement(MethodElement element) {
     if (!_isUsedMember(element)) {
-      _reportDiagnosticForElement(WarningCode.unusedElement, element, [
+      _reportDiagnosticForElement(diag.unusedElement, element, [
         element.displayName,
       ]);
     }
@@ -1087,7 +1093,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   void _visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (!_isUsedMember(element)) {
-      _reportDiagnosticForElement(WarningCode.unusedElement, element, [
+      _reportDiagnosticForElement(diag.unusedElement, element, [
         element.displayName,
       ]);
     }
@@ -1095,7 +1101,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   void _visitTopLevelFunctionElement(TopLevelFunctionElement element) {
     if (!_isUsedElement(element)) {
-      _reportDiagnosticForElement(WarningCode.unusedElement, element, [
+      _reportDiagnosticForElement(diag.unusedElement, element, [
         element.displayName,
       ]);
     }
@@ -1103,7 +1109,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   void _visitTopLevelVariableElement(TopLevelVariableElement element) {
     if (!_isUsedElement(element)) {
-      _reportDiagnosticForElement(WarningCode.unusedElement, element, [
+      _reportDiagnosticForElement(diag.unusedElement, element, [
         element.displayName,
       ]);
     }
@@ -1111,7 +1117,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   void _visitTypeAliasElement(TypeAliasElement element) {
     if (!_isUsedElement(element)) {
-      _reportDiagnosticForElement(WarningCode.unusedElement, element, [
+      _reportDiagnosticForElement(diag.unusedElement, element, [
         element.displayName,
       ]);
     }

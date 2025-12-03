@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -256,7 +257,7 @@ final k = K(
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.missingRequiredArgument, 178, 1),
+        error(diag.missingRequiredArgument, 178, 1),
       ],
     );
   }
@@ -282,7 +283,7 @@ var e1 = new B([]); // OK
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.newWithNonType, 13, 1),
+        error(diag.newWithNonType, 13, 1),
       ],
     );
   }

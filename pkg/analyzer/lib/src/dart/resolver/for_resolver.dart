@@ -13,7 +13,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -85,7 +85,7 @@ class ForResolver {
     );
     _resolver.popRewrite();
     _resolver.nullableDereferenceVerifier.expression(
-      CompileTimeErrorCode.uncheckedUseOfNullableValueAsIterator,
+      diag.uncheckedUseOfNullableValueAsIterator,
       forLoopParts.iterable,
     );
   }
@@ -175,7 +175,7 @@ class ForResolver {
     iterable = _resolver.popRewrite()!;
 
     _resolver.nullableDereferenceVerifier.expression(
-      CompileTimeErrorCode.uncheckedUseOfNullableValueAsIterator,
+      diag.uncheckedUseOfNullableValueAsIterator,
       iterable,
     );
 

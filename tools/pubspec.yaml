@@ -19,6 +19,7 @@ dependencies:
   http:
   path:
   pool:
+  pub_semver:
   smith:
   test_runner:
   yaml:

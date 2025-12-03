@@ -492,19 +492,6 @@ abstract class Target {
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
       String name, Arguments arguments, int offset, bool isSuper);
 
-  Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
-      Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod = false,
-      bool isGetter = false,
-      bool isSetter = false,
-      bool isField = false,
-      bool isLocalVariable = false,
-      bool isDynamic = false,
-      bool isSuper = false,
-      bool isStatic = false,
-      bool isConstructor = false,
-      bool isTopLevel = false});
-
   /// Configure the given [Component] in a target specific way.
   /// Returns the configured component.
   Component configureComponent(Component component) => component;
@@ -555,6 +542,14 @@ abstract class Target {
 
   /// Should this target-specific pragma be recognized by annotation parsers?
   bool isSupportedPragma(String pragmaName) => false;
+
+  /// When `true` the incremental compiler will always include libraries that
+  /// apply invalidated mixins in the output of a recompile.
+  ///
+  /// They will be included even when only the mixin was edited, and even if the
+  /// invalidation was only within the body of the mixin member.
+  bool get incrementalCompilerIncludeMixinApplicationInvalidatedLibraries =>
+      false;
 }
 
 class NoneConstantsBackend extends ConstantsBackend {
@@ -607,23 +602,8 @@ class NoneTarget extends Target {
   @override
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
       String name, Arguments arguments, int offset, bool isSuper) {
-    return new InvalidExpression(null);
-  }
-
-  @override
-  Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
-      Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod = false,
-      bool isGetter = false,
-      bool isSetter = false,
-      bool isField = false,
-      bool isLocalVariable = false,
-      bool isDynamic = false,
-      bool isSuper = false,
-      bool isStatic = false,
-      bool isConstructor = false,
-      bool isTopLevel = false}) {
-    return new InvalidExpression(null);
+    return new InvalidExpression(
+        'Unsupported: NoneTarget.instantiateInvocation');
   }
 
   @override
@@ -760,11 +740,10 @@ class TestTargetFlags extends TargetFlags {
       this.forceConstructorTearOffLoweringForTesting,
       this.supportedDartLibraries = const {},
       this.unsupportedDartLibraries = const {},
-      bool? isClosureContextLoweringEnabled})
+      bool isClosureContextLoweringEnabled = false})
       : super(
             trackWidgetCreation: trackWidgetCreation,
-            isClosureContextLoweringEnabled:
-                isClosureContextLoweringEnabled ?? false);
+            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled);
 }
 
 mixin TestTargetMixin on Target {
@@ -917,33 +896,6 @@ class TargetWrapper extends Target {
       String name, Arguments arguments, int offset, bool isSuper) {
     return _target.instantiateInvocation(
         coreTypes, receiver, name, arguments, offset, isSuper);
-  }
-
-  @override
-  Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
-      Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod = false,
-      bool isGetter = false,
-      bool isSetter = false,
-      bool isField = false,
-      bool isLocalVariable = false,
-      bool isDynamic = false,
-      bool isSuper = false,
-      bool isStatic = false,
-      bool isConstructor = false,
-      bool isTopLevel = false}) {
-    return _target.instantiateNoSuchMethodError(
-        coreTypes, receiver, name, arguments, offset,
-        isMethod: isMethod,
-        isGetter: isGetter,
-        isSetter: isSetter,
-        isField: isField,
-        isLocalVariable: isLocalVariable,
-        isDynamic: isDynamic,
-        isSuper: isSuper,
-        isStatic: isStatic,
-        isConstructor: isConstructor,
-        isTopLevel: isTopLevel);
   }
 
   @override

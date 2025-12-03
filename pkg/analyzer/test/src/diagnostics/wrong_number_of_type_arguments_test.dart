@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +22,7 @@ class WrongNumberOfTypeArgumentsTest extends PubPackageResolutionTest {
 class A<E, F> {}
 A<A>? a;
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 17, 5)],
+      [error(diag.wrongNumberOfTypeArguments, 17, 5)],
     );
   }
 
@@ -32,7 +32,7 @@ A<A>? a;
 class A<E> {}
 A<A, A>? a;
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 14, 8)],
+      [error(diag.wrongNumberOfTypeArguments, 14, 8)],
     );
   }
 
@@ -43,7 +43,7 @@ class A {}
 mixin M {}
 class B<F extends num> = A<F> with M;
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 47, 4)],
+      [error(diag.wrongNumberOfTypeArguments, 47, 4)],
     );
   }
 
@@ -58,7 +58,7 @@ f() {
   return const C<int>();
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 47, 6)],
+      [error(diag.wrongNumberOfTypeArguments, 47, 6)],
     );
   }
 
@@ -73,7 +73,7 @@ f() {
   return const C<int>();
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 53, 6)],
+      [error(diag.wrongNumberOfTypeArguments, 53, 6)],
     );
   }
 
@@ -88,7 +88,7 @@ f() {
   return const C<int, int>();
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 50, 11)],
+      [error(diag.wrongNumberOfTypeArguments, 50, 11)],
     );
   }
 
@@ -97,7 +97,7 @@ f() {
       r'''
 dynamic<int> v;
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 0, 12)],
+      [error(diag.wrongNumberOfTypeArguments, 0, 12)],
     );
   }
 
@@ -109,7 +109,7 @@ void f() {
 }
 void g<T, U>() {}
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod, 14, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsMethod, 14, 5)],
     );
   }
 
@@ -121,7 +121,7 @@ void f() {
 }
 void g<T>() {}
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod, 14, 13)],
+      [error(diag.wrongNumberOfTypeArgumentsMethod, 14, 13)],
     );
   }
 
@@ -135,7 +135,7 @@ class C {
   void call<T, U>() {}
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 12, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsFunction, 12, 5)],
     );
   }
 
@@ -149,7 +149,7 @@ class C {
   void call<T>() {}
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 12, 13)],
+      [error(diag.wrongNumberOfTypeArgumentsFunction, 12, 13)],
     );
   }
 
@@ -161,7 +161,7 @@ f() {
   foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 33, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsFunction, 33, 5)],
     );
   }
 
@@ -173,7 +173,7 @@ f() {
   foo<int, int>;
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 30, 10)],
+      [error(diag.wrongNumberOfTypeArgumentsFunction, 30, 10)],
     );
   }
 
@@ -184,13 +184,7 @@ f(void Function<T, U>() foo, void Function<T, U>() bar) {
   (1 == 2 ? foo : bar)<int>;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.wrongNumberOfTypeArgumentsAnonymousFunction,
-          80,
-          5,
-        ),
-      ],
+      [error(diag.wrongNumberOfTypeArgumentsAnonymousFunction, 80, 5)],
     );
   }
 
@@ -201,13 +195,7 @@ f(void Function<T>() foo, void Function<T, U>() bar) {
   (1 == 2 ? foo : bar)<int, String>;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
-          57,
-          20,
-        ),
-      ],
+      [error(diag.disallowedTypeInstantiationExpression, 57, 20)],
     );
   }
 
@@ -221,7 +209,7 @@ class A {
 @A<int>()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 28, 5)],
+      [error(diag.wrongNumberOfTypeArguments, 28, 5)],
     );
   }
 
@@ -237,7 +225,7 @@ typedef B = A;
 @B<int>()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 44, 5)],
+      [error(diag.wrongNumberOfTypeArguments, 44, 5)],
     );
   }
 
@@ -251,7 +239,7 @@ class A<T, U> {
 @A<int>()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 34, 5)],
+      [error(diag.wrongNumberOfTypeArguments, 34, 5)],
     );
   }
 
@@ -267,7 +255,7 @@ typedef B<T, U> = A;
 @B<int>()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 50, 5)],
+      [error(diag.wrongNumberOfTypeArguments, 50, 5)],
     );
   }
 
@@ -281,7 +269,7 @@ class A<T> {
 @A<int, String>()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 31, 13)],
+      [error(diag.wrongNumberOfTypeArguments, 31, 13)],
     );
   }
 
@@ -297,7 +285,7 @@ typedef B<T> = A;
 @B<int, String>()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 47, 13)],
+      [error(diag.wrongNumberOfTypeArguments, 47, 13)],
     );
   }
 
@@ -311,7 +299,7 @@ class C {
   void g<T, U>() {}
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod, 19, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsMethod, 19, 5)],
     );
   }
 
@@ -325,7 +313,7 @@ class C {
   void g<T>() {}
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod, 19, 13)],
+      [error(diag.wrongNumberOfTypeArgumentsMethod, 19, 13)],
     );
   }
 
@@ -338,7 +326,7 @@ f() {
   return new C<int>();
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 31, 6)],
+      [error(diag.wrongNumberOfTypeArguments, 31, 6)],
     );
   }
 
@@ -351,7 +339,7 @@ f() {
   return new C<int>();
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 37, 6)],
+      [error(diag.wrongNumberOfTypeArguments, 37, 6)],
     );
   }
 
@@ -364,7 +352,7 @@ f() {
   return new C<int, int>();
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 34, 11)],
+      [error(diag.wrongNumberOfTypeArguments, 34, 11)],
     );
   }
 
@@ -382,7 +370,7 @@ void f(x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 79, 6)],
+      [error(diag.wrongNumberOfTypeArguments, 79, 6)],
     );
   }
 
@@ -400,7 +388,7 @@ void f(x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 73, 6)],
+      [error(diag.wrongNumberOfTypeArguments, 73, 6)],
     );
   }
 
@@ -414,7 +402,7 @@ f(A<int> a) {
   a.element.anyGetterExistsInDynamic;
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 38, 6)],
+      [error(diag.wrongNumberOfTypeArguments, 38, 6)],
     );
   }
 
@@ -428,7 +416,7 @@ f(A<int, int> a) {
   a.element.anyGetterExistsInDynamic;
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 35, 11)],
+      [error(diag.wrongNumberOfTypeArguments, 35, 11)],
     );
   }
 
@@ -439,7 +427,7 @@ class C<T> {
   late T<int> f;
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 20, 6)],
+      [error(diag.wrongNumberOfTypeArguments, 20, 6)],
     );
   }
 
@@ -452,7 +440,7 @@ f(p) {
   return p is C<A>;
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 49, 4)],
+      [error(diag.wrongNumberOfTypeArguments, 49, 4)],
     );
   }
 
@@ -465,7 +453,7 @@ f(p) {
   return p is C<A, A>;
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 46, 7)],
+      [error(diag.wrongNumberOfTypeArguments, 46, 7)],
     );
   }
 }
@@ -480,7 +468,7 @@ extension type A(int it) {}
 
 void f(A<int> a) {}
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 36, 6)],
+      [error(diag.wrongNumberOfTypeArguments, 36, 6)],
     );
 
     var node = findNode.namedType('A<int>');
@@ -507,7 +495,7 @@ extension type A<S, T>(int it) {}
 
 void f(A<int> a) {}
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 42, 6)],
+      [error(diag.wrongNumberOfTypeArguments, 42, 6)],
     );
 
     var node = findNode.namedType('A<int>');
@@ -534,7 +522,7 @@ extension type A<T>(int it) {}
 
 void f(A<int, String> a) {}
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 39, 14)],
+      [error(diag.wrongNumberOfTypeArguments, 39, 14)],
     );
 
     var node = findNode.namedType('A<int, String>');

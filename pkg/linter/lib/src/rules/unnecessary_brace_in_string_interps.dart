@@ -12,6 +12,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/token.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid using braces in interpolation when not needed.';
 
@@ -28,8 +29,7 @@ class UnnecessaryBraceInStringInterps extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessaryBraceInStringInterps;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryBraceInStringInterps;
 
   @override
   void registerNodeProcessors(

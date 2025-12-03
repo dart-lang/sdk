@@ -21,6 +21,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
+import '../../../utilities/extensions/ast.dart';
+
 class ConvertClassToEnum extends ResolvedCorrectionProducer {
   ConvertClassToEnum({required super.context});
 
@@ -39,8 +41,9 @@ class ConvertClassToEnum extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var declaration = node;
-    if (declaration is! ClassDeclaration || declaration.name != token) {
+    var declaration = node.parent;
+    if (declaration is! ClassDeclaration ||
+        declaration.namePart.typeName != token) {
       return;
     }
     if (!isEnabled(Feature.enhanced_enums)) {
@@ -173,7 +176,8 @@ class _EnumDescription {
 
   /// Return the offset immediately following the opening brace for the class
   /// body.
-  int get bodyOffset => classDeclaration.leftBracket.end;
+  int get bodyOffset =>
+      (classDeclaration.body as BlockClassBody).leftBracket.end;
 
   /// Use the [builder] and correction [utils] to apply the change necessary to
   /// convert the class to an enum.
@@ -193,7 +197,7 @@ class _EnumDescription {
 
     // Compute the declarations of the enum constants and delete the fields
     // being converted.
-    var members = classDeclaration.members;
+    var members = classDeclaration.members2;
     var indent = utils.oneIndent;
     var eol = utils.endOfLine;
     var constantsBuffer = StringBuffer();
@@ -311,7 +315,7 @@ class _EnumDescription {
   void _deleteField(
     DartFileEditBuilder builder,
     _Field field,
-    NodeList<ClassMember> members,
+    List<ClassMember> members,
   ) {
     var variableList = field.declarationList;
     if (variableList.variables.length == 1) {
@@ -326,7 +330,7 @@ class _EnumDescription {
   /// If the unnamed constructor is the only constructor, and if it has no
   /// parameters other than potentially the index field, then remove it.
   ConstructorDeclaration? _removeUnnamedConstructor() {
-    var members = classDeclaration.members;
+    var members = classDeclaration.members2;
     var constructors = members.whereType<ConstructorDeclaration>().toList();
     if (constructors.length != 1) {
       return null;
@@ -555,7 +559,7 @@ class _EnumDescription {
     ClassElement classElement,
   ) {
     var constructors = _Constructors();
-    for (var member in classDeclaration.members) {
+    for (var member in classDeclaration.members2) {
       if (member is ConstructorDeclaration) {
         var constructor = member.declaredFragment?.element;
         if (constructor is ConstructorElement) {
@@ -588,7 +592,7 @@ class _EnumDescription {
     var potentialFieldsToConvert = <DartObject, List<_ConstantField>>{};
     _Field? indexField;
 
-    for (var member in classDeclaration.members) {
+    for (var member in classDeclaration.members2) {
       if (member is FieldDeclaration) {
         var fieldList = member.fields;
         var fields = fieldList.variables;
@@ -673,7 +677,7 @@ class _EnumDescription {
   /// Return `true` if the [classDeclaration] does not contain any methods that
   /// prevent it from being converted.
   static bool _validateMethods(ClassDeclaration classDeclaration) {
-    for (var member in classDeclaration.members) {
+    for (var member in classDeclaration.members2) {
       if (member is MethodDeclaration) {
         var name = member.name.lexeme;
         if (name == '==' || name == 'hashCode') {

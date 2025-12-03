@@ -7,7 +7,7 @@ class A<X extends core::Object? = dynamic> extends core::Object /*hasConstConstr
   const constructor •() → self::A<self::A::X%>
     : super core::Object::•()
     ;
-  static factory redir<X extends core::Object? = dynamic>() → self::A<self::A::redir::X%> /* redirection-target: self::A::•<self::A::redir::X%>*/
+  static const factory redir<X extends core::Object? = dynamic>() → self::A<self::A::redir::X%> /* redirection-target: self::A::•<self::A::redir::X%>*/
     return new self::A::•<self::A::redir::X%>();
 }
 class E extends core::_Enum /*isEnum*/  {

@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
@@ -42,18 +45,15 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
       '',
       notificationManager,
       InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
     );
   }
 
-  @SkippedTest(
-    reason: 'flaky timeouts',
-    issue: 'https://github.com/dart-lang/sdk/issues/38629',
-  )
   Future<void> test_addPluginToContextRoot() async {
     var pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     var pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(
-      test: (String pluginPath) async {
+      test: (pluginPath) async {
         var contextRoot = _newContextRoot(pkgPath);
         await manager.addPluginToContextRoot(
           contextRoot,
@@ -381,19 +381,58 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
   late String byteStorePath;
   late String sdkPath;
   late TestNotificationManager notificationManager;
+  late MockProcessRunner processRunner;
   late PluginManager manager;
 
   void setUp() {
     byteStorePath = resourceProvider.convertPath('/byteStore');
     sdkPath = resourceProvider.convertPath('/sdk');
     notificationManager = TestNotificationManager();
+    processRunner = MockProcessRunner();
     manager = PluginManager(
       resourceProvider,
       byteStorePath,
       sdkPath,
       notificationManager,
       InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
+      processRunner: processRunner,
     );
+  }
+
+  /// Returns a simple handler for [MockProcessRunner.runSyncHandler], which
+  /// just calls [fn], without consideration for the parameters.
+  ///
+  /// The handler also returns a simple [io.ProcessResult] with no stderr or
+  /// stdout text, and an exit code of 1.
+  ///
+  /// As the signature for the handler is very long, this function just serves
+  /// as a convenience function, for when the parameters are not used.
+  io.ProcessResult Function(
+    String executable,
+    List<String> arguments, {
+    String? workingDirectory,
+    Map<String, String>? environment,
+    Encoding? stderrEncoding,
+    Encoding? stdoutEncoding,
+  })
+  simpleRunSyncHandler(void Function() fn) {
+    return (
+      _,
+      _, {
+      environment,
+      workingDirectory,
+      stderrEncoding,
+      stdoutEncoding,
+    }) {
+      fn();
+      return io.ProcessResult(
+        1 /* pid */,
+        0 /* exitCode */,
+        '' /* stdout */,
+        '' /* stderr */,
+      );
+    };
   }
 
   void test_broadcastRequest_none() {
@@ -405,7 +444,7 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     expect(responses, hasLength(0));
   }
 
-  void test_pathsFor_withPackageConfigJsonFile() {
+  void test_pathsFor_legacy_withPackageConfigJsonFile() {
     //
     // Build the minimal directory structure for a plugin package that includes
     // a '.dart_tool/package_config.json' file.
@@ -421,7 +460,7 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     expect(files.packageConfig, packageConfigFile);
   }
 
-  void test_pathsFor_withPubspec_inBlazeWorkspace() {
+  void test_pathsFor_legacy_withPubspec_inBlazeWorkspace() {
     //
     // Build a Blaze workspace containing four packages, including the plugin.
     //
@@ -486,6 +525,60 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
   ]
 }
 ''');
+  }
+
+  void test_pathsFor_newPlugin_withPubspec() {
+    late File packageConfigFile;
+
+    processRunner.runSyncHandler = simpleRunSyncHandler(() {
+      packageConfigFile = newPackageConfigJsonFile('/plugin', '');
+    });
+
+    // Build the minimal directory structure for a plugin package that includes
+    // a 'pubspec.yaml' file.
+    var pluginDirPath = newFolder('/plugin').path;
+    var pluginFile = newFile('/plugin/bin/plugin.dart', '');
+    newFile('/plugin/pubspec.yaml', '''
+name: my_plugin
+environment:
+  sdk: ^3.10.0
+''');
+
+    var files = manager.filesFor(pluginDirPath, isLegacyPlugin: false);
+    expect(files.execution, pluginFile);
+    expect(files.packageConfig, packageConfigFile);
+  }
+
+  void test_pathsFor_newPlugin_withPubspec_withAot() {
+    late File packageConfigFile;
+
+    processRunner.runSyncHandler = simpleRunSyncHandler(() {
+      packageConfigFile = newPackageConfigJsonFile('/plugin', '');
+    });
+
+    // Build the minimal directory structure for a plugin package that includes
+    // a 'pubspec.yaml' file.
+    var pluginDir = newFolder('/plugin');
+    newFile('/plugin/bin/plugin.dart', '');
+    newFile('/plugin/pubspec.yaml', '''
+name: my_plugin
+environment:
+  sdk: ^3.10.0
+''');
+
+    var files = manager.filesFor(
+      pluginDir.path,
+      isLegacyPlugin: false,
+      builtAsAot: true,
+    );
+
+    expect(
+      files.execution,
+      pluginDir
+          .getChildAssumingFolder('bin')
+          .getChildAssumingFile('plugin.aot'),
+    );
+    expect(files.packageConfig, packageConfigFile);
   }
 
   void test_pluginsForContextRoot_none() {

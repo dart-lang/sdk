@@ -31,10 +31,6 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 
-const _deprecationMessageMethodBeingCopied =
-    'Use `typeParametersInScope` '
-    'instead. You can use `methodBeingCopied.typeParameters`.';
-
 /// An [EditBuilder] used to build edits in Dart files.
 class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   static const List<String> _knownMethodNamePrefixes = ['get', 'is', 'to'];
@@ -85,12 +81,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   bool canWriteType(
     DartType? type, {
-    @Deprecated(_deprecationMessageMethodBeingCopied)
-    ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
   }) {
-    assert(typeParametersInScope == null || methodBeingCopied == null);
-    typeParametersInScope ??= methodBeingCopied?.typeParameters;
     return type != null && type is! DynamicType
         ? _canWriteType(type, typeParametersInScope: typeParametersInScope)
         : false;
@@ -259,16 +251,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     String name, {
     bool isCovariant = false,
     bool isRequiredNamed = false,
-    @Deprecated(_deprecationMessageMethodBeingCopied)
-    ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
     String? nameGroupName,
     DartType? type,
     String? typeGroupName,
     bool isRequiredType = false,
   }) {
-    assert(typeParametersInScope == null || methodBeingCopied == null);
-    typeParametersInScope ??= methodBeingCopied?.typeParameters;
     bool writeTypeIfCan() {
       if (_canWriteType(type, typeParametersInScope: typeParametersInScope) &&
           (isRequiredType || type is! DynamicType)) {
@@ -310,15 +298,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (isRequiredNamed) {
       write('required ');
     }
-    if (type != null) {
-      var hasType = writeType();
-      if (name.isNotEmpty) {
-        if (hasType) {
-          write(' ');
-        }
-        writeName();
+    type ??= _typeProvider.objectQuestionType;
+    var hasType = writeType();
+    if (name.isNotEmpty) {
+      if (hasType) {
+        write(' ');
       }
-    } else {
       writeName();
     }
   }
@@ -326,21 +311,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeFormalParameters(
     Iterable<FormalParameterElement> parameters, {
-    @Deprecated(
-      '$_deprecationMessageMethodBeingCopied And for the group prefix, '
-      'inform `groupNamePrefix`.',
-    )
-    ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
     String? groupNamePrefix,
     bool fillParameterNames = true,
     bool includeDefaultValues = true,
     bool requiredTypes = false,
   }) {
-    assert(typeParametersInScope == null || methodBeingCopied == null);
-    assert(groupNamePrefix == null || methodBeingCopied == null);
-    typeParametersInScope ??= methodBeingCopied?.typeParameters;
-    groupNamePrefix ??= methodBeingCopied?.name;
     var parameterNames = parameters.map((e) => e.name).nonNulls.toSet();
 
     write('(');
@@ -718,16 +694,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     String name, {
     bool isCovariant = false,
     bool isRequiredNamed = false,
-    @Deprecated(_deprecationMessageMethodBeingCopied)
-    ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
     String? nameGroupName,
     DartType? type,
     String? typeGroupName,
     bool isRequiredType = false,
   }) {
-    assert(typeParametersInScope == null || methodBeingCopied == null);
-    typeParametersInScope ??= methodBeingCopied?.typeParameters;
     bool writeTypeIfCan() {
       if (_canWriteType(type, typeParametersInScope: typeParametersInScope) &&
           (isRequiredType || type is! DynamicType)) {
@@ -787,20 +759,23 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     Expression argument,
     int index,
     Set<String> usedNames, {
-    @Deprecated(_deprecationMessageMethodBeingCopied)
-    ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
+    bool isOptional = false,
   }) {
-    assert(typeParametersInScope == null || methodBeingCopied == null);
-    typeParametersInScope ??= methodBeingCopied?.typeParameters;
     // Append type name.
     var type = argument.staticType;
     if (type == null || type.isBottom || type.isDartCoreNull) {
-      type = DynamicTypeImpl.instance;
+      type = _typeProvider.objectQuestionType;
     }
     if (argument is NamedExpression &&
-        type.nullabilitySuffix == NullabilitySuffix.none) {
+        type.nullabilitySuffix == NullabilitySuffix.none &&
+        !isOptional) {
       write('required ');
+    }
+    if (isOptional &&
+        type is TypeImpl &&
+        type.nullabilitySuffix != NullabilitySuffix.question) {
+      type = type.withNullability(NullabilitySuffix.question);
     }
     if (writeType(
       type,
@@ -834,12 +809,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeParametersMatchingArguments(
     ArgumentList argumentList, {
-    @Deprecated(_deprecationMessageMethodBeingCopied)
-    ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
   }) {
-    assert(typeParametersInScope == null || methodBeingCopied == null);
-    typeParametersInScope ??= methodBeingCopied?.typeParameters;
     // TODO(brianwilkerson): Handle the case when there are required parameters
     // after named parameters.
     var usedNames = <String>{};
@@ -882,12 +853,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     String? nameGroupName,
     DartType? parameterType,
     String? parameterTypeGroupName,
-    @Deprecated(_deprecationMessageMethodBeingCopied)
-    ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
   }) {
-    assert(typeParametersInScope == null || methodBeingCopied == null);
-    typeParametersInScope ??= methodBeingCopied?.typeParameters;
     if (isStatic) {
       write(Keyword.STATIC.lexeme);
       write(' ');
@@ -925,14 +892,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     DartType? type, {
     bool addSupertypeProposals = false,
     String? groupName,
-    @Deprecated(_deprecationMessageMethodBeingCopied)
-    ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
     bool required = false,
     bool shouldWriteDynamic = false,
   }) {
-    assert(typeParametersInScope == null || methodBeingCopied == null);
-    typeParametersInScope ??= methodBeingCopied?.typeParameters;
     var wroteType = false;
     if (type != null) {
       // TODO(FMorschel): Refactor all similar (same name) local functions to
@@ -972,12 +935,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeTypeParameter(
     TypeParameterElement typeParameter, {
-    @Deprecated(_deprecationMessageMethodBeingCopied)
-    ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
   }) {
-    assert(typeParametersInScope == null || methodBeingCopied == null);
-    typeParametersInScope ??= methodBeingCopied?.typeParameters;
     write(typeParameter.name ?? '');
     if (typeParameter.bound != null) {
       if (_canWriteType(
@@ -997,12 +956,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeTypeParameters(
     List<TypeParameterElement> typeParameters, {
-    @Deprecated(_deprecationMessageMethodBeingCopied)
-    ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
   }) {
-    assert(typeParametersInScope == null || methodBeingCopied == null);
-    typeParametersInScope ??= methodBeingCopied?.typeParameters;
     if (typeParameters.isNotEmpty) {
       write('<');
       writeTypeParameter(
@@ -1721,9 +1676,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// not already imported.
   final bool _createEditsForImports;
 
-  /// The optional generator of prefixes for new imports.
-  ImportPrefixGenerator? importPrefixGenerator;
-
   /// A mapping from libraries that need to be imported in order to make visible
   /// the names used in generated code, to information about these imports.
   final Map<Uri, _LibraryImport> _librariesToImport = {};
@@ -1786,12 +1738,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   @override
   bool canWriteType(
     DartType? type, {
-    @Deprecated(_deprecationMessageMethodBeingCopied)
-    ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
   }) {
-    assert(typeParametersInScope == null || methodBeingCopied == null);
-    typeParametersInScope ??= methodBeingCopied?.typeParameters;
     var builder = createEditBuilder(0, 0);
     return builder.canWriteType(
       type,
@@ -1857,36 +1805,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       typeSystem: typeSystem,
       typeProvider: typeProvider,
     );
-  }
-
-  @Deprecated(
-    'Copying change builders is expensive. Internal users of this '
-    'method now use `commit` and `revert` instead.',
-  )
-  @override
-  DartFileEditBuilderImpl copyWith(
-    ChangeBuilderImpl changeBuilder, {
-    Map<DartFileEditBuilderImpl, DartFileEditBuilderImpl> editBuilderMap =
-        const {},
-  }) {
-    var copy = DartFileEditBuilderImpl(
-      changeBuilder,
-      resolvedLibrary,
-      resolvedUnit,
-      fileEdit.fileStamp,
-      editBuilderMap[libraryChangeBuilder],
-      eol: eol,
-      createEditsForImports: _createEditsForImports,
-    );
-    copy.fileEdit.edits.addAll(fileEdit.edits);
-    copy.importPrefixGenerator = importPrefixGenerator;
-    for (var entry in _librariesToImport.entries) {
-      copy._librariesToImport[entry.key] = entry.value;
-    }
-    for (var entry in _elementLibrariesToImport.entries) {
-      copy._elementLibrariesToImport[entry.key] = entry.value;
-    }
-    return copy;
   }
 
   @override
@@ -2161,7 +2079,16 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   ) => insertIntoUnitMember(
     compilationUnitMember,
     buildEdit,
-    lastMemberFilter: (member) => member is FieldDeclaration,
+    lastMemberFilter: (member) {
+      if (resolvedUnit.session.analysisContext
+          .getAnalysisOptionsForFile(resolvedUnit.file)
+          .codeStyleOptions
+          .sortConstructorsFirst) {
+        return member is ConstructorDeclaration || member is FieldDeclaration;
+      } else {
+        return member is FieldDeclaration;
+      }
+    },
   );
 
   @override
@@ -2624,9 +2551,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   String _defaultImportPrefixFor(Uri uri) {
-    if (importPrefixGenerator != null) {
-      return importPrefixGenerator!(uri);
-    }
     // TODO(FMorschel): Think of a way to identify if the current editing range
     // already contains a variable with the same name as the generated prefix.
     // This only accounts for top-level names.
@@ -2777,8 +2701,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// `true`.
   ///
   /// If [prefix] is an empty string, adds the import without a prefix.
-  /// If [prefix] is null, will use [importPrefixGenerator] to generate one or
-  /// reuse an existing prefix for this import.
   ///
   /// If [showName] is supplied then any new import will show only this
   /// element, or if an import already exists it will be added to 'show' or
@@ -2843,9 +2765,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           }
         }
       }
-      prefix ??= importPrefixGenerator != null
-          ? importPrefixGenerator!(uri)
-          : null;
       import = _LibraryImport(
         uriText: uriText,
         prefix: prefix ?? '',
@@ -3031,7 +2950,7 @@ class _EnclosingElementFinder {
 
   void find(CompilationUnit target, int offset) {
     var node = target.nodeCovering(offset: offset);
-    if (node != null && offset == node.end) {
+    while (node != null && offset == node.end) {
       // If the offset is just outside the node, then the element declared by
       // the node isn't actually enclosing the offset.
       node = node.parent;
@@ -3105,11 +3024,11 @@ class _InsertionPreparer {
     final declaration = _declaration;
     if (declaration is EnumDeclaration) {
       // After the last enum value.
-      var semicolon = declaration.semicolon;
+      var semicolon = declaration.body.semicolon;
       if (semicolon != null) {
         return semicolon.end;
-      } else if (declaration.constants.isNotEmpty) {
-        var lastConstant = declaration.constants.last;
+      } else if (declaration.body.constants.isNotEmpty) {
+        var lastConstant = declaration.body.constants.last;
         return lastConstant.end;
       }
     }
@@ -3139,7 +3058,7 @@ class _InsertionPreparer {
       builder.write(' {');
     }
     var declaration = _declaration;
-    if (declaration is EnumDeclaration && declaration.semicolon == null) {
+    if (declaration is EnumDeclaration && declaration.body.semicolon == null) {
       builder.write(';');
     }
 
@@ -3149,7 +3068,7 @@ class _InsertionPreparer {
       builder.writeln();
       builder.writeIndent();
     } else if (declaration is EnumDeclaration &&
-        declaration.constants.isNotEmpty) {
+        declaration.body.constants.isNotEmpty) {
       // After the last constant (and the semicolon), write two newlines.
       builder.writeln();
       builder.writeln();
@@ -3172,7 +3091,8 @@ class _InsertionPreparer {
     }
 
     var declaration = _declaration;
-    if (declaration is EnumDeclaration && declaration.constants.isNotEmpty) {
+    if (declaration is EnumDeclaration &&
+        declaration.body.constants.isNotEmpty) {
       return;
     }
 
@@ -3301,43 +3221,71 @@ extension on CompilationUnitMember {
   /// and `null` otherwise.
   Token? get leftBracket {
     var self = this;
-    return switch (self) {
-      ClassDeclaration() => self.leftBracket,
-      EnumDeclaration() => self.leftBracket,
-      ExtensionDeclaration() => self.leftBracket,
-      ExtensionTypeDeclaration() => self.leftBracket,
-      MixinDeclaration() => self.leftBracket,
-      _ => null,
-    };
+    switch (self) {
+      case ClassDeclaration():
+        if (self.body case BlockClassBody body) {
+          return body.leftBracket;
+        }
+      case EnumDeclaration():
+        return self.body.leftBracket;
+      case ExtensionDeclaration():
+        return self.body.leftBracket;
+      case ExtensionTypeDeclaration():
+        if (self.body case BlockClassBody body) {
+          return body.leftBracket;
+        }
+      case MixinDeclaration():
+        return self.body.leftBracket;
+      default:
+    }
+    return null;
   }
 
   /// The members of a [CompilationUnitMember] with a known list of members, and
   /// `null` otherwise.
   List<ClassMember>? get members {
     var self = this;
-    return switch (self) {
-      ClassDeclaration() => self.members,
-      // Enum constants are handled separately; not considered members.
-      EnumDeclaration() => self.members,
-      ExtensionDeclaration() => self.members,
-      ExtensionTypeDeclaration() => self.members,
-      MixinDeclaration() => self.members,
-      _ => null,
-    };
+    switch (self) {
+      case ClassDeclaration():
+        if (self.body case BlockClassBody body) {
+          return body.members;
+        }
+      case EnumDeclaration():
+        // Enum constants are handled separately; not considered members.
+        return self.body.members;
+      case ExtensionDeclaration():
+        return self.body.members;
+      case ExtensionTypeDeclaration():
+        if (self.body case BlockClassBody body) {
+          return body.members;
+        }
+      case MixinDeclaration():
+        return self.body.members;
+    }
+    return null;
   }
 
   /// The right bracket of a [CompilationUnitMember] with a known right bracket,
   /// and `null` otherwise.
   Token? get rightBracket {
     var self = this;
-    return switch (self) {
-      ClassDeclaration() => self.rightBracket,
-      EnumDeclaration() => self.rightBracket,
-      ExtensionDeclaration() => self.rightBracket,
-      ExtensionTypeDeclaration() => self.rightBracket,
-      MixinDeclaration() => self.rightBracket,
-      _ => null,
-    };
+    switch (self) {
+      case ClassDeclaration():
+        if (self.body case BlockClassBody body) {
+          return body.rightBracket;
+        }
+      case EnumDeclaration():
+        return self.body.rightBracket;
+      case ExtensionDeclaration():
+        return self.body.rightBracket;
+      case ExtensionTypeDeclaration():
+        if (self.body case BlockClassBody body) {
+          return body.rightBracket;
+        }
+      case MixinDeclaration():
+        return self.body.rightBracket;
+    }
+    return null;
   }
 }
 

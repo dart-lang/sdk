@@ -14,6 +14,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Use late for private members with a non-nullable type.';
@@ -35,8 +36,7 @@ class UseLateForPrivateFieldsAndVariables extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.useLateForPrivateFieldsAndVariables;
+  DiagnosticCode get diagnosticCode => diag.useLateForPrivateFieldsAndVariables;
 
   @override
   void registerNodeProcessors(
@@ -104,9 +104,11 @@ class _Visitor extends RecursiveAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     // See: https://dart.dev/tools/diagnostic-messages#late_final_field_with_const_constructor
-    for (var member in node.members) {
-      if (member is ConstructorDeclaration && member.constKeyword != null) {
-        return;
+    if (node.body case BlockClassBody body) {
+      for (var member in body.members) {
+        if (member is ConstructorDeclaration && member.constKeyword != null) {
+          return;
+        }
       }
     }
 
@@ -129,7 +131,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    var parent = node.parent;
+    var parent = node.parent?.parent;
     if (parent is ExtensionTypeDeclaration && !node.isStatic) return;
     if (parent != null) {
       var parentIsPrivateExtension = _isPrivateExtension(parent);

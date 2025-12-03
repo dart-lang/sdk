@@ -1,0 +1,114 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/constructor_head.dart:33:3: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   const new () {}
+//   ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/constructor_head.dart:38:3: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   const new () : x = 0 {}
+//   ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/constructor_head.dart:69:3: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   const new named() {}
+//   ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/constructor_head.dart:74:3: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   const new named() : x = 0 {}
+//   ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/constructor_head.dart:29:9: Error: Constructor is marked 'const' so all fields must be final.
+//   const new () : x = 0;
+//         ^
+// pkg/front_end/testcases/primary_constructors/constructor_head.dart:28:7: Context: Field isn't final, but constructor is 'const'.
+//   var x;
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  constructor •() → self::C1
+    : super core::Object::•()
+    ;
+}
+class C2 extends core::Object {
+  field dynamic x;
+  constructor •() → self::C2
+    : self::C2::x = 0, super core::Object::•()
+    ;
+}
+class C3 extends core::Object {
+  constructor •() → self::C3
+    : super core::Object::•() {}
+}
+class C4 extends core::Object {
+  field dynamic x;
+  constructor •() → self::C4
+    : self::C4::x = 0, super core::Object::•() {}
+}
+class C5 extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::C5
+    : super core::Object::•()
+    ;
+}
+class C6 extends core::Object /*hasConstConstructor*/  {
+  field dynamic x;
+  const constructor •() → self::C6
+    : self::C6::x = 0, super core::Object::•()
+    ;
+}
+class C7 extends core::Object {
+  constructor •() → self::C7
+    : super core::Object::•() {}
+}
+class C8 extends core::Object {
+  field dynamic x;
+  constructor •() → self::C8
+    : self::C8::x = 0, super core::Object::•() {}
+}
+class C9 extends core::Object {
+  constructor named() → self::C9
+    : super core::Object::•()
+    ;
+}
+class C10 extends core::Object {
+  field dynamic x;
+  constructor named() → self::C10
+    : self::C10::x = 0, super core::Object::•()
+    ;
+}
+class C11 extends core::Object {
+  constructor named() → self::C11
+    : super core::Object::•() {}
+}
+class C12 extends core::Object {
+  field dynamic x;
+  constructor named() → self::C12
+    : self::C12::x = 0, super core::Object::•() {}
+}
+class C13 extends core::Object /*hasConstConstructor*/  {
+  const constructor named() → self::C13
+    : super core::Object::•()
+    ;
+}
+class C14 extends core::Object /*hasConstConstructor*/  {
+  final field dynamic x;
+  const constructor named() → self::C14
+    : self::C14::x = 0, super core::Object::•()
+    ;
+}
+class C15 extends core::Object {
+  constructor named() → self::C15
+    : super core::Object::•() {}
+}
+class C16 extends core::Object {
+  final field dynamic x;
+  constructor named() → self::C16
+    : self::C16::x = 0, super core::Object::•() {}
+}

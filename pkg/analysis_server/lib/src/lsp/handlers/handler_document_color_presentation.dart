@@ -70,8 +70,9 @@ class DocumentColorPresentationHandler
   Future<ColorPresentation> _createColorPresentation({
     required ResolvedUnitResult unit,
     required SourceRange editRange,
-    required InterfaceElement colorType,
-    required String typeName,
+    required InterfaceElement? writtenType,
+    required String labelPrefix,
+    String invocationPrefix = '',
     required String invocationString,
     required bool includeConstKeyword,
   }) async {
@@ -81,7 +82,10 @@ class DocumentColorPresentationHandler
         if (includeConstKeyword) {
           builder.write('const ');
         }
-        builder.writeType(colorType.thisType);
+        if (writtenType != null) {
+          builder.writeType(writtenType.thisType);
+        }
+        builder.write(invocationPrefix);
         builder.write(invocationString);
       });
     });
@@ -104,7 +108,7 @@ class DocumentColorPresentationHandler
     );
 
     return ColorPresentation(
-      label: '$typeName$invocationString',
+      label: '$labelPrefix$invocationString',
       textEdit: toTextEdit(unit.lineInfo, mainEdit),
       additionalTextEdits: otherEdits.isNotEmpty
           ? otherEdits.map((edit) => toTextEdit(unit.lineInfo, edit)).toList()
@@ -158,10 +162,13 @@ class DocumentColorPresentationHandler
         return success([]);
       }
 
-      var requiresConstKeyword = _willRequireConstKeyword(
-        editRange.offset,
-        unit,
-      );
+      var node = unit.unit.nodeCovering(offset: editRange.offset);
+      var requiresConstKeyword = _willRequireConstKeyword(node);
+
+      // For shorthands, we don't need to write the type in code.
+      var isDotShorthand = node is DotShorthandConstructorInvocation;
+      var writtenType = isDotShorthand ? null : colorType;
+
       var colorValue = _colorValueForComponents(alpha, red, green, blue);
       var colorValueHex =
           '0x${colorValue.toRadixString(16).toUpperCase().padLeft(8, '0')}';
@@ -169,8 +176,8 @@ class DocumentColorPresentationHandler
       var colorFromARGB = await _createColorPresentation(
         unit: unit,
         editRange: editRange,
-        colorType: colorType,
-        typeName: 'Color',
+        writtenType: writtenType,
+        labelPrefix: 'Color',
         invocationString: '.fromARGB($alpha, $red, $green, $blue)',
         includeConstKeyword: requiresConstKeyword,
       );
@@ -178,8 +185,8 @@ class DocumentColorPresentationHandler
       var colorFromRGBO = await _createColorPresentation(
         unit: unit,
         editRange: editRange,
-        colorType: colorType,
-        typeName: 'Color',
+        writtenType: writtenType,
+        labelPrefix: 'Color',
         invocationString: '.fromRGBO($red, $green, $blue, $opacityDouble)',
         includeConstKeyword: requiresConstKeyword,
       );
@@ -187,8 +194,8 @@ class DocumentColorPresentationHandler
       var colorFrom = await _createColorPresentation(
         unit: unit,
         editRange: editRange,
-        colorType: colorType,
-        typeName: 'Color',
+        writtenType: writtenType,
+        labelPrefix: 'Color',
         invocationString:
             '.from(alpha: $alphaDoubleRounded, red: $redDoubleRounded, '
             'green: $greenDoubleRounded, blue: $blueDoubleRounded)',
@@ -198,8 +205,10 @@ class DocumentColorPresentationHandler
       var colorDefault = await _createColorPresentation(
         unit: unit,
         editRange: editRange,
-        colorType: colorType,
-        typeName: 'Color',
+        writtenType: writtenType,
+        labelPrefix: 'Color',
+        // For unnamed constructors, we need a `.new` prefix for shorthands.
+        invocationPrefix: isDotShorthand ? '.new' : '',
         invocationString: '($colorValueHex)',
         includeConstKeyword: requiresConstKeyword,
       );
@@ -226,8 +235,7 @@ class DocumentColorPresentationHandler
   ///
   /// `const` should be inserted if the existing expression is constant but
   /// we are not already in a constant context.
-  bool _willRequireConstKeyword(int offset, ResolvedUnitResult unit) {
-    var node = unit.unit.nodeCovering(offset: offset);
+  bool _willRequireConstKeyword(AstNode? node) {
     if (node is! Expression) {
       return false;
     }

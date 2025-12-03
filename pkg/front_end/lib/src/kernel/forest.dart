@@ -621,8 +621,6 @@ class Forest {
     return new Throw(expression)..fileOffset = fileOffset;
   }
 
-  bool isThrow(Object? o) => o is Throw;
-
   Statement createTryStatement(
     int fileOffset,
     Statement tryBlock,
@@ -941,7 +939,7 @@ class Forest {
 
   AssignedVariablePattern createAssignedVariablePattern(
     int fileOffset,
-    VariableDeclaration variable,
+    ExpressionVariable variable,
   ) {
     return new AssignedVariablePattern(variable)..fileOffset = fileOffset;
   }

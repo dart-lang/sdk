@@ -6,17 +6,21 @@
     (field $_ref externref))))
   (func $"dart2wasm._274 (import)" (import "dart2wasm" "_274") (param externref) (result externref))
   (func $"dart2wasm._275 (import)" (import "dart2wasm" "_275") (param externref) (result externref))
-  (global $"stringValueNullable initialized" (mut i32) <...>)
-  (global $stringValueNullable (mut (ref null $JSStringImpl)) <...>)
+  (global $.a (import "" "a") (ref extern))
   (global $"ktrue initialized" (mut i32) <...>)
+  (global $"stringValueNullable initialized" (mut i32) <...>)
   (global $ktrue (mut i32) <...>)
   (global $stringValue (mut (ref null $JSStringImpl)) <...>)
-  (global $"C358 \"a\"" (ref $JSStringImpl) <...>)
+  (global $stringValueNullable (mut (ref null $JSStringImpl)) <...>)
+  (func $_throwArgumentNullError <noInline>  <...>)
+  (func $ktrue implicit getter (result i32) <...>)
   (func $new JSStringImpl.fromRef (param $var0 externref) (result (ref $JSStringImpl)) <...>)
+  (func $sinkString <noInline> (param $var0 (ref $JSStringImpl)) <...>)
+  (func $sinkStringNullable <noInline> (param $var0 (ref null $JSStringImpl)) <...>)
+  (func $stringValue implicit getter (result (ref $JSStringImpl)) <...>)
   (func $"testStringConstant <noInline>"
     (local $var0 externref)
-    global.get $"C358 \"a\""
-    struct.get $JSStringImpl $_ref
+    global.get $.a
     call $"dart2wasm._274 (import)"
     local.tee $var0
     call $isDartNull
@@ -108,11 +112,6 @@
     end
     call $"sinkStringNullable <noInline>"
   )
-  (func $jsifyRaw (param $var0 (ref null $#Top)) (result externref) <...>)
   (func $isDartNull (param $var0 externref) (result i32) <...>)
-  (func $sinkStringNullable <noInline> (param $var0 (ref null $JSStringImpl)) <...>)
-  (func $_throwArgumentNullError <noInline>  <...>)
-  (func $ktrue implicit getter (result i32) <...>)
-  (func $stringValue implicit getter (result (ref $JSStringImpl)) <...>)
-  (func $sinkString <noInline> (param $var0 (ref $JSStringImpl)) <...>)
+  (func $jsifyRaw (param $var0 (ref null $#Top)) (result externref) <...>)
 )

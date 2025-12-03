@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,13 +27,7 @@ abstract class B {
 }
 abstract class C implements A, B {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
-          85,
-          1,
-        ),
-      ],
+      [error(diag.inconsistentInheritanceGetterAndMethod, 85, 1)],
     );
   }
 
@@ -52,13 +46,7 @@ abstract class C with M implements I {
   String foo() => 'C';
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
-          97,
-          1,
-        ),
-      ],
+      [error(diag.inconsistentInheritanceGetterAndMethod, 97, 1)],
     );
   }
 
@@ -73,13 +61,7 @@ abstract class B {
 }
 abstract class C implements A, B {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
-          85,
-          1,
-        ),
-      ],
+      [error(diag.inconsistentInheritanceGetterAndMethod, 85, 1)],
     );
   }
 
@@ -96,13 +78,7 @@ mixin M {
 
 class C = S with M;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
-          70,
-          1,
-        ),
-      ],
+      [error(diag.inconsistentInheritanceGetterAndMethod, 70, 1)],
     );
   }
 
@@ -124,16 +100,8 @@ mixin M2 {
 class C = S with M1, M2;
 ''',
       [
-        error(
-          CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
-          105,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
-          105,
-          1,
-        ),
+        error(diag.inconsistentInheritanceGetterAndMethod, 105, 1),
+        error(diag.inconsistentInheritanceGetterAndMethod, 105, 1),
       ],
     );
   }
@@ -149,13 +117,7 @@ abstract class B {
 }
 mixin M implements A, B {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
-          76,
-          1,
-        ),
-      ],
+      [error(diag.inconsistentInheritanceGetterAndMethod, 76, 1)],
     );
   }
 
@@ -170,13 +132,7 @@ abstract class B {
 }
 mixin M implements A, B {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
-          76,
-          1,
-        ),
-      ],
+      [error(diag.inconsistentInheritanceGetterAndMethod, 76, 1)],
     );
   }
 
@@ -191,13 +147,7 @@ abstract class B {
 }
 mixin M on A, B {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
-          76,
-          1,
-        ),
-      ],
+      [error(diag.inconsistentInheritanceGetterAndMethod, 76, 1)],
     );
   }
 
@@ -212,13 +162,7 @@ abstract class B {
 }
 mixin M on A, B {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
-          76,
-          1,
-        ),
-      ],
+      [error(diag.inconsistentInheritanceGetterAndMethod, 76, 1)],
     );
   }
 }

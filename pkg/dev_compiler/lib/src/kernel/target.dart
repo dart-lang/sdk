@@ -301,33 +301,20 @@ class DevCompilerTarget extends Target {
   }
 
   @override
-  Expression instantiateNoSuchMethodError(
-    CoreTypes coreTypes,
-    Expression receiver,
-    String name,
-    Arguments arguments,
-    int offset, {
-    bool isMethod = false,
-    bool isGetter = false,
-    bool isSetter = false,
-    bool isField = false,
-    bool isLocalVariable = false,
-    bool isDynamic = false,
-    bool isSuper = false,
-    bool isStatic = false,
-    bool isConstructor = false,
-    bool isTopLevel = false,
-  }) {
-    // TODO(sigmund): implement;
-    return InvalidExpression(null);
-  }
-
-  @override
   ConstantsBackend get constantsBackend => const DevCompilerConstantsBackend();
 
   @override
   DartLibrarySupport get dartLibrarySupport =>
       const DevCompilerDartLibrarySupport();
+
+  // For correctness the DDC runtime needs to reevaluate libraries that contain
+  // mixin applications when the mixin was edited. If the edit was only within
+  // the body of a mixin member the experimental invalidation logic would only
+  // invalidate that library. This enables a search for applications of the
+  // mixin in other libraries adds them to the invalidated set.
+  @override
+  bool get incrementalCompilerIncludeMixinApplicationInvalidatedLibraries =>
+      true;
 }
 
 class DevCompilerDartLibrarySupport extends CustomizedDartLibrarySupport {

@@ -83,9 +83,7 @@ class AbstractCompletionDomainTest extends PubPackageAnalysisServerTest {
     required String content,
     int maxResults = 1 << 10,
   }) async {
-    var code = useLineEndingsForPlatform
-        ? TestCode.parseNormalized(content)
-        : TestCode.parse(content);
+    var code = TestCode.parseNormalized(content);
     var completionOffset = code.position.offset;
 
     newFile(path, code.code);
@@ -124,7 +122,7 @@ class AbstractCompletionDomainTest extends PubPackageAnalysisServerTest {
 
   @override
   Future<void> processNotification(Notification notification) async {
-    if (notification.event == SERVER_NOTIFICATION_ERROR) {
+    if (notification.event == serverNotificationError) {
       fail('server error: ${notification.toJson()}');
     }
   }

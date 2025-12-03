@@ -5,10 +5,20 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_testing/package_root.dart' as package_root;
+import 'package:analyzer_testing/src/mock_packages/ffi/ffi.dart' as mock_ffi;
+import 'package:analyzer_testing/src/mock_packages/fixnum/fixnum.dart'
+    as mock_fixnum;
+import 'package:analyzer_testing/src/mock_packages/meta/meta.dart' as mock_meta;
+import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
+import 'package:analyzer_testing/src/mock_packages/test_reflective_loader/test_reflective_loader.dart'
+    as mock_test_reflective_loader;
+import 'package:analyzer_testing/src/mock_packages/ui/ui.dart' as mock_ui;
+import 'package:analyzer_testing/src/mock_packages/vector_math/vector_math.dart'
+    as mock_vector_math;
 import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:path/path.dart' as path;
 
-void _cacheFiles(Map<String, String> cachedFiles) {
+Map<String, String> _cacheFiles() {
   var resourceProvider = PhysicalResourceProvider.INSTANCE;
   var pathContext = resourceProvider.pathContext;
   var packageRoot = pathContext.normalize(package_root.packageRoot);
@@ -19,6 +29,8 @@ void _cacheFiles(Map<String, String> cachedFiles) {
     'mock_packages',
     'package_content',
   );
+
+  var cachedFiles = <String, String>{};
 
   void addFiles(Resource resource) {
     if (resource is Folder) {
@@ -32,6 +44,7 @@ void _cacheFiles(Map<String, String> cachedFiles) {
   }
 
   addFiles(resourceProvider.getFolder(mockPath));
+  return cachedFiles;
 }
 
 /// Helper for copying files from "tests/mock_packages" to memory file system
@@ -40,18 +53,16 @@ class BlazeMockPackages {
   static final BlazeMockPackages instance = BlazeMockPackages._();
 
   /// The mapping from relative Posix paths of files to the file contents.
-  final Map<String, String> _cachedFiles = {};
+  final Map<String, String> _cachedFiles = _cacheFiles();
 
-  BlazeMockPackages._() {
-    _cacheFiles(_cachedFiles);
-  }
+  BlazeMockPackages._();
 
   void addFlutter(ResourceProvider provider) {
     _addFiles(provider, 'flutter');
   }
 
   void addMeta(ResourceProvider provider) {
-    _addFiles(provider, 'meta');
+    _addFiles2(provider, 'meta', mock_meta.units);
   }
 
   /// Add files of the given [packageName] to the [provider].
@@ -71,14 +82,31 @@ class BlazeMockPackages {
     var packagesFolder = provider.getFolder(packagesPath);
     return packagesFolder.getChildAssumingFolder(packageName);
   }
+
+  /// Adds files of the given [packageName] to the [provider].
+  Folder _addFiles2(
+    ResourceProvider provider,
+    String packageName,
+    List<MockLibraryUnit> units,
+  ) {
+    var absolutePackagePath = provider.convertPath(
+      '/workspace/third_party/dart/$packageName',
+    );
+    for (var unit in units) {
+      var absoluteUnitPath = provider.convertPath(
+        '$absolutePackagePath/${unit.path}',
+      );
+      provider.getFile(absoluteUnitPath).writeAsStringSync(unit.content);
+    }
+
+    return provider.getFolder(absolutePackagePath);
+  }
 }
 
 /// Helper for copying files from "test/mock_packages" to memory file system.
 mixin MockPackagesMixin {
   /// The mapping from relative Posix paths of files to the file contents.
-  ///
-  /// `null` until the cache is first populated.
-  Map<String, String>? _cachedFiles;
+  late final Map<String, String> _cachedFiles = _cacheFiles();
 
   /// The path to a folder where mock packages can be written.
   String get packagesRootPath;
@@ -87,18 +115,22 @@ mixin MockPackagesMixin {
 
   ResourceProvider get resourceProvider;
 
+  @Deprecated(
+    'The mock angular_meta package is deprecated; use '
+    '`PubPackageResolutionTest.newPackage` to make a custom mock',
+  )
   Folder addAngularMeta() {
     var packageFolder = _addFiles('angular_meta');
     return packageFolder.getChildAssumingFolder('lib');
   }
 
   Folder addFfi() {
-    var packageFolder = _addFiles('ffi');
+    var packageFolder = _addFiles2('ffi', mock_ffi.units);
     return packageFolder.getChildAssumingFolder('lib');
   }
 
   Folder addFixnum() {
-    var packageFolder = _addFiles('fixnum');
+    var packageFolder = _addFiles2('fixnum', mock_fixnum.units);
     return packageFolder.getChildAssumingFolder('lib');
   }
 
@@ -112,55 +144,70 @@ mixin MockPackagesMixin {
     return packageFolder.getChildAssumingFolder('lib');
   }
 
+  @Deprecated(
+    'The mock js package is deprecated; use '
+    '`PubPackageResolutionTest.newPackage` to make a custom mock',
+  )
   Folder addJs() {
     var packageFolder = _addFiles('js');
     return packageFolder.getChildAssumingFolder('lib');
   }
 
+  @Deprecated(
+    'The mock kernel package is deprecated; use '
+    '`PubPackageResolutionTest.newPackage` to make a custom mock',
+  )
   Folder addKernel() {
     var packageFolder = _addFiles('kernel');
     return packageFolder.getChildAssumingFolder('lib');
   }
 
   Folder addMeta() {
-    var packageFolder = _addFiles('meta');
+    var packageFolder = _addFiles2('meta', mock_meta.units);
     return packageFolder.getChildAssumingFolder('lib');
   }
 
+  @Deprecated(
+    'The mock pedantic package is deprecated; use '
+    '`PubPackageResolutionTest.newPackage` to make a custom mock',
+  )
   Folder addPedantic() {
     var packageFolder = _addFiles('pedantic');
     return packageFolder.getChildAssumingFolder('lib');
   }
 
   Folder addTestReflectiveLoader() {
-    var packageFolder = _addFiles('test_reflective_loader');
+    var packageFolder = _addFiles2(
+      'test_reflective_loader',
+      mock_test_reflective_loader.units,
+    );
     return packageFolder.getChildAssumingFolder('lib');
   }
 
   Folder addUI() {
-    var packageFolder = _addFiles('ui');
+    var packageFolder = _addFiles2('ui', mock_ui.units);
     return packageFolder.getChildAssumingFolder('lib');
   }
 
   Folder addVectorMath() {
-    var packageFolder = _addFiles('vector_math');
+    var packageFolder = _addFiles2('vector_math', mock_vector_math.units);
     return packageFolder.getChildAssumingFolder('lib');
   }
 
   /// Adds files of the given [packageName] to the [resourceProvider].
+  ///
+  /// This method adds files from the sources found in
+  /// [package_root.packageRoot]. The mock sources are being moved to
+  /// `lib/src/mock_sources/`, accessible via [_addFiles2].
   Folder _addFiles(String packageName) {
-    var cachedFiles = _cachedFiles;
-    if (cachedFiles == null) {
-      try {
-        cachedFiles = {};
-        _cacheFiles(cachedFiles);
-        _cachedFiles = cachedFiles;
-      } on StateError catch (e) {
-        throw StateError(
-          '${e.message}\nAdding built-in mock library for "$packageName" is '
-          'not supported when writing a test outside of the Dart SDK source repository.',
-        );
-      }
+    Map<String, String> cachedFiles;
+    try {
+      cachedFiles = _cachedFiles;
+    } on StateError catch (e) {
+      throw StateError(
+        '${e.message}\nAdding built-in mock library for "$packageName" is '
+        'not supported when writing a test outside of the Dart SDK source repository.',
+      );
     }
 
     for (var entry in cachedFiles.entries) {
@@ -179,5 +226,22 @@ mixin MockPackagesMixin {
       resourceProvider.convertPath(packagesRootPath),
     );
     return packagesFolder.getChildAssumingFolder(packageName);
+  }
+
+  /// Adds files of the given [packageName] to the [resourceProvider].
+  Folder _addFiles2(String packageName, List<MockLibraryUnit> units) {
+    var absolutePackagePath = resourceProvider.convertPath(
+      '$packagesRootPath/$packageName',
+    );
+    for (var unit in units) {
+      var absoluteUnitPath = resourceProvider.convertPath(
+        '$absolutePackagePath/${unit.path}',
+      );
+      resourceProvider
+          .getFile(absoluteUnitPath)
+          .writeAsStringSync(unit.content);
+    }
+
+    return resourceProvider.getFolder(absolutePackagePath);
   }
 }

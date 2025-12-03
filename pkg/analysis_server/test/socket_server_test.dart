@@ -37,7 +37,7 @@ class SocketServerTest {
     var server = _createSocketServer(channel1);
     expect(
       channel1.notificationsReceived[0].event,
-      SERVER_NOTIFICATION_CONNECTED,
+      serverNotificationConnected,
     );
     server.createAnalysisServer(channel2);
     channel1.expectMsgCount(notificationCount: 1);
@@ -64,10 +64,7 @@ class SocketServerTest {
     var channel = MockServerChannel();
     _createSocketServer(channel);
     channel.expectMsgCount(notificationCount: 1);
-    expect(
-      channel.notificationsReceived[0].event,
-      SERVER_NOTIFICATION_CONNECTED,
-    );
+    expect(channel.notificationsReceived[0].event, serverNotificationConnected);
     return channel
         .simulateRequestFromClient(
           ServerShutdownParams().toRequest('0', clientUriConverter: null),

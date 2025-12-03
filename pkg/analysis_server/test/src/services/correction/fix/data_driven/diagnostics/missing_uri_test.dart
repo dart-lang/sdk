@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
+import 'package:analysis_server/src/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../transform_set_parser_test_support.dart';
@@ -28,7 +28,7 @@ transforms:
     inClass: 'C'
   changes: []
 ''',
-      [error(TransformSetErrorCode.missingUri, 75, 2)],
+      [error(diag.missingUri, 75, 2)],
     );
   }
 
@@ -45,7 +45,7 @@ transforms:
     inClass: 'C'
   changes: []
 ''',
-      [error(TransformSetErrorCode.invalidValue, 76, 1)],
+      [error(diag.invalidValue, 76, 1)],
     );
   }
 
@@ -72,7 +72,7 @@ transforms:
             uris: []
             name: 'String'
 ''',
-      [error(TransformSetErrorCode.missingUri, 307, 2)],
+      [error(diag.missingUri, 307, 2)],
     );
   }
 
@@ -99,7 +99,7 @@ transforms:
             uris: [3]
             name: 'String'
 ''',
-      [error(TransformSetErrorCode.invalidValue, 308, 1)],
+      [error(diag.invalidValue, 308, 1)],
     );
   }
 }

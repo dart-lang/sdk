@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,7 +22,7 @@ extension type A(int it) {
   int get foo;
 }
 ''',
-      [error(CompileTimeErrorCode.extensionTypeWithAbstractMember, 29, 12)],
+      [error(diag.extensionTypeWithAbstractMember, 29, 12)],
     );
   }
 
@@ -42,7 +41,7 @@ extension type A(int it) {
   static int get foo;
 }
 ''',
-      [error(ParserErrorCode.missingFunctionBody, 47, 1)],
+      [error(diag.missingFunctionBody, 47, 1)],
     );
   }
 
@@ -53,7 +52,7 @@ extension type A(int it) {
   void foo();
 }
 ''',
-      [error(CompileTimeErrorCode.extensionTypeWithAbstractMember, 29, 11)],
+      [error(diag.extensionTypeWithAbstractMember, 29, 11)],
     );
   }
 
@@ -72,7 +71,7 @@ extension type A(int it) {
   static void foo();
 }
 ''',
-      [error(ParserErrorCode.missingFunctionBody, 46, 1)],
+      [error(diag.missingFunctionBody, 46, 1)],
     );
   }
 
@@ -83,7 +82,7 @@ extension type A(int it) {
   set foo(int _);
 }
 ''',
-      [error(CompileTimeErrorCode.extensionTypeWithAbstractMember, 29, 15)],
+      [error(diag.extensionTypeWithAbstractMember, 29, 15)],
     );
   }
 
@@ -102,7 +101,7 @@ extension type A(int it) {
   static set foo(int _);
 }
 ''',
-      [error(ParserErrorCode.missingFunctionBody, 50, 1)],
+      [error(diag.missingFunctionBody, 50, 1)],
     );
   }
 }

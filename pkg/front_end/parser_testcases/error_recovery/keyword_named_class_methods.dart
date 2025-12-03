@@ -1,3 +1,4 @@
+// @dart=2.19
 class WrapperClass {
   int abstract(int x) {
     if (x == 0) return 42;

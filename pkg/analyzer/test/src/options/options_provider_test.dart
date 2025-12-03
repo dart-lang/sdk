@@ -37,7 +37,7 @@ class ErrorProcessorMatcher extends Matcher {
   @override
   bool matches(dynamic o, Map<dynamic, dynamic> options) {
     return o is ErrorProcessor &&
-        o.code.toUpperCase() == required.code.toUpperCase() &&
+        o.code == required.code &&
         o.severity == required.severity;
   }
 }
@@ -400,8 +400,7 @@ class TestRule extends AnalysisRule {
     'fantastic_test_rule',
     'Fantastic test rule.',
     correctionMessage: 'Try fantastic test rule.',
-    // ignore: deprecated_member_use_from_same_package
-    uniqueNameCheck: 'LintCode.fantastic_test_rule',
+    uniqueName: 'LintCode.fantastic_test_rule',
   );
 
   TestRule() : super(name: 'fantastic_test_rule', description: '');

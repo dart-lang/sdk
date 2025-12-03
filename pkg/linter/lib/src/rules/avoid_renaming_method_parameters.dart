@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r"Don't rename parameters of overridden methods.";
@@ -26,8 +27,7 @@ class AvoidRenamingMethodParameters extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidRenamingMethodParameters;
+  DiagnosticCode get diagnosticCode => diag.avoidRenamingMethodParameters;
 
   @override
   void registerNodeProcessors(
@@ -68,7 +68,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var previousFragment = node.declaredFragment?.previousFragment;
     if (previousFragment == null) {
       // If it's the first fragment, check for an inherited member.
-      var parentNode = node.parent;
+      var parentNode = node.parent?.parent;
       if (parentNode is! Declaration) return;
 
       var parentElement = parentNode.declaredFragment?.element;

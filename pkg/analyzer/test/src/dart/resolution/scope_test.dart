@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,7 +22,7 @@ class PrefixedNamespaceTest extends PubPackageResolutionTest {
       r'''
 import 'dart:math' as prefix;
 ''',
-      [error(WarningCode.unusedImport, 7, 11)],
+      [error(diag.unusedImport, 7, 11)],
     );
     var namespace = findElement2.import('dart:math').namespace;
     return namespace as PrefixedNamespace;

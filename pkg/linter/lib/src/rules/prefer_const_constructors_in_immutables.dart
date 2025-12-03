@@ -13,6 +13,7 @@ import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imp
 import 'package:collection/collection.dart' show IterableExtension;
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Prefer declaring `const` constructors on `@immutable` classes.';
 
@@ -24,8 +25,7 @@ class PreferConstConstructorsInImmutables extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.preferConstConstructorsInImmutables;
+  DiagnosticCode get diagnosticCode => diag.preferConstConstructorsInImmutables;
 
   @override
   void registerNodeProcessors(
@@ -67,11 +67,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    if (node.constKeyword != null) return;
+    if (node.primaryConstructor.constKeyword != null) return;
     var element = node.declaredFragment?.element;
     if (element == null) return;
     if (element.metadata.hasImmutable) {
-      rule.reportAtToken(node.name);
+      rule.reportAtToken(node.primaryConstructor.typeName);
     }
   }
 

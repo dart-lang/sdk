@@ -74,13 +74,16 @@ class DirectivesOrderingTest extends LintRuleTest {
   bool get addFlutterPackageDep => true;
 
   @override
-  bool get addJsPackageDep => true;
-
-  @override
   bool get addMetaPackageDep => true;
 
   @override
   String get lintRule => LintNames.directives_ordering;
+
+  @override
+  void setUp() {
+    newPackage('foo').addFile('lib/foo.dart', '');
+    super.setUp();
+  }
 
   test_dartDirectivesGoFirst_docImports() async {
     newFile('$testPackageLibPath/a.dart', '');
@@ -193,13 +196,13 @@ main() {}
     await assertDiagnostics(
       r'''
 /// @docImport 'dart:math';
-/// @docImport 'package:js/js.dart';
+/// @docImport 'package:foo/foo.dart';
 /// @docImport 'a.dart';
 /// @docImport 'package:meta/meta.dart';
 /// @docImport 'b.dart';
 library;
 ''',
-      [lint(98, 32)],
+      [lint(100, 32)],
     );
   }
 
@@ -210,12 +213,12 @@ library;
       r'''
 export 'dart:math';
 export 'a.dart';
-export 'package:js/js.dart';
+export 'package:foo/foo.dart';
 export 'package:meta/meta.dart';
 export 'b.dart';
 // ignore_for_file: unused_import
 ''',
-      [lint(37, 28), lint(66, 32)],
+      [lint(37, 30), lint(68, 32)],
     );
   }
 
@@ -225,13 +228,13 @@ export 'b.dart';
     await assertDiagnostics(
       r'''
 import 'dart:math';
-import 'package:js/js.dart';
+import 'package:foo/foo.dart';
 import 'a.dart';
 import 'package:meta/meta.dart';
 import 'b.dart';
 // ignore_for_file: unused_import
 ''',
-      [lint(66, 32)],
+      [lint(68, 32)],
     );
   }
 
@@ -291,10 +294,10 @@ part 'a.dart';
       r'''
 import 'package:meta/meta.dart';
 import 'a.dart';
-import 'package:js/js.dart';
+import 'package:foo/foo.dart';
 // ignore_for_file: unused_import
 ''',
-      [lint(50, 28)],
+      [lint(50, 30)],
     );
   }
 
@@ -365,7 +368,7 @@ import 'foo1.dart';
     newFile('$testPackageLibPath/c.dart', '');
     await assertDiagnostics(
       r'''
-export 'package:js/js.dart';
+export 'package:foo/foo.dart';
 export 'package:meta/meta.dart';
 export 'package:flutter/widgets.dart';
 
@@ -373,7 +376,7 @@ export 'package:test/a.dart';
 export 'package:test/c.dart';
 export 'package:test/b.dart';
 ''',
-      [lint(62, 38), lint(162, 29)],
+      [lint(64, 38), lint(164, 29)],
     );
   }
 
@@ -383,7 +386,7 @@ export 'package:test/b.dart';
     newFile('$testPackageLibPath/c.dart', '');
     await assertDiagnostics(
       r'''
-import 'package:js/js.dart';
+import 'package:foo/foo.dart';
 import 'package:meta/meta.dart';
 import 'package:flutter/widgets.dart';
 
@@ -392,7 +395,7 @@ import 'package:test/c.dart';
 import 'package:test/b.dart';
 // ignore_for_file: unused_import
 ''',
-      [lint(62, 38), lint(162, 29)],
+      [lint(64, 38), lint(164, 29)],
     );
   }
 

@@ -58,12 +58,14 @@ final tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
     try {
-      await service.evaluateInFrame(
+      final dynamic result = await service.evaluateInFrame(
         isolateId,
         1,
         'data.length',
       );
-      fail('Expected evaluateInFrame to throw an RPCError');
+      // Check in case the variable isn't optimized out, e.g., if the code is
+      // interpreted via bytecode instead of compiled to native code.
+      expect(result.valueAsString, '3');
     } on RPCError catch (e) {
       expect(e.code, RPCErrorKind.kExpressionCompilationError.code);
       expect(e.message, 'Expression compilation error');

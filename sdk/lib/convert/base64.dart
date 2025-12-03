@@ -589,6 +589,7 @@ class _Base64Decoder {
   /// 62nd and 63rd alphabet characters), and considers `%` a padding
   /// character, which must then be followed by `3D`, the percent-escape
   /// for `=`.
+  @pragma('vm:shared')
   static final List<int> _inverseAlphabet = Int8List.fromList([
     __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, //
     __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, //

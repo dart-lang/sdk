@@ -20,8 +20,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
@@ -188,8 +187,7 @@ class StatementCompletionProcessor {
     }
     for (var diagnostic in statementContext.resolveResult.diagnostics) {
       if (diagnostic.offset >= node.offset && diagnostic.offset <= node.end) {
-        if (diagnostic.diagnosticCode is! HintCode &&
-            diagnostic.diagnosticCode is! WarningCode) {
+        if (diagnostic.diagnosticCode.type == DiagnosticType.SYNTACTIC_ERROR) {
           diagnostics.add(diagnostic);
         }
       }
@@ -313,7 +311,7 @@ class StatementCompletionProcessor {
           : null;
     }
 
-    var expr = diagnosticMatching(ScannerErrorCode.unterminatedStringLiteral);
+    var expr = diagnosticMatching(diag.unterminatedStringLiteral);
     if (expr != null) {
       var source = utils.getNodeText(expr);
       var content = source;
@@ -339,15 +337,12 @@ class StatementCompletionProcessor {
         delimiter = content.substring(0, 1);
         loc = expr.offset + source.length;
       }
-      _removeError(ScannerErrorCode.unterminatedStringLiteral);
+      _removeError(diag.unterminatedStringLiteral);
       _addInsertEdit(loc, delimiter);
     }
     expr =
-        diagnosticMatching(
-          ParserErrorCode.expectedToken,
-          partialMatch: "']'",
-        ) ??
-        diagnosticMatching(ParserErrorCode.expectedToken, partialMatch: "']'");
+        diagnosticMatching(diag.expectedToken, partialMatch: "']'") ??
+        diagnosticMatching(diag.expectedToken, partialMatch: "']'");
     if (expr != null) {
       expr = expr.thisOrAncestorOfType<ListLiteral>();
       if (expr is ListLiteral) {
@@ -360,7 +355,7 @@ class StatementCompletionProcessor {
           } else {
             _addInsertEdit(loc, ']');
           }
-          _removeError(ParserErrorCode.expectedToken, partialMatch: "']'");
+          _removeError(diag.expectedToken, partialMatch: "']'");
         }
       }
     }
@@ -397,7 +392,11 @@ class StatementCompletionProcessor {
     if (node is! ClassDeclaration) {
       return false;
     }
-    if (node.leftBracket.isSynthetic && diagnostics.length == 1) {
+    var body = node.body;
+    if (body is! BlockClassBody) {
+      return false;
+    }
+    if (body.leftBracket.isSynthetic && diagnostics.length == 1) {
       // The space before the left brace is assumed to exist, even if it does not.
       var sb = SourceBuilder(file, node.end - eol.length);
       sb.append(' ');
@@ -430,10 +429,7 @@ class StatementCompletionProcessor {
     var previousInsertions = _lengthOfInsertions();
     var delta = 0;
     if (diagnostics.isNotEmpty) {
-      var error = _findDiagnostic(
-        ParserErrorCode.expectedToken,
-        partialMatch: "';'",
-      );
+      var error = _findDiagnostic(diag.expectedToken, partialMatch: "';'");
       if (error != null) {
         int insertOffset;
         // Fasta scanner reports unterminated string literal errors
@@ -747,7 +743,7 @@ class StatementCompletionProcessor {
     var needsParen = false;
     int computeExitPos(FormalParameterList parameters) {
       if (needsParen = parameters.rightParenthesis.isSynthetic) {
-        var error = _findDiagnostic(ParserErrorCode.missingClosingParenthesis);
+        var error = _findDiagnostic(diag.missingClosingParenthesis);
         if (error != null) {
           return error.offset - 1;
         }
@@ -786,10 +782,7 @@ class StatementCompletionProcessor {
     if (node is! FunctionDeclarationStatement) {
       return false;
     }
-    var error = _findDiagnostic(
-      ParserErrorCode.expectedToken,
-      partialMatch: "';'",
-    );
+    var error = _findDiagnostic(diag.expectedToken, partialMatch: "';'");
     if (error != null) {
       var src = utils.getNodeText(node);
       var insertOffset = node.functionDeclaration.end - eol.length;
@@ -920,10 +913,7 @@ class StatementCompletionProcessor {
   }
 
   bool _complete_methodCall(AstNode node) {
-    var parenError = _findDiagnostic(
-      ParserErrorCode.expectedToken,
-      partialMatch: "')'",
-    );
+    var parenError = _findDiagnostic(diag.expectedToken, partialMatch: "')'");
     if (parenError == null) {
       return false;
     }
@@ -941,7 +931,7 @@ class StatementCompletionProcessor {
     var loc = min(selectionOffset, argList.end);
     _addInsertEdit(loc, ')');
     var semicolonError = _findDiagnostic(
-      ParserErrorCode.expectedToken,
+      diag.expectedToken,
       partialMatch: "';'",
     );
     if (semicolonError != null) {
@@ -975,10 +965,7 @@ class StatementCompletionProcessor {
     if (diagnostics.length != 1) {
       return false;
     }
-    var error = _findDiagnostic(
-      ParserErrorCode.expectedToken,
-      partialMatch: "';'",
-    );
+    var error = _findDiagnostic(diag.expectedToken, partialMatch: "';'");
     if (error != null) {
       var previousInsertions = _lengthOfInsertions();
       // TODO(messick): Fix this to find the correct place in all cases.
@@ -1070,7 +1057,7 @@ class StatementCompletionProcessor {
         if (onKeyword != null && exceptionType != null) {
           if (exceptionType.length == 0 ||
               _findDiagnostic(
-                    CompileTimeErrorCode.nonTypeInCatchClause,
+                    diag.nonTypeInCatchClause,
                     partialMatch: "name 'catch",
                   ) !=
                   null) {

@@ -63,6 +63,7 @@ class EditFormatIfEnabledHandler extends LegacyHandler {
       includedPaths: params.directories,
       resourceProvider: server.resourceProvider,
       sdkPath: server.sdkPath,
+      withFineDependencies: true,
     );
     var sourceFileEdits = <SourceFileEdit>[];
     for (var context in collection.contexts) {

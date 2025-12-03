@@ -41,14 +41,10 @@ class Table with Indexable, Exportable implements Serializable {
 
 /// A table defined in a module.
 class DefinedTable extends Table {
-  final List<BaseFunction?> elements;
+  DefinedTable(super.enclosingModule, super.finalizableIndex, super.type,
+      super.minSize, super.maxSize);
 
-  DefinedTable(super.enclosingModule, this.elements, super.finalizableIndex,
-      super.type, super.minSize, super.maxSize);
-
-  void printTo(IrPrinter p, {bool includeElements = true}) {
-    // NOTE: This format differs from what V8's `wami` will print.
-    // It makes it easier to see the exact values of the table.
+  void printTo(IrPrinter p) {
     p.write('(table ');
     p.writeTableReference(this, alwaysPrint: true);
     String? exportName;
@@ -65,23 +61,6 @@ class DefinedTable extends Table {
 
     p.write(' $minSize ');
     p.writeValueType(type);
-    if (includeElements) {
-      if (elements.any((e) => e != null)) {
-        p.writeln();
-        p.withIndent(() {
-          for (int i = 0; i < elements.length; ++i) {
-            final function = elements[i];
-            if (function != null) {
-              p.write('(def $i ');
-              p.writeFunctionReference(function);
-              p.writeln(')');
-            }
-          }
-        });
-      }
-    } else {
-      p.write(' <...>');
-    }
     p.write(')');
   }
 }
@@ -92,9 +71,6 @@ class ImportedTable extends Table implements Import {
   final String module;
   @override
   final String name;
-
-  /// Functions to be inserted via the elements section.
-  final Map<int, BaseFunction> setElements = {};
 
   ImportedTable(super.enclosingModule, this.module, this.name,
       super.finalizableIndex, super.type, super.minSize, super.maxSize);
@@ -107,29 +83,13 @@ class ImportedTable extends Table implements Import {
     super.serialize(s);
   }
 
-  void printTo(IrPrinter p, {bool includeElements = true}) {
-    // NOTE: This format differs from what V8's `wami` will print.
-    // It makes it easier to see the exact values of the table.
+  void printTo(IrPrinter p) {
     p.write('(table ');
     p.writeTableReference(this, alwaysPrint: true);
     p.write(' ');
     p.writeImport(module, name);
     p.write(' $minSize ');
     p.writeValueType(type);
-    if (includeElements) {
-      if (setElements.isNotEmpty) {
-        p.writeln();
-        p.withIndent(() {
-          setElements.forEach((int i, function) {
-            p.write('(set $i ');
-            p.writeFunctionReference(function);
-            p.writeln(')');
-          });
-        });
-      }
-    } else {
-      p.write(' <...>');
-    }
     p.write(')');
   }
 }

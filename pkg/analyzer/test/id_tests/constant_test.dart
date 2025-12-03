@@ -14,7 +14,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 
 import '../util/id_testing_helper.dart';
@@ -59,9 +59,7 @@ class ConstantsDataComputer extends DataComputer<String> {
   ) {
     var diagnosticCodes = diagnostics
         .map((e) => e.diagnosticCode)
-        .where(
-          (c) => c != CompileTimeErrorCode.constInitializedWithNonConstantValue,
-        );
+        .where((c) => c != diag.constInitializedWithNonConstantValue);
     return diagnosticCodes.isNotEmpty ? diagnosticCodes.join(',') : null;
   }
 
@@ -83,9 +81,9 @@ class ConstantsDataExtractor extends AstDataExtractor<String> {
   String? computeNodeValue(Id id, AstNode node) {
     if (node is Identifier) {
       var element = node.element;
-      if (element is PropertyAccessorElement && element.isSynthetic) {
+      if (element is PropertyAccessorElement && element.isOriginVariable) {
         var variable = element.variable;
-        if (!variable.isSynthetic && variable.isConst) {
+        if (variable.isOriginDeclaration && variable.isConst) {
           var value = variable.computeConstantValue();
           if (value != null) return _stringify(value);
         }

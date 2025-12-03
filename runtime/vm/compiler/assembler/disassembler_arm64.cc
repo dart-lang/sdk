@@ -994,8 +994,12 @@ void ARM64Decoder::DecodeSystem(Instr* instr) {
     return;
   }
 
-  if (instr->InstructionBits() == kDataMemoryBarrier) {
+  if (instr->InstructionBits() == kDMB_ISH) {
     Format(instr, "dmb ish");
+    return;
+  }
+  if (instr->InstructionBits() == kDMB_ISHST) {
+    Format(instr, "dmb ishst");
     return;
   }
 
@@ -1303,13 +1307,21 @@ void ARM64Decoder::DecodeConditionalSelect(Instr* instr) {
     Format(instr, "csel'sf 'rd, 'rn, 'rm, 'cond");
   } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(10, 2) == 1)) {
     if (non_select) {
-      Format(instr, "csinc'sf 'rd, 'rn, 'rm, 'cond");
+      if (instr->RnField() == 31 && instr->RmField() == 31) {
+        Format(instr, "cset'sf 'rd, 'condinverted");
+      } else {
+        Format(instr, "cinc'sf 'rd, 'rn, 'condinverted");
+      }
     } else {
-      Format(instr, "cinc'sf 'rd, 'rn, 'condinverted");
+      Format(instr, "csinc'sf 'rd, 'rn, 'rm, 'cond");
     }
   } else if ((instr->Bits(29, 2) == 2) && (instr->Bits(10, 2) == 0)) {
     if (non_select) {
-      Format(instr, "cinv'sf 'rd, 'rn, 'condinverted");
+      if (instr->RnField() == 31 && instr->RmField() == 31) {
+        Format(instr, "csetm'sf 'rd, 'condinverted");
+      } else {
+        Format(instr, "cinv'sf 'rd, 'rn, 'condinverted");
+      }
     } else {
       Format(instr, "csinv'sf 'rd, 'rn, 'rm, 'cond");
     }

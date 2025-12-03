@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:linter/src/lint_codes.dart';
+import 'package:linter/src/diagnostic.dart' as diag;
 
 class AddConst extends ResolvedCorrectionProducer {
   AddConst({required super.context});
@@ -184,8 +184,7 @@ class AddConst extends ResolvedCorrectionProducer {
   bool _declarationListIsFullyConst(NodeList<VariableDeclaration> variables) {
     var diagnostics = [
       ...unitResult.diagnostics.where(
-        (error) =>
-            error.diagnosticCode == LinterLintCode.preferConstConstructors,
+        (error) => error.diagnosticCode == diag.preferConstConstructors,
       ),
     ];
     var ranges = diagnostics.map(range.diagnostic);

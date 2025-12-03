@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid shadowing type parameters.';
 
@@ -22,8 +23,7 @@ class AvoidShadowingTypeParameters extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidShadowingTypeParameters;
+  DiagnosticCode get diagnosticCode => diag.avoidShadowingTypeParameters;
 
   @override
   void registerNodeProcessors(
@@ -85,15 +85,23 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     while (parent != null) {
       if (parent is ClassDeclaration) {
-        _checkForShadowing(typeParameters, parent.typeParameters, 'class');
+        _checkForShadowing(
+          typeParameters,
+          parent.namePart.typeParameters,
+          'class',
+        );
       } else if (parent is EnumDeclaration) {
-        _checkForShadowing(typeParameters, parent.typeParameters, 'enum');
+        _checkForShadowing(
+          typeParameters,
+          parent.namePart.typeParameters,
+          'enum',
+        );
       } else if (parent is ExtensionDeclaration) {
         _checkForShadowing(typeParameters, parent.typeParameters, 'extension');
       } else if (parent is ExtensionTypeDeclaration) {
         _checkForShadowing(
           typeParameters,
-          parent.typeParameters,
+          parent.primaryConstructor.typeParameters,
           'extension type',
         );
       } else if (parent is MethodDeclaration) {

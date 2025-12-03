@@ -13,8 +13,10 @@
 // VMOptions=--experimental-shared-data --profiler --profile_vm=false
 
 import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:isolate';
+import 'dart:math';
 
 import "package:expect/expect.dart";
 
@@ -81,6 +83,9 @@ thefun() {}
 
 @pragma('vm:shared')
 String default_tag = "";
+
+@pragma('vm:shared')
+double pi = 3.14159;
 
 main(List<String> args) {
   IsolateGroup.runSync(() {
@@ -246,6 +251,33 @@ main(List<String> args) {
     default_tag = UserTag.defaultTag.toString();
   });
   Expect.notEquals("", default_tag);
+
+  final result = IsolateGroup.runSync(() {
+    return pi.toString();
+  });
+  Expect.equals("3.14159", result);
+  final resultIdentical = IsolateGroup.runSync(() {
+    return identical(pi.toString(), pi.toString());
+  });
+  Expect.isTrue(resultIdentical);
+
+  Expect.listEquals(
+    "abcdefghijklmnopqrstuvwxyz".codeUnits,
+    IsolateGroup.runSync(() {
+      return Base64Decoder().convert("YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo=");
+    }),
+  );
+
+  IsolateGroup.runSync(() {
+    Random().nextInt(10);
+  });
+
+  Expect.listEquals(
+    [0x31, 0x32, 0x33, 0x61, 0x62, 0x63],
+    IsolateGroup.runSync(
+      () => Encoding.getByName("us-ascii")!.encode("123abc"),
+    ),
+  );
 
   print("All tests completed :)");
 }

@@ -47,19 +47,20 @@ SyntacticEntity getNodeToAnnotate(Declaration node) {
   // TODO(srawlins): Convert to a switch expression over `Declaration` subtypes,
   // assuming `Declaration` becomes an exhaustive type.
   if (node is ClassDeclaration) {
-    return node.name;
+    return node.namePart.typeName;
   }
   if (node is ClassTypeAlias) {
     return node.name;
   }
   if (node is ConstructorDeclaration) {
-    return node.name ?? node.returnType;
+    // TODO(scheglov): support primary constructors
+    return node.name ?? node.typeName!;
   }
   if (node is EnumConstantDeclaration) {
     return node.name;
   }
   if (node is EnumDeclaration) {
-    return node.name;
+    return node.namePart.typeName;
   }
   if (node is ExtensionDeclaration) {
     return node.name ?? node;
@@ -92,7 +93,7 @@ SyntacticEntity getNodeToAnnotate(Declaration node) {
     return node.name;
   }
   if (node is ExtensionTypeDeclaration) {
-    return node.name;
+    return node.primaryConstructor.typeName;
   }
   assert(false, "Unaccounted for Declaration subtype: '${node.runtimeType}'");
   return node;
@@ -241,7 +242,7 @@ bool _checkForSimpleGetter(MethodDeclaration getter, Expression? expression) {
       // the same
       if (staticElement.enclosingElement == enclosingElement) {
         var variable = staticElement.variable;
-        return staticElement.isSynthetic && variable.isPrivate;
+        return staticElement.isOriginVariable && variable.isPrivate;
       }
     }
   }
@@ -260,7 +261,7 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   var rightHandSide = expression.rightHandSide;
   if (leftHandSide is SimpleIdentifier && rightHandSide is SimpleIdentifier) {
     var leftElement = expression.writeElement;
-    if (leftElement is! SetterElement || !leftElement.isSynthetic) {
+    if (leftElement is! SetterElement || leftElement.isOriginDeclaration) {
       return false;
     }
 

@@ -29,9 +29,9 @@ void main(List<String> args) async {
   }
 
   // Request analysis
-  await server.send(SERVER_REQUEST_SET_SUBSCRIPTIONS,
+  await server.send(serverRequestSetSubscriptions,
       ServerSetSubscriptionsParams([ServerService.STATUS]).toJson());
-  await server.send(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
+  await server.send(analysisRequestSetAnalysisRoots,
       AnalysisSetAnalysisRootsParams([target], const []).toJson());
 
   // Continue to watch for analysis until the user presses Ctrl-C

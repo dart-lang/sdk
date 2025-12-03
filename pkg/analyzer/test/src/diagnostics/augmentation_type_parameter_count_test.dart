@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +22,7 @@ class AugmentationTypeParameterCountTest extends PubPackageResolutionTest {
 class A {}
 augment class A<T> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 26, 1)],
+      [error(diag.augmentationTypeParameterCount, 26, 1)],
     );
   }
 
@@ -33,7 +33,7 @@ augment class A<T> {}
 class A<T> {}
 augment class A {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 29, 1)],
+      [error(diag.augmentationTypeParameterCount, 29, 1)],
     );
   }
 
@@ -51,7 +51,7 @@ augment class A<T> {}
 class A<T> {}
 augment class A<T, U> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 29, 1)],
+      [error(diag.augmentationTypeParameterCount, 29, 1)],
     );
   }
 
@@ -62,7 +62,7 @@ augment class A<T, U> {}
 class A<T, U> {}
 augment class A<T> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 32, 1)],
+      [error(diag.augmentationTypeParameterCount, 32, 1)],
     );
   }
 
@@ -73,7 +73,7 @@ augment class A<T> {}
 enum A {v}
 augment enum A<T> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 25, 1)],
+      [error(diag.augmentationTypeParameterCount, 25, 1)],
     );
   }
 
@@ -84,7 +84,7 @@ augment enum A<T> {}
 enum A<T> {v}
 augment enum A {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 28, 1)],
+      [error(diag.augmentationTypeParameterCount, 28, 1)],
     );
   }
 
@@ -102,7 +102,7 @@ augment enum A <T>{}
 enum A<T> {v}
 augment enum A<T, U> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 28, 1)],
+      [error(diag.augmentationTypeParameterCount, 28, 1)],
     );
   }
 
@@ -113,7 +113,7 @@ augment enum A<T, U> {}
 enum A<T, U> {v}
 augment enum A<T> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 31, 1)],
+      [error(diag.augmentationTypeParameterCount, 31, 1)],
     );
   }
 
@@ -124,7 +124,7 @@ augment enum A<T> {}
 extension A on int {}
 augment extension A<T> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 41, 1)],
+      [error(diag.augmentationTypeParameterCount, 41, 1)],
     );
   }
 
@@ -135,7 +135,7 @@ augment extension A<T> {}
 extension A<T> on int {}
 augment extension A {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 44, 1)],
+      [error(diag.augmentationTypeParameterCount, 44, 1)],
     );
   }
 
@@ -153,7 +153,7 @@ augment extension A<T> {}
 extension A<T> on int {}
 augment extension A<T, U> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 44, 1)],
+      [error(diag.augmentationTypeParameterCount, 44, 1)],
     );
   }
 
@@ -164,7 +164,7 @@ augment extension A<T, U> {}
 extension A<T, U> on int {}
 augment extension A<T> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 47, 1)],
+      [error(diag.augmentationTypeParameterCount, 47, 1)],
     );
   }
 
@@ -175,7 +175,7 @@ augment extension A<T> {}
 extension type A(int it) {}
 augment extension type A<T>(int it) {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 52, 1)],
+      [error(diag.augmentationTypeParameterCount, 52, 1)],
     );
   }
 
@@ -186,7 +186,7 @@ augment extension type A<T>(int it) {}
 extension type A<T>(int it) {}
 augment extension type A(int it) {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 55, 1)],
+      [error(diag.augmentationTypeParameterCount, 55, 1)],
     );
   }
 
@@ -204,7 +204,7 @@ augment extension type A<T>(int it) {}
 extension type A<T>(int it) {}
 augment extension type A<T, U>(int it) {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 55, 1)],
+      [error(diag.augmentationTypeParameterCount, 55, 1)],
     );
   }
 
@@ -215,7 +215,7 @@ augment extension type A<T, U>(int it) {}
 extension type A<T, U>(int it) {}
 augment extension type A<T>(int it) {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 58, 1)],
+      [error(diag.augmentationTypeParameterCount, 58, 1)],
     );
   }
 
@@ -226,7 +226,7 @@ augment extension type A<T>(int it) {}
 mixin A {}
 augment mixin A<T> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 26, 1)],
+      [error(diag.augmentationTypeParameterCount, 26, 1)],
     );
   }
 
@@ -237,7 +237,7 @@ augment mixin A<T> {}
 mixin A<T> {}
 augment mixin A {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 29, 1)],
+      [error(diag.augmentationTypeParameterCount, 29, 1)],
     );
   }
 
@@ -255,7 +255,7 @@ augment mixin A<T> {}
 mixin A<T> {}
 augment mixin A<T, U> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 29, 1)],
+      [error(diag.augmentationTypeParameterCount, 29, 1)],
     );
   }
 
@@ -266,7 +266,7 @@ augment mixin A<T, U> {}
 mixin A<T, U> {}
 augment mixin A<T> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 32, 1)],
+      [error(diag.augmentationTypeParameterCount, 32, 1)],
     );
   }
 
@@ -281,7 +281,7 @@ augment mixin A<T> {
   augment void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 43, 1)],
+      [error(diag.augmentationTypeParameterCount, 43, 1)],
     );
   }
 }

@@ -12,6 +12,7 @@ import 'package:analyzer/src/workspace/pub.dart'; // ignore: implementation_impo
 import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Deprecation in major version.';
 
@@ -31,7 +32,7 @@ class RemoveDeprecationsInBreakingVersion extends AnalysisRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.removeDeprecationsInBreakingVersions;
+      diag.removeDeprecationsInBreakingVersions;
 
   @override
   void registerNodeProcessors(

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,13 +25,7 @@ class A {
   A() : this.named(), x = 42;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.fieldInitializerRedirectingConstructor,
-          60,
-          6,
-        ),
-      ],
+      [error(diag.fieldInitializerRedirectingConstructor, 60, 6)],
     );
   }
 
@@ -44,13 +38,7 @@ class A {
   A() : x = 42, this.named();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.fieldInitializerRedirectingConstructor,
-          46,
-          6,
-        ),
-      ],
+      [error(diag.fieldInitializerRedirectingConstructor, 46, 6)],
     );
   }
 
@@ -63,13 +51,7 @@ class A {
   A(this.x) : this.named();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.fieldInitializerRedirectingConstructor,
-          42,
-          6,
-        ),
-      ],
+      [error(diag.fieldInitializerRedirectingConstructor, 42, 6)],
     );
   }
 
@@ -83,13 +65,7 @@ enum E {
   const E() : this.named(), x = 42;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.fieldInitializerRedirectingConstructor,
-          84,
-          6,
-        ),
-      ],
+      [error(diag.fieldInitializerRedirectingConstructor, 84, 6)],
     );
   }
 
@@ -103,13 +79,7 @@ enum E {
   const E() : x = 42, this.named();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.fieldInitializerRedirectingConstructor,
-          70,
-          6,
-        ),
-      ],
+      [error(diag.fieldInitializerRedirectingConstructor, 70, 6)],
     );
   }
 
@@ -123,13 +93,7 @@ enum E {
   const E(this.x) : this.named();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.fieldInitializerRedirectingConstructor,
-          69,
-          6,
-        ),
-      ],
+      [error(diag.fieldInitializerRedirectingConstructor, 69, 6)],
     );
   }
 }

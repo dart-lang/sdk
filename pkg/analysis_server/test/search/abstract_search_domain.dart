@@ -73,7 +73,7 @@ class AbstractSearchDomainTest extends PubPackageAnalysisServerTest {
   @override
   void processNotification(Notification notification) {
     super.processNotification(notification);
-    if (notification.event == SEARCH_NOTIFICATION_RESULTS) {
+    if (notification.event == searchNotificationResults) {
       var params = SearchResultsParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,

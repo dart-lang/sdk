@@ -23,7 +23,15 @@ class ConstructorInitializerScope extends EnclosedScope {
       if (formalParameter.name == '_' && hasWildcardVariables) {
         continue;
       }
-      _addGetter(formalParameter);
+
+      // If the parameter is a private named parameter, then the formal
+      // parameter's name is the public name, but in the constructor initializer
+      // list, it is referred to by its private name.
+      if (formalParameter case FieldFormalParameterElement(:var privateName?)) {
+        _getters[privateName] ??= formalParameter;
+      } else {
+        _addGetter(formalParameter);
+      }
     }
   }
 }
@@ -265,6 +273,37 @@ class InstanceScope extends EnclosedScope {
     element.getters.forEach(_addGetter);
     element.setters.forEach(_addSetter);
     element.methods.forEach(_addGetter);
+  }
+
+  @override
+  ScopeLookupResult lookup(String id) {
+    // When a lexical lookup encounters an instance member with the requested
+    // basename, the returned result should have null as the getter and setter
+    // (and that is the result, so we should not search the enclosing scope).
+    // This corresponds to the following rule from the specification:
+    // "Consider the case where D is an instance member declaration in a class
+    // or mixin A. The lexical lookup then yields nothing."
+    var getter = _getters[id];
+    var setter = _setters[id];
+    if (getter == null && setter == null) {
+      return _parent.lookup(id);
+    }
+    if (_isStatic(getter) || _isStatic(setter)) {
+      return ScopeLookupResultImpl(getter: getter, setter: setter);
+    }
+    // A declaration with the right basename was found, so the search ends.
+    // Return nulls to ensure that it is handled as with a prepended `this.`.
+    return ScopeLookupResultImpl(getter: null, setter: null);
+  }
+
+  static bool _isStatic(Element? element) {
+    switch (element) {
+      case PropertyAccessorElement(:var isStatic) ||
+          MethodElement(:var isStatic):
+        return isStatic;
+      default:
+        return false;
+    }
   }
 }
 

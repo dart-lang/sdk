@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc =
@@ -21,7 +22,7 @@ class PreferVoidToNull extends AnalysisRule {
     : super(name: LintNames.prefer_void_to_null, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.preferVoidToNull;
+  DiagnosticCode get diagnosticCode => diag.preferVoidToNull;
 
   @override
   void registerNodeProcessors(
@@ -106,8 +107,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // extension type N(Null _) ...
-    if (parent is RepresentationDeclaration) {
-      return;
+    if (parent is SimpleFormalParameter) {
+      if (parent.parent case FormalParameterList parent2) {
+        if (parent2.parent case PrimaryConstructorDeclaration parent3) {
+          if (parent3.parent is ExtensionTypeDeclaration) {
+            return;
+          }
+        }
+      }
     }
 
     // https://github.com/dart-lang/linter/issues/2792
@@ -118,9 +125,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (parent != null) {
       AstNode? declaration = parent.thisOrAncestorOfType<ClassMember>();
-      declaration ??= parent.thisOrAncestorOfType<NamedCompilationUnitMember>();
-      declaration ??= parent
-          .thisOrAncestorOfType<TopLevelVariableDeclaration>();
+      declaration ??= parent.thisOrAncestorOfType<CompilationUnitMember>();
       if (declaration?.isAugmentation ?? false) return;
     }
 

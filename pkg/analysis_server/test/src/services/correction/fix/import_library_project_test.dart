@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
@@ -711,7 +711,7 @@ import 'package:$foo/foo.dart';
 void f() {
   Test();
 }
-''', filter: (e) => e.diagnosticCode == CompileTimeErrorCode.undefinedFunction);
+''', filter: (e) => e.diagnosticCode == diag.undefinedFunction);
   }
 
   Future<void> test_lib() async {

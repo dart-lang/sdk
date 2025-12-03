@@ -17,6 +17,22 @@ class UnnecessaryUnderscoresTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_underscores';
 
+  test_commentReferenceFunction() async {
+    await assertNoDiagnostics('''
+/// This is a reference to [__].
+void f(int __) {}
+''');
+  }
+
+  test_commentReferenceMethod() async {
+    await assertNoDiagnostics('''
+class C {
+  /// This is a reference to [__].
+  void m(int __) {}
+}
+''');
+  }
+
   test_enum_field_unused() async {
     await assertNoDiagnostics(r'''
 enum E {

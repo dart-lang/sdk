@@ -405,7 +405,23 @@ class InheritanceManager3 {
       return null;
     }
 
-    (_combinedSignatures[targetClass] ??= {})[name] = candidates;
+    // https://github.com/flutter/flutter/issues/178925#issuecomment-3573399510
+    // TODO(scheglov): Consider having only one merge pass of candidates.
+    var expandedCandidates = candidates;
+    if (candidates.any((c) => c.enclosingElement == targetClass)) {
+      expandedCandidates = [];
+      for (var candidate in candidates) {
+        if (candidate.enclosingElement == targetClass) {
+          if (_combinedSignatures[targetClass]?[name] case var previous?) {
+            expandedCandidates.addAll(previous);
+            continue;
+          }
+        }
+        expandedCandidates.add(candidate);
+      }
+    }
+
+    (_combinedSignatures[targetClass] ??= {})[name] = expandedCandidates;
 
     return _topMerge(typeSystem, targetClass, validOverrides);
   }
@@ -1014,6 +1030,7 @@ class InheritanceManager3 {
       var resultFragment = SetterFragmentImpl(name: executable.name);
       resultFragment.enclosingFragment = class_.firstFragment;
       resultFragment.isSynthetic = true;
+      resultFragment.isOriginInterface = true;
       resultFragment.formalParameters = transformedParameters
           .map((e) => e.firstFragment)
           .toList();
@@ -1023,6 +1040,8 @@ class InheritanceManager3 {
 
       var resultField = FieldFragmentImpl(name: executable.name);
       resultField.enclosingFragment = class_.firstFragment;
+      resultField.isOriginGetterSetter = true;
+      resultField.isSynthetic = true;
 
       var elementName = executable.name!;
       var fieldReference = class_.reference!
@@ -1101,6 +1120,8 @@ class InheritanceManager3 {
       var firstElement = first as InternalPropertyAccessorElement;
       var fragmentName = first.name!;
       var field = FieldFragmentImpl(name: fragmentName);
+      field.isOriginGetterSetter = true;
+      field.isSynthetic = true;
 
       PropertyAccessorFragmentImpl resultFragment;
       PropertyAccessorElementImpl resultElement;
@@ -1130,6 +1151,7 @@ class InheritanceManager3 {
 
         var fragment = SetterFragmentImpl(name: fragmentName);
         resultFragment = fragment;
+        resultFragment.isOriginInterface = true;
 
         var element = SetterElementImpl(elementReference, fragment);
         element.returnType = resultType.returnType;

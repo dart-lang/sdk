@@ -12,6 +12,7 @@ import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
@@ -25,9 +26,9 @@ class PreferContains extends MultiAnalysisRule {
   //  preference.
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.preferContainsAlwaysFalse,
-    LinterLintCode.preferContainsAlwaysTrue,
-    LinterLintCode.preferContainsUseContains,
+    diag.preferContainsAlwaysFalse,
+    diag.preferContainsAlwaysTrue,
+    diag.preferContainsUseContains,
   ];
 
   @override
@@ -83,19 +84,19 @@ class _Visitor extends SimpleAstVisitor<void> {
           type == TokenType.GT) {
         rule.reportAtNode(
           expression,
-          diagnosticCode: LinterLintCode.preferContainsUseContains,
+          diagnosticCode: diag.preferContainsUseContains,
         );
       } else if (type == TokenType.LT) {
         // indexOf < -1 is always false
         rule.reportAtNode(
           expression,
-          diagnosticCode: LinterLintCode.preferContainsAlwaysFalse,
+          diagnosticCode: diag.preferContainsAlwaysFalse,
         );
       } else if (type == TokenType.GT_EQ) {
         // indexOf >= -1 is always true
         rule.reportAtNode(
           expression,
-          diagnosticCode: LinterLintCode.preferContainsAlwaysTrue,
+          diagnosticCode: diag.preferContainsAlwaysTrue,
         );
       }
     } else if (value == 0) {
@@ -104,7 +105,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (type == TokenType.GT_EQ || type == TokenType.LT) {
         rule.reportAtNode(
           expression,
-          diagnosticCode: LinterLintCode.preferContainsUseContains,
+          diagnosticCode: diag.preferContainsUseContains,
         );
       }
     } else if (value < -1) {
@@ -115,14 +116,14 @@ class _Visitor extends SimpleAstVisitor<void> {
           type == TokenType.LT) {
         rule.reportAtNode(
           expression,
-          diagnosticCode: LinterLintCode.preferContainsAlwaysFalse,
+          diagnosticCode: diag.preferContainsAlwaysFalse,
         );
       } else if (type == TokenType.BANG_EQ ||
           type == TokenType.GT_EQ ||
           type == TokenType.GT) {
         rule.reportAtNode(
           expression,
-          diagnosticCode: LinterLintCode.preferContainsAlwaysTrue,
+          diagnosticCode: diag.preferContainsAlwaysTrue,
         );
       }
     }

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../utils.dart';
 
 const _desc = r'Name extensions using UpperCamelCase.';
@@ -19,7 +20,7 @@ class CamelCaseExtensions extends AnalysisRule {
     : super(name: LintNames.camel_case_extensions, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.camelCaseExtensions;
+  DiagnosticCode get diagnosticCode => diag.camelCaseExtensions;
 
   @override
   void registerNodeProcessors(

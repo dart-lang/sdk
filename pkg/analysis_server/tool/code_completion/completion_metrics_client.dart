@@ -67,7 +67,7 @@ ArgParser _createArgParser() {
     )
     ..addFlag('help', abbr: 'h', help: 'Print this help message.')
     ..addOption(
-      CompletionMetricsOptions.OVERLAY,
+      CompletionMetricsOptions.overlayOption,
       allowed: [
         OverlayMode.none.flag,
         OverlayMode.removeRestOfFile.flag,
@@ -81,7 +81,7 @@ ArgParser _createArgParser() {
           'complete at the start of the token without modifying the file.',
     )
     ..addOption(
-      CompletionMetricsOptions.PREFIX_LENGTH,
+      CompletionMetricsOptions.prefixLengthOption,
       defaultsTo: '0',
       help:
           'The number of characters to include in the prefix. Each '
@@ -89,7 +89,7 @@ ArgParser _createArgParser() {
           'start of the token being completed.',
     )
     ..addFlag(
-      CompletionMetricsOptions.PRINT_SLOWEST_RESULTS,
+      CompletionMetricsOptions.printSlowestResultsFlag,
       help:
           'Print information about the completion requests that were the '
           'slowest to return suggestions.',

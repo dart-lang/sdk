@@ -50,6 +50,9 @@ class SubstitutedConstructorElementImpl extends SubstitutedExecutableElementImpl
   bool get isConst => baseElement.isConst;
 
   @override
+  bool get isDeclaring => baseElement.isDeclaring;
+
+  @override
   bool get isDefaultConstructor => baseElement.isDefaultConstructor;
 
   @override
@@ -57,6 +60,18 @@ class SubstitutedConstructorElementImpl extends SubstitutedExecutableElementImpl
 
   @override
   bool get isGenerative => baseElement.isGenerative;
+
+  @override
+  bool get isOriginDeclaration => baseElement.isOriginDeclaration;
+
+  @override
+  bool get isOriginImplicitDefault => baseElement.isOriginImplicitDefault;
+
+  @override
+  bool get isOriginMixinApplication => baseElement.isOriginMixinApplication;
+
+  @override
+  bool get isPrimary => baseElement.isPrimary;
 
   @override
   LibraryElementImpl get library => baseElement.library;
@@ -400,6 +415,11 @@ class SubstitutedFieldElementImpl extends SubstitutedVariableElementImpl
   List<Element> get children => const [];
 
   @override
+  FieldFormalParameterElementImpl? get declaringFormalParameter {
+    return baseElement.declaringFormalParameter;
+  }
+
+  @override
   String? get documentationComment => baseElement.documentationComment;
 
   @override
@@ -439,6 +459,19 @@ class SubstitutedFieldElementImpl extends SubstitutedVariableElementImpl
 
   @override
   bool get isExternal => baseElement.isExternal;
+
+  @override
+  bool get isOriginDeclaration => baseElement.isOriginDeclaration;
+
+  @override
+  bool get isOriginDeclaringFormalParameter =>
+      baseElement.isOriginDeclaringFormalParameter;
+
+  @override
+  bool get isOriginEnumValues => baseElement.isOriginEnumValues;
+
+  @override
+  bool get isOriginGetterSetter => baseElement.isOriginGetterSetter;
 
   @override
   bool get isPromotable => baseElement.isPromotable;
@@ -541,6 +574,12 @@ class SubstitutedFieldFormalParameterElementImpl
 
   @override
   bool get isCovariant => baseElement.isCovariant;
+
+  @override
+  bool get isDeclaring => baseElement.isDeclaring;
+
+  @override
+  String? get privateName => baseElement.privateName;
 }
 
 /// A parameter element defined in a parameterized type where the values of the
@@ -881,6 +920,15 @@ abstract class SubstitutedPropertyAccessorElementImpl
 
   @override
   PropertyAccessorFragmentImpl get firstFragment;
+
+  @override
+  bool get isOriginDeclaration => baseElement.isOriginDeclaration;
+
+  @override
+  bool get isOriginInterface => baseElement.isOriginInterface;
+
+  @override
+  bool get isOriginVariable => baseElement.isOriginVariable;
 
   @override
   Version? get sinceSdkVersion => baseElement.sinceSdkVersion;

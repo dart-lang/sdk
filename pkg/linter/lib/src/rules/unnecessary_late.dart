@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r"Don't specify the `late` modifier when it is not needed.";
 
@@ -18,7 +19,7 @@ class UnnecessaryLate extends AnalysisRule {
     : super(name: LintNames.unnecessary_late, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryLate;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryLate;
 
   @override
   void registerNodeProcessors(

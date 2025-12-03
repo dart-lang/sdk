@@ -95,6 +95,21 @@ class fooBar {}
     );
   }
 
+  test_class_primaryConstructor_test_class_lowerCamel() async {
+    await assertDiagnostics(
+      r'''
+class fooBar(var int x);
+''',
+      [lint(6, 6)],
+    );
+  }
+
+  test_class_primaryConstructor_upperCamel() async {
+    await assertNoDiagnostics(r'''
+class FooBar(var int x);
+''');
+  }
+
   test_class_upperCamel() async {
     await assertNoDiagnostics(r'''
 class FooBar {}
@@ -141,6 +156,21 @@ enum foooBar { a }
 ''',
       [lint(5, 7)],
     );
+  }
+
+  test_enum_primaryConstructor_lowerCamel() async {
+    await assertDiagnostics(
+      r'''
+enum fooBar(var String name) { a('') }
+''',
+      [lint(5, 6)],
+    );
+  }
+
+  test_enum_primaryConstructor_upperCamel() async {
+    await assertNoDiagnostics(r'''
+enum FooBar(var String name) { a('') }
+''');
   }
 
   test_enum_upperCamel() async {

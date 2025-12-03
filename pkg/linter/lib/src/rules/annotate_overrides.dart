@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Annotate overridden members.';
@@ -21,7 +22,7 @@ class AnnotateOverrides extends AnalysisRule {
     : super(name: LintNames.annotate_overrides, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.annotateOverrides;
+  DiagnosticCode get diagnosticCode => diag.annotateOverrides;
 
   @override
   void registerNodeProcessors(
@@ -54,7 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitFieldDeclaration(FieldDeclaration node) {
     if (node.isAugmentation) return;
     if (node.isStatic) return;
-    if (node.parent is ExtensionTypeDeclaration) return;
+    if (node.parent?.parent is ExtensionTypeDeclaration) return;
 
     for (var field in node.fields.variables) {
       check(field.declaredFragment?.element, field.name);
@@ -65,7 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isAugmentation) return;
     if (node.isStatic) return;
-    if (node.parent is ExtensionTypeDeclaration) return;
+    if (node.parent?.parent is ExtensionTypeDeclaration) return;
 
     check(node.declaredFragment?.element, node.name);
   }

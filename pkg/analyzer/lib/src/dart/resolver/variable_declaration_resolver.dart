@@ -8,7 +8,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [VariableDeclaration]s.
@@ -31,7 +31,7 @@ class VariableDeclarationResolver {
       if (_strictInference && parent.type == null) {
         _resolver.diagnosticReporter.atNode(
           node,
-          WarningCode.inferenceFailureOnUninitializedVariable,
+          diag.inferenceFailureOnUninitializedVariable,
           arguments: [node.name.lexeme],
         );
       }
@@ -84,7 +84,7 @@ class VariableDeclarationResolver {
       initializer,
       initializerType,
       element.type,
-      CompileTimeErrorCode.invalidAssignment,
+      diag.invalidAssignment,
       whyNotPromoted: whyNotPromoted,
     );
   }

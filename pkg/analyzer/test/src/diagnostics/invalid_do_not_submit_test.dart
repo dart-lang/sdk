@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -44,7 +44,7 @@ void b() {
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.invalidUseOfDoNotSubmitMember, 31, 1),
+      error(diag.invalidUseOfDoNotSubmitMember, 31, 1),
     ]);
   }
 
@@ -69,7 +69,7 @@ void b() {
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.invalidUseOfDoNotSubmitMember, 31, 1),
+      error(diag.invalidUseOfDoNotSubmitMember, 31, 1),
     ]);
   }
 
@@ -169,7 +169,7 @@ void b() {
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.invalidUseOfDoNotSubmitMember, 39, 1),
+      error(diag.invalidUseOfDoNotSubmitMember, 39, 1),
     ]);
   }
 
@@ -193,7 +193,7 @@ void b() {
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.invalidUseOfDoNotSubmitMember, 33, 1),
+      error(diag.invalidUseOfDoNotSubmitMember, 33, 1),
     ]);
   }
 
@@ -217,7 +217,7 @@ void b() {
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.invalidUseOfDoNotSubmitMember, 33, 1),
+      error(diag.invalidUseOfDoNotSubmitMember, 33, 1),
     ]);
   }
 
@@ -237,7 +237,7 @@ void b() => a();
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.invalidUseOfDoNotSubmitMember, 30, 1),
+      error(diag.invalidUseOfDoNotSubmitMember, 30, 1),
     ]);
   }
 
@@ -262,7 +262,7 @@ void b() {
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.invalidUseOfDoNotSubmitMember, 54, 1),
+      error(diag.invalidUseOfDoNotSubmitMember, 54, 1),
     ]);
   }
 
@@ -282,9 +282,7 @@ void b() {
 }
 ''');
 
-    await assertErrorsInFile2(a, [
-      error(WarningCode.invalidAnnotationTarget, 35, 11),
-    ]);
+    await assertErrorsInFile2(a, [error(diag.invalidAnnotationTarget, 35, 11)]);
     await assertErrorsInFile2(b, []);
   }
 
@@ -309,7 +307,7 @@ void b() {
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.invalidUseOfDoNotSubmitMember, 48, 1),
+      error(diag.invalidUseOfDoNotSubmitMember, 48, 1),
     ]);
   }
 
@@ -330,7 +328,7 @@ void b() {
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.invalidUseOfDoNotSubmitMember, 33, 1),
+      error(diag.invalidUseOfDoNotSubmitMember, 33, 1),
     ]);
   }
 
@@ -351,7 +349,7 @@ void b() {
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.invalidUseOfDoNotSubmitMember, 33, 1),
+      error(diag.invalidUseOfDoNotSubmitMember, 33, 1),
     ]);
   }
 
@@ -366,7 +364,7 @@ void b() => a();
 ''');
 
     await assertErrorsInFile2(a, [
-      error(WarningCode.invalidUseOfDoNotSubmitMember, 72, 1),
+      error(diag.invalidUseOfDoNotSubmitMember, 72, 1),
     ]);
   }
 
@@ -391,7 +389,7 @@ void b() {
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.invalidUseOfDoNotSubmitMember, 48, 1),
+      error(diag.invalidUseOfDoNotSubmitMember, 48, 1),
     ]);
   }
 
@@ -411,7 +409,7 @@ void b() => print(a);
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.invalidUseOfDoNotSubmitMember, 36, 1),
+      error(diag.invalidUseOfDoNotSubmitMember, 36, 1),
     ]);
   }
 }

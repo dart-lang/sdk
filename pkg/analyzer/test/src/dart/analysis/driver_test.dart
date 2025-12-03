@@ -20,7 +20,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer/src/utilities/extensions/async.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
@@ -2948,7 +2948,7 @@ linter:
 library my.lib;
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 21, 8)],
+      [error(diag.uriDoesNotExist, 21, 8)],
     );
   }
 
@@ -2966,7 +2966,7 @@ linter:
 library my.lib;
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.partOfNonPart, 21, 8)],
+      [error(diag.partOfNonPart, 21, 8)],
     );
   }
 
@@ -2986,7 +2986,7 @@ part of other.lib;
 library my.lib;
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.partOfDifferentLibrary, 21, 8)],
+      [error(diag.partOfDifferentLibrary, 21, 8)],
     );
   }
 
@@ -3006,7 +3006,7 @@ part of 'not_test.dart';
 library my.lib;
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.partOfDifferentLibrary, 21, 8)],
+      [error(diag.partOfDifferentLibrary, 21, 8)],
     );
   }
 
@@ -3588,13 +3588,13 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_6
+      kind: library_7
         libraryImports
           library_1 dart:core synthetic
-        fileKinds: library_6
+        fileKinds: library_7
         cycle_2
           dependencies: dart:core
-          libraries: library_6
+          libraries: library_7
           apiSignature_1
       unlinkedKey: k02
 libraryCycles
@@ -3724,9 +3724,11 @@ CompilationUnit
   declarations
     ClassDeclaration
       classKeyword: class
-      name: A
-      leftBracket: {
-      rightBracket: }
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
 ''');
     }
   }
@@ -3771,9 +3773,11 @@ CompilationUnit
   declarations
     ClassDeclaration
       classKeyword: class
-      name: A
-      leftBracket: {
-      rightBracket: }
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
 ''');
 
     expect(driver.knownFiles.resources, unorderedEquals([a]));
@@ -7175,7 +7179,7 @@ class B extends A {}
       class B
         supertype: A
         constructors
-          synthetic new
+          synthetic isOriginImplicitDefault new
 ''',
       updatedA: r'''
 class A {
@@ -7258,7 +7262,7 @@ class A {
       class B
         supertype: A
         constructors
-          synthetic new
+          synthetic isOriginImplicitDefault new
 ''',
     );
   }
@@ -9315,7 +9319,7 @@ class B extends A {}
       class B
         supertype: A
         constructors
-          synthetic new
+          synthetic isOriginImplicitDefault new
 ''',
       updatedA: r'''
 class A {
@@ -9395,7 +9399,7 @@ class A {
       class B
         supertype: A
         constructors
-          synthetic new
+          synthetic isOriginImplicitDefault new
 ''',
     );
   }
@@ -22786,10 +22790,10 @@ class C {}
     classes
       class B
         constructors
-          synthetic new
+          synthetic isOriginImplicitDefault new
       class C
         constructors
-          synthetic new
+          synthetic isOriginImplicitDefault new
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@class::A
       declared <testLibrary>::@class::B
@@ -22833,10 +22837,10 @@ class C {}
     classes
       class B
         constructors
-          synthetic new
+          synthetic isOriginImplicitDefault new
       class C
         constructors
-          synthetic new
+          synthetic isOriginImplicitDefault new
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@class::A
       declared <testLibrary>::@class::B
@@ -22905,7 +22909,7 @@ class B {}
     classes
       class B
         constructors
-          synthetic new
+          synthetic isOriginImplicitDefault new
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@class::A
       declared <testLibrary>::@class::B
@@ -22976,7 +22980,7 @@ class C {}
     classes
       class B
         constructors
-          synthetic new
+          synthetic isOriginImplicitDefault new
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@class::A
       exported[(0, 0)] package:test/a.dart::@class::C
@@ -26517,7 +26521,7 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasInitializer x
+      final hasImplicitType hasInitializer isOriginDeclaration x
         type: int
     exportedReferences
       declared <testLibrary>::@getter::x
@@ -26598,7 +26602,7 @@ final a = 1.2;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasInitializer x
+      final hasImplicitType hasInitializer isOriginDeclaration x
         type: double
     exportedReferences
       declared <testLibrary>::@getter::x
@@ -34902,6 +34906,7 @@ export 'dart:math' show min;
 [status] working
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
     hashForRequirements: #H2
@@ -42147,7 +42152,7 @@ final x = foo();
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasInitializer x
+      final hasImplicitType hasInitializer isOriginDeclaration x
         type: int
 ''',
       updatedA: r'''
@@ -42194,7 +42199,7 @@ double foo() {}
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasInitializer x
+      final hasImplicitType hasInitializer isOriginDeclaration x
         type: double
 ''',
     );
@@ -42248,7 +42253,7 @@ final x = foo();
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasInitializer x
+      final hasImplicitType hasInitializer isOriginDeclaration x
         type: int
 ''',
       updatedA: r'''
@@ -42274,7 +42279,7 @@ double bar() {}
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasInitializer x
+      final hasImplicitType hasInitializer isOriginDeclaration x
         type: int
 ''',
     );
@@ -42327,7 +42332,7 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasInitializer x
+      final hasImplicitType hasInitializer isOriginDeclaration x
         type: int
 ''',
       updatedA: r'''
@@ -42376,7 +42381,7 @@ double get a => 1.2;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasInitializer x
+      final hasImplicitType hasInitializer isOriginDeclaration x
         type: double
 ''',
     );
@@ -42433,7 +42438,7 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasInitializer x
+      final hasImplicitType hasInitializer isOriginDeclaration x
         type: int
 ''',
       updatedA: r'''
@@ -42462,7 +42467,7 @@ double get b => 1.2;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasInitializer x
+      final hasImplicitType hasInitializer isOriginDeclaration x
         type: int
 ''',
     );
@@ -42537,7 +42542,7 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasInitializer x
+      final hasImplicitType hasInitializer isOriginDeclaration x
         type: int
 ''',
       // Change the initializer, now `double`.
@@ -42614,7 +42619,7 @@ final a = 1.2;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasInitializer x
+      final hasImplicitType hasInitializer isOriginDeclaration x
         type: double
 ''',
     );
@@ -42667,7 +42672,7 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasInitializer x
+      final hasImplicitType hasInitializer isOriginDeclaration x
         type: int
 ''',
       // Change the initializer, now `double`.
@@ -42718,7 +42723,7 @@ final a = 1.2;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasInitializer x
+      final hasImplicitType hasInitializer isOriginDeclaration x
         type: double
 ''',
     );
@@ -69063,6 +69068,136 @@ class A {
     exportMapId: #M3
     exportMap
       A: #M0
+''',
+    );
+  }
+
+  test_manifest_class_method_topMerge_mixins_interfaces() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  Future<void> foo();
+}
+
+abstract mixin class B implements A {
+  Future<dynamic> foo() async {}
+}
+
+abstract mixin class C implements A {}
+
+class D with B, C implements A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+      B: #M3
+        declaredMethods
+          foo: #M4
+        interface: #M5
+          map
+            foo: #M4
+          implemented
+            foo: #M4
+          inherited
+            foo: #M1
+      C: #M6
+        interface: #M7
+          map
+            foo: #M1
+          inherited
+            foo: #M1
+      D: #M8
+        interface: #M9
+          map
+            foo: #M10
+          combinedIds
+            [#M4, #M1]: #M10
+          implemented
+            foo: #M4
+          superImplemented
+            [1]
+              foo: #M4
+            [2]
+              foo: #M4
+          inherited
+            foo: #M10
+    exportMapId: #M11
+    exportMap
+      A: #M0
+      B: #M3
+      C: #M6
+      D: #M8
+''',
+      updatedCode: r'''
+abstract class A {
+  Future<void> foo();
+}
+
+abstract mixin class B implements A {
+  Future<int> foo() async {} // was Future<dynamic>
+}
+
+abstract mixin class C implements A {}
+
+class D with B, C implements A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+      B: #M3
+        declaredMethods
+          foo: #M12
+        interface: #M13
+          map
+            foo: #M12
+          implemented
+            foo: #M12
+          inherited
+            foo: #M1
+      C: #M6
+        interface: #M7
+          map
+            foo: #M1
+          inherited
+            foo: #M1
+      D: #M8
+        interface: #M14
+          map
+            foo: #M15
+          combinedIds
+            [#M12, #M1]: #M15
+          implemented
+            foo: #M12
+          superImplemented
+            [1]
+              foo: #M12
+            [2]
+              foo: #M12
+          inherited
+            foo: #M12
+    exportMapId: #M11
+    exportMap
+      A: #M0
+      B: #M3
+      C: #M6
+      D: #M8
 ''',
     );
   }
@@ -98997,7 +99132,7 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasInitializer x
+      final hasImplicitType hasInitializer isOriginDeclaration x
         type: int
 ''',
       updatedA: r'''
@@ -99046,7 +99181,7 @@ double get a => 1.2;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasInitializer x
+      final hasImplicitType hasInitializer isOriginDeclaration x
         type: double
 ''',
     );
@@ -99155,7 +99290,7 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasInitializer x
+      final hasImplicitType hasInitializer isOriginDeclaration x
         type: int
 ''',
       updatedA: r'''
@@ -99187,7 +99322,7 @@ int get b => 0;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasInitializer x
+      final hasImplicitType hasInitializer isOriginDeclaration x
         type: int
 ''',
     );
@@ -101310,8 +101445,7 @@ class _AlwaysReportedLint extends AnalysisRule {
   static const LintCode code = LintCode(
     'always_reported_lint',
     'This lint is reported for all files',
-    // ignore: deprecated_member_use_from_same_package
-    uniqueNameCheck: 'LintCode.always_reported_lint',
+    uniqueName: 'LintCode.always_reported_lint',
   );
 
   _AlwaysReportedLint() : super(name: 'always_reported_lint', description: '');

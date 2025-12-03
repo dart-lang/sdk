@@ -1982,10 +1982,16 @@ void Simulator::DecodeSystem(Instr* instr) {
     return;
   }
 
-  if (instr->InstructionBits() == kDataMemoryBarrier) {
+  if (instr->InstructionBits() == kDMB_ISH) {
     // Format(instr, "dmb ish");
     memory_.FlushAll();
     std::atomic_thread_fence(std::memory_order_seq_cst);
+    return;
+  }
+  if (instr->InstructionBits() == kDMB_ISHST) {
+    // Format(instr, "dmb ishst");
+    memory_.FlushAll();
+    StoreStoreFence();
     return;
   }
 

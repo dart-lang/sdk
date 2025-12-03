@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r"Don't reassign references to parameters of functions or methods.";
@@ -32,7 +33,7 @@ class ParameterAssignments extends AnalysisRule {
     : super(name: LintNames.parameter_assignments, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.parameterAssignments;
+  DiagnosticCode get diagnosticCode => diag.parameterAssignments;
 
   @override
   void registerNodeProcessors(
@@ -42,6 +43,8 @@ class ParameterAssignments extends AnalysisRule {
     var visitor = _Visitor(this);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
+    registry.addFunctionExpression(this, visitor);
+    registry.addConstructorDeclaration(this, visitor);
   }
 }
 
@@ -92,17 +95,22 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  visitAssignmentExpression(AssignmentExpression node) {
+  void visitAssignmentExpression(AssignmentExpression node) {
+    if (!_isFormalParameterReassigned(parameter, node)) return;
+
     if (paramIsNotNullByDefault) {
-      if (_isFormalParameterReassigned(parameter, node)) {
-        reportLint(node);
-      }
-    } else if (paramDefaultsToNull) {
-      if (_isFormalParameterReassigned(parameter, node)) {
+      reportLint(node);
+      return;
+    }
+
+    if (paramDefaultsToNull) {
+      if (node.operator.type.lexeme == '??=') {
         if (hasBeenAssigned) {
           reportLint(node);
         }
         hasBeenAssigned = true;
+      } else {
+        reportLint(node);
       }
     }
 
@@ -147,11 +155,23 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    _checkParameters(node.parameters, node.body);
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _checkParameters(
       node.functionExpression.parameters,
       node.functionExpression.body,
     );
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    if (node.parent is! FunctionDeclaration) {
+      _checkParameters(node.parameters, node.body);
+    }
   }
 
   @override

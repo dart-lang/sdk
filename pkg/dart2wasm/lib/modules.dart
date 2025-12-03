@@ -4,13 +4,10 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
-import 'package:path/path.dart' as path;
 
 import 'compiler_options.dart';
 import 'target.dart';
 import 'util.dart';
-
-const _mainModuleId = 0;
 
 Library? _enclosingLibraryForReference(Reference reference) {
   TreeNode? current = reference.node;
@@ -24,7 +21,7 @@ Library? _enclosingLibraryForReference(Reference reference) {
 }
 
 class ModuleMetadataBuilder {
-  int _counter = _mainModuleId;
+  int _counter = WasmCompilerOptions.mainModuleId;
   final WasmCompilerOptions options;
 
   ModuleMetadataBuilder(this.options);
@@ -32,13 +29,11 @@ class ModuleMetadataBuilder {
   ModuleMetadata buildModuleMetadata(
       {bool emitAsMain = false, bool skipEmit = false}) {
     final id = _counter++;
-    return ModuleMetadata._(
-        id,
-        emitAsMain || id == _mainModuleId
-            ? path.basename(options.outputFile)
-            : path.basename(
-                path.setExtension(options.outputFile, '_module$id.wasm')),
-        skipEmit: skipEmit);
+    final moduleImportName =
+        options.translatorOptions.minify ? intToMinString(id) : 'module$id';
+    return ModuleMetadata._(moduleImportName,
+        options.moduleNameForId(options.outputFile, id, emitAsMain: emitAsMain),
+        skipEmit: skipEmit, isMain: id == WasmCompilerOptions.mainModuleId);
   }
 }
 
@@ -52,16 +47,13 @@ class ModuleMetadataBuilder {
 /// by library, by class or neither. [containsReference] should be used to
 /// determine if a module contains a given class/member reference.
 class ModuleMetadata {
-  /// The ID for the module which will be included in the emitted name.
-  final int _id;
-
   /// The set of libraries contained in this module.
   final Set<Library> libraries = {};
 
-  bool get isMain => _id == _mainModuleId;
+  final bool isMain;
 
   /// The name used to import and export this module.
-  String get moduleImportName => 'module$_id';
+  final String moduleImportName;
 
   /// The name added to the wasm output file for this module.
   final String moduleName;
@@ -69,14 +61,8 @@ class ModuleMetadata {
   /// Whether or not a wasm file should be emitted for this module.
   final bool skipEmit;
 
-  ModuleMetadata._(this._id, this.moduleName, {this.skipEmit = false});
-
-  /// Whether or not the provided kernel [Reference] is included in this module.
-  bool containsReference(Reference reference) {
-    final enclosingLibrary = _enclosingLibraryForReference(reference);
-    if (enclosingLibrary == null) return false;
-    return libraries.contains(enclosingLibrary);
-  }
+  ModuleMetadata._(this.moduleImportName, this.moduleName,
+      {this.skipEmit = false, this.isMain = false});
 
   @override
   String toString() => '$moduleImportName($libraries)';
@@ -87,6 +73,12 @@ class ModuleOutputData {
   /// All [ModuleMetadata]s generated for the program.
   final List<ModuleMetadata> modules;
 
+  /// Maps the [Library] to the corresponding [ModuleMetadata].
+  late final Map<Library, ModuleMetadata> _libraryToModuleMetadata = {
+    for (final metadata in modules)
+      for (final library in metadata.libraries) library: metadata,
+  };
+
   ModuleOutputData(this.modules) : assert(modules[0].isMain);
 
   ModuleMetadata get mainModule => modules[0];
@@ -95,8 +87,9 @@ class ModuleOutputData {
   bool get hasMultipleModules => modules.length > 1;
 
   /// Returns the module that contains [reference].
-  ModuleMetadata moduleForReference(Reference reference) =>
-      modules.firstWhere((e) => e.containsReference(reference));
+  ModuleMetadata moduleForReference(Reference reference) {
+    return _libraryToModuleMetadata[_enclosingLibraryForReference(reference)]!;
+  }
 }
 
 /// Module strategy that puts all libraries into a single module.
@@ -118,6 +111,9 @@ class DefaultModuleStrategy extends ModuleStrategy {
   }
 
   @override
+  void addEntryPoints() {}
+
+  @override
   void prepareComponent() {}
 
   @override
@@ -137,6 +133,7 @@ bool containsWasmExport(CoreTypes coreTypes, Library lib) {
 }
 
 abstract class ModuleStrategy {
+  void addEntryPoints();
   void prepareComponent();
   Future<void> processComponentAfterTfa(DeferredModuleLoadingMap loadingMap);
   ModuleOutputData buildModuleOutputData();

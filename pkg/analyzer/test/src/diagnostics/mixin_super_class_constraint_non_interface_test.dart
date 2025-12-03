@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,13 +21,7 @@ class MixinSuperClassConstraintNonInterfaceTest
       r'''
 mixin M on dynamic {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinSuperClassConstraintNonInterface,
-          11,
-          7,
-        ),
-      ],
+      [error(diag.mixinSuperClassConstraintNonInterface, 11, 7)],
     );
 
     var node = findNode.singleMixinOnClause;
@@ -49,13 +42,7 @@ MixinOnClause
 enum E { v }
 mixin M on E {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinSuperClassConstraintNonInterface,
-          24,
-          1,
-        ),
-      ],
+      [error(diag.mixinSuperClassConstraintNonInterface, 24, 1)],
     );
 
     var node = findNode.singleMixinOnClause;
@@ -76,13 +63,7 @@ MixinOnClause
 extension type A(int it) {}
 mixin M on A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinSuperClassConstraintNonInterface,
-          39,
-          1,
-        ),
-      ],
+      [error(diag.mixinSuperClassConstraintNonInterface, 39, 1)],
     );
 
     var node = findNode.singleMixinOnClause;
@@ -102,13 +83,7 @@ MixinOnClause
       '''
 mixin M on Never {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinSuperClassConstraintNonInterface,
-          11,
-          5,
-        ),
-      ],
+      [error(diag.mixinSuperClassConstraintNonInterface, 11, 5)],
     );
 
     var node = findNode.singleMixinOnClause;
@@ -129,12 +104,8 @@ MixinOnClause
 mixin M on void {}
 ''',
       [
-        error(ParserErrorCode.expectedTypeName, 11, 4),
-        error(
-          CompileTimeErrorCode.mixinSuperClassConstraintNonInterface,
-          11,
-          4,
-        ),
+        error(diag.expectedTypeName, 11, 4),
+        error(diag.mixinSuperClassConstraintNonInterface, 11, 4),
       ],
     );
 

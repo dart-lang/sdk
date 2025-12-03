@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,7 +21,7 @@ void main() {
 }
 
 bool _ignoreDeadCode(Diagnostic diagnostic) =>
-    diagnostic.diagnosticCode != WarningCode.deadCode;
+    diagnostic.diagnosticCode != diag.deadCode;
 
 @reflectiveTest
 class DeadNullAwareAssignmentExpressionTest extends FixProcessorTest {

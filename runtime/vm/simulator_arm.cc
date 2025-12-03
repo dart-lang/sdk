@@ -3413,11 +3413,14 @@ DART_FORCE_INLINE void Simulator::InstructionDecodeImpl(Instr* instr) {
     if (instr->InstructionBits() == static_cast<int32_t>(0xf57ff01f)) {
       // Format(instr, "clrex");
       ClearExclusive();
-    } else if (instr->InstructionBits() ==
-               static_cast<int32_t>(kDataMemoryBarrier)) {
+    } else if (instr->InstructionBits() == static_cast<int32_t>(kDMB_ISH)) {
       // Format(instr, "dmb ish");
       memory_.FlushAll();
       std::atomic_thread_fence(std::memory_order_seq_cst);
+    } else if (instr->InstructionBits() == static_cast<int32_t>(kDMB_ISHST)) {
+      // Format(instr, "dmb ishst");
+      memory_.FlushAll();
+      StoreStoreFence();
     } else {
       if (instr->IsSIMDDataProcessing()) {
         DecodeSIMDDataProcessing(instr);

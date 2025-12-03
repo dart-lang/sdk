@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/ascii_utils.dart';
 
@@ -25,7 +26,7 @@ class NoLeadingUnderscoresForLocalIdentifiers extends AnalysisRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.noLeadingUnderscoresForLocalIdentifiers;
+      diag.noLeadingUnderscoresForLocalIdentifiers;
 
   @override
   void registerNodeProcessors(
@@ -75,6 +76,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
+    if (node.parent case PrimaryConstructorDeclaration primary) {
+      if (primary.parent is ExtensionTypeDeclaration) {
+        return;
+      }
+    }
+
     for (var parameter in node.parameters) {
       if (parameter is DefaultFormalParameter) {
         parameter = parameter.parameter;

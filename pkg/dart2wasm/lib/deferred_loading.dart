@@ -14,6 +14,7 @@ import 'package:kernel/core_types.dart';
 
 import 'await_transformer.dart' as await_transformer;
 import 'compiler_options.dart';
+import 'library_dependencies_pruner.dart';
 import 'modules.dart';
 import 'target.dart';
 import 'util.dart' show addPragma;
@@ -91,6 +92,9 @@ class DeferredLoadingModuleStrategy extends ModuleStrategy {
       this.component, this.options, this.kernelTarget, this.coreTypes);
 
   @override
+  void addEntryPoints() {}
+
+  @override
   void prepareComponent() {}
 
   @override
@@ -136,8 +140,32 @@ class DeferredLoadingModuleStrategy extends ModuleStrategy {
       });
     });
 
-    moduleOutputData =
-        ModuleOutputData([mainModule, ...rootSetToModule.values]);
+    // Some libraries may not have gotten a module assigned in the above
+    // procedure. This can have a varity of reasons:
+    //
+    //   - A class that's never really used but still in the program because TFA
+    //   left it there (this happens occasionally because we enable RTA before
+    //   TFA, RTA is less precised and may mark a class as allocated but TFA
+    //   later on optimizes usages away which leave the class as non-abstract
+    //   but unused).
+    //   - A class is only used in type expressions
+    //   - ...
+    //
+    // The code generator still requires every library to have a corresponding
+    // module, so we make an artificial one here.
+    final assignedLibraries = <Library>{
+      ...mainModule.libraries,
+      for (final module in rootSetToModule.values) ...module.libraries,
+    };
+    final unassignedLibraries = component.libraries.toSet()
+      ..removeAll(assignedLibraries);
+
+    moduleOutputData = ModuleOutputData([
+      mainModule,
+      ...rootSetToModule.values,
+      if (unassignedLibraries.isNotEmpty)
+        builder.buildModuleMetadata()..libraries.addAll(unassignedLibraries)
+    ]);
   }
 
   @override
@@ -192,6 +220,10 @@ class DeferredLoadingModuleStrategy extends ModuleStrategy {
         for (final dependency in currentLibrary.dependencies) {
           final targetLibrary = dependency.importedLibraryReference.asLibrary;
           if (dependency.isDeferred) {
+            if (dependency.name!.startsWith(unusedDeferredLibraryPrefix)) {
+              continue;
+            }
+
             newDeferredRoots.add(targetLibrary);
             (importTargetMap[currentLibrary] ??= {})[dependency.name!] =
                 targetLibrary;
@@ -231,6 +263,9 @@ class StressTestModuleStrategy extends ModuleStrategy {
 
   StressTestModuleStrategy(this.component, this.coreTypes, this.options,
       this.kernelTarget, this.classHierarchy);
+
+  @override
+  void addEntryPoints() {}
 
   /// Augments the `_invokeMain` JS->WASM entry point with test mode setup.
   ///
@@ -395,7 +430,7 @@ class DeferredLoadingLowering extends Transformer {
         _checkLibraryIsLoadedFromLoadId, Arguments([IntLiteral(loadId)]));
   }
 
-  static void addEntryPointPragma(CoreTypes coreTypes, Procedure node) {
+  static void addEntryPointPragma(CoreTypes coreTypes, Annotatable node) {
     addPragma(node, 'wasm:entry-point', coreTypes, value: BoolConstant(true));
   }
 }

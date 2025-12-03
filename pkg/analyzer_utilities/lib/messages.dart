@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/analyzer_messages.dart';
 import 'package:analyzer_utilities/extensions/string.dart';
+import 'package:analyzer_utilities/located_error.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart';
 import 'package:source_span/source_span.dart';
@@ -33,6 +34,7 @@ final DiagnosticTables diagnosticTables = DiagnosticTables._([
   ...frontEndMessages,
   ...feAnalyzerSharedMessages,
   ...analyzerMessages,
+  ...analysisServerMessages,
   ...lintMessages,
 ]);
 
@@ -148,55 +150,44 @@ List<T> _loadCfeStyleMessages<T extends CfeStyleMessage>(
 /// This class implements [Comparable], so lists of it can be safely
 /// [List.sort]ed.
 class AnalyzerCode implements Comparable<AnalyzerCode> {
-  /// The class containing the constant for this diagnostic.
-  final DiagnosticClassInfo diagnosticClass;
-
   /// The diagnostic name.
   ///
   /// The diagnostic name is in "snake case", meaning it consists of words
   /// separated by underscores. Those words might be lower case or upper case.
   ///
   // TODO(paulberry): change `messages.yaml` to consistently use lower snake
-  // case.
+  // case, and remove [lowerSnakeCaseName].
   final String snakeCaseName;
 
-  AnalyzerCode({required this.diagnosticClass, required this.snakeCaseName});
+  AnalyzerCode({required this.snakeCaseName});
 
   /// The string that should be generated into analyzer source code to refer to
   /// this diagnostic code.
-  String get analyzerCodeReference =>
-      [diagnosticClass.name, camelCaseName].join('.');
+  String get analyzerCodeReference => ['diag', camelCaseName].join('.');
 
   /// The diagnostic name, converted to camel case.
   String get camelCaseName => snakeCaseName.toCamelCase();
 
   @override
-  int get hashCode => Object.hash(diagnosticClass, snakeCaseName);
+  int get hashCode => snakeCaseName.hashCode;
+
+  /// The diagnostic name, converted to lower snake case.
+  String get lowerSnakeCaseName => snakeCaseName.toLowerCase();
 
   /// The diagnostic name, converted to PascalCase.
   String get pascalCaseName => snakeCaseName.toPascalCase();
 
   @override
   bool operator ==(Object other) =>
-      other is AnalyzerCode &&
-      diagnosticClass == other.diagnosticClass &&
-      snakeCaseName == other.snakeCaseName;
+      other is AnalyzerCode && snakeCaseName == other.snakeCaseName;
 
   @override
   int compareTo(AnalyzerCode other) {
-    // Compare the diagnostic classes by name. This works because we know that
-    // the diagnostic classes are unique (this is verified by the
-    // `DiagnosticClassInfo.byName` method).
-    var className = diagnosticClass.name;
-    var otherClassName = other.diagnosticClass.name;
-    if (className.compareTo(otherClassName) case var result when result != 0) {
-      return result;
-    }
     return snakeCaseName.compareTo(other.snakeCaseName);
   }
 
   @override
-  String toString() => [diagnosticClass.name, snakeCaseName].join('.');
+  String toString() => snakeCaseName;
 }
 
 /// In-memory representation of diagnostic information obtained from a
@@ -258,35 +249,6 @@ sealed class Conversion {
   ///
   /// If no conversion is needed, returns `null`.
   String? toCode({required String name, required DiagnosticParameterType type});
-}
-
-/// Information about a class derived from `DiagnosticCode`.
-class DiagnosticClassInfo {
-  static final Map<String, DiagnosticClassInfo> _diagnosticClassesByName = () {
-    var result = <String, DiagnosticClassInfo>{};
-    for (var info in diagnosticClasses) {
-      if (result.containsKey(info.name)) {
-        throw 'Duplicate diagnostic class name: ${json.encode(info.name)}';
-      }
-      result[info.name] = info;
-    }
-    return result;
-  }();
-
-  static String get _allDiagnosticClassNames =>
-      (_diagnosticClassesByName.keys.toList()..sort())
-          .map(json.encode)
-          .join(', ');
-
-  /// The name of this class.
-  final String name;
-
-  const DiagnosticClassInfo({required this.name});
-
-  static DiagnosticClassInfo byName(String name) =>
-      _diagnosticClassesByName[name] ??
-      (throw 'No diagnostic class named ${json.encode(name)}. Possible names: '
-          '$_allDiagnosticClassNames');
 }
 
 /// In-memory representation of a single key/value pair from the `parameters`
@@ -431,7 +393,7 @@ enum DiagnosticParameterType {
 /// A set of tables derived from shared, CFE, analyzer, and linter diagnostics.
 class DiagnosticTables {
   /// List of shared diagnostics for which analyzer diagnostics should be
-  /// automatically generated, sorted by analyzer code.
+  /// automatically generated, sorted by [AnalyzerCode.camelCaseName].
   final List<SharedMessage> sortedSharedDiagnostics = [];
 
   /// List of front end diagnostics, sorted by front end code.
@@ -443,7 +405,7 @@ class DiagnosticTables {
   /// A message is considered active is [MessageWithAnalyzerCode.isRemoved] is
   /// `false` and the message is not an [AliasMessage].
   ///
-  /// Each list is sorted by analyzer code.
+  /// Each list is sorted by [AnalyzerCode.camelCaseName].
   final Map<AnalyzerDiagnosticPackage, List<MessageWithAnalyzerCode>>
   activeMessagesByPackage = {};
 
@@ -473,17 +435,21 @@ class DiagnosticTables {
         analyzerCodeDuplicateChecker[analyzerCode] = message;
         analyzerCodeCamelCaseNameDuplicateChecker[analyzerCode.camelCaseName] =
             message;
-        (analyzerSharedNameToMessages[message.sharedName ??
-                    analyzerCode.snakeCaseName] ??=
+        (analyzerSharedNameToMessages[(message.sharedName ?? analyzerCode)
+                    .snakeCaseName] ??=
                 [])
             .add(message);
-        var diagnosticClass = analyzerCode.diagnosticClass;
-        if (diagnosticClass is GeneratedDiagnosticClassInfo &&
-            !message.isRemoved &&
-            message is! AliasMessage) {
-          (activeMessagesByPackage[diagnosticClass.package] ??= []).add(
-            message,
+        var package = message.package;
+        var type = message.type;
+        if (!package.permittedTypes.contains(type)) {
+          throw LocatedError(
+            'Diagnostic type is ${type.name}, which may not be used in '
+            'package:${package.dirName}',
+            span: message.keySpan,
           );
+        }
+        if (!message.isRemoved && message is! AliasMessage) {
+          (activeMessagesByPackage[package] ??= []).add(message);
         }
       }
     }
@@ -496,7 +462,7 @@ class DiagnosticTables {
     sortedSharedDiagnostics.sortBy((e) => e.analyzerCode.camelCaseName);
     sortedFrontEndDiagnostics.sortBy((e) => e.frontEndCode);
     for (var value in activeMessagesByPackage.values) {
-      value.sortBy((e) => e.analyzerCode);
+      value.sortBy((e) => e.analyzerCode.camelCaseName);
     }
   }
 
@@ -538,76 +504,6 @@ class FrontEndMessage extends CfeStyleMessage {
     : pseudoSharedCode = messageYaml.getOptionalString('pseudoSharedCode');
 }
 
-/// Information about a code generated class derived from `DiagnosticCode`.
-class GeneratedDiagnosticClassInfo extends DiagnosticClassInfo {
-  /// The generated file containing this class.
-  final GeneratedDiagnosticFile file;
-
-  /// The type of diagnostics in this class.
-  final String type;
-
-  /// The names of any diagnostics which are relied upon by analyzer clients,
-  /// and therefore will need their "snake case" form preserved (with a
-  /// deprecation notice) after migration to camel case diagnostic codes.
-  final Set<String> deprecatedSnakeCaseNames;
-
-  /// The package into which the diagnostic codes will be generated.
-  final AnalyzerDiagnosticPackage package;
-
-  /// Documentation comment to generate for the diagnostic class.
-  ///
-  /// If no documentation comment is needed, this should be the empty string.
-  final String comment;
-
-  const GeneratedDiagnosticClassInfo({
-    required this.file,
-    required super.name,
-    required this.type,
-    this.deprecatedSnakeCaseNames = const {},
-    this.package = AnalyzerDiagnosticPackage.analyzer,
-    this.comment = '',
-  });
-
-  String get templateName => '${_baseName}Template';
-
-  /// Generates the code to compute the type of diagnostics of this class.
-  String get typeCode => 'DiagnosticType.$type';
-
-  String get withoutArgumentsName => '${_baseName}WithoutArguments';
-
-  String get _baseName {
-    const suffix = 'Code';
-    if (name.endsWith(suffix)) {
-      return name.substring(0, name.length - suffix.length);
-    } else {
-      throw "Can't infer base name for class $name";
-    }
-  }
-}
-
-/// Representation of a single file containing generated diagnostics.
-class GeneratedDiagnosticFile {
-  /// The file path (relative to the SDK's `pkg` directory) of the generated
-  /// file.
-  final String path;
-
-  /// The URI of the library that the generated file will be a part of.
-  final String parentLibrary;
-
-  /// Whether the generated file should use the `new` and `const` keywords when
-  /// generating constructor invocations.
-  final bool shouldUseExplicitNewOrConst;
-
-  final bool shouldIgnorePreferSingleQuotes;
-
-  const GeneratedDiagnosticFile({
-    required this.path,
-    required this.parentLibrary,
-    this.shouldUseExplicitNewOrConst = false,
-    this.shouldIgnorePreferSingleQuotes = false,
-  });
-}
-
 /// A [Conversion] that makes use of the [TypeLabeler] class.
 class LabelerConversion implements Conversion {
   /// The name of the [TypeLabeler] method to call.
@@ -627,34 +523,6 @@ class LabelerConversion implements Conversion {
     required String name,
     required DiagnosticParameterType type,
   }) => 'labeler.$methodName($name)';
-}
-
-/// An error with an associated source span.
-class LocatedError {
-  final SourceSpan span;
-  final String message;
-
-  LocatedError(this.message, {required this.span});
-
-  @override
-  String toString() => '${span.location}: $message';
-
-  /// Executes [callback], converting any exceptions it generates to a
-  /// [LocatedError] that points to [node].
-  static T wrap<T>(T Function() callback, {required SourceSpan span}) {
-    try {
-      return callback();
-    } catch (error, stackTrace) {
-      if (error is! LocatedError) {
-        Error.throwWithStackTrace(
-          LocatedError(error.toString(), span: span),
-          stackTrace,
-        );
-      } else {
-        rethrow;
-      }
-    }
-  }
 }
 
 /// In-memory representation of diagnostic information obtained from either the
@@ -688,7 +556,7 @@ abstract class Message {
   /// If present, indicates that this error code has a special name for
   /// presentation to the user, that is potentially shared with other error
   /// codes.
-  final String? sharedName;
+  final AnalyzerCode? sharedName;
 
   /// If present, indicates that this error code has been renamed from
   /// [previousName] to its current name (or [sharedName]).
@@ -733,7 +601,10 @@ abstract class Message {
             isRequired: requireProblemMessage,
           ) ??
           [],
-      sharedName = messageYaml.getOptionalString('sharedName'),
+      sharedName = switch (messageYaml.getOptionalString('sharedName')) {
+        var s? => AnalyzerCode(snakeCaseName: s),
+        null => null,
+      },
       removedIn = messageYaml.getOptionalString('removedIn'),
       previousName = messageYaml.getOptionalString('previousName'),
       parameters = messageYaml.parameters,
@@ -1055,23 +926,30 @@ class SharedMessage extends CfeStyleMessage with MessageWithAnalyzerCode {
   @override
   final bool hasPublishedDocs;
 
+  @override
+  final AnalyzerDiagnosticType type;
+
   SharedMessage(super.messageYaml)
     : analyzerCode = messageYaml.get(
         'analyzerCode',
         decode: _decodeAnalyzerCode,
       ),
-      hasPublishedDocs = messageYaml.getBool('hasPublishedDocs');
+      hasPublishedDocs = messageYaml.getBool('hasPublishedDocs'),
+      type = messageYaml.get(
+        'type',
+        decode: MessageWithAnalyzerCode.decodeType,
+      );
+
+  @override
+  AnalyzerDiagnosticPackage get package => AnalyzerDiagnosticPackage.analyzer;
 
   static AnalyzerCode _decodeAnalyzerCode(YamlNode node) {
     switch (node) {
       case YamlScalar(value: String s):
         switch (s.split('.')) {
-          case [var className, var snakeCaseName]
+          case [_, var snakeCaseName]
               when snakeCaseName == snakeCaseName.toUpperCase():
-            return AnalyzerCode(
-              diagnosticClass: DiagnosticClassInfo.byName(className),
-              snakeCaseName: snakeCaseName,
-            );
+            return AnalyzerCode(snakeCaseName: snakeCaseName);
         }
     }
     throw 'Analyzer codes must take the form ClassName.DIAGNOSTIC_NAME.';
@@ -1179,16 +1057,5 @@ class _DuplicateChecker<Code> {
         ].join('\n');
       }
     }
-  }
-}
-
-extension SourceSpanLocation on SourceSpan {
-  /// A string suitable for identifying this span in the source YAML file.
-  String get location {
-    var path = start.sourceUrl?.toFilePath() ?? '<unknown>';
-    // Convert line/column to 1-based because that's what most editors expect
-    var line = start.line + 1;
-    var column = start.column + 1;
-    return '$path:$line:$column';
   }
 }

@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Prefer `for` elements when building maps from iterables.';
 
@@ -22,8 +23,7 @@ class PreferForElementsToMapFromIterable extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.preferForElementsToMapFromiterable;
+  DiagnosticCode get diagnosticCode => diag.preferForElementsToMapFromiterable;
 
   @override
   void registerNodeProcessors(

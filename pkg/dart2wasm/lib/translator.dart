@@ -44,15 +44,16 @@ import 'util.dart' as util;
 class TranslatorOptions {
   bool enableAsserts = false;
   bool importSharedMemory = false;
-  bool inlining = true;
+  int optimizationLevel = 1;
+  bool? inliningOverride;
   bool jsCompatibility = false;
-  bool omitImplicitTypeChecks = false;
+  bool? omitImplicitTypeChecksOverride;
   bool omitExplicitTypeChecks = false;
-  bool omitBoundsChecks = false;
+  bool? omitBoundsChecksOverride;
   bool polymorphicSpecialization = false;
   bool printKernel = false;
   bool printWasm = false;
-  bool minify = false;
+  bool? minifyOverride;
   bool verifyTypeChecks = false;
   bool verbose = false;
   bool enableExperimentalFfi = false;
@@ -60,23 +61,33 @@ class TranslatorOptions {
   bool generateSourceMaps = true;
   bool enableDeferredLoading = false;
   bool enableMultiModuleStressTestMode = false;
+  bool enableProtobufTreeShaker = false;
+  bool enableProtobufMixinTreeShaker = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
   bool requireJsStringBuiltin = false;
   List<int> watchPoints = [];
 
+  bool get inlining => inliningOverride ?? optimizationLevel >= 1;
+  bool get minify => minifyOverride ?? optimizationLevel >= 2;
+  bool get omitImplicitTypeChecks =>
+      omitImplicitTypeChecksOverride ?? optimizationLevel >= 3;
+  bool get omitBoundsChecks =>
+      omitBoundsChecksOverride ?? optimizationLevel >= 4;
+
   void serialize(DataSerializer sink) {
     sink.writeBool(enableAsserts);
     sink.writeBool(importSharedMemory);
-    sink.writeBool(inlining);
+    sink.writeInt(optimizationLevel);
+    sink.writeNullable(inliningOverride, sink.writeBool);
     sink.writeBool(jsCompatibility);
-    sink.writeBool(omitImplicitTypeChecks);
+    sink.writeNullable(omitImplicitTypeChecksOverride, sink.writeBool);
     sink.writeBool(omitExplicitTypeChecks);
-    sink.writeBool(omitBoundsChecks);
+    sink.writeNullable(omitBoundsChecksOverride, sink.writeBool);
     sink.writeBool(polymorphicSpecialization);
     sink.writeBool(printKernel);
     sink.writeBool(printWasm);
-    sink.writeBool(minify);
+    sink.writeNullable(minifyOverride, sink.writeBool);
     sink.writeBool(verifyTypeChecks);
     sink.writeBool(verbose);
     sink.writeBool(enableExperimentalFfi);
@@ -84,6 +95,8 @@ class TranslatorOptions {
     sink.writeBool(generateSourceMaps);
     sink.writeBool(enableDeferredLoading);
     sink.writeBool(enableMultiModuleStressTestMode);
+    sink.writeBool(enableProtobufTreeShaker);
+    sink.writeBool(enableProtobufMixinTreeShaker);
     sink.writeInt(inliningLimit);
     sink.writeInt(
         sharedMemoryMaxPages == null ? 0 : (sharedMemoryMaxPages! + 1));
@@ -93,15 +106,17 @@ class TranslatorOptions {
     final TranslatorOptions options = TranslatorOptions();
     options.enableAsserts = source.readBool();
     options.importSharedMemory = source.readBool();
-    options.inlining = source.readBool();
+    options.optimizationLevel = source.readInt();
+    options.inliningOverride = source.readNullable(source.readBool);
     options.jsCompatibility = source.readBool();
-    options.omitImplicitTypeChecks = source.readBool();
+    options.omitImplicitTypeChecksOverride =
+        source.readNullable(source.readBool);
     options.omitExplicitTypeChecks = source.readBool();
-    options.omitBoundsChecks = source.readBool();
+    options.omitBoundsChecksOverride = source.readNullable(source.readBool);
     options.polymorphicSpecialization = source.readBool();
     options.printKernel = source.readBool();
     options.printWasm = source.readBool();
-    options.minify = source.readBool();
+    options.minifyOverride = source.readNullable(source.readBool);
     options.verifyTypeChecks = source.readBool();
     options.verbose = source.readBool();
     options.enableExperimentalFfi = source.readBool();
@@ -109,6 +124,8 @@ class TranslatorOptions {
     options.generateSourceMaps = source.readBool();
     options.enableDeferredLoading = source.readBool();
     options.enableMultiModuleStressTestMode = source.readBool();
+    options.enableProtobufTreeShaker = source.readBool();
+    options.enableProtobufMixinTreeShaker = source.readBool();
     options.inliningLimit = source.readInt();
     final int sharedMemoryMaxPages = source.readInt();
     options.sharedMemoryMaxPages =
@@ -1116,6 +1133,33 @@ class Translator with KernelNodes {
     });
   }
 
+  final _closureArgumentsDispatchers =
+      <w.ModuleBuilder, Map<ClosureRepresentation, w.BaseFunction>>{};
+  w.BaseFunction getClosureArgumentsDispatcher(
+      w.ModuleBuilder module, ClosureRepresentation r) {
+    // We can only unpack (type, positional, named) argument arrays and forward
+    // to specific vtable entries if we have closed-world knowledge of all used
+    // name combinations.
+    assert(!dynamicModuleSupportEnabled &&
+        !closureLayouter.usesFunctionApplyWithNamedArguments);
+
+    final moduleCache = _closureArgumentsDispatchers[module] ??= {};
+    return moduleCache.putIfAbsent(r, () {
+      final representationString = '${r.typeCount}-'
+          '${r.maxPositionalCount}'
+          '${r.hasNamed ? '-' : ''}'
+          '${r.nameCombinations.join('-')}';
+      final function = module.functions.define(
+          dynamicCallVtableEntryFunctionType,
+          "closure arguments dispatcher representation=$representationString");
+      compilationQueue.add(CompilationTask(
+          function,
+          _ClosureArgumentsToVtableEntryDispatcherGenerator(
+              this, r, function)));
+      return function;
+    });
+  }
+
   ClosureImplementation getClosure(
       FunctionNode functionNode,
       w.BaseFunction target,
@@ -1236,7 +1280,8 @@ class Translator with KernelNodes {
       int fieldIndex = representation.vtableBaseIndex + functions.length;
       assert(fieldIndex ==
           representation.fieldIndexForSignature(posArgCount, argNames));
-      w.FunctionType signature = representation.getVtableFieldType(fieldIndex);
+      w.FunctionType signature =
+          representation.vtableStruct.getVtableEntryAt(fieldIndex);
       w.BaseFunction function = canBeCalledWith(posArgCount, argNames)
           ? makeTrampoline(signature, posArgCount, argNames)
           : getDummyValuesCollectorForModule(ib.moduleBuilder)
@@ -1249,8 +1294,27 @@ class Translator with KernelNodes {
         w.RefType.def(representation.vtableStruct, nullable: false),
         mutable: false));
     final ib = vtable.initializer;
-    final dynamicCallEntry = makeDynamicCallEntry();
-    ib.ref_func(dynamicCallEntry);
+
+    // NOTE: In dynamic modules we do not have closed world knowledge of closure
+    // definitions and callsites, so the dynamic call entry cannot dispatch to
+    // representation specific vtable entries.
+    //
+    // Even if we have closed world knowledge, if anywhere in the program
+    // `Function.apply` is used with named arguments, then we don't know which
+    // name-combinations may be used and we want to avoid creating vtable
+    // entries for all possible name combinations. So also in this situation we
+    // cannot dispatch to representation-specific vtable entries.
+    //
+    // If none of the two cases above apply, we can make the dynamic call entry
+    // be a shared stub that dispatches (based on arguments) to the right
+    // representation specific vtable entry. This saves code size as we don't
+    // have 1 dynamic call entry function per closure but rather 1 per closure
+    // shape / representation.
+    w.BaseFunction? dynamicCallEntry;
+    if (dynamicModuleSupportEnabled ||
+        closureLayouter.usesFunctionApplyWithNamedArguments) {
+      ib.ref_func(dynamicCallEntry = makeDynamicCallEntry());
+    }
     if (representation.isGeneric) {
       ib.ref_func(representation
           .instantiationTypeComparisonFunctionForModule(ib.moduleBuilder));
@@ -1984,7 +2048,7 @@ class Translator with KernelNodes {
       internalizedStringsForJSRuntime.add(s);
     } else {
       internalizedString = module.globals.import(
-        'S',
+        '',
         s,
         w.GlobalType(w.RefType.extern(nullable: false), mutable: false),
       );
@@ -2333,6 +2397,324 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
         translator.outputOrVoid(function.type.outputs));
 
     b.end(); // end function
+  }
+}
+
+class _ClosureArgumentsToVtableEntryDispatcherGenerator
+    implements CodeGenerator {
+  final Translator translator;
+  final ClosureRepresentation representation;
+  final w.FunctionBuilder function;
+
+  _ClosureArgumentsToVtableEntryDispatcherGenerator(
+      this.translator, this.representation, this.function);
+
+  @override
+  void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
+      w.Label? returnLabel) {
+    assert(returnLabel == null);
+
+    final b = function.body;
+
+    final closureLocal = function.locals[0];
+    final typeArgsLocal = function.locals[1];
+    final posArgsLocal = function.locals[2];
+    final namedArgsLocal = function.locals[3];
+
+    assert(typeArgsLocal.type == translator.typeArrayTypeRef);
+    assert(posArgsLocal.type == translator.nullableObjectArrayTypeRef);
+    assert(namedArgsLocal.type == translator.nullableObjectArrayTypeRef);
+
+    _verifyAssumptions(
+        b, closureLocal, typeArgsLocal, posArgsLocal, namedArgsLocal);
+
+    final vtableStruct = representation.vtableStruct;
+
+    // Downcast closure to this representation's closure type & get
+    // representation-specific vtable.
+    b.comment('Obtaining representation-specific vtable');
+    b.local_get(closureLocal);
+    b.ref_cast(w.RefType(representation.closureStruct, nullable: false));
+    b.struct_get(representation.closureStruct, FieldIndex.closureVtable);
+    final vtableVar = b.addLocal(w.RefType(vtableStruct, nullable: false));
+    b.local_set(vtableVar);
+
+    final typeStack = <w.ValueType>[];
+
+    // Load closure context.
+    b.comment('Loading closure.context');
+    b.local_get(closureLocal);
+    b.struct_get(translator.closureInfo.struct, FieldIndex.closureContext);
+    typeStack.add(w.RefType.struct(nullable: false));
+
+    // Load required type arguments.
+    for (int i = 0; i < representation.typeCount; ++i) {
+      b.comment('Loading type argument $i');
+      b.local_get(typeArgsLocal);
+      b.i32_const(i);
+      b.array_get(translator.typeArrayType);
+      typeStack.add(translator.translateType(translator.typeType));
+    }
+
+    // Load optional parameters.
+    if (representation.hasNamed) {
+      b.comment('Handle optional named parameters');
+      _handleOptionalNamedCase(b, closureLocal, typeArgsLocal, posArgsLocal,
+          namedArgsLocal, vtableVar, vtableStruct, typeStack);
+    } else {
+      b.comment('Handle optional positional parameters');
+      _handleOptionalPositionalCase(b, closureLocal, typeArgsLocal,
+          posArgsLocal, namedArgsLocal, vtableVar, vtableStruct, typeStack);
+    }
+
+    b.end(); // end function
+  }
+
+  void _handleOptionalPositionalCase(
+    w.InstructionsBuilder b,
+    w.Local closureLocal,
+    w.Local typeArgsLocal,
+    w.Local posArgsLocal,
+    w.Local namedArgsLocal,
+    w.Local vtableVar,
+    w.StructType vtableStruct,
+    List<w.ValueType> typeStack,
+  ) {
+    // Possibly variable number of positionals.
+    for (int i = 0; i <= representation.maxPositionalCount; ++i) {
+      b.comment('Check whether all positionals are loaded');
+      b.local_get(posArgsLocal);
+      b.array_len();
+      b.i32_const(i);
+      b.i32_eq();
+      b.if_(typeStack, typeStack);
+      b.comment('All positionals loaded, calling corresponding vtable entry');
+      b.local_get(vtableVar);
+      final index = representation.vtableBaseIndex + i;
+      b.struct_get(vtableStruct, index);
+      b.call_ref((vtableStruct.fields[index].type.unpacked as w.RefType)
+          .heapType as w.FunctionType);
+      b.return_();
+      b.end();
+
+      if (i <= representation.maxPositionalCount) {
+        // Otherwise load more arguments.
+        b.comment('Loading positional $i (optional)');
+        b.local_get(posArgsLocal);
+        b.i32_const(i);
+        b.array_get(translator.nullableObjectArrayType);
+        typeStack.add(translator.topType);
+      }
+    }
+
+    b.unreachable();
+  }
+
+  void _handleOptionalNamedCase(
+    w.InstructionsBuilder b,
+    w.Local closureLocal,
+    w.Local typeArgsLocal,
+    w.Local posArgsLocal,
+    w.Local namedArgsLocal,
+    w.Local vtableVar,
+    w.StructType vtableStruct,
+    List<w.ValueType> typeStack,
+  ) {
+    // All positionals are required, so load them.
+    for (int i = 0; i < representation.maxPositionalCount; ++i) {
+      b.comment('Loading positional $i (required)');
+      b.local_get(posArgsLocal);
+      b.i32_const(i);
+      b.array_get(translator.nullableObjectArrayType);
+      typeStack.add(translator.topType);
+    }
+
+    // Check for each name whether it's there or not.
+    final allCombinations = representation.nameCombinations.toList();
+    final sortedNames =
+        allCombinations.expand((nc) => nc.names).toSet().toList()..sort();
+    final nameIndexVar = b.addLocal(w.NumType.i32);
+
+    int matchingCombinations(List<String> currentNames, int nextNameIndex) {
+      int prefixMatches = 0;
+      bool exactMatch = false;
+      if (nextNameIndex == 0) {
+        assert(currentNames.isEmpty);
+        exactMatch = true;
+        prefixMatches = 1 + allCombinations.length;
+      } else {
+        for (final nc in allCombinations) {
+          if (currentNames.length <= nc.names.length) {
+            bool found = true;
+            for (int i = 0; i < currentNames.length; ++i) {
+              if (currentNames[i] != nc.names[i]) {
+                found = false;
+                break;
+              }
+            }
+            if (found) {
+              if (currentNames.length == nc.names.length) {
+                prefixMatches++;
+                exactMatch = true;
+              } else {
+                if (sortedNames[nextNameIndex - 1]
+                        .compareTo(nc.names[currentNames.length]) <
+                    0) {
+                  prefixMatches++;
+                }
+              }
+            }
+          }
+        }
+      }
+      return exactMatch ? prefixMatches : -prefixMatches;
+    }
+
+    final currentNames = <String>[];
+
+    void generateNameHandling(int nextNameIndex) {
+      final match = matchingCombinations(currentNames, nextNameIndex);
+      final hasExactMatch = match > 0;
+      final hasNonExactMatches = match < 0 || match > 1;
+      final hasMoreMatches = match != 0;
+      if (hasExactMatch) {
+        b.comment('Check whether all named are loaded');
+        b.local_get(namedArgsLocal);
+        b.array_len();
+        b.local_get(nameIndexVar);
+        b.i32_eq();
+        b.if_(typeStack, typeStack);
+        b.comment('All named loaded, calling corresponding vtable entry');
+        b.comment('(passed named arguments: ${currentNames.join('-')})');
+        final index = representation.fieldIndexForSignature(
+            representation.maxPositionalCount, currentNames);
+        b.local_get(vtableVar);
+        b.struct_get(vtableStruct, index);
+        b.call_ref((vtableStruct.fields[index].type.unpacked as w.RefType)
+            .heapType as w.FunctionType);
+        b.return_();
+        b.end();
+        if (!hasNonExactMatches) {
+          b.comment('More names passed than expected.');
+          b.unreachable();
+          return;
+        }
+      } else if (hasMoreMatches) {
+        if (util.compilerAssertsEnabled) {
+          b.comment('Check there are more names passed by the caller,');
+          b.comment('because the currently processed name set');
+          b.comment('(which are: ${currentNames.join('-')}) does not');
+          b.comment(' correspond to a valid name combination.');
+          b.local_get(namedArgsLocal);
+          b.array_len();
+          b.local_get(nameIndexVar);
+          b.i32_eq();
+          b.if_();
+          b.comment('Unsupported name combination.');
+          b.comment('May be bug in closure representation building');
+          b.unreachable();
+          b.end();
+        }
+      } else {
+        b.comment('The names "${currentNames.join('-')}" are not part '
+            'of a used name combination.');
+        b.unreachable();
+        return;
+      }
+
+      final newName = sortedNames[nextNameIndex];
+      final symbol = translator.symbols.symbolForNamedParameter(newName);
+
+      b.comment('Load next name and see if it corresponds to "$newName"');
+      b.local_get(namedArgsLocal);
+      b.local_get(nameIndexVar);
+      b.array_get(translator.nullableObjectArrayType);
+      translator.constants.instantiateConstant(b, symbol, translator.topType);
+      b.ref_eq();
+
+      b.if_(typeStack, typeStack);
+      {
+        b.comment('Name "$newName" was provided by caller. Loading its value.');
+        b.local_get(namedArgsLocal);
+        b.local_get(nameIndexVar);
+        b.i32_const(1);
+        b.i32_add();
+        b.array_get(translator.nullableObjectArrayType);
+
+        b.comment('Increment index in named argument array.');
+        b.local_get(nameIndexVar);
+        b.i32_const(2);
+        b.i32_add();
+        b.local_set(nameIndexVar);
+
+        currentNames.add(newName);
+        typeStack.add(translator.topType);
+        generateNameHandling(nextNameIndex + 1);
+        typeStack.removeLast();
+        currentNames.removeLast();
+      }
+      b.end();
+
+      b.comment('Name "$newName" was *not* provided by caller.');
+      generateNameHandling(nextNameIndex + 1);
+    }
+
+    generateNameHandling(0);
+  }
+
+  // This function is purely used for checking assumptions made by the code this
+  // generator is producing.
+  //
+  // Namely, we assume that the caller has
+  //   * populated default type arguments (if needed)
+  //   * checked the shape of arguments & closure matches
+  //   * performed necessary type checks on arguments.
+  void _verifyAssumptions(
+    w.InstructionsBuilder b,
+    w.Local closureLocal,
+    w.Local typeArgsLocal,
+    w.Local posArgsLocal,
+    w.Local namedArgsLocal,
+  ) {
+    if (!util.compilerAssertsEnabled) {
+      return;
+    }
+    b.comment('Verify assumptions of arguments and closure');
+    final functionTypeLocal =
+        b.addLocal(translator.closureLayouter.functionTypeType);
+    b.local_get(closureLocal);
+    b.struct_get(translator.closureLayouter.closureBaseStruct,
+        FieldIndex.closureRuntimeType);
+    b.local_tee(functionTypeLocal);
+
+    // Ensure type arguments were passed.
+    b.local_get(typeArgsLocal);
+    b.array_len();
+    b.i32_const(representation.typeCount);
+    b.i32_ne();
+    b.if_();
+    b.unreachable();
+    b.end();
+
+    // Ensure closure shape is correct.
+    b.local_get(typeArgsLocal);
+    b.local_get(posArgsLocal);
+    b.local_get(namedArgsLocal);
+    translator.callReference(translator.checkClosureShape.reference, b);
+    b.i32_eqz();
+    b.if_();
+    b.unreachable();
+    b.end();
+
+    // Ensure types are correct.
+    if (!translator.options.omitImplicitTypeChecks) {
+      b.local_get(functionTypeLocal);
+      b.local_get(typeArgsLocal);
+      b.local_get(posArgsLocal);
+      b.local_get(namedArgsLocal);
+      translator.callReference(translator.checkClosureType.reference, b);
+      b.drop();
+    }
   }
 }
 

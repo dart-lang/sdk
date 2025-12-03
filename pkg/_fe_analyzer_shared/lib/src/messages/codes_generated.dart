@@ -1396,6 +1396,15 @@ Message _withArgumentsOldExtraneousModifierInPrimaryConstructor(Token lexeme) =>
     _withArgumentsExtraneousModifierInPrimaryConstructor(lexeme: lexeme);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode codeFactoryConstructorNewName = const MessageCode(
+  "FactoryConstructorNewName",
+  sharedCode: SharedCode.factoryConstructorNewName,
+  problemMessage: """Factory constructors can't be named 'new'.""",
+  correctionMessage:
+      """Try removing the 'new' keyword or changing it to a different name.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFactoryNotSync = const MessageCode(
   "FactoryNotSync",
   pseudoSharedCode: PseudoSharedCode.nonSyncFactory,
@@ -2476,6 +2485,26 @@ const MessageCode codeNativeClauseShouldBeAnnotation = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode codeNewConstructorNewName = const MessageCode(
+  "NewConstructorNewName",
+  sharedCode: SharedCode.newConstructorNewName,
+  problemMessage:
+      """Constructors declared with the 'new' keyword can't be named 'new'.""",
+  correctionMessage:
+      """Try removing the second 'new' or changing it to a different name.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode codeNewConstructorQualifiedName = const MessageCode(
+  "NewConstructorQualifiedName",
+  sharedCode: SharedCode.newConstructorQualifiedName,
+  problemMessage:
+      """Constructors declared with the 'new' keyword can't have qualified names.""",
+  correctionMessage:
+      """Try removing the class name prefix from the qualified name or removing the 'new' keyword.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String character, int unicode),
   Message Function({required String character, required int unicode})
@@ -3302,6 +3331,7 @@ enum SharedCode {
   extraneousModifier,
   extraneousModifierInExtensionType,
   extraneousModifierInPrimaryConstructor,
+  factoryConstructorNewName,
   factoryTopLevelDeclaration,
   fieldInitializedOutsideDeclaringClass,
   fieldInitializerOutsideConstructor,
@@ -3374,6 +3404,8 @@ enum SharedCode {
   multipleVarianceModifiers,
   multipleWithClauses,
   nativeClauseShouldBeAnnotation,
+  newConstructorNewName,
+  newConstructorQualifiedName,
   nullAwareCascadeOutOfOrder,
   outOfOrderClauses,
   patternAssignmentDeclaresVariable,

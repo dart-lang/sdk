@@ -76,9 +76,7 @@ abstract class AbstractCompletionDriverTest
   @override
   @protected
   Future<List<CompletionSuggestion>> addTestFile(String content) async {
-    if (useLineEndingsForPlatform) {
-      content = normalizeNewlinesForPlatform(content);
-    }
+    content = normalizeNewlinesForPlatform(content);
     driver.addTestFile(content);
 
     // Wait after adding the test file, this might affect diagnostics.
@@ -319,6 +317,34 @@ class BasicCompletionTest extends AbstractCompletionDriverTest
     with BasicCompletionTestCases {}
 
 mixin BasicCompletionTestCases on AbstractCompletionDriverTest {
+  Future<void> test_deprecated_class_relevance() async {
+    await computeSuggestions('''
+class A1 {}
+
+@Deprecated()
+class A2 {}
+
+void f() {
+  var a = A^
+}
+''');
+
+    expect(
+      suggestionWith(
+        completion: 'A2',
+        element: ElementKind.CONSTRUCTOR,
+        kind: CompletionSuggestionKind.INVOCATION,
+      ).relevance,
+      lessThan(
+        suggestionWith(
+          completion: 'A1',
+          element: ElementKind.CONSTRUCTOR,
+          kind: CompletionSuggestionKind.INVOCATION,
+        ).relevance,
+      ),
+    );
+  }
+
   /// Duplicates (and potentially replaces) [DeprecatedMemberRelevanceTest].
   Future<void> test_deprecated_member_relevance() async {
     await computeSuggestions('''
@@ -344,6 +370,34 @@ void f() {
         suggestionWith(
           completion: 'a1',
           element: ElementKind.METHOD,
+          kind: CompletionSuggestionKind.INVOCATION,
+        ).relevance,
+      ),
+    );
+  }
+
+  Future<void> test_deprecatedExtend_class_relevance() async {
+    await computeSuggestions('''
+class A1 {}
+
+@Deprecated.extend()
+class A2 {}
+
+void f() {
+  var a = A^
+}
+''');
+
+    expect(
+      suggestionWith(
+        completion: 'A2',
+        element: ElementKind.CONSTRUCTOR,
+        kind: CompletionSuggestionKind.INVOCATION,
+      ).relevance,
+      equals(
+        suggestionWith(
+          completion: 'A1',
+          element: ElementKind.CONSTRUCTOR,
           kind: CompletionSuggestionKind.INVOCATION,
         ).relevance,
       ),

@@ -19,7 +19,6 @@ dependencies:
   kernel: any
   package_config: any
   path: any
-  pub_semver: any
   record_use: any
   yaml: any
 

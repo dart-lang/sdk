@@ -15,7 +15,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -520,7 +520,7 @@ class TypedLiteralResolver {
       // as the types of those elements are considered resolved.
       _diagnosticReporter.atNode(
         node,
-        WarningCode.inferenceFailureOnCollectionLiteral,
+        diag.inferenceFailureOnCollectionLiteral,
         arguments: ['List'],
       );
     }
@@ -635,15 +635,9 @@ class TypedLiteralResolver {
       inferenceLogWriter?.exitGenericInference(failed: true);
     }
     if (mustBeAMap && mustBeASet) {
-      _diagnosticReporter.atNode(
-        literal,
-        CompileTimeErrorCode.ambiguousSetOrMapLiteralBoth,
-      );
+      _diagnosticReporter.atNode(literal, diag.ambiguousSetOrMapLiteralBoth);
     } else {
-      _diagnosticReporter.atNode(
-        literal,
-        CompileTimeErrorCode.ambiguousSetOrMapLiteralEither,
-      );
+      _diagnosticReporter.atNode(literal, diag.ambiguousSetOrMapLiteralEither);
     }
     return _typeProvider.dynamicType;
   }
@@ -791,7 +785,7 @@ class TypedLiteralResolver {
       // as the types of those elements are considered resolved.
       _diagnosticReporter.atNode(
         node,
-        WarningCode.inferenceFailureOnCollectionLiteral,
+        diag.inferenceFailureOnCollectionLiteral,
         arguments: [node.isMap ? 'Map' : 'Set'],
       );
     }

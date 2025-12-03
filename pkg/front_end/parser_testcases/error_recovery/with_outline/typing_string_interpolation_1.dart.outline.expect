@@ -1,9 +1,9 @@
 Class: A
-Class method: A.method1
-Class method: A.method2
+Method: A.method1
+Method: A.method2
 Class: B
-Class method: B.method1
-Class method: B.method2
+Method: B.method1
+Method: B.method2
 Class: C
-Class method: C.method1
-Class method: C.method2
+Method: C.method1
+Method: C.method2

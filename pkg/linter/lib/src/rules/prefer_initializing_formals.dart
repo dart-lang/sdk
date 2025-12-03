@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Use initializing formals when possible.';
@@ -50,7 +51,7 @@ class PreferInitializingFormals extends AnalysisRule {
     : super(name: LintNames.prefer_initializing_formals, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.preferInitializingFormals;
+  DiagnosticCode get diagnosticCode => diag.preferInitializingFormals;
 
   @override
   void registerNodeProcessors(
@@ -87,7 +88,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           leftElement.name == rightElement.name &&
           !leftElement.isPrivate &&
           leftElement is FieldElement &&
-          !leftElement.isSynthetic &&
+          leftElement.isOriginDeclaration &&
           leftElement.enclosingElement ==
               node.declaredFragment?.element.enclosingElement &&
           parameters.contains(rightElement) &&

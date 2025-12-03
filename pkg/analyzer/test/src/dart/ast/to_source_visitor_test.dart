@@ -21,12 +21,82 @@ main() {
 
 @reflectiveTest
 class ToSourceVisitorTest extends ParserDiagnosticsTest {
-  void test_representationDeclaration() {
-    var code = '(@foo int it)';
-    var findNode = _parseStringToFindNode('''
-extension type E$code {}
-''');
-    _assertSource(code, findNode.singleRepresentationDeclaration);
+  test_class_emptyBody() {
+    var code = 'class A;';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
+  }
+
+  test_class_primaryConstructor_const_named() {
+    var code = 'class const A<T>.named() {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
+  }
+
+  test_class_primaryConstructor_const_unnamed() {
+    var code = 'class A() {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
+  }
+
+  test_class_primaryConstructor_declaringFormalParameter_optionalNamed() {
+    var code = 'class A({final int a = 0}) {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
+  }
+
+  test_class_primaryConstructor_declaringFormalParameter_requiredPositional() {
+    var code = 'class A(final int a) {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
+  }
+
+  test_class_primaryConstructor_fieldFormalParameter() {
+    var code = 'class A(int this.a) {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
+  }
+
+  test_class_primaryConstructor_notConst_named() {
+    var code = 'class A<T>.named() {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
+  }
+
+  test_class_primaryConstructor_superFormalParameter() {
+    var code = 'class A(int super.a) {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
+  }
+
+  test_enum_primaryConstructor_named() {
+    var code = 'enum const E<T>.named(final int a) {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.enumDeclaration(code));
+  }
+
+  test_enum_primaryConstructor_unnamed() {
+    var code = 'enum E<T>(final int a) {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.enumDeclaration(code));
+  }
+
+  test_extensionType_emptyBody() {
+    var code = 'extension type A(int it);';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.extensionTypeDeclaration(code));
+  }
+
+  test_extensionType_primaryConstructor_named() {
+    var code = 'extension type const A<T>.named(int it) {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.extensionTypeDeclaration(code));
+  }
+
+  test_extensionType_primaryConstructor_unnamed() {
+    var code = 'extension type A<T>(int it) {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.extensionTypeDeclaration(code));
   }
 
   void test_visitAdjacentStrings() {
@@ -718,7 +788,57 @@ void f(x) {
     _assertSource('true', findNode.constantPattern('true'));
   }
 
-  void test_visitConstructorDeclaration_const() {
+  void test_visitConstructorDeclaration_factoryHead_named() {
+    var code = 'factory named() {}';
+    var findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
+  }
+
+  void test_visitConstructorDeclaration_factoryHead_unnamed() {
+    var code = 'factory () {}';
+    var findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
+  }
+
+  void test_visitConstructorDeclaration_newHead_named() {
+    var code = 'new named();';
+    var findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
+  }
+
+  void test_visitConstructorDeclaration_newHead_unnamed() {
+    var code = 'new ();';
+    var findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor('new'));
+  }
+
+  void test_visitConstructorDeclaration_singleInitializer() {
+    var code = 'A() : a = b;';
+    var findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
+  }
+
+  void test_visitConstructorDeclaration_typeName_const() {
     var code = 'const A();';
     var findNode = _parseStringToFindNode('''
 class A {
@@ -728,7 +848,7 @@ class A {
     _assertSource(code, findNode.constructor(code));
   }
 
-  void test_visitConstructorDeclaration_external() {
+  void test_visitConstructorDeclaration_typeName_external() {
     var code = 'external A();';
     var findNode = _parseStringToFindNode('''
 class A {
@@ -738,8 +858,8 @@ class A {
     _assertSource(code, findNode.constructor(code));
   }
 
-  void test_visitConstructorDeclaration_minimal() {
-    var code = 'A();';
+  void test_visitConstructorDeclaration_typeName_factory_named() {
+    var code = 'factory A.named() {}';
     var findNode = _parseStringToFindNode('''
 class A {
   $code
@@ -748,8 +868,8 @@ class A {
     _assertSource(code, findNode.constructor(code));
   }
 
-  void test_visitConstructorDeclaration_multipleInitializers() {
-    var code = 'A() : a = b, c = d {}';
+  void test_visitConstructorDeclaration_typeName_factory_unnamed() {
+    var code = 'factory A() {}';
     var findNode = _parseStringToFindNode('''
 class A {
   $code
@@ -758,7 +878,19 @@ class A {
     _assertSource(code, findNode.constructor(code));
   }
 
-  void test_visitConstructorDeclaration_multipleParameters() {
+  void
+  test_visitConstructorDeclaration_typeName_formalParameters_optionalPositional() {
+    var code = 'A(int a, [int b = 0]);';
+    var findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
+  }
+
+  void
+  test_visitConstructorDeclaration_typeName_formalParameters_requiredPositional() {
     var code = 'A(int a, double b);';
     var findNode = _parseStringToFindNode('''
 class A {
@@ -768,7 +900,17 @@ class A {
     _assertSource(code, findNode.constructor(code));
   }
 
-  void test_visitConstructorDeclaration_named() {
+  void test_visitConstructorDeclaration_typeName_multipleInitializers() {
+    var code = 'A() : a = b, c = d {}';
+    var findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
+  }
+
+  void test_visitConstructorDeclaration_typeName_named() {
     var code = 'A.foo();';
     var findNode = _parseStringToFindNode('''
 class A {
@@ -778,10 +920,21 @@ class A {
     _assertSource(code, findNode.constructor(code));
   }
 
-  void test_visitConstructorDeclaration_singleInitializer() {
-    var code = 'A() : a = b;';
+  void test_visitConstructorDeclaration_typeName_unnamed() {
+    var code = 'A();';
     var findNode = _parseStringToFindNode('''
 class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
+  }
+
+  void test_visitConstructorDeclaration_typeName_withInitializers() {
+    var code = 'A() : a = 0, super();';
+    var findNode = _parseStringToFindNode('''
+class A {
+  int a;
   $code
 }
 ''');
@@ -1560,10 +1713,14 @@ void f() {
     _assertSource(code, findNode.forPartsWithExpression(code));
   }
 
-  @failingTest
   void test_visitForPartsWithPattern() {
-    // TODO(brianwilkerson): Test this when the parser allows.
-    fail('Unable to parse patterns');
+    var code = 'var (a, b) = (0, 1); a < 10; a++, b++';
+    var findNode = _parseStringToFindNode('''
+void f() {
+  for ($code) {}
+}
+''');
+    _assertSource(code, findNode.forPartsWithPattern(code));
   }
 
   void test_visitForStatement() {
@@ -1890,6 +2047,19 @@ $code
 $code
 ''');
     _assertSource(code, findNode.genericTypeAlias(code));
+  }
+
+  void test_visitGuardedPattern() {
+    var code = 'var y when y > 0';
+    var findNode = _parseStringToFindNode('''
+void f() {
+  switch (x) {
+    case var y when y > 0:
+      break;
+  }
+}
+''');
+    _assertSource(code, findNode.singleGuardedPattern);
   }
 
   void test_visitIfElement_else() {
@@ -2698,6 +2868,26 @@ void foo() $code
     _assertSource(code, findNode.nativeFunctionBody(code));
   }
 
+  void test_visitNullAssertPattern() {
+    var code = 'y!';
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  if (x case $code) {}
+}
+''');
+    _assertSource(code, findNode.nullAssertPattern(code));
+  }
+
+  void test_visitNullCheckPattern() {
+    var code = '_?';
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  if (x case $code) {}
+}
+''');
+    _assertSource(code, findNode.nullCheckPattern(code));
+  }
+
   void test_visitNullLiteral() {
     var code = 'null';
     var findNode = _parseStringToFindNode('''
@@ -2771,16 +2961,26 @@ void f(x) {
     _assertSource(code, findNode.partOf(code));
   }
 
-  @failingTest
   void test_visitPatternAssignment() {
-    // TODO(brianwilkerson): Test this when the parser allows.
-    fail('Unable to parse patterns');
+    var code = '(a, b) = (3, 4)';
+    var findNode = _parseStringToFindNode('''
+void f() {
+  var a = 0, b = 0;
+  $code;
+}
+''');
+    _assertSource(code, findNode.patternAssignment(code));
   }
 
-  @failingTest
   void test_visitPatternAssignmentStatement() {
-    // TODO(brianwilkerson): Test this when the parser allows.
-    fail('Unable to parse patterns');
+    var code = '(a, b) = (3, 4);';
+    var findNode = _parseStringToFindNode('''
+void f() {
+  var a = 0, b = 0;
+  $code
+}
+''');
+    _assertSource(code, findNode.statement(code));
   }
 
   void test_visitPatternField_named() {
@@ -2819,16 +3019,24 @@ void f(x) {
     _assertSource('b:', findNode.patternFieldName('b:'));
   }
 
-  @failingTest
   void test_visitPatternVariableDeclaration() {
-    // TODO(brianwilkerson): Test this when the parser allows.
-    fail('Unable to parse patterns');
+    var code = 'var (a, b) = (0, 1)';
+    var findNode = _parseStringToFindNode('''
+void f() {
+  $code;
+}
+''');
+    _assertSource(code, findNode.patternVariableDeclaration(code));
   }
 
-  @failingTest
   void test_visitPatternVariableDeclarationStatement() {
-    // TODO(brianwilkerson): Test this when the parser allows.
-    fail('Unable to parse patterns');
+    var code = 'var (a, b) = (0, 1);';
+    var findNode = _parseStringToFindNode('''
+void f() {
+  $code
+}
+''');
+    _assertSource(code, findNode.patternVariableDeclarationStatement(code));
   }
 
   void test_visitPositionalFormalParameter() {
@@ -2886,6 +3094,48 @@ int f() {
 var v = !(a == b);
 ''');
     _assertSource('!(a == b)', findNode.prefix('!'));
+  }
+
+  void test_visitPrimaryConstructorBody_block() {
+    var code = 'this {foo();}';
+    var findNode = _parseStringToFindNode('''
+class A() {
+  $code
+}
+''');
+    _assertSource(code, findNode.singlePrimaryConstructorBody);
+  }
+
+  void test_visitPrimaryConstructorBody_initializers() {
+    var code = 'this : x = 0, y = 1;';
+    var findNode = _parseStringToFindNode('''
+class A() {
+  final int x;
+  final int y;
+  $code
+}
+''');
+    _assertSource(code, findNode.singlePrimaryConstructorBody);
+  }
+
+  void test_visitPrimaryConstructorBody_metadata() {
+    var code = '@deprecated this;';
+    var findNode = _parseStringToFindNode('''
+class A() {
+  $code
+}
+''');
+    _assertSource(code, findNode.singlePrimaryConstructorBody);
+  }
+
+  void test_visitPrimaryConstructorBody_simple() {
+    var code = 'this;';
+    var findNode = _parseStringToFindNode('''
+class A() {
+  $code
+}
+''');
+    _assertSource(code, findNode.singlePrimaryConstructorBody);
   }
 
   void test_visitPropertyAccess() {
@@ -3002,6 +3252,16 @@ void f(x) {
 }
 ''');
     _assertSource('> 3', findNode.relationalPattern('>'));
+  }
+
+  void test_visitRestPatternElement() {
+    var code = '...rest';
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  if (x case [0, $code]) {}
+}
+''');
+    _assertSource(code, findNode.restPatternElement(code));
   }
 
   void test_visitRethrowExpression() {
@@ -3400,28 +3660,23 @@ void f() {
     _assertSource(code, findNode.switchDefault(code));
   }
 
-  @failingTest
   void test_visitSwitchExpression() {
-    // TODO(brianwilkerson): Test this when the parser allows.
-    fail('Unable to parse patterns');
+    var code = 'switch (x) {0 => 1, _ => 2}';
+    var findNode = _parseStringToFindNode('''
+var result = $code;
+''');
+    _assertSource(code, findNode.switchExpression('switch'));
   }
 
-  @failingTest
   void test_visitSwitchExpressionCase() {
-    // TODO(brianwilkerson): Test this when the parser allows.
-    fail('Unable to parse patterns');
-  }
-
-  @failingTest
-  void test_visitSwitchExpressionDefault() {
-    // TODO(brianwilkerson): Test this when the parser allows.
-    fail('Unable to parse patterns');
-  }
-
-  @failingTest
-  void test_visitSwitchGuard() {
-    // TODO(brianwilkerson): Test this when the parser allows.
-    fail('Unable to parse patterns');
+    var code = '0 => 1';
+    var findNode = _parseStringToFindNode('''
+var result = switch (x) {
+  $code,
+  _ => 2,
+};
+''');
+    _assertSource(code, findNode.switchExpressionCase(code));
   }
 
   void test_visitSwitchPatternCase_multipleLabels() {

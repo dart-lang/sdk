@@ -273,7 +273,7 @@ class DeclarationHelper {
     for (var field in containingElement.fields) {
       // Skip fields that are already initialized at their declaration.
       if (!field.isStatic &&
-          !field.isSynthetic &&
+          field.isOriginDeclaration &&
           !fieldsToSkip.contains(field) &&
           (!(field.isFinal || field.isConst) || !field.hasInitializer)) {
         _suggestField(field: field);
@@ -419,6 +419,15 @@ class DeclarationHelper {
       return;
     }
     AstNode? parent = containingMember.parent ?? containingMember;
+    if (parent is ClassNamePart) {
+      parent = parent.parent;
+    }
+    switch (parent) {
+      case BlockClassBody():
+        parent = parent.parent;
+      case EnumBody():
+        parent = parent.parent;
+    }
     if (parent is EnumConstantDeclaration) {
       assert(node is CommentReference);
       parent = parent.parent;
@@ -429,6 +438,12 @@ class DeclarationHelper {
       parent = parent.parent;
     } else if (parent is CompilationUnit) {
       parent = containingMember;
+    }
+    switch (parent) {
+      case BlockClassBody():
+        parent = parent.parent;
+      case EnumBody():
+        parent = parent.parent;
     }
     CompilationUnitMember? topLevelMember;
     if (parent is CompilationUnitMember) {
@@ -835,7 +850,7 @@ class DeclarationHelper {
         if (excludedGetters.contains(getter.name)) {
           continue;
         }
-        if (!getter.isSynthetic) {
+        if (getter.isOriginDeclaration) {
           if (getter.isVisibleIn(libraryElement)) {
             _suggestProperty(
               accessor: getter,
@@ -862,7 +877,7 @@ class DeclarationHelper {
           // Avoid visiting a field twice. All fields induce a getter, but only
           // non-final fields induce a setter, so we don't add a suggestion for
           // a synthetic setter.
-          if (setter.isSynthetic || !setter.isVisibleIn(libraryElement)) {
+          if (setter.isOriginVariable || !setter.isVisibleIn(libraryElement)) {
             continue;
           }
           _suggestProperty(accessor: setter);
@@ -912,7 +927,7 @@ class DeclarationHelper {
             // Do not add synthetic setters, as these may prevent adding getters,
             // they are both tracked with the same name in the
             // [VisibilityTracker].
-            if (element.isSynthetic) {
+            if (element.isOriginVariable) {
               break;
             }
             _suggestTopLevelProperty(element, importData);
@@ -1371,7 +1386,7 @@ class DeclarationHelper {
     var referencingInterface = _referencingInterfaceFor(element);
 
     for (var accessor in element.getters) {
-      if ((!accessor.isSynthetic || accessor.isEnumValues) &&
+      if ((accessor.isOriginDeclaration || accessor.isEnumValues) &&
           (!mustBeStatic || accessor.isStatic)) {
         _suggestProperty(
           accessor: accessor,
@@ -1382,7 +1397,8 @@ class DeclarationHelper {
     }
 
     for (var accessor in element.setters) {
-      if (!accessor.isSynthetic && (!mustBeStatic || accessor.isStatic)) {
+      if (accessor.isOriginDeclaration &&
+          (!mustBeStatic || accessor.isStatic)) {
         _suggestProperty(
           accessor: accessor,
           referencingInterface: referencingInterface,
@@ -1392,7 +1408,7 @@ class DeclarationHelper {
     }
 
     for (var field in element.fields) {
-      if (!field.isSynthetic && (!mustBeStatic || field.isStatic)) {
+      if (field.isOriginDeclaration && (!mustBeStatic || field.isStatic)) {
         _suggestField(
           field: field,
           referencingInterface: referencingInterface,
@@ -1504,7 +1520,7 @@ class DeclarationHelper {
   }) {
     for (var getter in getters) {
       if (getter.isStatic &&
-          !getter.isSynthetic &&
+          getter.isOriginDeclaration &&
           getter.isVisibleIn(request.libraryElement) &&
           (!onlyInvocations ||
               getter.returnType is FunctionType ||
@@ -1514,15 +1530,14 @@ class DeclarationHelper {
     }
     for (var setter in setters) {
       if (setter.isStatic &&
-          !setter.isSynthetic &&
+          setter.isOriginDeclaration &&
           setter.isVisibleIn(request.libraryElement)) {
         _suggestProperty(accessor: setter);
       }
     }
     for (var field in fields) {
       if (field.isStatic &&
-          (!field.isSynthetic ||
-              (containingElement is EnumElement && field.name == 'values')) &&
+          (field.isOriginDeclaration || field.isOriginEnumValues) &&
           field.isVisibleIn(request.libraryElement) &&
           (!onlyInvocations ||
               field.type is FunctionType ||
@@ -1593,12 +1608,12 @@ class DeclarationHelper {
     }
     if (!mustBeType) {
       for (var element in library.getters) {
-        if (!element.isSynthetic) {
+        if (element.isOriginDeclaration) {
           _suggestTopLevelProperty(element, null);
         }
       }
       for (var element in library.setters) {
-        if (!element.isSynthetic) {
+        if (element.isOriginDeclaration) {
           if (element.correspondingGetter == null) {
             _suggestTopLevelProperty(element, null);
           }
@@ -1613,7 +1628,7 @@ class DeclarationHelper {
         _suggestTopLevelFunction(element, null);
       }
       for (var element in library.topLevelVariables) {
-        if (!element.isSynthetic) {
+        if (element.isOriginDeclaration) {
           _suggestTopLevelVariable(element, null);
         }
       }
@@ -1634,10 +1649,10 @@ class DeclarationHelper {
     var firstMember = list.first;
     if (mustBeAssignable) {
       if (firstMember case SetterElementImpl(
-        :var isSynthetic,
+        :var isOriginVariable,
         :var correspondingGetter,
       )) {
-        if (isSynthetic && correspondingGetter != null) {
+        if (isOriginVariable && correspondingGetter != null) {
           return correspondingGetter;
         } else {
           return firstMember;
@@ -1646,10 +1661,10 @@ class DeclarationHelper {
       for (var i = 1; i < list.length; i++) {
         var member = list[i];
         if (member case SetterElementImpl(
-          :var isSynthetic,
+          :var isOriginVariable,
           :var correspondingGetter,
         )) {
-          if (isSynthetic && correspondingGetter != null) {
+          if (isOriginVariable && correspondingGetter != null) {
             return correspondingGetter;
           } else {
             return member;
@@ -1733,7 +1748,7 @@ class DeclarationHelper {
     double matcherScore, {
     ImportData? importData,
   }) {
-    if (element.isSynthetic) {
+    if (element.isOriginVariable) {
       if (element is GetterElement) {
         var variable = element.variable;
         if (variable is TopLevelVariableElement) {
@@ -2218,7 +2233,7 @@ class DeclarationHelper {
             keyword = Keyword.VAR;
           }
         }
-        if (accessor.isSynthetic) {
+        if (accessor.isOriginVariable) {
           // Avoid visiting a field twice. All fields induce a getter, but only
           // non-final fields induce a setter, so we don't add a suggestion for a
           // synthetic setter.
@@ -2324,10 +2339,10 @@ class DeclarationHelper {
       } else {
         var matcherScore = state.matcher.score(element.displayName);
         if (matcherScore != -1) {
-          if (element.isSynthetic) {
+          if (element.isOriginGetterSetter) {
             var getter = element.getter;
             if (getter != null) {
-              if (getter.isSynthetic) {
+              if (getter.isOriginVariable) {
                 var variable = getter.variable;
                 if (variable is FieldElement) {
                   var suggestion = FieldSuggestion(
@@ -2778,7 +2793,7 @@ extension on GetterElement {
   bool get isEnumValues =>
       name == 'values' &&
       isStatic &&
-      isSynthetic &&
+      isOriginVariable &&
       enclosingElement is EnumElement;
 }
 
@@ -2799,7 +2814,7 @@ extension on Element {
 extension on PropertyAccessorElement {
   /// Whether this accessor is an accessor for a constant variable.
   bool get isConst {
-    if (isSynthetic) {
+    if (isOriginVariable) {
       return variable.isConst;
     }
     return false;

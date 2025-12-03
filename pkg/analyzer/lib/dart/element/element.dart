@@ -59,6 +59,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
@@ -228,6 +229,10 @@ abstract class ConstructorElement implements ExecutableElement {
   /// Whether the constructor is a const constructor.
   bool get isConst;
 
+  /// Whether this is a declaring constructor.
+  @experimental
+  bool get isDeclaring;
+
   /// Whether the constructor can be used as a default constructor - unnamed,
   /// and has no required parameters.
   bool get isDefaultConstructor;
@@ -237,6 +242,38 @@ abstract class ConstructorElement implements ExecutableElement {
 
   /// Whether the constructor represents a generative constructor.
   bool get isGenerative;
+
+  /// Whether the constructor is from an explicit [ConstructorDeclaration]
+  /// or [PrimaryConstructorDeclaration].
+  ///
+  /// When this is `true`, [isOriginImplicitDefault] and
+  /// [isOriginMixinApplication] are `false`.
+  bool get isOriginDeclaration;
+
+  /// Whether the constructor was created because there are no explicit
+  /// constructors.
+  ///
+  /// When this is `true`, [isOriginDeclaration] and
+  /// [isOriginMixinApplication] are `false`.
+  bool get isOriginImplicitDefault;
+
+  /// Whether the constructor was created for a mixin application.
+  ///
+  /// When this is `true`, [isOriginDeclaration] and
+  /// [isOriginImplicitDefault] are `false`.
+  bool get isOriginMixinApplication;
+
+  /// Whether this is a primary constructor.
+  /// When `true`, [isDeclaring] is also `true`.
+  @experimental
+  bool get isPrimary;
+
+  @Deprecated(
+    'Use isOriginDeclaration / isOriginImplicitDefault / '
+    'isOriginMixinApplication instead, depending on intent.',
+  )
+  @override
+  bool get isSynthetic;
 
   /// The name of this constructor.
   ///
@@ -270,8 +307,25 @@ abstract class ConstructorFragment implements ExecutableFragment {
   @override
   InstanceFragment? get enclosingFragment;
 
+  /// The offset of the `factory` keyword.
+  ///
+  /// It is `null` if the fragment is synthetic, or does not have the keyword.
+  int? get factoryKeywordOffset;
+
+  @Deprecated(
+    'Use isOriginDeclaration / isOriginImplicitDefault / '
+    'isOriginMixinApplication instead, depending on intent.',
+  )
+  @override
+  bool get isSynthetic;
+
   @override
   String get name;
+
+  /// The offset of the `new` keyword.
+  ///
+  /// It is `null` if the fragment is synthetic, or does not have the keyword.
+  int? get newKeywordOffset;
 
   @override
   ConstructorFragment? get nextFragment;
@@ -1193,6 +1247,10 @@ abstract class FieldElement implements PropertyInducingElement {
   @override
   FieldElement get baseElement;
 
+  /// The declaring formal parameter, if created from one.
+  @experimental
+  FieldFormalParameterElement? get declaringFormalParameter;
+
   @override
   InstanceElement get enclosingElement;
 
@@ -1217,6 +1275,18 @@ abstract class FieldElement implements PropertyInducingElement {
   /// Whether the field was explicitly marked as being external.
   bool get isExternal;
 
+  /// Whether the field is from a declaring formal parameter.
+  ///
+  /// When this is `true`, [isOriginDeclaration], [isOriginGetterSetter],
+  /// and [isOriginEnumValues] are `false`.
+  bool get isOriginDeclaringFormalParameter;
+
+  /// Whether the field is the `values` field of an enum.
+  ///
+  /// When this is `true`, [isOriginDeclaration], [isOriginGetterSetter],
+  /// and [isOriginDeclaringFormalParameter] are `false`.
+  bool get isOriginEnumValues;
+
   /// Whether the field can be type promoted.
   bool get isPromotable;
 }
@@ -1235,6 +1305,28 @@ abstract class FieldFormalParameterElement implements FormalParameterElement {
 
   @override
   List<FieldFormalParameterFragment> get fragments;
+
+  /// Whether this is a declaring formal parameter.
+  @experimental
+  bool get isDeclaring;
+
+  /// If this field formal parameter is a named parameter with a private name,
+  /// the original private name.
+  ///
+  /// In that case, [name] is the corresponding public name for the parameter
+  /// and [privateName] is the original declared name. Otherwise (the declared
+  /// name wasn't private or was private but has no corresponding public name),
+  /// then, [privateName] is `null`.
+  ///
+  /// The private name is used for:
+  ///
+  /// * Accessing the parameter in the initializer list.
+  ///
+  /// * Finding the corresponding instance variable.
+  ///
+  /// * Referring to the parameter in the constructor's doc comment.
+  @experimental
+  String? get privateName;
 }
 
 /// The portion of a [FieldFormalParameterElement] contributed by a single
@@ -1250,6 +1342,13 @@ abstract class FieldFormalParameterFragment implements FormalParameterFragment {
 
   @override
   FieldFormalParameterFragment? get previousFragment;
+
+  /// If this field formal parameter is a named parameter with a private name,
+  /// the original private name.
+  ///
+  /// In that case, [name] is the corresponding public name for the parameter.
+  @experimental
+  String? get privateName;
 }
 
 /// The portion of a [FieldElement] contributed by a single declaration.
@@ -2832,6 +2931,29 @@ abstract class PropertyAccessorElement implements ExecutableElement {
   @override
   List<PropertyAccessorFragment> get fragments;
 
+  /// Whether the property accessor is from an explicit [MethodDeclaration] or
+  /// [FunctionDeclaration].
+  ///
+  /// When this is `true`, [isOriginVariable] and [isOriginInterface] are `false`.
+  bool get isOriginDeclaration;
+
+  /// Whether the property accessor is created while building interface.
+  ///
+  /// When this is `true`, [isOriginDeclaration] and [isOriginVariable]
+  /// are `false`.
+  bool get isOriginInterface;
+
+  /// Whether the property accessor is from a [FieldElement] or
+  /// [TopLevelVariableElement].
+  ///
+  /// When this is `true`, [isOriginDeclaration] and [isOriginInterface] are
+  /// `false`.
+  bool get isOriginVariable;
+
+  @Deprecated('Use isOriginX instead')
+  @override
+  bool get isSynthetic;
+
   /// The field or top-level variable associated with this getter.
   ///
   /// If this getter was explicitly defined (is not synthetic) then the variable
@@ -2886,6 +3008,21 @@ abstract class PropertyInducingElement implements VariableElement {
   /// Whether any fragment of this variable has an initializer at declaration.
   bool get hasInitializer;
 
+  /// Whether the property is from an explicit [FieldDeclaration],
+  /// [TopLevelVariableDeclaration], or [EnumConstantDeclaration].
+  ///
+  /// When this is `true`, [isOriginGetterSetter] is `false`.
+  bool get isOriginDeclaration;
+
+  /// Whether the property is from a getter or setter.
+  ///
+  /// When this is `true`, [isOriginGetterSetter] is `false`.
+  bool get isOriginGetterSetter;
+
+  @Deprecated('Use isOriginX instead')
+  @override
+  bool get isSynthetic;
+
   @override
   LibraryElement get library;
 
@@ -2924,6 +3061,7 @@ abstract class PropertyInducingFragment implements VariableFragment {
   /// A synthetic fragment is a fragment that is not represented in the source
   /// code explicitly, but is implied by the source code, such as the default
   /// constructor for a class that does not explicitly define any constructors.
+  @Deprecated('Use isOriginX instead')
   bool get isSynthetic;
 
   @override

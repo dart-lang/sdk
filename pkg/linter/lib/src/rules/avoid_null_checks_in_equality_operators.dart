@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r"Don't check for `null` in custom `==` operators.";
@@ -45,8 +46,7 @@ class AvoidNullChecksInEqualityOperators extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidNullChecksInEqualityOperators;
+  DiagnosticCode get diagnosticCode => diag.avoidNullChecksInEqualityOperators;
 
   @override
   void registerNodeProcessors(

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -58,7 +58,7 @@ abstract class B implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           91,
           1,
           contextMessages: [message(testFile, 44, 1)],
@@ -91,7 +91,7 @@ abstract class B implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           87,
           1,
           contextMessages: [message(testFile, 40, 1)],
@@ -124,7 +124,7 @@ abstract class B implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           81,
           1,
           contextMessages: [message(testFile, 34, 1)],
@@ -157,7 +157,7 @@ abstract class B implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           82,
           1,
           contextMessages: [message(testFile, 35, 1)],
@@ -190,7 +190,7 @@ abstract class B implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           78,
           1,
           contextMessages: [message(testFile, 31, 1)],
@@ -223,7 +223,7 @@ abstract class B implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           72,
           1,
           contextMessages: [message(testFile, 25, 1)],
@@ -255,7 +255,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           71,
           1,
           contextMessages: [message(testFile, 20, 1)],
@@ -276,13 +276,13 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           52,
           1,
           contextMessages: [message(testFile, 20, 1)],
         ),
         error(
-          CompileTimeErrorCode.invalidOverrideSetter,
+          diag.invalidOverrideSetter,
           52,
           1,
           contextMessages: [message(testFile, 20, 1)],
@@ -308,7 +308,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           157,
           6,
           contextMessages: [message(testFile, 29, 6)],
@@ -332,13 +332,13 @@ class B implements I<int>, J<String> {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           144,
           1,
           contextMessages: [message(testFile, 30, 1)],
         ),
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           144,
           1,
           contextMessages: [message(testFile, 76, 1)],
@@ -370,9 +370,9 @@ class B	extends A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.invalidImplementationOverride, 52, 1),
+        error(diag.invalidImplementationOverride, 52, 1),
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           72,
           3,
           contextMessages: [message(testFile, 16, 3)],
@@ -392,9 +392,9 @@ class A with M {
 }
 ''',
       [
-        error(CompileTimeErrorCode.invalidImplementationOverride, 52, 1),
+        error(diag.invalidImplementationOverride, 52, 1),
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           69,
           3,
           contextMessages: [message(testFile, 16, 3)],
@@ -415,9 +415,9 @@ mixin M {
 class B	extends A with M {}
 ''',
       [
-        error(CompileTimeErrorCode.invalidImplementationOverride, 77, 1),
+        error(diag.invalidImplementationOverride, 77, 1),
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           94,
           1,
           contextMessages: [message(testFile, 16, 3)],
@@ -469,7 +469,7 @@ class C extends B {
   void foo(covariant String a) {}
 }
 ''',
-      [error(CompileTimeErrorCode.invalidOverride, 109, 3)],
+      [error(diag.invalidOverride, 109, 3)],
     );
   }
 
@@ -485,7 +485,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           49,
           1,
           contextMessages: [message(testFile, 12, 1)],
@@ -506,7 +506,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           49,
           1,
           contextMessages: [message(testFile, 12, 1)],
@@ -527,7 +527,7 @@ class B implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           54,
           1,
           contextMessages: [message(testFile, 12, 1)],
@@ -548,7 +548,7 @@ class B implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           51,
           1,
           contextMessages: [message(testFile, 12, 1)],
@@ -569,7 +569,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           48,
           1,
           contextMessages: [message(testFile, 12, 1)],
@@ -593,13 +593,13 @@ class B extends I<int> implements J<String> {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           147,
           1,
           contextMessages: [message(testFile, 76, 1)],
         ),
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           147,
           1,
           contextMessages: [message(testFile, 29, 1)],
@@ -624,7 +624,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           124,
           1,
           contextMessages: [message(testFile, 54, 1)],
@@ -649,13 +649,13 @@ class B implements I<int>, J<String> {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           140,
           1,
           contextMessages: [message(testFile, 29, 1)],
         ),
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           140,
           1,
           contextMessages: [message(testFile, 76, 1)],
@@ -676,7 +676,7 @@ class B implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           54,
           1,
           contextMessages: [message(testFile, 12, 1)],
@@ -701,7 +701,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           130,
           1,
           contextMessages: [message(testFile, 57, 1)],
@@ -722,7 +722,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           49,
           1,
           contextMessages: [message(testFile, 12, 1)],
@@ -743,7 +743,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           55,
           1,
           contextMessages: [message(testFile, 12, 1)],
@@ -764,7 +764,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           55,
           1,
           contextMessages: [message(testFile, 12, 1)],
@@ -785,7 +785,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           44,
           1,
           contextMessages: [message(testFile, 12, 1)],
@@ -806,7 +806,7 @@ class B implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           68,
           1,
           contextMessages: [message(testFile, 16, 1)],
@@ -831,7 +831,7 @@ augment class B implements A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           50,
           3,
           contextMessages: [message(testFile, 16, 3)],
@@ -854,7 +854,7 @@ class C implements B {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           98,
           1,
           contextMessages: [message(testFile, 25, 1)],
@@ -875,7 +875,7 @@ class B extends Object with A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           83,
           1,
           contextMessages: [message(testFile, 22, 1)],
@@ -896,7 +896,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           65,
           1,
           contextMessages: [message(testFile, 16, 1)],
@@ -921,7 +921,7 @@ augment class B extends A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           50,
           3,
           contextMessages: [message(testFile, 16, 3)],
@@ -944,7 +944,7 @@ class C extends B {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           87,
           1,
           contextMessages: [message(testFile, 16, 1)],
@@ -969,7 +969,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           129,
           1,
           contextMessages: [message(testFile, 25, 1)],
@@ -990,7 +990,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           63,
           1,
           contextMessages: [message(testFile, 16, 1)],
@@ -1012,13 +1012,13 @@ mixin M on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           53,
           3,
           contextMessages: [message(testFile, 19, 3)],
         ),
         error(
-          CompileTimeErrorCode.invalidOverrideSetter,
+          diag.invalidOverrideSetter,
           53,
           3,
           contextMessages: [message(testFile, 19, 3)],
@@ -1040,7 +1040,7 @@ mixin M on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           62,
           3,
           contextMessages: [message(testFile, 23, 3)],
@@ -1062,7 +1062,7 @@ mixin M on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           56,
           3,
           contextMessages: [message(testFile, 19, 3)],
@@ -1087,7 +1087,7 @@ augment mixin M on A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           50,
           3,
           contextMessages: [message(testFile, 16, 3)],
@@ -1109,7 +1109,7 @@ mixin M on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverrideSetter,
+          diag.invalidOverrideSetter,
           57,
           3,
           contextMessages: [message(testFile, 16, 3)],
@@ -1130,7 +1130,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverrideSetter,
+          diag.invalidOverrideSetter,
           66,
           1,
           contextMessages: [message(testFile, 21, 1)],
@@ -1155,7 +1155,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverrideSetter,
+          diag.invalidOverrideSetter,
           173,
           8,
           contextMessages: [message(testFile, 77, 8)],
@@ -1181,7 +1181,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverrideSetter,
+          diag.invalidOverrideSetter,
           166,
           8,
           contextMessages: [message(testFile, 77, 8)],
@@ -1205,13 +1205,13 @@ class B implements I<int>, J<String> {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverrideSetter,
+          diag.invalidOverrideSetter,
           125,
           1,
           contextMessages: [message(testFile, 28, 1)],
         ),
         error(
-          CompileTimeErrorCode.invalidOverrideSetter,
+          diag.invalidOverrideSetter,
           125,
           1,
           contextMessages: [message(testFile, 68, 1)],
@@ -1257,7 +1257,7 @@ abstract class B implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverrideSetter,
+          diag.invalidOverrideSetter,
           95,
           1,
           contextMessages: [message(testFile, 34, 1)],
@@ -1315,7 +1315,7 @@ abstract class B implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverrideSetter,
+          diag.invalidOverrideSetter,
           86,
           1,
           contextMessages: [message(testFile, 25, 1)],

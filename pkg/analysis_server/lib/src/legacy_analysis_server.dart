@@ -191,86 +191,80 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// Requests that don't match anything in this map will be passed to
   /// [LspOverLegacyHandler] for possible handling before returning an error.
   static final Map<String, HandlerGenerator> requestHandlerGenerators = {
-    ANALYSIS_REQUEST_GET_ERRORS: AnalysisGetErrorsHandler.new,
-    ANALYSIS_REQUEST_GET_HOVER: AnalysisGetHoverHandler.new,
-    ANALYSIS_REQUEST_GET_IMPORTED_ELEMENTS:
-        AnalysisGetImportedElementsHandler.new,
-    ANALYSIS_REQUEST_GET_LIBRARY_DEPENDENCIES: UnsupportedRequestHandler.new,
-    ANALYSIS_REQUEST_GET_NAVIGATION: AnalysisGetNavigationHandler.new,
-    ANALYSIS_REQUEST_GET_REACHABLE_SOURCES: UnsupportedRequestHandler.new,
-    ANALYSIS_REQUEST_GET_SIGNATURE: AnalysisGetSignatureHandler.new,
-    ANALYSIS_REQUEST_REANALYZE: AnalysisReanalyzeHandler.new,
-    ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS: AnalysisSetAnalysisRootsHandler.new,
-    ANALYSIS_REQUEST_SET_GENERAL_SUBSCRIPTIONS:
+    analysisRequestGetErrors: AnalysisGetErrorsHandler.new,
+    analysisRequestGetHover: AnalysisGetHoverHandler.new,
+    analysisRequestGetImportedElements: AnalysisGetImportedElementsHandler.new,
+    analysisRequestGetLibraryDependencies: UnsupportedRequestHandler.new,
+    analysisRequestGetNavigation: AnalysisGetNavigationHandler.new,
+    analysisRequestGetReachableSources: UnsupportedRequestHandler.new,
+    analysisRequestGetSignature: AnalysisGetSignatureHandler.new,
+    analysisRequestReanalyze: AnalysisReanalyzeHandler.new,
+    analysisRequestSetAnalysisRoots: AnalysisSetAnalysisRootsHandler.new,
+    analysisRequestSetGeneralSubscriptions:
         AnalysisSetGeneralSubscriptionsHandler.new,
-    ANALYSIS_REQUEST_SET_PRIORITY_FILES: AnalysisSetPriorityFilesHandler.new,
-    ANALYSIS_REQUEST_SET_SUBSCRIPTIONS: AnalysisSetSubscriptionsHandler.new,
-    ANALYSIS_REQUEST_UPDATE_CONTENT: AnalysisUpdateContentHandler.new,
-    ANALYSIS_REQUEST_UPDATE_OPTIONS: AnalysisUpdateOptionsHandler.new,
+    analysisRequestSetPriorityFiles: AnalysisSetPriorityFilesHandler.new,
+    analysisRequestSetSubscriptions: AnalysisSetSubscriptionsHandler.new,
+    analysisRequestUpdateContent: AnalysisUpdateContentHandler.new,
+    analysisRequestUpdateOptions: AnalysisUpdateOptionsHandler.new,
 
-    ANALYTICS_REQUEST_IS_ENABLED: AnalyticsIsEnabledHandler.new,
-    ANALYTICS_REQUEST_ENABLE: AnalyticsEnableHandler.new,
-    ANALYTICS_REQUEST_SEND_EVENT: AnalyticsSendEventHandler.new,
-    ANALYTICS_REQUEST_SEND_TIMING: AnalyticsSendTimingHandler.new,
+    analyticsRequestIsEnabled: AnalyticsIsEnabledHandler.new,
+    analyticsRequestEnable: AnalyticsEnableHandler.new,
+    analyticsRequestSendEvent: AnalyticsSendEventHandler.new,
+    analyticsRequestSendTiming: AnalyticsSendTimingHandler.new,
 
-    COMPLETION_REQUEST_GET_SUGGESTION_DETAILS2:
+    completionRequestGetSuggestionDetails2:
         CompletionGetSuggestionDetails2Handler.new,
-    COMPLETION_REQUEST_GET_SUGGESTIONS2: CompletionGetSuggestions2Handler.new,
+    completionRequestGetSuggestions2: CompletionGetSuggestions2Handler.new,
 
-    DIAGNOSTIC_REQUEST_GET_DIAGNOSTICS: DiagnosticGetDiagnosticsHandler.new,
-    DIAGNOSTIC_REQUEST_GET_SERVER_PORT: DiagnosticGetServerPortHandler.new,
+    diagnosticRequestGetDiagnostics: DiagnosticGetDiagnosticsHandler.new,
+    diagnosticRequestGetServerPort: DiagnosticGetServerPortHandler.new,
 
-    EDIT_REQUEST_FORMAT: EditFormatHandler.new,
-    EDIT_REQUEST_FORMAT_IF_ENABLED: EditFormatIfEnabledHandler.new,
-    EDIT_REQUEST_GET_ASSISTS: EditGetAssistsHandler.new,
-    EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS:
+    editRequestFormat: EditFormatHandler.new,
+    editRequestFormatIfEnabled: EditFormatIfEnabledHandler.new,
+    editRequestGetAssists: EditGetAssistsHandler.new,
+    editRequestGetAvailableRefactorings:
         EditGetAvailableRefactoringsHandler.new,
-    EDIT_REQUEST_BULK_FIXES: EditBulkFixes.new,
-    EDIT_REQUEST_GET_FIXES: EditGetFixesHandler.new,
-    EDIT_REQUEST_GET_REFACTORING: EditGetRefactoringHandler.new,
-    EDIT_REQUEST_IMPORT_ELEMENTS: EditImportElementsHandler.new,
-    EDIT_REQUEST_ORGANIZE_DIRECTIVES: EditOrganizeDirectivesHandler.new,
-    EDIT_REQUEST_SORT_MEMBERS: EditSortMembersHandler.new,
-    EDIT_REQUEST_GET_STATEMENT_COMPLETION:
-        EditGetStatementCompletionHandler.new,
-    EDIT_REQUEST_IS_POSTFIX_COMPLETION_APPLICABLE:
+    editRequestBulkFixes: EditBulkFixes.new,
+    editRequestGetFixes: EditGetFixesHandler.new,
+    editRequestGetRefactoring: EditGetRefactoringHandler.new,
+    editRequestImportElements: EditImportElementsHandler.new,
+    editRequestOrganizeDirectives: EditOrganizeDirectivesHandler.new,
+    editRequestSortMembers: EditSortMembersHandler.new,
+    editRequestGetStatementCompletion: EditGetStatementCompletionHandler.new,
+    editRequestIsPostfixCompletionApplicable:
         EditIsPostfixCompletionApplicableHandler.new,
-    EDIT_REQUEST_GET_POSTFIX_COMPLETION: EditGetPostfixCompletionHandler.new,
-    EDIT_REQUEST_LIST_POSTFIX_COMPLETION_TEMPLATES:
+    editRequestGetPostfixCompletion: EditGetPostfixCompletionHandler.new,
+    editRequestListPostfixCompletionTemplates:
         EditListPostfixCompletionTemplatesHandler.new,
 
-    EXECUTION_REQUEST_CREATE_CONTEXT: ExecutionCreateContextHandler.new,
-    EXECUTION_REQUEST_DELETE_CONTEXT: ExecutionDeleteContextHandler.new,
-    EXECUTION_REQUEST_GET_SUGGESTIONS: ExecutionGetSuggestionsHandler.new,
-    EXECUTION_REQUEST_MAP_URI: ExecutionMapUriHandler.new,
-    EXECUTION_REQUEST_SET_SUBSCRIPTIONS: ExecutionSetSubscriptionsHandler.new,
+    executionRequestCreateContext: ExecutionCreateContextHandler.new,
+    executionRequestDeleteContext: ExecutionDeleteContextHandler.new,
+    executionRequestGetSuggestions: ExecutionGetSuggestionsHandler.new,
+    executionRequestMapUri: ExecutionMapUriHandler.new,
+    executionRequestSetSubscriptions: ExecutionSetSubscriptionsHandler.new,
 
-    FLUTTER_REQUEST_GET_WIDGET_DESCRIPTION:
-        FlutterGetWidgetDescriptionHandler.new,
-    FLUTTER_REQUEST_SET_WIDGET_PROPERTY_VALUE:
+    flutterRequestGetWidgetDescription: FlutterGetWidgetDescriptionHandler.new,
+    flutterRequestSetWidgetPropertyValue:
         FlutterSetWidgetPropertyValueHandler.new,
-    FLUTTER_REQUEST_SET_SUBSCRIPTIONS: FlutterSetSubscriptionsHandler.new,
+    flutterRequestSetSubscriptions: FlutterSetSubscriptionsHandler.new,
 
-    SEARCH_REQUEST_FIND_ELEMENT_REFERENCES:
-        SearchFindElementReferencesHandler.new,
-    SEARCH_REQUEST_FIND_MEMBER_DECLARATIONS:
+    searchRequestFindElementReferences: SearchFindElementReferencesHandler.new,
+    searchRequestFindMemberDeclarations:
         SearchFindMemberDeclarationsHandler.new,
-    SEARCH_REQUEST_FIND_MEMBER_REFERENCES:
-        SearchFindMemberReferencesHandler.new,
-    SEARCH_REQUEST_FIND_TOP_LEVEL_DECLARATIONS:
+    searchRequestFindMemberReferences: SearchFindMemberReferencesHandler.new,
+    searchRequestFindTopLevelDeclarations:
         SearchFindTopLevelDeclarationsHandler.new,
-    SEARCH_REQUEST_GET_ELEMENT_DECLARATIONS:
+    searchRequestGetElementDeclarations:
         SearchGetElementDeclarationsHandler.new,
-    SEARCH_REQUEST_GET_TYPE_HIERARCHY: SearchGetTypeHierarchyHandler.new,
+    searchRequestGetTypeHierarchy: SearchGetTypeHierarchyHandler.new,
 
-    SERVER_REQUEST_CANCEL_REQUEST: ServerCancelRequestHandler.new,
-    SERVER_REQUEST_GET_VERSION: ServerGetVersionHandler.new,
-    SERVER_REQUEST_SET_CLIENT_CAPABILITIES:
-        ServerSetClientCapabilitiesHandler.new,
-    SERVER_REQUEST_SET_SUBSCRIPTIONS: ServerSetSubscriptionsHandler.new,
-    SERVER_REQUEST_SHUTDOWN: ServerShutdownHandler.new,
+    serverRequestCancelRequest: ServerCancelRequestHandler.new,
+    serverRequestGetVersion: ServerGetVersionHandler.new,
+    serverRequestSetClientCapabilities: ServerSetClientCapabilitiesHandler.new,
+    serverRequestSetSubscriptions: ServerSetSubscriptionsHandler.new,
+    serverRequestShutdown: ServerShutdownHandler.new,
 
-    LSP_REQUEST_HANDLE: LspOverLegacyHandler.new,
+    lspRequestHandle: LspOverLegacyHandler.new,
   };
 
   /// The channel from which requests are received and to which responses should
@@ -482,6 +476,9 @@ class LegacyAnalysisServer extends AnalysisServer {
   set clientCapabilities(ServerSetClientCapabilitiesParams capabilities) {
     _clientCapabilities = capabilities;
 
+    // TODO(dantup): If we can confirm that IntelliJ did not ship code that
+    //  sets supportsUris=true, then we may be able to entirely remove the
+    //  uriConverter and all the calls through it.
     if (capabilities.supportsUris ?? false) {
       // URI support implies LSP, as that's the only way to access (and get
       // change notifications for) custom-scheme files.
@@ -768,7 +765,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     var response = await sendRequest(
       Request(
         id.toString(),
-        LSP_REQUEST_HANDLE,
+        lspRequestHandle,
         LspHandleParams(lspMessage).toJson(clientUriConverter: uriConverter),
       ),
     );
@@ -832,7 +829,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     bool fatal = false,
   }) {
     var msg = '$message: $exception';
-    if (stackTrace != null && exception is! CaughtException) {
+    if (stackTrace == null && exception is! CaughtException) {
       stackTrace = StackTrace.current;
     }
 

@@ -22,7 +22,7 @@ void main() {
     }
 
     var json = await server.send(
-        SERVER_REQUEST_GET_VERSION, ServerGetVersionParams().toJson());
+        serverRequestGetVersion, ServerGetVersionParams().toJson());
     final result =
         ServerGetVersionResult.fromJson(ResponseDecoder(null), 'result', json);
     await server.stop();

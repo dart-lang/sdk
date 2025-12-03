@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -24,10 +25,7 @@ void f() {
   var x = 1 ?? 1;
 }
 ''',
-      [
-        error(WarningCode.deadCode, 23, 4),
-        error(StaticWarningCode.deadNullAwareExpression, 26, 1),
-      ],
+      [error(diag.deadCode, 23, 4), error(diag.deadNullAwareExpression, 26, 1)],
     );
   }
 
@@ -50,9 +48,9 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.deadCode, 23, 7),
+        error(diag.deadCode, 23, 7),
         lint(26, 4),
-        error(StaticWarningCode.deadNullAwareExpression, 26, 4),
+        error(diag.deadNullAwareExpression, 26, 4),
       ],
     );
   }
@@ -68,9 +66,9 @@ class C {
 }
 ''',
       [
-        error(WarningCode.deadCode, 32, 7),
+        error(diag.deadCode, 32, 7),
         lint(35, 4),
-        error(StaticWarningCode.deadNullAwareExpression, 35, 4),
+        error(diag.deadNullAwareExpression, 35, 4),
         lint(53, 4),
       ],
     );
@@ -87,8 +85,8 @@ class C {
 ''',
       [
         // No lint.
-        error(WarningCode.deadCode, 32, 4),
-        error(StaticWarningCode.deadNullAwareExpression, 35, 1),
+        error(diag.deadCode, 32, 4),
+        error(diag.deadNullAwareExpression, 35, 1),
       ],
     );
   }
@@ -100,9 +98,9 @@ var x = 1 ?? null;
 var y = null ?? 1;
 ''',
       [
-        error(WarningCode.deadCode, 10, 7),
+        error(diag.deadCode, 10, 7),
         lint(13, 4),
-        error(StaticWarningCode.deadNullAwareExpression, 13, 4),
+        error(diag.deadNullAwareExpression, 13, 4),
         lint(27, 4),
       ],
     );
@@ -115,8 +113,8 @@ var x = 1 ?? 1;
 ''',
       [
         // No lint.
-        error(WarningCode.deadCode, 10, 4),
-        error(StaticWarningCode.deadNullAwareExpression, 13, 1),
+        error(diag.deadCode, 10, 4),
+        error(diag.deadNullAwareExpression, 13, 1),
       ],
     );
   }
@@ -126,10 +124,7 @@ var x = 1 ?? 1;
       r'''
 var x = 1 ?? 1;
 ''',
-      [
-        error(WarningCode.deadCode, 10, 4),
-        error(StaticWarningCode.deadNullAwareExpression, 13, 1),
-      ],
+      [error(diag.deadCode, 10, 4), error(diag.deadNullAwareExpression, 13, 1)],
     );
   }
 
@@ -148,9 +143,9 @@ var x = null ?? 1;
 var x = 1 ?? null;
 ''',
       [
-        error(WarningCode.deadCode, 10, 7),
+        error(diag.deadCode, 10, 7),
         lint(13, 4),
-        error(StaticWarningCode.deadNullAwareExpression, 13, 4),
+        error(diag.deadNullAwareExpression, 13, 4),
       ],
     );
   }

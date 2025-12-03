@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -47,19 +46,11 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     node.metadata.accept(this);
-    if (useDeclaringConstructorsAst) {
-      node.namePart.typeParameters?.accept(this);
-    } else {
-      node.typeParameters?.accept(this);
-    }
+    node.namePart.typeParameters?.accept(this);
 
     _scope = LinkingNodeContext.get(node).scope;
     try {
-      if (useDeclaringConstructorsAst) {
-        node.body.accept(this);
-      } else {
-        node.members.accept(this);
-      }
+      node.body.accept(this);
     } finally {
       _scope = _containerScope;
     }
@@ -99,21 +90,12 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     node.metadata.accept(this);
-    if (useDeclaringConstructorsAst) {
-      node.namePart.typeParameters?.accept(this);
-    } else {
-      node.typeParameters?.accept(this);
-    }
+    node.namePart.typeParameters?.accept(this);
 
     _scope = LinkingNodeContext.get(node).scope;
     try {
-      if (useDeclaringConstructorsAst) {
-        node.body.constants.accept(this);
-        node.body.members.accept(this);
-      } else {
-        node.constants.accept(this);
-        node.members.accept(this);
-      }
+      node.body.constants.accept(this);
+      node.body.members.accept(this);
     } finally {
       _scope = _containerScope;
     }
@@ -136,11 +118,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
     _scope = LinkingNodeContext.get(node).scope;
     try {
-      if (useDeclaringConstructorsAst) {
-        node.body.members.accept(this);
-      } else {
-        node.members.accept(this);
-      }
+      node.body.members.accept(this);
     } finally {
       _scope = _containerScope;
     }
@@ -149,20 +127,11 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     node.metadata.accept(this);
-    if (useDeclaringConstructorsAst) {
-      node.namePart.accept(this);
-    } else {
-      node.typeParameters?.accept(this);
-      node.representation.accept(this);
-    }
+    node.primaryConstructor.accept(this);
 
     _scope = LinkingNodeContext.get(node).scope;
     try {
-      if (useDeclaringConstructorsAst) {
-        node.body.accept(this);
-      } else {
-        node.members.accept(this);
-      }
+      node.body.accept(this);
     } finally {
       _scope = _containerScope;
     }
@@ -250,11 +219,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
     _scope = LinkingNodeContext.get(node).scope;
     try {
-      if (useDeclaringConstructorsAst) {
-        node.body.members.accept(this);
-      } else {
-        node.members.accept(this);
-      }
+      node.body.members.accept(this);
     } finally {
       _scope = _containerScope;
     }
@@ -274,11 +239,6 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     node.typeParameters?.accept(this);
     node.formalParameters.accept(this);
-  }
-
-  @override
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    node.fieldMetadata.accept(this);
   }
 
   @override

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,7 +22,7 @@ class ResultComparatorTest extends FastaParserTestCase {
     _assertMismatched(
       actual: parseExpression(
         'f(+x)',
-        diagnostics: [error(ParserErrorCode.missingIdentifier, 2, 1)],
+        diagnostics: [error(diag.missingIdentifier, 2, 1)],
       ),
       expected: parseExpression('f(foo+x)'),
       expectedFailureMessage: '''
@@ -54,7 +54,7 @@ But found token "a"
     _assertMatched(
       actual: parseExpression(
         'f(+x)',
-        diagnostics: [error(ParserErrorCode.missingIdentifier, 2, 1)],
+        diagnostics: [error(diag.missingIdentifier, 2, 1)],
       ),
       expected: parseExpression('f(_s_+x)'),
     );
@@ -123,7 +123,7 @@ Expected a SimpleToken; found nothing
 Expected a keyword
 But found token "C"
   type=IDENTIFIER, length=1
-  path: ((root as CompilationUnit).declarations[0] as ClassDeclaration).name
+  path: (((root as CompilationUnit).declarations[0] as ClassDeclaration).namePart as NameWithTypeParameters).typeName
 ''',
     );
   }
@@ -133,9 +133,7 @@ But found token "C"
     _assertMatched(
       actual: parseCompilationUnit(
         'class C { C(this); }',
-        diagnostics: [
-          error(ParserErrorCode.expectedIdentifierButGotKeyword, 12, 4),
-        ],
+        diagnostics: [error(diag.expectedIdentifierButGotKeyword, 12, 4)],
       ),
       expected: parseCompilationUnit('class C { C(_k_); }'),
     );
@@ -145,9 +143,7 @@ But found token "C"
     _assertMismatched(
       actual: parseCompilationUnit(
         'class C { C(this); }',
-        diagnostics: [
-          error(ParserErrorCode.expectedIdentifierButGotKeyword, 12, 4),
-        ],
+        diagnostics: [error(diag.expectedIdentifierButGotKeyword, 12, 4)],
       ),
       expected: parseCompilationUnit('class C { C(foo); }'),
       expectedFailureMessage: '''
@@ -155,7 +151,7 @@ Expected token "foo"
   type=IDENTIFIER, length=3
 But found token "this"
   type=THIS, length=4
-  path: (((((root as CompilationUnit).declarations[0] as ClassDeclaration).members[0] as ConstructorDeclaration).parameters as FormalParameterList).parameters[0] as SimpleFormalParameter).name
+  path: ((((((root as CompilationUnit).declarations[0] as ClassDeclaration).body as BlockClassBody).members[0] as ConstructorDeclaration).parameters as FormalParameterList).parameters[0] as SimpleFormalParameter).name
 ''',
     );
   }
@@ -369,7 +365,7 @@ Expected token "X"
   type=IDENTIFIER, length=1
 But found token "C"
   type=IDENTIFIER, length=1
-  path: ((root as CompilationUnit).declarations[0] as ClassDeclaration).name
+  path: (((root as CompilationUnit).declarations[0] as ClassDeclaration).namePart as NameWithTypeParameters).typeName
 ''',
     );
   }
@@ -388,8 +384,8 @@ But found token "C"
       actual: parseCompilationUnit(
         'export',
         diagnostics: [
-          error(ParserErrorCode.expectedToken, 0, 6),
-          error(ParserErrorCode.expectedStringLiteral, 6, 0),
+          error(diag.expectedToken, 0, 6),
+          error(diag.expectedStringLiteral, 6, 0),
         ],
       ),
       expected: parseCompilationUnit("export '';"),
@@ -398,8 +394,8 @@ But found token "C"
       actual: parseCompilationUnit(
         'export',
         diagnostics: [
-          error(ParserErrorCode.expectedToken, 0, 6),
-          error(ParserErrorCode.expectedStringLiteral, 6, 0),
+          error(diag.expectedToken, 0, 6),
+          error(diag.expectedStringLiteral, 6, 0),
         ],
       ),
       expected: parseCompilationUnit('export "";'),
@@ -418,9 +414,9 @@ But found token "C"
 f<T>> () => null;
 ''',
         diagnostics: [
-          error(ParserErrorCode.missingFunctionParameters, 0, 1),
-          error(ParserErrorCode.missingFunctionBody, 4, 1),
-          error(ParserErrorCode.topLevelOperator, 4, 1),
+          error(diag.missingFunctionParameters, 0, 1),
+          error(diag.missingFunctionBody, 4, 1),
+          error(diag.topLevelOperator, 4, 1),
         ],
       ),
       expected: parseCompilationUnit(
@@ -428,9 +424,9 @@ f<T>> () => null;
 f<T> >() => null;
 ''',
         diagnostics: [
-          error(ParserErrorCode.missingFunctionParameters, 0, 1),
-          error(ParserErrorCode.missingFunctionBody, 5, 1),
-          error(ParserErrorCode.topLevelOperator, 5, 1),
+          error(diag.missingFunctionParameters, 0, 1),
+          error(diag.missingFunctionBody, 5, 1),
+          error(diag.topLevelOperator, 5, 1),
         ],
       ),
     );
@@ -443,15 +439,15 @@ f<T> >() => null;
 mixin Foo implements
 ''',
         diagnostics: [
-          error(ParserErrorCode.expectedTypeName, 21, 0),
-          error(ParserErrorCode.expectedMixinBody, 21, 0),
+          error(diag.expectedTypeName, 21, 0),
+          error(diag.expectedMixinBody, 21, 0),
         ],
       ),
       expected: parseCompilationUnit(
         '''
 mixin Foo implements {}
 ''',
-        diagnostics: [error(ParserErrorCode.expectedTypeName, 21, 1)],
+        diagnostics: [error(diag.expectedTypeName, 21, 1)],
       ),
     );
   }

@@ -73,16 +73,14 @@ class TestRule extends MultiAnalysisRule {
     'test_rule',
     'Test rule.',
     correctionMessage: 'Try test rule.',
-    // ignore: deprecated_member_use_from_same_package
-    uniqueNameCheck: 'LintCode.test_rule',
+    uniqueName: 'LintCode.test_rule',
   );
 
   static const LintCode customCode = LintCode(
     'hash_and_equals',
     'Override `==` if overriding `hashCode`.',
     correctionMessage: 'Implement `==`.',
-    // ignore: deprecated_member_use_from_same_package
-    uniqueNameCheck: 'LintCode.hash_and_equals',
+    uniqueName: 'LintCode.hash_and_equals',
   );
 
   TestRule() : super(name: 'test_rule', description: '');

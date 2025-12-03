@@ -82,6 +82,9 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
+import 'package:analyzer/src/workspace/basic.dart';
+import 'package:analyzer/src/workspace/blaze.dart';
+import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
@@ -348,6 +351,7 @@ abstract class AnalysisServer {
       sdkManager.defaultSdkDirectory,
       notificationManager,
       instrumentationService,
+      sessionLogger,
     );
     var pluginWatcher = PluginWatcher(resourceProvider, pluginManager);
 
@@ -568,12 +572,12 @@ abstract class AnalysisServer {
     bool registerExperimentalHandlers = false,
   }) async {
     switch (dtd?.state) {
-      case DtdConnectionState.Connecting || DtdConnectionState.Connected:
+      case DtdConnectionState.connecting || DtdConnectionState.connected:
         return lsp.error(
           lsp.ServerErrorCodes.stateError,
           'Server is already connected to DTD',
         );
-      case DtdConnectionState.Disconnected || DtdConnectionState.Error || null:
+      case DtdConnectionState.disconnected || DtdConnectionState.error || null:
         var connectResult = await DtdServices.connect(
           this,
           dtdUri,
@@ -951,7 +955,7 @@ abstract class AnalysisServer {
     var transitiveFilePaths = <String>{};
     var transitiveFileUniqueLineCount = 0;
     var libraryCycles = <LibraryCycle>{};
-    var workspaceTypes = <int>[0, 0, 0];
+    var workspaceTypes = List<int>.filled(5, 0);
     var numberOfPackages = <int>[];
     var driverMap = contextManager.driverMap;
     for (var entry in driverMap.entries) {
@@ -962,17 +966,21 @@ abstract class AnalysisServer {
         var contextRoot = analysisContext.contextRoot;
         packagesFileMap[rootPath] = contextRoot.packagesFile;
         var workspace = contextRoot.workspace;
-        if (workspace is PackageConfigWorkspace) {
-          if (workspace.isPubWorkspace) {
-            // Pub workspace index = 2, Package workspace index = 1
-            workspaceTypes[2]++;
-            numberOfPackages.add(workspace.allPackages.length);
-          } else {
-            workspaceTypes[1]++;
-          }
-        } else {
-          // Blaze, GN or other workspace index  = 0
-          workspaceTypes[0]++;
+        switch (workspace) {
+          case PackageConfigWorkspace():
+            if (workspace.isPubWorkspace) {
+              // Pub workspace index = 2, Package workspace index = 1
+              workspaceTypes[2]++;
+              numberOfPackages.add(workspace.allPackages.length);
+            } else {
+              workspaceTypes[1]++;
+            }
+          case BlazeWorkspace():
+            workspaceTypes[3]++;
+          case GnWorkspace():
+            workspaceTypes[4]++;
+          case BasicWorkspace():
+            workspaceTypes[0]++;
         }
       }
       var fileSystemState = driver.fsState;
@@ -1237,23 +1245,6 @@ abstract class CommonServerContextManagerCallbacks
 
     var path = result.path;
     filesToFlush.add(path);
-
-    // If this is a virtual file and the client supports URIs, we need to notify
-    // that it's been updated.
-    var lspUri = analysisServer.uriConverter.toClientUri(result.path);
-    if (!lspUri.isScheme('file')) {
-      // TODO(dantup): Should we do any kind of tracking here to avoid sending
-      //  lots of notifications if there aren't actual changes?
-      // TODO(dantup): We may be able to skip sending this if the file is not
-      //  open (priority) depending on the response to
-      //  https://github.com/microsoft/vscode/issues/202017
-      var message = lsp.NotificationMessage(
-        method: lsp.CustomMethods.dartTextDocumentContentDidChange,
-        params: lsp.DartTextDocumentContentDidChangeParams(uri: lspUri),
-        jsonrpc: lsp.jsonRpcVersion,
-      );
-      analysisServer.sendLspNotification(message);
-    }
 
     if (result is AnalysisResultWithDiagnostics) {
       if (analysisServer.isAnalyzed(path)) {

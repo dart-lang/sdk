@@ -1,18 +1,19 @@
 (module $module0
-  (type $#Top <...>)
-  (type $Object <...>)
   (type $#Closure-0-1 <...>)
+  (type $#Top <...>)
   (type $H0 (sub final $Object (struct
     (field $field0 i32)
     (field $field1 (mut i32))
     (field $fun (ref $#Closure-0-1)))))
-  (type $type245 <...>)
-  (type $type248 <...>)
-  (type $type251 <...>)
-  (table $static1-0 (export "static1-0") 1 (ref null $type251))
-  (table $static2-0 (export "static2-0") 1 (ref null $type245))
-  (table $static3-0 (export "static3-0") 1 (ref null $type248))
-  (func $print (param $var0 (ref null $#Top)) (result (ref null $#Top)) <...>)
+  (type $Object <...>)
+  (type $type0 <...>)
+  (type $type2 <...>)
+  (type $type4 <...>)
+  (type $type6 <...>)
+  (table $static0-0 (export "static0-0") 1 (ref null $type0))
+  (table $static1-0 (export "static1-0") 1 (ref null $type2))
+  (table $static2-0 (export "static2-0") 1 (ref null $type4))
+  (table $static3-0 (export "static3-0") 1 (ref null $type6))
   (func $"modMainUseH0 <noInline>"
     i64.const 0
     call $checkLibraryIsLoadedFromLoadId
@@ -41,4 +42,5 @@
     drop
   )
   (func $checkLibraryIsLoadedFromLoadId (param $var0 i64) <...>)
+  (func $print (param $var0 (ref null $#Top)) (result (ref null $#Top)) <...>)
 )

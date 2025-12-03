@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -139,7 +140,7 @@ extension type E(Object o) {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.extensionTypeDeclaresInstanceField, 47, 1),
+        error(diag.extensionTypeDeclaresInstanceField, 47, 1),
       ],
     );
   }
@@ -560,6 +561,40 @@ class _P {}
 ''',
       [lint(12, 2)],
     );
+  }
+
+  test_primaryConstructor_declaring_privateParameterType() async {
+    await assertDiagnostics(
+      r'''
+class C(_P p);
+class _P {}
+''',
+      [lint(8, 2)],
+    );
+  }
+
+  test_primaryConstructor_declaring_publicParameterType() async {
+    await assertNoDiagnostics(r'''
+class C(P p);
+class P {}
+''');
+  }
+
+  test_primaryConstructor_named_privateParameterType() async {
+    await assertDiagnostics(
+      r'''
+class C.named(_P p);
+class _P {}
+''',
+      [lint(14, 2)],
+    );
+  }
+
+  test_primaryConstructor_named_publicParameterType() async {
+    await assertNoDiagnostics(r'''
+class C.named(P p);
+class P {}
+''');
   }
 
   test_topLevelGetter_private_privateReturnType() async {

@@ -7,7 +7,7 @@ import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/error/option_codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
@@ -106,7 +106,7 @@ include:
 ''');
     await assertErrorsInCode(testCode.code, [
       error(
-        AnalysisOptionsWarningCode.incompatibleLintIncluded,
+        diag.incompatibleLintIncluded,
         testCode.range.sourceRange.offset,
         testCode.range.sourceRange.length,
         contextMessages: [
@@ -167,7 +167,7 @@ include:
 ''');
     await assertErrorsInCode(testCode.code, [
       error(
-        AnalysisOptionsWarningCode.incompatibleLintIncluded,
+        diag.incompatibleLintIncluded,
         testCode.range.sourceRange.offset,
         testCode.range.sourceRange.length,
         contextMessages: [
@@ -206,7 +206,7 @@ include:
 linter:
   rules:
 ''',
-      [AnalysisOptionsWarningCode.incompatibleLintIncluded],
+      [diag.incompatibleLintIncluded],
     );
   }
 
@@ -242,7 +242,7 @@ linter:
 ''');
     await assertErrorsInCode(testCode.code, [
       error(
-        AnalysisOptionsWarningCode.incompatibleLintFiles,
+        diag.incompatibleLintFiles,
         testCode.range.sourceRange.offset,
         testCode.range.sourceRange.length,
         contextMessages: [
@@ -287,7 +287,7 @@ linter:
     rule_neg:
     rule_pos: true
 ''',
-      [AnalysisOptionsWarningCode.incompatibleLintFiles],
+      [diag.incompatibleLintFiles],
     );
   }
 
@@ -305,7 +305,7 @@ linter:
   rules:
     rule_pos: invalid_value
 ''',
-      [AnalysisOptionsWarningCode.unsupportedValue],
+      [diag.unsupportedValue],
     );
   }
 
@@ -325,7 +325,7 @@ linter:
   rules:
     rule_neg: true
 ''',
-      [AnalysisOptionsWarningCode.incompatibleLintFiles],
+      [diag.incompatibleLintFiles],
     );
   }
 
@@ -348,7 +348,7 @@ linter:
   rules:
     - removed_in_2_12_lint
 ''',
-      [AnalysisOptionsWarningCode.removedLint],
+      [diag.removedLint],
       sdk: dart3_3,
     );
   }
@@ -364,7 +364,7 @@ linter:
   rules:
     - deprecated_lint
 ''',
-      [AnalysisOptionsWarningCode.deprecatedLint],
+      [diag.deprecatedLint],
     );
   }
 
@@ -375,7 +375,7 @@ linter:
   rules:
     deprecated_lint: false
 ''',
-      [AnalysisOptionsWarningCode.deprecatedLint],
+      [diag.deprecatedLint],
     );
   }
 
@@ -386,7 +386,7 @@ linter:
   rules:
     - deprecated_since_3_lint
 ''',
-      [AnalysisOptionsWarningCode.deprecatedLint],
+      [diag.deprecatedLint],
       sdk: dart3_3,
     );
   }
@@ -398,7 +398,7 @@ linter:
   rules:
     - deprecated_lint_with_replacement
 ''',
-      [AnalysisOptionsWarningCode.deprecatedLintWithReplacement],
+      [diag.deprecatedLintWithReplacement],
     );
   }
 
@@ -409,7 +409,7 @@ linter:
   rules:
     - deprecated_since_3_lint
 ''',
-      [AnalysisOptionsWarningCode.deprecatedLint],
+      [diag.deprecatedLint],
       sdk: dart3,
     );
   }
@@ -438,7 +438,7 @@ linter:
     - stable_lint
     - stable_lint
 ''',
-      [AnalysisOptionsWarningCode.duplicateRule],
+      [diag.duplicateRule],
     );
   }
 
@@ -451,7 +451,7 @@ linter:
 ''');
     await assertErrorsInCode(testCode.code, [
       error(
-        AnalysisOptionsWarningCode.incompatibleLint,
+        diag.incompatibleLint,
         testCode.ranges.last.sourceRange.offset,
         testCode.ranges.last.sourceRange.length,
         contextMessages: [
@@ -474,7 +474,7 @@ linter:
 ''');
     await assertErrorsInCode(testCode.code, [
       error(
-        AnalysisOptionsWarningCode.incompatibleLint,
+        diag.incompatibleLint,
         testCode.ranges.last.sourceRange.offset,
         testCode.ranges.last.sourceRange.length,
         contextMessages: [
@@ -519,7 +519,7 @@ linter:
   rules:
     - removed_in_2_12_lint
 ''',
-      [AnalysisOptionsWarningCode.removedLint],
+      [diag.removedLint],
       sdk: dart2_12,
     );
   }
@@ -539,7 +539,7 @@ linter:
   rules:
     - replaced_lint
 ''',
-      [AnalysisOptionsWarningCode.replacedLint],
+      [diag.replacedLint],
       sdk: dart3,
     );
   }
@@ -567,7 +567,7 @@ linter:
   rules:
     - this_rule_does_not_exist
 ''',
-      [AnalysisOptionsWarningCode.undefinedLint],
+      [diag.undefinedLint],
     );
   }
 
@@ -578,7 +578,7 @@ linter:
   rules:
     this_rule_does_not_exist: false
 ''',
-      [AnalysisOptionsWarningCode.undefinedLint],
+      [diag.undefinedLint],
     );
   }
 }
@@ -627,8 +627,17 @@ mixin OptionsRuleValidatorTestMixin on AbstractAnalysisOptionsTest {
       StableLint(),
       RuleNeg(),
       RulePos(),
-      RemovedIn2_12Lint(),
-      ReplacedLint(),
+      RemovedAnalysisRule(
+        name: 'removed_in_2_12_lint',
+        since: dart2_12,
+        description: '',
+      ),
+      RemovedAnalysisRule(
+        name: 'replaced_lint',
+        since: dart3,
+        replacedBy: 'replacing_lint',
+        description: '',
+      ),
       ReplacingLint(),
     ]);
     super.setUp();
@@ -645,7 +654,7 @@ linter:
   rules:
     rule_pos: invalid_value
 ''',
-      [AnalysisOptionsWarningCode.unsupportedValue],
+      [diag.unsupportedValue],
     );
   }
 
@@ -710,22 +719,6 @@ linter:
   }
 }
 
-class RemovedIn2_12Lint extends TestLintRule {
-  RemovedIn2_12Lint()
-    : super(
-        name: 'removed_in_2_12_lint',
-        state: RuleState.removed(since: dart2_12),
-      );
-}
-
-class ReplacedLint extends TestLintRule {
-  ReplacedLint()
-    : super(
-        name: 'replaced_lint',
-        state: RuleState.removed(since: dart3, replacedBy: 'replacing_lint'),
-      );
-}
-
 class ReplacingLint extends TestLintRule {
   ReplacingLint() : super(name: 'replacing_lint');
 }
@@ -753,8 +746,7 @@ abstract class TestLintRule extends AnalysisRule {
     'lint_code',
     'Lint code.',
     correctionMessage: 'Lint code.',
-    // ignore: deprecated_member_use_from_same_package
-    uniqueNameCheck: 'LintCode.lint_code',
+    uniqueName: 'LintCode.lint_code',
   );
 
   TestLintRule({required super.name, super.state}) : super(description: '');

@@ -1094,7 +1094,7 @@ extension on SimpleIdentifier {
     // If there is no explicit target, then return the type of an implicit
     // `this`.
     DartType? enclosingThisType(AstNode node) {
-      var parent = node.parent;
+      var parent = node.parent?.parent;
       if (parent is ClassDeclaration) {
         return parent.declaredFragment?.element.thisType;
       } else if (parent is ExtensionDeclaration) {

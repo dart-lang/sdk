@@ -4,7 +4,6 @@
 
 import 'dart:typed_data';
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -261,6 +260,8 @@ class InformativeDataApplier {
   ) {
     forCorrespondingPairs(elementList, infoList, (element, info) {
       element.setCodeRange(info.codeOffset, info.codeLength);
+      element.newKeywordOffset = info.newKeywordOffset;
+      element.factoryKeywordOffset = info.factoryKeywordOffset;
       element.typeNameOffset = info.typeNameOffset;
       element.periodOffset = info.periodOffset;
       element.firstTokenOffset = info.firstTokenOffset;
@@ -361,33 +362,9 @@ class InformativeDataApplier {
     });
 
     DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-      if (!useDeclaringConstructorsAst) {
-        var primaryConstructor = element.constructors.first;
-        primaryConstructor.setCodeRange(infoRep.codeOffset, infoRep.codeLength);
-        primaryConstructor.typeNameOffset = info.nameOffset;
-        primaryConstructor.periodOffset = infoRep.constructorPeriodOffset;
-        primaryConstructor.firstTokenOffset = infoRep.firstTokenOffset;
-        primaryConstructor.nameOffset = infoRep.constructorNameOffset;
-        primaryConstructor.nameEnd = infoRep.constructorNameEnd;
-
-        DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-          var representation = primaryConstructor.formalParameters.first;
-          representation.firstTokenOffset = infoRep.fieldFirstTokenOffset;
-          representation.nameOffset = infoRep.fieldNameOffset;
-          representation.setCodeRange(infoRep.codeOffset, infoRep.codeLength);
-        });
-      }
-
       var restFields = element.fields.skip(1).toList();
       _applyToFields(restFields, info.fields);
-
-      if (useDeclaringConstructorsAst) {
-        _applyToConstructors(element.constructors, info.constructors);
-      } else {
-        var restConstructors = element.constructors.skip(1).toList();
-        _applyToConstructors(restConstructors, info.constructors);
-      }
-
+      _applyToConstructors(element.constructors, info.constructors);
       _applyToAccessors(element.getters, info.getters);
       _applyToAccessors(element.setters, info.setters);
       _applyToMethods(element.methods, info.methods);
@@ -676,26 +653,15 @@ class _InfoBuilder {
   }
 
   _InfoClassDeclaration _buildClass(ClassDeclaration node) {
-    if (useDeclaringConstructorsAst) {
-      return _InfoClassDeclaration(
-        data: _buildInterfaceData(
-          node,
-          name: node.namePart.typeName,
-          typeParameters: node.namePart.typeParameters,
-          primaryConstructor: node.namePart.ifTypeOrNull(),
-          members: node.body.ifTypeOrNull<BlockClassBody>()?.members ?? [],
-        ),
-      );
-    } else {
-      return _InfoClassDeclaration(
-        data: _buildInterfaceData(
-          node,
-          name: node.name,
-          typeParameters: node.typeParameters,
-          members: node.members,
-        ),
-      );
-    }
+    return _InfoClassDeclaration(
+      data: _buildInterfaceData(
+        node,
+        name: node.namePart.typeName,
+        typeParameters: node.namePart.typeParameters,
+        primaryConstructor: node.namePart.ifTypeOrNull(),
+        members: node.body.ifTypeOrNull<BlockClassBody>()?.members ?? [],
+      ),
+    );
   }
 
   List<_InfoClassDeclaration> _buildClasses(CompilationUnit unit) {
@@ -818,47 +784,31 @@ class _InfoBuilder {
         formalParameters: node.parameters,
         constructorInitializers: node.initializers,
       ),
-      typeNameOffset: node.returnType.offset,
+      newKeywordOffset: node.newKeyword?.offset,
+      factoryKeywordOffset: node.factoryKeyword?.offset,
+      typeNameOffset: node.typeName?.offset,
       periodOffset: node.period?.offset,
-      nameEnd: (node.name ?? node.returnType).end,
+      nameEnd: (node.name ?? node.typeName)?.end,
     );
   }
 
   _InfoEnumDeclaration _buildEnum(EnumDeclaration node) {
-    if (useDeclaringConstructorsAst) {
-      return _InfoEnumDeclaration(
-        data: _buildInterfaceData(
-          node,
-          name: node.namePart.typeName,
-          typeParameters: node.namePart.typeParameters,
-          primaryConstructor: node.namePart.ifTypeOrNull(),
-          members: node.body.members,
-          fields: [
-            ...node.body.constants.map(_buildEnumConstant),
-            ...node.body.members
-                .whereType<FieldDeclaration>()
-                .expand((node) => node.fields.variables)
-                .map((node) => _buildField(node)),
-          ],
-        ),
-      );
-    } else {
-      return _InfoEnumDeclaration(
-        data: _buildInterfaceData(
-          node,
-          name: node.name,
-          typeParameters: node.typeParameters,
-          members: node.members,
-          fields: [
-            ...node.constants.map(_buildEnumConstant),
-            ...node.members
-                .whereType<FieldDeclaration>()
-                .expand((node) => node.fields.variables)
-                .map((node) => _buildField(node)),
-          ],
-        ),
-      );
-    }
+    return _InfoEnumDeclaration(
+      data: _buildInterfaceData(
+        node,
+        name: node.namePart.typeName,
+        typeParameters: node.namePart.typeParameters,
+        primaryConstructor: node.namePart.ifTypeOrNull(),
+        members: node.body.members,
+        fields: [
+          ...node.body.constants.map(_buildEnumConstant),
+          ...node.body.members
+              .whereType<FieldDeclaration>()
+              .expand((node) => node.fields.variables)
+              .map((node) => _buildField(node)),
+        ],
+      ),
+    );
   }
 
   _InfoFieldDeclaration _buildEnumConstant(EnumConstantDeclaration node) {
@@ -903,7 +853,7 @@ class _InfoBuilder {
         node,
         name: node.name,
         typeParameters: node.typeParameters,
-        members: useDeclaringConstructorsAst ? node.body.members : node.members,
+        members: node.body.members,
       ),
     );
   }
@@ -918,31 +868,18 @@ class _InfoBuilder {
   _InfoExtensionTypeDeclaration _buildExtensionType(
     ExtensionTypeDeclaration node,
   ) {
-    if (useDeclaringConstructorsAst) {
-      return _InfoExtensionTypeDeclaration(
-        data: _buildInterfaceData(
-          node,
-          name: node.namePart.typeName,
-          typeParameters: node.namePart.typeParameters,
-          primaryConstructor: node.namePart.ifTypeOrNull(),
-          members: node.body.ifTypeOrNull<BlockClassBody>()?.members ?? [],
-        ),
-        // TODO(scheglov): support for absence of primary constructor
-        representation: _buildExtensionTypeRepresentationFromPrimaryConstructor(
-          node.namePart as PrimaryConstructorDeclaration,
-        ),
-      );
-    } else {
-      return _InfoExtensionTypeDeclaration(
-        data: _buildInterfaceData(
-          node,
-          name: node.name,
-          typeParameters: node.typeParameters,
-          members: node.members,
-        ),
-        representation: _buildRepresentation(node, node.representation),
-      );
-    }
+    return _InfoExtensionTypeDeclaration(
+      data: _buildInterfaceData(
+        node,
+        name: node.primaryConstructor.typeName,
+        typeParameters: node.primaryConstructor.typeParameters,
+        primaryConstructor: node.primaryConstructor.ifTypeOrNull(),
+        members: node.body.ifTypeOrNull<BlockClassBody>()?.members ?? [],
+      ),
+      representation: _buildExtensionTypeRepresentationFromPrimaryConstructor(
+        node.primaryConstructor,
+      ),
+    );
   }
 
   _InfoExtensionTypeRepresentation
@@ -1218,7 +1155,7 @@ class _InfoBuilder {
         node,
         name: node.name,
         typeParameters: node.typeParameters,
-        members: useDeclaringConstructorsAst ? node.body.members : node.members,
+        members: node.body.members,
       ),
     );
   }
@@ -1252,31 +1189,11 @@ class _InfoBuilder {
       constantOffsets: _buildConstantOffsets(
         formalParameters: node.formalParameters,
       ),
+      newKeywordOffset: null,
+      factoryKeywordOffset: null,
       typeNameOffset: node.typeName.offset,
       periodOffset: node.constructorName?.period.offset,
       nameEnd: (node.constructorName?.name ?? node.typeName).end,
-    );
-  }
-
-  _InfoExtensionTypeRepresentation _buildRepresentation(
-    ExtensionTypeDeclaration extension,
-    RepresentationDeclaration node,
-  ) {
-    var constructorName = node.constructorName;
-    var firstTokenOffset =
-        extension.constKeyword?.offset ?? extension.name.offset;
-    var endOffset = node.end;
-    return _InfoExtensionTypeRepresentation(
-      firstTokenOffset: firstTokenOffset,
-      codeOffset: firstTokenOffset,
-      codeLength: endOffset - firstTokenOffset,
-      constructorPeriodOffset: constructorName?.period.offset,
-      constructorNameOffset: constructorName?.name.offsetIfNotEmpty,
-      constructorNameEnd: node.leftParenthesis.offset,
-      fieldFirstTokenOffset:
-          node.fieldMetadata.firstOrNull?.offset ?? node.fieldType.offset,
-      fieldNameOffset: node.fieldName.offsetIfNotEmpty,
-      fieldConstantOffsets: _buildConstantOffsets(metadata: node.fieldMetadata),
     );
   }
 
@@ -1437,7 +1354,9 @@ class _InfoCombinator {
 }
 
 class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
-  final int typeNameOffset;
+  final int? newKeywordOffset;
+  final int? factoryKeywordOffset;
+  final int? typeNameOffset;
   final int? periodOffset;
   final int? nameEnd;
 
@@ -1450,20 +1369,26 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
     required super.typeParameters,
     required super.parameters,
     required super.constantOffsets,
+    required this.newKeywordOffset,
+    required this.factoryKeywordOffset,
     required this.typeNameOffset,
     required this.periodOffset,
     required this.nameEnd,
   });
 
   _InfoConstructorDeclaration.read(super.reader)
-    : typeNameOffset = reader.readUint30(),
+    : newKeywordOffset = reader.readOptionalUint30(),
+      factoryKeywordOffset = reader.readOptionalUint30(),
+      typeNameOffset = reader.readOptionalUint30(),
       periodOffset = reader.readOptionalUint30(),
       nameEnd = reader.readOptionalUint30(),
       super.read();
 
   @override
   void write(BinaryWriter writer) {
-    writer.writeUint30(typeNameOffset);
+    writer.writeOptionalUint30(newKeywordOffset);
+    writer.writeOptionalUint30(factoryKeywordOffset);
+    writer.writeOptionalUint30(typeNameOffset);
     writer.writeOptionalUint30(periodOffset);
     writer.writeOptionalUint30(nameEnd);
     super.write(writer);

@@ -12,6 +12,8 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
+import '../../../utilities/extensions/ast.dart';
+
 class ConvertClassToMixin extends ResolvedCorrectionProducer {
   ConvertClassToMixin({required super.context});
 
@@ -29,11 +31,11 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
     if (classDeclaration == null) {
       return;
     }
-    if (selectionOffset > classDeclaration.name.end ||
+    if (selectionOffset > classDeclaration.namePart.typeName.end ||
         selectionEnd < classDeclaration.classKeyword.offset) {
       return;
     }
-    if (classDeclaration.members.any(
+    if (classDeclaration.members2.any(
       (member) => member is ConstructorDeclaration,
     )) {
       return;
@@ -73,11 +75,11 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
       builder.addReplacement(
         range.startStart(
           classDeclaration.abstractKeyword ?? classDeclaration.classKeyword,
-          classDeclaration.leftBracket,
+          (classDeclaration.body as BlockClassBody).leftBracket,
         ),
         (builder) {
           builder.write('mixin ');
-          builder.write(classDeclaration.name.lexeme);
+          builder.write(classDeclaration.namePart.typeName.lexeme);
           builder.writeTypeParameters(classElement.typeParameters);
           builder.writeTypes(superclassConstraints, prefix: ' on ');
           builder.writeTypes(interfaces, prefix: ' implements ');

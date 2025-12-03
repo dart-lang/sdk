@@ -89,6 +89,14 @@ String? getColorHexString(engine.Element? element) {
   return null;
 }
 
+String? getExtendedTypeString(engine.Element element) {
+  if (element is engine.ExtensionElement) {
+    var extendedType = element.extendedType;
+    return extendedType.getDisplayString();
+  }
+  return null;
+}
+
 String? getReturnTypeString(engine.Element element) {
   if (element is engine.ExecutableElement) {
     if (element.kind == engine.ElementKind.SETTER) {
@@ -341,7 +349,8 @@ SearchResultKind newSearchResultKind_fromEngine(engine.MatchKind kind) {
     return SearchResultKind.WRITE;
   }
   if (kind == engine.MatchKind.INVOCATION ||
-      kind == engine.MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS) {
+      kind == engine.MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS ||
+      kind == engine.MatchKind.DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION) {
     return SearchResultKind.INVOCATION;
   }
   if (kind.isReference) {

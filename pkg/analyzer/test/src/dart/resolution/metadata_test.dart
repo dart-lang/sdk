@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -326,7 +326,7 @@ const foo = 42;
 part 'a.dart';
 const foo = 42;
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 10, 8)],
+      [error(diag.uriDoesNotExist, 10, 8)],
     );
 
     _assertAtFoo42();

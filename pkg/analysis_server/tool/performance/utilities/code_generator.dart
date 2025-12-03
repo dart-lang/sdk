@@ -4,6 +4,10 @@
 
 /// Returns the content of a file containing [classCount] classes.
 ///
+/// If [exports] are provided, the file will contain one export directive for
+/// each element. The elements should be the text of the URI without enclosing
+/// quotes.
+///
 /// If [imports] are provided, the file will contain one import directive for
 /// each element. The elements should be the text of the URI without enclosing
 /// quotes.
@@ -22,6 +26,7 @@
 /// quotes.
 String createFileContent({
   int classCount = CodeGenerator.classCount,
+  List<String> exports = const [],
   List<String> imports = const [],
   String? libraryName,
   String? partOf,
@@ -30,6 +35,7 @@ String createFileContent({
   var generator = CodeGenerator();
   generator.writeClasses(
     classCount: classCount,
+    exports: exports,
     imports: imports,
     libraryName: libraryName,
     partOf: partOf,
@@ -76,12 +82,15 @@ class CodeGenerator {
 
   /// Generate [classCount] classes with synthetic names.
   ///
-  /// The file will have one part directive for each of the unquoted URI's in [imports].
+  /// The file will have one export for each of the unquoted URI's in [exports].
+  ///
+  /// The file will have one part directive for each of the unquoted URI's in [parts].
   ///
   /// The file will have one import for each of the unquoted URI's in [imports].
   /// For example, to import `dart:async`, include `'dart:async'` in the list.
   void writeClasses({
     required int classCount,
+    List<String> exports = const [],
     List<String> imports = const [],
     String? libraryName,
     String? partOf,
@@ -103,16 +112,22 @@ class CodeGenerator {
       }
       buffer.writeln();
     }
-    for (var part in parts) {
-      buffer.writeln("part '$part';");
-    }
-    if (parts.isNotEmpty) {
-      buffer.writeln();
-    }
     for (var import in imports) {
       buffer.writeln("import '$import';");
     }
     if (imports.isNotEmpty) {
+      buffer.writeln();
+    }
+    for (var export in exports) {
+      buffer.writeln("export '$export';");
+    }
+    if (exports.isNotEmpty) {
+      buffer.writeln();
+    }
+    for (var part in parts) {
+      buffer.writeln("part '$part';");
+    }
+    if (parts.isNotEmpty) {
       buffer.writeln();
     }
     for (int i = 0; i < classCount; i++) {

@@ -4,10 +4,12 @@
 
 import 'dart:io';
 
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription;
 import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
 
+import 'testing/folder_options.dart';
 import 'utils/suite_utils.dart';
 import 'parser_suite.dart'
     show ListenerStep, ParserTestListenerWithMessageFormatting;
@@ -24,13 +26,18 @@ Future<Context> createContext(Chain suite, Map<String, String> environment) {
   const Set<String> knownEnvironmentKeys = {};
   checkEnvironment(environment, knownEnvironmentKeys);
 
-  return new Future.value(new Context(suite.name));
+  return new Future.value(new Context(suite.root, suite.name, environment));
 }
 
 class Context extends ChainContext {
+  final SuiteFolderOptions folderOptions;
   final String suiteName;
+  final Map<ExperimentalFlag, bool> forcedExperimentalFlags;
 
-  Context(this.suiteName);
+  Context(Uri baseUri, this.suiteName, Map<String, String> environment)
+    : folderOptions = new SuiteFolderOptions(baseUri),
+      forcedExperimentalFlags =
+          SuiteFolderOptions.computeForcedExperimentalFlags(environment);
 
   @override
   final List<Step> steps = const <Step>[const ListenerCompareStep()];
@@ -48,6 +55,8 @@ class ListenerCompareStep
     TestDescription description,
     Context context,
   ) {
+    Map<ExperimentalFlag, bool> experimentalFlags = description
+        .computeExplicitExperimentalFlags(context);
     Uri uri = description.uri;
     String contents = new File.fromUri(uri).readAsStringSync();
     YamlMap yaml = loadYamlNode(contents, sourceUrl: uri) as YamlMap;
@@ -61,6 +70,7 @@ class ListenerCompareStep
         ListenerStep.doListenerParsing(
           files[0],
           context.suiteName,
+          experimentalFlags,
           description.shortName,
         );
     if (parserTestListenerFirst == null) {
@@ -72,6 +82,7 @@ class ListenerCompareStep
           ListenerStep.doListenerParsing(
             files[i],
             context.suiteName,
+            experimentalFlags,
             description.shortName,
           );
       if (parserTestListener == null) {
@@ -162,5 +173,19 @@ class ListenerCompareStep
     int index = s.indexOf("(");
     if (index < 0) return s;
     return s.substring(0, index);
+  }
+}
+
+extension on TestDescription {
+  FolderOptions computeFolderOptions(Context context) {
+    return context.folderOptions.computeFolderOptions(this);
+  }
+
+  Map<ExperimentalFlag, bool> computeExplicitExperimentalFlags(
+    Context context,
+  ) {
+    return computeFolderOptions(
+      context,
+    ).computeExplicitExperimentalFlags(context.forcedExperimentalFlags);
   }
 }

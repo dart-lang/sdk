@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -35,7 +35,7 @@ class C {}
 /// {@canonicalFor}
 class C {}
 ''',
-      [error(WarningCode.docDirectiveMissingOneArgument, 4, 16)],
+      [error(diag.docDirectiveMissingOneArgument, 4, 16)],
     );
   }
 
@@ -52,7 +52,7 @@ class C {}
 /// {@macro}
 class C {}
 ''',
-      [error(WarningCode.docDirectiveMissingOneArgument, 4, 9)],
+      [error(diag.docDirectiveMissingOneArgument, 4, 9)],
     );
   }
 
@@ -69,7 +69,7 @@ class C {}
 /// {@youtube 600 400}
 class C {}
 ''',
-      [error(WarningCode.docDirectiveMissingOneArgument, 4, 19)],
+      [error(diag.docDirectiveMissingOneArgument, 4, 19)],
     );
   }
 
@@ -80,8 +80,8 @@ class C {}
 class C {}
 ''',
       [
-        error(WarningCode.docDirectiveMissingOneArgument, 4, 18),
-        error(WarningCode.docDirectiveMissingClosingBrace, 21, 1),
+        error(diag.docDirectiveMissingOneArgument, 4, 18),
+        error(diag.docDirectiveMissingClosingBrace, 21, 1),
       ],
     );
   }

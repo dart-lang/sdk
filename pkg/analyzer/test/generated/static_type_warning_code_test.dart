@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ f() async {
   Future<int> b = await ffi();
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 62, 1)],
+      [error(diag.unusedLocalVariable, 62, 1)],
     );
   }
 
@@ -40,8 +40,8 @@ f() async {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 58, 1),
-        error(CompileTimeErrorCode.invalidAssignment, 62, 10),
+        error(diag.unusedLocalVariable, 58, 1),
+        error(diag.invalidAssignment, 62, 10),
       ],
     );
   }
@@ -53,7 +53,7 @@ f(Stream<int> stream) async {
   await for (int i in stream) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 47, 1)],
+      [error(diag.unusedLocalVariable, 47, 1)],
     );
   }
 
@@ -65,8 +65,8 @@ f(Stream<String> stream) async {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 50, 1),
-        error(CompileTimeErrorCode.forInOfInvalidElementType, 55, 6),
+        error(diag.unusedLocalVariable, 50, 1),
+        error(diag.forInOfInvalidElementType, 55, 6),
       ],
     );
   }
@@ -79,8 +79,8 @@ f(Stream<num> stream) async {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 47, 1),
-        error(CompileTimeErrorCode.forInOfInvalidElementType, 52, 6),
+        error(diag.unusedLocalVariable, 47, 1),
+        error(diag.forInOfInvalidElementType, 52, 6),
       ],
     );
   }
@@ -92,7 +92,7 @@ f(Stream<int> stream) async {
   await for (var i in stream) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 47, 1)],
+      [error(diag.unusedLocalVariable, 47, 1)],
     );
   }
 
@@ -104,7 +104,7 @@ f(Stream<int> stream) async {
   await for (i in stream) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 41, 1)],
+      [error(diag.unusedLocalVariable, 41, 1)],
     );
   }
 
@@ -117,8 +117,8 @@ f(Stream<String> stream) async {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 44, 1),
-        error(CompileTimeErrorCode.forInOfInvalidElementType, 65, 6),
+        error(diag.unusedLocalVariable, 44, 1),
+        error(diag.forInOfInvalidElementType, 65, 6),
       ],
     );
   }
@@ -130,7 +130,7 @@ f(Stream stream) async {
   await for (int i in stream) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 42, 1)],
+      [error(diag.unusedLocalVariable, 42, 1)],
     );
   }
 
@@ -141,7 +141,7 @@ f(Stream<int> stream) async {
   await for (num i in stream) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 47, 1)],
+      [error(diag.unusedLocalVariable, 47, 1)],
     );
   }
 
@@ -168,9 +168,9 @@ void f(
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 263, 4),
-        error(CompileTimeErrorCode.invalidAssignment, 281, 2),
-        error(CompileTimeErrorCode.invalidAssignment, 296, 2),
+        error(diag.unusedLocalVariable, 263, 4),
+        error(diag.invalidAssignment, 281, 2),
+        error(diag.invalidAssignment, 296, 2),
       ],
     );
   }
@@ -182,7 +182,7 @@ f() {
   for (int i in <int>[]) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 17, 1)],
+      [error(diag.unusedLocalVariable, 17, 1)],
     );
   }
 
@@ -194,8 +194,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 17, 1),
-        error(CompileTimeErrorCode.forInOfInvalidElementType, 22, 10),
+        error(diag.unusedLocalVariable, 17, 1),
+        error(diag.forInOfInvalidElementType, 22, 10),
       ],
     );
   }
@@ -208,7 +208,7 @@ f() {
   for (var i in d) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 46, 1)],
+      [error(diag.unusedLocalVariable, 46, 1)],
     );
   }
 
@@ -220,7 +220,7 @@ f() {
   for (int i in iterable) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 37, 1)],
+      [error(diag.unusedLocalVariable, 37, 1)],
     );
   }
 
@@ -231,7 +231,7 @@ f() {
   for (var i in <int>[]) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 17, 1)],
+      [error(diag.unusedLocalVariable, 17, 1)],
     );
   }
 
@@ -243,7 +243,7 @@ f() {
   for (i in <int>[]) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 12, 1)],
+      [error(diag.unusedLocalVariable, 12, 1)],
     );
   }
 
@@ -256,8 +256,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 12, 1),
-        error(CompileTimeErrorCode.forInOfInvalidElementType, 27, 10),
+        error(diag.unusedLocalVariable, 12, 1),
+        error(diag.forInOfInvalidElementType, 27, 10),
       ],
     );
   }
@@ -269,7 +269,7 @@ f() {
   for (int i in []) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 17, 1)],
+      [error(diag.unusedLocalVariable, 17, 1)],
     );
   }
 
@@ -280,7 +280,7 @@ f(List o) { // Could be [].
   for (var i in o) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 39, 1)],
+      [error(diag.unusedLocalVariable, 39, 1)],
     );
   }
 
@@ -294,8 +294,8 @@ class Foo<T extends Iterable<int>> {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 81, 1),
-        error(CompileTimeErrorCode.forInOfInvalidElementType, 86, 8),
+        error(diag.unusedLocalVariable, 81, 1),
+        error(diag.forInOfInvalidElementType, 86, 8),
       ],
     );
   }
@@ -309,7 +309,7 @@ class Foo<T extends Iterable<int>> {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 78, 1)],
+      [error(diag.unusedLocalVariable, 78, 1)],
     );
   }
 
@@ -320,7 +320,7 @@ f() {
   for (num i in <int>[]) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 17, 1)],
+      [error(diag.unusedLocalVariable, 17, 1)],
     );
   }
 
@@ -333,7 +333,7 @@ f(Object p) {
   p = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 68, 6)],
+      [error(diag.undefinedGetter, 68, 6)],
     );
   }
 
@@ -344,7 +344,7 @@ f(Object p) {
   ((p is String) && ((p = 42) == 42)) && p.length != 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 57, 6)],
+      [error(diag.undefinedGetter, 57, 6)],
     );
   }
 
@@ -355,7 +355,7 @@ f(Object p) {
   (p is String) && (((p = 42) == 42) && p.length != 0);
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 56, 6)],
+      [error(diag.undefinedGetter, 56, 6)],
     );
   }
 
@@ -368,7 +368,7 @@ g(Object p) {
   p = 42;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 65, 6)],
+      [error(diag.undefinedGetter, 65, 6)],
     );
   }
 
@@ -381,7 +381,7 @@ g(Object p) {
   p is String ? callMe(() { p.length; }) : 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 75, 6)],
+      [error(diag.undefinedGetter, 75, 6)],
     );
   }
 
@@ -398,7 +398,7 @@ f(Object p) {
   p = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 80, 6)],
+      [error(diag.undefinedGetter, 80, 6)],
     );
   }
 
@@ -417,7 +417,7 @@ f(A<V> p) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 97, 1)],
+      [error(diag.undefinedGetter, 97, 1)],
     );
   }
 
@@ -436,7 +436,7 @@ f(A<V> p) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 102, 1)],
+      [error(diag.undefinedGetter, 102, 1)],
     );
   }
 
@@ -450,7 +450,7 @@ f(Object p) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 52, 6)],
+      [error(diag.undefinedGetter, 52, 6)],
     );
   }
 
@@ -464,7 +464,7 @@ f(Object p) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 56, 6)],
+      [error(diag.undefinedGetter, 56, 6)],
     );
   }
 
@@ -478,10 +478,7 @@ g(Object p) {
   }
 }
 ''',
-      [
-        error(WarningCode.unusedElement, 16, 1),
-        error(CompileTimeErrorCode.undefinedGetter, 57, 6),
-      ],
+      [error(diag.unusedElement, 16, 1), error(diag.undefinedGetter, 57, 6)],
     );
   }
 
@@ -500,7 +497,7 @@ f(A<V> p) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 100, 1)],
+      [error(diag.undefinedGetter, 100, 1)],
     );
   }
 
@@ -519,7 +516,7 @@ f(A<V> p) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 109, 1)],
+      [error(diag.undefinedGetter, 109, 1)],
     );
   }
 
@@ -533,7 +530,7 @@ g(A<NoSuchType> a) {
   a.element.anyGetterExistsInDynamic;
 }
 ''',
-      [error(CompileTimeErrorCode.nonTypeAsTypeArgument, 37, 10)],
+      [error(diag.nonTypeAsTypeArgument, 37, 10)],
     );
   }
 }

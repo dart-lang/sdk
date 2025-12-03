@@ -699,6 +699,7 @@ class PluginServer {
           ({required AnalysisOptionsImpl analysisOptions}) => analysisOptions
             ..warning = false
             ..lint = false,
+      withFineDependencies: true,
     );
     _contextCollection = contextCollection;
     await _analyzeAllFilesInContextCollection(

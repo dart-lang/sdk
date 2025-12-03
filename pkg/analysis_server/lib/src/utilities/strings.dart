@@ -7,10 +7,10 @@ import 'dart:math';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// "$"
-const int CHAR_DOLLAR = 0x24;
+const int charDollar = 0x24;
 
 /// "_"
-const int CHAR_UNDERSCORE = 0x5F;
+const int charUnderscore = 0x5F;
 
 String? capitalize(String? str) {
   if (str == null || str.isEmpty) {

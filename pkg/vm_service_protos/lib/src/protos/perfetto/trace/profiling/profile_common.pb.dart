@@ -1,4 +1,4 @@
-// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,16 +6,17 @@
 // corresponding .proto file and then running
 // `dart third_party/perfetto/tools/compile_perfetto_protos.dart` from the
 // SDK root directory.
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: protos/perfetto/trace/profiling/profile_common.proto
-//
+// Generated from protos/perfetto/trace/profiling/profile_common.proto.
+
 // @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names
 
 import 'dart:core' as $core;
 
@@ -35,22 +36,20 @@ class InternedString extends $pb.GeneratedMessage {
     $fixnum.Int64? iid,
     $core.List<$core.int>? str,
   }) {
-    final $result = create();
-    if (iid != null) {
-      $result.iid = iid;
-    }
-    if (str != null) {
-      $result.str = str;
-    }
-    return $result;
+    final result = create();
+    if (iid != null) result.iid = iid;
+    if (str != null) result.str = str;
+    return result;
   }
-  InternedString._() : super();
-  factory InternedString.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory InternedString.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
+
+  InternedString._();
+
+  factory InternedString.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory InternedString.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'InternedString',
@@ -63,24 +62,20 @@ class InternedString extends $pb.GeneratedMessage {
         2, _omitFieldNames ? '' : 'str', $pb.PbFieldType.OY)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
-  InternedString clone() => InternedString()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  InternedString clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   InternedString copyWith(void Function(InternedString) updates) =>
       super.copyWith((message) => updates(message as InternedString))
           as InternedString;
 
+  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static InternedString create() => InternedString._();
+  @$core.override
   InternedString createEmptyInstance() => create();
-  static $pb.PbList<InternedString> createRepeated() =>
-      $pb.PbList<InternedString>();
   @$core.pragma('dart2js:noInline')
   static InternedString getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<InternedString>(create);
@@ -89,10 +84,7 @@ class InternedString extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $fixnum.Int64 get iid => $_getI64(0);
   @$pb.TagNumber(1)
-  set iid($fixnum.Int64 v) {
-    $_setInt64(0, v);
-  }
-
+  set iid($fixnum.Int64 value) => $_setInt64(0, value);
   @$pb.TagNumber(1)
   $core.bool hasIid() => $_has(0);
   @$pb.TagNumber(1)
@@ -101,10 +93,7 @@ class InternedString extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.List<$core.int> get str => $_getN(1);
   @$pb.TagNumber(2)
-  set str($core.List<$core.int> v) {
-    $_setBytes(1, v);
-  }
-
+  set str($core.List<$core.int> value) => $_setBytes(1, value);
   @$pb.TagNumber(2)
   $core.bool hasStr() => $_has(1);
   @$pb.TagNumber(2)
@@ -116,22 +105,20 @@ class Mapping extends $pb.GeneratedMessage {
     $fixnum.Int64? iid,
     $core.Iterable<$fixnum.Int64>? pathStringIds,
   }) {
-    final $result = create();
-    if (iid != null) {
-      $result.iid = iid;
-    }
-    if (pathStringIds != null) {
-      $result.pathStringIds.addAll(pathStringIds);
-    }
-    return $result;
+    final result = create();
+    if (iid != null) result.iid = iid;
+    if (pathStringIds != null) result.pathStringIds.addAll(pathStringIds);
+    return result;
   }
-  Mapping._() : super();
-  factory Mapping.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory Mapping.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
+
+  Mapping._();
+
+  factory Mapping.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Mapping.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Mapping',
@@ -144,22 +131,19 @@ class Mapping extends $pb.GeneratedMessage {
         7, _omitFieldNames ? '' : 'pathStringIds', $pb.PbFieldType.PU6)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
-  Mapping clone() => Mapping()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Mapping clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Mapping copyWith(void Function(Mapping) updates) =>
       super.copyWith((message) => updates(message as Mapping)) as Mapping;
 
+  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static Mapping create() => Mapping._();
+  @$core.override
   Mapping createEmptyInstance() => create();
-  static $pb.PbList<Mapping> createRepeated() => $pb.PbList<Mapping>();
   @$core.pragma('dart2js:noInline')
   static Mapping getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Mapping>(create);
@@ -169,10 +153,7 @@ class Mapping extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $fixnum.Int64 get iid => $_getI64(0);
   @$pb.TagNumber(1)
-  set iid($fixnum.Int64 v) {
-    $_setInt64(0, v);
-  }
-
+  set iid($fixnum.Int64 value) => $_setInt64(0, value);
   @$pb.TagNumber(1)
   $core.bool hasIid() => $_has(0);
   @$pb.TagNumber(1)
@@ -191,28 +172,22 @@ class Frame extends $pb.GeneratedMessage {
     $fixnum.Int64? mappingId,
     $fixnum.Int64? relPc,
   }) {
-    final $result = create();
-    if (iid != null) {
-      $result.iid = iid;
-    }
-    if (functionNameId != null) {
-      $result.functionNameId = functionNameId;
-    }
-    if (mappingId != null) {
-      $result.mappingId = mappingId;
-    }
-    if (relPc != null) {
-      $result.relPc = relPc;
-    }
-    return $result;
+    final result = create();
+    if (iid != null) result.iid = iid;
+    if (functionNameId != null) result.functionNameId = functionNameId;
+    if (mappingId != null) result.mappingId = mappingId;
+    if (relPc != null) result.relPc = relPc;
+    return result;
   }
-  Frame._() : super();
-  factory Frame.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory Frame.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
+
+  Frame._();
+
+  factory Frame.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Frame.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Frame',
@@ -231,22 +206,19 @@ class Frame extends $pb.GeneratedMessage {
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
-  Frame clone() => Frame()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Frame clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Frame copyWith(void Function(Frame) updates) =>
       super.copyWith((message) => updates(message as Frame)) as Frame;
 
+  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static Frame create() => Frame._();
+  @$core.override
   Frame createEmptyInstance() => create();
-  static $pb.PbList<Frame> createRepeated() => $pb.PbList<Frame>();
   @$core.pragma('dart2js:noInline')
   static Frame getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Frame>(create);
@@ -256,10 +228,7 @@ class Frame extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $fixnum.Int64 get iid => $_getI64(0);
   @$pb.TagNumber(1)
-  set iid($fixnum.Int64 v) {
-    $_setInt64(0, v);
-  }
-
+  set iid($fixnum.Int64 value) => $_setInt64(0, value);
   @$pb.TagNumber(1)
   $core.bool hasIid() => $_has(0);
   @$pb.TagNumber(1)
@@ -270,10 +239,7 @@ class Frame extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $fixnum.Int64 get functionNameId => $_getI64(1);
   @$pb.TagNumber(2)
-  set functionNameId($fixnum.Int64 v) {
-    $_setInt64(1, v);
-  }
-
+  set functionNameId($fixnum.Int64 value) => $_setInt64(1, value);
   @$pb.TagNumber(2)
   $core.bool hasFunctionNameId() => $_has(1);
   @$pb.TagNumber(2)
@@ -282,10 +248,7 @@ class Frame extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $fixnum.Int64 get mappingId => $_getI64(2);
   @$pb.TagNumber(3)
-  set mappingId($fixnum.Int64 v) {
-    $_setInt64(2, v);
-  }
-
+  set mappingId($fixnum.Int64 value) => $_setInt64(2, value);
   @$pb.TagNumber(3)
   $core.bool hasMappingId() => $_has(2);
   @$pb.TagNumber(3)
@@ -294,10 +257,7 @@ class Frame extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $fixnum.Int64 get relPc => $_getI64(3);
   @$pb.TagNumber(4)
-  set relPc($fixnum.Int64 v) {
-    $_setInt64(3, v);
-  }
-
+  set relPc($fixnum.Int64 value) => $_setInt64(3, value);
   @$pb.TagNumber(4)
   $core.bool hasRelPc() => $_has(3);
   @$pb.TagNumber(4)
@@ -309,22 +269,20 @@ class Callstack extends $pb.GeneratedMessage {
     $fixnum.Int64? iid,
     $core.Iterable<$fixnum.Int64>? frameIds,
   }) {
-    final $result = create();
-    if (iid != null) {
-      $result.iid = iid;
-    }
-    if (frameIds != null) {
-      $result.frameIds.addAll(frameIds);
-    }
-    return $result;
+    final result = create();
+    if (iid != null) result.iid = iid;
+    if (frameIds != null) result.frameIds.addAll(frameIds);
+    return result;
   }
-  Callstack._() : super();
-  factory Callstack.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory Callstack.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
+
+  Callstack._();
+
+  factory Callstack.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Callstack.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Callstack',
@@ -337,22 +295,19 @@ class Callstack extends $pb.GeneratedMessage {
         2, _omitFieldNames ? '' : 'frameIds', $pb.PbFieldType.PU6)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
-  Callstack clone() => Callstack()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Callstack clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Callstack copyWith(void Function(Callstack) updates) =>
       super.copyWith((message) => updates(message as Callstack)) as Callstack;
 
+  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static Callstack create() => Callstack._();
+  @$core.override
   Callstack createEmptyInstance() => create();
-  static $pb.PbList<Callstack> createRepeated() => $pb.PbList<Callstack>();
   @$core.pragma('dart2js:noInline')
   static Callstack getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Callstack>(create);
@@ -361,10 +316,7 @@ class Callstack extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $fixnum.Int64 get iid => $_getI64(0);
   @$pb.TagNumber(1)
-  set iid($fixnum.Int64 v) {
-    $_setInt64(0, v);
-  }
-
+  set iid($fixnum.Int64 value) => $_setInt64(0, value);
   @$pb.TagNumber(1)
   $core.bool hasIid() => $_has(0);
   @$pb.TagNumber(1)
@@ -375,6 +327,7 @@ class Callstack extends $pb.GeneratedMessage {
   $pb.PbList<$fixnum.Int64> get frameIds => $_getList(1);
 }
 
-const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames =
+const $core.bool _omitFieldNames =
+    $core.bool.fromEnvironment('protobuf.omit_field_names');
+const $core.bool _omitMessageNames =
     $core.bool.fromEnvironment('protobuf.omit_message_names');

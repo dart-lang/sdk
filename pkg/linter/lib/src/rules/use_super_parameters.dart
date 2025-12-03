@@ -14,6 +14,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Use super-initializer parameters where possible.';
 
@@ -37,8 +38,8 @@ class UseSuperParameters extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.useSuperParametersMultiple,
-    LinterLintCode.useSuperParametersSingle,
+    diag.useSuperParametersMultiple,
+    diag.useSuperParametersSingle,
   ];
 
   @override
@@ -254,20 +255,21 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _reportLint(ConstructorDeclaration node, List<String> identifiers) {
     if (identifiers.isEmpty) return;
-    var target = node.name ?? node.returnType;
+    // TODO(scheglov): support primary constructors
+    var target = node.name ?? node.typeName!;
     if (identifiers.length > 1) {
       var msg = identifiers.quotedAndCommaSeparatedWithAnd;
       rule.reportAtOffset(
         target.offset,
         target.length,
-        diagnosticCode: LinterLintCode.useSuperParametersMultiple,
+        diagnosticCode: diag.useSuperParametersMultiple,
         arguments: [msg],
       );
     } else {
       rule.reportAtOffset(
         target.offset,
         target.length,
-        diagnosticCode: LinterLintCode.useSuperParametersSingle,
+        diagnosticCode: diag.useSuperParametersSingle,
         arguments: [identifiers.first],
       );
     }

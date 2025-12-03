@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,8 +25,8 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 35, 1),
-        error(WarningCode.unusedLocalVariable, 61, 1),
+        error(diag.unusedLocalVariable, 35, 1),
+        error(diag.unusedLocalVariable, 61, 1),
       ],
     );
 
@@ -64,8 +64,8 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 35, 1),
-        error(WarningCode.unusedLocalVariable, 60, 1),
+        error(diag.unusedLocalVariable, 35, 1),
+        error(diag.unusedLocalVariable, 60, 1),
       ],
     );
 
@@ -102,9 +102,9 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 35, 1),
-        error(WarningCode.deadCode, 37, 10),
-        error(WarningCode.unusedLocalVariable, 46, 1),
+        error(diag.unusedLocalVariable, 35, 1),
+        error(diag.deadCode, 37, 10),
+        error(diag.unusedLocalVariable, 46, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -137,8 +137,8 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 40, 1),
-        error(WarningCode.unusedLocalVariable, 51, 1),
+        error(diag.unusedLocalVariable, 40, 1),
+        error(diag.unusedLocalVariable, 51, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -179,8 +179,8 @@ void f(num x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 39, 1),
-        error(CompileTimeErrorCode.missingVariablePattern, 44, 1),
+        error(diag.unusedLocalVariable, 39, 1),
+        error(diag.missingVariablePattern, 44, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -215,8 +215,8 @@ void f(int x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.missingVariablePattern, 29, 1),
-        error(WarningCode.unusedLocalVariable, 40, 1),
+        error(diag.missingVariablePattern, 29, 1),
+        error(diag.unusedLocalVariable, 40, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -247,9 +247,9 @@ void f(num x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 39, 1),
-        error(CompileTimeErrorCode.missingVariablePattern, 44, 1),
-        error(CompileTimeErrorCode.missingVariablePattern, 49, 1),
+        error(diag.unusedLocalVariable, 39, 1),
+        error(diag.missingVariablePattern, 44, 1),
+        error(diag.missingVariablePattern, 49, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -292,9 +292,9 @@ void f(num x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 39, 1),
-        error(WarningCode.unusedLocalVariable, 54, 1),
-        error(CompileTimeErrorCode.missingVariablePattern, 59, 1),
+        error(diag.unusedLocalVariable, 39, 1),
+        error(diag.unusedLocalVariable, 54, 1),
+        error(diag.missingVariablePattern, 59, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -343,11 +343,11 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 35, 1),
-        error(WarningCode.deadCode, 37, 10),
-        error(WarningCode.unusedLocalVariable, 46, 1),
-        error(WarningCode.deadCode, 48, 10),
-        error(WarningCode.unusedLocalVariable, 57, 1),
+        error(diag.unusedLocalVariable, 35, 1),
+        error(diag.deadCode, 37, 10),
+        error(diag.unusedLocalVariable, 46, 1),
+        error(diag.deadCode, 48, 10),
+        error(diag.unusedLocalVariable, 57, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -390,9 +390,9 @@ void f(num x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 39, 1),
-        error(CompileTimeErrorCode.missingVariablePattern, 44, 1),
-        error(WarningCode.unusedLocalVariable, 59, 1),
+        error(diag.unusedLocalVariable, 39, 1),
+        error(diag.missingVariablePattern, 44, 1),
+        error(diag.unusedLocalVariable, 59, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -441,9 +441,9 @@ void f(num x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.missingVariablePattern, 29, 1),
-        error(WarningCode.unusedLocalVariable, 44, 1),
-        error(CompileTimeErrorCode.missingVariablePattern, 49, 1),
+        error(diag.missingVariablePattern, 29, 1),
+        error(diag.unusedLocalVariable, 44, 1),
+        error(diag.missingVariablePattern, 49, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -486,10 +486,10 @@ void f(int x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.missingVariablePattern, 29, 1),
-        error(WarningCode.unusedLocalVariable, 40, 1),
-        error(WarningCode.deadCode, 42, 10),
-        error(WarningCode.unusedLocalVariable, 51, 1),
+        error(diag.missingVariablePattern, 29, 1),
+        error(diag.unusedLocalVariable, 40, 1),
+        error(diag.deadCode, 42, 10),
+        error(diag.unusedLocalVariable, 51, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -530,8 +530,8 @@ void f(int x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.missingVariablePattern, 29, 6),
-        error(WarningCode.unusedLocalVariable, 45, 1),
+        error(diag.missingVariablePattern, 29, 6),
+        error(diag.unusedLocalVariable, 45, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -573,9 +573,9 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 46, 1),
-        error(WarningCode.deadCode, 48, 10),
-        error(WarningCode.unusedLocalVariable, 57, 1),
+        error(diag.unusedLocalVariable, 46, 1),
+        error(diag.deadCode, 48, 10),
+        error(diag.unusedLocalVariable, 57, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -613,8 +613,8 @@ void f(num x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 50, 1),
-        error(CompileTimeErrorCode.missingVariablePattern, 55, 1),
+        error(diag.unusedLocalVariable, 50, 1),
+        error(diag.missingVariablePattern, 55, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -652,8 +652,8 @@ void f(int x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.missingVariablePattern, 40, 1),
-        error(WarningCode.unusedLocalVariable, 51, 1),
+        error(diag.missingVariablePattern, 40, 1),
+        error(diag.unusedLocalVariable, 51, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -688,10 +688,10 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 52, 1),
-        error(WarningCode.deadCode, 59, 4),
-        error(WarningCode.unreachableSwitchCase, 59, 4),
-        error(WarningCode.unusedLocalVariable, 76, 1),
+        error(diag.unusedLocalVariable, 52, 1),
+        error(diag.deadCode, 59, 4),
+        error(diag.unreachableSwitchCase, 59, 4),
+        error(diag.unusedLocalVariable, 76, 1),
       ],
     );
 
@@ -733,7 +733,7 @@ void f(num x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 53, 1)],
+      [error(diag.unusedLocalVariable, 53, 1)],
     );
   }
 
@@ -748,7 +748,7 @@ void f(int x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 58, 1)],
+      [error(diag.unusedLocalVariable, 58, 1)],
     );
   }
 
@@ -766,7 +766,7 @@ void f(int x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 46, 1)],
+      [error(diag.unusedLocalVariable, 46, 1)],
     );
   }
 
@@ -784,7 +784,7 @@ void f(num x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 53, 1)],
+      [error(diag.unusedLocalVariable, 53, 1)],
     );
   }
 }

@@ -1,0 +1,88 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:2:4: Error: Constructors can't have type parameters.
+// Try removing the type parameters.
+//   C<T>() : this();
+//    ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:3:3: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   C!<T>() : this();
+//   ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:3:3: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   C!<T>() : this();
+//   ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:3:3: Error: Expected ';' after this.
+//   C!<T>() : this();
+//   ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:3:4: Error: Operator declarations must be preceded by the keyword 'operator'.
+// Try adding the keyword 'operator'.
+//   C!<T>() : this();
+//    ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:3:4: Error: The string '!' isn't a user-definable operator.
+//   C!<T>() : this();
+//    ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:3:4: Error: The name of a constructor must match the name of the enclosing class.
+//   C!<T>() : this();
+//    ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:3:5: Error: Constructors can't have type parameters.
+// Try removing the type parameters.
+//   C!<T>() : this();
+//     ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:4:5: Error: Expected '>' after this.
+//   C<T() : this();
+//     ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:4:3: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   C<T() : this();
+//   ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:4:4: Error: Constructors can't have type parameters.
+// Try removing the type parameters.
+//   C<T() : this();
+//    ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:5:7: Error: Unexpected token '='.
+//   C<T>=() : this();
+//       ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:5:4: Error: Constructors can't have type parameters.
+// Try removing the type parameters.
+//   C<T>=() : this();
+//    ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:4:3: Error: 'C' is already declared in this scope.
+//   C<T() : this();
+//   ^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:2:3: Context: Previous declaration of 'C'.
+//   C<T>() : this();
+//   ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:5:3: Error: 'C' is already declared in this scope.
+//   C<T>=() : this();
+//   ^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_type_parameters.dart:2:3: Context: Previous declaration of 'C'.
+//   C<T>() : this();
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field dynamic C;
+  constructor •() → self::C
+    ;
+  constructor !() → self::C
+    ;
+}

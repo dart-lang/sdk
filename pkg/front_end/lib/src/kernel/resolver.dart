@@ -704,7 +704,7 @@ class Resolver {
     required LookupScope scope,
     required Token token,
     required Procedure procedure,
-    required List<VariableDeclarationImpl> extraKnownVariables,
+    required List<ExpressionVariable> extraKnownVariables,
     required ExpressionEvaluationHelper expressionEvaluationHelper,
     required VariableDeclaration? extensionThis,
   }) {
@@ -789,7 +789,7 @@ class Resolver {
         );
       }
     }
-    for (VariableDeclarationImpl extraVariable in extraKnownVariables) {
+    for (ExpressionVariable extraVariable in extraKnownVariables) {
       context.typeInferrer.flowAnalysis.declare(
         extraVariable,
         new SharedTypeView(extraVariable.type),
@@ -1007,13 +1007,13 @@ class Resolver {
   /// [fileOffset] as the file offset.
   VariableGet _createVariableGet({
     required AssignedVariables assignedVariables,
-    required VariableDeclarationImpl variable,
+    required InternalExpressionVariable variable,
     required int fileOffset,
   }) {
     if (!variable.isLocalFunction && !variable.isWildcard) {
       assignedVariables.read(variable);
     }
-    return new VariableGet(variable)..fileOffset = fileOffset;
+    return new VariableGet(variable.astVariable)..fileOffset = fileOffset;
   }
 
   void _declareFormals({

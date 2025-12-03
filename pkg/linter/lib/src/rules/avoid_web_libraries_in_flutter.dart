@@ -14,6 +14,7 @@ import 'package:yaml/yaml.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r'Avoid using web-only libraries outside Flutter web plugin packages.';
@@ -40,8 +41,7 @@ class AvoidWebLibrariesInFlutter extends AnalysisRule {
     : super(name: LintNames.avoid_web_libraries_in_flutter, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidWebLibrariesInFlutter;
+  DiagnosticCode get diagnosticCode => diag.avoidWebLibrariesInFlutter;
 
   bool hasFlutterDep(File? pubspec) {
     if (pubspec == null) {

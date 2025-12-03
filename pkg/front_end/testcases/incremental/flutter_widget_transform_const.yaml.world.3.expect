@@ -54,7 +54,7 @@ library from "org-dartlang-test:///foo.dart" as foo {
     const constructor _({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Bar
       : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
-    static factory •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Bar /* redirection-target: foo::Bar::_ */
+    static const factory •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Bar /* redirection-target: foo::Bar::_ */
       return new foo::Bar::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
     static synthetic method _#new#tearOff() → foo::Bar
       return new foo::Bar::_($creationLocationd_0dea112b090073317d4: #C16);
@@ -69,7 +69,7 @@ library from "org-dartlang-test:///foo.dart" as foo {
       return #C22;
     static synthetic method _#new#tearOff() → foo::Baz
       return foo::Baz::•($creationLocationd_0dea112b090073317d4: #C23);
-    static factory _({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Baz /* redirection-target: foo::Baz::__ */
+    static const factory _({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Baz /* redirection-target: foo::Baz::__ */
       return new foo::Baz::__($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
     static synthetic method _#_#tearOff() → foo::Baz
       return new foo::Baz::__($creationLocationd_0dea112b090073317d4: #C25);

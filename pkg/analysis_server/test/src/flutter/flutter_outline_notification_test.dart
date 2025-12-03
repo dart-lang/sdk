@@ -40,7 +40,7 @@ class FlutterNotificationOutlineTest extends PubPackageAnalysisServerTest {
   @override
   void processNotification(Notification notification) {
     super.processNotification(notification);
-    if (notification.event == FLUTTER_NOTIFICATION_OUTLINE) {
+    if (notification.event == flutterNotificationOutline) {
       var params = FlutterOutlineParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,

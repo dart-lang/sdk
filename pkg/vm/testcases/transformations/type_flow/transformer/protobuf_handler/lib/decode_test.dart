@@ -13,7 +13,8 @@ List<int> buffer = <int>[
   8, 42, 34, 9, 10,
   3, 122, 111, 112, 18,
   2, 8, 3, 40, 43,
-  50, 0, 58, 0,
+  50, 0, 58, 0, 66,
+  2, 8, 42,
 ];
 
 main() {
@@ -23,6 +24,7 @@ main() {
     expect(foo.barKeep.aKeep, 5);
     expect(foo.aKeep, 43);
     expect(foo.hasHasKeep(), true);
+    expect(foo.mixinKeep.aKeep, 42);
     foo.clearClearKeep();
   });
 }

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Adhere to Effective Dart Guide directives sorting conventions.';
 
@@ -62,10 +63,10 @@ bool _isRelativeDirective(NamespaceDirective node) =>
 
 class DirectivesOrdering extends MultiAnalysisRule {
   static const List<DiagnosticCode> allCodes = [
-    LinterLintCode.directivesOrderingAlphabetical,
-    LinterLintCode.directivesOrderingDart,
-    LinterLintCode.directivesOrderingExports,
-    LinterLintCode.directivesOrderingPackageBeforeRelative,
+    diag.directivesOrderingAlphabetical,
+    diag.directivesOrderingDart,
+    diag.directivesOrderingExports,
+    diag.directivesOrderingPackageBeforeRelative,
   ];
 
   DirectivesOrdering()
@@ -86,7 +87,7 @@ class DirectivesOrdering extends MultiAnalysisRule {
   void _reportLintWithDartDirectiveGoFirstMessage(AstNode node, String type) {
     reportAtNode(
       node,
-      diagnosticCode: LinterLintCode.directivesOrderingDart,
+      diagnosticCode: diag.directivesOrderingDart,
       arguments: ['${type}s'],
     );
   }
@@ -94,17 +95,11 @@ class DirectivesOrdering extends MultiAnalysisRule {
   void _reportLintWithDirectiveSectionOrderedAlphabeticallyMessage(
     AstNode node,
   ) {
-    reportAtNode(
-      node,
-      diagnosticCode: LinterLintCode.directivesOrderingAlphabetical,
-    );
+    reportAtNode(node, diagnosticCode: diag.directivesOrderingAlphabetical);
   }
 
   void _reportLintWithExportDirectiveAfterImportDirectiveMessage(AstNode node) {
-    reportAtNode(
-      node,
-      diagnosticCode: LinterLintCode.directivesOrderingExports,
-    );
+    reportAtNode(node, diagnosticCode: diag.directivesOrderingExports);
   }
 
   void _reportLintWithPackageDirectiveBeforeRelativeMessage(
@@ -113,7 +108,7 @@ class DirectivesOrdering extends MultiAnalysisRule {
   ) {
     reportAtNode(
       node,
-      diagnosticCode: LinterLintCode.directivesOrderingPackageBeforeRelative,
+      diagnosticCode: diag.directivesOrderingPackageBeforeRelative,
       arguments: ['${type}s'],
     );
   }

@@ -148,7 +148,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
         // doesn't make sense to create a method.
         return;
       }
-      var enclosingMemberParent = enclosingMember.parent;
+      var enclosingMemberParent = enclosingMember.parent?.parent;
       if (enclosingMemberParent is CompilationUnitMember &&
           enclosingMemberParent is! ExtensionDeclaration) {
         targetNode = enclosingMemberParent;
@@ -160,6 +160,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
             fields: VariableDeclarationList(:var isLate),
           ) =>
             isStatic || !isLate,
+          PrimaryConstructorBody() => false,
         };
       }
     } else {

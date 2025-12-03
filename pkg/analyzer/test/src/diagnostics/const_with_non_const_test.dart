@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ main() {
   const A(B());
 }
 ''',
-      [error(CompileTimeErrorCode.constWithNonConst, 57, 3)],
+      [error(diag.constWithNonConst, 57, 3)],
     );
   }
 
@@ -54,7 +54,7 @@ class A {
 class B = A with M;
 var b = const B();
 ''',
-      [error(CompileTimeErrorCode.constWithNonConst, 78, 5)],
+      [error(diag.constWithNonConst, 78, 5)],
     );
   }
 
@@ -95,7 +95,7 @@ void f() {
   const A(0);
 }
 ''',
-      [error(CompileTimeErrorCode.constWithNonConst, 57, 5)],
+      [error(diag.constWithNonConst, 57, 5)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -131,7 +131,7 @@ void f() {
   const A(0);
 }
 ''',
-      [error(CompileTimeErrorCode.constWithNonConst, 38, 5)],
+      [error(diag.constWithNonConst, 38, 5)],
     );
 
     var node = findNode.singleInstanceCreationExpression;

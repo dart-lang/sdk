@@ -43,7 +43,7 @@ main async() {}
 
   @override
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_NOTIFICATION_FOLDING) {
+    if (notification.event == analysisNotificationFolding) {
       var params = AnalysisFoldingParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,
@@ -52,7 +52,7 @@ main async() {}
         lastRegions = params.regions;
         _regionsReceived.complete();
       }
-    } else if (notification.event == SERVER_NOTIFICATION_ERROR) {
+    } else if (notification.event == serverNotificationError) {
       var params = ServerErrorParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,

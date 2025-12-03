@@ -12,6 +12,7 @@ import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Prefer putting asserts in initializer lists.';
 
@@ -23,8 +24,7 @@ class PreferAssertsInInitializerLists extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.preferAssertsInInitializerLists;
+  DiagnosticCode get diagnosticCode => diag.preferAssertsInInitializerLists;
 
   @override
   void registerNodeProcessors(

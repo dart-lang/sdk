@@ -57,6 +57,7 @@ Component transformComponent(
   bool treeShakeSignatures = true,
   bool treeShakeWriteOnlyFields = true,
   bool treeShakeProtobufs = false,
+  bool treeShakeProtobufMixins = false,
   bool useRapidTypeAnalysis = true,
 }) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
@@ -75,7 +76,11 @@ Component transformComponent(
   );
   final protobufHandler =
       treeShakeProtobufs
-          ? ProtobufHandler.forComponent(component, coreTypes)
+          ? ProtobufHandler.forComponent(
+            component,
+            coreTypes,
+            handleMixins: treeShakeProtobufMixins,
+          )
           : null;
 
   Statistics.reset();

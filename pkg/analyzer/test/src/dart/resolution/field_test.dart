@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,7 +23,7 @@ class A {
   late Object f = super;
 }
 ''',
-      [error(ParserErrorCode.missingAssignableSelector, 28, 5)],
+      [error(diag.missingAssignableSelector, 28, 5)],
     );
 
     var node = findNode.singleFieldDeclaration;
@@ -43,9 +42,9 @@ FieldDeclaration
         initializer: SuperExpression
           superKeyword: super
           staticType: A
-        declaredElement: <testLibraryFragment> f@24
+        declaredFragment: <testLibraryFragment> f@24
   semicolon: ;
-  declaredElement: <null>
+  declaredFragment: <null>
 ''');
   }
 
@@ -72,9 +71,9 @@ FieldDeclaration
         initializer: ThisExpression
           thisKeyword: this
           staticType: A
-        declaredElement: <testLibraryFragment> f@24
+        declaredFragment: <testLibraryFragment> f@24
   semicolon: ;
-  declaredElement: <null>
+  declaredFragment: <null>
 ''');
   }
 
@@ -86,7 +85,7 @@ class A {
   final int b = a;
 }
 ''',
-      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 45, 1)],
+      [error(diag.implicitThisReferenceInInitializer, 45, 1)],
     );
 
     var node = findNode.fieldDeclaration('b =');
@@ -106,9 +105,9 @@ FieldDeclaration
           token: a
           element: <testLibrary>::@class::A::@getter::a
           staticType: int
-        declaredElement: <testLibraryFragment> b@41
+        declaredFragment: <testLibraryFragment> b@41
   semicolon: ;
-  declaredElement: <null>
+  declaredFragment: <null>
 ''');
   }
 
@@ -120,7 +119,7 @@ class A {
   final int b = a;
 }
 ''',
-      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 44, 1)],
+      [error(diag.implicitThisReferenceInInitializer, 44, 1)],
     );
 
     var node = findNode.fieldDeclaration('b =');
@@ -140,9 +139,9 @@ FieldDeclaration
           token: a
           element: <testLibrary>::@class::A::@getter::a
           staticType: int
-        declaredElement: <testLibraryFragment> b@40
+        declaredFragment: <testLibraryFragment> b@40
   semicolon: ;
-  declaredElement: <null>
+  declaredFragment: <null>
 ''');
   }
 
@@ -154,7 +153,7 @@ class A {
   final int b = a();
 }
 ''',
-      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 42, 1)],
+      [error(diag.implicitThisReferenceInInitializer, 42, 1)],
     );
 
     var node = findNode.fieldDeclaration('b =');
@@ -180,9 +179,9 @@ FieldDeclaration
             rightParenthesis: )
           staticInvokeType: int Function()
           staticType: int
-        declaredElement: <testLibraryFragment> b@38
+        declaredFragment: <testLibraryFragment> b@38
   semicolon: ;
-  declaredElement: <null>
+  declaredFragment: <null>
 ''');
   }
 
@@ -193,7 +192,7 @@ class A {
   final a = this;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidReferenceToThis, 22, 4)],
+      [error(diag.invalidReferenceToThis, 22, 4)],
     );
 
     var node = findNode.singleFieldDeclaration;
@@ -208,9 +207,9 @@ FieldDeclaration
         initializer: ThisExpression
           thisKeyword: this
           staticType: A
-        declaredElement: <testLibraryFragment> a@18
+        declaredFragment: <testLibraryFragment> a@18
   semicolon: ;
-  declaredElement: <null>
+  declaredFragment: <null>
 ''');
   }
 
@@ -291,9 +290,9 @@ FieldDeclaration
           leftBracket: [
           rightBracket: ]
           staticType: List<T>
-        declaredElement: <testLibraryFragment> f@19
+        declaredFragment: <testLibraryFragment> f@19
   semicolon: ;
-  declaredElement: <null>
+  declaredFragment: <null>
 ''');
   }
 }

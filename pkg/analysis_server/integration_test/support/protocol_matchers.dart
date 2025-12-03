@@ -404,6 +404,7 @@ final Matcher isDiagnosticMessage = LazyMatcher(
 ///       "returnType": optional String
 ///       "typeParameters": optional String
 ///       "aliasedType": optional String
+///       "extendedType": optional String
 ///     }
 final Matcher isElement = LazyMatcher(
   () => MatchesJsonObject(
@@ -415,6 +416,7 @@ final Matcher isElement = LazyMatcher(
       'returnType': isString,
       'typeParameters': isString,
       'aliasedType': isString,
+      'extendedType': isString,
     },
   ),
 );

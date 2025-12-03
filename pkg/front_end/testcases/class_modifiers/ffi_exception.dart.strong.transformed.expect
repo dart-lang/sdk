@@ -73,7 +73,9 @@ class ImplementsBase extends core::Object implements ffi::Opaque {
 }
 class ExtendsInterface extends ffi::Finalizable {
   synthetic constructor •() → self::ExtendsInterface
-    : invalid-initializer
+    : invalid-initializer "pkg/front_end/testcases/class_modifiers/ffi_exception.dart:26:7: Error: The superclass, 'Finalizable', has no unnamed constructor that takes no arguments.
+class ExtendsInterface extends Finalizable {} /* Error */
+      ^"
     ;
 }
 abstract final class _WithFinal&Object&Double extends core::Object implements ffi::Double /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {

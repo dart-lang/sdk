@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -25,7 +25,7 @@ void f(int x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 46, 1)],
+      [error(diag.unusedLocalVariable, 46, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -49,7 +49,7 @@ void f(x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 46, 1)],
+      [error(diag.unusedLocalVariable, 46, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -235,7 +235,7 @@ void f(x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 40, 1)],
+      [error(diag.unusedLocalVariable, 40, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -261,7 +261,7 @@ void f<T>(T x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 54, 1)],
+      [error(diag.unusedLocalVariable, 54, 1)],
     );
 
     var node = findNode.singleGuardedPattern.pattern;
@@ -283,7 +283,7 @@ void f(int x) {
   if (x case var y) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 33, 1)],
+      [error(diag.unusedLocalVariable, 33, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -304,7 +304,7 @@ void f(Never? x) {
   if (x case var y) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 36, 1)],
+      [error(diag.unusedLocalVariable, 36, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -325,7 +325,7 @@ void f(Null x) {
   if (x case var y) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 34, 1)],
+      [error(diag.unusedLocalVariable, 34, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -349,7 +349,7 @@ void f(int x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 44, 1)],
+      [error(diag.unusedLocalVariable, 44, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -373,7 +373,7 @@ void f(num x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 44, 1)],
+      [error(diag.unusedLocalVariable, 44, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''

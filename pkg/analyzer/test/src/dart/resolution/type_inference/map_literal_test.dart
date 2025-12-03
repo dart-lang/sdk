@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
@@ -23,7 +23,7 @@ class MapLiteralTest extends PubPackageResolutionTest {
       '''
 Map<int, int> a = {'a' : 1};
 ''',
-      [error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 19, 3)],
+      [error(diag.mapKeyTypeNotAssignable, 19, 3)],
     );
     assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
@@ -33,7 +33,7 @@ Map<int, int> a = {'a' : 1};
       '''
 Map<int, int> a = {1 : 'a'};
 ''',
-      [error(CompileTimeErrorCode.mapValueTypeNotAssignable, 23, 3)],
+      [error(diag.mapValueTypeNotAssignable, 23, 3)],
     );
     assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
@@ -95,7 +95,7 @@ class A<E extends Map<int, String>> {
   E a = {};
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 46, 2)],
+      [error(diag.invalidAssignment, 46, 2)],
     );
     assertType(setOrMapLiteral('{}'), 'Map<dynamic, dynamic>');
   }
@@ -107,7 +107,7 @@ class A<E extends Map<dynamic, dynamic>> {
   E a = {};
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 51, 2)],
+      [error(diag.invalidAssignment, 51, 2)],
     );
     assertType(setOrMapLiteral('{}'), 'Map<dynamic, dynamic>');
   }
@@ -150,7 +150,7 @@ MethodInvocation
       '''
 Map<String, String> a = <String, String>{0 : 'a'};
 ''',
-      [error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 41, 1)],
+      [error(diag.mapKeyTypeNotAssignable, 41, 1)],
     );
     assertType(setOrMapLiteral('{'), 'Map<String, String>');
   }
@@ -160,7 +160,7 @@ Map<String, String> a = <String, String>{0 : 'a'};
       '''
 Map<String, String> a = <String, String>{'a' : 1};
 ''',
-      [error(CompileTimeErrorCode.mapValueTypeNotAssignable, 47, 1)],
+      [error(diag.mapValueTypeNotAssignable, 47, 1)],
     );
     assertType(setOrMapLiteral('{'), 'Map<String, String>');
   }
@@ -177,7 +177,7 @@ Map<String, String> a = <String, String>{'a' : 'b'};
       '''
 Map<String, String> a = <int, int>{};
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 24, 12)],
+      [error(diag.invalidAssignment, 24, 12)],
     );
     assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
@@ -369,7 +369,7 @@ void f(Never a, bool b) async {
   var v = {...a, if (b) throw 0: throw 0};
 }
 ''',
-      [error(WarningCode.deadCode, 87, 21)],
+      [error(diag.deadCode, 87, 21)],
     );
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
@@ -383,8 +383,8 @@ void f(Never a, bool b) async {
 }
 ''',
       [
-        error(StaticWarningCode.invalidNullAwareOperator, 77, 4),
-        error(WarningCode.deadCode, 88, 21),
+        error(diag.invalidNullAwareOperator, 77, 4),
+        error(diag.deadCode, 88, 21),
       ],
     );
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
@@ -398,7 +398,7 @@ void f(Null a, bool b) async {
   var v = {...?a, if (b) throw 0: throw 0};
 }
 ''',
-      [error(WarningCode.deadCode, 99, 7)],
+      [error(diag.deadCode, 99, 7)],
     );
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
@@ -431,7 +431,7 @@ void f(Null a) {
   var v = {...?a};
 }
 ''',
-      [error(CompileTimeErrorCode.ambiguousSetOrMapLiteralEither, 61, 7)],
+      [error(diag.ambiguousSetOrMapLiteralEither, 61, 7)],
     );
     assertType(setOrMapLiteral('{...'), 'dynamic');
   }
@@ -445,8 +445,8 @@ void f<T extends Never>(T a, bool b) async {
 }
 ''',
       [
-        error(StaticWarningCode.invalidNullAwareOperator, 90, 4),
-        error(WarningCode.deadCode, 101, 21),
+        error(diag.invalidNullAwareOperator, 90, 4),
+        error(diag.deadCode, 101, 21),
       ],
     );
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
@@ -460,7 +460,7 @@ void f<T extends Null>(T a, bool b) async {
   var v = {...?a, if (b) throw 0: throw 0};
 }
 ''',
-      [error(WarningCode.deadCode, 112, 7)],
+      [error(diag.deadCode, 112, 7)],
     );
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
@@ -483,7 +483,7 @@ void f<T extends Never>(T a, bool b) async {
   var v = {...a, if (b) throw 0: throw 0};
 }
 ''',
-      [error(WarningCode.deadCode, 100, 21)],
+      [error(diag.deadCode, 100, 21)],
     );
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
@@ -497,7 +497,7 @@ void f<T extends num>(T a) {
   var v = {...a};
 }
 ''',
-      [error(CompileTimeErrorCode.ambiguousSetOrMapLiteralEither, 73, 6)],
+      [error(diag.ambiguousSetOrMapLiteralEither, 73, 6)],
     );
     assertType(setOrMapLiteral('{...'), 'dynamic');
   }
@@ -511,7 +511,7 @@ void f<T extends num>(T a) {
   var v = {...a, 0: 1};
 }
 ''',
-      [error(CompileTimeErrorCode.ambiguousSetOrMapLiteralEither, 73, 12)],
+      [error(diag.ambiguousSetOrMapLiteralEither, 73, 12)],
     );
     assertType(setOrMapLiteral('{...'), 'dynamic');
   }
@@ -521,7 +521,7 @@ void f<T extends num>(T a) {
       '''
 var a = <String, int>{1 : 2};
 ''',
-      [error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 22, 1)],
+      [error(diag.mapKeyTypeNotAssignable, 22, 1)],
     );
     assertType(setOrMapLiteral('{'), 'Map<String, int>');
   }
@@ -531,7 +531,7 @@ var a = <String, int>{1 : 2};
       '''
 var a = <String, int>{'a' : 'b'};
 ''',
-      [error(CompileTimeErrorCode.mapValueTypeNotAssignable, 28, 3)],
+      [error(diag.mapValueTypeNotAssignable, 28, 3)],
     );
     assertType(setOrMapLiteral('{'), 'Map<String, int>');
   }
@@ -548,7 +548,7 @@ var a = <int, int>{1 : 2};
       '''
 var a = <int, String>{1};
 ''',
-      [error(CompileTimeErrorCode.expressionInMap, 22, 1)],
+      [error(diag.expressionInMap, 22, 1)],
     );
     assertType(setOrMapLiteral('{'), 'Map<int, String>');
   }

@@ -149,7 +149,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredClass(ClassDeclaration declaration) {
-    if (declaration.name.lexeme == targetName) {
+    if (declaration.namePart.typeName.lexeme == targetName) {
       // no type
       finished();
     }
@@ -338,7 +338,7 @@ class _SuggestionBuilder {
         ...targetType.setters,
       ]) {
         if (!propertyAccessor.isStatic) {
-          if (propertyAccessor.isSynthetic) {
+          if (propertyAccessor.isOriginVariable) {
             // Avoid visiting a field twice
             if (propertyAccessor is GetterElement) {
               _addSuggestion(propertyAccessor.variable);

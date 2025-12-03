@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -18,14 +18,12 @@ class BreakStatementTest extends PartialCodeTest {
         TestDescriptor(
           'keyword',
           'break',
-          [ParserErrorCode.expectedToken, ParserErrorCode.breakOutsideOfLoop],
+          [diag.expectedToken, diag.breakOutsideOfLoop],
           "break;",
-          expectedDiagnosticsInValidCode: [ParserErrorCode.breakOutsideOfLoop],
+          expectedDiagnosticsInValidCode: [diag.breakOutsideOfLoop],
           failing: ['labeled', 'localFunctionNonVoid'],
         ),
-        TestDescriptor('label', 'break a', [
-          ParserErrorCode.expectedToken,
-        ], "break a;"),
+        TestDescriptor('label', 'break a', [diag.expectedToken], "break a;"),
       ],
       PartialCodeTest.statementSuffixes,
       head: 'f() { ',

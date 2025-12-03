@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Declare method return types.';
@@ -21,8 +22,8 @@ class AlwaysDeclareReturnTypes extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.alwaysDeclareReturnTypesOfFunctions,
-    LinterLintCode.alwaysDeclareReturnTypesOfMethods,
+    diag.alwaysDeclareReturnTypesOfFunctions,
+    diag.alwaysDeclareReturnTypesOfMethods,
   ];
 
   @override
@@ -49,7 +50,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtToken(
         node.name,
         arguments: [node.name.lexeme],
-        diagnosticCode: LinterLintCode.alwaysDeclareReturnTypesOfFunctions,
+        diagnosticCode: diag.alwaysDeclareReturnTypesOfFunctions,
       );
     }
   }
@@ -60,7 +61,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtToken(
         node.name,
         arguments: [node.name.lexeme],
-        diagnosticCode: LinterLintCode.alwaysDeclareReturnTypesOfFunctions,
+        diagnosticCode: diag.alwaysDeclareReturnTypesOfFunctions,
       );
     }
   }
@@ -82,7 +83,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     rule.reportAtToken(
       node.name,
       arguments: [node.name.lexeme],
-      diagnosticCode: LinterLintCode.alwaysDeclareReturnTypesOfMethods,
+      diagnosticCode: diag.alwaysDeclareReturnTypesOfMethods,
     );
   }
 }

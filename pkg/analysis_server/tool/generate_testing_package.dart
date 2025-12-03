@@ -43,14 +43,20 @@ void main(List<String> args) async {
     ..addFlag(
       'use-json-serializable',
       help: 'Whether to declare @JsonSerializable classes',
-    );
+    )
+    ..addFlag('help', help: 'Print help text');
+
   var argResults = argParser.parse(args);
-  var libraryCount = int.parse(argResults['library-count'] as String);
-  var classCount = int.parse(argResults['class-count'] as String);
-  var methodCount = int.parse(argResults['method-count'] as String);
-  var parameterCount = int.parse(argResults['parameter-count'] as String);
-  var useBarrelFile = argResults['use-barrel-file'] as bool;
-  var useJsonSerializable = argResults['use-json-serializable'] as bool;
+  if (argResults.flag('help')) {
+    print(argParser.usage);
+  }
+
+  var libraryCount = int.parse(argResults.option('library-count')!);
+  var classCount = int.parse(argResults.option('class-count')!);
+  var methodCount = int.parse(argResults.option('method-count')!);
+  var parameterCount = int.parse(argResults.option('parameter-count')!);
+  var useBarrelFile = argResults.flag('use-barrel-file');
+  var useJsonSerializable = argResults.flag('use-json-serializable');
   var testDataDir = Directory('test_data')..createSync();
   var libFiles = <d.Descriptor>[];
   var classCounter = 1;
@@ -199,7 +205,7 @@ dev_dependencies:
 name: test_package
 version: 0.0.1
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: ^3.9.0
 $dependencies
 $devDependencies
 ''';

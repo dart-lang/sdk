@@ -360,6 +360,7 @@ class FieldDeclaration {
   static const hasAnnotationsFlag = 1 << 14;
   static const hasPragmaFlag = 1 << 15;
   static const hasCustomScriptFlag = 1 << 16;
+  static const isExtensionTypeMemberFlag = 1 << 17;
 
   final int flags;
   final ObjectHandle name;
@@ -475,6 +476,9 @@ class FieldDeclaration {
     if ((flags & isExtensionMemberFlag) != 0) {
       sb.write(', extension-member');
     }
+    if ((flags & isExtensionTypeMemberFlag) != 0) {
+      sb.write(', extension-type-member');
+    }
     if ((flags & hasPragmaFlag) != 0) {
       sb.write(', has-pragma');
     }
@@ -526,6 +530,7 @@ class FunctionDeclaration {
   static const hasAnnotationsFlag = 1 << 21;
   static const hasPragmaFlag = 1 << 22;
   static const hasCustomScriptFlag = 1 << 23;
+  static const isExtensionTypeMemberFlag = 1 << 24;
 
   final int flags;
   final ObjectHandle name;
@@ -677,6 +682,9 @@ class FunctionDeclaration {
     }
     if ((flags & isExtensionMemberFlag) != 0) {
       sb.write(', extension-member');
+    }
+    if ((flags & isExtensionTypeMemberFlag) != 0) {
+      sb.write(', extension-type-member');
     }
     if ((flags & hasOptionalPositionalParamsFlag) != 0) {
       sb.write(', has-optional-positional-params');

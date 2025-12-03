@@ -131,12 +131,9 @@ AstNode? getEnclosingClassOrUnitMember(AstNode input) {
   var member = input;
   for (var node in input.withAncestors) {
     switch (node) {
-      case ClassDeclaration _:
+      case BlockClassBody _:
       case CompilationUnit _:
-      case EnumDeclaration _:
-      case ExtensionDeclaration _:
-      case ExtensionTypeDeclaration _:
-      case MixinDeclaration _:
+      case EnumBody _:
         return member;
     }
     member = node;

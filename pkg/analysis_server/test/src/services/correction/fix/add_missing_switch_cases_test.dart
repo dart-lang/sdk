@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
@@ -234,8 +234,7 @@ int f(E x) {
   };
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 enum E {
   first, second, _unknown
 }
@@ -249,11 +248,7 @@ int f(E x) {
     E._unknown => throw UnimplementedError(),
   };
 }
-''',
-      filter: (e) =>
-          e.diagnosticCode ==
-          CompileTimeErrorCode.nonExhaustiveSwitchExpression,
-    );
+''', filter: (e) => e.diagnosticCode == diag.nonExhaustiveSwitchExpression);
   }
 
   Future<void> test_num_anyDouble_intProperty() async {
@@ -358,6 +353,88 @@ int f(num x) {
 ''');
   }
 
+  Future<void> test_privateEnum() async {
+    newFile('$testPackageLibPath/enum.dart', r'''
+enum _E { first, second }
+
+_E f() => _E.first;
+''');
+    await resolveTestCode('''
+import 'enum.dart';
+
+int g() {
+  return switch (f()) {
+  };
+}
+''');
+    await assertHasFix('''
+import 'enum.dart';
+
+int g() {
+  return switch (f()) {
+    // TODO: Handle this case.
+    _ => throw UnimplementedError(),
+  };
+}
+''');
+  }
+
+  Future<void> test_privateEnumConstant() async {
+    newFile('$testPackageLibPath/enum.dart', r'''
+enum E { first, second, _unknown }
+''');
+    await resolveTestCode('''
+import 'enum.dart';
+
+int g(E e) {
+  return switch (e) {
+  };
+}
+''');
+    await assertHasFix('''
+import 'enum.dart';
+
+int g(E e) {
+  return switch (e) {
+    // TODO: Handle this case.
+    E.first => throw UnimplementedError(),
+    // TODO: Handle this case.
+    E.second => throw UnimplementedError(),
+    // TODO: Handle this case.
+    _ => throw UnimplementedError(),
+  };
+}
+''');
+  }
+
+  Future<void> test_privateEnumConstant_privateMissing() async {
+    newFile('$testPackageLibPath/enum.dart', r'''
+enum E { first, second, _unknown }
+''');
+    await resolveTestCode('''
+import 'enum.dart';
+
+int g(E e) {
+  return switch (e) {
+    E.first => 0,
+    E.second => 1,
+  };
+}
+''');
+    await assertHasFix('''
+import 'enum.dart';
+
+int g(E e) {
+  return switch (e) {
+    E.first => 0,
+    E.second => 1,
+    // TODO: Handle this case.
+    _ => throw UnimplementedError(),
+  };
+}
+''');
+  }
+
   Future<void> test_sealed_impl() async {
     var otherRoot = getFolder('$packagesRootPath/other');
     newFile('$otherRoot/lib/src/private.dart', '''
@@ -406,8 +483,7 @@ class AddMissingSwitchCasesTest_SwitchStatement extends FixProcessorTest {
     var hasError = false;
     return (diagnostic) {
       if (!hasError &&
-          diagnostic.diagnosticCode ==
-              CompileTimeErrorCode.nonExhaustiveSwitchStatement) {
+          diagnostic.diagnosticCode == diag.nonExhaustiveSwitchStatement) {
         hasError = true;
         return true;
       }
@@ -540,8 +616,7 @@ void f(E e) {
   }
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 enum E {a, b, _c}
 void f(E e) {
   switch (e) {
@@ -556,10 +631,7 @@ void f(E e) {
       throw UnimplementedError();
   }
 }
-''',
-      filter: (e) =>
-          e.diagnosticCode == CompileTimeErrorCode.nonExhaustiveSwitchStatement,
-    );
+''', filter: (e) => e.diagnosticCode == diag.nonExhaustiveSwitchStatement);
   }
 
   Future<void> test_final() async {
@@ -877,6 +949,95 @@ void f(num x) {
       // TODO: Handle this case.
       throw UnimplementedError();
     case int():
+      // TODO: Handle this case.
+      throw UnimplementedError();
+  }
+}
+''');
+  }
+
+  Future<void> test_privateEnum() async {
+    newFile('$testPackageLibPath/enum.dart', r'''
+enum _E { first, second }
+
+_E f() => _E.first;
+''');
+    await resolveTestCode('''
+import 'enum.dart';
+
+int g() {
+  switch (f()) {
+  }
+}
+''');
+    await assertHasFix('''
+import 'enum.dart';
+
+int g() {
+  switch (f()) {
+    default:
+      // TODO: Handle this case.
+      throw UnimplementedError();
+  }
+}
+''');
+  }
+
+  Future<void> test_privateEnumConstant() async {
+    newFile('$testPackageLibPath/enum.dart', r'''
+enum E { first, second, _unknown }
+''');
+    await resolveTestCode('''
+import 'enum.dart';
+
+int g(E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFix('''
+import 'enum.dart';
+
+int g(E e) {
+  switch (e) {
+    case E.first:
+      // TODO: Handle this case.
+      throw UnimplementedError();
+    case E.second:
+      // TODO: Handle this case.
+      throw UnimplementedError();
+    default:
+      // TODO: Handle this case.
+      throw UnimplementedError();
+  }
+}
+''');
+  }
+
+  Future<void> test_privateEnumConstant_privateMissing() async {
+    newFile('$testPackageLibPath/enum.dart', r'''
+enum E { first, second, _unknown }
+''');
+    await resolveTestCode('''
+import 'enum.dart';
+
+int g(E e) {
+  switch (e) {
+    case E.first:
+    case E.second:
+      return 0;
+  }
+}
+''');
+    await assertHasFix('''
+import 'enum.dart';
+
+int g(E e) {
+  switch (e) {
+    case E.first:
+    case E.second:
+      return 0;
+    default:
       // TODO: Handle this case.
       throw UnimplementedError();
   }

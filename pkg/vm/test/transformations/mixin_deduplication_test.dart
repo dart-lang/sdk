@@ -14,7 +14,7 @@ import 'package:vm/transformations/mixin_deduplication.dart'
 
 import '../common_test_utils.dart';
 
-final String pkgVmDir = Platform.script.resolve('../..').toFilePath();
+final Uri _pkgVmDir = Platform.script.resolve('../..');
 
 runTestCase(Uri source) async {
   final target = VmTarget(new TargetFlags());
@@ -29,21 +29,30 @@ runTestCase(Uri source) async {
     component,
   );
 
-  final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
+  final actual = component.libraries
+      .where(
+        (l) =>
+            l.importUri.path.contains('testcases') ||
+            (l.importUri.scheme == 'dart' &&
+                l.importUri.path.startsWith('mixin_deduplication')),
+      )
+      .map(kernelLibraryToString)
+      .join('\n\n')
+      .replaceAll(_pkgVmDir.toString(), 'file:pkg/vm/');
   compareResultWithExpectationsFile(source, actual);
 }
 
 main() {
   group('mixin-deduplication', () {
-    final testCasesDir = Directory(
-      pkgVmDir + '/testcases/transformations/mixin_deduplication',
+    final testCasesDir = Directory.fromUri(
+      _pkgVmDir.resolve('testcases/transformations/mixin_deduplication'),
     );
 
     for (var entry
         in testCasesDir
             .listSync(recursive: true, followLinks: false)
             .reversed) {
-      if (entry.path.endsWith(".dart")) {
+      if (entry.path.endsWith(".dart") && !entry.path.contains('helper')) {
         test(entry.path, () => runTestCase(entry.uri));
       }
     }

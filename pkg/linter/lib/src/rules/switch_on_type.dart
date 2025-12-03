@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = "Avoid switch statements on a 'Type'.";
 
@@ -23,7 +24,7 @@ class SwitchOnType extends AnalysisRule {
   SwitchOnType() : super(name: LintNames.switch_on_type, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.switchOnType;
+  DiagnosticCode get diagnosticCode => diag.switchOnType;
 
   @override
   void registerNodeProcessors(

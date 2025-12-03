@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../utils.dart';
 
 const _desc = r'Name libraries using `lowercase_with_underscores`.';
@@ -18,7 +19,7 @@ class LibraryNames extends AnalysisRule {
   LibraryNames() : super(name: LintNames.library_names, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.libraryNames;
+  DiagnosticCode get diagnosticCode => diag.libraryNames;
 
   @override
   void registerNodeProcessors(

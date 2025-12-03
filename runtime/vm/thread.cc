@@ -77,17 +77,12 @@ Thread::Thread(bool is_vm_isolate)
       active_exception_(Object::null()),
       active_stacktrace_(Object::null()),
       global_object_pool_(ObjectPool::null()),
-      resume_pc_(0),
-      execution_state_(kThreadInNative),
-      safepoint_state_(0),
-      api_top_scope_(nullptr),
       double_truncate_round_supported_(
           TargetCPUFeatures::double_truncate_round_supported() ? 1 : 0),
       random_(),
       tsan_utils_(DO_IF_TSAN(new TsanUtils()) DO_IF_NOT_TSAN(nullptr)),
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
-      task_kind_(kUnknownTask),
 #if defined(SUPPORT_TIMELINE)
       dart_stream_(ASSERT_NOTNULL(Timeline::GetDartStream())),
 #else
@@ -99,23 +94,13 @@ Thread::Thread(bool is_vm_isolate)
       service_extension_stream_(nullptr),
 #endif
       thread_lock_(),
-      api_reusable_scope_(nullptr),
-      no_callback_scope_depth_(0),
-#if defined(DEBUG)
-      no_safepoint_scope_depth_(0),
-#endif
       reusable_handles_(),
-      stack_overflow_count_(0),
-      hierarchy_info_(nullptr),
-      type_usage_info_(nullptr),
       sticky_error_(Error::null()),
+      thread_locals_(GrowableObjectArray::null()),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
           REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
-#if defined(USING_SAFE_STACK)
-              saved_safestack_limit_(0),
-#endif
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
-      next_(nullptr),
+              next_(nullptr),
       heap_sampler_(this) {
 #else
               next_(nullptr) {
@@ -283,6 +268,10 @@ void Thread::set_default_tag(const UserTag& tag) {
   default_tag_ = tag.ptr();
 }
 
+void Thread::set_thread_locals(const GrowableObjectArray& thread_locals) {
+  thread_locals_ = thread_locals.ptr();
+}
+
 ErrorPtr Thread::StealStickyError() {
   NoSafepointScope no_safepoint;
   ErrorPtr return_value = sticky_error_;
@@ -373,6 +362,7 @@ void Thread::AssertEmptyThreadInvariants() {
 
   ASSERT(default_tag_ == UserTag::null());
   ASSERT(current_tag_ == UserTag::null());
+  ASSERT(thread_locals_ == GrowableObjectArray::null());
 
   // Avoid running these asserts for `vm-isolate`.
   if (active_stacktrace_.untag() != 0) {
@@ -661,7 +651,7 @@ void Thread::ResumeThreadInternal(Thread* thread) {
   thread->set_os_thread(os_thread);
   os_thread->set_thread(thread);
   Thread::SetCurrent(thread);
-  NOT_IN_PRODUCT(os_thread->EnableThreadInterrupts());
+  os_thread->EnableThreadInterrupts();
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   thread->heap_sampler().Initialize();
@@ -677,7 +667,7 @@ void Thread::SuspendThreadInternal(Thread* thread, VMTag::VMTagId tag) {
 
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != nullptr);
-  NOT_IN_PRODUCT(os_thread->DisableThreadInterrupts());
+  os_thread->DisableThreadInterrupts();
   os_thread->set_thread(nullptr);
   OSThread::SetCurrent(os_thread);
   thread->set_os_thread(nullptr);
@@ -784,6 +774,7 @@ void Thread::FreeActiveThread(Thread* thread,
   thread->ResetStateLocked();
   thread->current_tag_ = UserTag::null();
   thread->default_tag_ = UserTag::null();
+  thread->thread_locals_ = GrowableObjectArray::null();
 
   thread->AssertEmptyThreadInvariants();
   thread_registry->ReturnThreadLocked(thread);
@@ -865,13 +856,6 @@ ErrorPtr Thread::HandleInterrupts(uword interrupt_bits) {
       heap()->CollectGarbage(this, GCType::kEvacuate, GCReason::kStoreBuffer);
     }
     heap()->CheckFinalizeMarking(this);
-
-#if !defined(PRODUCT)
-    // TODO(dartbug.com/60508): Allow profiling of isolate-group-shared code.
-    if (isolate() != nullptr && isolate()->TakeHasCompletedBlocks()) {
-      Profiler::ProcessCompletedBlocks(isolate());
-    }
-#endif  // !defined(PRODUCT)
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
     HeapProfileSampler& sampler = heap_sampler();
@@ -1167,6 +1151,7 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&current_tag_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&default_tag_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&thread_locals_));
 }
 
 class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
@@ -1719,7 +1704,7 @@ void Thread::VisitMutators(MutatorThreadVisitor* visitor) {
   });
 }
 
-#if !defined(PRODUCT)
+#if defined(DART_INCLUDE_PROFILER)
 DisableThreadInterruptsScope::DisableThreadInterruptsScope(Thread* thread)
     : StackResource(thread) {
   if (thread != nullptr) {

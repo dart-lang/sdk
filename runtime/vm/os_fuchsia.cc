@@ -464,14 +464,10 @@ int64_t OS::GetCurrentMonotonicMicrosForTimeline() {
 #endif
 }
 
-// TODO(5411554):  May need to hoist these architecture dependent code
-// into a architecture specific file e.g: os_ia32_fuchsia.cc
 intptr_t OS::ActivationFrameAlignment() {
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
-    defined(TARGET_ARCH_ARM64)
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64) ||                  \
+    defined(TARGET_ARCH_RISCV64)
   const int kMinimumAlignment = 16;
-#elif defined(TARGET_ARCH_ARM)
-  const int kMinimumAlignment = 8;
 #else
 #error Unsupported architecture.
 #endif

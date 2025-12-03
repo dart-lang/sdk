@@ -12,6 +12,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/ascii_utils.dart';
 
 const _desc = r"Don't use wildcard parameters or variables.";
@@ -21,7 +22,7 @@ class NoWildcardVariableUses extends AnalysisRule {
     : super(name: LintNames.no_wildcard_variable_uses, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.noWildcardVariableUses;
+  DiagnosticCode get diagnosticCode => diag.noWildcardVariableUses;
 
   @override
   void registerNodeProcessors(

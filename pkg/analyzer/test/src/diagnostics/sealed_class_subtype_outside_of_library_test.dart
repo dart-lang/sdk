@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -32,7 +32,7 @@ sealed class Foo {}
 import 'foo.dart';
 class Bar extends Foo {}
 ''',
-      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 37, 3)],
+      [error(diag.sealedClassSubtypeOutsideOfLibrary, 37, 3)],
     );
   }
 
@@ -47,7 +47,7 @@ typedef FooTypedef = Foo;
 import 'foo.dart';
 class Bar extends FooTypedef {}
 ''',
-      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 37, 10)],
+      [error(diag.sealedClassSubtypeOutsideOfLibrary, 37, 10)],
     );
   }
 
@@ -62,7 +62,7 @@ import 'foo.dart';
 typedef FooTypedef = Foo;
 class Bar extends FooTypedef {}
 ''',
-      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 63, 10)],
+      [error(diag.sealedClassSubtypeOutsideOfLibrary, 63, 10)],
     );
   }
 
@@ -95,7 +95,7 @@ sealed class Foo {}
 import 'foo.dart';
 class Bar implements Foo {}
 ''',
-      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 40, 3)],
+      [error(diag.sealedClassSubtypeOutsideOfLibrary, 40, 3)],
     );
   }
 
@@ -109,7 +109,7 @@ sealed class Foo {}
 import 'foo.dart';
 mixin Bar implements Foo {}
 ''',
-      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 40, 3)],
+      [error(diag.sealedClassSubtypeOutsideOfLibrary, 40, 3)],
     );
   }
 
@@ -124,7 +124,7 @@ typedef FooTypedef = Foo;
 import 'foo.dart';
 class Bar implements FooTypedef {}
 ''',
-      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 40, 10)],
+      [error(diag.sealedClassSubtypeOutsideOfLibrary, 40, 10)],
     );
   }
 
@@ -139,7 +139,7 @@ import 'foo.dart';
 typedef FooTypedef = Foo;
 class Bar implements FooTypedef {}
 ''',
-      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 66, 10)],
+      [error(diag.sealedClassSubtypeOutsideOfLibrary, 66, 10)],
     );
   }
 
@@ -166,7 +166,7 @@ sealed class B extends Foo {}
 import 'foo.dart';
 base class Bar extends B {}
 ''',
-      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 42, 1)],
+      [error(diag.sealedClassSubtypeOutsideOfLibrary, 42, 1)],
     );
   }
 
@@ -181,7 +181,7 @@ sealed class B extends Foo {}
 import 'foo.dart';
 final class Bar extends B {}
 ''',
-      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 43, 1)],
+      [error(diag.sealedClassSubtypeOutsideOfLibrary, 43, 1)],
     );
   }
 
@@ -196,7 +196,7 @@ sealed class B extends Foo {}
 import 'foo.dart';
 final class Bar implements B {}
 ''',
-      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 46, 1)],
+      [error(diag.sealedClassSubtypeOutsideOfLibrary, 46, 1)],
     );
   }
 
@@ -211,7 +211,7 @@ sealed class B extends Foo {}
 import 'foo.dart';
 class Bar extends B {}
 ''',
-      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 37, 1)],
+      [error(diag.sealedClassSubtypeOutsideOfLibrary, 37, 1)],
     );
   }
 
@@ -240,7 +240,7 @@ sealed class A {}
 import 'a.dart';
 mixin B on A {}
 ''',
-      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 28, 1)],
+      [error(diag.sealedClassSubtypeOutsideOfLibrary, 28, 1)],
     );
   }
 
@@ -256,8 +256,8 @@ import 'a.dart';
 mixin C on A, B {}
 ''',
       [
-        error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 28, 1),
-        error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 31, 1),
+        error(diag.sealedClassSubtypeOutsideOfLibrary, 28, 1),
+        error(diag.sealedClassSubtypeOutsideOfLibrary, 31, 1),
       ],
     );
   }

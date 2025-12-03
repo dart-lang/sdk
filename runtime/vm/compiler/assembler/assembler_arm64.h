@@ -564,6 +564,8 @@ class Assembler : public AssemblerBase {
   // Debugging and bringup support.
   void Breakpoint() override { brk(0); }
 
+  void StoreStoreFence() override { dmb_ishst(); }
+
   void SetPrologueOffset() {
     if (prologue_offset_ == -1) {
       prologue_offset_ = CodeSize();
@@ -1242,7 +1244,8 @@ class Assembler : public AssemblerBase {
   // Breakpoint.
   void brk(uint16_t imm) { EmitExceptionGenOp(BRK, imm); }
 
-  void dmb() { Emit(kDataMemoryBarrier); }
+  void dmb_ish() { Emit(kDMB_ISH); }
+  void dmb_ishst() { Emit(kDMB_ISHST); }
 
   // Double floating point.
   bool fmovdi(VRegister vd, double immd) {
@@ -1963,13 +1966,13 @@ class Assembler : public AssemblerBase {
   void InitializeHeader(Register header, Register object) {
     str(header, FieldAddress(object, target::Object::tags_offset()));
 #if defined(TARGET_HAS_FAST_WRITE_WRITE_FENCE)
-    dmb();
+    StoreStoreFence();
 #endif
   }
   void InitializeHeaderUntagged(Register header, Register object) {
     str(header, Address(object, target::Object::tags_offset()));
 #if defined(TARGET_HAS_FAST_WRITE_WRITE_FENCE)
-    dmb();
+    StoreStoreFence();
 #endif
   }
 
@@ -2525,7 +2528,7 @@ class Assembler : public AssemblerBase {
       return static_cast<Condition>((instr & kCondMask) >> kCondShift);
     }
     ASSERT(IsCompareAndBranch(instr));
-    return (instr & B24) ? EQ : NE;  // cbz : cbnz
+    return (instr & B24) != 0 ? EQ : NE;  // cbz : cbnz
   }
 
   int32_t EncodeImm19BranchCondition(Condition cond, int32_t instr) {
@@ -2539,7 +2542,7 @@ class Assembler : public AssemblerBase {
 
   Condition DecodeImm14BranchCondition(int32_t instr) {
     ASSERT(IsTestAndBranch(instr));
-    return (instr & B24) ? EQ : NE;  // tbz : tbnz
+    return (instr & B24) != 0 ? EQ : NE;  // tbz : tbnz
   }
 
   int32_t EncodeImm14BranchCondition(Condition cond, int32_t instr) {

@@ -130,7 +130,12 @@ class ElementNameComponents {
     String? classMemberName;
     if (element.enclosingElement is InterfaceElement ||
         element.enclosingElement is ExtensionElement) {
-      classMemberName = element.lookupName;
+      if (element.lookupName case var lookupName?) {
+        if (element is ConstructorElement) {
+          lookupName = '.$lookupName';
+        }
+        classMemberName = lookupName;
+      }
       element = element.enclosingElement!;
     }
 
@@ -712,7 +717,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     _addSubtypeForClassDeclaration(node);
     var declaredElement = node.declaredFragment!.element;
     if (node.extendsClause == null) {
@@ -720,7 +725,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordRelationOffset(
         objectElement,
         IndexRelationKind.IS_EXTENDED_BY,
-        node.name.offset,
+        node.namePart.typeName.offset,
         0,
         true,
       );
@@ -732,14 +737,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // invocation with the name of the class.
     var defaultConstructor = declaredElement.constructors.singleOrNull;
     if (defaultConstructor is ConstructorElementImpl &&
-        defaultConstructor.isSynthetic) {
+        defaultConstructor.isOriginImplicitDefault) {
       defaultConstructor.isDefaultConstructor;
       var superConstructor = defaultConstructor.superConstructor;
       if (superConstructor != null) {
         recordRelation(
           superConstructor,
           IndexRelationKind.IS_INVOKED_BY,
-          node.name,
+          node.namePart.typeName,
           true,
         );
       }
@@ -805,13 +810,12 @@ class _IndexContributor extends GeneralizingAstVisitor {
       var element = node.declaredFragment!.element;
       var superConstructor = element.superConstructor;
       if (superConstructor != null) {
-        var offset = node.returnType.offset;
-        var end = (node.name ?? node.returnType).end;
+        var range = node.errorRange;
         recordRelationOffset(
           superConstructor,
           IndexRelationKind.IS_INVOKED_BY,
-          offset,
-          end - offset,
+          range.offset,
+          range.length,
           true,
         );
       }
@@ -864,10 +868,11 @@ class _IndexContributor extends GeneralizingAstVisitor {
     var element = _getActualConstructorElement(node.element?.baseElement);
     recordRelation(
       element,
-      IndexRelationKind.IS_INVOKED_BY,
+      IndexRelationKind.IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR,
       node.constructorName,
       true,
     );
+    node.argumentList.accept(this);
   }
 
   @override
@@ -885,7 +890,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
     var element = node.propertyName.element;
     if (element is InternalConstructorElement) {
       element = _getActualConstructorElement(element);
-      kind = IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF;
+      kind =
+          IndexRelationKind.IS_REFERENCED_BY_DOT_SHORTHAND_CONSTRUCTOR_TEAR_OFF;
     } else {
       kind = IndexRelationKind.IS_REFERENCED_BY;
     }
@@ -923,10 +929,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     _addSubtype(
-      node.name.lexeme,
+      node.namePart.typeName.lexeme,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.members,
+      memberNodes: node.body.members,
     );
 
     var declaredElement = node.declaredFragment!.element;
@@ -983,11 +989,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+  void visitExtensionTypeDeclaration(
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
     _addSubtype(
-      node.name.lexeme,
+      node.primaryConstructor.typeName.lexeme,
       implementsClause: node.implementsClause,
-      memberNodes: node.members,
+      memberNodes: node.body.members,
     );
 
     var declaredElement = node.declaredFragment!.element;
@@ -1104,7 +1112,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitPatternField(PatternField node) {
+  void visitPatternField(PatternField node) {
     var nameNode = node.name;
     if (nameNode != null) {
       var nameToken = nameNode.name;
@@ -1119,13 +1127,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
       }
       recordRelationOffset(
         node.element,
-        IndexRelationKind.IS_REFERENCED_BY,
+        IndexRelationKind.IS_REFERENCED_BY_PATTERN_FIELD,
         offset,
         length,
         true,
       );
     }
-    return super.visitPatternField(node);
+    super.visitPatternField(node);
   }
 
   @override
@@ -1335,13 +1343,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   /// Record the given class as a subclass of its direct superclasses.
-  void _addSubtypeForClassDeclaration(ClassDeclaration node) {
+  void _addSubtypeForClassDeclaration(ClassDeclarationImpl node) {
     _addSubtype(
-      node.name.lexeme,
+      node.namePart.typeName.lexeme,
       superclass: node.extendsClause?.superclass,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.members,
+      memberNodes: node.body.members,
     );
   }
 
@@ -1362,7 +1370,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       node.name.lexeme,
       onClause: node.onClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.members,
+      memberNodes: node.body.members,
     );
   }
 
@@ -1373,7 +1381,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
     ConstructorElement? constructor,
   ) {
     var seenConstructors = <ConstructorElement?>{};
-    while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
+    while (constructor is ConstructorElementImpl &&
+        constructor.isOriginMixinApplication) {
       var enclosing = constructor.enclosingElement;
       if (enclosing is ClassElementImpl && enclosing.isMixinApplication) {
         var superInvocation = constructor.firstFragment.constantInitializers

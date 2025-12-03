@@ -73,6 +73,9 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       defaultsTo: true)
   ..addFlag('protobuf-tree-shaker-v2',
       help: 'Enable protobuf tree shaker v2 in AOT mode.', defaultsTo: false)
+  ..addFlag('protobuf-tree-shaker-mixins',
+      help: 'Include protobuf messages with mixins in the tree shaker pass.',
+      defaultsTo: false)
   ..addFlag('minimal-kernel',
       help: 'Produce minimal tree-shaken kernel file.', defaultsTo: false)
   ..addFlag('link-platform',
@@ -214,7 +217,10 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addOption('libraries-spec',
       help: 'A path or uri to the libraries specification JSON file')
   ..addFlag('debugger-module-names',
-      help: 'Use debugger-friendly modules names', defaultsTo: false)
+      help: "Use debugger-friendly modules names that assume the 'lib/' "
+          "directories of packages are present in the served directory "
+          "structure at runtime.",
+      defaultsTo: false)
   ..addFlag('experimental-emit-debug-metadata',
       help: 'Emit module and library metadata for the debugger',
       defaultsTo: false)
@@ -701,6 +707,7 @@ class FrontendCompiler implements CompilerInterface {
               environmentDefines: environmentDefines,
               enableAsserts: options['enable-asserts'],
               useProtobufTreeShakerV2: options['protobuf-tree-shaker-v2'],
+              protobufTreeShakerMixins: options['protobuf-tree-shaker-mixins'],
               minimalKernel: options['minimal-kernel'],
               treeShakeWriteOnlyFields: options['tree-shake-write-only-fields'],
               fromDillFile: options['from-dill'])));

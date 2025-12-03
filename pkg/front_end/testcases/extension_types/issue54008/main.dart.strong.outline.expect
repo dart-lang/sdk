@@ -36,25 +36,25 @@ static const field mai::ExtNullable% /* erasure=core::String?, declared=! */ val
 static const field mai::ExtGeneric<core::String>% /* erasure=core::String, declared=! */ valGeneric0 = const mai::ExtGeneric|constructor#<core::String>("hello");
 static const field mai::ExtGeneric<core::String?>% /* erasure=core::String?, declared=! */ valGeneric1 = const mai::ExtGeneric|constructor#<core::String?>(null);
 static const field mai::ExtGeneric<core::String?>% /* erasure=core::String?, declared=! */ valGeneric2 = const mai::ExtGeneric|constructor#<core::String?>("hello");
-static extension-type-member method SameString|constructor#(core::String s) → self::SameString% /* erasure=core::String, declared=! */ {
+static extension-type-member const method SameString|constructor#(core::String s) → self::SameString% /* erasure=core::String, declared=! */ {
   lowered final self::SameString% /* erasure=core::String, declared=! */ #this = s;
   return #this;
 }
 static extension-type-member synthetic method SameString|constructor#_#new#tearOff(core::String s) → self::SameString% /* erasure=core::String, declared=! */
   return self::SameString|constructor#(s);
-static extension-type-member method SameString|constructor#named(core::String s) → self::SameString% /* erasure=core::String, declared=! */ {
+static extension-type-member const method SameString|constructor#named(core::String s) → self::SameString% /* erasure=core::String, declared=! */ {
   lowered final self::SameString% /* erasure=core::String, declared=! */ #this = "${s} world";
   return #this;
 }
 static extension-type-member synthetic method SameString|constructor#_#named#tearOff(core::String s) → self::SameString% /* erasure=core::String, declared=! */
   return self::SameString|constructor#named(s);
-static extension-type-member method SameNullable|constructor#(core::String? s) → self::SameNullable% /* erasure=core::String?, declared=! */ {
+static extension-type-member const method SameNullable|constructor#(core::String? s) → self::SameNullable% /* erasure=core::String?, declared=! */ {
   lowered final self::SameNullable% /* erasure=core::String?, declared=! */ #this = s;
   return #this;
 }
 static extension-type-member synthetic method SameNullable|constructor#_#new#tearOff(core::String? s) → self::SameNullable% /* erasure=core::String?, declared=! */
   return self::SameNullable|constructor#(s);
-static extension-type-member method SameGeneric|constructor#<T extends core::Object? = dynamic>(self::SameGeneric|constructor#::T% s) → self::SameGeneric<self::SameGeneric|constructor#::T%>% /* erasure=self::SameGeneric|constructor#::T%, declared=! */ {
+static extension-type-member const method SameGeneric|constructor#<T extends core::Object? = dynamic>(self::SameGeneric|constructor#::T% s) → self::SameGeneric<self::SameGeneric|constructor#::T%>% /* erasure=self::SameGeneric|constructor#::T%, declared=! */ {
   lowered final self::SameGeneric<self::SameGeneric|constructor#::T%>% /* erasure=self::SameGeneric|constructor#::T%, declared=! */ #this = s;
   return #this;
 }
@@ -111,25 +111,25 @@ static const field mai::ExtNullable% /* erasure=core::String?, declared=! */ lib
 static const field mai::ExtGeneric<core::String>% /* erasure=core::String, declared=! */ libGeneric0 = const mai::ExtGeneric|constructor#<core::String>("hello");
 static const field mai::ExtGeneric<core::String?>% /* erasure=core::String?, declared=! */ libGeneric1 = const mai::ExtGeneric|constructor#<core::String?>(null);
 static const field mai::ExtGeneric<core::String?>% /* erasure=core::String?, declared=! */ libGeneric2 = const mai::ExtGeneric|constructor#<core::String?>("hello");
-static extension-type-member method ExtString|constructor#(core::String s) → mai::ExtString% /* erasure=core::String, declared=! */ {
+static extension-type-member const method ExtString|constructor#(core::String s) → mai::ExtString% /* erasure=core::String, declared=! */ {
   lowered final mai::ExtString% /* erasure=core::String, declared=! */ #this = s;
   return #this;
 }
 static extension-type-member synthetic method ExtString|constructor#_#new#tearOff(core::String s) → mai::ExtString% /* erasure=core::String, declared=! */
   return mai::ExtString|constructor#(s);
-static extension-type-member method ExtString|constructor#named(core::String s) → mai::ExtString% /* erasure=core::String, declared=! */ {
+static extension-type-member const method ExtString|constructor#named(core::String s) → mai::ExtString% /* erasure=core::String, declared=! */ {
   lowered final mai::ExtString% /* erasure=core::String, declared=! */ #this = "${s} world";
   return #this;
 }
 static extension-type-member synthetic method ExtString|constructor#_#named#tearOff(core::String s) → mai::ExtString% /* erasure=core::String, declared=! */
   return mai::ExtString|constructor#named(s);
-static extension-type-member method ExtNullable|constructor#(core::String? s) → mai::ExtNullable% /* erasure=core::String?, declared=! */ {
+static extension-type-member const method ExtNullable|constructor#(core::String? s) → mai::ExtNullable% /* erasure=core::String?, declared=! */ {
   lowered final mai::ExtNullable% /* erasure=core::String?, declared=! */ #this = s;
   return #this;
 }
 static extension-type-member synthetic method ExtNullable|constructor#_#new#tearOff(core::String? s) → mai::ExtNullable% /* erasure=core::String?, declared=! */
   return mai::ExtNullable|constructor#(s);
-static extension-type-member method ExtGeneric|constructor#<T extends core::Object? = dynamic>(mai::ExtGeneric|constructor#::T% s) → mai::ExtGeneric<mai::ExtGeneric|constructor#::T%>% /* erasure=mai::ExtGeneric|constructor#::T%, declared=! */ {
+static extension-type-member const method ExtGeneric|constructor#<T extends core::Object? = dynamic>(mai::ExtGeneric|constructor#::T% s) → mai::ExtGeneric<mai::ExtGeneric|constructor#::T%>% /* erasure=mai::ExtGeneric|constructor#::T%, declared=! */ {
   lowered final mai::ExtGeneric<mai::ExtGeneric|constructor#::T%>% /* erasure=mai::ExtGeneric|constructor#::T%, declared=! */ #this = s;
   return #this;
 }

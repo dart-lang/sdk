@@ -77,10 +77,10 @@ import "dart:core" as core;
 
 abstract class A extends core::Object {
   constructor •(core::int initializedField1) → self::A
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/nnbd/external_field_errors.dart:18:10: Error: External fields cannot have initializers.
+    : invalid-initializer "pkg/front_end/testcases/nnbd/external_field_errors.dart:18:10: Error: External fields cannot have initializers.
 Try removing the field initializer or the 'external' keyword from the field declaration.
   A(this.initializedField1) : this.initializedField2 = 0;
-         ^^^^^^^^^^^^^^^^^", final dynamic #t2 = invalid-expression "pkg/front_end/testcases/nnbd/external_field_errors.dart:18:36: Error: External fields cannot have initializers.
+         ^^^^^^^^^^^^^^^^^", invalid-initializer "pkg/front_end/testcases/nnbd/external_field_errors.dart:18:36: Error: External fields cannot have initializers.
 Try removing the field initializer or the 'external' keyword from the field declaration.
   A(this.initializedField1) : this.initializedField2 = 0;
                                    ^^^^^^^^^^^^^^^^^"
@@ -111,7 +111,7 @@ extension Extension on self::A {
 external static get topLevelField() → core::int;
 external static set topLevelField(synthesized core::int #externalFieldValue) → void;
 external static get finalTopLevelField() → core::int;
-external static get constField() → core::int;
+external static const get constField() → core::int;
 external static set constField(synthesized core::int #externalFieldValue) → void;
 external static extension-member method Extension|get#extensionInstanceField(lowered self::A #this) → core::int;
 external static extension-member method Extension|set#extensionInstanceField(lowered self::A #this, synthesized core::int #externalFieldValue) → void;

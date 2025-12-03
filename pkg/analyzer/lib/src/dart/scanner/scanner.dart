@@ -16,11 +16,9 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/translate_error_token.dart'
     show translateErrorToken;
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
-
-export 'package:analyzer/src/dart/error/syntactic_errors.dart';
 
 /// The class `Scanner` implements a scanner for Dart code.
 ///
@@ -212,7 +210,7 @@ class Scanner {
           source: source,
           offset: versionToken.offset,
           length: versionToken.length,
-          diagnosticCode: WarningCode.invalidLanguageVersionOverrideGreater,
+          diagnosticCode: diag.invalidLanguageVersionOverrideGreater,
           arguments: [latestVersion.major, latestVersion.minor],
         ),
       );

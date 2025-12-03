@@ -156,6 +156,11 @@ class FindNode {
 
   PrefixExpression get singlePrefixExpression => _single();
 
+  PrimaryConstructorBody get singlePrimaryConstructorBody => _single();
+
+  PrimaryConstructorDeclaration get singlePrimaryConstructorDeclaration =>
+      _single();
+
   PropertyAccess get singlePropertyAccess => _single();
 
   RecordLiteral get singleRecordLiteral => _single();
@@ -163,9 +168,7 @@ class FindNode {
   RedirectingConstructorInvocation get singleRedirectingConstructorInvocation =>
       _single();
 
-  RepresentationConstructorName get singleRepresentationConstructorName =>
-      _single();
-
+  @Deprecated('Use primaryConstructor instead')
   RepresentationDeclaration get singleRepresentationDeclaration => _single();
 
   RethrowExpression get singleRethrowExpression => _single();
@@ -749,6 +752,10 @@ class FindNode {
 
   RelationalPattern relationalPattern(String search) {
     return _node(search, (n) => n is RelationalPattern);
+  }
+
+  RestPatternElement restPatternElement(String search) {
+    return _node(search, (n) => n is RestPatternElement);
   }
 
   RethrowExpression rethrow_(String search) {

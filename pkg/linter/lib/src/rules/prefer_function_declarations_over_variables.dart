@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Use a function declaration to bind a function to a name.';
 
@@ -22,7 +23,7 @@ class PreferFunctionDeclarationsOverVariables extends AnalysisRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.preferFunctionDeclarationsOverVariables;
+      diag.preferFunctionDeclarationsOverVariables;
 
   @override
   void registerNodeProcessors(

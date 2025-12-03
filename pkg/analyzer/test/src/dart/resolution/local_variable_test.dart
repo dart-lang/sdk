@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -60,7 +60,7 @@ void f() {
   int x = 0;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 17, 1)],
+      [error(diag.unusedLocalVariable, 17, 1)],
     );
 
     var x = findElement2.localVar('x');
@@ -77,7 +77,7 @@ void f() {
   const int x = 0;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 23, 1)],
+      [error(diag.unusedLocalVariable, 23, 1)],
     );
 
     var x = findElement2.localVar('x');
@@ -94,7 +94,7 @@ void f() {
   final int x = 0;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 23, 1)],
+      [error(diag.unusedLocalVariable, 23, 1)],
     );
 
     var x = findElement2.localVar('x');
@@ -112,7 +112,7 @@ void f() {
     int x = 0;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 32, 1)],
+      [error(diag.unusedLocalVariable, 32, 1)],
     );
 
     var x = findElement2.localVar('x');
@@ -129,7 +129,7 @@ void f() {
   late int x = 0;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 22, 1)],
+      [error(diag.unusedLocalVariable, 22, 1)],
     );
 
     var x = findElement2.localVar('x');
@@ -147,10 +147,7 @@ f() {
   _();
 }
 ''',
-      [
-        error(WarningCode.deadCode, 8, 6),
-        error(CompileTimeErrorCode.undefinedFunction, 17, 1),
-      ],
+      [error(diag.deadCode, 8, 6), error(diag.undefinedFunction, 17, 1)],
     );
   }
 

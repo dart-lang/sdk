@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/unused_futures.dart';
 
 const _desc =
@@ -19,7 +20,7 @@ class DiscardedFutures extends AnalysisRule {
     : super(name: LintNames.discarded_futures, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.discardedFutures;
+  DiagnosticCode get diagnosticCode => diag.discardedFutures;
 
   @override
   void registerNodeProcessors(

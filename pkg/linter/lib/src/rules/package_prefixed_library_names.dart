@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r'Prefix library names with the package name and a dot-separated path.';
@@ -24,8 +25,7 @@ class PackagePrefixedLibraryNames extends AnalysisRule {
     : super(name: LintNames.package_prefixed_library_names, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.packagePrefixedLibraryNames;
+  DiagnosticCode get diagnosticCode => diag.packagePrefixedLibraryNames;
 
   @override
   void registerNodeProcessors(

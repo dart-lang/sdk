@@ -70,10 +70,10 @@ class _DebounceRequests {
     var abortFixesRequests = false;
     for (var requestOrResponse in requests.reversed) {
       if (requestOrResponse is Request) {
-        if (requestOrResponse.method == ANALYSIS_REQUEST_UPDATE_CONTENT) {
+        if (requestOrResponse.method == analysisRequestUpdateContent) {
           abortCompletionRequests = true;
         } else if (requestOrResponse.method ==
-            COMPLETION_REQUEST_GET_SUGGESTIONS2) {
+            completionRequestGetSuggestions2) {
           if (abortCompletionRequests) {
             discardedRequests.add(requestOrResponse);
             var params = CompletionGetSuggestions2Params.fromRequest(
@@ -95,7 +95,7 @@ class _DebounceRequests {
           } else {
             abortCompletionRequests = true;
           }
-        } else if (requestOrResponse.method == ANALYSIS_REQUEST_GET_HOVER) {
+        } else if (requestOrResponse.method == analysisRequestGetHover) {
           if (abortHoverRequests) {
             discardedRequests.add(requestOrResponse);
             channel.sendResponse(
@@ -110,7 +110,7 @@ class _DebounceRequests {
           } else {
             abortHoverRequests = true;
           }
-        } else if (requestOrResponse.method == EDIT_REQUEST_GET_ASSISTS) {
+        } else if (requestOrResponse.method == editRequestGetAssists) {
           if (abortAssistsRequests) {
             discardedRequests.add(requestOrResponse);
             channel.sendResponse(
@@ -125,7 +125,7 @@ class _DebounceRequests {
           } else {
             abortAssistsRequests = true;
           }
-        } else if (requestOrResponse.method == EDIT_REQUEST_GET_FIXES) {
+        } else if (requestOrResponse.method == editRequestGetFixes) {
           if (abortFixesRequests) {
             discardedRequests.add(requestOrResponse);
             channel.sendResponse(

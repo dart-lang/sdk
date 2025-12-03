@@ -474,10 +474,6 @@ testFile
     codeOffset: 15 + 9
     className: E
     parameters: (int it)
-  FIELD it
-    offset: 21 1:22
-    codeOffset: 15 + 9
-    className: E
   GETTER g
     offset: 37 2:11
     codeOffset: 29 + 15
@@ -833,6 +829,56 @@ class A {}
     }
   }
 
+  test_sameNameDeclarations_class() async {
+    await resolveTestCode('''
+class Foo {
+  Foo.bar() {
+    bar();
+  }
+  void bar() => Foo.bar();
+}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      '',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
+testFile
+  CLASS Foo
+    offset: 6 1:7
+    codeOffset: 0 + 69
+  CONSTRUCTOR bar
+    offset: 18 2:7
+    codeOffset: 14 + 26
+    className: Foo
+    parameters: ()
+  METHOD bar
+    offset: 48 5:8
+    codeOffset: 43 + 24
+    className: Foo
+    parameters: ()
+''',
+    );
+    Element element = findElement2.constructor('bar');
+    await assertElementReferencesText(element, '''
+<testLibraryFragment> bar@48
+  60 5:20 |.bar| INVOCATION qualified
+''');
+    element = findElement2.method('bar');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment> bar@18
+  30 3:5 |bar| INVOCATION
+''');
+  }
+
   test_searchMemberReferences_qualified_resolved() async {
     await resolveTestCode('''
 class C {
@@ -955,8 +1001,8 @@ class A {
     var element = findElement2.getter('foo');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> f@5
-  35 2:16 |foo| REFERENCE qualified
-  62 3:16 || REFERENCE qualified
+  35 2:16 |foo| REFERENCE_IN_PATTERN_FIELD qualified
+  62 3:16 || REFERENCE_IN_PATTERN_FIELD qualified
 ''');
   }
 
@@ -993,7 +1039,7 @@ Random v2;
 <testLibraryFragment> v2@38
   31 3:1 |Random| REFERENCE
 dart:math new@null
-  402 16:20 |Random| REFERENCE
+  406 20:20 |Random| REFERENCE
 ''');
   }
 
@@ -1318,8 +1364,8 @@ void main() {
     var element = findElement2.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> main@16
-  34 3:10 |new| INVOCATION qualified
-  61 4:16 |new| REFERENCE_BY_CONSTRUCTOR_TEAR_OFF qualified
+  34 3:10 |new| DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION qualified
+  61 4:16 |new| DOT_SHORTHANDS_CONSTRUCTOR_TEAR_OFF qualified
 ''');
   }
 

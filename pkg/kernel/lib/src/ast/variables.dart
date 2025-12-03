@@ -8,10 +8,12 @@ part of '../../ast.dart';
 sealed class Variable extends TreeNode {
   VariableContext get context => parent as VariableContext;
 
-  // CaptureKind get captureKind => context.captureKind;
-
   /// The cosmetic name of the variable from the source code, if exists.
   String? get cosmeticName;
+
+  void set cosmeticName(String? value);
+
+  int flags = 0;
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -19,8 +21,83 @@ sealed class Variable extends TreeNode {
   }
 }
 
+/// This is a helper class to enable mixing a mixin into concrete
+/// implementations of the sealed class [ExpressionVariable]. It's not supposed
+/// to be used as a type annotation, but purely for declaring the class
+/// hierarchy.
+abstract interface class IExpressionVariable implements TreeNode {
+  abstract DartType type;
+  abstract String? cosmeticName;
+  abstract VariableInitialization? variableInitialization;
+  abstract Expression? initializer;
+  abstract bool isFinal;
+  abstract bool isConst;
+  abstract bool isLate;
+  abstract bool isInitializingFormal;
+  abstract bool isSynthesized;
+  abstract bool isHoisted;
+  abstract bool hasDeclaredInitializer;
+  abstract bool isCovariantByClass;
+  abstract bool isRequired;
+  abstract bool isCovariantByDeclaration;
+  abstract bool isLowered;
+  abstract bool isWildcard;
+  abstract bool isSuperInitializingFormal;
+  abstract bool isErroneouslyInitialized;
+  bool get isAssignable;
+  ExpressionVariable get asExpressionVariable;
+}
+
 /// The root of the sealed hierarchy of non-type variables.
-sealed class ExpressionVariable extends Variable {}
+sealed class ExpressionVariable extends Variable
+    implements IExpressionVariable {
+  /// Static type of the variable.
+  @override
+  abstract DartType type;
+
+  /// Initialization node for the variable, if available.
+  @override
+  abstract VariableInitialization? variableInitialization;
+
+  /// Derived from [variableInitialization], if available.
+  @override
+  abstract Expression? initializer;
+
+  @override
+  abstract bool isFinal;
+  @override
+  abstract bool isConst;
+  @override
+  abstract bool isLate;
+  @override
+  abstract bool isInitializingFormal;
+  @override
+  abstract bool isSynthesized;
+  @override
+  abstract bool isHoisted;
+  @override
+  abstract bool hasDeclaredInitializer;
+  @override
+  abstract bool isCovariantByClass;
+  @override
+  abstract bool isRequired;
+  @override
+  abstract bool isCovariantByDeclaration;
+  @override
+  abstract bool isLowered;
+  @override
+  abstract bool isWildcard;
+  @override
+  abstract bool isSuperInitializingFormal;
+  @override
+  abstract bool isErroneouslyInitialized;
+
+  @override
+  bool get isAssignable;
+
+  @override
+  ExpressionVariable get asExpressionVariable => this;
+}
 
 /// Local variables. They aren't Statements. A [LocalVariable] is "declared" in
 /// the [VariableContext] it appears in. [VariableInitialization]
@@ -30,124 +107,460 @@ class LocalVariable extends ExpressionVariable {
   @override
   String? cosmeticName;
 
-  LocalVariable({this.cosmeticName});
+  @override
+  DartType type;
 
   @override
-  R accept<R>(TreeVisitor<R> v) {
-    // TODO(cstefantsova): Implement accept.
-    throw UnimplementedError();
+  VariableInitialization? variableInitialization;
+
+  LocalVariable({this.cosmeticName, required DartType? type})
+      : type = type ?? const DynamicType();
+
+  static const int FlagFinal = 1 << 0;
+  static const int FlagWildcard = 1 << 1;
+  static const int FlagConst = 1 << 2;
+  static const int FlagLate = 1 << 3;
+  static const int FlagLowered = 1 << 4;
+  static const int FlagHoisted = 1 << 5;
+
+  @override
+  bool get isFinal => flags & FlagFinal != 0;
+
+  @override
+  void set isFinal(bool value) {
+    flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
   }
 
   @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    // TODO(cstefantsova): Implement accept1.
-    throw UnimplementedError();
+  bool get isWildcard => flags & FlagWildcard != 0;
+
+  @override
+  void set isWildcard(bool value) {
+    flags = value ? (flags | FlagWildcard) : (flags & ~FlagWildcard);
   }
 
   @override
-  void transformChildren(Transformer v) {
-    // TODO(cstefantsova): Implement transformChildren.
+  bool get isConst => flags & FlagConst != 0;
+
+  @override
+  void set isConst(bool value) {
+    flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
   }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // TODO(cstefantsova): Implement transformOrRemoveChildren.
+  bool get isLate => flags & FlagLate != 0;
+
+  @override
+  void set isLate(bool value) {
+    flags = value ? (flags | FlagLate) : (flags & ~FlagLate);
   }
 
   @override
-  void visitChildren(Visitor v) {
-    // TODO(cstefantsova): Implement visitChildren.
+  bool get isLowered => flags & FlagLowered != 0;
+
+  @override
+  void set isLowered(bool value) {
+    flags = value ? (flags | FlagLowered) : (flags & ~FlagLowered);
   }
+
+  @override
+  bool get isHoisted => flags & FlagHoisted != 0;
+
+  @override
+  void set isHoisted(bool value) {
+    flags = value ? (flags | FlagHoisted) : (flags & ~FlagHoisted);
+  }
+
+  @override
+  bool get isCovariantByClass {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isCovariantByClass(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isCovariantByDeclaration {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isCovariantByDeclaration(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isErroneouslyInitialized {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isErroneouslyInitialized(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get hasDeclaredInitializer {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set hasDeclaredInitializer(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isInitializingFormal {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isInitializingFormal(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isRequired {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isRequired(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isSuperInitializingFormal {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isSuperInitializingFormal(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isSynthesized {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isSynthesized(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isAssignable {
+    if (isConst) return false;
+    if (isFinal) {
+      if (isLate) return variableInitialization?.initializer == null;
+      return false;
+    }
+    return true;
+  }
+
+  @override
+  R accept<R>(TreeVisitor<R> v) => v.visitLocalVariable(this);
+
+  @override
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
+      v.visitLocalVariable(this, arg);
+
+  @override
+  void transformChildren(Transformer v) {}
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {}
+
+  @override
+  void visitChildren(Visitor v) {}
 
   @override
   String toString() {
     return "LocalVariable(${toStringInternal()})";
   }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpressionVariable(this);
+  }
+
+  @override
+  Expression? get initializer => variableInitialization?.initializer;
+
+  @override
+  void set initializer(Expression? value) {
+    if (value != null && variableInitialization == null) {
+      throw new StateError("Attempt to assign initializer to variable "
+          "without an initialization node.");
+    }
+    variableInitialization!.initializer = value;
+  }
+
+  String? get name => cosmeticName;
 }
 
 /// Abstract parameter class, the parent for positional and named parameters.
-sealed class FunctionParameter extends ExpressionVariable {}
+sealed class FunctionParameter extends ExpressionVariable {
+  /// Function parameters can't be `const` or `late`, so they are assignable if
+  /// they aren't final.
+  @override
+  bool get isAssignable => !isFinal;
+
+  /// Function parameters don't have initializers, only default values.
+  @override
+  VariableInitialization? get variableInitialization => null;
+
+  @override
+  void set variableInitialization(VariableInitialization? value) {}
+
+  static const int FlagFinal = 1 << 0;
+  static const int FlagWildcard = 1 << 1;
+  static const int FlagCovariantByClass = 1 << 2;
+  static const int FlagCovariantByDeclaration = 1 << 3;
+  static const int FlagInitializingFormal = 1 << 4;
+  static const int FlagSuperInitializingFormal = 1 << 5;
+  static const int FlagRequired = 1 << 6;
+
+  @override
+  bool get isFinal => flags & FlagFinal != 0;
+
+  @override
+  void set isFinal(bool value) {
+    flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
+  }
+
+  @override
+  bool get isWildcard => flags & FlagWildcard != 0;
+
+  @override
+  void set isWildcard(bool value) {
+    flags = value ? (flags | FlagWildcard) : (flags & ~FlagWildcard);
+  }
+
+  @override
+  bool get isCovariantByClass => flags & FlagCovariantByClass != 0;
+
+  @override
+  void set isCovariantByClass(bool value) {
+    flags = value
+        ? (flags | FlagCovariantByClass)
+        : (flags & ~FlagCovariantByClass);
+  }
+
+  @override
+  bool get isCovariantByDeclaration => flags & FlagCovariantByDeclaration != 0;
+
+  @override
+  void set isCovariantByDeclaration(bool value) {
+    flags = value
+        ? (flags | FlagCovariantByDeclaration)
+        : (flags & ~FlagCovariantByDeclaration);
+  }
+
+  @override
+  bool get isInitializingFormal => flags & FlagInitializingFormal != 0;
+
+  @override
+  void set isInitializingFormal(bool value) {
+    flags = value
+        ? (flags | FlagInitializingFormal)
+        : (flags & ~FlagInitializingFormal);
+  }
+
+  @override
+  bool get isSuperInitializingFormal =>
+      flags & FlagSuperInitializingFormal != 0;
+
+  @override
+  void set isSuperInitializingFormal(bool value) {
+    flags = value
+        ? (flags | FlagSuperInitializingFormal)
+        : (flags & ~FlagSuperInitializingFormal);
+  }
+
+  @override
+  bool get isRequired => flags & FlagRequired != 0;
+
+  @override
+  void set isRequired(bool value) {
+    flags = value ? (flags | FlagRequired) : (flags & ~FlagRequired);
+  }
+
+  @override
+  bool get isErroneouslyInitialized {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isErroneouslyInitialized(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get hasDeclaredInitializer {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set hasDeclaredInitializer(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isSynthesized {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isSynthesized(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isConst {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isConst(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isLate {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isLate(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isHoisted {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isHoisted(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isLowered {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isLowered(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+}
 
 /// Positional parameters. The [cosmeticName] field is optional and doesn't
 /// affect the runtime semantics of the program.
 class PositionalParameter extends FunctionParameter {
   @override
-  final String? cosmeticName;
-
-  PositionalParameter(this.cosmeticName);
+  String? cosmeticName;
 
   @override
-  R accept<R>(TreeVisitor<R> v) {
-    // TODO(cstefantsova): Implement accept.
-    throw UnimplementedError();
+  DartType type;
+
+  PositionalParameter({this.cosmeticName, required this.type});
+
+  @override
+  bool get isRequired {
+    throw new UnsupportedError("${this.runtimeType}");
   }
 
   @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    // TODO(cstefantsova): Implement accept1.
-    throw UnimplementedError();
+  void set isRequired(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
   }
 
   @override
-  void transformChildren(Transformer v) {
-    // TODO(cstefantsova): Implement transformChildren.
-  }
+  R accept<R>(TreeVisitor<R> v) => v.visitPositionalParameter(this);
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // TODO(cstefantsova): Implement transformOrRemoveChildren.
-  }
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
+      v.visitPositionalParameter(this, arg);
 
   @override
-  void visitChildren(Visitor v) {
-    // TODO(cstefantsova): Implement visitChildren.
-  }
+  void transformChildren(Transformer v) {}
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {}
+
+  @override
+  void visitChildren(Visitor v) {}
 
   @override
   String toString() {
     return "PositionalParameter(${toStringInternal()})";
   }
+
+  @override
+  Expression? get initializer {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set initializer(Expression? value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  String? get name => cosmeticName;
 }
 
 /// Named parameters. The [name] field is mandatory.
 class NamedParameter extends FunctionParameter {
-  final String name;
+  String name;
 
   @override
   String get cosmeticName => name;
 
-  NamedParameter({required this.name});
-
   @override
-  R accept<R>(TreeVisitor<R> v) {
-    // TODO(cstefantsova): Implement accept.
-    throw UnimplementedError();
+  void set cosmeticName(String? value) {
+    name = value!;
   }
 
   @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    // TODO(cstefantsova): Implement accept1.
-    throw UnimplementedError();
-  }
+  DartType type;
+
+  NamedParameter({required this.name, required this.type});
 
   @override
-  void transformChildren(Transformer v) {
-    // TODO(cstefantsova): Implement transformChildren.
-  }
+  R accept<R>(TreeVisitor<R> v) => v.visitNamedParameter(this);
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // TODO(cstefantsova): Implement transformOrRemoveChildren.
-  }
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
+      v.visitNamedParameter(this, arg);
 
   @override
-  void visitChildren(Visitor v) {
-    // TODO(cstefantsova): Implement visitChildren.
-  }
+  void transformChildren(Transformer v) {}
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {}
+
+  @override
+  void visitChildren(Visitor v) {}
 
   @override
   String toString() {
     return "NamedParameter(${toStringInternal()})";
+  }
+
+  @override
+  Expression? get initializer {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set initializer(Expression? value) {
+    throw new UnsupportedError("${this.runtimeType}");
   }
 }
 
@@ -156,39 +569,195 @@ class ThisVariable extends ExpressionVariable {
   @override
   String get cosmeticName => "this";
 
-  ThisVariable();
+  @override
+  void set cosmeticName(String? value) {}
 
   @override
-  R accept<R>(TreeVisitor<R> v) {
-    // TODO(cstefantsova): Implement accept.
-    throw UnimplementedError();
+  VariableInitialization? get variableInitialization => null;
+
+  @override
+  void set variableInitialization(VariableInitialization? value) {}
+
+  @override
+  DartType type;
+
+  ThisVariable({required this.type});
+
+  @override
+  bool get isFinal {
+    throw new UnsupportedError("${this.runtimeType}");
   }
 
   @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    // TODO(cstefantsova): Implement accept1.
-    throw UnimplementedError();
+  void set isFinal(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
   }
 
   @override
-  void transformChildren(Transformer v) {
-    // TODO(cstefantsova): Implement transformChildren.
+  bool get isWildcard {
+    throw new UnsupportedError("${this.runtimeType}");
   }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // TODO(cstefantsova): Implement transformOrRemoveChildren.
+  void set isWildcard(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
   }
 
   @override
-  void visitChildren(Visitor v) {
-    // TODO(cstefantsova): Implement visitChildren.
+  bool get isCovariantByClass {
+    throw new UnsupportedError("${this.runtimeType}");
   }
+
+  @override
+  void set isCovariantByClass(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isCovariantByDeclaration {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isCovariantByDeclaration(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isInitializingFormal {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isInitializingFormal(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isSuperInitializingFormal {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isSuperInitializingFormal(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isErroneouslyInitialized {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isErroneouslyInitialized(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get hasDeclaredInitializer {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set hasDeclaredInitializer(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isRequired {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isRequired(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isSynthesized {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isSynthesized(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isConst {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isConst(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isLate {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isLate(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isHoisted {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isHoisted(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isLowered {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isLowered(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  R accept<R>(TreeVisitor<R> v) => v.visitThisVariable(this);
+
+  @override
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
+      v.visitThisVariable(this, arg);
+
+  @override
+  void transformChildren(Transformer v) {}
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {}
+
+  @override
+  void visitChildren(Visitor v) {}
 
   @override
   String toString() {
     return "ThisVariable(${toStringInternal()})";
   }
+
+  @override
+  bool get isAssignable => false;
+
+  @override
+  Expression? get initializer {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set initializer(Expression? value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  String? get name => cosmeticName;
 }
 
 /// A variable introduced during desugaring. Such variables don't correspond to
@@ -197,39 +766,189 @@ class SyntheticVariable extends ExpressionVariable {
   @override
   String? cosmeticName;
 
-  SyntheticVariable({this.cosmeticName});
+  @override
+  DartType type;
 
   @override
-  R accept<R>(TreeVisitor<R> v) {
-    // TODO(cstefantsova): Implement accept.
-    throw UnimplementedError();
+  VariableInitialization? variableInitialization;
+
+  SyntheticVariable({this.cosmeticName, required this.type});
+
+  static const int FlagFinal = 1 << 0;
+  static const int FlagLowered = 1 << 1;
+  static const int FlagHoisted = 1 << 2;
+
+  @override
+  bool get isFinal => flags & FlagFinal != 0;
+
+  @override
+  void set isFinal(bool value) {
+    flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
   }
 
   @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    // TODO(cstefantsova): Implement accept1.
-    throw UnimplementedError();
+  bool get isLowered => flags & FlagLowered != 0;
+
+  @override
+  void set isLowered(bool value) {
+    flags = value ? (flags | FlagLowered) : (flags & ~FlagLowered);
   }
 
   @override
-  void transformChildren(Transformer v) {
-    // TODO(cstefantsova): Implement transformChildren.
+  bool get isHoisted => flags & FlagHoisted != 0;
+
+  @override
+  void set isHoisted(bool value) {
+    flags = value ? (flags | FlagHoisted) : (flags & ~FlagHoisted);
   }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // TODO(cstefantsova): Implement transformOrRemoveChildren.
+  bool get isCovariantByClass {
+    throw new UnsupportedError("${this.runtimeType}");
   }
 
   @override
-  void visitChildren(Visitor v) {
-    // TODO(cstefantsova): Implement visitChildren.
+  void set isCovariantByClass(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
   }
+
+  @override
+  bool get isCovariantByDeclaration {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isCovariantByDeclaration(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isErroneouslyInitialized {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isErroneouslyInitialized(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get hasDeclaredInitializer {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set hasDeclaredInitializer(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isInitializingFormal {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isInitializingFormal(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isRequired {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isRequired(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isSuperInitializingFormal {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isSuperInitializingFormal(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isSynthesized {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isSynthesized(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isConst {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isConst(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isLate {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isLate(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isWildcard {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isWildcard(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  R accept<R>(TreeVisitor<R> v) => v.visitSyntheticVariable(this);
+
+  @override
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
+      v.visitSyntheticVariable(this, arg);
+
+  @override
+  void transformChildren(Transformer v) {}
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {}
+
+  @override
+  void visitChildren(Visitor v) {}
 
   @override
   String toString() {
     return "SyntheticVariable(${toStringInternal()})";
   }
+
+  @override
+  bool get isAssignable => !isConst && !isFinal;
+
+  @override
+  Expression? get initializer => variableInitialization?.initializer;
+
+  @override
+  void set initializer(Expression? value) {
+    if (value != null && variableInitialization == null) {
+      throw new StateError("Attempt to assign initializer to variable "
+          "without an initialization node.");
+    }
+    variableInitialization!.initializer = value;
+  }
+
+  String? get name => cosmeticName;
 }
 
 /// The enum reflecting the kind of a variable context. A context is
@@ -253,13 +972,13 @@ class VariableContext extends TreeNode {
   @override
   R accept<R>(TreeVisitor<R> v) {
     // TODO(cstefantsova): Implement accept.
-    throw UnimplementedError();
+    throw new UnimplementedError();
   }
 
   @override
   R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
     // TODO(cstefantsova): Implement accept1.
-    throw UnimplementedError();
+    throw new UnimplementedError();
   }
 
   @override
@@ -303,18 +1022,18 @@ class VariableContext extends TreeNode {
 class Scope extends TreeNode {
   final List<VariableContext> contexts;
 
-  Scope(this.contexts);
+  Scope({required this.contexts});
 
   @override
   R accept<R>(TreeVisitor<R> v) {
     // TODO(cstefantsova): Implement accept.
-    throw UnimplementedError();
+    throw new UnimplementedError();
   }
 
   @override
   R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
     // TODO(cstefantsova): Implement accept1.
-    throw UnimplementedError();
+    throw new UnimplementedError();
   }
 
   @override

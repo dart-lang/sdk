@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/ascii_utils.dart';
 
 const _desc = r'Avoid leading underscores for library prefixes.';
@@ -24,7 +25,7 @@ class NoLeadingUnderscoresForLibraryPrefixes extends AnalysisRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.noLeadingUnderscoresForLibraryPrefixes;
+      diag.noLeadingUnderscoresForLibraryPrefixes;
 
   @override
   void registerNodeProcessors(

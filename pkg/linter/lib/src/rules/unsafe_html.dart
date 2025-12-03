@@ -3,20 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
-import 'package:analyzer/analysis_rule/rule_state.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
 
-class UnsafeHtml extends AnalysisRule {
-  UnsafeHtml()
-    : super(
-        name: LintNames.unsafe_html,
-        description: 'Avoid unsafe HTML APIs.',
-        state: RuleState.removed(since: Version(3, 7, 0)),
-      );
-
-  @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.removedLint;
-}
+final unsafeHtml = RemovedAnalysisRule(
+  name: LintNames.unsafe_html,
+  description: 'Avoid unsafe HTML APIs.',
+  since: Version(3, 7, 0),
+);

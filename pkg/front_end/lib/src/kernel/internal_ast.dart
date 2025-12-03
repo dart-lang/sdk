@@ -39,7 +39,7 @@ typedef SharedMatchContext =
       Expression,
       Pattern,
       SharedTypeView,
-      VariableDeclaration
+      ExpressionVariable
     >;
 
 mixin InternalTreeNode implements TreeNode {
@@ -398,7 +398,7 @@ class Cascade extends InternalExpression {
       printer.newLine();
     }
     printer.write('} => ');
-    printer.write(printer.getVariableDeclarationName(variable));
+    printer.write(printer.getVariableName(variable));
   }
 }
 
@@ -853,31 +853,20 @@ class ReturnStatementImpl extends ReturnStatement {
 }
 
 /// Front end specific implementation of [VariableDeclaration].
-class VariableDeclarationImpl extends VariableStatement {
+class VariableDeclarationImpl extends VariableStatement
+    with InternalExpressionVariableMixin
+    implements InternalExpressionVariable {
+  @override
+  ExpressionVariable get astVariable => this;
+
+  @override
   final bool forSyntheticToken;
 
-  /// Determine whether the given [VariableDeclarationImpl] had an implicit
-  /// type.
-  ///
-  /// This is static to avoid introducing a method that would be visible to
-  /// the kernel.
+  @override
   final bool isImplicitlyTyped;
 
-  /// Determines whether the given [VariableDeclarationImpl] represents a
-  /// local function.
-  ///
-  /// This is static to avoid introducing a method that would be visible to the
-  /// kernel.
-  // TODO(ahe): Investigate if this can be removed.
+  @override
   final bool isLocalFunction;
-
-  /// Whether the variable is final with no initializer in a null safe library.
-  ///
-  /// Such variables behave similar to those declared with the `late` keyword,
-  /// except that the don't have lazy evaluation semantics, and it is statically
-  /// verified by the front end that they are always assigned before they are
-  /// used.
-  bool isStaticLate;
 
   VariableDeclarationImpl(
     String? name, {
@@ -895,8 +884,9 @@ class VariableDeclarationImpl extends VariableStatement {
     bool isRequired = false,
     bool isLowered = false,
     bool isSynthesized = false,
-    this.isStaticLate = false,
+    bool isStaticLate = false,
     bool isWildcard = false,
+    bool isLateFinalWithoutInitializer = false,
   }) : isImplicitlyTyped = type == null,
        isLocalFunction = isLocalFunction,
        super(
@@ -914,52 +904,26 @@ class VariableDeclarationImpl extends VariableStatement {
          isSynthesized: isSynthesized,
          hasDeclaredInitializer: hasDeclaredInitializer,
          isWildcard: isWildcard,
-       );
+       ) {
+    this.isStaticLate = isStaticLate;
+    this.isLateFinalWithoutInitializer = isLateFinalWithoutInitializer;
+  }
 
   VariableDeclarationImpl.forEffect(Expression initializer)
     : forSyntheticToken = false,
       isImplicitlyTyped = false,
       isLocalFunction = false,
-      isStaticLate = false,
-      super.forValue(initializer);
+      super.forValue(initializer) {
+    isStaticLate = false;
+  }
 
   VariableDeclarationImpl.forValue(Expression initializer)
     : forSyntheticToken = false,
       isImplicitlyTyped = true,
       isLocalFunction = false,
-      isStaticLate = false,
-      super.forValue(initializer);
-
-  // The synthesized local getter function for a lowered late variable.
-  //
-  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
-  // lowering is enabled.
-  VariableDeclaration? lateGetter;
-
-  // The synthesized local setter function for an assignable lowered late
-  // variable.
-  //
-  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
-  // lowering is enabled.
-  VariableDeclaration? lateSetter;
-
-  // Is `true` if this a lowered late final variable without an initializer.
-  //
-  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
-  // lowering is enabled.
-  bool isLateFinalWithoutInitializer = false;
-
-  // The original type (declared or inferred) of a lowered late variable.
-  //
-  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
-  // lowering is enabled.
-  DartType? lateType;
-
-  // The original name of a lowered late variable.
-  //
-  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
-  // lowering is enabled.
-  String? lateName;
+      super.forValue(initializer) {
+    isStaticLate = false;
+  }
 
   @override
   bool get isAssignable {
@@ -982,6 +946,423 @@ class VariableDeclarationImpl extends VariableStatement {
   String toString() {
     return "VariableDeclarationImpl(${toStringInternal()})";
   }
+}
+
+// Coverage-ignore(suite): Not run.
+class InternalLocalVariable
+    with InternalExpressionVariableMixin, DelegatingVariableMixin
+    implements LocalVariable, InternalExpressionVariable {
+  @override
+  LocalVariable astVariable;
+
+  @override
+  final bool forSyntheticToken;
+
+  @override
+  final bool isImplicitlyTyped;
+
+  @override
+  final bool isLocalFunction;
+
+  InternalLocalVariable({
+    required this.astVariable,
+    required this.isImplicitlyTyped,
+    this.forSyntheticToken = false,
+    this.isLocalFunction = false,
+  });
+}
+
+mixin DelegatingVariableMixin on InternalExpressionVariableMixin
+    implements InternalExpressionVariable {
+  @override
+  // Coverage-ignore(suite): Not run.
+  String? get cosmeticName => astVariable.cosmeticName;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set cosmeticName(String? value) {
+    astVariable.cosmeticName = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasDeclaredInitializer => astVariable.hasDeclaredInitializer;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set hasDeclaredInitializer(bool value) {
+    astVariable.hasDeclaredInitializer = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Expression? get initializer => astVariable.initializer;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set initializer(Expression? value) {
+    astVariable.initializer = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isConst => astVariable.isConst;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isConst(bool value) {
+    astVariable.isConst = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isCovariantByClass => astVariable.isCovariantByClass;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isCovariantByClass(bool value) {
+    astVariable.isCovariantByClass = value;
+  }
+
+  @override
+  bool get isCovariantByDeclaration {
+    // TODO(cstefantsova): Should it return `false` instead?
+    throw new UnsupportedError("${astVariable.runtimeType}");
+  }
+
+  @override
+  void set isCovariantByDeclaration(bool value) {
+    // TODO(cstefantsova): Should it do nothing instead?
+    throw new UnsupportedError("${astVariable.runtimeType}");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isErroneouslyInitialized => astVariable.isErroneouslyInitialized;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isErroneouslyInitialized(bool value) {
+    astVariable.isErroneouslyInitialized = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFinal => astVariable.isFinal;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isFinal(bool value) {
+    astVariable.isFinal = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isHoisted => astVariable.isHoisted;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isHoisted(bool value) {
+    astVariable.isHoisted = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isInitializingFormal => astVariable.isInitializingFormal;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isInitializingFormal(bool value) {
+    astVariable.isInitializingFormal = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isLate => astVariable.isLate;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isLate(bool value) {
+    astVariable.isLate = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isLowered => astVariable.isLowered;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isLowered(bool value) {
+    astVariable.isLowered = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isRequired => astVariable.isRequired;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isRequired(bool value) {
+    astVariable.isRequired = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isSuperInitializingFormal => astVariable.isSuperInitializingFormal;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isSuperInitializingFormal(bool value) {
+    astVariable.isSuperInitializingFormal = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isSynthesized => astVariable.isSynthesized;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isSynthesized(bool value) {
+    astVariable.isSynthesized = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isWildcard => astVariable.isWildcard;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isWildcard(bool value) {
+    astVariable.isWildcard = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  DartType get type => astVariable.type;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set type(DartType value) {
+    astVariable.type = type;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  VariableInitialization? get variableInitialization =>
+      astVariable.variableInitialization;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set variableInitialization(VariableInitialization? value) {
+    astVariable.variableInitialization = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isAssignable => astVariable.isAssignable;
+
+  @override
+  int get fileOffset {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set fileOffset(int value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  int get flags {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  void set flags(int value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  TreeNode? get parent {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set parent(TreeNode? value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  R accept<R>(TreeVisitor<R> v) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  VariableContext get context {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  Component? get enclosingComponent {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  List<int>? get fileOffsetsIfMultiple {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  String leakingDebugToString() {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  Location? get location {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  String? get name {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void replaceChild(TreeNode child, TreeNode replacement) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void replaceWith(TreeNode replacement) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  String toStringInternal() {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  String toText(AstTextStrategy strategy) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+}
+
+abstract interface class InternalExpressionVariable
+    implements IExpressionVariable {
+  /// This is the output variable that the clients receive.
+  ///
+  /// Most of the calls to variable properties are delegated to [astVariable],
+  /// but some operations must be performed directly on [astVariable], as
+  /// follows:
+  ///
+  /// * passing [astVariable] into the flow analysis engine,
+  /// * using [astVariable] as a part of the generated AST,
+  /// * checking semantic properties of an AST node, such as [isExtensionThis]
+  ///   in `lowering_predicates.dart`.
+  ExpressionVariable get astVariable;
+
+  bool get forSyntheticToken;
+
+  /// Determine whether the given [InternalExpressionVariable] had an implicit
+  /// type.
+  bool get isImplicitlyTyped;
+
+  /// Determines whether the given [InternalExpressionVariable] represents a
+  /// local function.
+  bool get isLocalFunction;
+
+  /// Whether the variable is final with no initializer.
+  ///
+  /// Such variables behave similar to those declared with the `late` keyword,
+  /// except that the don't have lazy evaluation semantics, and it is statically
+  /// verified by the front end that they are always assigned before they are
+  /// used.
+  abstract bool isStaticLate;
+
+  /// The synthesized local getter function for a lowered late variable.
+  ///
+  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  /// lowering is enabled.
+  abstract VariableDeclaration? lateGetter;
+
+  /// The synthesized local setter function for an assignable lowered late
+  /// variable.
+  ///
+  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  /// lowering is enabled.
+  abstract VariableDeclaration? lateSetter;
+
+  /// Is `true` if this a lowered late final variable without an initializer.
+  ///
+  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  /// lowering is enabled.
+  abstract bool isLateFinalWithoutInitializer;
+
+  /// The original type (declared or inferred) of a lowered late variable.
+  ///
+  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  /// lowering is enabled.
+  abstract DartType? lateType;
+
+  /// The original name of a lowered late variable.
+  ///
+  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  /// lowering is enabled.
+  abstract String? lateName;
+}
+
+mixin InternalExpressionVariableMixin implements InternalExpressionVariable {
+  @override
+  bool get forSyntheticToken;
+
+  @override
+  bool get isImplicitlyTyped;
+
+  @override
+  bool get isLocalFunction;
+
+  @override
+  bool isStaticLate = false;
+
+  @override
+  VariableDeclaration? lateGetter;
+
+  @override
+  VariableDeclaration? lateSetter;
+
+  @override
+  bool isLateFinalWithoutInitializer = false;
+
+  @override
+  DartType? lateType;
+
+  @override
+  String? lateName;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ExpressionVariable get asExpressionVariable => this as ExpressionVariable;
 }
 
 /// Front end specific implementation of [LoadLibrary].
@@ -1906,7 +2287,7 @@ class ExtensionIncDec extends InternalExpression {
 ///
 class LocalIncDec extends InternalExpression {
   /// The accessed variable.
-  final VariableDeclarationImpl variable;
+  final InternalExpressionVariable variable;
 
   /// `true` if the inc/dec is a postfix expression, i.e. of the form `a++` as
   /// opposed the prefix expression `++a`.
@@ -1951,7 +2332,7 @@ class LocalIncDec extends InternalExpression {
         printer.write('--');
       }
     }
-    printer.write(variable.name!);
+    printer.write(variable.cosmeticName!);
     if (isPost) {
       if (isInc) {
         printer.write('++');

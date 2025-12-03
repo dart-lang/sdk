@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:test/test.dart';
@@ -232,7 +232,7 @@ class C {
     FormalParameter parameter = parseNNBDFormalParameter(
       'covariant required A a : null',
       kind,
-      diagnostics: [expectedError(ParserErrorCode.modifierOutOfOrder, 12, 8)],
+      diagnostics: [expectedError(diag.modifierOutOfOrder, 12, 8)],
     );
     expect(parameter, isNotNull);
     expect(parameter, isDefaultFormalParameter);
@@ -397,7 +397,7 @@ class C {
     parseNNBDFormalParameter(
       'external int i',
       ParameterKind.REQUIRED,
-      diagnostics: [expectedError(ParserErrorCode.extraneousModifier, 1, 8)],
+      diagnostics: [expectedError(diag.extraneousModifier, 1, 8)],
     );
   }
 
@@ -461,7 +461,7 @@ class C {
     FormalParameter parameter = parseNNBDFormalParameter(
       'final required a : null',
       kind,
-      diagnostics: [expectedError(ParserErrorCode.modifierOutOfOrder, 8, 8)],
+      diagnostics: [expectedError(diag.modifierOutOfOrder, 8, 8)],
     );
     expect(parameter, isNotNull);
     expect(parameter, isDefaultFormalParameter);
@@ -795,7 +795,7 @@ class C {
     FormalParameter parameter = parseNNBDFormalParameter(
       'var required a : null',
       kind,
-      diagnostics: [expectedError(ParserErrorCode.modifierOutOfOrder, 6, 8)],
+      diagnostics: [expectedError(diag.modifierOutOfOrder, 6, 8)],
     );
     expect(parameter, isNotNull);
     expect(parameter, isDefaultFormalParameter);
@@ -1004,7 +1004,7 @@ class C {
   void test_parseFormalParameterList_prefixedType_missingName() {
     FormalParameterList list = parseFormalParameterList(
       '(io.File)',
-      diagnostics: [expectedError(ParserErrorCode.missingIdentifier, 8, 1)],
+      diagnostics: [expectedError(diag.missingIdentifier, 8, 1)],
     );
     expect(list, isNotNull);
     expect(list.leftParenthesis, isNotNull);
@@ -1025,8 +1025,8 @@ class C {
     FormalParameterList list = parseFormalParameterList(
       '(io.)',
       diagnostics: [
-        expectedError(ParserErrorCode.expectedTypeName, 4, 1),
-        expectedError(ParserErrorCode.missingIdentifier, 4, 1),
+        expectedError(diag.expectedTypeName, 4, 1),
+        expectedError(diag.missingIdentifier, 4, 1),
       ],
     );
     expect(list, isNotNull);
@@ -1048,8 +1048,8 @@ class C {
     FormalParameterList list = parseFormalParameterList(
       '(io.,a)',
       diagnostics: [
-        expectedError(ParserErrorCode.expectedTypeName, 4, 1),
-        expectedError(ParserErrorCode.missingIdentifier, 4, 1),
+        expectedError(diag.expectedTypeName, 4, 1),
+        expectedError(diag.missingIdentifier, 4, 1),
       ],
     );
     expect(list, isNotNull);
@@ -1065,7 +1065,7 @@ class C {
   void test_parseNormalFormalParameter_field_const_noType() {
     NormalFormalParameter parameter = parseNormalFormalParameter(
       'const this.a',
-      diagnosticCodes: [ParserErrorCode.extraneousModifier],
+      diagnosticCodes: [diag.extraneousModifier],
     );
     expect(parameter, isNotNull);
     expect(parameter, isFieldFormalParameter);
@@ -1079,7 +1079,7 @@ class C {
   void test_parseNormalFormalParameter_field_const_type() {
     NormalFormalParameter parameter = parseNormalFormalParameter(
       'const A this.a',
-      diagnosticCodes: [ParserErrorCode.extraneousModifier],
+      diagnosticCodes: [diag.extraneousModifier],
     );
     expect(parameter, isNotNull);
     expect(parameter, isFieldFormalParameter);
@@ -1347,7 +1347,7 @@ class C {
   void test_parseNormalFormalParameter_simple_const_noType() {
     NormalFormalParameter parameter = parseNormalFormalParameter(
       'const a',
-      diagnosticCodes: [ParserErrorCode.extraneousModifier],
+      diagnosticCodes: [diag.extraneousModifier],
     );
     expect(parameter, isNotNull);
     expect(parameter, isSimpleFormalParameter);
@@ -1360,7 +1360,7 @@ class C {
   void test_parseNormalFormalParameter_simple_const_type() {
     NormalFormalParameter parameter = parseNormalFormalParameter(
       'const A a',
-      diagnosticCodes: [ParserErrorCode.extraneousModifier],
+      diagnosticCodes: [diag.extraneousModifier],
     );
     expect(parameter, isNotNull);
     expect(parameter, isSimpleFormalParameter);

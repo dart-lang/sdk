@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -28,7 +28,7 @@ import 'lib1.dart' deferred as a;
 main() {
   const a.A.b();
 }''',
-      [error(CompileTimeErrorCode.constDeferredClass, 65, 5)],
+      [error(diag.constDeferredClass, 65, 5)],
     );
   }
 
@@ -48,7 +48,7 @@ main() {
   const a.B();
 }
 ''',
-      [error(CompileTimeErrorCode.constDeferredClass, 65, 3)],
+      [error(diag.constDeferredClass, 65, 3)],
     );
   }
 
@@ -67,7 +67,7 @@ main() {
   const a.A();
 }
 ''',
-      [error(CompileTimeErrorCode.constDeferredClass, 65, 3)],
+      [error(diag.constDeferredClass, 65, 3)],
     );
   }
 }

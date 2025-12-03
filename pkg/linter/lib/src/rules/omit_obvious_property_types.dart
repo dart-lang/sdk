@@ -10,7 +10,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
-import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/obvious_types.dart';
 
 const _desc =
@@ -25,7 +25,7 @@ class OmitObviousPropertyTypes extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.omitObviousPropertyTypes;
+  DiagnosticCode get diagnosticCode => diag.omitObviousPropertyTypes;
 
   @override
   List<String> get incompatibleRules => const [

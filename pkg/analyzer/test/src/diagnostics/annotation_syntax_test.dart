@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -32,8 +32,8 @@ class C {
 }
 ''',
       [
-        error(ParserErrorCode.annotationOnTypeArgument, 146, 11),
-        error(ParserErrorCode.annotationOnTypeArgument, 158, 19),
+        error(diag.annotationOnTypeArgument, 146, 11),
+        error(diag.annotationOnTypeArgument, 158, 19),
       ],
     );
   }

@@ -10,7 +10,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 /// Handles possible rewrites of AST.
 ///
@@ -445,7 +445,7 @@ class AstRewriter {
     if (typeArguments != null) {
       _diagnosticReporter.atNode(
         typeArguments,
-        CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
+        diag.wrongNumberOfTypeArgumentsConstructor,
         arguments: [typeNameIdentifier.toString(), constructorIdentifier.name],
       );
     }
@@ -610,7 +610,7 @@ class AstRewriter {
     if (typeArguments != null) {
       _diagnosticReporter.atNode(
         typeArguments,
-        CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
+        diag.wrongNumberOfTypeArgumentsConstructor,
         arguments: [typeIdentifier.name, constructorIdentifier.name],
       );
     }

@@ -256,6 +256,8 @@ vm_snapshot_analysis/test/*: SkipByDesign # Only meant to run on vm
 [ $system == windows ]
 front_end/test/bootstrap_test: Skip # Issue 31902
 front_end/test/incremental_dart2js_load_from_dill_test: Pass, Slow
+frontend_server_client/test/example/vm_client_test: SkipByDesign # Test is incompatible with Windows platform.
+frontend_server_client/test/example/web_client_test: SkipByDesign # Test is incompatible with Windows platform.
 vm_service/test/private_rpcs/dev_fs_http_put_test: Skip # Windows disallows "?" in paths
 vm_service/test/private_rpcs/dev_fs_http_put_weird_char_test: Skip # Windows disallows "\r" in paths
 vm_service/test/private_rpcs/dev_fs_weird_char_test: Skip # Windows disallows "\r" in paths

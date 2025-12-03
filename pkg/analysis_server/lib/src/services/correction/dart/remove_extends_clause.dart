@@ -31,7 +31,7 @@ class RemoveExtendsClause extends ResolvedCorrectionProducer {
       builder.addDeletion(
         range.startStart(
           classDeclaration.extendsClause!,
-          classDeclaration.leftBracket,
+          (classDeclaration.body as BlockClassBody).leftBracket,
         ),
       );
     });

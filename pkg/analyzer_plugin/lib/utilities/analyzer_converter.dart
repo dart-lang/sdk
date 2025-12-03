@@ -152,6 +152,7 @@ class AnalyzerConverter {
     var aliasedType = _getAliasedTypeString(element);
     var elementParameters = _getParametersString(element);
     var elementReturnType = _getReturnTypeString(element);
+    var extendedType = _getExtendedTypeString(element);
     return Element(
       kind,
       name,
@@ -168,6 +169,7 @@ class AnalyzerConverter {
       aliasedType: aliasedType,
       parameters: elementParameters,
       returnType: elementReturnType,
+      extendedType: extendedType,
     );
   }
 
@@ -235,6 +237,14 @@ class AnalyzerConverter {
     if (element is analyzer.TypeAliasElement) {
       var aliasedType = element.aliasedType;
       return aliasedType.getDisplayString();
+    }
+    return null;
+  }
+
+  String? _getExtendedTypeString(analyzer.Element element) {
+    if (element is analyzer.ExtensionElement) {
+      var extendedType = element.extendedType;
+      return extendedType.getDisplayString();
     }
     return null;
   }

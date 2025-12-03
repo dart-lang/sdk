@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid `async` functions that return `void`.';
 
@@ -21,7 +22,7 @@ class AvoidVoidAsync extends AnalysisRule {
     : super(name: LintNames.avoid_void_async, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoidVoidAsync;
+  DiagnosticCode get diagnosticCode => diag.avoidVoidAsync;
 
   @override
   void registerNodeProcessors(

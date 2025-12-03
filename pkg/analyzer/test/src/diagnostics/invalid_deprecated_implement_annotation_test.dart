@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -29,7 +29,7 @@ class C {}
 @Deprecated.implement()
 base class C {}
 ''',
-      [error(WarningCode.invalidDeprecatedImplementAnnotation, 1, 20)],
+      [error(diag.invalidDeprecatedImplementAnnotation, 1, 20)],
     );
   }
 
@@ -39,7 +39,7 @@ base class C {}
 @Deprecated.implement()
 final class C {}
 ''',
-      [error(WarningCode.invalidDeprecatedImplementAnnotation, 1, 20)],
+      [error(diag.invalidDeprecatedImplementAnnotation, 1, 20)],
     );
   }
 
@@ -50,8 +50,8 @@ final class C {}
 class _C {}
 ''',
       [
-        error(WarningCode.invalidDeprecatedImplementAnnotation, 1, 20),
-        error(WarningCode.unusedElement, 30, 2),
+        error(diag.invalidDeprecatedImplementAnnotation, 1, 20),
+        error(diag.unusedElement, 30, 2),
       ],
     );
   }
@@ -62,7 +62,7 @@ class _C {}
 @Deprecated.implement()
 sealed class C {}
 ''',
-      [error(WarningCode.invalidDeprecatedImplementAnnotation, 1, 20)],
+      [error(diag.invalidDeprecatedImplementAnnotation, 1, 20)],
     );
   }
 
@@ -80,7 +80,7 @@ class C = Object with M;
 @Deprecated.implement()
 void f() {}
 ''',
-      [error(WarningCode.invalidDeprecatedImplementAnnotation, 1, 20)],
+      [error(diag.invalidDeprecatedImplementAnnotation, 1, 20)],
     );
   }
 
@@ -97,7 +97,7 @@ mixin M {}
 @Deprecated.implement()
 base mixin M {}
 ''',
-      [error(WarningCode.invalidDeprecatedImplementAnnotation, 1, 20)],
+      [error(diag.invalidDeprecatedImplementAnnotation, 1, 20)],
     );
   }
 
@@ -108,8 +108,8 @@ base mixin M {}
 mixin _M {}
 ''',
       [
-        error(WarningCode.invalidDeprecatedImplementAnnotation, 1, 20),
-        error(WarningCode.unusedElement, 30, 2),
+        error(diag.invalidDeprecatedImplementAnnotation, 1, 20),
+        error(diag.unusedElement, 30, 2),
       ],
     );
   }
@@ -129,7 +129,7 @@ enum E { one; }
 @Deprecated.implement()
 typedef F = E;
 ''',
-      [error(WarningCode.invalidDeprecatedImplementAnnotation, 17, 20)],
+      [error(diag.invalidDeprecatedImplementAnnotation, 17, 20)],
     );
   }
 }

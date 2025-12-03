@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph;
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -61,14 +60,7 @@ class _Node extends graph.Node<_Node> {
   _Node(this.walker, this.node, this.element);
 
   TypeImpl get _fieldType {
-    if (useDeclaringConstructorsAst) {
-      // TODO(scheglov): support for absence of primary constructor
-      var constructor = node.namePart as PrimaryConstructorDeclarationImpl;
-      var formal = constructor.formalParameters.parameters.first;
-      return (formal as SimpleFormalParameterImpl).type!.typeOrThrow;
-    } else {
-      return node.representation.fieldType.typeOrThrow;
-    }
+    return node.fieldType.typeOrThrow;
   }
 
   @override

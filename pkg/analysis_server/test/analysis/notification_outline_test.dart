@@ -35,7 +35,7 @@ class AnalysisNotificationOutlineTest extends PubPackageAnalysisServerTest {
 
   @override
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_NOTIFICATION_OUTLINE) {
+    if (notification.event == analysisNotificationOutline) {
       var params = AnalysisOutlineParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,
@@ -47,7 +47,7 @@ class AnalysisNotificationOutlineTest extends PubPackageAnalysisServerTest {
         _outlineReceived.complete();
       }
     }
-    if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
+    if (notification.event == analysisNotificationHighlights) {
       var params = AnalysisHighlightsParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,

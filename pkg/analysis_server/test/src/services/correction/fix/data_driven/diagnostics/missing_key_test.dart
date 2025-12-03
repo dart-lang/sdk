@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
+import 'package:analysis_server/src/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../transform_set_parser_test_support.dart';
@@ -31,7 +31,7 @@ transforms:
       name: 'a'
       style: required_positional
 ''',
-      [error(TransformSetErrorCode.missingKey, 124, 85)],
+      [error(diag.missingKey, 124, 85)],
     );
   }
 
@@ -53,7 +53,7 @@ transforms:
         kind: 'argument'
         index: 0
 ''',
-      [error(TransformSetErrorCode.missingKey, 124, 133)],
+      [error(diag.missingKey, 124, 133)],
     );
   }
 
@@ -75,7 +75,7 @@ transforms:
         kind: 'argument'
         index: 0
 ''',
-      [error(TransformSetErrorCode.missingKey, 124, 132)],
+      [error(diag.missingKey, 124, 132)],
     );
   }
 
@@ -97,7 +97,7 @@ transforms:
         kind: 'argument'
         index: 0
 ''',
-      [error(TransformSetErrorCode.missingKey, 124, 115)],
+      [error(diag.missingKey, 124, 115)],
     );
   }
 
@@ -116,7 +116,7 @@ transforms:
       index: 0
       name: 'a'
 ''',
-      [error(TransformSetErrorCode.missingKey, 124, 56)],
+      [error(diag.missingKey, 124, 56)],
     );
   }
 
@@ -136,7 +136,7 @@ transforms:
       argumentValue:
         expression: ''
 ''',
-      [error(TransformSetErrorCode.missingKey, 124, 85)],
+      [error(diag.missingKey, 124, 85)],
     );
   }
 
@@ -156,7 +156,7 @@ transforms:
       argumentValue:
         expression: ''
 ''',
-      [error(TransformSetErrorCode.missingKey, 124, 84)],
+      [error(diag.missingKey, 124, 84)],
     );
   }
 
@@ -173,7 +173,7 @@ transforms:
   changes:
     - index: 0
 ''',
-      [error(TransformSetErrorCode.missingKey, 124, 9)],
+      [error(diag.missingKey, 124, 9)],
     );
   }
 
@@ -188,7 +188,7 @@ transforms:
     function: 'f'
   changes: []
 ''',
-      [error(TransformSetErrorCode.missingKey, 69, 16)],
+      [error(diag.missingKey, 69, 16)],
     );
   }
 
@@ -205,7 +205,7 @@ transforms:
   changes:
     - kind: 'rename'
 ''',
-      [error(TransformSetErrorCode.missingKey, 124, 15)],
+      [error(diag.missingKey, 124, 15)],
     );
   }
 
@@ -220,7 +220,7 @@ transforms:
     function: 'f'
   changes: []
 ''',
-      [error(TransformSetErrorCode.missingKey, 25, 77)],
+      [error(diag.missingKey, 25, 77)],
     );
   }
 
@@ -233,7 +233,7 @@ transforms:
   date: 2020-09-14
   changes: []
 ''',
-      [error(TransformSetErrorCode.missingKey, 25, 43)],
+      [error(diag.missingKey, 25, 43)],
     );
   }
 
@@ -248,7 +248,7 @@ transforms:
     function: 'f'
   changes: []
 ''',
-      [error(TransformSetErrorCode.missingKey, 25, 84)],
+      [error(diag.missingKey, 25, 84)],
     );
   }
 
@@ -257,7 +257,7 @@ transforms:
       '''
 version: 1
 ''',
-      [error(TransformSetErrorCode.missingKey, 0, 11)],
+      [error(diag.missingKey, 0, 11)],
     );
   }
 
@@ -266,7 +266,7 @@ version: 1
       '''
 transforms: []
 ''',
-      [error(TransformSetErrorCode.missingKey, 0, 15)],
+      [error(diag.missingKey, 0, 15)],
     );
   }
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -29,7 +29,7 @@ class C {}
 @Deprecated.instantiate()
 abstract class C {}
 ''',
-      [error(WarningCode.invalidDeprecatedInstantiateAnnotation, 1, 22)],
+      [error(diag.invalidDeprecatedInstantiateAnnotation, 1, 22)],
     );
   }
 
@@ -40,8 +40,8 @@ abstract class C {}
 class _C {}
 ''',
       [
-        error(WarningCode.invalidDeprecatedInstantiateAnnotation, 1, 22),
-        error(WarningCode.unusedElement, 32, 2),
+        error(diag.invalidDeprecatedInstantiateAnnotation, 1, 22),
+        error(diag.unusedElement, 32, 2),
       ],
     );
   }
@@ -54,7 +54,7 @@ sealed class C {
   C._();
 }
 ''',
-      [error(WarningCode.invalidDeprecatedInstantiateAnnotation, 1, 22)],
+      [error(diag.invalidDeprecatedInstantiateAnnotation, 1, 22)],
     );
   }
 
@@ -64,7 +64,7 @@ sealed class C {
 @Deprecated.instantiate()
 sealed class C {}
 ''',
-      [error(WarningCode.invalidDeprecatedInstantiateAnnotation, 1, 22)],
+      [error(diag.invalidDeprecatedInstantiateAnnotation, 1, 22)],
     );
   }
 
@@ -82,7 +82,7 @@ class C = Object with M;
 @Deprecated.instantiate()
 enum E { one; }
 ''',
-      [error(WarningCode.invalidDeprecatedInstantiateAnnotation, 1, 22)],
+      [error(diag.invalidDeprecatedInstantiateAnnotation, 1, 22)],
     );
   }
 
@@ -92,7 +92,7 @@ enum E { one; }
 @Deprecated.instantiate()
 void f() {}
 ''',
-      [error(WarningCode.invalidDeprecatedInstantiateAnnotation, 1, 22)],
+      [error(diag.invalidDeprecatedInstantiateAnnotation, 1, 22)],
     );
   }
 
@@ -111,7 +111,7 @@ enum E { one; }
 @Deprecated.instantiate()
 typedef F = E;
 ''',
-      [error(WarningCode.invalidDeprecatedInstantiateAnnotation, 17, 22)],
+      [error(diag.invalidDeprecatedInstantiateAnnotation, 17, 22)],
     );
   }
 }

@@ -406,7 +406,7 @@ Future<void> f() async {
   print(x);
 }
 
-Future<dynamic> myUndefinedFunction() async {
+Future<Object?> myUndefinedFunction() async {
 }
 ''');
   }
@@ -442,7 +442,7 @@ void f() {
   test(throw 42);
 }
 
-void test(param0) {
+void test(Object? object) {
 }
 ''');
   }
@@ -731,7 +731,7 @@ void f() {
   test(null);
 }
 
-void test(param0) {
+void test(Object? object) {
 }
 ''');
   }

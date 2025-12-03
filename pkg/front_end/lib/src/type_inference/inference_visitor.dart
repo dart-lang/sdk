@@ -107,7 +107,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           TreeNode,
           Statement,
           Expression,
-          VariableDeclaration,
+          ExpressionVariable,
           Pattern,
           InvalidExpression,
           TypeDeclarationType,
@@ -116,7 +116,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         NullShortingMixin<
           NullAwareGuard,
           Expression,
-          VariableDeclaration,
+          ExpressionVariable,
           SharedTypeView
         >,
         StackChecker,
@@ -845,9 +845,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   InitializerInferenceResult visitInvalidInitializer(InvalidInitializer node) {
-    _unhandledInitializer(node);
+    return new SuccessfulInitializerInferenceResult(node);
   }
 
   @override
@@ -10706,7 +10705,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (unaryTarget.isNullable) {
       List<LocatedMessage>? context = getWhyNotPromotedContext(
         whyNotPromoted(),
-        unary, // Coverage-ignore(suite): Not run.
+        unary,
+        // Coverage-ignore(suite): Not run.
         (type) => !type.isPotentiallyNullable,
       );
       // TODO(johnniwinther): Special case 'unary-' in messages. It should
@@ -13256,7 +13256,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         return result;
       }
     }
-    VariableDeclarationImpl variable = node.variable as VariableDeclarationImpl;
+    InternalExpressionVariable variable =
+        node.expressionVariable as InternalExpressionVariable;
     var (DartType variableType, DartType writeContext) =
         computeVariableSetTypeAndWriteContext(variable);
     ExpressionInferenceResult rhsResult = inferExpression(
@@ -13278,251 +13279,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   StatementInferenceResult visitVariableDeclaration(
     covariant VariableDeclarationImpl node,
   ) {
-    DartType declaredType = node.isImplicitlyTyped
-        ? const UnknownType()
-        : node.type;
-    DartType inferredType;
-    ExpressionInferenceResult? initializerResult;
-
-    // Wildcard variable declarations can be removed, except for the ones in
-    // for loops, const variables, and late variables. This logic turns them
-    // into `ExpressionStatement`s or `EmptyStatement`s so the backends don't
-    // need to allocate space for them.
-    if (node.isWildcard && !node.isConst && node.parent is! ForStatement) {
-      if (node.initializer case var initializer? when !node.isLate) {
-        return new StatementInferenceResult.single(
-          createExpressionStatement(
-            inferExpression(
-              initializer,
-              declaredType,
-              isVoidAllowed: true,
-            ).expression,
-          ),
-        );
-      } else {
-        return new StatementInferenceResult.single(new EmptyStatement());
-      }
-    }
-    if (node.initializer != null) {
-      if (node.isLate && node.hasDeclaredInitializer) {
-        flowAnalysis.lateInitializer_begin(node);
-      }
-      initializerResult = inferExpression(
-        node.initializer!,
-        declaredType,
-        isVoidAllowed: true,
-      );
-      if (node.isLate && node.hasDeclaredInitializer) {
-        flowAnalysis.lateInitializer_end();
-      }
-      inferredType = inferDeclarationType(
-        initializerResult.inferredType,
-        forSyntheticVariable: node.name == null,
-      );
-    } else {
-      inferredType = const DynamicType();
-    }
-    if (node.isImplicitlyTyped) {
-      if (dataForTesting != null) {
-        // Coverage-ignore-block(suite): Not run.
-        dataForTesting!.typeInferenceResult.inferredVariableTypes[node] =
-            inferredType;
-      }
-      node.type = inferredType;
-    }
-    flowAnalysis.declare(
-      node,
-      new SharedTypeView(node.type),
-      initialized: node.hasDeclaredInitializer,
-    );
-    if (initializerResult != null) {
-      DartType initializerType = initializerResult.inferredType;
-      flowAnalysis.initialize(
-        node,
-        new SharedTypeView(initializerType),
-        initializerResult.expression,
-        isFinal: node.isFinal,
-        isLate: node.isLate,
-        isImplicitlyTyped: node.isImplicitlyTyped,
-      );
-      initializerResult = ensureAssignableResult(
-        node.type,
-        initializerResult,
-        fileOffset: node.fileOffset,
-        isVoidAllowed: node.type is VoidType,
-      );
-      Expression initializer = initializerResult.expression;
-      node.initializer = initializer..parent = node;
-    }
-    if (node.isLate &&
-        libraryBuilder.loader.target.backendTarget.isLateLocalLoweringEnabled(
-          hasInitializer: node.hasDeclaredInitializer,
-          isFinal: node.isFinal,
-          isPotentiallyNullable: node.type.isPotentiallyNullable,
-        )) {
-      int fileOffset = node.fileOffset;
-
-      List<Statement> result = <Statement>[];
-      result.add(node);
-
-      late_lowering.IsSetEncoding isSetEncoding = late_lowering
-          .computeIsSetEncoding(
-            node.type,
-            late_lowering.computeIsSetStrategy(libraryBuilder),
-          );
-      VariableDeclaration? isSetVariable;
-      if (isSetEncoding == late_lowering.IsSetEncoding.useIsSetField) {
-        isSetVariable = new VariableDeclaration(
-          late_lowering.computeLateLocalIsSetName(node.name!),
-          initializer: new BoolLiteral(false)..fileOffset = fileOffset,
-          type: coreTypes.boolRawType(Nullability.nonNullable),
-          isLowered: true,
-        )..fileOffset = fileOffset;
-        result.add(isSetVariable);
-      }
-
-      Expression createVariableRead({bool needsPromotion = false}) {
-        if (needsPromotion) {
-          return new VariableGet(node, node.type)..fileOffset = fileOffset;
-        } else {
-          return new VariableGet(node)..fileOffset = fileOffset;
-        }
-      }
-
-      Expression createIsSetRead() =>
-          new VariableGet(isSetVariable!)..fileOffset = fileOffset;
-      Expression createVariableWrite(Expression value) =>
-          new VariableSet(node, value);
-      Expression createIsSetWrite(Expression value) =>
-          new VariableSet(isSetVariable!, value);
-
-      VariableDeclaration getVariable = new VariableDeclaration(
-        late_lowering.computeLateLocalGetterName(node.name!),
-        isLowered: true,
-      )..fileOffset = fileOffset;
-      FunctionDeclaration getter = new FunctionDeclaration(
-        getVariable,
-        new FunctionNode(
-          node.initializer == null
-              ? late_lowering.createGetterBodyWithoutInitializer(
-                  coreTypes,
-                  fileOffset,
-                  node.name!,
-                  node.type,
-                  createVariableRead: createVariableRead,
-                  createIsSetRead: createIsSetRead,
-                  isSetEncoding: isSetEncoding,
-                  forField: false,
-                )
-              : (node.isFinal
-                    ? late_lowering.createGetterWithInitializerWithRecheck(
-                        coreTypes,
-                        fileOffset,
-                        node.name!,
-                        node.type,
-                        node.initializer!,
-                        createVariableRead: createVariableRead,
-                        createVariableWrite: createVariableWrite,
-                        createIsSetRead: createIsSetRead,
-                        createIsSetWrite: createIsSetWrite,
-                        isSetEncoding: isSetEncoding,
-                        forField: false,
-                      )
-                    : late_lowering.createGetterWithInitializer(
-                        coreTypes,
-                        fileOffset,
-                        node.name!,
-                        node.type,
-                        node.initializer!,
-                        createVariableRead: createVariableRead,
-                        createVariableWrite: createVariableWrite,
-                        createIsSetRead: createIsSetRead,
-                        createIsSetWrite: createIsSetWrite,
-                        isSetEncoding: isSetEncoding,
-                      )),
-          returnType: node.type,
-        ),
-      )..fileOffset = fileOffset;
-      getVariable.type = getter.function.computeFunctionType(
-        Nullability.nonNullable,
-      );
-      node.lateGetter = getVariable;
-      result.add(getter);
-
-      if (!node.isFinal || node.initializer == null) {
-        node.isLateFinalWithoutInitializer =
-            node.isFinal && node.initializer == null;
-        VariableDeclaration setVariable = new VariableDeclaration(
-          late_lowering.computeLateLocalSetterName(node.name!),
-          isLowered: true,
-        )..fileOffset = fileOffset;
-        VariableDeclaration setterParameter = new VariableDeclaration(
-          "${node.name}#param",
-          type: node.type,
-        )..fileOffset = fileOffset;
-        FunctionDeclaration setter = new FunctionDeclaration(
-          setVariable,
-          new FunctionNode(
-            node.isFinal
-                  ? late_lowering.createSetterBodyFinal(
-                      coreTypes,
-                      fileOffset,
-                      node.name!,
-                      setterParameter,
-                      node.type,
-                      shouldReturnValue: true,
-                      createVariableRead: createVariableRead,
-                      createVariableWrite: createVariableWrite,
-                      createIsSetRead: createIsSetRead,
-                      createIsSetWrite: createIsSetWrite,
-                      isSetEncoding: isSetEncoding,
-                      forField: false,
-                    )
-                  : late_lowering.createSetterBody(
-                      coreTypes,
-                      fileOffset,
-                      node.name!,
-                      setterParameter,
-                      node.type,
-                      shouldReturnValue: true,
-                      createVariableWrite: createVariableWrite,
-                      createIsSetWrite: createIsSetWrite,
-                      isSetEncoding: isSetEncoding,
-                    )
-              ..fileOffset = fileOffset,
-            positionalParameters: <VariableDeclaration>[setterParameter],
-          ),
-        )
-        // TODO(johnniwinther): Reinsert the file offset when the vm doesn't
-        //  use it for function declaration identity.
-        /*..fileOffset = fileOffset*/;
-        setVariable.type = setter.function.computeFunctionType(
-          Nullability.nonNullable,
-        );
-        node.lateSetter = setVariable;
-        result.add(setter);
-      }
-      node.isLate = false;
-      node.lateType = node.type;
-      if (isSetEncoding == late_lowering.IsSetEncoding.useSentinel) {
-        node.initializer =
-            new StaticInvocation(
-                coreTypes.createSentinelMethod,
-                new Arguments([], types: [node.type])..fileOffset = fileOffset,
-              )
-              ..fileOffset = fileOffset
-              ..parent = node;
-      } else {
-        node.initializer = null;
-      }
-      node.type = computeNullable(node.type);
-      node.lateName = node.name;
-      node.isLowered = true;
-      node.name = late_lowering.computeLateLocalName(node.name!);
-
-      return new StatementInferenceResult.multiple(node.fileOffset, result);
-    }
-    return const StatementInferenceResult();
+    return _inferInternalExpressionVariableDeclaration(node, node);
   }
 
   @override
@@ -13585,7 +13342,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
     return inferVariableGet(
-      variable: node.variable as VariableDeclarationImpl,
+      variable: node.expressionVariable as InternalExpressionVariable,
       typeContext: typeContext,
       nameOffset: node.fileOffset,
       node: node,
@@ -14401,7 +14158,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     TreeNode,
     Statement,
     Expression,
-    VariableDeclaration,
+    ExpressionVariable,
     SharedTypeView
   >
   get flow => flowAnalysis;
@@ -14595,7 +14352,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   void handleCase_afterCaseHeads(
     Statement node,
     int caseIndex,
-    Iterable<VariableDeclaration> variables,
+    Iterable<ExpressionVariable> variables,
   ) {}
 
   @override
@@ -14671,7 +14428,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void setVariableType(VariableDeclaration variable, SharedTypeView type) {
+  void setVariableType(ExpressionVariable variable, SharedTypeView type) {
     variable.type = type.unwrapTypeView();
   }
 
@@ -16202,7 +15959,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   void finishJoinedPatternVariable(
-    VariableDeclaration variable, {
+    ExpressionVariable variable, {
     required JoinedPatternVariableLocation location,
     required JoinedPatternVariableInconsistency inconsistency,
     required bool isFinal,
@@ -16750,6 +16507,271 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   bool isDotShorthand(Expression node) {
     return node is DotShorthand;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  StatementInferenceResult visitVariableInitialization(
+    VariableInitialization node,
+  ) {
+    InternalExpressionVariable nodeVariable =
+        node.variable as InternalExpressionVariable;
+    StatementInferenceResult statementInferenceResult =
+        _inferInternalExpressionVariableDeclaration(node, nodeVariable);
+    node.variable = nodeVariable.astVariable;
+    return statementInferenceResult;
+  }
+
+  StatementInferenceResult _inferInternalExpressionVariableDeclaration(
+    VariableInitialization node,
+    InternalExpressionVariable nodeVariable,
+  ) {
+    DartType declaredType = nodeVariable.isImplicitlyTyped
+        ? const UnknownType()
+        : node.type;
+    DartType inferredType;
+    ExpressionInferenceResult? initializerResult;
+
+    // Wildcard variable declarations can be removed, except for the ones in
+    // for loops, const variables, and late variables. This logic turns them
+    // into `ExpressionStatement`s or `EmptyStatement`s so the backends don't
+    // need to allocate space for them.
+    if (node.isWildcard && !node.isConst && node.parent is! ForStatement) {
+      if (node.initializer case var initializer? when !node.isLate) {
+        return new StatementInferenceResult.single(
+          createExpressionStatement(
+            inferExpression(
+              initializer,
+              declaredType,
+              isVoidAllowed: true,
+            ).expression,
+          ),
+        );
+      } else {
+        return new StatementInferenceResult.single(new EmptyStatement());
+      }
+    }
+    if (node.initializer != null) {
+      if (node.isLate && node.hasDeclaredInitializer) {
+        flowAnalysis.lateInitializer_begin(node);
+      }
+      initializerResult = inferExpression(
+        node.initializer!,
+        declaredType,
+        isVoidAllowed: true,
+      );
+      if (node.isLate && node.hasDeclaredInitializer) {
+        flowAnalysis.lateInitializer_end();
+      }
+      inferredType = inferDeclarationType(
+        initializerResult.inferredType,
+        forSyntheticVariable: node.name == null,
+      );
+    } else {
+      inferredType = const DynamicType();
+    }
+    if (nodeVariable.isImplicitlyTyped) {
+      if (dataForTesting != null) {
+        // Coverage-ignore-block(suite): Not run.
+        dataForTesting!.typeInferenceResult.inferredVariableTypes[node] =
+            inferredType;
+      }
+      node.type = inferredType;
+    }
+    flowAnalysis.declare(
+      nodeVariable.astVariable,
+      new SharedTypeView(node.type),
+      initialized: node.hasDeclaredInitializer,
+    );
+    if (initializerResult != null) {
+      DartType initializerType = initializerResult.inferredType;
+      flowAnalysis.initialize(
+        nodeVariable.astVariable,
+        new SharedTypeView(initializerType),
+        initializerResult.expression,
+        isFinal: node.isFinal,
+        isLate: node.isLate,
+        isImplicitlyTyped: nodeVariable.isImplicitlyTyped,
+      );
+      initializerResult = ensureAssignableResult(
+        node.type,
+        initializerResult,
+        fileOffset: node.fileOffset,
+        isVoidAllowed: node.type is VoidType,
+      );
+      Expression initializer = initializerResult.expression;
+      node.initializer = initializer..parent = node;
+    }
+    if (node.isLate &&
+        libraryBuilder.loader.target.backendTarget.isLateLocalLoweringEnabled(
+          hasInitializer: node.hasDeclaredInitializer,
+          isFinal: node.isFinal,
+          isPotentiallyNullable: node.type.isPotentiallyNullable,
+        )) {
+      int fileOffset = node.fileOffset;
+
+      List<Statement> result = <Statement>[];
+      result.add(node);
+
+      late_lowering.IsSetEncoding isSetEncoding = late_lowering
+          .computeIsSetEncoding(
+            node.type,
+            late_lowering.computeIsSetStrategy(libraryBuilder),
+          );
+      VariableDeclaration? isSetVariable;
+      if (isSetEncoding == late_lowering.IsSetEncoding.useIsSetField) {
+        isSetVariable = new VariableDeclaration(
+          late_lowering.computeLateLocalIsSetName(node.name!),
+          initializer: new BoolLiteral(false)..fileOffset = fileOffset,
+          type: coreTypes.boolRawType(Nullability.nonNullable),
+          isLowered: true,
+        )..fileOffset = fileOffset;
+        result.add(isSetVariable);
+      }
+
+      Expression createVariableRead({bool needsPromotion = false}) {
+        if (needsPromotion) {
+          return new VariableGet(node.variable, node.type)
+            ..fileOffset = fileOffset;
+        } else {
+          return new VariableGet(node.variable)..fileOffset = fileOffset;
+        }
+      }
+
+      Expression createIsSetRead() =>
+          new VariableGet(isSetVariable!)..fileOffset = fileOffset;
+      Expression createVariableWrite(Expression value) =>
+          new VariableSet(node.variable, value);
+      Expression createIsSetWrite(Expression value) =>
+          new VariableSet(isSetVariable!, value);
+
+      VariableDeclaration getVariable = new VariableDeclaration(
+        late_lowering.computeLateLocalGetterName(node.name!),
+        isLowered: true,
+      )..fileOffset = fileOffset;
+      FunctionDeclaration getter = new FunctionDeclaration(
+        getVariable,
+        new FunctionNode(
+          node.initializer == null
+              ? late_lowering.createGetterBodyWithoutInitializer(
+                  coreTypes,
+                  fileOffset,
+                  node.name!,
+                  node.type,
+                  createVariableRead: createVariableRead,
+                  createIsSetRead: createIsSetRead,
+                  isSetEncoding: isSetEncoding,
+                  forField: false,
+                )
+              : (node.isFinal
+                    ? late_lowering.createGetterWithInitializerWithRecheck(
+                        coreTypes,
+                        fileOffset,
+                        node.name!,
+                        node.type,
+                        node.initializer!,
+                        createVariableRead: createVariableRead,
+                        createVariableWrite: createVariableWrite,
+                        createIsSetRead: createIsSetRead,
+                        createIsSetWrite: createIsSetWrite,
+                        isSetEncoding: isSetEncoding,
+                        forField: false,
+                      )
+                    : late_lowering.createGetterWithInitializer(
+                        coreTypes,
+                        fileOffset,
+                        node.name!,
+                        node.type,
+                        node.initializer!,
+                        createVariableRead: createVariableRead,
+                        createVariableWrite: createVariableWrite,
+                        createIsSetRead: createIsSetRead,
+                        createIsSetWrite: createIsSetWrite,
+                        isSetEncoding: isSetEncoding,
+                      )),
+          returnType: node.type,
+        ),
+      )..fileOffset = fileOffset;
+      getVariable.type = getter.function.computeFunctionType(
+        Nullability.nonNullable,
+      );
+      nodeVariable.lateGetter = getVariable;
+      result.add(getter);
+
+      if (!node.isFinal || node.initializer == null) {
+        nodeVariable.isLateFinalWithoutInitializer =
+            node.isFinal && node.initializer == null;
+        VariableDeclaration setVariable = new VariableDeclaration(
+          late_lowering.computeLateLocalSetterName(node.name!),
+          isLowered: true,
+        )..fileOffset = fileOffset;
+        VariableDeclaration setterParameter = new VariableDeclaration(
+          "${node.name}#param",
+          type: node.type,
+        )..fileOffset = fileOffset;
+        FunctionDeclaration setter = new FunctionDeclaration(
+          setVariable,
+          new FunctionNode(
+            node.isFinal
+                  ? late_lowering.createSetterBodyFinal(
+                      coreTypes,
+                      fileOffset,
+                      node.name!,
+                      setterParameter,
+                      node.type,
+                      shouldReturnValue: true,
+                      createVariableRead: createVariableRead,
+                      createVariableWrite: createVariableWrite,
+                      createIsSetRead: createIsSetRead,
+                      createIsSetWrite: createIsSetWrite,
+                      isSetEncoding: isSetEncoding,
+                      forField: false,
+                    )
+                  : late_lowering.createSetterBody(
+                      coreTypes,
+                      fileOffset,
+                      node.name!,
+                      setterParameter,
+                      node.type,
+                      shouldReturnValue: true,
+                      createVariableWrite: createVariableWrite,
+                      createIsSetWrite: createIsSetWrite,
+                      isSetEncoding: isSetEncoding,
+                    )
+              ..fileOffset = fileOffset,
+            positionalParameters: <VariableDeclaration>[setterParameter],
+          ),
+        )
+        // TODO(johnniwinther): Reinsert the file offset when the vm doesn't
+        //  use it for function declaration identity.
+        /*..fileOffset = fileOffset*/;
+        setVariable.type = setter.function.computeFunctionType(
+          Nullability.nonNullable,
+        );
+        nodeVariable.lateSetter = setVariable;
+        result.add(setter);
+      }
+      node.isLate = false;
+      nodeVariable.lateType = node.type;
+      if (isSetEncoding == late_lowering.IsSetEncoding.useSentinel) {
+        node.initializer =
+            new StaticInvocation(
+                coreTypes.createSentinelMethod,
+                new Arguments([], types: [node.type])..fileOffset = fileOffset,
+              )
+              ..fileOffset = fileOffset
+              ..parent = node;
+      } else {
+        node.initializer = null;
+      }
+      node.type = computeNullable(node.type);
+      nodeVariable.lateName = node.name;
+      node.isLowered = true;
+      node.name = late_lowering.computeLateLocalName(node.name!);
+
+      return new StatementInferenceResult.multiple(node.fileOffset, result);
+    }
+    return const StatementInferenceResult();
   }
 }
 

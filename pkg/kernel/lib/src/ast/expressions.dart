@@ -125,8 +125,7 @@ abstract class AuxiliaryExpression extends Expression {
 /// The [fileOffset] of an [InvalidExpression] indicates the location in the
 /// tree where the expression occurs, rather than the location of the error.
 class InvalidExpression extends Expression {
-  // TODO(johnniwinther): Avoid using `null` as the empty string.
-  String? message;
+  String message;
 
   /// The expression containing the error.
   Expression? expression;
@@ -179,7 +178,7 @@ class InvalidExpression extends Expression {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write('<invalid:');
-    printer.write(message ?? '');
+    printer.write(message);
     if (expression != null) {
       printer.write(', ');
       printer.writeExpression(expression!);
@@ -188,12 +187,17 @@ class InvalidExpression extends Expression {
   }
 }
 
-/// Read a local variable, a local function, or a function parameter.
 class VariableGet extends Expression {
-  VariableDeclaration variable;
-  DartType? promotedType; // Null if not promoted.
+  /// The target variable as [VariableDeclaration].
+  VariableDeclaration get variable => expressionVariable as VariableDeclaration;
 
-  VariableGet(this.variable, [this.promotedType]);
+  /// The target variable.
+  ExpressionVariable expressionVariable;
+
+  /// Null if not promoted.
+  DartType? promotedType;
+
+  VariableGet(this.expressionVariable, [this.promotedType]);
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -201,7 +205,7 @@ class VariableGet extends Expression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    return promotedType ?? variable.type;
+    return promotedType ?? expressionVariable.type;
   }
 
   @override
@@ -242,7 +246,7 @@ class VariableGet extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write(printer.getVariableDeclarationName(variable));
+    printer.write(printer.getVariableName(variable));
     if (promotedType != null) {
       printer.write('{');
       printer.writeType(promotedType!);
@@ -255,10 +259,15 @@ class VariableGet extends Expression {
 ///
 /// Evaluates to the value of [value].
 class VariableSet extends Expression {
-  VariableDeclaration variable;
+  /// The target variable as [VariableDeclaration].
+  VariableDeclaration get variable => expressionVariable as VariableDeclaration;
+
+  /// The target variable.
+  ExpressionVariable expressionVariable;
+
   Expression value;
 
-  VariableSet(this.variable, this.value) {
+  VariableSet(this.expressionVariable, this.value) {
     value.parent = this;
   }
 
@@ -301,7 +310,7 @@ class VariableSet extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write(printer.getVariableDeclarationName(variable));
+    printer.write(printer.getVariableName(variable));
     printer.write(' = ');
     printer.writeExpression(value);
   }
@@ -2211,7 +2220,7 @@ class LocalFunctionInvocation extends InvocationExpression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write(printer.getVariableDeclarationName(variable));
+    printer.write(printer.getVariableName(variable));
     printer.writeArguments(arguments);
   }
 }

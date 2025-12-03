@@ -6,17 +6,24 @@ part of '../fragment.dart';
 
 class _FieldClassMember implements ClassMember {
   final SourcePropertyBuilder _builder;
-  final FieldFragment _fragment;
+
+  @override
+  final UriOffsetLength uriOffset;
+
+  @override
+  final bool isStatic;
 
   @override
   final bool forSetter;
 
   Covariance? _covariance;
 
-  _FieldClassMember(this._builder, this._fragment, {required this.forSetter});
-
-  @override
-  UriOffsetLength get uriOffset => _fragment.uriOffset;
+  _FieldClassMember(
+    this._builder, {
+    required this.uriOffset,
+    required this.isStatic,
+    required this.forSetter,
+  });
 
   @override
   DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;
@@ -99,11 +106,8 @@ class _FieldClassMember implements ClassMember {
   ClassMember get interfaceMember => this;
 
   @override
-  // TODO(johnniwinther): This should not be determined by the builder. A
-  // property can have a non-abstract getter and an abstract setter or the
-  // reverse. With augmentations, abstract introductory declarations might even
-  // be implemented by augmentations.
-  bool get isAbstract => _fragment.modifiers.isAbstract;
+  bool get isAbstract =>
+      forSetter ? _builder.hasAbstractSetter : _builder.hasAbstractGetter;
 
   @override
   bool get isDuplicate => _builder.isDuplicate;
@@ -133,9 +137,6 @@ class _FieldClassMember implements ClassMember {
 
   @override
   bool get isSourceDeclaration => true;
-
-  @override
-  bool get isStatic => _fragment.modifiers.isStatic;
 
   @override
   bool get isSynthesized => false;

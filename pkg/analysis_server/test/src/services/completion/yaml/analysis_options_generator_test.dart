@@ -282,7 +282,9 @@ linter:
   }
 
   void test_linter_rules_removed() {
-    registerLintRule(_RemovedLint());
+    registerLintRule(
+      RemovedAnalysisRule(name: 'removed_lint', description: ''),
+    );
 
     getCompletions('''
 linter:
@@ -325,8 +327,7 @@ class InternalRule extends AnalysisRule {
     'internal_rule',
     'Internal rule.',
     correctionMessage: 'Try internal rule.',
-    // ignore: deprecated_member_use
-    uniqueNameCheck: 'LintCode.internal_rule',
+    uniqueName: 'LintCode.internal_rule',
   );
 
   InternalRule()
@@ -338,19 +339,4 @@ class InternalRule extends AnalysisRule {
 
   @override
   DiagnosticCode get diagnosticCode => code;
-}
-
-class _RemovedLint extends AnalysisRule {
-  static const LintCode _code = LintCode(
-    'removed_lint',
-    'Removed rule.',
-    // ignore: deprecated_member_use
-    uniqueNameCheck: 'LintCode.removed_lint',
-  );
-
-  _RemovedLint()
-    : super(name: 'removed_lint', state: RuleState.removed(), description: '');
-
-  @override
-  DiagnosticCode get diagnosticCode => _code;
 }

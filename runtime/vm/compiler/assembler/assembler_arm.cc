@@ -527,11 +527,6 @@ void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
   Emit(encoding);
 }
 
-void Assembler::dmb() {
-  // Emit a `dmb ish` instruction.
-  Emit(kDataMemoryBarrier);
-}
-
 static int32_t BitFieldExtractEncoding(bool sign_extend,
                                        Register rd,
                                        Register rn,

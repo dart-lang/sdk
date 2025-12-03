@@ -1236,6 +1236,18 @@ class TestParser extends Parser {
   }
 
   @override
+  Token parsePrimaryConstructorBody(Token token) {
+    doPrint(
+      'parsePrimaryConstructorBody('
+      '$token)',
+    );
+    indent++;
+    var result = super.parsePrimaryConstructorBody(token);
+    indent--;
+    return result;
+  }
+
+  @override
   Token parseExtensionTypeDeclaration(
     Token beginToken,
     Token token,
@@ -1881,6 +1893,7 @@ class TestParser extends Parser {
     Token beforeType,
     TypeInfo typeInfo,
     Token? getOrSet,
+    Token? newToken,
     Token name,
     DeclarationKind kind,
     String? enclosingDeclarationName,
@@ -1899,6 +1912,7 @@ class TestParser extends Parser {
       '$beforeType, '
       '$typeInfo, '
       '$getOrSet, '
+      '$newToken, '
       '$name, '
       '$kind, '
       '$enclosingDeclarationName, '
@@ -1917,6 +1931,7 @@ class TestParser extends Parser {
       beforeType,
       typeInfo,
       getOrSet,
+      newToken,
       name,
       kind,
       enclosingDeclarationName,
@@ -1934,6 +1949,7 @@ class TestParser extends Parser {
     Token? externalToken,
     Token? staticOrCovariant,
     Token? varFinalOrConst,
+    bool hasName,
   ) {
     doPrint(
       'parseFactoryMethod('
@@ -1942,7 +1958,8 @@ class TestParser extends Parser {
       '$beforeStart, '
       '$externalToken, '
       '$staticOrCovariant, '
-      '$varFinalOrConst)',
+      '$varFinalOrConst, '
+      '$hasName)',
     );
     indent++;
     var result = super.parseFactoryMethod(
@@ -1952,6 +1969,7 @@ class TestParser extends Parser {
       externalToken,
       staticOrCovariant,
       varFinalOrConst,
+      hasName,
     );
     indent--;
     return result;
@@ -3519,6 +3537,7 @@ class TestParser extends Parser {
     Token beforeType,
     TypeInfo typeInfo,
     Token? getOrSet,
+    Token? newToken,
     DeclarationKind kind,
     String? enclosingDeclarationName,
   ) {
@@ -3536,6 +3555,7 @@ class TestParser extends Parser {
       '$beforeType, '
       '$typeInfo, '
       '$getOrSet, '
+      '$newToken, '
       '$kind, '
       '$enclosingDeclarationName)',
     );
@@ -3553,6 +3573,7 @@ class TestParser extends Parser {
       beforeType,
       typeInfo,
       getOrSet,
+      newToken,
       kind,
       enclosingDeclarationName,
     );

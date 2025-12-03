@@ -707,6 +707,7 @@ class LibraryReader {
       );
       element.linkFragments(fragments);
       element.readModifiers(_reader);
+      element.typeInferenceError = _readTopLevelInferenceError();
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
@@ -742,6 +743,9 @@ class LibraryReader {
     });
   }
 
+  /// Read the resolution for a formal parameter list fragment for a
+  /// top-level function, method, constructor, getter, or setter
+  /// declaration.
   void _readFormalParameters2(
     LibraryFragmentImpl unitElement,
     ResolutionReader reader,
@@ -1050,6 +1054,8 @@ class LibraryReader {
     return _reader.readOptionalObject(() => _readReference());
   }
 
+  /// Read the formal parameter list for a top-level function, method,
+  /// constructor, getter, or setter declaration.
   // TODO(scheglov): Deduplicate parameter reading implementation.
   List<FormalParameterFragmentImpl> _readParameters() {
     return _reader.readTypedList(() {
@@ -1063,10 +1069,12 @@ class LibraryReader {
 
       FormalParameterFragmentImpl element;
       if (isInitializingFormal) {
+        var privateName = _reader.readOptionalStringReference();
         element = FieldFormalParameterFragmentImpl(
           name: fragmentName,
           nameOffset: null,
           parameterKind: kind,
+          privateName: privateName,
         );
       } else if (isSuperFormal) {
         element = SuperFormalParameterFragmentImpl(
@@ -1253,6 +1261,7 @@ class LibraryReader {
       var element = TopLevelVariableElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
       element.readModifiers(_reader);
+      element.typeInferenceError = _readTopLevelInferenceError();
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
@@ -1778,6 +1787,8 @@ class ResolutionReader {
     return type;
   }
 
+  /// Read the formal parameter list for a function type annotation or type
+  /// alias of a function type.
   List<FormalParameterFragmentImpl> _readFormalParameters(
     LibraryFragmentImpl? unitElement,
   ) {
@@ -1791,10 +1802,12 @@ class ResolutionReader {
       var name = _readFragmentName();
       FormalParameterFragmentImpl element;
       if (isInitializingFormal) {
+        var privateName = _reader.readOptionalStringReference();
         element = FieldFormalParameterFragmentImpl(
           name: name,
           nameOffset: null,
           parameterKind: kind,
+          privateName: privateName,
         );
         element.element.type = type;
       } else {

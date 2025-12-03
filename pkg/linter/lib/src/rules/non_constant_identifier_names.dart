@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/ascii_utils.dart';
 import '../utils.dart';
@@ -22,8 +23,7 @@ class NonConstantIdentifierNames extends AnalysisRule {
     : super(name: LintNames.non_constant_identifier_names, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.nonConstantIdentifierNames;
+  DiagnosticCode get diagnosticCode => diag.nonConstantIdentifierNames;
 
   @override
   void registerNodeProcessors(
@@ -40,6 +40,7 @@ class NonConstantIdentifierNames extends AnalysisRule {
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
     registry.addPatternField(this, visitor);
+    registry.addPrimaryConstructorName(this, visitor);
     registry.addRecordLiteral(this, visitor);
     registry.addRecordTypeAnnotation(this, visitor);
     registry.addVariableDeclaration(this, visitor);
@@ -88,7 +89,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    checkIdentifier(node.representation.constructorName?.name);
+    checkIdentifier(node.primaryConstructor.constructorName?.name);
   }
 
   @override
@@ -128,6 +129,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (pattern is DeclaredVariablePattern) {
       checkIdentifier(pattern.name);
     }
+  }
+
+  @override
+  void visitPrimaryConstructorName(PrimaryConstructorName node) {
+    checkIdentifier(node.name, underscoresOk: true);
   }
 
   @override

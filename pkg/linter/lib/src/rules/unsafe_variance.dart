@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/element.dart' // ignore: implementatio
     show TypeParameterElementImpl;
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/variance_checker.dart';
 
 const _desc = r'Unsafe type: Has a type variable in a non-covariant position.';
@@ -28,7 +29,7 @@ class UnsafeVariance extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unsafeVariance;
+  DiagnosticCode get diagnosticCode => diag.unsafeVariance;
 
   @override
   void registerNodeProcessors(

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -20,7 +20,7 @@ class ImportDirectiveResolutionTest extends PubPackageResolutionTest {
       r'''
 import 'dart:math' hide Random;
 ''',
-      [error(WarningCode.unusedImport, 7, 11)],
+      [error(diag.unusedImport, 7, 11)],
     );
 
     var node = findNode.singleImportDirective;
@@ -50,8 +50,8 @@ ImportDirective
 import 'dart:math' hide Unresolved;
 ''',
       [
-        error(WarningCode.unusedImport, 7, 11),
-        error(WarningCode.undefinedHiddenName, 24, 10),
+        error(diag.unusedImport, 7, 11),
+        error(diag.undefinedHiddenName, 24, 10),
       ],
     );
 
@@ -81,7 +81,7 @@ ImportDirective
       r'''
 import 'dart:math' show Random;
 ''',
-      [error(WarningCode.unusedImport, 7, 11)],
+      [error(diag.unusedImport, 7, 11)],
     );
 
     var node = findNode.singleImportDirective;
@@ -110,10 +110,7 @@ ImportDirective
       r'''
 import 'dart:math' show Unresolved;
 ''',
-      [
-        error(WarningCode.unusedImport, 7, 11),
-        error(WarningCode.undefinedShownName, 24, 10),
-      ],
+      [error(diag.unusedImport, 7, 11), error(diag.undefinedShownName, 24, 10)],
     );
 
     var node = findNode.singleImportDirective;
@@ -231,9 +228,9 @@ CompilationUnit
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: <testLibraryFragment> a@96
+            declaredFragment: <testLibraryFragment> a@96
       semicolon: ;
-      declaredElement: <null>
+      declaredFragment: <null>
 ''');
   }
 
@@ -331,9 +328,9 @@ CompilationUnit
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: <testLibraryFragment> a@96
+            declaredFragment: <testLibraryFragment> a@96
       semicolon: ;
-      declaredElement: <null>
+      declaredFragment: <null>
 ''');
   }
 
@@ -553,9 +550,9 @@ CompilationUnit
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: <testLibraryFragment> a@96
+            declaredFragment: <testLibraryFragment> a@96
       semicolon: ;
-      declaredElement: <null>
+      declaredFragment: <null>
 ''');
   }
 
@@ -585,7 +582,7 @@ ImportDirective
       r'''
 import 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 8)],
+      [error(diag.uriDoesNotExist, 7, 8)],
     );
 
     var node = findNode.import('import');
@@ -630,7 +627,7 @@ ImportDirective
       r'''
 import ':net';
 ''',
-      [error(CompileTimeErrorCode.invalidUri, 7, 6)],
+      [error(diag.invalidUri, 7, 6)],
     );
 
     var node = findNode.import('import');
@@ -651,7 +648,7 @@ ImportDirective
       r'''
 import '${'foo'}.dart';
 ''',
-      [error(CompileTimeErrorCode.uriWithInterpolation, 7, 15)],
+      [error(diag.uriWithInterpolation, 7, 15)],
     );
 
     var node = findNode.import('import');
@@ -682,7 +679,7 @@ ImportDirective
       r'''
 import 'foo:bar';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 9)],
+      [error(diag.uriDoesNotExist, 7, 9)],
     );
 
     var node = findNode.import('import');
@@ -707,7 +704,7 @@ part of my.lib;
       r'''
 import 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.importOfNonLibrary, 7, 8)],
+      [error(diag.importOfNonLibrary, 7, 8)],
     );
 
     var node = findNode.import('a.dart');
@@ -732,7 +729,7 @@ part of 'test.dart';
       r'''
 import 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.importOfNonLibrary, 7, 8)],
+      [error(diag.importOfNonLibrary, 7, 8)],
     );
 
     var node = findNode.import('a.dart');
@@ -763,7 +760,7 @@ ImportDirective
       r'''
 import 'package:foo/foo2.dart';
 ''',
-      [error(CompileTimeErrorCode.importOfNonLibrary, 7, 23)],
+      [error(diag.importOfNonLibrary, 7, 23)],
     );
 
     var node = findNode.import('package:foo');
@@ -821,7 +818,7 @@ import 'c.dart';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([error(CompileTimeErrorCode.uriDoesNotExist, 25, 8)]);
+    assertErrorsInResult([error(diag.uriDoesNotExist, 25, 8)]);
 
     var node = findNode.import('c.dart');
     assertResolvedNodeText(node, r'''
@@ -847,7 +844,7 @@ import ':net';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([error(CompileTimeErrorCode.invalidUri, 25, 6)]);
+    assertErrorsInResult([error(diag.invalidUri, 25, 6)]);
 
     var node = findNode.import('import');
     assertResolvedNodeText(node, r'''
@@ -873,9 +870,7 @@ import '${'foo'}.dart';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.uriWithInterpolation, 25, 15),
-    ]);
+    assertErrorsInResult([error(diag.uriWithInterpolation, 25, 15)]);
 
     var node = findNode.import('import');
     assertResolvedNodeText(node, r'''
@@ -911,7 +906,7 @@ import 'foo:bar';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([error(CompileTimeErrorCode.uriDoesNotExist, 25, 9)]);
+    assertErrorsInResult([error(diag.uriDoesNotExist, 25, 9)]);
 
     var node = findNode.import('import');
     assertResolvedNodeText(node, r'''
@@ -941,9 +936,7 @@ part of my.lib;
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.importOfNonLibrary, 25, 8),
-    ]);
+    assertErrorsInResult([error(diag.importOfNonLibrary, 25, 8)]);
 
     var node = findNode.import('c.dart');
     assertResolvedNodeText(node, r'''
@@ -973,9 +966,7 @@ part of 'b.dart';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.importOfNonLibrary, 25, 8),
-    ]);
+    assertErrorsInResult([error(diag.importOfNonLibrary, 25, 8)]);
 
     var node = findNode.import('c.dart');
     assertResolvedNodeText(node, r'''

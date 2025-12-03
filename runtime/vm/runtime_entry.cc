@@ -3777,7 +3777,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
       // TODO(turnidge): To make --deoptimize_every and
       // --stacktrace-every faster we could move this increment/test to
       // the generated code.
-      int32_t count = thread->IncrementAndGetStackOverflowCount();
+      uint32_t count = thread->IncrementAndGetStackOverflowCount();
       if (FLAG_deoptimize_every > 0 && (count % FLAG_deoptimize_every) == 0) {
         do_deopt = true;
       }
@@ -4831,6 +4831,7 @@ extern "C" uword /*ObjectPtr*/ InterpretCall(uword /*FunctionPtr*/ function_in,
   // We stay in "in generated code" execution state when interpreting code.
   ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
   ASSERT(Function::HasBytecode(function));
+  ASSERT(Function::IsInterpreted(function));
   ASSERT(interpreter != nullptr);
 #endif
   // Tell MemorySanitizer 'argv' is initialized by generated code.

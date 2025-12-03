@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
@@ -144,8 +145,7 @@ Expected types: $expectedTypes''');
 @AnalyzerPublicApi(message: 'Exported by package:analyzer/error/listener.dart')
 class DiagnosticReporter {
   /// The diagnostic listener to which diagnostics are reported.
-  // ignore: deprecated_member_use_from_same_package
-  final DiagnosticOrErrorListener _diagnosticListener;
+  final DiagnosticListener _diagnosticListener;
 
   /// The source to be used when reporting diagnostics.
   final Source _source;
@@ -180,17 +180,14 @@ class DiagnosticReporter {
     // TODO(brianwilkerson): Consider extending this method to take any
     //  declaration and compute the correct range for the name of that
     //  declaration. This might make it easier to be consistent.
-    if (node.name case var nameToken?) {
-      var offset = node.returnType.offset;
-      return atOffset(
-        offset: offset,
-        length: nameToken.end - offset,
-        diagnosticCode: diagnosticCode,
-        arguments: arguments,
-      );
-    } else {
-      return atNode(node.returnType, diagnosticCode, arguments: arguments);
-    }
+    var range = node.errorRange;
+    return atOffset(
+      offset: range.offset,
+      length: range.length,
+      diagnosticCode: diagnosticCode,
+      arguments: arguments,
+      contextMessages: contextMessages,
+    );
   }
 
   /// Reports a diagnostic with the given [diagnosticCode] and [arguments].

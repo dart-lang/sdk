@@ -14,6 +14,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/flutter_utils.dart';
 
@@ -27,8 +28,7 @@ class DiagnosticDescribeAllProperties extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.diagnosticDescribeAllProperties;
+  DiagnosticCode get diagnosticCode => diag.diagnosticDescribeAllProperties;
 
   @override
   void registerNodeProcessors(
@@ -86,8 +86,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     var type = node.declaredFragment?.element.thisType;
     if (!type.implementsInterface('Diagnosticable', '')) return;
 
+    var body = node.body;
+    if (body is! BlockClassBody) {
+      return;
+    }
+
     var properties = <Token>[];
-    for (var member in node.members) {
+    for (var member in body.members) {
       if (member is MethodDeclaration && member.isGetter) {
         if (!member.isStatic &&
             !skipForDiagnostic(
@@ -115,8 +120,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (properties.isEmpty) return;
 
-    var debugFillProperties = node.members.getMethod('debugFillProperties');
-    var debugDescribeChildren = node.members.getMethod('debugDescribeChildren');
+    var debugFillProperties = body.members.getMethod('debugFillProperties');
+    var debugDescribeChildren = body.members.getMethod('debugDescribeChildren');
 
     // Remove any defined in debugFillProperties.
     removeReferences(debugFillProperties, properties);

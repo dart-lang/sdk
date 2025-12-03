@@ -7,7 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 
 /// Helper for verifying the validity of @Preview(...) applications.
@@ -66,7 +66,7 @@ class WidgetPreviewVerifier {
     if (!isValidApplication) {
       _diagnosticReporter.atNode(
         node.name,
-        WarningCode.invalidWidgetPreviewApplication,
+        diag.invalidWidgetPreviewApplication,
       );
     }
 
@@ -86,7 +86,7 @@ class WidgetPreviewVerifier {
     if (Identifier.isPrivateName(name?.lexeme ?? '')) {
       return true;
     }
-    var parent = node.parent;
+    var parent = node.parent?.parent;
     if (parent == null) return false;
 
     return switch (parent) {
@@ -109,10 +109,17 @@ class WidgetPreviewVerifier {
   /// Currently, this only includes previews defined within classes and at the
   /// top level of a compilation unit.
   bool _isSupportedParent({required AstNode node}) {
-    return switch (node.parent) {
-      ClassDeclaration() || CompilationUnit() => true,
-      _ => false,
-    };
+    if (node.parent is CompilationUnit) {
+      return true;
+    }
+
+    if (node.parent case BlockClassBody body) {
+      if (body.parent is ClassDeclaration) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /// Returns true if `declaration` is a valid constructor target for a widget
@@ -127,20 +134,23 @@ class WidgetPreviewVerifier {
   bool _isValidConstructorPreviewApplication({
     required ConstructorDeclaration declaration,
   }) {
-    if (declaration case ConstructorDeclaration(
-      :var name,
-      :var externalKeyword,
-      :var factoryKeyword,
-      parent: ClassDeclaration(declaredFragment: ClassFragment(:var element)),
-      parameters: FormalParameterList(:var parameters),
-    )) {
-      return !_isPrivateContext(name: name, node: declaration) &&
-          element.isWidget &&
-          !(element.isAbstract && factoryKeyword == null) &&
-          externalKeyword == null &&
-          !_hasRequiredParameters(parameters);
-    }
-    return false;
+    var parent = declaration.parent?.parent;
+    if (parent is! ClassDeclaration) return false;
+
+    var fragment = parent.declaredFragment;
+    if (fragment is! ClassFragment) return false;
+
+    var element = fragment.element;
+    var name = declaration.name;
+    var externalKeyword = declaration.externalKeyword;
+    var factoryKeyword = declaration.factoryKeyword;
+    var parameters = declaration.parameters;
+
+    return !_isPrivateContext(name: name, node: declaration) &&
+        element.isWidget &&
+        !(element.isAbstract && factoryKeyword == null) &&
+        externalKeyword == null &&
+        !_hasRequiredParameters(parameters.parameters);
   }
 
   /// Returns true if `declaration` is a valid top-level function target for a
@@ -232,7 +242,7 @@ class _InvalidWidgetPreviewArgumentDetectorVisitor extends RecursiveAstVisitor {
     if (Identifier.isPrivateName(node.name)) {
       errorReporter.atNode(
         rootArgument!,
-        WarningCode.invalidWidgetPreviewPrivateArgument,
+        diag.invalidWidgetPreviewPrivateArgument,
         arguments: [node.name, node.name.replaceFirst(RegExp('_*'), '')],
       );
     }

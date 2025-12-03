@@ -230,7 +230,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitAnnotation(Annotation node) {
     var element = node.element;
-    if (element is ConstructorElement && element.isSynthetic) {
+    if (element is ConstructorElement && element.isOriginImplicitDefault) {
       element = element.enclosingElement;
     }
     var name = node.name;
@@ -277,7 +277,10 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    computer._addRegionForFragment(node.name, node.declaredFragment);
+    computer._addRegionForFragment(
+      node.namePart.typeName,
+      node.declaredFragment,
+    );
     super.visitClassDeclaration(node);
   }
 
@@ -335,11 +338,13 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     var nameToken = node.name;
     if (nameToken == null) {
       computer._addRegionForElement(
-        node.returnType,
+        // TODO(scheglov): support primary constructors
+        node.typeName!,
         node.declaredFragment?.element,
       );
     } else {
-      node.returnType.accept(this);
+      // TODO(scheglov): support primary constructors
+      node.typeName!.accept(this);
       computer._addRegionForFragment(nameToken, node.declaredFragment);
     }
 
@@ -421,7 +426,10 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    computer._addRegionForFragment(node.name, node.declaredFragment);
+    computer._addRegionForFragment(
+      node.namePart.typeName,
+      node.declaredFragment,
+    );
     super.visitEnumDeclaration(node);
   }
 
@@ -439,7 +447,10 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    computer._addRegionForFragment(node.name, node.declaredFragment);
+    computer._addRegionForFragment(
+      node.primaryConstructor.typeName,
+      node.declaredFragment,
+    );
     super.visitExtensionTypeDeclaration(node);
   }
 
@@ -534,6 +545,23 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNameWithTypeParameters(NameWithTypeParameters node) {
+    if (node.parent case ClassDeclaration declaration) {
+      computer._addRegionForFragment(
+        node.typeName,
+        declaration.declaredFragment,
+      );
+    }
+    if (node.parent case EnumDeclaration declaration) {
+      computer._addRegionForFragment(
+        node.typeName,
+        declaration.declaredFragment,
+      );
+    }
+    super.visitNameWithTypeParameters(node);
+  }
+
+  @override
   void visitPartDirective(PartDirective node) {
     var include = node.partInclude;
     if (include != null) {
@@ -601,6 +629,25 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    if (node.parent case ExtensionTypeDeclaration declaration) {
+      computer._addRegionForFragment(
+        node.typeName,
+        declaration.declaredFragment,
+      );
+    }
+    super.visitPrimaryConstructorDeclaration(node);
+  }
+
+  @override
+  void visitPrimaryConstructorName(PrimaryConstructorName node) {
+    if (node.parent case PrimaryConstructorDeclaration primary) {
+      computer._addRegionForFragment(node.name, primary.declaredFragment);
+    }
+    super.visitPrimaryConstructorName(node);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {
@@ -613,18 +660,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegionForElement(node.constructorName, element);
     // process arguments
     node.argumentList.accept(this);
-  }
-
-  @override
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    if (node.constructorName?.name case var constructorName?) {
-      computer._addRegionForElement(
-        constructorName,
-        node.constructorFragment?.element,
-      );
-    }
-    computer._addRegionForFragment(node.fieldName, node.fieldFragment);
-    super.visitRepresentationDeclaration(node);
   }
 
   @override

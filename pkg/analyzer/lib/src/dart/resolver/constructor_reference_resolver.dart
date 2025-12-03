@@ -8,7 +8,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// A resolver for [ConstructorReference] nodes.
@@ -25,7 +25,7 @@ class ConstructorReferenceResolver {
       // the parser has already reported an error.
       _resolver.diagnosticReporter.atNode(
         node,
-        WarningCode.sdkVersionConstructorTearoffs,
+        diag.sdkVersionConstructorTearoffs,
       );
     }
     node.constructorName.accept(_resolver);
@@ -35,7 +35,7 @@ class ConstructorReferenceResolver {
       if (enclosingElement is ClassElementImpl && enclosingElement.isAbstract) {
         _resolver.diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.tearoffOfGenerativeConstructorOfAbstractClass,
+          diag.tearoffOfGenerativeConstructorOfAbstractClass,
         );
       }
     }
@@ -67,8 +67,8 @@ class ConstructorReferenceResolver {
             enclosingElement.getSetter(name.name);
         if (method != null) {
           var error = method.isStatic
-              ? CompileTimeErrorCode.classInstantiationAccessToStaticMember
-              : CompileTimeErrorCode.classInstantiationAccessToInstanceMember;
+              ? diag.classInstantiationAccessToStaticMember
+              : diag.classInstantiationAccessToInstanceMember;
           _resolver.diagnosticReporter.atNode(
             node,
             error,
@@ -77,7 +77,7 @@ class ConstructorReferenceResolver {
         } else if (!name.isSynthetic) {
           _resolver.diagnosticReporter.atNode(
             node,
-            CompileTimeErrorCode.classInstantiationAccessToUnknownMember,
+            diag.classInstantiationAccessToUnknownMember,
             arguments: [enclosingElement.name!, name.name],
           );
         }

@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -175,7 +174,7 @@ void f((String,) a) {
   a + 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 26, 1)],
+      [error(diag.undefinedOperator, 26, 1)],
     );
 
     var node = findNode.binary('+ 0');
@@ -382,7 +381,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 50, 9)],
+      [error(diag.undefinedIdentifier, 50, 9)],
     );
 
     var node = findNode.singleBinaryExpression;
@@ -464,7 +463,7 @@ augment class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.augmentedExpressionNotOperator, 76, 9)],
+      [error(diag.augmentedExpressionNotOperator, 76, 9)],
     );
 
     var node = findNode.singleBinaryExpression;
@@ -585,7 +584,7 @@ augment class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.augmentedExpressionIsSetter, 68, 9)],
+      [error(diag.augmentedExpressionIsSetter, 68, 9)],
     );
 
     var node = findNode.singleBinaryExpression;
@@ -672,10 +671,7 @@ f(Never a, int b) {
   a + b;
 }
 ''',
-      [
-        error(WarningCode.receiverOfTypeNever, 22, 1),
-        error(WarningCode.deadCode, 24, 3),
-      ],
+      [error(diag.receiverOfTypeNever, 22, 1), error(diag.deadCode, 24, 3)],
     );
 
     assertResolvedNodeText(findNode.binary('a + b'), r'''
@@ -792,9 +788,9 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 19, 1),
-        error(ParserErrorCode.missingIdentifier, 23, 1),
-        error(ParserErrorCode.missingIdentifier, 25, 1),
+        error(diag.unusedLocalVariable, 19, 1),
+        error(diag.missingIdentifier, 23, 1),
+        error(diag.missingIdentifier, 25, 1),
       ],
     );
 
@@ -825,8 +821,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 19, 1),
-        error(ParserErrorCode.missingIdentifier, 23, 1),
+        error(diag.unusedLocalVariable, 19, 1),
+        error(diag.missingIdentifier, 23, 1),
       ],
     );
 
@@ -856,8 +852,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 19, 1),
-        error(ParserErrorCode.missingIdentifier, 27, 1),
+        error(diag.unusedLocalVariable, 19, 1),
+        error(diag.missingIdentifier, 27, 1),
       ],
     );
 
@@ -975,7 +971,7 @@ void f(int a) {
   E(a) != 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedExtensionOperator, 46, 2)],
+      [error(diag.undefinedExtensionOperator, 46, 2)],
     );
 
     assertResolvedNodeText(findNode.binary('!= 0'), r'''
@@ -1012,7 +1008,7 @@ f(int a, int b) {
   a !== b;
 }
 ''',
-      [error(ScannerErrorCode.unsupportedOperator, 22, 1)],
+      [error(diag.unsupportedOperator, 22, 1)],
     );
 
     assertResolvedNodeText(findNode.binary('a !== b'), r'''
@@ -1067,7 +1063,7 @@ void f(int a) {
   E(a) == 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedExtensionOperator, 46, 2)],
+      [error(diag.undefinedExtensionOperator, 46, 2)],
     );
 
     assertResolvedNodeText(findNode.binary('== 0'), r'''
@@ -1130,7 +1126,7 @@ void f(A a) {
   a == 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 7, 1)],
+      [error(diag.undefinedClass, 7, 1)],
     );
 
     var node = findNode.binary('a == 0');
@@ -1158,7 +1154,7 @@ f(int a, int b) {
   a === b;
 }
 ''',
-      [error(ScannerErrorCode.unsupportedOperator, 22, 1)],
+      [error(diag.unsupportedOperator, 22, 1)],
     );
 
     assertResolvedNodeText(findNode.binary('a === b'), r'''
@@ -1444,7 +1440,7 @@ g(double a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 45, 7)],
+      [error(diag.argumentTypeNotAssignable, 45, 7)],
     );
 
     var node = findNode.methodInvocation('f()');
@@ -1609,7 +1605,7 @@ g(int a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 98, 10)],
+      [error(diag.argumentTypeNotAssignable, 98, 10)],
     );
 
     var node = findNode.methodInvocation('f()');
@@ -1862,7 +1858,7 @@ void f() {
   x + 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 13, 1)],
+      [error(diag.undefinedIdentifier, 13, 1)],
     );
 
     var node = findNode.binary('x + 0');
@@ -1892,7 +1888,7 @@ g(num a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 42, 7)],
+      [error(diag.argumentTypeNotAssignable, 42, 7)],
     );
 
     var node = findNode.methodInvocation('f()');
@@ -1925,7 +1921,7 @@ g(A a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 88, 7)],
+      [error(diag.argumentTypeNotAssignable, 88, 7)],
     );
 
     var node = findNode.methodInvocation('f()');
@@ -1959,7 +1955,7 @@ g(A a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 105, 10)],
+      [error(diag.argumentTypeNotAssignable, 105, 10)],
     );
 
     var node = findNode.methodInvocation('f()');
@@ -1993,7 +1989,7 @@ g(A a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 105, 7)],
+      [error(diag.argumentTypeNotAssignable, 105, 7)],
     );
 
     var node = findNode.methodInvocation('f()');

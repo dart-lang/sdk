@@ -183,7 +183,12 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
     return context.withFormalParameters(element.formalParameters, () {
       return super.match(context, element) &&
           flags.isConst == element.isConst &&
+          flags.isDeclaring == element.isDeclaring &&
           flags.isFactory == element.isFactory &&
+          flags.isOriginDeclaration == element.isOriginDeclaration &&
+          flags.isOriginImplicitDefault == element.isOriginImplicitDefault &&
+          flags.isOriginMixinApplication == element.isOriginMixinApplication &&
+          flags.isPrimary == element.isPrimary &&
           constantInitializers.match(context, element.constantInitializers) &&
           redirectedConstructor.match(context, element.redirectedConstructor) &&
           superConstructor.match(context, element.superConstructor);
@@ -489,6 +494,7 @@ class FieldItem extends VariableItem<FieldElementImpl> {
     required super.metadata,
     required super.type,
     required super.constInitializer,
+    required super.typeInferenceError,
   });
 
   factory FieldItem.fromElement({
@@ -502,6 +508,7 @@ class FieldItem extends VariableItem<FieldElementImpl> {
       metadata: ManifestMetadata.encode(context, element.metadata),
       type: element.type.encode(context),
       constInitializer: element.constantInitializer?.encode(context),
+      typeInferenceError: element.typeInferenceError,
     );
   }
 
@@ -512,6 +519,7 @@ class FieldItem extends VariableItem<FieldElementImpl> {
       metadata: ManifestMetadata.read(reader),
       type: ManifestType.read(reader),
       constInitializer: ManifestNode.readOptional(reader),
+      typeInferenceError: TopLevelInferenceError.readOptional(reader),
     );
   }
 
@@ -527,6 +535,11 @@ class FieldItem extends VariableItem<FieldElementImpl> {
         flags.isCovariant == element.isCovariant &&
         flags.isEnumConstant == element.isEnumConstant &&
         flags.isExternal == element.isExternal &&
+        flags.isOriginDeclaration == element.isOriginDeclaration &&
+        flags.isOriginDeclaringFormalParameter ==
+            element.isOriginDeclaringFormalParameter &&
+        flags.isOriginEnumValues == element.isOriginEnumValues &&
+        flags.isOriginGetterSetter == element.isOriginGetterSetter &&
         flags.isPromotable == element.isPromotable;
   }
 
@@ -538,7 +551,7 @@ class FieldItem extends VariableItem<FieldElementImpl> {
   }
 }
 
-class GetterItem extends ExecutableItem<GetterElementImpl> {
+class GetterItem extends PropertyAccessorItem<GetterElementImpl> {
   GetterItem({
     required super.id,
     required super.flags,
@@ -553,7 +566,7 @@ class GetterItem extends ExecutableItem<GetterElementImpl> {
   }) {
     return GetterItem(
       id: id,
-      flags: _ExecutableItemFlags.encode(element),
+      flags: _PropertyAccessorItemFlags.encode(element),
       metadata: ManifestMetadata.encode(
         context,
         element.thisOrVariableMetadata,
@@ -565,7 +578,7 @@ class GetterItem extends ExecutableItem<GetterElementImpl> {
   factory GetterItem.read(BinaryReader reader) {
     return GetterItem(
       id: ManifestItemId.read(reader),
-      flags: _ExecutableItemFlags.read(reader),
+      flags: _PropertyAccessorItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
       functionType: ManifestFunctionType.read(reader),
     );
@@ -1360,7 +1373,29 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
   }
 }
 
-class SetterItem extends ExecutableItem<SetterElementImpl> {
+sealed class PropertyAccessorItem<E extends PropertyAccessorElementImpl>
+    extends ExecutableItem<E> {
+  PropertyAccessorItem({
+    required super.id,
+    required _PropertyAccessorItemFlags super.flags,
+    required super.metadata,
+    required super.functionType,
+  });
+
+  @override
+  _PropertyAccessorItemFlags get flags =>
+      super.flags as _PropertyAccessorItemFlags;
+
+  @override
+  bool match(MatchContext context, E element) {
+    return super.match(context, element) &&
+        flags.isOriginDeclaration == element.isOriginDeclaration &&
+        flags.isOriginInterface == element.isOriginInterface &&
+        flags.isOriginVariable == element.isOriginVariable;
+  }
+}
+
+class SetterItem extends PropertyAccessorItem<SetterElementImpl> {
   SetterItem({
     required super.id,
     required super.flags,
@@ -1375,7 +1410,7 @@ class SetterItem extends ExecutableItem<SetterElementImpl> {
   }) {
     return SetterItem(
       id: id,
-      flags: _ExecutableItemFlags.encode(element),
+      flags: _PropertyAccessorItemFlags.encode(element),
       metadata: ManifestMetadata.encode(
         context,
         element.thisOrVariableMetadata,
@@ -1387,7 +1422,7 @@ class SetterItem extends ExecutableItem<SetterElementImpl> {
   factory SetterItem.read(BinaryReader reader) {
     return SetterItem(
       id: ManifestItemId.read(reader),
-      flags: _ExecutableItemFlags.read(reader),
+      flags: _PropertyAccessorItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
       functionType: ManifestFunctionType.read(reader),
     );
@@ -1439,6 +1474,7 @@ class TopLevelVariableItem extends VariableItem<TopLevelVariableElementImpl> {
     required super.metadata,
     required super.type,
     required super.constInitializer,
+    required super.typeInferenceError,
   });
 
   factory TopLevelVariableItem.fromElement({
@@ -1452,6 +1488,7 @@ class TopLevelVariableItem extends VariableItem<TopLevelVariableElementImpl> {
       metadata: ManifestMetadata.encode(context, element.metadata),
       type: element.type.encode(context),
       constInitializer: element.constantInitializer?.encode(context),
+      typeInferenceError: element.typeInferenceError,
     );
   }
 
@@ -1462,6 +1499,7 @@ class TopLevelVariableItem extends VariableItem<TopLevelVariableElementImpl> {
       metadata: ManifestMetadata.read(reader),
       type: ManifestType.read(reader),
       constInitializer: ManifestNode.readOptional(reader),
+      typeInferenceError: TopLevelInferenceError.readOptional(reader),
     );
   }
 
@@ -1472,7 +1510,9 @@ class TopLevelVariableItem extends VariableItem<TopLevelVariableElementImpl> {
   @override
   bool match(MatchContext context, TopLevelVariableElementImpl element) {
     return super.match(context, element) &&
-        flags.isExternal == element.isExternal;
+        flags.isExternal == element.isExternal &&
+        flags.isOriginDeclaration == element.isOriginDeclaration &&
+        flags.isOriginGetterSetter == element.isOriginGetterSetter;
   }
 }
 
@@ -1539,6 +1579,7 @@ sealed class VariableItem<E extends PropertyInducingElementImpl>
     extends ManifestItem<E> {
   final ManifestType type;
   final ManifestNode? constInitializer;
+  final TopLevelInferenceError? typeInferenceError;
 
   VariableItem({
     required super.id,
@@ -1546,6 +1587,7 @@ sealed class VariableItem<E extends PropertyInducingElementImpl>
     required super.metadata,
     required this.type,
     required this.constInitializer,
+    required this.typeInferenceError,
   });
 
   @override
@@ -1563,7 +1605,8 @@ sealed class VariableItem<E extends PropertyInducingElementImpl>
         flags.shouldUseTypeForInitializerInference ==
             element.shouldUseTypeForInitializerInference &&
         type.match(context, element.type) &&
-        constInitializer.match(context, element.constantInitializer);
+        constInitializer.match(context, element.constantInitializer) &&
+        typeInferenceError == element.typeInferenceError;
   }
 
   @override
@@ -1571,6 +1614,7 @@ sealed class VariableItem<E extends PropertyInducingElementImpl>
     super.write(writer);
     type.write(writer);
     constInitializer.writeOptional(writer);
+    typeInferenceError.writeOptional(writer);
   }
 }
 
@@ -1584,7 +1628,15 @@ enum _ClassItemFlag {
   isSealed,
 }
 
-enum _ConstructorItemFlag { isConst, isFactory }
+enum _ConstructorItemFlag {
+  isConst,
+  isDeclaring,
+  isFactory,
+  isOriginDeclaration,
+  isOriginImplicitDefault,
+  isOriginMixinApplication,
+  isPrimary,
+}
 
 enum _ExecutableItemFlag {
   hasEnclosingTypeParameterReference,
@@ -1608,6 +1660,10 @@ enum _FieldItemFlag {
   isCovariant,
   isEnumConstant,
   isExternal,
+  isOriginDeclaration,
+  isOriginDeclaringFormalParameter,
+  isOriginEnumValues,
+  isOriginGetterSetter,
   isPromotable,
 }
 
@@ -1621,7 +1677,17 @@ enum _MethodItemFlag { isOperatorEqualWithParameterTypeFromObject }
 
 enum _MixinItemFlag { isBase }
 
-enum _TopLevelVariableItemFlag { isExternal }
+enum _PropertyAccessorItemFlag {
+  isOriginDeclaration,
+  isOriginInterface,
+  isOriginVariable,
+}
+
+enum _TopLevelVariableItemFlag {
+  isExternal,
+  isOriginDeclaration,
+  isOriginGetterSetter,
+}
 
 enum _TypeAliasItemFlag { isProperRename, isSimplyBounded }
 
@@ -1720,8 +1786,23 @@ extension type _ConstructorItemFlags._(int _bits)
     if (element.isConst) {
       bits |= _maskFor(_ConstructorItemFlag.isConst);
     }
+    if (element.isDeclaring) {
+      bits |= _maskFor(_ConstructorItemFlag.isDeclaring);
+    }
     if (element.isFactory) {
       bits |= _maskFor(_ConstructorItemFlag.isFactory);
+    }
+    if (element.isOriginDeclaration) {
+      bits |= _maskFor(_ConstructorItemFlag.isOriginDeclaration);
+    }
+    if (element.isOriginImplicitDefault) {
+      bits |= _maskFor(_ConstructorItemFlag.isOriginImplicitDefault);
+    }
+    if (element.isOriginMixinApplication) {
+      bits |= _maskFor(_ConstructorItemFlag.isOriginMixinApplication);
+    }
+    if (element.isPrimary) {
+      bits |= _maskFor(_ConstructorItemFlag.isPrimary);
     }
     return _ConstructorItemFlags._(bits);
   }
@@ -1734,8 +1815,28 @@ extension type _ConstructorItemFlags._(int _bits)
     return _has(_ConstructorItemFlag.isConst);
   }
 
+  bool get isDeclaring {
+    return _has(_ConstructorItemFlag.isDeclaring);
+  }
+
   bool get isFactory {
     return _has(_ConstructorItemFlag.isFactory);
+  }
+
+  bool get isOriginDeclaration {
+    return _has(_ConstructorItemFlag.isOriginDeclaration);
+  }
+
+  bool get isOriginImplicitDefault {
+    return _has(_ConstructorItemFlag.isOriginImplicitDefault);
+  }
+
+  bool get isOriginMixinApplication {
+    return _has(_ConstructorItemFlag.isOriginMixinApplication);
+  }
+
+  bool get isPrimary {
+    return _has(_ConstructorItemFlag.isPrimary);
   }
 
   void write(BinaryWriter writer) {
@@ -1899,6 +2000,18 @@ extension type _FieldItemFlags._(int _bits) implements _VariableItemFlags {
     if (element.isExternal) {
       bits |= _maskFor(_FieldItemFlag.isExternal);
     }
+    if (element.isOriginDeclaration) {
+      bits |= _maskFor(_FieldItemFlag.isOriginDeclaration);
+    }
+    if (element.isOriginDeclaringFormalParameter) {
+      bits |= _maskFor(_FieldItemFlag.isOriginDeclaringFormalParameter);
+    }
+    if (element.isOriginEnumValues) {
+      bits |= _maskFor(_FieldItemFlag.isOriginEnumValues);
+    }
+    if (element.isOriginGetterSetter) {
+      bits |= _maskFor(_FieldItemFlag.isOriginGetterSetter);
+    }
     if (element.isPromotable) {
       bits |= _maskFor(_FieldItemFlag.isPromotable);
     }
@@ -1927,6 +2040,22 @@ extension type _FieldItemFlags._(int _bits) implements _VariableItemFlags {
 
   bool get isExternal {
     return _has(_FieldItemFlag.isExternal);
+  }
+
+  bool get isOriginDeclaration {
+    return _has(_FieldItemFlag.isOriginDeclaration);
+  }
+
+  bool get isOriginDeclaringFormalParameter {
+    return _has(_FieldItemFlag.isOriginDeclaringFormalParameter);
+  }
+
+  bool get isOriginEnumValues {
+    return _has(_FieldItemFlag.isOriginEnumValues);
+  }
+
+  bool get isOriginGetterSetter {
+    return _has(_FieldItemFlag.isOriginGetterSetter);
   }
 
   bool get isPromotable {
@@ -2110,6 +2239,57 @@ extension type _MixinItemFlags._(int _bits) implements _InterfaceItemFlags {
   }
 }
 
+extension type _PropertyAccessorItemFlags._(int _bits)
+    implements _ExecutableItemFlags {
+  static final int _base = _ExecutableItemFlags._next;
+
+  factory _PropertyAccessorItemFlags.encode(
+    PropertyAccessorElementImpl element,
+  ) {
+    var bits = _ExecutableItemFlags.encode(element)._bits;
+    if (element.isOriginDeclaration) {
+      bits |= _maskFor(_PropertyAccessorItemFlag.isOriginDeclaration);
+    }
+    if (element.isOriginInterface) {
+      bits |= _maskFor(_PropertyAccessorItemFlag.isOriginInterface);
+    }
+    if (element.isOriginVariable) {
+      bits |= _maskFor(_PropertyAccessorItemFlag.isOriginVariable);
+    }
+    return _PropertyAccessorItemFlags._(bits);
+  }
+
+  factory _PropertyAccessorItemFlags.read(BinaryReader reader) {
+    return _PropertyAccessorItemFlags._(reader.readUint30());
+  }
+
+  bool get isOriginDeclaration {
+    return _has(_PropertyAccessorItemFlag.isOriginDeclaration);
+  }
+
+  bool get isOriginInterface {
+    return _has(_PropertyAccessorItemFlag.isOriginInterface);
+  }
+
+  bool get isOriginVariable {
+    return _has(_PropertyAccessorItemFlag.isOriginVariable);
+  }
+
+  void write(BinaryWriter writer) {
+    writer.writeUint30(_bits);
+  }
+
+  bool _has(_PropertyAccessorItemFlag flag) {
+    return (_bits & _maskFor(flag)) != 0;
+  }
+
+  static int _maskFor(_PropertyAccessorItemFlag flag) {
+    var bit = _base + flag.index;
+    assert(bit < 30);
+    return 1 << bit;
+  }
+}
+
 extension type _TopLevelVariableItemFlags._(int _bits)
     implements _VariableItemFlags {
   static final int _base = _VariableItemFlags._next;
@@ -2121,6 +2301,12 @@ extension type _TopLevelVariableItemFlags._(int _bits)
     if (element.isExternal) {
       bits |= _maskFor(_TopLevelVariableItemFlag.isExternal);
     }
+    if (element.isOriginDeclaration) {
+      bits |= _maskFor(_TopLevelVariableItemFlag.isOriginDeclaration);
+    }
+    if (element.isOriginGetterSetter) {
+      bits |= _maskFor(_TopLevelVariableItemFlag.isOriginGetterSetter);
+    }
     return _TopLevelVariableItemFlags._(bits);
   }
 
@@ -2130,6 +2316,14 @@ extension type _TopLevelVariableItemFlags._(int _bits)
 
   bool get isExternal {
     return _has(_TopLevelVariableItemFlag.isExternal);
+  }
+
+  bool get isOriginDeclaration {
+    return _has(_TopLevelVariableItemFlag.isOriginDeclaration);
+  }
+
+  bool get isOriginGetterSetter {
+    return _has(_TopLevelVariableItemFlag.isOriginGetterSetter);
   }
 
   void write(BinaryWriter writer) {
@@ -2362,7 +2556,7 @@ extension _LookupNameToSetterItemMapExtension on Map<LookupName, SetterItem> {
 
 extension _PropertyAccessExtension on PropertyAccessorElementImpl {
   MetadataImpl get thisOrVariableMetadata {
-    if (isSynthetic) {
+    if (isOriginVariable) {
       return variable.metadata;
     } else {
       return metadata;

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -317,6 +318,19 @@ class A {
 ''');
   }
 
+  test_constructorArgument_rhsOfLogicalOperation() async {
+    // Note: prior to the fix for https://github.com/dart-lang/sdk/issues/61761,
+    // this caused an exception to be thrown in the linter.
+    await assertNoDiagnostics(r'''
+class C {
+  final bool x;
+  const C(this.x);
+}
+const C a = C(true);
+final C b = C(false || a.x);
+''');
+  }
+
   test_deferred_arg() async {
     newFile('$testPackageLibPath/a.dart', '''
 class A {
@@ -391,7 +405,7 @@ K k() {
 ''',
       [
         // No lint
-        error(WarningCode.nonConstCallToLiteralConstructor, 90, 3),
+        error(diag.nonConstCallToLiteralConstructor, 90, 3),
       ],
     );
   }
@@ -413,7 +427,7 @@ K k() {
 ''',
       [
         // No lint
-        error(WarningCode.nonConstCallToLiteralConstructor, 88, 6),
+        error(diag.nonConstCallToLiteralConstructor, 88, 6),
       ],
     );
   }

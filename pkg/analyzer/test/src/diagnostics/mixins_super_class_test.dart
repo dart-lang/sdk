@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,7 +21,7 @@ class MixinsSuperClassTest extends PubPackageResolutionTest {
 mixin class A {}
 class B extends A with A {}
 ''',
-      [error(CompileTimeErrorCode.mixinsSuperClass, 40, 1)],
+      [error(diag.mixinsSuperClass, 40, 1)],
     );
   }
 
@@ -32,7 +32,7 @@ mixin class A {}
 typedef B = A;
 class C extends A with B {}
 ''',
-      [error(CompileTimeErrorCode.mixinsSuperClass, 55, 1)],
+      [error(diag.mixinsSuperClass, 55, 1)],
     );
   }
 
@@ -42,7 +42,7 @@ class C extends A with B {}
 mixin class A {}
 class B = A with A;
 ''',
-      [error(CompileTimeErrorCode.mixinsSuperClass, 34, 1)],
+      [error(diag.mixinsSuperClass, 34, 1)],
     );
   }
 
@@ -53,7 +53,7 @@ mixin class A {}
 typedef B = A;
 class C = A with B;
 ''',
-      [error(CompileTimeErrorCode.mixinsSuperClass, 49, 1)],
+      [error(diag.mixinsSuperClass, 49, 1)],
     );
   }
 }

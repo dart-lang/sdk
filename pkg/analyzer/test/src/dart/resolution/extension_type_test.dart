@@ -5,188 +5,353 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionTypeResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ExtensionTypeResolutionTest extends PubPackageResolutionTest {
-  test_constructor_named() async {
-    await assertNoErrorsInCode(r'''
-extension type A.named(int it) {}
-''');
+  test_constructor_formalParameter_metadata() async {
+    var code = r'''
+extension type A(@deprecated int it) {}
+''';
+
+    await assertNoErrorsInCode(code);
 
     var node = findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  name: A
-  representation: RepresentationDeclaration
-    constructorName: RepresentationConstructorName
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        metadata
+          Annotation
+            atSign: @
+            name: SimpleIdentifier
+              token: deprecated
+              element: dart:core::@getter::deprecated
+              staticType: null
+            element: dart:core::@getter::deprecated
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: it
+        declaredFragment: <testLibraryFragment> it@33
+          element: hasImplicitType isFinal isPublic
+            type: int
+            field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+''');
+  }
+
+  test_constructor_named() async {
+    var code = r'''
+extension type A.named(int it) {}
+''';
+
+    await assertNoErrorsInCode(code);
+
+    var node = findNode.singleExtensionTypeDeclaration;
+    assertResolvedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    constructorName: PrimaryConstructorName
       period: .
       name: named
-    leftParenthesis: (
-    fieldType: NamedType
-      name: int
-      element: dart:core::@class::int
-      type: int
-    fieldName: it
-    rightParenthesis: )
-    fieldFragment: <testLibraryFragment> it@27
-    constructorFragment: <testLibraryFragment> named@17
-  leftBracket: {
-  rightBracket: }
-  declaredElement: <testLibraryFragment> A@15
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: it
+        declaredFragment: <testLibraryFragment> it@27
+          element: hasImplicitType isFinal isPublic
+            type: int
+            field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> named@17
+      element: <testLibrary>::@extensionType::A::@constructor::named
+        type: A Function(int)
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
 ''');
   }
 
   test_constructor_secondary_fieldFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    var code = r'''
 extension type A(int it) {
   A.named(this.it);
 }
-''');
+''';
+
+    await assertNoErrorsInCode(code);
 
     var node = findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  name: A
-  representation: RepresentationDeclaration
-    leftParenthesis: (
-    fieldType: NamedType
-      name: int
-      element: dart:core::@class::int
-      type: int
-    fieldName: it
-    rightParenthesis: )
-    fieldFragment: <testLibraryFragment> it@21
-    constructorFragment: <testLibraryFragment> new@null
-  leftBracket: {
-  members
-    ConstructorDeclaration
-      returnType: SimpleIdentifier
-        token: A
-        element: <testLibrary>::@extensionType::A
-        staticType: null
-      period: .
-      name: named
-      parameters: FormalParameterList
-        leftParenthesis: (
-        parameter: FieldFormalParameter
-          thisKeyword: this
-          period: .
-          name: it
-          declaredElement: <testLibraryFragment> it@42
-            element: hasImplicitType isFinal isPublic
-              type: int
-        rightParenthesis: )
-      body: EmptyFunctionBody
-        semicolon: ;
-      declaredElement: <testLibraryFragment> named@31
-        element: <testLibrary>::@extensionType::A::@constructor::named
-          type: A Function(int)
-  rightBracket: }
-  declaredElement: <testLibraryFragment> A@15
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: it
+        declaredFragment: <testLibraryFragment> it@21
+          element: hasImplicitType isFinal isPublic
+            type: int
+            field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockClassBody
+    leftBracket: {
+    members
+      ConstructorDeclaration
+        typeName: SimpleIdentifier
+          token: A
+          element: <testLibrary>::@extensionType::A
+          staticType: null
+        period: .
+        name: named
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: FieldFormalParameter
+            thisKeyword: this
+            period: .
+            name: it
+            declaredFragment: <testLibraryFragment> it@42
+              element: hasImplicitType isFinal isPublic
+                type: int
+                field: <testLibrary>::@extensionType::A::@field::it
+          rightParenthesis: )
+        body: EmptyFunctionBody
+          semicolon: ;
+        declaredFragment: <testLibraryFragment> named@31
+          element: <testLibrary>::@extensionType::A::@constructor::named
+            type: A Function(int)
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
 ''');
   }
 
   test_constructor_secondary_fieldInitializer() async {
-    await assertNoErrorsInCode(r'''
+    var code = r'''
 extension type A(num it) {
   const A.named(int a) : it = a;
 }
-''');
+''';
+
+    await assertNoErrorsInCode(code);
 
     var node = findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  name: A
-  representation: RepresentationDeclaration
-    leftParenthesis: (
-    fieldType: NamedType
-      name: num
-      element: dart:core::@class::num
-      type: num
-    fieldName: it
-    rightParenthesis: )
-    fieldFragment: <testLibraryFragment> it@21
-    constructorFragment: <testLibraryFragment> new@null
-  leftBracket: {
-  members
-    ConstructorDeclaration
-      constKeyword: const
-      returnType: SimpleIdentifier
-        token: A
-        element: <testLibrary>::@extensionType::A
-        staticType: null
-      period: .
-      name: named
-      parameters: FormalParameterList
-        leftParenthesis: (
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-          name: a
-          declaredElement: <testLibraryFragment> a@47
-            element: isPublic
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+        name: it
+        declaredFragment: <testLibraryFragment> it@21
+          element: hasImplicitType isFinal isPublic
+            type: num
+            field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(num)
+  body: BlockClassBody
+    leftBracket: {
+    members
+      ConstructorDeclaration
+        constKeyword: const
+        typeName: SimpleIdentifier
+          token: A
+          element: <testLibrary>::@extensionType::A
+          staticType: null
+        period: .
+        name: named
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: int
+              element: dart:core::@class::int
               type: int
-        rightParenthesis: )
-      separator: :
-      initializers
-        ConstructorFieldInitializer
-          fieldName: SimpleIdentifier
-            token: it
-            element: <testLibrary>::@extensionType::A::@field::it
-            staticType: null
-          equals: =
-          expression: SimpleIdentifier
-            token: a
-            element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
-            staticType: int
-      body: EmptyFunctionBody
-        semicolon: ;
-      declaredElement: <testLibraryFragment> named@37
-        element: <testLibrary>::@extensionType::A::@constructor::named
-          type: A Function(int)
-  rightBracket: }
-  declaredElement: <testLibraryFragment> A@15
+            name: a
+            declaredFragment: <testLibraryFragment> a@47
+              element: isPublic
+                type: int
+          rightParenthesis: )
+        separator: :
+        initializers
+          ConstructorFieldInitializer
+            fieldName: SimpleIdentifier
+              token: it
+              element: <testLibrary>::@extensionType::A::@field::it
+              staticType: null
+            equals: =
+            expression: SimpleIdentifier
+              token: a
+              element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
+              staticType: int
+        body: EmptyFunctionBody
+          semicolon: ;
+        declaredFragment: <testLibraryFragment> named@37
+          element: <testLibrary>::@extensionType::A::@constructor::named
+            type: A Function(int)
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
 ''');
   }
 
   test_constructor_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    var code = r'''
 extension type A(int it) {}
-''');
+''';
+
+    await assertNoErrorsInCode(code);
 
     var node = findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  name: A
-  representation: RepresentationDeclaration
-    leftParenthesis: (
-    fieldType: NamedType
-      name: int
-      element: dart:core::@class::int
-      type: int
-    fieldName: it
-    rightParenthesis: )
-    fieldFragment: <testLibraryFragment> it@21
-    constructorFragment: <testLibraryFragment> new@null
-  leftBracket: {
-  rightBracket: }
-  declaredElement: <testLibraryFragment> A@15
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: it
+        declaredFragment: <testLibraryFragment> it@21
+          element: hasImplicitType isFinal isPublic
+            type: int
+            field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+''');
+  }
+
+  test_field_staticConst() async {
+    var code = r'''
+extension type A(String it) {
+  static const int foo = 0;
+  static const int bar = 1;
+}
+''';
+
+    await assertNoErrorsInCode(code);
+
+    var node = findNode.singleExtensionTypeDeclaration;
+    assertResolvedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+        name: it
+        declaredFragment: <testLibraryFragment> it@24
+          element: hasImplicitType isFinal isPublic
+            type: String
+            field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(String)
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        staticKeyword: static
+        fields: VariableDeclarationList
+          keyword: const
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          variables
+            VariableDeclaration
+              name: foo
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+                staticType: int
+              declaredFragment: <testLibraryFragment> foo@49
+        semicolon: ;
+        declaredFragment: <null>
+      FieldDeclaration
+        staticKeyword: static
+        fields: VariableDeclarationList
+          keyword: const
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          variables
+            VariableDeclaration
+              name: bar
+              equals: =
+              initializer: IntegerLiteral
+                literal: 1
+                staticType: int
+              declaredFragment: <testLibraryFragment> bar@77
+        semicolon: ;
+        declaredFragment: <null>
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
 ''');
   }
 
@@ -200,17 +365,24 @@ extension type A(int it) implements num {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  name: A
-  representation: RepresentationDeclaration
-    leftParenthesis: (
-    fieldType: NamedType
-      name: int
-      element: dart:core::@class::int
-      type: int
-    fieldName: it
-    rightParenthesis: )
-    fieldFragment: <testLibraryFragment> it@21
-    constructorFragment: <testLibraryFragment> new@null
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: it
+        declaredFragment: <testLibraryFragment> it@21
+          element: hasImplicitType isFinal isPublic
+            type: int
+            field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
   implementsClause: ImplementsClause
     implementsKeyword: implements
     interfaces
@@ -218,9 +390,10 @@ ExtensionTypeDeclaration
         name: num
         element: dart:core::@class::num
         type: num
-  leftBracket: {
-  rightBracket: }
-  declaredElement: <testLibraryFragment> A@15
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
 ''');
   }
 
@@ -247,7 +420,7 @@ MethodDeclaration
     typeParameters
       TypeParameter
         name: U
-        declaredElement: <testLibraryFragment> U@41
+        declaredFragment: <testLibraryFragment> U@41
           defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
@@ -258,7 +431,7 @@ MethodDeclaration
         element: #E0 T
         type: T
       name: t
-      declaredElement: <testLibraryFragment> t@46
+      declaredFragment: <testLibraryFragment> t@46
         element: isPublic
           type: T
     parameter: SimpleFormalParameter
@@ -267,7 +440,7 @@ MethodDeclaration
         element: #E1 U
         type: U
       name: u
-      declaredElement: <testLibraryFragment> u@51
+      declaredFragment: <testLibraryFragment> u@51
         element: isPublic
           type: U
     rightParenthesis: )
@@ -288,7 +461,7 @@ MethodDeclaration
             staticType: Type
           semicolon: ;
       rightBracket: }
-  declaredElement: <testLibraryFragment> foo@37
+  declaredFragment: <testLibraryFragment> foo@37
     element: <testLibrary>::@extensionType::A::@method::foo
       type: void Function<U>(T, U)
 ''');
@@ -304,44 +477,52 @@ extension type A<T, U>(Map<T, U> it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  name: A
-  typeParameters: TypeParameterList
-    leftBracket: <
-    typeParameters
-      TypeParameter
-        name: T
-        declaredElement: <testLibraryFragment> T@17
-          defaultType: dynamic
-      TypeParameter
-        name: U
-        declaredElement: <testLibraryFragment> U@20
-          defaultType: dynamic
-    rightBracket: >
-  representation: RepresentationDeclaration
-    leftParenthesis: (
-    fieldType: NamedType
-      name: Map
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: T
-            element: #E0 T
-            type: T
-          NamedType
-            name: U
-            element: #E1 U
-            type: U
-        rightBracket: >
-      element: dart:core::@class::Map
-      type: Map<T, U>
-    fieldName: it
-    rightParenthesis: )
-    fieldFragment: <testLibraryFragment> it@33
-    constructorFragment: <testLibraryFragment> new@null
-  leftBracket: {
-  rightBracket: }
-  declaredElement: <testLibraryFragment> A@15
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@17
+            defaultType: dynamic
+        TypeParameter
+          name: U
+          declaredFragment: <testLibraryFragment> U@20
+            defaultType: dynamic
+      rightBracket: >
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: Map
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: T
+                element: #E0 T
+                type: T
+              NamedType
+                name: U
+                element: #E1 U
+                type: U
+            rightBracket: >
+          element: dart:core::@class::Map
+          type: Map<T, U>
+        name: it
+        declaredFragment: <testLibraryFragment> it@33
+          element: hasImplicitType isFinal isPublic
+            type: Map<T, U>
+            field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A<T, U> Function(Map<T, U>)
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
 ''');
   }
 
@@ -355,41 +536,49 @@ extension type ET<_, _, _ extends num>(int _) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  name: ET
-  typeParameters: TypeParameterList
-    leftBracket: <
-    typeParameters
-      TypeParameter
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: ET
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: _
+          declaredFragment: <testLibraryFragment> _@18
+            defaultType: dynamic
+        TypeParameter
+          name: _
+          declaredFragment: <testLibraryFragment> _@21
+            defaultType: dynamic
+        TypeParameter
+          name: _
+          extendsKeyword: extends
+          bound: NamedType
+            name: num
+            element: dart:core::@class::num
+            type: num
+          declaredFragment: <testLibraryFragment> _@24
+            defaultType: num
+      rightBracket: >
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
         name: _
-        declaredElement: <testLibraryFragment> _@18
-          defaultType: dynamic
-      TypeParameter
-        name: _
-        declaredElement: <testLibraryFragment> _@21
-          defaultType: dynamic
-      TypeParameter
-        name: _
-        extendsKeyword: extends
-        bound: NamedType
-          name: num
-          element: dart:core::@class::num
-          type: num
-        declaredElement: <testLibraryFragment> _@24
-          defaultType: num
-    rightBracket: >
-  representation: RepresentationDeclaration
-    leftParenthesis: (
-    fieldType: NamedType
-      name: int
-      element: dart:core::@class::int
-      type: int
-    fieldName: _
-    rightParenthesis: )
-    fieldFragment: <testLibraryFragment> _@43
-    constructorFragment: <testLibraryFragment> new@null
-  leftBracket: {
-  rightBracket: }
-  declaredElement: <testLibraryFragment> ET@15
+        declaredFragment: <testLibraryFragment> _@43
+          element: hasImplicitType isFinal isPrivate
+            type: int
+            field: <testLibrary>::@extensionType::ET::@field::_
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::ET::@constructor::new
+        type: ET<_, _, _> Function(int)
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> ET@15
 ''');
   }
 }

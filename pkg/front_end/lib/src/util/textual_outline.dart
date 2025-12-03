@@ -9,6 +9,8 @@ import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
     show ExperimentalFeatures, DefaultExperimentalFeatures;
 import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
     show ClassMemberParser;
+import 'package:_fe_analyzer_shared/src/parser/declaration_kind.dart'
+    show DeclarationKind;
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
 import 'package:_fe_analyzer_shared/src/parser/listener.dart';
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
@@ -827,7 +829,23 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void endClassMethod(
+  void endConstructor(
+    DeclarationKind kind,
+    Token beginToken,
+    Token? newToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _ClassMethodChunk(
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
+  void endMethod(
+    DeclarationKind kind,
     Token? getOrSet,
     Token beginToken,
     Token beginParam,
@@ -849,7 +867,8 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void endClassFactoryMethod(
+  void endFactory(
+    DeclarationKind kind,
     Token beginToken,
     Token factoryKeyword,
     Token endToken,
@@ -866,7 +885,8 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void endClassFields(
+  void endFields(
+    DeclarationKind kind,
     Token? abstractToken,
     Token? augmentToken,
     Token? externalToken,

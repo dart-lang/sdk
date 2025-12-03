@@ -485,7 +485,7 @@ mixinDeclaration
     ;
 
 extensionTypeDeclaration
-    :    EXTENSION TYPE classNameMaybePrimary interfaces? extensionTypeBody
+    :    EXTENSION TYPE primaryConstructor interfaces? extensionTypeBody
     |    AUGMENT EXTENSION TYPE typeWithParameters interfaces?
          extensionTypeBody
     ;
@@ -512,6 +512,7 @@ methodSignature
     |    STATIC? setterSignature
     |    operatorSignature
     |    constructorSignature
+    |    primaryConstructorBodySignature
     ;
 
 declaration
@@ -533,6 +534,7 @@ declaration
     |    redirectingFactoryConstructorSignature
     |    constantConstructorSignature (redirection | initializers)?
     |    constructorSignature (redirection | initializers)?
+    |    primaryConstructorBodySignature
     ;
 
 operatorSignature
@@ -566,15 +568,6 @@ setterSignature
 constructorSignature
     :    constructorName formalParameterList // Old form.
     |    constructorHead formalParameterList // New form.
-    |    declaringConstructorSignature
-    ;
-
-declaringConstructorSignature
-    :    THIS identifier? declaringParameterList? // New form only.
-    ;
-
-declaringConstantConstructorSignature
-    :    CONST THIS identifier? declaringParameterList // New form only.
     ;
 
 declaringParameterList
@@ -637,6 +630,10 @@ constructorName
     :    typeIdentifier ('.' identifierOrNew)?
     ;
 
+constructorTwoPartName
+    :    typeIdentifier '.' identifierOrNew
+    ;
+
 constructorHead
     :    NEW identifier?
     ;
@@ -677,21 +674,22 @@ initializerExpression
     ;
 
 factoryConstructorSignature
-    :    CONST? FACTORY constructorName formalParameterList // Old form.
-    |    CONST? factoryConstructorHead formalParameterList // New form.
+    :    CONST? FACTORY constructorTwoPartName
+         formalParameterList // Old form.
+    |    CONST? factoryConstructorHead
+         formalParameterList // New form.
     ;
 
 redirectingFactoryConstructorSignature
-    :    CONST? FACTORY constructorName formalParameterList '='
-         constructorDesignation // Old form.
-    |    CONST? factoryConstructorHead formalParameterList '='
-         constructorDesignation // New form.
+    :    factoryConstructorSignature '=' constructorDesignation
+    ;
+
+primaryConstructorBodySignature
+    :    THIS initializers?
     ;
 
 constantConstructorSignature
-    :    CONST constructorName formalParameterList // Old form.
-    |    CONST constructorHead formalParameterList // New form.
-    |    declaringConstantConstructorSignature
+    :    CONST constructorSignature
     ;
 
 mixinApplication

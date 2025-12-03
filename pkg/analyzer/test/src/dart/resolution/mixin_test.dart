@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -88,9 +88,9 @@ FieldDeclaration
     variables
       VariableDeclaration
         name: f
-        declaredElement: <testLibraryFragment> f@22
+        declaredFragment: <testLibraryFragment> f@22
   semicolon: ;
-  declaredElement: <null>
+  declaredFragment: <null>
 ''');
   }
 
@@ -116,7 +116,7 @@ MethodDeclaration
       literal: 0
       staticType: int
     semicolon: ;
-  declaredElement: <testLibraryFragment> foo@20
+  declaredFragment: <testLibraryFragment> foo@20
     element: <testLibrary>::@mixin::M::@getter::foo
       type: int Function()
 ''');
@@ -162,13 +162,9 @@ mixin M on A {
 abstract class X extends A with U1, U2, M {}
 ''',
       [
-        error(CompileTimeErrorCode.mixinOfNonClass, 121, 2),
-        error(CompileTimeErrorCode.mixinOfNonClass, 125, 2),
-        error(
-          CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedMember,
-          129,
-          1,
-        ),
+        error(diag.mixinOfNonClass, 121, 2),
+        error(diag.mixinOfNonClass, 125, 2),
+        error(diag.mixinApplicationNoConcreteSuperInvokedMember, 129, 1),
       ],
     );
   }
@@ -204,11 +200,13 @@ Annotation
   }
 
   test_method() async {
-    await assertNoErrorsInCode(r'''
+    var code = r'''
 mixin M {
   void foo() {}
 }
-''');
+''';
+
+    await assertNoErrorsInCode(code);
 
     var node = findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
@@ -225,7 +223,7 @@ MethodDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <testLibraryFragment> foo@17
+  declaredFragment: <testLibraryFragment> foo@17
     element: <testLibrary>::@mixin::M::@method::foo
       type: void Function()
 ''');
@@ -242,7 +240,7 @@ class C<T> {}
 
 mixin M<T> on C<T> {}
 ''',
-      [error(WarningCode.unusedLocalVariable, 26, 1)],
+      [error(diag.unusedLocalVariable, 26, 1)],
     );
 
     var node = findNode.functionExpressionInvocation('f()');
@@ -311,7 +309,7 @@ MethodDeclaration
         element: dart:core::@class::int
         type: int
       name: _
-      declaredElement: <testLibraryFragment> _@29
+      declaredFragment: <testLibraryFragment> _@29
         element: isPrivate
           type: int
     rightParenthesis: )
@@ -319,7 +317,7 @@ MethodDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <testLibraryFragment> foo@21
+  declaredFragment: <testLibraryFragment> foo@21
     element: <testLibrary>::@mixin::M::@setter::foo
       type: void Function(int)
 ''');

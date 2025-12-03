@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/element/type_system.dart'
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const String _dartJsInteropUri = 'dart:js_interop';
 const String _dartJsUri = 'dart:js';
@@ -217,13 +218,13 @@ class InvalidRuntimeCheckWithJSInteropTypes extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.invalidRuntimeCheckWithJsInteropTypesDartAsJs,
-    LinterLintCode.invalidRuntimeCheckWithJsInteropTypesDartIsJs,
-    LinterLintCode.invalidRuntimeCheckWithJsInteropTypesJsAsDart,
-    LinterLintCode.invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs,
-    LinterLintCode.invalidRuntimeCheckWithJsInteropTypesJsIsDart,
-    LinterLintCode.invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs,
-    LinterLintCode.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs,
+    diag.invalidRuntimeCheckWithJsInteropTypesDartAsJs,
+    diag.invalidRuntimeCheckWithJsInteropTypesDartIsJs,
+    diag.invalidRuntimeCheckWithJsInteropTypesJsAsDart,
+    diag.invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs,
+    diag.invalidRuntimeCheckWithJsInteropTypesJsIsDart,
+    diag.invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs,
+    diag.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs,
   ];
 
   @override
@@ -336,14 +337,12 @@ class _Visitor extends SimpleAstVisitor<void> {
           if (check) {
             if (!erasedLeftIsSubtype && !erasedRightIsDynamic) {
               if (leftIsInteropType && rightIsInteropType) {
-                lintCode = LinterLintCode
+                lintCode = diag
                     .invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs;
               } else if (leftIsInteropType) {
-                lintCode = LinterLintCode
-                    .invalidRuntimeCheckWithJsInteropTypesJsIsDart;
+                lintCode = diag.invalidRuntimeCheckWithJsInteropTypesJsIsDart;
               } else {
-                lintCode = LinterLintCode
-                    .invalidRuntimeCheckWithJsInteropTypesDartIsJs;
+                lintCode = diag.invalidRuntimeCheckWithJsInteropTypesDartIsJs;
               }
             } else if (erasedLeftIsSubtype &&
                 leftIsInteropType &&
@@ -362,8 +361,8 @@ class _Visitor extends SimpleAstVisitor<void> {
                       keepUserInteropTypes: true,
                     ),
                   )) {
-                lintCode = LinterLintCode
-                    .invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs;
+                lintCode =
+                    diag.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs;
               }
             }
           } else {
@@ -372,14 +371,12 @@ class _Visitor extends SimpleAstVisitor<void> {
                 !erasedLeftIsDynamic &&
                 !erasedRightIsDynamic) {
               if (leftIsInteropType && rightIsInteropType) {
-                lintCode = LinterLintCode
+                lintCode = diag
                     .invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs;
               } else if (leftIsInteropType) {
-                lintCode = LinterLintCode
-                    .invalidRuntimeCheckWithJsInteropTypesJsAsDart;
+                lintCode = diag.invalidRuntimeCheckWithJsInteropTypesJsAsDart;
               } else {
-                lintCode = LinterLintCode
-                    .invalidRuntimeCheckWithJsInteropTypesDartAsJs;
+                lintCode = diag.invalidRuntimeCheckWithJsInteropTypesDartAsJs;
               }
             }
           }

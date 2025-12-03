@@ -25,8 +25,8 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/named_type_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_type_annotation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_walker.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -205,14 +205,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (element == null) {
       _diagnosticReporter.atToken(
         node.name,
-        CompileTimeErrorCode.undefinedIdentifier,
+        diag.undefinedIdentifier,
         arguments: [name],
       );
     } else if (!(element is LocalVariableElement ||
         element is FormalParameterElement)) {
       _diagnosticReporter.atToken(
         node.name,
-        CompileTimeErrorCode.patternAssignmentNotLocalVariable,
+        diag.patternAssignmentNotLocalVariable,
       );
     }
   }
@@ -300,8 +300,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     _withElementWalker(ElementWalker.forClass(fragment), () {
       _withNameScope(() {
-        _buildTypeParameterElements(node.typeParameters);
-        node.typeParameters?.accept(this);
+        _buildTypeParameterElements(node.namePart.typeParameters);
+        node.namePart.accept(this);
 
         var extendsClause = node.extendsClause;
         var withClause = node.withClause;
@@ -323,7 +323,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _defineElements(element.getters);
         _defineElements(element.setters);
         _defineElements(element.methods);
-        node.members.accept(this);
+        node.body.accept(this);
       });
     });
 
@@ -371,7 +371,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _withElementHolder(ElementHolder(fragment), () {
       _withElementWalker(null, () {
         _withNameScope(() {
-          node.returnType.accept(this);
+          node.typeName?.accept(this);
 
           _withElementWalker(ElementWalker.forExecutable(fragment), () {
             node.parameters.accept(this);
@@ -463,6 +463,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           parameterKind: node.kind,
           name: name2,
           nameOffset: nameOffset2,
+          privateName: null,
         )..constantInitializer = node.defaultValue;
       } else if (node.parameter is SuperFormalParameter) {
         // Only for recovery, this should not happen in valid code.
@@ -538,8 +539,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     _withElementWalker(ElementWalker.forEnum(fragment), () {
       _withNameScope(() {
-        _buildTypeParameterElements(node.typeParameters);
-        node.typeParameters?.accept(this);
+        _buildTypeParameterElements(node.namePart.typeParameters);
+        node.namePart.accept(this);
 
         _resolveWithClause(declaration: node, clause: node.withClause);
         _resolveImplementsClause(
@@ -550,8 +551,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _defineElements(element.getters);
         _defineElements(element.setters);
         _defineElements(element.methods);
-        node.constants.accept(this);
-        node.members.accept(this);
+        node.body.accept(this);
       });
     });
 
@@ -587,7 +587,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _defineElements(element.getters);
         _defineElements(element.setters);
         _defineElements(element.methods);
-        node.members.accept(this);
+        node.body.accept(this);
       });
     });
   }
@@ -604,18 +604,21 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     if (identical(element.firstFragment, fragment)) {
+      var formalParameters = node.primaryConstructor.formalParameters;
       _setOrCreateMetadataElements(
         element.representation.firstFragment,
-        node.representation.fieldMetadata,
+        formalParameters.parameters.first.metadata,
       );
     }
 
     _withElementWalker(ElementWalker.forExtensionType(fragment), () {
       _withNameScope(() {
-        _buildTypeParameterElements(node.typeParameters);
-        node.typeParameters?.accept(this);
+        var typeParameters = node.primaryConstructor.typeParameters;
+        _buildTypeParameterElements(typeParameters);
+        typeParameters?.accept(this);
 
-        node.representation.accept(this);
+        node.primaryConstructor.accept(this);
+
         _resolveImplementsClause(
           declaration: node,
           clause: node.implementsClause,
@@ -624,7 +627,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _defineElements(element.getters);
         _defineElements(element.setters);
         _defineElements(element.methods);
-        node.members.accept(this);
+        // Skip the representation field.
+        _elementWalker!.getVariable();
+        node.body.accept(this);
       });
     });
 
@@ -648,6 +653,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           name: nameToken.lexeme.nullIfEmpty,
           nameOffset: nameToken.offset.nullIfNegative,
           parameterKind: node.kind,
+          privateName: null,
         );
         _elementHolder.enclose(fragment);
         fragment.isConst = node.isConst;
@@ -1006,10 +1012,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         //
         // This is a case where the parser does not report an error, because the
         // parser thinks this could be an InstanceCreationExpression.
-        _diagnosticReporter.atNode(
-          node,
-          WarningCode.sdkVersionConstructorTearoffs,
-        );
+        _diagnosticReporter.atNode(node, diag.sdkVersionConstructorTearoffs);
       }
       return newNode.accept(this);
     }
@@ -1140,7 +1143,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _defineElements(element.getters);
         _defineElements(element.setters);
         _defineElements(element.methods);
-        node.members.accept(this);
+        node.body.accept(this);
       });
     });
   }
@@ -1210,6 +1213,24 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorDeclaration(
+    covariant PrimaryConstructorDeclarationImpl node,
+  ) {
+    var fragment = _elementWalker!.getConstructor();
+    node.declaredFragment = fragment;
+
+    _withElementHolder(ElementHolder(fragment), () {
+      _withElementWalker(null, () {
+        _withNameScope(() {
+          _withElementWalker(ElementWalker.forExecutable(fragment), () {
+            node.formalParameters.accept(this);
+          });
+        });
+      });
+    });
+  }
+
+  @override
   void visitPropertyAccess(covariant PropertyAccessImpl node) {
     var newNode = _astRewriter.propertyAccess(_nameScope, node);
     if (newNode != node) {
@@ -1226,16 +1247,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     });
 
     _recordTypeResolver.resolve(node);
-  }
-
-  @override
-  void visitRepresentationDeclaration(
-    covariant RepresentationDeclarationImpl node,
-  ) {
-    node.fieldFragment = _elementWalker!.getVariable() as FieldFragmentImpl;
-    node.constructorFragment = _elementWalker!.getConstructor();
-
-    super.visitRepresentationDeclaration(node);
   }
 
   @override
@@ -1746,21 +1757,20 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     switch (clause) {
       case null:
         if (declaration is ClassTypeAlias) {
-          diagnosticCode = CompileTimeErrorCode.mixinWithNonClassSuperclass;
+          diagnosticCode = diag.mixinWithNonClassSuperclass;
         }
       case ExtendsClause():
         if (declaration is ClassDeclaration) {
           diagnosticCode = declaration.withClause == null
-              ? CompileTimeErrorCode.extendsNonClass
-              : CompileTimeErrorCode.mixinWithNonClassSuperclass;
+              ? diag.extendsNonClass
+              : diag.mixinWithNonClassSuperclass;
         }
       case ImplementsClause():
-        diagnosticCode = CompileTimeErrorCode.implementsNonClass;
+        diagnosticCode = diag.implementsNonClass;
       case MixinOnClause():
-        diagnosticCode =
-            CompileTimeErrorCode.mixinSuperClassConstraintNonInterface;
+        diagnosticCode = diag.mixinSuperClassConstraintNonInterface;
       case WithClause():
-        diagnosticCode = CompileTimeErrorCode.mixinOfNonClass;
+        diagnosticCode = diag.mixinOfNonClass;
     }
 
     // Should not happen.
@@ -1852,7 +1862,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (!typeSystem.isValidExtensionTypeSuperinterface(type)) {
       _diagnosticReporter.atNode(
         node,
-        CompileTimeErrorCode.extensionTypeImplementsDisallowedType,
+        diag.extensionTypeImplementsDisallowedType,
         arguments: [type],
       );
       return;
@@ -1874,8 +1884,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         )) {
           _diagnosticReporter.atNode(
             node,
-            CompileTimeErrorCode
-                .extensionTypeImplementsRepresentationNotSupertype,
+            diag.extensionTypeImplementsRepresentationNotSupertype,
             arguments: [
               implementedRepresentation,
               type.element.name ?? '',
@@ -1890,7 +1899,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     _diagnosticReporter.atNode(
       node,
-      CompileTimeErrorCode.extensionTypeImplementsNotSupertype,
+      diag.extensionTypeImplementsNotSupertype,
       arguments: [type, declaredRepresentation],
     );
   }
@@ -2039,7 +2048,7 @@ class _VariableBinderErrors
     visitor._diagnosticReporter.reportError(
       DiagnosticFactory().duplicateDefinitionForNodes(
         visitor._diagnosticReporter.source,
-        CompileTimeErrorCode.duplicateVariablePattern,
+        diag.duplicateVariablePattern,
         duplicate.node.name,
         original.node.name,
         [name],
@@ -2057,7 +2066,7 @@ class _VariableBinderErrors
   }) {
     visitor._diagnosticReporter.atNode(
       hasInLeft ? node.rightOperand : node.leftOperand,
-      CompileTimeErrorCode.missingVariablePattern,
+      diag.missingVariablePattern,
       arguments: [name],
     );
   }

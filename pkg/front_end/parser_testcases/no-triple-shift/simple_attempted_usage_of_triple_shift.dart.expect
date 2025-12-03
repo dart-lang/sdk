@@ -1,6 +1,6 @@
 Problems reported:
 
-parser/no-triple-shift/simple_attempted_usage_of_triple_shift:4:14: This requires the 'triple-shift' language feature to be enabled.
+parser/no-triple-shift/simple_attempted_usage_of_triple_shift:5:14: This requires the 'triple-shift' language feature to be enabled.
   var x = 10 >>> 2;
              ^^^
 

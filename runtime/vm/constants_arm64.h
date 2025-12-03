@@ -1614,7 +1614,8 @@ class Instr {
 
   static int64_t VFPExpandImm(uint8_t imm8) {
     const int64_t sign = static_cast<int64_t>((imm8 & 0x80) >> 7) << 63;
-    const int64_t hi_exp = static_cast<int64_t>(!((imm8 & 0x40) >> 6)) << 62;
+    const int64_t hi_exp = static_cast<int64_t>(((imm8 & 0x40) >> 6) == 0)
+                           << 62;
     const int64_t mid_exp = (((imm8 & 0x40) >> 6) == 0) ? 0 : (0xffLL << 54);
     const int64_t low_exp = static_cast<int64_t>((imm8 & 0x30) >> 4) << 52;
     const int64_t frac = static_cast<int64_t>(imm8 & 0x0f) << 48;
@@ -1633,7 +1634,8 @@ class Instr {
 };
 
 const uint64_t kBreakInstructionFiller = 0xD4200000D4200000L;  // brk #0; brk #0
-constexpr int32_t kDataMemoryBarrier = 0xD5033BBF;             // dmb ish
+constexpr int32_t kDMB_ISH = 0xD5033BBF;                       // dmb ish
+constexpr int32_t kDMB_ISHST = 0xD5033ABF;                     // dmb ishst
 
 struct LinkRegister {};
 

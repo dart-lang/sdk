@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/ascii_utils.dart';
 
 const _desc = r'Avoid empty catch blocks.';
@@ -18,7 +19,7 @@ class EmptyCatches extends AnalysisRule {
   EmptyCatches() : super(name: LintNames.empty_catches, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.emptyCatches;
+  DiagnosticCode get diagnosticCode => diag.emptyCatches;
 
   @override
   void registerNodeProcessors(

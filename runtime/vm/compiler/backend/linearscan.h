@@ -144,6 +144,16 @@ class FlowGraphAllocator : public ValueObject {
 
   static constexpr intptr_t kNormalEntryPos = 2;
 
+  LiveRange* AddUseIntervalToRange(intptr_t vreg, intptr_t from, intptr_t to);
+  LiveRange* AddUseToRange(intptr_t vreg,
+                           intptr_t block_start,
+                           intptr_t pos,
+                           Location* use_slot);
+  LiveRange* AddHintedUseToRange(intptr_t vreg,
+                                 intptr_t block_start,
+                                 intptr_t pos,
+                                 Location* use_slot,
+                                 Location* hint_slot);
   void CompleteRange(Definition* defn, LiveRange* range);
   void ProcessInitialDefinition(Definition* defn,
                                 LiveRange* range,
@@ -164,12 +174,9 @@ class FlowGraphAllocator : public ValueObject {
 
   intptr_t NumberOfRegisters() const { return number_of_registers_; }
 
-  // Test if [param] is live only after [catch_entry].
-  bool IsLiveAfterCatchEntry(CatchBlockEntryInstr* catch_entry,
-                             ParameterInstr* param);
-
-  // Find all safepoints that are covered by this live range.
-  void AssignSafepoints(Definition* defn, LiveRange* range);
+  // Add safepoint at position |pos| with location summary |locs| to
+  // live ranges in |alive_vregs| set.
+  void AddSafepointToAliveVregs(intptr_t pos, LocationSummary* locs);
 
   void PrepareForAllocation(Location::Kind register_kind,
                             intptr_t number_of_registers,
@@ -253,10 +260,6 @@ class FlowGraphAllocator : public ValueObject {
   // Allocate spill slot for synthetic :suspend_state variable.
   void AllocateSpillSlotForSuspendState();
 
-  // Mark synthetic :suspend_state variable as object in stackmaps
-  // at all safepoints.
-  void UpdateStackmapsForSuspendState();
-
   // Returns true if [defn] is an OsrEntry parameter
   // corresponding to a synthetic :suspend_state variable.
   bool IsSuspendStateParameter(Definition* defn);
@@ -311,6 +314,9 @@ class FlowGraphAllocator : public ValueObject {
   // Representation for SSA values indexed by SSA temp index.
   GrowableArray<Representation> value_representations_;
 
+  // Set of vregs which correspond to |ConstantInstr| definitions.
+  BitVector* constants_;
+
   const GrowableArray<BlockEntryInstr*>& block_order_;
   const GrowableArray<BlockEntryInstr*>& postorder_;
 
@@ -324,6 +330,10 @@ class FlowGraphAllocator : public ValueObject {
   GrowableArray<ExtraLoopInfo*> extra_loop_info_;
 
   SSALivenessAnalysis liveness_;
+
+  // Temporary vector used to track currently alive vregs while building
+  // live ranges.
+  BitVector* alive_vregs_;
 
   // Number of virtual registers.  Currently equal to the number of
   // SSA values.
@@ -347,9 +357,6 @@ class FlowGraphAllocator : public ValueObject {
 
   // List of spilled live ranges.
   GrowableArray<LiveRange*> spilled_;
-
-  // List of instructions containing calls.
-  GrowableArray<Instruction*> safepoints_;
 
   Location::Kind register_kind_;
 
@@ -383,6 +390,8 @@ class FlowGraphAllocator : public ValueObject {
   GrowableArray<bool> untagged_spill_slots_;
 
   intptr_t cpu_spill_slot_count_;
+
+  intptr_t suspend_var_stack_index_ = -1;
 
   const bool intrinsic_mode_;
 
@@ -528,7 +537,6 @@ class LiveRange : public ZoneAllocated {
         first_use_interval_(nullptr),
         last_use_interval_(nullptr),
         first_safepoint_(nullptr),
-        last_safepoint_(nullptr),
         next_sibling_(nullptr),
         has_only_any_uses_in_loops_(0),
         is_loop_phi_(false),
@@ -620,7 +628,6 @@ class LiveRange : public ZoneAllocated {
         first_use_interval_(first_use_interval),
         last_use_interval_(last_use_interval),
         first_safepoint_(first_safepoint),
-        last_safepoint_(nullptr),
         next_sibling_(next_sibling),
         has_only_any_uses_in_loops_(0),
         is_loop_phi_(false),
@@ -636,7 +643,6 @@ class LiveRange : public ZoneAllocated {
   UseInterval* last_use_interval_;
 
   SafepointPosition* first_safepoint_;
-  SafepointPosition* last_safepoint_;
 
   LiveRange* next_sibling_;
 

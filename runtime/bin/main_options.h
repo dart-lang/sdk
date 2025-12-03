@@ -30,6 +30,7 @@ namespace bin {
   V(write_service_info, vm_write_service_info_filename)                        \
   V(executable_name, executable_name)                                          \
   V(resolved_executable_name, resolved_executable_name)                        \
+  V(load_module_snapshot, load_module_snapshot)                                \
   /* The purpose of these flags is documented in */                            \
   /* pkg/dartdev/lib/src/commands/compilation_server.dart. */                  \
   V(resident_server_info_file, resident_server_info_file_path)                 \

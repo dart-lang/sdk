@@ -20,7 +20,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show Element, ElementKind;
 
 /// The name of the type `dynamic`;
-const DYNAMIC = 'dynamic';
+const _dynamicName = 'dynamic';
 
 /// Sort by relevance first, highest to lowest, and then by the completion
 /// alphabetically.
@@ -249,7 +249,7 @@ String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
   DartType type;
   var element = identifier.element;
   if (element == null) {
-    return DYNAMIC;
+    return _dynamicName;
   } else if (element is FunctionTypedElement) {
     if (element is PropertyAccessorElement && element is SetterElement) {
       return null;
@@ -273,7 +273,7 @@ String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
     if (declaredType is NamedType) {
       return declaredType.qualifiedName;
     }
-    return DYNAMIC;
+    return _dynamicName;
   }
   return type.getDisplayString();
 }

@@ -20,7 +20,8 @@ import 'translator.dart';
 enum CompilerPhase {
   cfe,
   tfa,
-  codegen;
+  codegen,
+  opt;
 
   static CompilerPhase parse(String name) {
     for (final phase in values) {
@@ -31,6 +32,7 @@ enum CompilerPhase {
 }
 
 class WasmCompilerOptions {
+  static const int mainModuleId = 0;
   final TranslatorOptions translatorOptions = TranslatorOptions();
 
   Uri? platformPath;
@@ -54,6 +56,9 @@ class WasmCompilerOptions {
   String? dumpKernelBeforeTfa;
   String? dumpKernelAfterTfa;
   bool dryRun = false;
+  Uri? wasmOptPath;
+  bool saveUnopt = false;
+  bool stripWasm = true;
   List<CompilerPhase> phases = const [
     CompilerPhase.cfe,
     CompilerPhase.tfa,
@@ -66,6 +71,21 @@ class WasmCompilerOptions {
   WasmCompilerOptions({required this.mainUri, required this.outputFile});
 
   bool get enableDynamicModules => dynamicModuleType != null;
+
+  bool get useMultiModuleOpt =>
+      translatorOptions.enableDeferredLoading ||
+      translatorOptions.enableMultiModuleStressTestMode ||
+      enableDynamicModules;
+
+  String moduleNameForId(String filePath, int id, {bool emitAsMain = false}) =>
+      emitAsMain || id == mainModuleId
+          ? path.basename(filePath)
+          : path.basename(path.setExtension(filePath, '_module$id.wasm'));
+
+  bool get emitCfe => phases.last == CompilerPhase.cfe;
+  bool get emitTfa => phases.last == CompilerPhase.tfa;
+  bool get emitCodegen => phases.last == CompilerPhase.tfa;
+  bool get readCodegen => phases.first == CompilerPhase.codegen;
 
   void validate() {
     if (translatorOptions.importSharedMemory &&
@@ -125,6 +145,10 @@ class WasmCompilerOptions {
         if (inputExtension != '.dill') {
           throw ArgumentError('Input to codegen phase must be a .dill file.');
         }
+      case CompilerPhase.opt:
+        if (inputExtension != '.wasm') {
+          throw ArgumentError('Input to opt phase must be a .wasm file.');
+        }
     }
 
     // Ensure correct output file type
@@ -143,6 +167,16 @@ class WasmCompilerOptions {
           throw ArgumentError(
               'Output from codegen phase must be a .wasm file.');
         }
+      case CompilerPhase.opt:
+        if (outputExtension != '.wasm') {
+          throw ArgumentError('Output from opt phase must be a .wasm file.');
+        }
+    }
+
+    if (phases.contains(CompilerPhase.opt) &&
+        translatorOptions.optimizationLevel == 0) {
+      throw ArgumentError(
+          'Cannot specify "opt" phase with optimization level 0');
     }
   }
 }

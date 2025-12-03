@@ -1976,6 +1976,10 @@ void Profile::PrintProfilePerfettoImpl(
                                                             /*length=*/1);
     }
 
+    if (mapping_iid == 0) {
+      interned_data_builder.MarkNeedUnknownMapping();
+    }
+
     // Add a |Frame| to the interned data table that is linked to |function|'s
     // name and source location (through the interned data table). A Perfetto
     // |Callstack| consists of a stack of |Frame|s, so the |Callstack|s

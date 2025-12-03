@@ -10,6 +10,14 @@ const Version defaultLanguageVersion = const Version(3, 11);
 
 /// Enum for experimental flags shared between the CFE and the analyzer.
 enum ExperimentalFlag {
+  anonymousMethods(
+    name: 'anonymous-methods',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  ),
+
   augmentations(
     name: 'augmentations',
     isEnabledByDefault: false,
@@ -60,14 +68,6 @@ enum ExperimentalFlag {
 
   dataAssets(
     name: 'data-assets',
-    isEnabledByDefault: false,
-    isExpired: false,
-    experimentEnabledVersion: defaultLanguageVersion,
-    experimentReleasedVersion: defaultLanguageVersion,
-  ),
-
-  declaringConstructors(
-    name: 'declaring-constructors',
     isEnabledByDefault: false,
     isExpired: false,
     experimentEnabledVersion: defaultLanguageVersion,
@@ -232,6 +232,14 @@ enum ExperimentalFlag {
     isExpired: true,
     experimentEnabledVersion: const Version(3, 0),
     experimentReleasedVersion: const Version(3, 0),
+  ),
+
+  primaryConstructors(
+    name: 'primary-constructors',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
   ),
 
   privateNamedParameters(

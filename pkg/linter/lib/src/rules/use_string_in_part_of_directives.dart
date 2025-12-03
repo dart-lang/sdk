@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Use string in part of directives.';
 
@@ -22,8 +23,7 @@ class UseStringInPartOfDirectives extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.useStringInPartOfDirectives;
+  DiagnosticCode get diagnosticCode => diag.useStringInPartOfDirectives;
 
   @override
   void registerNodeProcessors(

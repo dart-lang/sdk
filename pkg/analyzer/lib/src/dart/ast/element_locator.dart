@@ -166,7 +166,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
       }
     } else if (parent is ConstructorDeclaration) {
       // Map a constructor declarations to its associated constructor element.
-      var returnType = parent.returnType;
+      var returnType = parent.typeName;
       if (identical(returnType, node)) {
         var name = parent.name;
         if (name != null) {
@@ -257,6 +257,11 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitNameWithTypeParameters(NameWithTypeParameters node) {
+    return node.parent!.accept(this);
+  }
+
+  @override
   Element? visitPartOfDirective(PartOfDirective node) {
     return node.libraryName?.element;
   }
@@ -292,16 +297,21 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
   }
 
   @override
-  Element? visitRepresentationConstructorName(
-    RepresentationConstructorName node,
+  Element? visitPrimaryConstructorDeclaration(
+    PrimaryConstructorDeclaration node,
   ) {
-    var representation = node.parent as RepresentationDeclaration;
-    return representation.constructorFragment?.element;
+    if (node.constructorName != null) {
+      return node.declaredFragment?.element;
+    }
+    if (node.parent case ExtensionTypeDeclaration extensionType) {
+      return extensionType.declaredFragment?.element;
+    }
+    return null;
   }
 
   @override
-  Element? visitRepresentationDeclaration(RepresentationDeclaration node) {
-    return node.fieldFragment?.element;
+  Element? visitPrimaryConstructorName(PrimaryConstructorName node) {
+    return node.parent!.accept(this);
   }
 
   @override

@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Prefer to use `whereType` on iterable.';
@@ -20,7 +21,7 @@ class PreferIterableWhereType extends AnalysisRule {
     : super(name: LintNames.prefer_iterable_whereType, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.preferIterableWheretype;
+  DiagnosticCode get diagnosticCode => diag.preferIterableWheretype;
 
   @override
   void registerNodeProcessors(

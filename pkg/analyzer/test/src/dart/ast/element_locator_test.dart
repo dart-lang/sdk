@@ -648,18 +648,18 @@ dart:core::@class::num::@method::+
 ''');
   }
 
-  test_locate_RepresentationDeclaration() async {
+  test_locate_PrimaryConstructorDeclaration() async {
     await resolveTestCode('extension type A(int it) {}');
-    var node = findNode.singleRepresentationDeclaration;
+    var node = findNode.singlePrimaryConstructorDeclaration;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-<testLibrary>::@extensionType::A::@field::it
+<testLibrary>::@extensionType::A
 ''');
   }
 
-  test_locate_RepresentationDeclaration2() async {
+  test_locate_PrimaryConstructorDeclaration2() async {
     await resolveTestCode('extension type A.named(int it) {}');
-    var node = findNode.singleRepresentationConstructorName;
+    var node = findNode.singlePrimaryConstructorDeclaration;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@extensionType::A::@constructor::named

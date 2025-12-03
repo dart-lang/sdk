@@ -46,9 +46,17 @@ void FormatMessageIntoBuffer(DWORD code, wchar_t* buffer, int buffer_length) {
                        code, GetLastError());
     }
     _snwprintf(buffer, buffer_length, L"OS Error %d", code);
+    return;
   }
-  // Ensure string termination.
-  buffer[buffer_length - 1] = 0;
+
+  // Strip trailing whitespace and a dot.
+  while (message_size > 0 && iswspace(buffer[message_size - 1])) {
+    message_size--;
+  }
+  if (message_size > 0 && buffer[message_size - 1] == L'.') {
+    message_size--;
+  }
+  buffer[Utils::Minimum<int>(message_size, buffer_length - 1)] = 0;
 }
 
 FILETIME GetFiletimeFromMillis(int64_t millis) {

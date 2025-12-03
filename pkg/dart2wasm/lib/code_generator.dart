@@ -1769,78 +1769,45 @@ abstract class AstCodeGenerator
     final positionalArguments = node.arguments.positional;
     final namedArguments = node.arguments.named;
     final memberName = node.name;
+    final callShape = CallShape(
+        memberName,
+        typeArguments.length,
+        positionalArguments.length,
+        namedArguments.map((n) => n.name).toList()..sort());
     final forwarder = translator
         .getDynamicForwardersForModule(b.moduleBuilder)
-        .getDynamicInvocationForwarder(memberName);
+        .getDynamicInvocationForwarder(callShape);
 
     // Evaluate receiver
     translateExpression(receiver, translator.topType);
-    final nullableReceiverLocal = addLocal(translator.topType);
-    b.local_set(nullableReceiverLocal);
 
     // Evaluate type arguments.
-    final typeArgsLocal = addLocal(
-        makeArray(translator.typeArrayType, typeArguments.length,
-            (elementType, elementIdx) {
-      translator.types.makeType(this, typeArguments[elementIdx]);
-    }));
-    b.local_set(typeArgsLocal);
+    for (final typeArgument in typeArguments) {
+      translator.types.makeType(this, typeArgument);
+    }
 
     // Evaluate positional arguments
-    final positionalArgsLocal = addLocal(makeArray(
-        translator.nullableObjectArrayType, positionalArguments.length,
-        (elementType, elementIdx) {
-      translateExpression(positionalArguments[elementIdx], elementType);
-    }));
-    b.local_set(positionalArgsLocal);
+    for (final argument in positionalArguments) {
+      translateExpression(argument, translator.topType);
+    }
 
     // Evaluate named arguments. The arguments need to be evaluated in the
     // order they appear in the AST, but need to be sorted based on names in
     // the argument list passed to the dynamic forwarder. Create a local for
     // each argument to allow adding values to the list in expected order.
-    final List<MapEntry<String, w.Local>> namedArgumentLocals = [];
+    final namedArgumentLocals = <String, w.Local>{};
     for (final namedArgument in namedArguments) {
       translateExpression(namedArgument.value, translator.topType);
       final argumentLocal = addLocal(translator.topType);
       b.local_set(argumentLocal);
-      namedArgumentLocals.add(MapEntry(namedArgument.name, argumentLocal));
+      namedArgumentLocals[namedArgument.name] = argumentLocal;
     }
-    namedArgumentLocals.sort((e1, e2) => e1.key.compareTo(e2.key));
 
-    // Create named argument array
-    final namedArgsLocal = addLocal(
-        makeArray(translator.nullableObjectArrayType, namedArguments.length * 2,
-            (elementType, elementIdx) {
-      if (elementIdx % 2 == 0) {
-        final name = namedArgumentLocals[elementIdx ~/ 2].key;
-        final w.ValueType symbolValueType =
-            translator.classInfo[translator.symbolClass]!.nonNullableType;
-        instantiateConstant(
-            translator.symbols.symbolForNamedParameter(name), symbolValueType);
-      } else {
-        final local = namedArgumentLocals[elementIdx ~/ 2].value;
-        b.local_get(local);
-      }
-    }));
-    b.local_set(namedArgsLocal);
+    // Load named arguments in sorted order.
+    for (final name in callShape.named) {
+      b.local_get(namedArgumentLocals[name]!);
+    }
 
-    final nullBlock = b.block([], [translator.topTypeNonNullable]);
-    b.local_get(nullableReceiverLocal);
-    b.br_on_non_null(nullBlock);
-    // Throw `NoSuchMethodError`. Normally this needs to happen via instance
-    // invocation of `noSuchMethod` (done in [_callNoSuchMethod]), but we don't
-    // have a `Null` class in dart2wasm so we throw directly.
-    b.local_get(nullableReceiverLocal);
-    createInvocationObject(translator, b, memberName, typeArgsLocal,
-        positionalArgsLocal, namedArgsLocal);
-
-    call(translator.noSuchMethodErrorThrowWithInvocation.reference);
-    b.unreachable();
-    b.end(); // nullBlock
-
-    b.local_get(typeArgsLocal);
-    b.local_get(positionalArgsLocal);
-    b.local_get(namedArgsLocal);
     translator.callFunction(forwarder.function, b);
 
     return translator.topType;
@@ -2198,21 +2165,6 @@ abstract class AstCodeGenerator
 
     // Evaluate receiver
     translateExpression(receiver, translator.topType);
-    final nullableReceiverLocal = addLocal(translator.topType);
-    b.local_set(nullableReceiverLocal);
-
-    final nullBlock = b.block([], [translator.topTypeNonNullable]);
-    b.local_get(nullableReceiverLocal);
-    b.br_on_non_null(nullBlock);
-    // Throw `NoSuchMethodError`. Normally this needs to happen via instance
-    // invocation of `noSuchMethod` (done in [_callNoSuchMethod]), but we don't
-    // have a `Null` class in dart2wasm so we throw directly.
-    b.local_get(nullableReceiverLocal);
-    createGetterInvocationObject(translator, b, memberName);
-
-    call(translator.noSuchMethodErrorThrowWithInvocation.reference);
-    b.unreachable();
-    b.end(); // nullBlock
 
     // Call get forwarder
     translator.callFunction(forwarder.function, b);
@@ -2229,31 +2181,8 @@ abstract class AstCodeGenerator
         .getDynamicForwardersForModule(b.moduleBuilder)
         .getDynamicSetForwarder(memberName);
 
-    // Evaluate receiver
     translateExpression(receiver, translator.topType);
-    final nullableReceiverLocal = addLocal(translator.topType);
-    b.local_set(nullableReceiverLocal);
-
-    // Evaluate positional arg
     translateExpression(value, translator.topType);
-    final positionalArgLocal = addLocal(translator.topType);
-    b.local_set(positionalArgLocal);
-
-    final nullBlock = b.block([], [translator.topTypeNonNullable]);
-    b.local_get(nullableReceiverLocal);
-    b.br_on_non_null(nullBlock);
-    // Throw `NoSuchMethodError`. Normally this needs to happen via instance
-    // invocation of `noSuchMethod` (done in [_callNoSuchMethod]), but we don't
-    // have a `Null` class in dart2wasm so we throw directly.
-    b.local_get(nullableReceiverLocal);
-    createSetterInvocationObject(translator, b, memberName, positionalArgLocal);
-
-    call(translator.noSuchMethodErrorThrowWithInvocation.reference);
-    b.unreachable();
-    b.end(); // nullBlock
-
-    // Call set forwarder
-    b.local_get(positionalArgLocal);
     translator.callFunction(forwarder.function, b);
 
     return translator.topType;
@@ -2573,7 +2502,7 @@ abstract class AstCodeGenerator
     final int vtableFieldIndex = representation.fieldIndexForSignature(
         node.arguments.positional.length, argNames);
     final w.FunctionType functionType =
-        representation.getVtableFieldType(vtableFieldIndex);
+        representation.vtableStruct.getVtableEntryAt(vtableFieldIndex);
 
     // Call entry point in vtable
     b.local_get(closureLocal);
@@ -2621,14 +2550,18 @@ abstract class AstCodeGenerator
       }
 
       // Instantiation function
+      final vtableIndex =
+          translator.closureLayouter.vtableInstantiationFunctionIndex;
+      final instantiationFunctionType =
+          representation.vtableStruct.getVtableEntryAt(vtableIndex);
+
       b.local_get(closureTemp);
       b.struct_get(representation.closureStruct, FieldIndex.closureVtable);
-      b.struct_get(
-          representation.vtableStruct, FieldIndex.vtableInstantiationFunction);
+      b.struct_get(representation.vtableStruct, vtableIndex);
 
       // Call instantiation function
-      b.call_ref(representation.instantiationFunctionType);
-      return representation.instantiationFunctionType.outputs.single;
+      b.call_ref(instantiationFunctionType);
+      return instantiationFunctionType.outputs.single;
     } else {
       // Only other alternative is `NeverType`.
       assert(type is NeverType);
@@ -2812,7 +2745,10 @@ abstract class AstCodeGenerator
   }
 
   w.ModuleBuilder? _recognizeDeferredModuleGuard(Let let) {
-    if (!translator.options.enableDeferredLoading) return null;
+    if (!translator.options.enableDeferredLoading &&
+        !translator.options.enableMultiModuleStressTestMode) {
+      return null;
+    }
 
     // TODO(http://dartbug.com/61764): Find better way to do this.
     //
@@ -4579,9 +4515,16 @@ class SwitchInfo {
       Map<int, SwitchCase> caseMap = {};
       for (final c in node.cases) {
         for (final e in c.expressions) {
+          if (e is NullLiteral ||
+              (e is ConstantExpression && e.constant is NullConstant)) {
+            // Null already handled above.
+            continue;
+          }
+
           final value = e is IntLiteral
               ? e.value
               : ((e as ConstantExpression).constant as IntConstant).value;
+
           caseMap[value] = c;
           if (minValue == null || value < minValue) minValue = value;
           if (maxValue == null || value > maxValue) maxValue = value;
@@ -4620,6 +4563,11 @@ class SwitchInfo {
       outer:
       for (final c in node.cases) {
         for (final e in c.expressions) {
+          if (e is NullLiteral ||
+              (e is ConstantExpression && e.constant is NullConstant)) {
+            // Null already handled above.
+            continue;
+          }
           if (e is! ConstantExpression) {
             isValid = false;
             break outer;
@@ -4733,6 +4681,39 @@ extension MacroAssembler on w.InstructionsBuilder {
       }
     }
     return outputs;
+  }
+
+  /// Switches on the [pushBranchExpression] and calls [handleCase] for each
+  /// case or [handleDefault] for the default case.
+  ///
+  /// Assumes that [handleCase] and [handleDefault] will push [outputs] on the
+  /// stack.
+  ///
+  /// Leaves [outputs] on the stack.
+  void emitDenseTableBranch(
+      List<w.ValueType> outputs,
+      int n,
+      void Function() pushBranchExpression,
+      void Function(int) handleCase,
+      void Function() handleDefault) {
+    final done = block([], outputs);
+    final defaultCase = block();
+
+    final labelStack = <w.Label>[];
+    for (int i = 0; i < n; ++i) {
+      labelStack.add(block());
+    }
+    pushBranchExpression();
+    br_table(labelStack, defaultCase);
+    for (int i = n - 1; i >= 0; --i) {
+      end();
+      handleCase(i);
+      br(done);
+    }
+
+    end(); // defaultCase
+    handleDefault();
+    end(); // done
   }
 
   void incrementingLoop(

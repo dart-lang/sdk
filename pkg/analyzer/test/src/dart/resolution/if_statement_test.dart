@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -137,7 +136,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 45, 8)],
+      [error(diag.deadCode, 45, 8)],
     );
 
     var node = findNode.ifStatement('if');
@@ -221,7 +220,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.inconsistentPatternVariableLogicalOr, 53, 1)],
+      [error(diag.inconsistentPatternVariableLogicalOr, 53, 1)],
     );
 
     var node = findNode.ifStatement('if');
@@ -304,7 +303,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.inconsistentPatternVariableLogicalOr, 50, 1)],
+      [error(diag.inconsistentPatternVariableLogicalOr, 50, 1)],
     );
 
     var node = findNode.ifStatement('if');
@@ -387,8 +386,8 @@ void f(Object? x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.missingVariablePattern, 42, 1),
-        error(CompileTimeErrorCode.missingVariablePattern, 47, 1),
+        error(diag.missingVariablePattern, 42, 1),
+        error(diag.missingVariablePattern, 47, 1),
       ],
     );
 
@@ -468,7 +467,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.missingVariablePattern, 51, 1)],
+      [error(diag.missingVariablePattern, 51, 1)],
     );
 
     var node = findNode.ifStatement('if');
@@ -638,7 +637,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.missingVariablePattern, 42, 1)],
+      [error(diag.missingVariablePattern, 42, 1)],
     );
 
     var node = findNode.ifStatement('if');
@@ -723,8 +722,8 @@ void f(Object? x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.missingVariablePattern, 33, 1),
-        error(CompileTimeErrorCode.missingVariablePattern, 47, 1),
+        error(diag.missingVariablePattern, 33, 1),
+        error(diag.missingVariablePattern, 47, 1),
       ],
     );
 
@@ -804,7 +803,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.missingVariablePattern, 33, 1)],
+      [error(diag.missingVariablePattern, 33, 1)],
     );
 
     var node = findNode.ifStatement('if');
@@ -898,13 +897,9 @@ void f(Object? x) {
 }
 ''',
       [
+        error(diag.nonConstantRelationalPatternExpression, 57, 1),
         error(
-          CompileTimeErrorCode.nonConstantRelationalPatternExpression,
-          57,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.referencedBeforeDeclaration,
+          diag.referencedBeforeDeclaration,
           57,
           1,
           contextMessages: [message(testFile, 51, 1)],
@@ -1001,8 +996,8 @@ void f(Object? x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.missingVariablePattern, 56, 1),
-        error(CompileTimeErrorCode.referencedBeforeDeclaration, 56, 1),
+        error(diag.missingVariablePattern, 56, 1),
+        error(diag.referencedBeforeDeclaration, 56, 1),
       ],
     );
 
@@ -1079,7 +1074,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 75, 1)],
+      [error(diag.undefinedIdentifier, 75, 1)],
     );
 
     var node = findNode.ifStatement('if');
@@ -1154,8 +1149,8 @@ class A {
 }
 ''',
       [
-        error(ParserErrorCode.missingAssignableSelector, 31, 5),
-        error(CompileTimeErrorCode.nonBoolCondition, 31, 5),
+        error(diag.missingAssignableSelector, 31, 5),
+        error(diag.nonBoolCondition, 31, 5),
       ],
     );
 
@@ -1427,7 +1422,7 @@ IfStatement
                 staticType: bool
               element: dart:core::@class::int::@getter::isEven
               staticType: bool
-          declaredElement: <testLibraryFragment> null@null
+          declaredFragment: <testLibraryFragment> null@null
             element: null@null
               type: bool Function()
           staticType: bool Function()
@@ -1489,7 +1484,7 @@ IfStatement
                 staticType: bool
               element: dart:core::@class::int::@getter::isEven
               staticType: bool
-          declaredElement: <testLibraryFragment> null@null
+          declaredFragment: <testLibraryFragment> null@null
             element: null@null
               type: bool Function()
           staticType: bool Function()
@@ -1553,7 +1548,7 @@ IfStatement
                 staticType: bool
               element: dart:core::@class::int::@getter::isEven
               staticType: bool
-          declaredElement: <testLibraryFragment> null@null
+          declaredFragment: <testLibraryFragment> null@null
             element: null@null
               type: bool Function()
           staticType: bool Function()
@@ -1617,7 +1612,7 @@ IfStatement
                 staticType: bool
               element: dart:core::@class::int::@getter::isEven
               staticType: bool
-          declaredElement: <testLibraryFragment> null@null
+          declaredFragment: <testLibraryFragment> null@null
             element: null@null
               type: bool Function()
           staticType: bool Function()

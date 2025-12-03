@@ -58,7 +58,47 @@ class IndexTest extends PubPackageResolutionTest with _IndexMixin {
     expect(actual, expected);
   }
 
-  test_class_constructorElement_unnamed_implicitInvocation() async {
+  test_class_constructorElement_methodElement_sameName() async {
+    await _indexTestUnit('''
+class A {
+  A.base() {
+    base();
+  }
+
+  A base() => A.base();
+}
+''');
+
+    var constructor = findElement2.constructor('base');
+    assertElementIndexText(constructor, r'''
+55 6:16 |.base| IS_INVOKED_BY qualified
+''');
+    var method = findElement2.method('base');
+    assertElementIndexText(method, r'''
+27 3:5 |base| IS_INVOKED_BY
+''');
+  }
+
+  test_class_constructorElement_newHead_implicitInvocation() async {
+    await _indexTestUnit('''
+class A {
+  A();
+}
+
+class B extends A {
+  new ();
+  new named();
+}
+''');
+
+    var element = findElement2.unnamedConstructor('A');
+    assertElementIndexText(element, r'''
+42 6:3 |new| IS_INVOKED_BY qualified
+52 7:3 |new named| IS_INVOKED_BY qualified
+''');
+  }
+
+  test_class_constructorElement_typeName_implicitInvocation() async {
     await _indexTestUnit('''
 class A {
   A();
@@ -803,8 +843,8 @@ class A {
 ''');
     var element = findElement2.getter('foo');
     assertElementIndexText(element, r'''
-35 2:16 |foo| IS_REFERENCED_BY qualified
-62 3:16 || IS_REFERENCED_BY qualified
+35 2:16 |foo| IS_REFERENCED_BY_PATTERN_FIELD qualified
+62 3:16 || IS_REFERENCED_BY_PATTERN_FIELD qualified
 ''');
   }
 
@@ -821,8 +861,8 @@ class A {
 ''');
     var element = findElement2.method('foo');
     assertElementIndexText(element, r'''
-35 2:16 |foo| IS_REFERENCED_BY qualified
-62 3:16 || IS_REFERENCED_BY qualified
+35 2:16 |foo| IS_REFERENCED_BY_PATTERN_FIELD qualified
+62 3:16 || IS_REFERENCED_BY_PATTERN_FIELD qualified
 ''');
   }
 
@@ -1290,8 +1330,8 @@ void f() {
 ''');
     var element = findElement2.unnamedConstructor('A');
     assertElementIndexText(element, r'''
-31 3:10 |new| IS_INVOKED_BY qualified
-58 4:16 |new| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+31 3:10 |new| IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
+58 4:16 |new| IS_REFERENCED_BY_DOT_SHORTHAND_CONSTRUCTOR_TEAR_OFF qualified
 ''');
   }
 
@@ -1736,6 +1776,22 @@ void f() {
 ''');
   }
 
+  test_isReferencedBy_FieldElement_dotSorthandConstructorInvocation() async {
+    await _indexTestUnit('''
+class A {
+  A({this.field});
+  var field;
+}
+void foo() {
+  A _ = .new(field: 42);
+}
+''');
+    var element = findElement2.fieldFormalParameter('field');
+    assertElementIndexText(element, r'''
+70 6:14 |field| IS_REFERENCED_BY qualified
+''');
+  }
+
   test_isReferencedBy_FieldElement_enum() async {
     await _indexTestUnit('''
 enum E {
@@ -2070,6 +2126,21 @@ void f() {
     var element = findElement2.parameter('p');
     assertElementIndexText(element, r'''
 33 3:7 |p| IS_REFERENCED_BY qualified
+''');
+  }
+
+  test_isReferencedBy_ParameterElement_dotSorthandConstructorInvocation() async {
+    await _indexTestUnit('''
+class A {
+  A({p});
+}
+void foo() {
+  A _ = .new(p: 42);
+}
+''');
+    var element = findElement2.parameter('p');
+    assertElementIndexText(element, r'''
+48 5:14 |p| IS_REFERENCED_BY qualified
 ''');
   }
 

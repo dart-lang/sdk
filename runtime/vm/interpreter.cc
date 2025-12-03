@@ -432,12 +432,15 @@ DART_FORCE_INLINE bool Interpreter::IsTracingExecution() const {
 }
 
 // Prints bytecode instruction at given pc for instruction tracing.
-DART_NOINLINE void Interpreter::TraceInstruction(const KBCInstr* pc) const {
+DART_NOINLINE void Interpreter::TraceInstruction(const KBCInstr* pc,
+                                                 ObjectPtr* FP) const {
   THR_Print("%" Pu64 " ", icount_);
   if (FLAG_support_disassembler) {
+    auto const bytecode = Function::GetBytecode(FrameFunction(FP));
     KernelBytecodeDisassembler::Disassemble(
         reinterpret_cast<uword>(pc),
-        reinterpret_cast<uword>(KernelBytecode::Next(pc)));
+        reinterpret_cast<uword>(KernelBytecode::Next(pc)),
+        Bytecode::PayloadStartOf(bytecode));
   } else {
     THR_Print("Disassembler not supported in this mode.\n");
   }
@@ -692,6 +695,7 @@ DART_FORCE_INLINE bool Interpreter::InvokeBytecode(Thread* thread,
                                                    ObjectPtr** FP,
                                                    ObjectPtr** SP) {
   ASSERT(Function::HasBytecode(function));
+  ASSERT(Function::IsInterpreted(function));
 #if defined(DEBUG)
   if (IsTracingExecution()) {
     THR_Print("%" Pu64 " ", icount_);
@@ -726,7 +730,7 @@ DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
   FunctionPtr function = FrameFunction(callee_fp);
 
   for (;;) {
-    if (Function::HasBytecode(function)) {
+    if (Function::IsInterpreted(function)) {
       return InvokeBytecode(thread, function, call_base, call_top, pc, FP, SP);
     } else if (Function::HasCode(function)) {
       return InvokeCompiled(thread, function, call_base, call_top, pc, FP, SP);
@@ -849,7 +853,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
 #if defined(DEBUG)
 #define TRACE_INSTRUCTION                                                      \
   if (IsTracingExecution()) {                                                  \
-    TraceInstruction(pc);                                                      \
+    TraceInstruction(pc, FP);                                                  \
   }                                                                            \
   if (IsWritingTraceFile()) {                                                  \
     WriteInstructionToTrace(pc);                                               \
@@ -4161,7 +4165,7 @@ SwitchDispatchNoSingleStep:
     FunctionPtr function = Function::RawCast(SP[1]);
 
     for (;;) {
-      if (Function::HasBytecode(function)) {
+      if (Function::IsInterpreted(function)) {
         ASSERT(function->IsFunction());
         BytecodePtr bytecode = Function::GetBytecode(function);
         ASSERT(bytecode->IsBytecode());

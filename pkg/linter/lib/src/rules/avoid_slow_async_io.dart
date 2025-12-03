@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Avoid slow asynchronous `dart:io` methods.';
@@ -36,7 +37,7 @@ class AvoidSlowAsyncIo extends AnalysisRule {
     : super(name: LintNames.avoid_slow_async_io, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoidSlowAsyncIo;
+  DiagnosticCode get diagnosticCode => diag.avoidSlowAsyncIo;
 
   @override
   void registerNodeProcessors(

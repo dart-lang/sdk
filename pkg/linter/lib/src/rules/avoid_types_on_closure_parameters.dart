@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Avoid annotating types for function expression parameters.';
@@ -23,8 +24,7 @@ class AvoidTypesOnClosureParameters extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidTypesOnClosureParameters;
+  DiagnosticCode get diagnosticCode => diag.avoidTypesOnClosureParameters;
 
   @override
   List<String> get incompatibleRules => const [LintNames.always_specify_types];

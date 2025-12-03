@@ -963,6 +963,12 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitVariableInitialization(VariableInitialization node) {
+    visited.add(StatementKind.VariableInitialization);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitVariableStatement(VariableStatement node) {
     visited.add(StatementKind.VariableStatement);
     node.visitChildren(this);
@@ -975,12 +981,6 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void visitVariableInitialization(VariableInitialization node) {
-    visited.add(StatementKind.VariableInitialization);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitSwitchExpressionCase(SwitchExpressionCase node) {
     visited.add(NodeKind.SwitchExpressionCase);
     node.visitChildren(this);
@@ -989,18 +989,6 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitCatch(Catch node) {
     visited.add(NodeKind.Catch);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitNominalParameter(NominalParameter node) {
-    visited.add(NodeKind.NominalParameter);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitTypeVariable(TypeVariable node) {
-    visited.add(NodeKind.TypeVariable);
     node.visitChildren(this);
   }
 
@@ -1031,6 +1019,18 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitSyntheticVariable(SyntheticVariable node) {
     visited.add(NodeKind.SyntheticVariable);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitTypeVariable(TypeVariable node) {
+    visited.add(NodeKind.TypeVariable);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitNominalParameter(NominalParameter node) {
+    visited.add(NodeKind.NominalParameter);
     node.visitChildren(this);
   }
 

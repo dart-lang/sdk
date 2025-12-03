@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -212,10 +212,10 @@ typedef Predicate = bool <E>(E element);
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 20, 8),
-        error(CompileTimeErrorCode.nonTypeAsTypeArgument, 26, 1),
-        error(ParserErrorCode.expectedToken, 28, 1),
-        error(CompileTimeErrorCode.undefinedClass, 29, 1),
+        error(diag.wrongNumberOfTypeArguments, 20, 8),
+        error(diag.nonTypeAsTypeArgument, 26, 1),
+        error(diag.expectedToken, 28, 1),
+        error(diag.undefinedClass, 29, 1),
       ],
     );
   }

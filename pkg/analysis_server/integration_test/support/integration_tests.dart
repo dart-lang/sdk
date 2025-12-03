@@ -7,7 +7,6 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -111,7 +110,7 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
     with MockPackagesMixin, ConfigurationFilesMixin {
   /// Amount of time to give the server to respond to a shutdown request before
   /// forcibly terminating it.
-  static const Duration SHUTDOWN_TIMEOUT = Duration(seconds: 60);
+  static const Duration shutdownTimeout = Duration(seconds: 60);
 
   /// Connection to the analysis server.
   @override
@@ -288,7 +287,7 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
     // doesn't exit, then forcibly terminate it.
     sendServerShutdown();
     return server.exitCode.timeout(
-      SHUTDOWN_TIMEOUT,
+      shutdownTimeout,
       onTimeout: () {
         // The integer value of the exit code isn't used, but we have to return
         // an integer to keep the typing correct.

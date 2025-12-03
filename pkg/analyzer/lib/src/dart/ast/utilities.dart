@@ -66,7 +66,8 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     // Names do not have AstNodes but offsets at the end should be treated as
     // part of the declaration (not parameter list).
-    if (_startOffset == _endOffset && _startOffset == node.name.end) {
+    if (_startOffset == _endOffset &&
+        _startOffset == node.namePart.typeName.end) {
       _foundNode = node;
       return;
     }
@@ -78,10 +79,12 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     // Names do not have AstNodes but offsets at the end should be treated as
     // part of the declaration (not parameter list).
-    if (_startOffset == _endOffset &&
-        _startOffset == (node.name ?? node.returnType).end) {
-      _foundNode = node;
-      return;
+    if (_startOffset == _endOffset) {
+      var end = node.name?.end ?? node.typeName?.end;
+      if (end != null && _startOffset == end) {
+        _foundNode = node;
+        return;
+      }
     }
 
     super.visitConstructorDeclaration(node);
@@ -353,10 +356,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitClassDeclaration(covariant ClassDeclarationImpl node) {
-    if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterListImpl;
-      return true;
-    } else if (identical(node.extendsClause, _oldNode)) {
+    if (identical(node.extendsClause, _oldNode)) {
       node.extendsClause = _newNode as ExtendsClauseImpl;
       return true;
     } else if (identical(node.withClause, _oldNode)) {
@@ -364,8 +364,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
       return true;
     } else if (identical(node.implementsClause, _oldNode)) {
       node.implementsClause = _newNode as ImplementsClauseImpl;
-      return true;
-    } else if (_replaceInList(node.members)) {
       return true;
     }
     return visitAnnotatedNode(node);
@@ -460,10 +458,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
-    if (identical(node.returnType, _oldNode)) {
-      node.returnType = _newNode as IdentifierImpl;
-      return true;
-    } else if (identical(node.parameters, _oldNode)) {
+    if (identical(node.parameters, _oldNode)) {
       node.parameters = _newNode as FormalParameterListImpl;
       return true;
     } else if (identical(node.redirectedConstructor, _oldNode)) {
@@ -606,6 +601,16 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   bool visitEmptyStatement(EmptyStatement node) => visitNode(node);
 
   @override
+  bool? visitEnumBody(covariant EnumBodyImpl node) {
+    if (_replaceInList(node.constants)) {
+      return true;
+    } else if (_replaceInList(node.members)) {
+      return true;
+    }
+    return super.visitEnumBody(node);
+  }
+
+  @override
   bool visitEnumConstantArguments(EnumConstantArguments node) {
     throw UnimplementedError();
   }
@@ -619,18 +624,11 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitEnumDeclaration(covariant EnumDeclarationImpl node) {
-    if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterListImpl;
-      return true;
-    } else if (identical(node.withClause, _oldNode)) {
+    if (identical(node.withClause, _oldNode)) {
       node.withClause = _newNode as WithClauseImpl;
       return true;
     } else if (identical(node.implementsClause, _oldNode)) {
       node.implementsClause = _newNode as ImplementsClauseImpl;
-      return true;
-    } else if (_replaceInList(node.constants)) {
-      return true;
-    } else if (_replaceInList(node.members)) {
       return true;
     }
     return visitAnnotatedNode(node);
@@ -676,8 +674,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
       return true;
     } else if (identical(node.typeParameters, _oldNode)) {
       node.typeParameters = _newNode as TypeParameterListImpl;
-      return true;
-    } else if (_replaceInList(node.members)) {
       return true;
     }
     return visitNode(node);

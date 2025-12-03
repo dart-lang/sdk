@@ -2,18 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:_fe_analyzer_shared/src/base/errors.dart';
+library;
+
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
+import 'package:analyzer_utilities/analyzer_message_constant_style.dart';
+import 'package:analyzer_utilities/extensions/string.dart';
+import 'package:analyzer_utilities/located_error.dart';
 import 'package:analyzer_utilities/messages.dart';
 import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
-import 'package:yaml/yaml.dart' show YamlMap, YamlScalar, loadYamlNode;
+import 'package:yaml/yaml.dart'
+    show YamlMap, YamlScalar, loadYamlNode, YamlNode;
 
-const codesFile = GeneratedDiagnosticFile(
-  path: 'analyzer/lib/src/error/codes.g.dart',
-  parentLibrary: 'package:analyzer/src/error/codes.dart',
+/// Base diagnostic classes used for analyzer messages.
+const analyzerBaseClasses = DiagnosticBaseClasses(
+  requiresTypeArgument: true,
+  withArgumentsClass: 'DiagnosticWithArguments',
+  withExpectedTypesClass: 'DiagnosticCodeWithExpectedTypes',
+  withoutArgumentsClass: 'DiagnosticWithoutArguments',
+  withoutArgumentsImplClass: 'DiagnosticWithoutArgumentsImpl',
 );
 
 /// Information about all the classes derived from `DiagnosticCode` that are
@@ -23,78 +34,58 @@ const codesFile = GeneratedDiagnosticFile(
 /// Note: to look up an error class by name, use [DiagnosticClassInfo.byName].
 const List<DiagnosticClassInfo> diagnosticClasses = [
   linterLintCodeInfo,
-  GeneratedDiagnosticClassInfo(
-    file: optionCodesFile,
+  DiagnosticClassInfo(
     name: 'AnalysisOptionsErrorCode',
-    type: 'COMPILE_TIME_ERROR',
+    type: AnalyzerDiagnosticType.compileTimeError,
   ),
-  GeneratedDiagnosticClassInfo(
-    file: optionCodesFile,
+  DiagnosticClassInfo(
     name: 'AnalysisOptionsWarningCode',
-    type: 'STATIC_WARNING',
+    type: AnalyzerDiagnosticType.staticWarning,
   ),
-  GeneratedDiagnosticClassInfo(
-    file: codesFile,
+  DiagnosticClassInfo(
     name: 'CompileTimeErrorCode',
-    type: 'COMPILE_TIME_ERROR',
+    type: AnalyzerDiagnosticType.compileTimeError,
   ),
-  GeneratedDiagnosticClassInfo(
-    file: syntacticErrorsFile,
+  DiagnosticClassInfo(
     name: 'ScannerErrorCode',
-    type: 'SYNTACTIC_ERROR',
+    type: AnalyzerDiagnosticType.syntacticError,
   ),
-  GeneratedDiagnosticClassInfo(
-    file: codesFile,
+  DiagnosticClassInfo(
     name: 'StaticWarningCode',
-    type: 'STATIC_WARNING',
+    type: AnalyzerDiagnosticType.staticWarning,
   ),
-  GeneratedDiagnosticClassInfo(
-    file: codesFile,
+  DiagnosticClassInfo(
     name: 'WarningCode',
-    type: 'STATIC_WARNING',
+    type: AnalyzerDiagnosticType.staticWarning,
   ),
-  GeneratedDiagnosticClassInfo(
-    file: ffiCodesFile,
+  DiagnosticClassInfo(
     name: 'FfiCode',
-    type: 'COMPILE_TIME_ERROR',
+    type: AnalyzerDiagnosticType.compileTimeError,
   ),
-  GeneratedDiagnosticClassInfo(
-    file: hintCodesFile,
-    name: 'HintCode',
-    type: 'HINT',
-  ),
-  GeneratedDiagnosticClassInfo(
-    file: syntacticErrorsFile,
+  DiagnosticClassInfo(name: 'HintCode', type: AnalyzerDiagnosticType.hint),
+  DiagnosticClassInfo(
     name: 'ParserErrorCode',
-    type: 'SYNTACTIC_ERROR',
-    deprecatedSnakeCaseNames: {
-      'UNEXPECTED_TOKEN', // Referenced by `package:dart_style`.
-    },
+    type: AnalyzerDiagnosticType.syntacticError,
   ),
-  GeneratedDiagnosticClassInfo(
-    file: manifestWarningCodeFile,
+  DiagnosticClassInfo(
     name: 'ManifestWarningCode',
-    type: 'STATIC_WARNING',
+    type: AnalyzerDiagnosticType.staticWarning,
   ),
-  GeneratedDiagnosticClassInfo(
-    file: pubspecWarningCodeFile,
+  DiagnosticClassInfo(
     name: 'PubspecWarningCode',
-    type: 'STATIC_WARNING',
+    type: AnalyzerDiagnosticType.staticWarning,
   ),
-  GeneratedDiagnosticClassInfo(
-    file: todoCodesFile,
+  DiagnosticClassInfo(
     name: 'TodoCode',
-    type: 'TODO',
+    type: AnalyzerDiagnosticType.todo,
     comment: '''
 The error code indicating a marker in code for work that needs to be finished
 or revisited.
 ''',
   ),
-  GeneratedDiagnosticClassInfo(
-    file: transformSetErrorCodeFile,
+  DiagnosticClassInfo(
     name: 'TransformSetErrorCode',
-    type: 'COMPILE_TIME_ERROR',
-    package: AnalyzerDiagnosticPackage.analysisServer,
+    type: AnalyzerDiagnosticType.compileTimeError,
     comment: '''
 An error code representing a problem in a file containing an encoding of a
 transform set.
@@ -102,69 +93,35 @@ transform set.
   ),
 ];
 
-const ffiCodesFile = GeneratedDiagnosticFile(
-  path: 'analyzer/lib/src/dart/error/ffi_code.g.dart',
-  parentLibrary: 'package:analyzer/src/dart/error/ffi_code.dart',
+/// Base diagnostic classes used for lint messages.
+const linterBaseClasses = DiagnosticBaseClasses(
+  requiresTypeArgument: false,
+  withArgumentsClass: 'LinterLintTemplate',
+  withExpectedTypesClass: 'LinterLintCode',
+  withoutArgumentsClass: 'LinterLintWithoutArguments',
+  withoutArgumentsImplClass: 'LinterLintWithoutArguments',
 );
 
-const String generatedLintCodesPath = 'linter/lib/src/lint_codes.g.dart';
-
-const hintCodesFile = GeneratedDiagnosticFile(
-  path: 'analyzer/lib/src/dart/error/hint_codes.g.dart',
-  parentLibrary: 'package:analyzer/src/dart/error/hint_codes.dart',
-);
-
-const lintCodesFile = GeneratedDiagnosticFile(
-  path: generatedLintCodesPath,
-  parentLibrary: 'package:linter/src/lint_codes.dart',
-);
-
-const linterLintCodeInfo = GeneratedDiagnosticClassInfo(
-  file: lintCodesFile,
+const linterLintCodeInfo = DiagnosticClassInfo(
   name: 'LinterLintCode',
-  type: 'LINT',
-  package: AnalyzerDiagnosticPackage.linter,
+  type: AnalyzerDiagnosticType.lint,
 );
 
-const manifestWarningCodeFile = GeneratedDiagnosticFile(
-  path: 'analyzer/lib/src/manifest/manifest_warning_code.g.dart',
-  parentLibrary: 'package:analyzer/src/manifest/manifest_warning_code.dart',
+/// Decoded messages from the analysis server's `messages.yaml` file.
+final List<AnalyzerMessage> analysisServerMessages = decodeAnalyzerMessagesYaml(
+  analysisServerPkgPath,
+  package: AnalyzerDiagnosticPackage.analysisServer,
 );
 
-const optionCodesFile = GeneratedDiagnosticFile(
-  path: 'analyzer/lib/src/analysis_options/error/option_codes.g.dart',
-  parentLibrary:
-      'package:analyzer/src/analysis_options/error/option_codes.dart',
-);
-
-const pubspecWarningCodeFile = GeneratedDiagnosticFile(
-  path: 'analyzer/lib/src/pubspec/pubspec_warning_code.g.dart',
-  parentLibrary: 'package:analyzer/src/pubspec/pubspec_warning_code.dart',
-);
-
-const syntacticErrorsFile = GeneratedDiagnosticFile(
-  path: 'analyzer/lib/src/dart/error/syntactic_errors.g.dart',
-  parentLibrary: 'package:analyzer/src/dart/error/syntactic_errors.dart',
-);
-
-const todoCodesFile = GeneratedDiagnosticFile(
-  path: 'analyzer/lib/src/dart/error/todo_codes.g.dart',
-  parentLibrary: 'package:analyzer/src/dart/error/todo_codes.dart',
-);
-
-const transformSetErrorCodeFile = GeneratedDiagnosticFile(
-  path:
-      'analysis_server/lib/src/services/correction/fix/data_driven/'
-      'transform_set_error_code.g.dart',
-  parentLibrary:
-      'package:analysis_server/src/services/correction/fix/data_driven/'
-      'transform_set_error_code.dart',
-  shouldIgnorePreferSingleQuotes: true,
+/// The path to the `analysis_server` package.
+final String analysisServerPkgPath = normalize(
+  join(pkg_root.packageRoot, 'analysis_server'),
 );
 
 /// Decoded messages from the analyzer's `messages.yaml` file.
 final List<AnalyzerMessage> analyzerMessages = decodeAnalyzerMessagesYaml(
   analyzerPkgPath,
+  package: AnalyzerDiagnosticPackage.analyzer,
 );
 
 /// The path to the `analyzer` package.
@@ -179,6 +136,7 @@ final String linterPkgPath = normalize(join(pkg_root.packageRoot, 'linter'));
 final List<AnalyzerMessage> lintMessages = decodeAnalyzerMessagesYaml(
   linterPkgPath,
   allowLinterKeys: true,
+  package: AnalyzerDiagnosticPackage.linter,
 );
 
 /// Decodes a YAML object (in analyzer style `messages.yaml` format) into a list
@@ -189,6 +147,7 @@ final List<AnalyzerMessage> lintMessages = decodeAnalyzerMessagesYaml(
 List<AnalyzerMessage> decodeAnalyzerMessagesYaml(
   String packagePath, {
   bool allowLinterKeys = false,
+  required AnalyzerDiagnosticPackage package,
 }) {
   var path = join(packagePath, 'messages.yaml');
   var yaml = loadYamlNode(
@@ -237,14 +196,12 @@ List<AnalyzerMessage> decodeAnalyzerMessagesYaml(
         key: keyNode,
         value: diagnosticValue,
         decoder: (messageYaml) {
-          var analyzerCode = AnalyzerCode(
-            diagnosticClass: DiagnosticClassInfo.byName(className),
-            snakeCaseName: diagnosticName,
-          );
+          var analyzerCode = AnalyzerCode(snakeCaseName: diagnosticName);
           return AnalyzerMessage(
             messageYaml,
             analyzerCode: analyzerCode,
             allowLinterKeys: allowLinterKeys,
+            package: package,
           );
         },
       );
@@ -325,18 +282,16 @@ class AliasMessage extends AnalyzerMessage {
     required this.aliasFor,
     required super.analyzerCode,
     required super.allowLinterKeys,
+    required super.package,
   }) : super._();
 
   String get aliasForClass => aliasFor.split('.').first;
 
   @override
-  void toAnalyzerCode({
-    String? sharedNameReference,
-    required MemberAccumulator memberAccumulator,
-  }) {
+  void toAnalyzerCode({required MemberAccumulator memberAccumulator}) {
     var constant = StringBuffer();
     outputConstantHeader(constant);
-    constant.writeln('  static const $aliasForClass $constantName =');
+    constant.writeln('const $aliasForClass $constantName =');
     constant.writeln('$aliasFor;');
     memberAccumulator.constants[constantName] = constant.toString();
   }
@@ -344,7 +299,113 @@ class AliasMessage extends AnalyzerMessage {
 
 /// Enum representing the packages into which analyzer diagnostics can be
 /// generated.
-enum AnalyzerDiagnosticPackage { analyzer, analysisServer, linter }
+enum AnalyzerDiagnosticPackage {
+  analyzer(
+    diagnosticPathPart: 'src/diagnostic/diagnostic',
+    dirName: 'analyzer',
+    permittedTypes: {
+      .compileTimeError,
+      .hint,
+      .staticWarning,
+      .syntacticError,
+      .todo,
+    },
+  ),
+  analysisServer(
+    diagnosticPathPart: 'src/diagnostic',
+    dirName: 'analysis_server',
+    permittedTypes: {.compileTimeError},
+    shouldIgnorePreferSingleQuotes: true,
+  ),
+  linter(
+    diagnosticPathPart: 'src/diagnostic',
+    dirName: 'linter',
+    permittedTypes: {.lint},
+    shouldIgnorePreferExpressionFunctionBodies: true,
+    shouldIgnorePreferSingleQuotes: true,
+  );
+
+  /// The name of the subdirectory of `pkg` containing this package.
+  final String dirName;
+
+  /// The part of the path to the generated `diagnostic.g.dart` file that
+  /// follows the package's `lib` directory and precedes `diagnostic.g.dart`.
+  ///
+  /// For example, if [dirName] is `linter` and [diagnosticPathPart] is
+  /// `src/diagnostic`, then the full path to the generated `diagnostic.g.dart`
+  /// file will be `pkg/linter/lib/src/diagnostic/diagnostic.g.dart`.
+  final String diagnosticPathPart;
+
+  /// The set of [AnalyzerDiagnosticType]s that may be used in this package.
+  final Set<AnalyzerDiagnosticType> permittedTypes;
+
+  /// Whether code generated in this package needs an "ignore" comment to ignore
+  /// the `prefer_expression_function_bodies` lint.
+  final bool shouldIgnorePreferExpressionFunctionBodies;
+
+  /// Whether code generated in this package needs an "ignore" comment to ignore
+  /// the `prefer_single_quotes` lint.
+  final bool shouldIgnorePreferSingleQuotes;
+
+  const AnalyzerDiagnosticPackage({
+    required this.diagnosticPathPart,
+    required this.dirName,
+    required this.permittedTypes,
+    this.shouldIgnorePreferExpressionFunctionBodies = false,
+    this.shouldIgnorePreferSingleQuotes = false,
+  });
+
+  void writeIgnoresTo(StringBuffer out) {
+    if (shouldIgnorePreferExpressionFunctionBodies) {
+      out.write('''
+
+// Code generation is easier if we don't have to decide whether to generate an
+// expression function body or a block function body.
+// ignore_for_file: prefer_expression_function_bodies
+''');
+    }
+    if (shouldIgnorePreferSingleQuotes) {
+      out.write('''
+
+// Code generation is easier using double quotes (since we can use json.convert
+// to quote strings).
+// ignore_for_file: prefer_single_quotes
+''');
+    }
+    out.write('''
+
+// Generated comments don't quite align with flutter style.
+// ignore_for_file: flutter_style_todos
+''');
+  }
+}
+
+/// Enum representing the possible values for the [DiagnosticType] class.
+///
+/// Code generation logic uses this enum rather than [DiagnosticType] to avoid
+/// introducing dependencies between the code generator and the generated code.
+enum AnalyzerDiagnosticType {
+  compileTimeError,
+  hint,
+  lint(baseClasses: linterBaseClasses),
+  staticWarning,
+  syntacticError,
+  todo;
+
+  static final Map<String, AnalyzerDiagnosticType> _stringToValue = {
+    for (var value in values) value.name: value,
+  };
+
+  /// Base classes used for messages of this type.
+  final DiagnosticBaseClasses baseClasses;
+
+  const AnalyzerDiagnosticType({this.baseClasses = analyzerBaseClasses});
+
+  /// The representation of this type in analyzer source code.
+  String get code => 'DiagnosticType.${name.toSnakeCase().toUpperCase()}';
+
+  static AnalyzerDiagnosticType? fromString(String s) => _stringToValue[s];
+}
 
 /// In-memory representation of diagnostic information obtained from the
 /// analyzer's `messages.yaml` file.
@@ -355,10 +416,17 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
   @override
   final bool hasPublishedDocs;
 
+  @override
+  final AnalyzerDiagnosticPackage package;
+
+  @override
+  final AnalyzerDiagnosticType type;
+
   factory AnalyzerMessage(
     MessageYaml messageYaml, {
     required AnalyzerCode analyzerCode,
     required bool allowLinterKeys,
+    required AnalyzerDiagnosticPackage package,
   }) {
     if (messageYaml.getOptionalString('aliasFor') case var aliasFor?) {
       return AliasMessage(
@@ -366,12 +434,14 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
         aliasFor: aliasFor,
         analyzerCode: analyzerCode,
         allowLinterKeys: allowLinterKeys,
+        package: package,
       );
     } else {
       return AnalyzerMessage._(
         messageYaml,
         analyzerCode: analyzerCode,
         allowLinterKeys: allowLinterKeys,
+        package: package,
       );
     }
   }
@@ -380,7 +450,12 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
     MessageYaml messageYaml, {
     required this.analyzerCode,
     required bool allowLinterKeys,
+    required this.package,
   }) : hasPublishedDocs = messageYaml.getBool('hasPublishedDocs'),
+       type = messageYaml.get(
+         'type',
+         decode: MessageWithAnalyzerCode.decodeType,
+       ),
        super(messageYaml) {
     // Ignore extra keys related to analyzer example-based tests.
     messageYaml.allowExtraKeys({'experiment'});
@@ -391,11 +466,119 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
   }
 }
 
+/// Description of the set of base messages classes used for a certain message
+/// type.
+class DiagnosticBaseClasses {
+  /// Whether the constructor argument `type` must be passed to constructors
+  /// when constructing messages of this type.
+  final bool requiresTypeArgument;
+
+  /// The name of the concrete class used for messages of this type that require
+  /// arguments.
+  final String withArgumentsClass;
+
+  /// The name of the concrete class used for messages of this type that require
+  /// arguments but don't yet support the literate API.
+  // TODO(paulberry): finish supporting the literate API in all analyzer
+  // messages and eliminate this.
+  final String withExpectedTypesClass;
+
+  /// The name of the abstract class used for messages of this type that do not
+  /// require arguments.
+  final String withoutArgumentsClass;
+
+  /// The name of the concrete class used for messages of this type that do not
+  /// require arguments.
+  final String withoutArgumentsImplClass;
+
+  const DiagnosticBaseClasses({
+    required this.requiresTypeArgument,
+    required this.withArgumentsClass,
+    required this.withExpectedTypesClass,
+    required this.withoutArgumentsClass,
+    required this.withoutArgumentsImplClass,
+  });
+}
+
+/// Information about a class derived from `DiagnosticCode`.
+class DiagnosticClassInfo {
+  static final Map<String, DiagnosticClassInfo> _diagnosticClassesByName = () {
+    var result = <String, DiagnosticClassInfo>{};
+    for (var info in diagnosticClasses) {
+      if (result.containsKey(info.name)) {
+        throw 'Duplicate diagnostic class name: ${json.encode(info.name)}';
+      }
+      result[info.name] = info;
+    }
+    return result;
+  }();
+
+  static String get _allDiagnosticClassNames =>
+      (_diagnosticClassesByName.keys.toList()..sort())
+          .map(json.encode)
+          .join(', ');
+
+  /// The name of this class.
+  final String name;
+
+  /// The type of diagnostics in this class.
+  final AnalyzerDiagnosticType type;
+
+  /// Documentation comment to generate for the diagnostic class.
+  ///
+  /// If no documentation comment is needed, this should be the empty string.
+  final String comment;
+
+  const DiagnosticClassInfo({
+    required this.name,
+    required this.type,
+    this.comment = '',
+  });
+
+  static DiagnosticClassInfo byName(String name) =>
+      _diagnosticClassesByName[name] ??
+      (throw 'No diagnostic class named ${json.encode(name)}. Possible names: '
+          '$_allDiagnosticClassNames');
+}
+
 /// Interface class for diagnostic messages that have an analyzer code, and thus
 /// can be reported by the analyzer.
 mixin MessageWithAnalyzerCode on Message {
-  late final GeneratedDiagnosticClassInfo diagnosticClassInfo =
-      analyzerCode.diagnosticClass as GeneratedDiagnosticClassInfo;
+  late ConstantStyle constantStyle = () {
+    var usesParameters = [problemMessage, correctionMessage].any(
+      (value) =>
+          value != null && value.any((part) => part is TemplateParameterPart),
+    );
+    var baseClasses = type.baseClasses;
+    if (parameters.isNotEmpty && !usesParameters) {
+      throw 'Error code declares parameters using a `parameters` entry, but '
+          "doesn't use them";
+    } else if (parameters.values.any((p) => !p.type.isSupportedByAnalyzer)) {
+      // Do not generate literate API yet.
+      return OldConstantStyle(
+        concreteClassName: baseClasses.withExpectedTypesClass,
+        staticType: 'DiagnosticCode',
+      );
+    } else if (parameters.isNotEmpty) {
+      // Parameters are present so generate a diagnostic template (with
+      // `.withArguments` support).
+      var withArgumentsParams = parameters.entries
+          .map((p) => 'required ${p.value.type.analyzerName} ${p.key}')
+          .join(', ');
+      var templateParameters =
+          '<LocatableDiagnostic Function({$withArgumentsParams})>';
+      return WithArgumentsConstantStyle(
+        concreteClassName: baseClasses.withArgumentsClass,
+        staticType: 'DiagnosticWithArguments$templateParameters',
+        withArgumentsParams: withArgumentsParams,
+      );
+    } else {
+      return WithoutArgumentsConstantStyle(
+        concreteClassName: baseClasses.withoutArgumentsImplClass,
+        staticType: baseClasses.withoutArgumentsClass,
+      );
+    }
+  }();
 
   /// The code used by the analyzer to refer to this diagnostic message.
   AnalyzerCode get analyzerCode;
@@ -410,6 +593,12 @@ mixin MessageWithAnalyzerCode on Message {
   /// `null` if the YAML doesn't contain this information.
   bool get hasPublishedDocs;
 
+  /// The package into which this error code will be generated.
+  AnalyzerDiagnosticPackage get package;
+
+  /// The type of this diagnostic.
+  AnalyzerDiagnosticType get type;
+
   void outputConstantHeader(StringSink out) {
     out.write(toAnalyzerComments(indent: '  '));
     if (deprecatedMessage != null) {
@@ -421,63 +610,31 @@ mixin MessageWithAnalyzerCode on Message {
   /// in the diagnostic class [className].
   ///
   /// [diagnosticCode] is the name of the diagnostic to be generated.
-  void toAnalyzerCode({
-    String? sharedNameReference,
-    required MemberAccumulator memberAccumulator,
-  }) {
+  void toAnalyzerCode({required MemberAccumulator memberAccumulator}) {
     var diagnosticCode = analyzerCode.snakeCaseName;
     var correctionMessage = this.correctionMessage;
-    var parameters = this.parameters;
-    var usesParameters = [problemMessage, correctionMessage].any(
-      (value) =>
-          value != null && value.any((part) => part is TemplateParameterPart),
-    );
-    String className;
-    String templateParameters = '';
     String? withArgumentsName;
-    if (parameters.isNotEmpty && !usesParameters) {
-      throw 'Error code declares parameters using a `parameters` entry, but '
-          "doesn't use them";
-    } else if (parameters.values.any((p) => !p.type.isSupportedByAnalyzer)) {
-      // Do not generate literate API yet.
-      className = diagnosticClassInfo.name;
-    } else if (parameters.isNotEmpty) {
-      // Parameters are present so generate a diagnostic template (with
-      // `.withArguments` support).
-      className = diagnosticClassInfo.templateName;
-      var withArgumentsParams = parameters.entries
-          .map((p) => 'required ${p.value.type.analyzerName} ${p.key}')
-          .join(', ');
+    var baseClasses = type.baseClasses;
+    var ConstantStyle(:concreteClassName, :staticType) = constantStyle;
+    if (constantStyle case WithArgumentsConstantStyle(
+      :var withArgumentsParams,
+    )) {
       var argumentNames = parameters.keys.join(', ');
       withArgumentsName = '_withArguments${analyzerCode.pascalCaseName}';
-      templateParameters =
-          '<LocatableDiagnostic Function({$withArgumentsParams})>';
-      var newIfNeeded = diagnosticClassInfo.file.shouldUseExplicitNewOrConst
-          ? 'new '
-          : '';
       memberAccumulator.staticMethods[withArgumentsName] =
           '''
-static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
-  return ${newIfNeeded}LocatableDiagnosticImpl(
-    ${diagnosticClassInfo.name}.$constantName, [$argumentNames]);
+LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
+  return LocatableDiagnosticImpl(
+    ${analyzerCode.analyzerCodeReference}, [$argumentNames]);
 }''';
-    } else {
-      // Parameters are not present so generate a "withoutArguments" constant.
-      className = diagnosticClassInfo.withoutArgumentsName;
     }
 
     var constant = StringBuffer();
     outputConstantHeader(constant);
-    constant.writeln(
-      '  static const $className$templateParameters $constantName =',
-    );
-    if (diagnosticClassInfo.file.shouldUseExplicitNewOrConst) {
-      constant.writeln('const ');
-    }
-    constant.writeln('$className(');
-    constant.writeln(
-      'name: ${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
-    );
+    constant.writeln('const $staticType $constantName =');
+    constant.writeln('$concreteClassName(');
+    var name = sharedName?.snakeCaseName ?? diagnosticCode;
+    constant.writeln("name: '$name',");
     var maxWidth = 80 - 8 /* indentation */ - 2 /* quotes */ - 1 /* comma */;
     var messageAsCode = convertTemplate(problemMessage);
     var messageLines = _splitText(
@@ -500,28 +657,17 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     if (isUnresolvedIdentifier) {
       constant.writeln('isUnresolvedIdentifier:true,');
     }
-    if (sharedName != null) {
-      constant.writeln("uniqueName: '$diagnosticCode',");
+    if (baseClasses.requiresTypeArgument) {
+      constant.writeln('type: ${type.code},');
     }
-    String uniqueName = analyzerCode.toString().replaceFirst(
-      'LinterLintCode.',
-      'LintCode.',
-    );
-    constant.writeln("uniqueNameCheck: '$uniqueName',");
+    String uniqueName = analyzerCode.snakeCaseName;
+    constant.writeln("uniqueName: '$uniqueName',");
     if (withArgumentsName != null) {
       constant.writeln('withArguments: $withArgumentsName,');
     }
     constant.writeln('expectedTypes: ${_computeExpectedTypes()},');
     constant.writeln(');');
     memberAccumulator.constants[constantName] = constant.toString();
-
-    if (diagnosticClassInfo.deprecatedSnakeCaseNames.contains(diagnosticCode)) {
-      memberAccumulator.constants[diagnosticCode] =
-          '''
-  @Deprecated("Please use $constantName")
-  static const ${diagnosticClassInfo.name} $diagnosticCode = $constantName;
-''';
-    }
   }
 
   /// Generates doc comments for this error code.
@@ -578,4 +724,11 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     // But we also need to escape `$`.
     return jsonEncoded.replaceAll(r'$', r'\$');
   }
+
+  static AnalyzerDiagnosticType decodeType(YamlNode node) => switch (node) {
+    YamlScalar(:String value) =>
+      AnalyzerDiagnosticType.fromString(value) ??
+          (throw 'Unknown analyzer diagnostic type'),
+    _ => throw 'Must be a bool',
+  };
 }

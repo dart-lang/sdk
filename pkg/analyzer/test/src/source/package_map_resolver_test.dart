@@ -71,6 +71,25 @@ class _PackageMapUriResolverTest {
     }
   }
 
+  void test_pathToUri_nestedInLib() {
+    String rootPkgLib = convertPath('/root/lib');
+    String nestedPkgLib = convertPath('/root/lib/nested/lib');
+    String nestedPkgFile = convertPath('/root/lib/nested/lib/nested.dart');
+
+    provider.newFile(nestedPkgFile, '');
+
+    PackageMapUriResolver resolver = PackageMapUriResolver(
+      provider,
+      <String, List<Folder>>{
+        'root': <Folder>[provider.getFolder(rootPkgLib)],
+        'nested': <Folder>[provider.getFolder(nestedPkgLib)],
+      },
+    );
+
+    var uri = resolver.pathToUri(nestedPkgFile);
+    expect(uri, Uri.parse('package:nested/nested.dart'));
+  }
+
   void test_resolve_multiple_folders() {
     var a = provider.newFile(convertPath('/aaa/a.dart'), '');
     var b = provider.newFile(convertPath('/bbb/b.dart'), '');

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +22,7 @@ void f(List<(int,)> x) {
   for (var (a,) in x) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 37, 1)],
+      [error(diag.unusedLocalVariable, 37, 1)],
     );
   }
 
@@ -51,7 +51,7 @@ void f() {
   for (var (a,) = (0,);;) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 23, 1)],
+      [error(diag.unusedLocalVariable, 23, 1)],
     );
   }
 
@@ -81,8 +81,8 @@ void f(Object? x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 37, 1),
-        error(WarningCode.unusedLocalVariable, 47, 1),
+        error(diag.unusedLocalVariable, 37, 1),
+        error(diag.unusedLocalVariable, 47, 1),
       ],
     );
   }
@@ -104,7 +104,7 @@ void f(Object? x) {
   if (x case int a) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 37, 1)],
+      [error(diag.unusedLocalVariable, 37, 1)],
     );
   }
 
@@ -145,7 +145,7 @@ f() {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 46, 2)],
+      [error(diag.unusedLocalVariable, 46, 2)],
     );
   }
 
@@ -172,7 +172,7 @@ f() {
     ];
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 27, 2)],
+      [error(diag.unusedLocalVariable, 27, 2)],
     );
   }
 
@@ -185,8 +185,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 12, 2),
-        error(WarningCode.unusedLocalVariable, 26, 3),
+        error(diag.unusedLocalVariable, 12, 2),
+        error(diag.unusedLocalVariable, 26, 3),
       ],
     );
   }
@@ -206,7 +206,7 @@ f() {
   var [__] = [1];
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 13, 2)],
+      [error(diag.unusedLocalVariable, 13, 2)],
     );
   }
 
@@ -225,7 +225,7 @@ f() {
   var (__) = (1);
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 13, 2)],
+      [error(diag.unusedLocalVariable, 13, 2)],
     );
   }
 
@@ -246,7 +246,7 @@ void f(Object o) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 47, 2)],
+      [error(diag.unusedLocalVariable, 47, 2)],
     );
   }
 
@@ -268,8 +268,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 18, 1),
-        error(WarningCode.unusedLocalVariable, 21, 1),
+        error(diag.unusedLocalVariable, 18, 1),
+        error(diag.unusedLocalVariable, 21, 1),
       ],
     );
   }
@@ -282,8 +282,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 18, 1),
-        error(WarningCode.unusedLocalVariable, 22, 1),
+        error(diag.unusedLocalVariable, 18, 1),
+        error(diag.unusedLocalVariable, 22, 1),
       ],
     );
   }
@@ -299,8 +299,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 18, 1),
-        error(WarningCode.unusedLocalVariable, 21, 1),
+        error(diag.unusedLocalVariable, 18, 1),
+        error(diag.unusedLocalVariable, 21, 1),
       ],
     );
   }
@@ -312,7 +312,7 @@ void f() {
   var (a,) = (0,);
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 18, 1)],
+      [error(diag.unusedLocalVariable, 18, 1)],
     );
   }
 
@@ -362,7 +362,7 @@ Object? f(Object? x) {
   };
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 54, 1)],
+      [error(diag.unusedLocalVariable, 54, 1)],
     );
   }
 
@@ -398,7 +398,7 @@ void f(Object? x) {
   };
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 49, 1)],
+      [error(diag.unusedLocalVariable, 49, 1)],
     );
   }
 
@@ -436,8 +436,8 @@ void f(Object? x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 49, 1),
-        error(WarningCode.unusedLocalVariable, 68, 1),
+        error(diag.unusedLocalVariable, 49, 1),
+        error(diag.unusedLocalVariable, 68, 1),
       ],
     );
   }
@@ -465,7 +465,7 @@ void f(Object? x) {
   };
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 61, 1)],
+      [error(diag.unusedLocalVariable, 61, 1)],
     );
   }
 
@@ -480,13 +480,7 @@ void f(Object? x) {
   };
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.patternVariableSharedCaseScopeNotAllCases,
-          71,
-          1,
-        ),
-      ],
+      [error(diag.patternVariableSharedCaseScopeNotAllCases, 71, 1)],
     );
   }
 
@@ -501,7 +495,7 @@ void f(Object? x) {
   };
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 49, 1)],
+      [error(diag.unusedLocalVariable, 49, 1)],
     );
   }
 
@@ -528,7 +522,7 @@ void f(Object? x) {
   };
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 79, 1)],
+      [error(diag.unusedLocalVariable, 79, 1)],
     );
   }
 
@@ -552,7 +546,7 @@ main() {
   v = 2;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 15, 1)],
+      [error(diag.unusedLocalVariable, 15, 1)],
     );
   }
 
@@ -566,7 +560,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 28, 1)],
+      [error(diag.unusedLocalVariable, 28, 1)],
     );
   }
 
@@ -599,7 +593,7 @@ main() {
   v += 2;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 15, 1)],
+      [error(diag.unusedLocalVariable, 15, 1)],
     );
   }
 
@@ -611,7 +605,7 @@ main() {
   v++;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 15, 1)],
+      [error(diag.unusedLocalVariable, 15, 1)],
     );
   }
 
@@ -623,7 +617,7 @@ main() {
   ++v;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 15, 1)],
+      [error(diag.unusedLocalVariable, 15, 1)],
     );
   }
 

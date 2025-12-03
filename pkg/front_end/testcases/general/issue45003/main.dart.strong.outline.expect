@@ -23,7 +23,7 @@ abstract class Foo extends core::Object /*hasConstConstructor*/  {
   const constructor •() → foo::Foo
     : super core::Object::•()
     ;
-  static factory bar() → foo::Foo /* redirection-target: bar::Bar::•<dynamic>*/
+  static const factory bar() → foo::Foo /* redirection-target: bar::Bar::•<dynamic>*/
     return new bar::Bar::•<dynamic>();
 }
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -22,13 +22,13 @@ class DoStatementTest extends PartialCodeTest {
           'keyword',
           'do',
           [
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.expectedToken,
+            diag.expectedToken,
+            diag.expectedToken,
+            diag.expectedToken,
+            diag.expectedToken,
+            diag.missingIdentifier,
+            diag.expectedToken,
+            diag.expectedToken,
           ],
           "do {} while (_s_);",
           allFailing: true,
@@ -37,11 +37,11 @@ class DoStatementTest extends PartialCodeTest {
           'leftBrace',
           'do {',
           [
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.expectedToken,
+            diag.expectedToken,
+            diag.expectedToken,
+            diag.missingIdentifier,
+            diag.expectedToken,
+            diag.expectedToken,
           ],
           "do {} while (_s_);",
           failing: allExceptEof,
@@ -50,27 +50,23 @@ class DoStatementTest extends PartialCodeTest {
           'rightBrace',
           'do {}',
           [
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.expectedToken,
+            diag.expectedToken,
+            diag.missingIdentifier,
+            diag.expectedToken,
+            diag.expectedToken,
           ],
           "do {} while (_s_);",
           failing: ['while'],
         ),
         TestDescriptor('while', 'do {} while', [
-          ParserErrorCode.expectedToken,
-          ParserErrorCode.missingIdentifier,
-          ParserErrorCode.expectedToken,
+          diag.expectedToken,
+          diag.missingIdentifier,
+          diag.expectedToken,
         ], "do {} while (_s_);"),
         TestDescriptor(
           'leftParen',
           'do {} while (',
-          [
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.expectedToken,
-          ],
+          [diag.missingIdentifier, diag.expectedToken, diag.expectedToken],
           "do {} while (_s_);",
           failing: [
             'assert',
@@ -83,11 +79,11 @@ class DoStatementTest extends PartialCodeTest {
           ],
         ),
         TestDescriptor('condition', 'do {} while (a', [
-          ParserErrorCode.expectedToken,
-          ParserErrorCode.expectedToken,
+          diag.expectedToken,
+          diag.expectedToken,
         ], "do {} while (a);"),
         TestDescriptor('rightParen', 'do {} while (a)', [
-          ParserErrorCode.expectedToken,
+          diag.expectedToken,
         ], "do {} while (a);"),
       ],
       PartialCodeTest.statementSuffixes,

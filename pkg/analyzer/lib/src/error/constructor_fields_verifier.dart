@@ -7,7 +7,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 /// Verifier for initializing fields in constructors.
 class ConstructorFieldsVerifier {
@@ -73,7 +73,7 @@ class ConstructorFieldsVerifier {
     var fieldMap = <FieldElement, _InitState>{};
 
     for (var field in element.fields) {
-      if (field.isSynthetic) {
+      if (field.isOriginGetterSetter) {
         continue;
       }
       if (element is EnumElement && field.name == 'index') {
@@ -146,25 +146,20 @@ class _Constructor {
     var names = notInitFinalFields.map((f) => f.name).toList();
     names.sort();
 
-    if (names.length == 1) {
-      diagnosticReporter.atNode(
-        node.returnType,
-        CompileTimeErrorCode.finalNotInitializedConstructor1,
-        arguments: names,
-      );
-    } else if (names.length == 2) {
-      diagnosticReporter.atNode(
-        node.returnType,
-        CompileTimeErrorCode.finalNotInitializedConstructor2,
-        arguments: names,
-      );
-    } else {
-      diagnosticReporter.atNode(
-        node.returnType,
-        CompileTimeErrorCode.finalNotInitializedConstructor3Plus,
-        arguments: [names[0], names[1], names.length - 2],
-      );
-    }
+    var (code, arguments) = switch (names.length) {
+      1 => (diag.finalNotInitializedConstructor1, names),
+      2 => (diag.finalNotInitializedConstructor2, names),
+      _ => (
+        diag.finalNotInitializedConstructor3Plus,
+        [names[0], names[1], names.length - 2],
+      ),
+    };
+
+    diagnosticReporter.atConstructorDeclaration(
+      node,
+      code,
+      arguments: arguments,
+    );
   }
 
   void reportNotInitializedNonNullable(List<_Field> notInitNonNullableFields) {
@@ -176,9 +171,9 @@ class _Constructor {
     names.sort();
 
     for (var name in names) {
-      diagnosticReporter.atNode(
-        node.returnType,
-        CompileTimeErrorCode.notInitializedNonNullableInstanceFieldConstructor,
+      diagnosticReporter.atConstructorDeclaration(
+        node,
+        diag.notInitializedNonNullableInstanceFieldConstructor,
         arguments: [name],
       );
     }
@@ -203,19 +198,19 @@ class _Constructor {
             if (fieldElement.isFinal || fieldElement.isConst) {
               diagnosticReporter.atNode(
                 fieldName,
-                CompileTimeErrorCode
-                    .fieldInitializedInInitializerAndDeclaration,
+                diag.fieldInitializedInInitializerAndDeclaration,
               );
             }
+            fields[fieldElement] = _InitState.initInInitializer;
           } else if (state == _InitState.initInFieldFormal) {
             diagnosticReporter.atNode(
               fieldName,
-              CompileTimeErrorCode.fieldInitializedInParameterAndInitializer,
+              diag.fieldInitializedInParameterAndInitializer,
             );
           } else if (state == _InitState.initInInitializer) {
             diagnosticReporter.atNode(
               fieldName,
-              CompileTimeErrorCode.fieldInitializedByMultipleInitializers,
+              diag.fieldInitializedByMultipleInitializers,
               arguments: [fieldElement.displayName],
             );
           }
@@ -241,10 +236,11 @@ class _Constructor {
           if (fieldElement.isFinal || fieldElement.isConst) {
             diagnosticReporter.atToken(
               formalParameter.name,
-              CompileTimeErrorCode.finalInitializedInDeclarationAndConstructor,
+              diag.finalInitializedInDeclarationAndConstructor,
               arguments: [fieldElement.displayName],
             );
           }
+          fields[fieldElement] = _InitState.initInFieldFormal;
         } else if (state == _InitState.initInFieldFormal) {
           // Reported in DuplicateDefinitionVerifier._checkDuplicateIdentifier
         }

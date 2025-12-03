@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/ascii_utils.dart';
 
@@ -24,8 +25,7 @@ class AvoidUnusedConstructorParameters extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidUnusedConstructorParameters;
+  DiagnosticCode get diagnosticCode => diag.avoidUnusedConstructorParameters;
 
   @override
   void registerNodeProcessors(

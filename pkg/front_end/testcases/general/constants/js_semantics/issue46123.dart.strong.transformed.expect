@@ -19,7 +19,7 @@ import "package:js/js.dart";
 @#C2
 @#C3
 class ParallaxOptions extends core::Object {
-  external static factory •() → self::ParallaxOptions;
+  external static const factory •() → self::ParallaxOptions;
   static synthetic method _#new#tearOff() → self::ParallaxOptions
     return self::ParallaxOptions::•();
 }

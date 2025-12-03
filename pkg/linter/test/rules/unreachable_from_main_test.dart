@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -1694,7 +1695,7 @@ class B {
 ''',
       [
         lint(109, 1),
-        error(WarningCode.invalidWidgetPreviewApplication, 177, 7),
+        error(diag.invalidWidgetPreviewApplication, 177, 7),
         lint(196, 3),
       ],
     );
@@ -1729,7 +1730,7 @@ class B {
   const B();
 }
 ''',
-      [lint(70, 1), error(WarningCode.invalidWidgetPreviewApplication, 77, 7)],
+      [lint(70, 1), error(diag.invalidWidgetPreviewApplication, 77, 7)],
     );
   }
 
@@ -1749,7 +1750,7 @@ class B {
 ''',
       [
         lint(70, 1),
-        error(WarningCode.invalidWidgetPreviewApplication, 77, 7),
+        error(diag.invalidWidgetPreviewApplication, 77, 7),
         lint(122, 1),
       ],
     );
@@ -1779,10 +1780,10 @@ void _f6() {}
 ''',
       [
         lint(168, 1),
-        error(WarningCode.invalidWidgetPreviewApplication, 175, 7),
-        error(WarningCode.invalidWidgetPreviewApplication, 218, 7),
-        error(WarningCode.invalidWidgetPreviewApplication, 241, 7),
-        error(WarningCode.invalidWidgetPreviewApplication, 291, 7),
+        error(diag.invalidWidgetPreviewApplication, 175, 7),
+        error(diag.invalidWidgetPreviewApplication, 218, 7),
+        error(diag.invalidWidgetPreviewApplication, 241, 7),
+        error(diag.invalidWidgetPreviewApplication, 291, 7),
       ],
     );
   }
@@ -1797,7 +1798,7 @@ void main() {}
 @Preview()
 void f6() {}
 ''',
-      [error(WarningCode.invalidWidgetPreviewApplication, 65, 7)],
+      [error(diag.invalidWidgetPreviewApplication, 65, 7)],
     );
   }
 

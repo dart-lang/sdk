@@ -573,7 +573,7 @@ void MicroAssembler::fencei() {
 
 void MicroAssembler::ecall() {
   ASSERT(Supports(RV_I));
-  EmitIType(ECALL, ZR, F3_0, ZR, SYSTEM);
+  EmitIType(ECALL, ZR, PRIV, ZR, SYSTEM);
 }
 void MicroAssembler::ebreak() {
   ASSERT(Supports(RV_I));
@@ -581,11 +581,11 @@ void MicroAssembler::ebreak() {
     c_ebreak();
     return;
   }
-  EmitIType(EBREAK, ZR, F3_0, ZR, SYSTEM);
+  EmitIType(EBREAK, ZR, PRIV, ZR, SYSTEM);
 }
 void MicroAssembler::SimulatorPrintObject(Register rs1) {
   ASSERT(Supports(RV_I));
-  EmitIType(ECALL, rs1, F3_0, ZR, SYSTEM);
+  EmitIType(ECALL, rs1, PRIV, ZR, SYSTEM);
 }
 
 void MicroAssembler::csrrw(Register rd, uint32_t csr, Register rs1) {
@@ -1969,6 +1969,143 @@ void MicroAssembler::fleqd(Register rd, FRegister rs1, FRegister rs2) {
   EmitRType(FCMPD, rs2, rs1, FLEQ, rd, OPFP);
 }
 
+void MicroAssembler::mopr(intptr_t n, Register rd, Register rs1) {
+  ASSERT(Supports(RV_Zimop));
+  Emit32(EncodeMoprn(n) | EncodeFunct12(MOP_R) | EncodeRs1(rs1) |
+         EncodeFunct3(MOP) | EncodeRd(rd) | EncodeOpcode(SYSTEM));
+}
+
+void MicroAssembler::moprr(intptr_t n,
+                           Register rd,
+                           Register rs1,
+                           Register rs2) {
+  ASSERT(Supports(RV_Zimop));
+  Emit32(EncodeMoprrn(n) | EncodeFunct7(MOP_RR) | EncodeRs2(rs2) |
+         EncodeRs1(rs1) | EncodeFunct3(MOP) | EncodeRd(rd) |
+         EncodeOpcode(SYSTEM));
+}
+
+void MicroAssembler::cmop(intptr_t n) {
+  ASSERT(Supports(RV_Zcmop));
+  ASSERT(Utils::IsUint(4, n) && ((n & 1) == 1));
+  Emit16(C_LUI | EncodeCMopn(n));
+}
+
+void MicroAssembler::sspush(Register rs2) {
+  ASSERT((rs2 == Register(1)) || (rs2 == Register(5)));
+  if (Supports(RV_Zcmop) && (rs2 == Register(1))) {
+    cmop(1);
+  } else {
+    moprr(7, ZR, ZR, rs2);
+  }
+}
+
+void MicroAssembler::sspopchk(Register rs1) {
+  ASSERT((rs1 == Register(1)) || (rs1 == Register(5)));
+  if (Supports(RV_Zcmop) && (rs1 == Register(5))) {
+    cmop(5);
+  } else {
+    mopr(28, ZR, rs1);
+  }
+}
+
+void MicroAssembler::ssrdp(Register rd) {
+  mopr(28, rd, ZR);
+}
+
+void MicroAssembler::ssamoswapw(Register rd,
+                                Register rs2,
+                                Address addr,
+                                std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zicfiss));
+  EmitRType(SSAMOSWAP, order, rs2, addr.base(), WIDTH32, rd, AMO);
+}
+
+#if XLEN >= 64
+void MicroAssembler::ssamoswapd(Register rd,
+                                Register rs2,
+                                Address addr,
+                                std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zicfiss));
+  EmitRType(SSAMOSWAP, order, rs2, addr.base(), WIDTH64, rd, AMO);
+}
+#endif  // XLEN >= 64
+
+void MicroAssembler::vsetvli(Register rd,
+                             Register rs1,
+                             ElementWidth sew,
+                             LengthMultiplier lmul,
+                             TailMode vta,
+                             MaskMode vma) {
+  ASSERT(Supports(RV_V));
+  intx_t vtypei = (vma << 7) | (vta << 6) | (sew << 3) | (lmul << 0);
+  EmitIType(vtypei, rs1, OPCFG, rd, OPV);
+}
+
+void MicroAssembler::vle8v(VRegister vd, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(LOADFP) | EncodeVd(vd) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E8) | vm);
+}
+
+void MicroAssembler::vle16v(VRegister vd, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(LOADFP) | EncodeVd(vd) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E16) | vm);
+}
+
+void MicroAssembler::vle32v(VRegister vd, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(LOADFP) | EncodeVd(vd) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E32) | vm);
+}
+
+void MicroAssembler::vle64v(VRegister vd, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(LOADFP) | EncodeVd(vd) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E64) | vm);
+}
+
+void MicroAssembler::vse8v(VRegister vs3, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(STOREFP) | EncodeVs3(vs3) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E8) | vm);
+}
+
+void MicroAssembler::vse16v(VRegister vs3, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(STOREFP) | EncodeVs3(vs3) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E16) | vm);
+}
+
+void MicroAssembler::vse32v(VRegister vs3, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(STOREFP) | EncodeVs3(vs3) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E32) | vm);
+}
+
+void MicroAssembler::vse64v(VRegister vs3, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(STOREFP) | EncodeVs3(vs3) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E64) | vm);
+}
+
+void MicroAssembler::vmvvx(VRegister vd, Register rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  Emit32(EncodeOpcode(OPV) | EncodeVd(vd) | EncodeRs1(rs1) |
+         EncodeFunct3(OPIVX) | EncodeFunct6(VMV) | vm);
+}
+
 void MicroAssembler::lb(Register rd, Address addr, std::memory_order order) {
   ASSERT(addr.offset() == 0);
   ASSERT((order == std::memory_order_acquire) ||
@@ -2032,6 +2169,43 @@ void MicroAssembler::sd(Register rs2, Address addr, std::memory_order order) {
          (order == std::memory_order_acq_rel));
   ASSERT(Supports(RV_Zalasr));
   EmitRType(STOREORDERED, order, rs2, addr.base(), WIDTH64, ZR, AMO);
+}
+#endif
+
+void MicroAssembler::amocasw(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zacas));
+  EmitRType(AMOCAS, order, rs2, addr.base(), WIDTH32, rd, AMO);
+}
+
+void MicroAssembler::amocasd(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+#if XLEN == 32
+  ASSERT((rd % 2) == 0);
+  ASSERT((rs2 % 2) == 0);
+#endif
+  ASSERT(Supports(RV_Zacas));
+  EmitRType(AMOCAS, order, rs2, addr.base(), WIDTH64, rd, AMO);
+}
+
+#if XLEN >= 64
+void MicroAssembler::amocasq(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+#if XLEN == 64
+  ASSERT((rd % 2) == 0);
+  ASSERT((rs2 % 2) == 0);
+#endif
+  ASSERT(Supports(RV_Zacas));
+  EmitRType(AMOCAS, order, rs2, addr.base(), WIDTH128, rd, AMO);
 }
 #endif
 
@@ -2187,6 +2361,7 @@ void MicroAssembler::c_lui(Register rd, uintptr_t imm) {
   ASSERT(Supports(RV_C));
   ASSERT(rd != ZR);
   ASSERT(rd != SP);
+  ASSERT(imm != 0);
   Emit16(C_LUI | EncodeCRd(rd) | EncodeCUImm(imm));
 }
 
@@ -2743,6 +2918,20 @@ void MicroAssembler::EmitR4Type(FRegister rs3,
   e |= EncodeFRs1(rs1);
   e |= EncodeRoundingMode(round);
   e |= EncodeFRd(rd);
+  e |= EncodeOpcode(opcode);
+  Emit32(e);
+}
+
+void MicroAssembler::EmitIType(Funct12 funct12,
+                               Register rs1,
+                               Funct3 funct3,
+                               Register rd,
+                               Opcode opcode) {
+  uint32_t e = 0;
+  e |= EncodeFunct12(funct12);
+  e |= EncodeRs1(rs1);
+  e |= EncodeFunct3(funct3);
+  e |= EncodeRd(rd);
   e |= EncodeOpcode(opcode);
   Emit32(e);
 }

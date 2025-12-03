@@ -9,7 +9,7 @@ import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analysis_server_plugin/src/correction/fix_in_file_processor.dart';
 import 'package:analysis_server_plugin/src/correction/ignore_diagnostic.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
@@ -152,9 +152,9 @@ class FixProcessor {
       }
     }
 
-    if (diagnosticCode is LintCode ||
-        diagnosticCode is HintCode ||
-        diagnosticCode is WarningCode) {
+    if (diagnosticCode.type == DiagnosticType.LINT ||
+        diagnosticCode.type == DiagnosticType.HINT ||
+        diagnosticCode.type == DiagnosticType.STATIC_WARNING) {
       for (var generator in registeredFixGenerators.ignoreProducerGenerators) {
         var producer = generator(context: context);
         if (producer.fixKind == ignoreErrorAnalysisFileKind) {

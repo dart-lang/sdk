@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Remove unnecessary backslashes in strings.';
 
@@ -22,7 +23,7 @@ class UnnecessaryStringEscapes extends AnalysisRule {
   bool get canUseParsedResult => true;
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryStringEscapes;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryStringEscapes;
 
   @override
   void registerNodeProcessors(

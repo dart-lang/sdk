@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -186,8 +186,8 @@ abstract class C extends A {
 void Function() f(A a, bool b, C c, dynamic d) => b ? d : c ?? a;
 ''',
       [
-        error(WarningCode.deadCode, 127, 4),
-        error(StaticWarningCode.deadNullAwareExpression, 130, 1),
+        error(diag.deadCode, 127, 4),
+        error(diag.deadNullAwareExpression, 130, 1),
       ],
     );
     // `c` is on the LHS of an if-null expression, so implicit call tearoff
@@ -616,7 +616,7 @@ class A {
 }
 Function f<X extends A, Y extends X?>(Y y) => y;
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 75, 1)],
+      [error(diag.returnOfInvalidTypeFromFunction, 75, 1)],
     );
 
     // Verify that no ImplicitCallReference was inserted.
@@ -637,7 +637,7 @@ class A {
 }
 Function f<X extends A>(X? x) => x;
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 62, 1)],
+      [error(diag.returnOfInvalidTypeFromFunction, 62, 1)],
     );
 
     // Verify that no ImplicitCallReference was inserted.
@@ -878,7 +878,7 @@ void f() {
   X(0);
 }
 ''',
-      [error(CompileTimeErrorCode.invocationOfNonFunction, 33, 1)],
+      [error(diag.invocationOfNonFunction, 33, 1)],
     );
 
     // Not rewritten.
@@ -953,7 +953,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
+          diag.wrongNumberOfTypeArgumentsConstructor,
           50,
           5,
           messageContains: ["The constructor 'prefix.A.named'"],
@@ -1022,7 +1022,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
+          diag.wrongNumberOfTypeArgumentsConstructor,
           48,
           5,
           messageContains: ["The constructor 'prefix.A.new'"],
@@ -1233,7 +1233,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
+          diag.wrongNumberOfTypeArgumentsConstructor,
           52,
           13,
           messageContains: ["The constructor 'A.named'"],
@@ -1299,7 +1299,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
+          diag.wrongNumberOfTypeArgumentsConstructor,
           48,
           13,
           messageContains: ["The constructor 'A.new'"],
@@ -1606,7 +1606,7 @@ void f() {
   C.new = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 27, 3)],
+      [error(diag.undefinedSetter, 27, 3)],
     );
 
     var identifier = findNode.prefixed('C.new');

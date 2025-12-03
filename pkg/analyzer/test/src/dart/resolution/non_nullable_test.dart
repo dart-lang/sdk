@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -67,9 +67,9 @@ FieldDeclaration
     variables
       VariableDeclaration
         name: f
-        declaredElement: <testLibraryFragment> f@51
+        declaredFragment: <testLibraryFragment> f@51
   semicolon: ;
-  declaredElement: <null>
+  declaredFragment: <null>
 ''');
   }
 
@@ -92,8 +92,8 @@ main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 16, 1),
-        error(WarningCode.unusedLocalVariable, 29, 1),
+        error(diag.unusedLocalVariable, 16, 1),
+        error(diag.unusedLocalVariable, 29, 1),
       ],
     );
 
@@ -112,10 +112,10 @@ main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 23, 1),
-        error(WarningCode.unusedLocalVariable, 44, 1),
-        error(WarningCode.unusedLocalVariable, 65, 1),
-        error(WarningCode.unusedLocalVariable, 85, 1),
+        error(diag.unusedLocalVariable, 23, 1),
+        error(diag.unusedLocalVariable, 44, 1),
+        error(diag.unusedLocalVariable, 65, 1),
+        error(diag.unusedLocalVariable, 85, 1),
       ],
     );
 
@@ -169,8 +169,8 @@ void f<T>(T a) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 21, 1),
-        error(WarningCode.unusedLocalVariable, 33, 1),
+        error(diag.unusedLocalVariable, 21, 1),
+        error(diag.unusedLocalVariable, 33, 1),
       ],
     );
 
@@ -185,7 +185,7 @@ main() {
   int? Function(bool, String?)? a;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 41, 1)],
+      [error(diag.unusedLocalVariable, 41, 1)],
     );
 
     assertType(
@@ -201,7 +201,7 @@ main() {
   f(int? a, int b) {}
 }
 ''',
-      [error(WarningCode.unusedElement, 11, 1)],
+      [error(diag.unusedElement, 11, 1)],
     );
 
     assertType(findNode.namedType('int? a'), 'int?');
@@ -216,10 +216,7 @@ main() {
   int g() => 0;
 }
 ''',
-      [
-        error(WarningCode.unusedElement, 16, 1),
-        error(WarningCode.unusedElement, 32, 1),
-      ],
+      [error(diag.unusedElement, 16, 1), error(diag.unusedElement, 32, 1)],
     );
 
     assertType(findNode.namedType('int? f'), 'int?');
@@ -270,7 +267,7 @@ FormalParameterList
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: <testLibraryFragment> p1@13
+    declaredFragment: <testLibraryFragment> p1@13
       element: isPublic
         type: void Function()
   rightParenthesis: )
@@ -290,7 +287,7 @@ FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
     question: ?
-    declaredElement: <testLibraryFragment> p2@35
+    declaredFragment: <testLibraryFragment> p2@35
       element: isPublic
         type: void Function()?
   rightParenthesis: )
@@ -312,10 +309,10 @@ FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
       question: ?
-      declaredElement: <testLibraryFragment> p3@59
+      declaredFragment: <testLibraryFragment> p3@59
         element: isPublic
           type: void Function()?
-    declaredElement: <testLibraryFragment> p3@59
+    declaredFragment: <testLibraryFragment> p3@59
       element: isPublic
         type: void Function()?
   rightDelimiter: }
@@ -350,9 +347,10 @@ FormalParameterList
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: <testLibraryFragment> f1@57
+    declaredFragment: <testLibraryFragment> f1@57
       element: isFinal isPublic
         type: void Function()
+        field: <testLibrary>::@class::A::@field::f1
   rightParenthesis: )
 ''');
 
@@ -372,9 +370,10 @@ FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
     question: ?
-    declaredElement: <testLibraryFragment> f2@81
+    declaredFragment: <testLibraryFragment> f2@81
       element: isFinal isPublic
         type: void Function()?
+        field: <testLibrary>::@class::A::@field::f2
   rightParenthesis: )
 ''');
 
@@ -396,12 +395,14 @@ FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
       question: ?
-      declaredElement: <testLibraryFragment> f3@107
+      declaredFragment: <testLibraryFragment> f3@107
         element: isFinal isPublic
           type: void Function()?
-    declaredElement: <testLibraryFragment> f3@107
+          field: <testLibrary>::@class::A::@field::f3
+    declaredFragment: <testLibraryFragment> f3@107
       element: isFinal isPublic
         type: void Function()?
+        field: <testLibrary>::@class::A::@field::f3
   rightDelimiter: }
   rightParenthesis: )
 ''');
@@ -417,9 +418,9 @@ f() {
 }
 ''',
       [
-        error(WarningCode.unusedElement, 13, 2),
-        error(WarningCode.unusedElement, 37, 2),
-        error(WarningCode.unusedElement, 62, 2),
+        error(diag.unusedElement, 13, 2),
+        error(diag.unusedElement, 37, 2),
+        error(diag.unusedElement, 62, 2),
       ],
     );
 
@@ -436,7 +437,7 @@ FormalParameterList
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: <testLibraryFragment> p1@21
+    declaredFragment: <testLibraryFragment> p1@21
       element: isPublic
         type: void Function()
   rightParenthesis: )
@@ -456,7 +457,7 @@ FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
     question: ?
-    declaredElement: <testLibraryFragment> p2@45
+    declaredFragment: <testLibraryFragment> p2@45
       element: isPublic
         type: void Function()?
   rightParenthesis: )
@@ -478,10 +479,10 @@ FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
       question: ?
-      declaredElement: <testLibraryFragment> p3@71
+      declaredFragment: <testLibraryFragment> p3@71
         element: isPublic
           type: void Function()?
-    declaredElement: <testLibraryFragment> p3@71
+    declaredFragment: <testLibraryFragment> p3@71
       element: isPublic
         type: void Function()?
   rightDelimiter: }
@@ -584,7 +585,7 @@ main() {
   F? a;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 50, 1)],
+      [error(diag.unusedLocalVariable, 50, 1)],
     );
 
     assertType(findNode.namedType('F? a'), 'int? Function(bool, String?)?');
@@ -599,7 +600,7 @@ main() {
   F<String>? a;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 66, 1)],
+      [error(diag.unusedLocalVariable, 66, 1)],
     );
 
     assertType(
@@ -630,8 +631,8 @@ main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 52, 1),
-        error(WarningCode.unusedLocalVariable, 68, 1),
+        error(diag.unusedLocalVariable, 52, 1),
+        error(diag.unusedLocalVariable, 68, 1),
       ],
     );
 

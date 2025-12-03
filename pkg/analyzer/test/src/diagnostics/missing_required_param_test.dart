@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,7 +25,7 @@ class A {
 @A.named()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.missingRequiredArgument, 51, 5)],
+      [error(diag.missingRequiredArgument, 51, 5)],
     );
   }
 
@@ -40,7 +39,7 @@ class A {
 @A()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.missingRequiredArgument, 43, 1)],
+      [error(diag.missingRequiredArgument, 43, 1)],
     );
   }
 
@@ -58,7 +57,7 @@ import 'a.dart' as a;
 @a.A.named()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.missingRequiredArgument, 28, 5)],
+      [error(diag.missingRequiredArgument, 28, 5)],
     );
   }
 
@@ -76,7 +75,7 @@ import 'a.dart' as a;
 @a.A()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.missingRequiredArgument, 26, 1)],
+      [error(diag.missingRequiredArgument, 26, 1)],
     );
   }
 
@@ -104,13 +103,9 @@ void f() {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.initializingFormalForNonExistentField,
-          15,
-          14,
-        ),
-        error(ParserErrorCode.missingIdentifier, 29, 1),
-        error(ParserErrorCode.missingFunctionBody, 32, 1),
+        error(diag.initializingFormalForNonExistentField, 15, 14),
+        error(diag.missingIdentifier, 29, 1),
+        error(diag.missingFunctionBody, 32, 1),
       ],
     );
   }
@@ -125,7 +120,7 @@ main() {
   new C();
 }
 ''',
-      [error(CompileTimeErrorCode.missingRequiredArgument, 52, 1)],
+      [error(diag.missingRequiredArgument, 52, 1)],
     );
   }
 
@@ -137,7 +132,7 @@ class C {
   C.named() : this();
 }
 ''',
-      [error(CompileTimeErrorCode.missingRequiredArgument, 47, 6)],
+      [error(diag.missingRequiredArgument, 47, 6)],
     );
   }
 
@@ -152,7 +147,7 @@ class D extends C {
   D() : super();
 }
 ''',
-      [error(CompileTimeErrorCode.missingRequiredArgument, 66, 7)],
+      [error(diag.missingRequiredArgument, 66, 7)],
     );
   }
 
@@ -176,7 +171,7 @@ enum E {
   const E({required int a});
 }
 ''',
-      [error(CompileTimeErrorCode.missingRequiredArgument, 11, 1)],
+      [error(diag.missingRequiredArgument, 11, 1)],
     );
   }
 
@@ -188,7 +183,7 @@ enum E {
   const E({required int a});
 }
 ''',
-      [error(CompileTimeErrorCode.missingRequiredArgument, 11, 1)],
+      [error(diag.missingRequiredArgument, 11, 1)],
     );
   }
 
@@ -201,7 +196,7 @@ main() {
   f();
 }
 ''',
-      [error(CompileTimeErrorCode.missingRequiredArgument, 40, 1)],
+      [error(diag.missingRequiredArgument, 40, 1)],
     );
   }
 
@@ -214,7 +209,7 @@ main() {
   f.call();
 }
 ''',
-      [error(CompileTimeErrorCode.missingRequiredArgument, 46, 2)],
+      [error(diag.missingRequiredArgument, 46, 2)],
     );
   }
 
@@ -226,7 +221,7 @@ g() {
   f()();
 }
 ''',
-      [error(CompileTimeErrorCode.missingRequiredArgument, 57, 5)],
+      [error(diag.missingRequiredArgument, 57, 5)],
     );
   }
 
@@ -240,7 +235,7 @@ f() {
   new A().m();
 }
 ''',
-      [error(CompileTimeErrorCode.missingRequiredArgument, 58, 1)],
+      [error(diag.missingRequiredArgument, 58, 1)],
     );
   }
 
@@ -257,7 +252,7 @@ f() {
   new A().m();
 }
 ''',
-      [error(CompileTimeErrorCode.missingRequiredArgument, 37, 1)],
+      [error(diag.missingRequiredArgument, 37, 1)],
     );
   }
 
@@ -272,7 +267,7 @@ class C {
   F m() => ({required String x}) => throw '';
 }
 ''',
-      [error(CompileTimeErrorCode.missingRequiredArgument, 20, 7)],
+      [error(diag.missingRequiredArgument, 20, 7)],
     );
   }
 }

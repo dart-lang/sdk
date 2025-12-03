@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'recovery_test_support.dart';
@@ -35,13 +35,11 @@ List<String> fruits = const <String>['apples', 'bananas', 'pears'];
       '''
 const default = const Object();
 ''',
-      [ParserErrorCode.expectedIdentifierButGotKeyword],
+      [diag.expectedIdentifierButGotKeyword],
       '''
 const default = const Object();
 ''',
-      expectedDiagnosticsInValidCode: [
-        ParserErrorCode.expectedIdentifierButGotKeyword,
-      ],
+      expectedDiagnosticsInValidCode: [diag.expectedIdentifierButGotKeyword],
     );
   }
 
@@ -53,7 +51,7 @@ f() {
   return <g('')>[0, 1, 2];
 }
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 f() {
   return <g>[0, 1, 2];
@@ -70,7 +68,7 @@ f() {
   return <test('', (){})>[0, 1, 2];
 }
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 f() {
   return <test>[0, 1, 2];
@@ -90,7 +88,7 @@ f() {
   return <test('', (){});>[0, 1, 2];
 }
 ''',
-      [ParserErrorCode.unexpectedToken],
+      [diag.unexpectedToken],
       '''
 f() {
   return _s_ < test('', (){}); _s_ > [0, 1, 2];
@@ -107,16 +105,14 @@ g() {
   f(with: 3);
 }
 ''',
-      [ParserErrorCode.expectedIdentifierButGotKeyword],
+      [diag.expectedIdentifierButGotKeyword],
       '''
 f() {}
 g() {
   f(with: 3);
 }
 ''',
-      expectedDiagnosticsInValidCode: [
-        ParserErrorCode.expectedIdentifierButGotKeyword,
-      ],
+      expectedDiagnosticsInValidCode: [diag.expectedIdentifierButGotKeyword],
     );
   }
 

@@ -397,8 +397,22 @@ class TypesBuilder {
 
   void _simpleFormalParameter(SimpleFormalParameterImpl node) {
     var fragment = node.declaredFragment!;
-    if (fragment.previousFragment == null) {
-      fragment.element.type = node.type?.type ?? _dynamicType;
+    if (fragment.previousFragment != null) {
+      return;
+    }
+
+    var element = fragment.element;
+
+    var typeAnnotation = node.type;
+    if (typeAnnotation == null) {
+      // For a declaring formal parameter the type will be inferred from
+      // the field type via instance inference, or from the default value.
+      if (element is FieldFormalParameterElementImpl && element.isDeclaring) {
+        return;
+      }
+      element.type = _dynamicType;
+    } else {
+      element.type = typeAnnotation.typeOrThrow;
     }
   }
 

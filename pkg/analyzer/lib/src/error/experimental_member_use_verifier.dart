@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/element_usage_detector.dart';
 
 /// Instance of [ElementUsageReporter] for reporting uses of experimental
@@ -29,7 +29,7 @@ class ExperimentalElementUsageReporter implements ElementUsageReporter<()> {
 
     _diagnosticReporter.atEntity(
       errorEntity,
-      WarningCode.experimentalMemberUse,
+      diag.experimentalMemberUse,
       arguments: [displayName],
     );
   }

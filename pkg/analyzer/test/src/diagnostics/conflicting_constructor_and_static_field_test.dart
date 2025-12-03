@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -33,7 +33,7 @@ class C {
   static int foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingConstructorAndStaticField, 14, 3)],
+      [error(diag.conflictingConstructorAndStaticField, 14, 3)],
     );
   }
 
@@ -45,13 +45,7 @@ class C {
   static int get foo => 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.conflictingConstructorAndStaticGetter,
-          14,
-          3,
-        ),
-      ],
+      [error(diag.conflictingConstructorAndStaticGetter, 14, 3)],
     );
   }
 
@@ -64,13 +58,7 @@ class C {
   static set foo(_) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.conflictingConstructorAndStaticGetter,
-          14,
-          3,
-        ),
-      ],
+      [error(diag.conflictingConstructorAndStaticGetter, 14, 3)],
     );
   }
 
@@ -93,13 +81,7 @@ class C {
   static void set foo(_) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.conflictingConstructorAndStaticSetter,
-          14,
-          3,
-        ),
-      ],
+      [error(diag.conflictingConstructorAndStaticSetter, 14, 3)],
     );
   }
 
@@ -111,7 +93,7 @@ enum E {
   const E.foo();
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingConstructorAndStaticField, 32, 3)],
+      [error(diag.conflictingConstructorAndStaticField, 32, 3)],
     );
   }
 
@@ -134,7 +116,7 @@ enum E {
   static int foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingConstructorAndStaticField, 30, 3)],
+      [error(diag.conflictingConstructorAndStaticField, 30, 3)],
     );
   }
 
@@ -147,13 +129,7 @@ enum E {
   static int get foo => 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.conflictingConstructorAndStaticGetter,
-          30,
-          3,
-        ),
-      ],
+      [error(diag.conflictingConstructorAndStaticGetter, 30, 3)],
     );
   }
 
@@ -166,13 +142,7 @@ enum E {
   static void set foo(_) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.conflictingConstructorAndStaticSetter,
-          30,
-          3,
-        ),
-      ],
+      [error(diag.conflictingConstructorAndStaticSetter, 30, 3)],
     );
   }
 
@@ -191,7 +161,7 @@ extension type A.foo(int it) {
   static int foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingConstructorAndStaticField, 17, 3)],
+      [error(diag.conflictingConstructorAndStaticField, 17, 3)],
     );
   }
 
@@ -203,7 +173,7 @@ extension type A(int it) {
   static int foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingConstructorAndStaticField, 31, 3)],
+      [error(diag.conflictingConstructorAndStaticField, 31, 3)],
     );
   }
 
@@ -214,13 +184,7 @@ extension type A.foo(int it) {
   static int get foo => 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.conflictingConstructorAndStaticGetter,
-          17,
-          3,
-        ),
-      ],
+      [error(diag.conflictingConstructorAndStaticGetter, 17, 3)],
     );
   }
 
@@ -231,13 +195,7 @@ extension type A.foo(int it) {
   static void set foo(_) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.conflictingConstructorAndStaticSetter,
-          17,
-          3,
-        ),
-      ],
+      [error(diag.conflictingConstructorAndStaticSetter, 17, 3)],
     );
   }
 }

@@ -4,16 +4,21 @@
   (type $BoxedDouble (sub final $#Top (struct
     (field $field0 i32)
     (field $value f64))))
-  (func $"dart2wasm._274 (import)" (import "dart2wasm" "_274") (param f64) (result externref))
-  (func $"dart2wasm._275 (import)" (import "dart2wasm" "_275") (param externref) (result externref))
   (func $"dart2wasm._147 (import)" (import "dart2wasm" "_147") (param externref) (result f64))
   (func $"dart2wasm._148 (import)" (import "dart2wasm" "_148") (param f64) (result externref))
-  (global $"doubleValueNullable initialized" (mut i32) <...>)
-  (global $doubleValueNullable (mut (ref null $BoxedDouble)) <...>)
-  (global $"ktrue initialized" (mut i32) <...>)
-  (global $ktrue (mut i32) <...>)
+  (func $"dart2wasm._274 (import)" (import "dart2wasm" "_274") (param f64) (result externref))
+  (func $"dart2wasm._275 (import)" (import "dart2wasm" "_275") (param externref) (result externref))
   (global $"doubleValue initialized" (mut i32) <...>)
+  (global $"doubleValueNullable initialized" (mut i32) <...>)
+  (global $"ktrue initialized" (mut i32) <...>)
   (global $doubleValue (mut f64) <...>)
+  (global $doubleValueNullable (mut (ref null $BoxedDouble)) <...>)
+  (global $ktrue (mut i32) <...>)
+  (func $_throwArgumentNullError <noInline>  <...>)
+  (func $doubleValue implicit getter (result f64) <...>)
+  (func $ktrue implicit getter (result i32) <...>)
+  (func $sinkDouble <noInline> (param $var0 f64) <...>)
+  (func $sinkDoubleNullable <noInline> (param $var0 (ref null $BoxedDouble)) <...>)
   (func $"testDoubleConstant <noInline>"
     (local $var0 externref)
     f64.const 1.1
@@ -38,7 +43,7 @@
     if (result (ref null $BoxedDouble))
       ref.null none
     else
-      i32.const 76
+      i32.const 84
       local.get $var0
       call $"dart2wasm._147 (import)"
       struct.new $BoxedDouble
@@ -78,7 +83,7 @@
         call $"ktrue implicit getter"
       end
       if (result (ref null $BoxedDouble))
-        i32.const 76
+        i32.const 84
         global.get $"doubleValue initialized"
         if (result f64)
           global.get $doubleValue
@@ -115,7 +120,7 @@
     if (result (ref null $BoxedDouble))
       ref.null none
     else
-      i32.const 76
+      i32.const 84
       local.get $var1
       call $"dart2wasm._147 (import)"
       struct.new $BoxedDouble
@@ -123,9 +128,4 @@
     call $"sinkDoubleNullable <noInline>"
   )
   (func $isDartNull (param $var0 externref) (result i32) <...>)
-  (func $sinkDoubleNullable <noInline> (param $var0 (ref null $BoxedDouble)) <...>)
-  (func $_throwArgumentNullError <noInline>  <...>)
-  (func $ktrue implicit getter (result i32) <...>)
-  (func $doubleValue implicit getter (result f64) <...>)
-  (func $sinkDouble <noInline> (param $var0 f64) <...>)
 )

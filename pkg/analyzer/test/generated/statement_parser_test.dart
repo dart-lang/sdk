@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' as analyzer;
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
-import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -44,9 +44,9 @@ class StatementParserTest extends FastaParserTestCase {
     var unit = parseCompilationUnit(
       'foo Future<List<int>> bar() {}',
       diagnostics: [
-        expectedError(ParserErrorCode.expectedToken, 11, 4),
-        expectedError(ParserErrorCode.missingFunctionParameters, 4, 6),
-        expectedError(ParserErrorCode.missingFunctionBody, 22, 3),
+        expectedError(diag.expectedToken, 11, 4),
+        expectedError(diag.missingFunctionParameters, 4, 6),
+        expectedError(diag.missingFunctionBody, 22, 3),
       ],
     );
     // Validate that recovery has properly updated the token stream.
@@ -62,18 +62,14 @@ class StatementParserTest extends FastaParserTestCase {
   void test_invalid_typeParamAnnotation() {
     parseCompilationUnit(
       'main() { C<@Foo T> v; }',
-      diagnostics: [
-        expectedError(ParserErrorCode.annotationOnTypeArgument, 11, 4),
-      ],
+      diagnostics: [expectedError(diag.annotationOnTypeArgument, 11, 4)],
     );
   }
 
   void test_invalid_typeParamAnnotation2() {
     parseCompilationUnit(
       'main() { C<@Foo.bar(1) T> v; }',
-      diagnostics: [
-        expectedError(ParserErrorCode.annotationOnTypeArgument, 11, 11),
-      ],
+      diagnostics: [expectedError(diag.annotationOnTypeArgument, 11, 11)],
     );
   }
 
@@ -88,9 +84,7 @@ main() {
     W<X<Y<Z>>>
   > v;
 }''',
-      diagnostics: [
-        expectedError(ParserErrorCode.annotationOnTypeArgument, 13, 63),
-      ],
+      diagnostics: [expectedError(diag.annotationOnTypeArgument, 13, 63)],
     );
   }
 
@@ -238,9 +232,9 @@ main() {
     parseCompilationUnit(
       'main() { else return 0; } ',
       diagnostics: [
-        expectedError(ParserErrorCode.expectedToken, 7, 1),
-        expectedError(ParserErrorCode.missingIdentifier, 9, 4),
-        expectedError(ParserErrorCode.unexpectedToken, 9, 4),
+        expectedError(diag.expectedToken, 7, 1),
+        expectedError(diag.missingIdentifier, 9, 4),
+        expectedError(diag.unexpectedToken, 9, 4),
       ],
     );
   }
@@ -934,9 +928,7 @@ main() {
 
   void test_parseLocalVariable_external() {
     parseStatement('external int i;');
-    assertErrors(
-      diagnostics: [expectedError(ParserErrorCode.extraneousModifier, 0, 8)],
-    );
+    assertErrors(diagnostics: [expectedError(diag.extraneousModifier, 0, 8)]);
   }
 
   void test_parseNonLabeledStatement_const_list_empty() {
@@ -978,7 +970,7 @@ main() {
 
   void test_parseNonLabeledStatement_const_object_named_typeParameters_34403() {
     var statement = parseStatement('const A<B>.c<C>();') as ExpressionStatement;
-    assertErrorsWithCodes([ParserErrorCode.constructorWithTypeArguments]);
+    assertErrorsWithCodes([diag.constructorWithTypeArguments]);
     expect(statement.expression, isNotNull);
   }
 
@@ -1213,7 +1205,7 @@ main() {
 
   void test_parseStatement_emptyTypeArgumentList() {
     var declaration = parseStatement('C<> c;') as VariableDeclarationStatement;
-    assertErrorsWithCodes([ParserErrorCode.expectedTypeName]);
+    assertErrorsWithCodes([diag.expectedTypeName]);
     VariableDeclarationList variables = declaration.variables;
     var type = variables.type as NamedType;
     var argumentList = type.typeArguments!;
@@ -1431,7 +1423,7 @@ main() {
   void test_parseTryStatement_catch_error_invalidCatchParam() {
     CompilationUnit unit = parseCompilationUnit(
       'main() { try {} catch (int e) { } }',
-      diagnostics: [expectedError(ParserErrorCode.catchSyntax, 27, 1)],
+      diagnostics: [expectedError(diag.catchSyntax, 27, 1)],
     );
     var method = unit.declarations[0] as FunctionDeclaration;
     var body = method.functionExpression.body as BlockFunctionBody;
@@ -1454,7 +1446,7 @@ main() {
 
   void test_parseTryStatement_catch_error_missingCatchParam() {
     var statement = parseStatement('try {} catch () {}') as TryStatement;
-    listener.assertErrors([expectedError(ParserErrorCode.catchSyntax, 14, 1)]);
+    listener.assertErrors([expectedError(diag.catchSyntax, 14, 1)]);
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
@@ -1473,7 +1465,7 @@ main() {
 
   void test_parseTryStatement_catch_error_missingCatchParen() {
     var statement = parseStatement('try {} catch {}') as TryStatement;
-    listener.assertErrors([expectedError(ParserErrorCode.catchSyntax, 13, 1)]);
+    listener.assertErrors([expectedError(diag.catchSyntax, 13, 1)]);
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
@@ -1492,7 +1484,7 @@ main() {
 
   void test_parseTryStatement_catch_error_missingCatchTrace() {
     var statement = parseStatement('try {} catch (e,) {}') as TryStatement;
-    listener.assertErrors([expectedError(ParserErrorCode.catchSyntax, 16, 1)]);
+    listener.assertErrors([expectedError(diag.catchSyntax, 16, 1)]);
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
@@ -1738,11 +1730,11 @@ main() {
     var unit = parseCompilationUnit(
       '<bar<',
       diagnostics: [
-        expectedError(ParserErrorCode.expectedExecutable, 0, 1),
-        expectedError(ParserErrorCode.expectedToken, 4, 1),
-        expectedError(ParserErrorCode.missingIdentifier, 5, 0),
-        expectedError(ParserErrorCode.expectedTypeName, 5, 0),
-        expectedError(ParserErrorCode.missingIdentifier, 5, 0),
+        expectedError(diag.expectedExecutable, 0, 1),
+        expectedError(diag.expectedToken, 4, 1),
+        expectedError(diag.missingIdentifier, 5, 0),
+        expectedError(diag.expectedTypeName, 5, 0),
+        expectedError(diag.missingIdentifier, 5, 0),
       ],
     );
     // Validate that recovery has properly updated the token stream.
@@ -1759,10 +1751,10 @@ main() {
     var unit = parseCompilationUnit(
       'foo <bar<',
       diagnostics: [
-        expectedError(ParserErrorCode.expectedToken, 8, 1),
-        expectedError(ParserErrorCode.missingIdentifier, 9, 0),
-        expectedError(ParserErrorCode.expectedTypeName, 9, 0),
-        expectedError(ParserErrorCode.missingIdentifier, 9, 0),
+        expectedError(diag.expectedToken, 8, 1),
+        expectedError(diag.missingIdentifier, 9, 0),
+        expectedError(diag.expectedTypeName, 9, 0),
+        expectedError(diag.missingIdentifier, 9, 0),
       ],
     );
     // Validate that recovery has properly updated the token stream.

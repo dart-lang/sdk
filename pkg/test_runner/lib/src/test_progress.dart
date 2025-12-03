@@ -426,11 +426,13 @@ abstract class ProgressIndicator extends EventListener {
   static EventListener? fromProgress(
       Progress progress, DateTime startTime, Formatter formatter) {
     switch (progress) {
+      case Progress.color:
       case Progress.compact:
         return CompactProgressIndicator(startTime, formatter);
       case Progress.line:
       case Progress.verbose:
         return LineProgressIndicator(startTime);
+      case Progress.silent:
       case Progress.status:
         return null;
     }

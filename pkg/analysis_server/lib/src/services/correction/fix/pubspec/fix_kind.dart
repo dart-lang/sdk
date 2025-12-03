@@ -8,16 +8,16 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 abstract final class PubspecFixKind {
   static const addName = FixKind(
     'pubspec.fix.add.name',
-    PubspecFixKindPriority.DEFAULT,
+    PubspecFixKindPriority._default,
     "Add 'name' key",
   );
   static const addDependency = FixKind(
     'pubspec.fix.add.dependency',
-    PubspecFixKindPriority.DEFAULT,
+    PubspecFixKindPriority._default,
     'Update pubspec with the missing dependencies',
   );
 }
 
 abstract final class PubspecFixKindPriority {
-  static const int DEFAULT = 50;
+  static const int _default = 50;
 }

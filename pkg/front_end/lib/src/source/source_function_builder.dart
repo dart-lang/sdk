@@ -77,7 +77,7 @@ void buildTypeParametersAndFormals(
       }
 
       // Required named parameters can't have default values.
-      if (formal.isRequiredNamed && formal.initializerToken != null) {
+      if (formal.isRequiredNamed && formal.hasDeclaredInitializer) {
         libraryBuilder.addProblem(
           codeRequiredNamedParameterHasDefaultValueError.withArgumentsOld(
             formal.name,

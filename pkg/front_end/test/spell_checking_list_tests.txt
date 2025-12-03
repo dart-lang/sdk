@@ -253,6 +253,7 @@ deviation
 dfast
 dfuzz
 di
+diag
 diagnosticable
 dictionaries
 dictionary
@@ -489,6 +490,7 @@ jlcontreras
 joo
 jsonrpc
 jumped
+kbytes
 kernels
 kitty
 ko
@@ -560,6 +562,7 @@ month
 moo
 mouse
 mrelease
+msec
 mstat
 mul
 mv
@@ -738,6 +741,7 @@ routines
 row
 rows
 rr
+rss
 rt
 ruin
 runtimes
@@ -932,6 +936,7 @@ vt
 vte
 waited
 waits
+wall
 walt
 warmup
 warmups

@@ -67,7 +67,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitBlock(Block node) => visitStatement(node);
 
-  @experimental
   @override
   R? visitBlockClassBody(BlockClassBody node) => visitClassBody(node);
 
@@ -95,7 +94,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitCatchClauseParameter(CatchClauseParameter node) => visitNode(node);
 
-  @experimental
   R? visitClassBody(ClassBody node) => visitNode(node);
 
   @override
@@ -104,7 +102,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   R? visitClassMember(ClassMember node) => visitDeclaration(node);
 
-  @experimental
   R? visitClassNamePart(ClassNamePart node) => visitNode(node);
 
   @override
@@ -202,7 +199,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitDoubleLiteral(DoubleLiteral node) => visitLiteral(node);
 
-  @experimental
   @override
   R? visitEmptyClassBody(EmptyClassBody node) => visitClassBody(node);
 
@@ -212,7 +208,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitEmptyStatement(EmptyStatement node) => visitStatement(node);
 
-  @experimental
   @override
   R? visitEnumBody(EnumBody node) => visitNode(node);
 
@@ -446,6 +441,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitMixinOnClause(MixinOnClause node) => visitNode(node);
 
+  // ignore: deprecated_member_use_from_same_package
   R? visitNamedCompilationUnitMember(NamedCompilationUnitMember node) =>
       visitCompilationUnitMember(node);
 
@@ -458,7 +454,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitNamespaceDirective(NamespaceDirective node) =>
       visitUriBasedDirective(node);
 
-  @experimental
   @override
   R? visitNameWithTypeParameters(NameWithTypeParameters node) =>
       visitClassNamePart(node);
@@ -535,12 +530,14 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitPrefixExpression(PrefixExpression node) => visitExpression(node);
 
-  @experimental
+  @override
+  R? visitPrimaryConstructorBody(PrimaryConstructorBody node) =>
+      visitClassMember(node);
+
   @override
   R? visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) =>
       visitClassNamePart(node);
 
-  @experimental
   @override
   R? visitPrimaryConstructorName(PrimaryConstructorName node) =>
       visitNode(node);
@@ -585,10 +582,12 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitRelationalPattern(RelationalPattern node) => visitDartPattern(node);
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationConstructorName(RepresentationConstructorName node) =>
       visitNode(node);
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationDeclaration(RepresentationDeclaration node) =>
       visitNode(node);
 
@@ -813,7 +812,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
-  @experimental
   @override
   R? visitBlockClassBody(BlockClassBody node) {
     node.visitChildren(this);
@@ -1008,7 +1006,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
-  @experimental
   @override
   R? visitEmptyClassBody(EmptyClassBody node) {
     node.visitChildren(this);
@@ -1027,7 +1024,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
-  @experimental
   @override
   R? visitEnumBody(EnumBody node) {
     node.visitChildren(this);
@@ -1406,7 +1402,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
-  @experimental
   @override
   R? visitNameWithTypeParameters(NameWithTypeParameters node) {
     node.visitChildren(this);
@@ -1529,14 +1524,18 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
-  @experimental
+  @override
+  R? visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    node.visitChildren(this);
+    return null;
+  }
+
   @override
   R? visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     node.visitChildren(this);
     return null;
   }
 
-  @experimental
   @override
   R? visitPrimaryConstructorName(PrimaryConstructorName node) {
     node.visitChildren(this);
@@ -1604,12 +1603,14 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationConstructorName(RepresentationConstructorName node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationDeclaration(RepresentationDeclaration node) {
     node.visitChildren(this);
     return null;
@@ -1880,7 +1881,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitBlock(Block node) => null;
 
-  @experimental
   @override
   R? visitBlockClassBody(BlockClassBody node) => null;
 
@@ -1979,7 +1979,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitDoubleLiteral(DoubleLiteral node) => null;
 
-  @experimental
   @override
   R? visitEmptyClassBody(EmptyClassBody node) => null;
 
@@ -1989,7 +1988,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitEmptyStatement(EmptyStatement node) => null;
 
-  @experimental
   @override
   R? visitEnumBody(EnumBody node) => null;
 
@@ -2182,7 +2180,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitNamedType(NamedType node) => null;
 
-  @experimental
   @override
   R? visitNameWithTypeParameters(NameWithTypeParameters node) => null;
 
@@ -2245,12 +2242,13 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitPrefixExpression(PrefixExpression node) => null;
 
-  @experimental
+  @override
+  R? visitPrimaryConstructorBody(PrimaryConstructorBody node) => null;
+
   @override
   R? visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) =>
       null;
 
-  @experimental
   @override
   R? visitPrimaryConstructorName(PrimaryConstructorName node) => null;
 
@@ -2289,10 +2287,12 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitRelationalPattern(RelationalPattern node) => null;
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationConstructorName(RepresentationConstructorName node) =>
       null;
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationDeclaration(RepresentationDeclaration node) => null;
 
   @override
@@ -2452,7 +2452,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitBlock(Block node) => _throw(node);
 
-  @experimental
   @override
   R? visitBlockClassBody(BlockClassBody node) => _throw(node);
 
@@ -2553,7 +2552,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitDoubleLiteral(DoubleLiteral node) => _throw(node);
 
-  @experimental
   @override
   R? visitEmptyClassBody(EmptyClassBody node) => _throw(node);
 
@@ -2563,7 +2561,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitEmptyStatement(EmptyStatement node) => _throw(node);
 
-  @experimental
   @override
   R? visitEnumBody(EnumBody node) => _throw(node);
 
@@ -2761,7 +2758,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitNamedType(NamedType node) => _throw(node);
 
-  @experimental
   @override
   R? visitNameWithTypeParameters(NameWithTypeParameters node) => _throw(node);
 
@@ -2825,12 +2821,13 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitPrefixExpression(PrefixExpression node) => _throw(node);
 
-  @experimental
+  @override
+  R? visitPrimaryConstructorBody(PrimaryConstructorBody node) => _throw(node);
+
   @override
   R? visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) =>
       _throw(node);
 
-  @experimental
   @override
   R? visitPrimaryConstructorName(PrimaryConstructorName node) => _throw(node);
 
@@ -2869,10 +2866,12 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitRelationalPattern(RelationalPattern node) => _throw(node);
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationConstructorName(RepresentationConstructorName node) =>
       _throw(node);
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationDeclaration(RepresentationDeclaration node) =>
       _throw(node);
 
@@ -3102,7 +3101,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
     return result;
   }
 
-  @experimental
   @override
   T? visitBlockClassBody(BlockClassBody node) {
     stopwatch.start();
@@ -3361,7 +3359,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
     return result;
   }
 
-  @experimental
   @override
   T? visitEmptyClassBody(EmptyClassBody node) {
     stopwatch.start();
@@ -3386,7 +3383,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
     return result;
   }
 
-  @experimental
   @override
   T? visitEnumBody(EnumBody node) {
     stopwatch.start();
@@ -3891,7 +3887,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
     return result;
   }
 
-  @experimental
   @override
   T? visitNameWithTypeParameters(NameWithTypeParameters node) {
     stopwatch.start();
@@ -4054,7 +4049,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
     return result;
   }
 
-  @experimental
+  @override
+  T? visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitPrimaryConstructorBody(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     stopwatch.start();
@@ -4063,7 +4065,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
     return result;
   }
 
-  @experimental
   @override
   T? visitPrimaryConstructorName(PrimaryConstructorName node) {
     stopwatch.start();
@@ -4151,6 +4152,7 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   T? visitRepresentationConstructorName(RepresentationConstructorName node) {
     stopwatch.start();
     T? result = _baseVisitor.visitRepresentationConstructorName(node);
@@ -4159,6 +4161,7 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   T? visitRepresentationDeclaration(RepresentationDeclaration node) {
     stopwatch.start();
     T? result = _baseVisitor.visitRepresentationDeclaration(node);
@@ -4512,7 +4515,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitBlock(Block node) => visitNode(node);
 
-  @experimental
   @override
   R? visitBlockClassBody(BlockClassBody node) => visitNode(node);
 
@@ -4617,7 +4619,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitDoubleLiteral(DoubleLiteral node) => visitNode(node);
 
-  @experimental
   @override
   R? visitEmptyClassBody(EmptyClassBody node) => visitNode(node);
 
@@ -4627,7 +4628,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitEmptyStatement(EmptyStatement node) => visitNode(node);
 
-  @experimental
   @override
   R? visitEnumBody(EnumBody node) => visitNode(node);
 
@@ -4830,7 +4830,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitNamedType(NamedType node) => visitNode(node);
 
-  @experimental
   @override
   R? visitNameWithTypeParameters(NameWithTypeParameters node) =>
       visitNode(node);
@@ -4901,12 +4900,14 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitPrefixExpression(PrefixExpression node) => visitNode(node);
 
-  @experimental
+  @override
+  R? visitPrimaryConstructorBody(PrimaryConstructorBody node) =>
+      visitNode(node);
+
   @override
   R? visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) =>
       visitNode(node);
 
-  @experimental
   @override
   R? visitPrimaryConstructorName(PrimaryConstructorName node) =>
       visitNode(node);
@@ -4946,10 +4947,12 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitRelationalPattern(RelationalPattern node) => visitNode(node);
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationConstructorName(RepresentationConstructorName node) =>
       visitNode(node);
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationDeclaration(RepresentationDeclaration node) =>
       visitNode(node);
 

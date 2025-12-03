@@ -11,6 +11,8 @@ import 'dart:io' show Platform;
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/plugin/server_isolate_channel.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -18,7 +20,6 @@ import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
-import 'package:analyzer_plugin/src/channel/isolate_channel.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:meta/meta.dart';
 
@@ -43,6 +44,9 @@ class PluginIsolate {
   /// The instrumentation service that is being used by the analysis server.
   final InstrumentationService _instrumentationService;
 
+  /// The session logger that is to be used by the isolate.
+  final SessionLogger sessionLogger;
+
   /// The context roots that are currently using the results produced by the
   /// plugin.
   Set<analyzer.ContextRoot> contextRoots = HashSet<analyzer.ContextRoot>();
@@ -60,7 +64,8 @@ class PluginIsolate {
     this.executionPath,
     this.packagesPath,
     this._notificationManager,
-    this._instrumentationService, {
+    this._instrumentationService,
+    this.sessionLogger, {
     required this.isLegacy,
   });
 
@@ -207,6 +212,7 @@ class PluginIsolate {
       Uri.file(executionPath!, windows: Platform.isWindows),
       Uri.file(packagesPath!, windows: Platform.isWindows),
       _instrumentationService,
+      sessionLogger,
     );
   }
 
@@ -233,11 +239,11 @@ class PluginIsolate {
 class PluginSession {
   /// The maximum number of milliseconds that server should wait for a response
   /// from a plugin before deciding that the plugin is hung.
-  static const Duration MAXIMUM_RESPONSE_TIME = Duration(minutes: 2);
+  static const Duration _maximumResponseTime = Duration(minutes: 2);
 
   /// The length of time to wait after sending a 'plugin.shutdown' request
   /// before a failure to terminate will cause the isolate to be killed.
-  static const Duration WAIT_FOR_SHUTDOWN_DURATION = Duration(seconds: 10);
+  static const Duration _waitForShutdownDuration = Duration(seconds: 10);
 
   /// The information about the plugin being executed.
   final PluginIsolate _isolate;
@@ -343,7 +349,7 @@ class PluginSession {
     // identify non-responsive plugins and kill them.
     var cutOffTime =
         DateTime.now().millisecondsSinceEpoch -
-        MAXIMUM_RESPONSE_TIME.inMilliseconds;
+        _maximumResponseTime.inMilliseconds;
     for (var requestData in pendingRequests.values) {
       if (requestData.requestTime < cutOffTime) {
         return true;
@@ -470,7 +476,7 @@ class PluginSession {
       throw StateError('Cannot stop a plugin that is not running.');
     }
     sendRequest(PluginShutdownParams());
-    Future.delayed(WAIT_FOR_SHUTDOWN_DURATION, () {
+    Future.delayed(_waitForShutdownDuration, () {
       if (channel != null) {
         channel?.kill();
         channel = null;

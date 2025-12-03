@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,7 +21,7 @@ class UriWithInterpolationTest extends PubPackageResolutionTest {
 /// @docImport '${'foo'}.dart';
 library;
 ''',
-      [error(CompileTimeErrorCode.uriWithInterpolation, 15, 15)],
+      [error(diag.uriWithInterpolation, 15, 15)],
     );
   }
 
@@ -30,7 +30,7 @@ library;
       r'''
 export '${'foo'}.dart';
 ''',
-      [error(CompileTimeErrorCode.uriWithInterpolation, 7, 15)],
+      [error(diag.uriWithInterpolation, 7, 15)],
     );
   }
 
@@ -39,7 +39,7 @@ export '${'foo'}.dart';
       r'''
 import '${'foo'}.dart';
 ''',
-      [error(CompileTimeErrorCode.uriWithInterpolation, 7, 15)],
+      [error(diag.uriWithInterpolation, 7, 15)],
     );
   }
 
@@ -48,7 +48,7 @@ import '${'foo'}.dart';
       r'''
 part '${'foo'}.dart';
 ''',
-      [error(CompileTimeErrorCode.uriWithInterpolation, 5, 15)],
+      [error(diag.uriWithInterpolation, 5, 15)],
     );
   }
 }

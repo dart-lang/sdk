@@ -27,32 +27,32 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 f (nameOffset:16) (firstTokenOffset:16) (offset:16)
+        #F1 isOriginDeclaration f (nameOffset:16) (firstTokenOffset:16) (offset:16)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F2 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+        #F2 synthetic isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
           element: <testLibrary>::@getter::f
       setters
-        #F3 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+        #F3 synthetic isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
           element: <testLibrary>::@setter::f
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F1
       type: void Function()
       getter: <testLibrary>::@getter::f
       setter: <testLibrary>::@setter::f
   getters
-    synthetic static f
+    synthetic static isOriginVariable f
       reference: <testLibrary>::@getter::f
       firstFragment: #F2
       returnType: void Function()
       variable: <testLibrary>::@topLevelVariable::f
   setters
-    synthetic static f
+    synthetic static isOriginVariable f
       reference: <testLibrary>::@setter::f
       firstFragment: #F3
       formalParameters
@@ -75,32 +75,32 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 f (nameOffset:17) (firstTokenOffset:17) (offset:17)
+        #F1 isOriginDeclaration f (nameOffset:17) (firstTokenOffset:17) (offset:17)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F2 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+        #F2 synthetic isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
           element: <testLibrary>::@getter::f
       setters
-        #F3 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+        #F3 synthetic isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
           element: <testLibrary>::@setter::f
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F1
       type: void Function()?
       getter: <testLibrary>::@getter::f
       setter: <testLibrary>::@setter::f
   getters
-    synthetic static f
+    synthetic static isOriginVariable f
       reference: <testLibrary>::@getter::f
       firstFragment: #F2
       returnType: void Function()?
       variable: <testLibrary>::@topLevelVariable::f
   setters
-    synthetic static f
+    synthetic static isOriginVariable f
       reference: <testLibrary>::@setter::f
       firstFragment: #F3
       formalParameters
@@ -205,7 +205,7 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
@@ -216,7 +216,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
       methods
@@ -266,32 +266,32 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 v (nameOffset:30) (firstTokenOffset:30) (offset:30)
+        #F1 isOriginDeclaration v (nameOffset:30) (firstTokenOffset:30) (offset:30)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F2 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+        #F2 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
           element: <testLibrary>::@getter::v
       setters
-        #F3 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+        #F3 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
           element: <testLibrary>::@setter::v
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    v
+    isOriginDeclaration v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: int Function(int, String)
       getter: <testLibrary>::@getter::v
       setter: <testLibrary>::@setter::v
   getters
-    synthetic static v
+    synthetic static isOriginVariable v
       reference: <testLibrary>::@getter::v
       firstFragment: #F2
       returnType: int Function(int, String)
       variable: <testLibrary>::@topLevelVariable::v
   setters
-    synthetic static v
+    synthetic static isOriginVariable v
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
@@ -325,14 +325,14 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 const new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
+            #F3 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
         #F4 class B (nameOffset:64) (firstTokenOffset:29) (offset:64)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+            #F5 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -343,14 +343,14 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        const new
+        const isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
 ''');
@@ -378,12 +378,12 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 const new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
+            #F3 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        #F4 hasInitializer v (nameOffset:62) (firstTokenOffset:62) (offset:62)
+        #F4 hasInitializer isOriginDeclaration v (nameOffset:62) (firstTokenOffset:62) (offset:62)
           element: <testLibrary>::@topLevelVariable::v
           metadata
             Annotation
@@ -409,11 +409,11 @@ library
                           element: dart:core::@class::String
                           type: String
                         name: a @52
-                        declaredElement: <testLibraryFragment> a@52
+                        declaredFragment: <testLibraryFragment> a@52
                           element: isPublic
                             type: String
                       rightParenthesis: ) @53
-                    declaredElement: GenericFunctionTypeElement
+                    declaredFragment: GenericFunctionTypeElement
                       parameters
                         a
                           kind: required positional
@@ -430,10 +430,10 @@ library
                 baseElement: <testLibrary>::@class::A::@constructor::new
                 substitution: {T: int Function(String)}
       getters
-        #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
+        #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
           element: <testLibrary>::@getter::v
       setters
-        #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
+        #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
           element: <testLibrary>::@setter::v
           formalParameters
             #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
@@ -446,11 +446,11 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        const new
+        const isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
   topLevelVariables
-    hasInitializer v
+    hasImplicitType hasInitializer isOriginDeclaration v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       metadata
@@ -477,11 +477,11 @@ library
                       element: dart:core::@class::String
                       type: String
                     name: a @52
-                    declaredElement: <testLibraryFragment> a@52
+                    declaredFragment: <testLibraryFragment> a@52
                       element: isPublic
                         type: String
                   rightParenthesis: ) @53
-                declaredElement: GenericFunctionTypeElement
+                declaredFragment: GenericFunctionTypeElement
                   parameters
                     a
                       kind: required positional
@@ -501,13 +501,13 @@ library
       getter: <testLibrary>::@getter::v
       setter: <testLibrary>::@setter::v
   getters
-    synthetic static v
+    synthetic static isOriginVariable v
       reference: <testLibrary>::@getter::v
       firstFragment: #F5
       returnType: int
       variable: <testLibrary>::@topLevelVariable::v
   setters
-    synthetic static v
+    synthetic static isOriginVariable v
       reference: <testLibrary>::@setter::v
       firstFragment: #F6
       formalParameters
@@ -540,12 +540,12 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 const new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
+            #F3 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        #F4 hasInitializer v (nameOffset:35) (firstTokenOffset:35) (offset:35)
+        #F4 hasInitializer isOriginDeclaration v (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             InstanceCreationExpression
@@ -572,15 +572,15 @@ library
                                 element: dart:core::@class::int
                                 type: int?
                               name: a @63
-                              declaredElement: <testLibraryFragment> a@63
+                              declaredFragment: <testLibraryFragment> a@63
                                 element: isPublic
                                   type: int?
-                            declaredElement: <testLibraryFragment> a@63
+                            declaredFragment: <testLibraryFragment> a@63
                               element: isPublic
                                 type: int?
                           rightDelimiter: } @64
                           rightParenthesis: ) @65
-                        declaredElement: GenericFunctionTypeElement
+                        declaredFragment: GenericFunctionTypeElement
                           parameters
                             a
                               kind: optional named
@@ -600,7 +600,7 @@ library
                 rightParenthesis: ) @68
               staticType: A<String Function({int? a})>
       getters
-        #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+        #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@getter::v
   classes
     class A
@@ -610,11 +610,11 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        const new
+        const isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
   topLevelVariables
-    const hasInitializer v
+    const hasImplicitType hasInitializer isOriginDeclaration v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       type: A<String Function({int? a})>
@@ -623,7 +623,7 @@ library
         expression: expression_0
       getter: <testLibrary>::@getter::v
   getters
-    synthetic static v
+    synthetic static isOriginVariable v
       reference: <testLibrary>::@getter::v
       firstFragment: #F5
       returnType: A<String Function({int? a})>
@@ -652,12 +652,12 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 const new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
+            #F3 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        #F4 hasInitializer v (nameOffset:35) (firstTokenOffset:35) (offset:35)
+        #F4 hasInitializer isOriginDeclaration v (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             InstanceCreationExpression
@@ -684,15 +684,15 @@ library
                                 element: dart:core::@class::int
                                 type: int?
                               name: a @63
-                              declaredElement: <testLibraryFragment> a@63
+                              declaredFragment: <testLibraryFragment> a@63
                                 element: isPublic
                                   type: int?
-                            declaredElement: <testLibraryFragment> a@63
+                            declaredFragment: <testLibraryFragment> a@63
                               element: isPublic
                                 type: int?
                           rightDelimiter: ] @64
                           rightParenthesis: ) @65
-                        declaredElement: GenericFunctionTypeElement
+                        declaredFragment: GenericFunctionTypeElement
                           parameters
                             a
                               kind: optional positional
@@ -712,7 +712,7 @@ library
                 rightParenthesis: ) @68
               staticType: A<String Function([int?])>
       getters
-        #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+        #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@getter::v
   classes
     class A
@@ -722,11 +722,11 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        const new
+        const isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
   topLevelVariables
-    const hasInitializer v
+    const hasImplicitType hasInitializer isOriginDeclaration v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       type: A<String Function([int?])>
@@ -735,7 +735,7 @@ library
         expression: expression_0
       getter: <testLibrary>::@getter::v
   getters
-    synthetic static v
+    synthetic static isOriginVariable v
       reference: <testLibrary>::@getter::v
       firstFragment: #F5
       returnType: A<String Function([int?])>
@@ -764,12 +764,12 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 const new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
+            #F3 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        #F4 hasInitializer v (nameOffset:35) (firstTokenOffset:35) (offset:35)
+        #F4 hasInitializer isOriginDeclaration v (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             InstanceCreationExpression
@@ -796,15 +796,15 @@ library
                                 element: dart:core::@class::int
                                 type: int
                               name: a @71
-                              declaredElement: <testLibraryFragment> a@71
+                              declaredFragment: <testLibraryFragment> a@71
                                 element: isPublic
                                   type: int
-                            declaredElement: <testLibraryFragment> a@71
+                            declaredFragment: <testLibraryFragment> a@71
                               element: isPublic
                                 type: int
                           rightDelimiter: } @72
                           rightParenthesis: ) @73
-                        declaredElement: GenericFunctionTypeElement
+                        declaredFragment: GenericFunctionTypeElement
                           parameters
                             a
                               kind: required named
@@ -824,7 +824,7 @@ library
                 rightParenthesis: ) @76
               staticType: A<String Function({required int a})>
       getters
-        #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+        #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@getter::v
   classes
     class A
@@ -834,11 +834,11 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        const new
+        const isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
   topLevelVariables
-    const hasInitializer v
+    const hasImplicitType hasInitializer isOriginDeclaration v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       type: A<String Function({required int a})>
@@ -847,7 +847,7 @@ library
         expression: expression_0
       getter: <testLibrary>::@getter::v
   getters
-    synthetic static v
+    synthetic static isOriginVariable v
       reference: <testLibrary>::@getter::v
       firstFragment: #F5
       returnType: A<String Function({required int a})>
@@ -876,12 +876,12 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 const new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
+            #F3 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        #F4 hasInitializer v (nameOffset:35) (firstTokenOffset:35) (offset:35)
+        #F4 hasInitializer isOriginDeclaration v (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             InstanceCreationExpression
@@ -905,11 +905,11 @@ library
                               element: dart:core::@class::int
                               type: int
                             name: a @61
-                            declaredElement: <testLibraryFragment> a@61
+                            declaredFragment: <testLibraryFragment> a@61
                               element: isPublic
                                 type: int
                           rightParenthesis: ) @62
-                        declaredElement: GenericFunctionTypeElement
+                        declaredFragment: GenericFunctionTypeElement
                           parameters
                             a
                               kind: required positional
@@ -929,7 +929,7 @@ library
                 rightParenthesis: ) @65
               staticType: A<String Function(int)>
       getters
-        #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+        #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@getter::v
   classes
     class A
@@ -939,11 +939,11 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        const new
+        const isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
   topLevelVariables
-    const hasInitializer v
+    const hasImplicitType hasInitializer isOriginDeclaration v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       type: A<String Function(int)>
@@ -952,7 +952,7 @@ library
         expression: expression_0
       getter: <testLibrary>::@getter::v
   getters
-    synthetic static v
+    synthetic static isOriginVariable v
       reference: <testLibrary>::@getter::v
       firstFragment: #F5
       returnType: A<String Function(int)>
@@ -1008,13 +1008,13 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         #F4 class B (nameOffset:31) (firstTokenOffset:25) (offset:31)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F5 synthetic isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
@@ -1028,7 +1028,7 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
     class alias B
@@ -1038,7 +1038,7 @@ library
       mixins
         M
       constructors
-        synthetic new
+        synthetic isOriginMixinApplication new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
           constantInitializers

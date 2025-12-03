@@ -151,10 +151,10 @@ sealed class SetterEncoding {
     required ClassHierarchy classHierarchy,
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder? declarationBuilder,
+    required SourcePropertyBuilder propertyBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
-    required bool isClassInstanceMember,
   });
 
   void buildOutlineNode({
@@ -234,10 +234,10 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
     required ClassHierarchy classHierarchy,
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder? declarationBuilder,
+    required SourcePropertyBuilder propertyBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
-    required bool isClassInstanceMember,
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
@@ -250,22 +250,22 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       annotationsFileUri: _fragment.fileUri,
     );
 
-    buildTypeParametersForOutlineExpressions(
-      classHierarchy,
-      libraryBuilder,
-      bodyBuilderContext,
-      _fragment
-          .declaredTypeParameters
-          // Coverage-ignore(suite): Not run.
-          ?.builders,
-    );
-    buildFormalsForOutlineExpressions(
-      libraryBuilder,
-      declarationBuilder,
-      _fragment.declaredFormals,
+    _fragment
+        .declaredTypeParameters
+        // Coverage-ignore(suite): Not run.
+        ?.builders
+        // Coverage-ignore(suite): Not run.
+        .buildOutlineExpressions(
+          classHierarchy: classHierarchy,
+          libraryBuilder: libraryBuilder,
+          bodyBuilderContext: bodyBuilderContext,
+        );
+    _fragment.declaredFormals.buildOutlineExpressions(
+      libraryBuilder: libraryBuilder,
+      declarationBuilder: declarationBuilder,
+      memberBuilder: propertyBuilder,
       extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
-      isClassInstanceMember: isClassInstanceMember,
     );
   }
 
@@ -524,10 +524,10 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
     required ClassHierarchy classHierarchy,
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder? declarationBuilder,
+    required SourcePropertyBuilder propertyBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
-    required bool isClassInstanceMember,
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
@@ -540,37 +540,35 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       annotationsFileUri: _fragment.fileUri,
     );
 
-    buildTypeParametersForOutlineExpressions(
-      classHierarchy,
-      libraryBuilder,
-      bodyBuilderContext,
-      _fragment
-          .declaredTypeParameters
-          // Coverage-ignore(suite): Not run.
-          ?.builders,
-    );
-    buildFormalsForOutlineExpressions(
-      libraryBuilder,
-      declarationBuilder,
-      _fragment.declaredFormals,
+    _fragment
+        .declaredTypeParameters
+        // Coverage-ignore(suite): Not run.
+        ?.builders
+        // Coverage-ignore(suite): Not run.
+        .buildOutlineExpressions(
+          classHierarchy: classHierarchy,
+          libraryBuilder: libraryBuilder,
+          bodyBuilderContext: bodyBuilderContext,
+        );
+    _fragment.declaredFormals.buildOutlineExpressions(
+      libraryBuilder: libraryBuilder,
+      declarationBuilder: declarationBuilder,
+      memberBuilder: propertyBuilder,
       extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
-      isClassInstanceMember: isClassInstanceMember,
     );
 
-    buildTypeParametersForOutlineExpressions(
-      classHierarchy,
-      libraryBuilder,
-      bodyBuilderContext,
-      _clonedDeclarationTypeParameters,
+    _clonedDeclarationTypeParameters.buildOutlineExpressions(
+      classHierarchy: classHierarchy,
+      libraryBuilder: libraryBuilder,
+      bodyBuilderContext: bodyBuilderContext,
     );
-    buildFormalForOutlineExpressions(
-      libraryBuilder,
-      declarationBuilder,
-      _thisFormal,
+    _thisFormal.buildOutlineExpressions(
+      libraryBuilder: libraryBuilder,
+      declarationBuilder: declarationBuilder,
+      memberBuilder: propertyBuilder,
       extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
-      isClassInstanceMember: isClassInstanceMember,
     );
   }
 

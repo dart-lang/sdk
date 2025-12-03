@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -35,7 +35,7 @@ enum E {}
       '''
 enum E {}
 ''',
-      [error(CompileTimeErrorCode.enumWithoutConstants, 5, 1)],
+      [error(diag.enumWithoutConstants, 5, 1)],
     );
   }
 
@@ -51,9 +51,7 @@ part of 'a.dart';
 augment enum E {}
 ''');
 
-    await assertErrorsInFile2(a, [
-      error(CompileTimeErrorCode.enumWithoutConstants, 20, 1),
-    ]);
+    await assertErrorsInFile2(a, [error(diag.enumWithoutConstants, 20, 1)]);
 
     await assertErrorsInFile2(b, []);
   }

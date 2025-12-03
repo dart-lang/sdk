@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -65,13 +65,7 @@ class A {
   factory A() => throw 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.notInitializedNonNullableInstanceField,
-          16,
-          1,
-        ),
-      ],
+      [error(diag.notInitializedNonNullableInstanceField, 16, 1)],
     );
   }
 
@@ -149,13 +143,7 @@ class B extends A {
   var x;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.notInitializedNonNullableInstanceField,
-          61,
-          1,
-        ),
-      ],
+      [error(diag.notInitializedNonNullableInstanceField, 61, 1)],
     );
   }
 
@@ -166,13 +154,7 @@ mixin M {
   int x;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.notInitializedNonNullableInstanceField,
-          16,
-          1,
-        ),
-      ],
+      [error(diag.notInitializedNonNullableInstanceField, 16, 1)],
     );
   }
 
@@ -195,14 +177,7 @@ class A {
   A.b();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode
-              .notInitializedNonNullableInstanceFieldConstructor,
-          38,
-          1,
-        ),
-      ],
+      [error(diag.notInitializedNonNullableInstanceFieldConstructor, 38, 3)],
     );
   }
 
@@ -215,14 +190,7 @@ class A {
   A() : x = 0, z = 2;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode
-              .notInitializedNonNullableInstanceFieldConstructor,
-          28,
-          1,
-        ),
-      ],
+      [error(diag.notInitializedNonNullableInstanceFieldConstructor, 28, 1)],
     );
   }
 
@@ -257,13 +225,7 @@ class A {
   Never x;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.notInitializedNonNullableInstanceField,
-          18,
-          1,
-        ),
-      ],
+      [error(diag.notInitializedNonNullableInstanceField, 18, 1)],
     );
   }
 
@@ -282,13 +244,7 @@ class A<T> {
   T x;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.notInitializedNonNullableInstanceField,
-          17,
-          1,
-        ),
-      ],
+      [error(diag.notInitializedNonNullableInstanceField, 17, 1)],
     );
   }
 

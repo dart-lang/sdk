@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r"Don't use adjacent strings in list.";
 
@@ -18,7 +19,7 @@ class NoAdjacentStringsInList extends AnalysisRule {
     : super(name: LintNames.no_adjacent_strings_in_list, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.noAdjacentStringsInList;
+  DiagnosticCode get diagnosticCode => diag.noAdjacentStringsInList;
 
   @override
   void registerNodeProcessors(

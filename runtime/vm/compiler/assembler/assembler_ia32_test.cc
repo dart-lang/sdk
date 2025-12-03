@@ -5092,7 +5092,8 @@ void CheckIsIdentity(Expect& expect, AssemblerTest* test) {
   }
 }
 
-static const Register kRegRegImmTempReg = EBX;
+// Use a volatile register so we don't have to save it.
+static const Register kRegRegImmTempReg = ECX;
 
 void CheckMovesInputToReturnOnly(Expect& expect,
                                  AssemblerTest* test,

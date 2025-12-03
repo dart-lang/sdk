@@ -62,7 +62,10 @@ class _RegisteredFixGenerators {
 
   /// Associates the given correction producer [generator] with the lint with
   /// the given [lintCode].
-  void registerFixForLint(LintCode lintCode, ProducerGenerator generator) {
+  void registerFixForLint(
+    DiagnosticCode lintCode,
+    ProducerGenerator generator,
+  ) {
     lintProducers.putIfAbsent(lintCode, () => []).add(generator);
   }
 }

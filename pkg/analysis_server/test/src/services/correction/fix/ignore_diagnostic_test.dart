@@ -23,7 +23,10 @@ class IgnoreDiagnosticAnalysisOptionFileTest extends FixProcessorTest {
   FixKind get kind => ignoreErrorAnalysisFileKind;
 
   Future<void> test_addFixToExistingErrorMap() async {
-    createAnalysisOptionsFile(errors: {'unused_label': 'ignore'});
+    createAnalysisOptionsFile(
+      errors: {'unused_label': 'ignore'},
+      propagateLinterExceptions: false,
+    );
 
     await resolveTestCode('''
 void f() {
@@ -107,6 +110,7 @@ analyzer:
       // To create a valid `analyzer` label, we add a `cannot-ignore` label.
       // This also  implicitly tests when unrelated label is in `cannot-ignore`
       cannotIgnore: ['unused_label'],
+      propagateLinterExceptions: false,
     );
 
     await resolveTestCode('''
@@ -134,12 +138,45 @@ void f() {
     await assertNoFix();
   }
 
+  Future<void> test_noFixWhenLintIsIgnored() async {
+    createAnalysisOptionsFile(
+      errors: {LintNames.always_specify_types: 'ignore'},
+      lints: [LintNames.always_specify_types],
+    );
+
+    await resolveTestCode('''
+void f() {
+  var a = 1;
+  print(a);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_noFixWhenLintIsUnignorable() async {
+    createAnalysisOptionsFile(
+      cannotIgnore: [LintNames.always_specify_types],
+      lints: [LintNames.always_specify_types],
+    );
+
+    await resolveTestCode('''
+void f() {
+  var a = 1;
+  print(a);
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_onlyIncludeLabel() async {
     // This overwrites the file created by `super.setUp` method.
     // Having a newline is important because yaml_edit copies existing
     // newlines and we want to test the current platforms EOLs.
     // The content is normalized in newFile().
-    createAnalysisOptionsFile(includes: ['package:lints/recommended.yaml']);
+    createAnalysisOptionsFile(
+      includes: ['package:lints/recommended.yaml'],
+      propagateLinterExceptions: false,
+    );
 
     await resolveTestCode('''
   void f() {
@@ -197,6 +234,23 @@ void f() {
     await assertHasFix('''
 // ignore_for_file: unused_local_variable
 
+void f() {
+  var a = 1;
+}
+''');
+  }
+
+  Future<void> test_docCommentsAtStart() async {
+    await resolveTestCode('''
+/// some comment
+void f() {
+  var a = 1;
+}
+''');
+    await assertHasFix('''
+// ignore_for_file: unused_local_variable
+
+/// some comment
 void f() {
   var a = 1;
 }

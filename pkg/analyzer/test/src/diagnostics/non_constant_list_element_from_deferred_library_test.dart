@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -28,13 +28,7 @@ import 'lib1.dart' deferred as a;
 const cond = true;
 var v = const [ if (cond) 'a' else a.c ];
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonConstantListElementFromDeferredLibrary,
-          0,
-          0,
-        ),
-      ],
+      [error(diag.nonConstantListElementFromDeferredLibrary, 0, 0)],
     );
   }
 
@@ -48,13 +42,7 @@ import 'lib1.dart' deferred as a;
 const cond = true;
 var v = const [ if (cond) a.c ];
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonConstantListElementFromDeferredLibrary,
-          81,
-          1,
-        ),
-      ],
+      [error(diag.nonConstantListElementFromDeferredLibrary, 81, 1)],
     );
   }
 
@@ -67,13 +55,7 @@ const int c = 1;
 import 'lib1.dart' deferred as a;
 var v = const [a.c];
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonConstantListElementFromDeferredLibrary,
-          51,
-          1,
-        ),
-      ],
+      [error(diag.nonConstantListElementFromDeferredLibrary, 51, 1)],
     );
   }
 
@@ -86,13 +68,7 @@ const int c = 1;
 import 'lib1.dart' deferred as a;
 var v = const [a.c + 1];
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonConstantListElementFromDeferredLibrary,
-          51,
-          1,
-        ),
-      ],
+      [error(diag.nonConstantListElementFromDeferredLibrary, 51, 1)],
     );
   }
 

@@ -1,0 +1,45 @@
+class C1 {
+  C1({required this._foo, required this._foo}) {}
+  final String? _foo;
+}
+
+class C2 {
+  C2({required this._foo, String? _foo}) {}
+  final String? _foo;
+}
+
+class C3 {
+  C3({required this._foo, String? foo}) {}
+  final String? _foo;
+}
+
+class C4 {
+  C4({String? _foo, required this._foo}) {}
+  final String? _foo;
+}
+
+class C5 {
+  C5(String _foo, {required this._foo}) {}
+  final String? _foo;
+}
+
+class C6 {
+  C6({required this.foo, required this._foo}) {}
+  final String? _foo;
+  final String? foo;
+}
+
+class C7 {
+  C7({String? foo, required this._foo}) {}
+  final String? _foo;
+}
+
+class C8 {
+  C8(String? foo, {required this._foo}) {}
+  final String? _foo;
+}
+
+class C9 {
+  C9(String? foo, {required this._foo, int? _foo, int? foo}) {}
+  final String? _foo;
+}

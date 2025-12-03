@@ -351,7 +351,9 @@ class IncrementalJavaScriptBundler {
         customScheme: _fileSystemScheme,
         compiler: compiler,
         component: summaryComponent,
-        packageConfig: packageConfig,
+        // Only pass a package configuration if the serve time package paths are
+        // not being enforced by the `useDebuggerModuleNames` option.
+        packageConfig: useDebuggerModuleNames ? null : packageConfig,
       );
       final Uint8List codeBytes = utf8.encode(code.code);
       final Uint8List sourceMapBytes = utf8.encode(json.encode(code.sourceMap));

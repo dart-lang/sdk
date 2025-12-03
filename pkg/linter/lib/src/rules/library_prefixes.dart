@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../utils.dart';
 
 const _desc =
@@ -21,7 +22,7 @@ class LibraryPrefixes extends AnalysisRule {
     : super(name: LintNames.library_prefixes, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.libraryPrefixes;
+  DiagnosticCode get diagnosticCode => diag.libraryPrefixes;
 
   @override
   void registerNodeProcessors(

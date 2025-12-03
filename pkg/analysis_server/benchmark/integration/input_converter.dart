@@ -63,7 +63,7 @@ abstract class CommonInputConverter extends Converter<String, Operation?> {
   /// Return an operation for the notification or `null` if none.
   Operation? convertNotification(Map<String, dynamic> json) {
     var event = json['event'] as String;
-    if (event == SERVER_NOTIFICATION_STATUS) {
+    if (event == serverNotificationStatus) {
       // {"event":"server.status","params":{"analysis":{"isAnalyzing":false}}}
       var params = asMap2(json['params']);
       if (params != null) {
@@ -73,7 +73,7 @@ abstract class CommonInputConverter extends Converter<String, Operation?> {
         }
       }
     }
-    if (event == SERVER_NOTIFICATION_CONNECTED) {
+    if (event == serverNotificationConnected) {
       // {"event":"server.connected","params":{"version":"1.7.0"}}
       return StartServerOperation();
     }
@@ -90,7 +90,7 @@ abstract class CommonInputConverter extends Converter<String, Operation?> {
     var method = json['method'] as String;
     // Sanity check operations that modify source
     // to ensure that the operation is on source in temp space
-    if (method == ANALYSIS_REQUEST_UPDATE_CONTENT) {
+    if (method == analysisRequestUpdateContent) {
       // Track overlays in parallel with the analysis server
       // so that when an overlay is removed, the file can be updated on disk
       var request = Request.fromJson(json)!;
@@ -125,24 +125,24 @@ abstract class CommonInputConverter extends Converter<String, Operation?> {
     }
     // TODO(danrubel): replace this with code
     // that just forwards the translated request
-    if (method == ANALYSIS_REQUEST_GET_HOVER ||
-        method == ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS ||
-        method == ANALYSIS_REQUEST_SET_PRIORITY_FILES ||
-        method == ANALYSIS_REQUEST_SET_SUBSCRIPTIONS ||
-        method == ANALYSIS_REQUEST_UPDATE_OPTIONS ||
-        method == EDIT_REQUEST_GET_ASSISTS ||
-        method == EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS ||
-        method == EDIT_REQUEST_GET_FIXES ||
-        method == EDIT_REQUEST_GET_REFACTORING ||
-        method == EDIT_REQUEST_SORT_MEMBERS ||
-        method == EXECUTION_REQUEST_CREATE_CONTEXT ||
-        method == EXECUTION_REQUEST_DELETE_CONTEXT ||
-        method == EXECUTION_REQUEST_MAP_URI ||
-        method == EXECUTION_REQUEST_SET_SUBSCRIPTIONS ||
-        method == SEARCH_REQUEST_FIND_ELEMENT_REFERENCES ||
-        method == SEARCH_REQUEST_FIND_MEMBER_DECLARATIONS ||
-        method == SERVER_REQUEST_GET_VERSION ||
-        method == SERVER_REQUEST_SET_SUBSCRIPTIONS) {
+    if (method == analysisRequestGetHover ||
+        method == analysisRequestSetAnalysisRoots ||
+        method == analysisRequestSetPriorityFiles ||
+        method == analysisRequestSetSubscriptions ||
+        method == analysisRequestUpdateOptions ||
+        method == editRequestGetAssists ||
+        method == editRequestGetAvailableRefactorings ||
+        method == editRequestGetFixes ||
+        method == editRequestGetRefactoring ||
+        method == editRequestSortMembers ||
+        method == executionRequestCreateContext ||
+        method == executionRequestDeleteContext ||
+        method == executionRequestMapUri ||
+        method == executionRequestSetSubscriptions ||
+        method == searchRequestFindElementReferences ||
+        method == searchRequestFindMemberDeclarations ||
+        method == serverRequestGetVersion ||
+        method == serverRequestSetSubscriptions) {
       return RequestOperation(this, json);
     }
     throw 'unknown request: $method\n  $json';

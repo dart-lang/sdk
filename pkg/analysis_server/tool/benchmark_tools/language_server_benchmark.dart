@@ -48,7 +48,7 @@ abstract class DartLanguageServerBenchmark {
   List<Uri> get additionalWorkspaceUris => const [];
   Uri? get cacheFolder => null;
 
-  LaunchFrom get launchFrom => LaunchFrom.Source;
+  LaunchFrom get launchFrom => LaunchFrom.source;
 
   Uri get rootUri;
   Future<void> afterInitialization();
@@ -264,7 +264,7 @@ abstract class DartLanguageServerBenchmark {
     }
 
     switch (launchFrom) {
-      case LaunchFrom.Source:
+      case LaunchFrom.source:
         File serverFile = File.fromUri(
           repoDir.resolve('pkg/analysis_server/bin/server.dart'),
         );
@@ -282,7 +282,7 @@ abstract class DartLanguageServerBenchmark {
           '--port=9102',
           ...cacheFolderArgs,
         ]);
-      case LaunchFrom.Dart:
+      case LaunchFrom.dart:
         // TODO(jensj): Option of wrapping in `perf record -g` call.
         p = await Process.start(executableToUse, [
           'language-server',
@@ -290,8 +290,8 @@ abstract class DartLanguageServerBenchmark {
           '--port=9102',
           ...cacheFolderArgs,
         ]);
-      case LaunchFrom.AotWithPerf:
-      case LaunchFrom.Aot:
+      case LaunchFrom.aotWithPerf:
+      case LaunchFrom.aot:
         File serverFile = File.fromUri(
           repoDir.resolve('pkg/analysis_server/bin/server.aot'),
         );
@@ -314,7 +314,7 @@ abstract class DartLanguageServerBenchmark {
           ...cacheFolderArgs,
         ]);
 
-        if (launchFrom == LaunchFrom.AotWithPerf) {
+        if (launchFrom == LaunchFrom.aotWithPerf) {
           await Process.start('perf', [
             'record',
             '-p',
@@ -504,7 +504,7 @@ class DurationInfo {
   DurationInfo(this.name, this.duration);
 }
 
-enum LaunchFrom { Source, Dart, Aot, AotWithPerf }
+enum LaunchFrom { source, dart, aot, aotWithPerf }
 
 class MemoryInfo {
   final String name;

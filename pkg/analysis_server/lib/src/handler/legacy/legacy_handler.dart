@@ -10,7 +10,7 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:dart_style/dart_style.dart';
@@ -82,8 +82,7 @@ abstract class LegacyHandler {
   int numberOfSyntacticErrors(List<Diagnostic> diagnostics) {
     var numScanParseErrors = 0;
     for (var diagnostic in diagnostics) {
-      if (diagnostic.diagnosticCode is ScannerErrorCode ||
-          diagnostic.diagnosticCode is ParserErrorCode) {
+      if (diagnostic.diagnosticCode.type == DiagnosticType.SYNTACTIC_ERROR) {
         numScanParseErrors++;
       }
     }

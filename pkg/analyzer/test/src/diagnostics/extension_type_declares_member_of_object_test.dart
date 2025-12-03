@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +22,7 @@ extension type E(int it) {
   int get hashCode => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.extensionTypeDeclaresMemberOfObject, 37, 8)],
+      [error(diag.extensionTypeDeclaresMemberOfObject, 37, 8)],
     );
   }
 
@@ -38,19 +38,11 @@ extension type E(int it) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.extensionTypeDeclaresMemberOfObject, 42, 2),
-        error(CompileTimeErrorCode.extensionTypeDeclaresMemberOfObject, 75, 8),
-        error(CompileTimeErrorCode.extensionTypeDeclaresMemberOfObject, 99, 8),
-        error(
-          CompileTimeErrorCode.extensionTypeDeclaresMemberOfObject,
-          131,
-          11,
-        ),
-        error(
-          CompileTimeErrorCode.extensionTypeDeclaresMemberOfObject,
-          162,
-          12,
-        ),
+        error(diag.extensionTypeDeclaresMemberOfObject, 42, 2),
+        error(diag.extensionTypeDeclaresMemberOfObject, 75, 8),
+        error(diag.extensionTypeDeclaresMemberOfObject, 99, 8),
+        error(diag.extensionTypeDeclaresMemberOfObject, 131, 11),
+        error(diag.extensionTypeDeclaresMemberOfObject, 162, 12),
       ],
     );
   }

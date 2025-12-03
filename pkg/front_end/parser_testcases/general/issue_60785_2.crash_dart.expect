@@ -1,0 +1,118 @@
+Problems reported:
+
+parser/general/issue_60785_2.crash:3:15: Expected ':' before this.
+    case 'foo') {
+              ^
+
+parser/general/issue_60785_2.crash:3:15: Expected an identifier, but got ')'.
+    case 'foo') {
+              ^
+
+parser/general/issue_60785_2.crash:3:10: Expected ';' after this.
+    case 'foo') {
+         ^^^^^
+
+parser/general/issue_60785_2.crash:3:15: Unexpected token ')'.
+    case 'foo') {
+              ^
+
+parser/general/issue_60785_2.crash:5:5: Expected an identifier, but got 'else'.
+  } else {
+    ^^^^
+
+parser/general/issue_60785_2.crash:5:3: Expected ';' after this.
+  } else {
+  ^
+
+parser/general/issue_60785_2.crash:5:5: Unexpected token 'else'.
+  } else {
+    ^^^^
+
+parser/general/issue_60785_2.crash:2:14: Can't find '}' to match '{'.
+  switch (s) {
+             ^
+
+beginCompilationUnit(void)
+  beginMetadataStar(void)
+  endMetadataStar(0)
+  beginTopLevelMember(void)
+    beginTopLevelMethod(UnmatchedToken({), null, null)
+      handleVoidKeyword(void)
+      handleIdentifier(foo, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+        beginMetadataStar(String)
+        endMetadataStar(0)
+        beginFormalParameter(String, MemberKind.TopLevelMethod, null, null, null)
+          handleIdentifier(String, typeReference)
+          handleNoTypeArguments(s)
+          handleType(String, null)
+          handleIdentifier(s, formalParameterDeclaration)
+          handleFormalParameterWithoutValue())
+        endFormalParameter(null, null, null, null, s, null, null, FormalParameterKind.requiredPositional, MemberKind.TopLevelMethod)
+      endFormalParameters(1, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        beginSwitchStatement(switch)
+          handleIdentifier(s, expression)
+          handleNoTypeArguments())
+          handleNoArguments())
+          handleSend(s, s)
+          handleParenthesizedCondition((, null, null)
+          beginSwitchBlock({)
+            beginCaseExpression(case)
+              beginPattern(case)
+                beginConstantPattern(null)
+                  beginLiteralString('foo')
+                  endLiteralString(0, ))
+                endConstantPattern(null)
+              endPattern('foo')
+              handleSwitchCaseNoWhenClause('foo')
+              handleRecoverableError(Message[Template(ExpectedButGot), Expected ':' before this., null, {string: :}], ), ))
+            endCaseExpression(case, null, :)
+            beginSwitchCase(0, 1, case)
+              handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got ')'., Try inserting an identifier before ')'., {lexeme: )}], ), ))
+              handleIdentifier(, expression)
+              handleNoTypeArguments())
+              handleNoArguments())
+              handleSend(, )
+              handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], 'foo', 'foo')
+              handleExpressionStatement(), ;)
+              handleRecoverableError(Message[Template(UnexpectedToken), Unexpected token ')'., null, {lexeme: )}], ), ))
+              beginBlock({, BlockKind(statement))
+                handleIdentifier(print, expression)
+                handleNoTypeArguments(()
+                beginArguments(()
+                  beginLiteralString('foo')
+                  endLiteralString(0, ))
+                endArguments(1, (, ))
+                handleSend(print, ))
+                handleExpressionStatement(print, ;)
+              endBlock(1, {, }, BlockKind(statement))
+              handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got 'else'., Try inserting an identifier before 'else'., {lexeme: else}], else, else)
+              handleIdentifier(, expression)
+              handleNoTypeArguments(else)
+              handleNoArguments(else)
+              handleSend(, )
+              handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], }, })
+              handleExpressionStatement(else, ;)
+              handleRecoverableError(Message[Template(UnexpectedToken), Unexpected token 'else'., null, {lexeme: else}], else, else)
+              beginBlock({, BlockKind(statement))
+                handleIdentifier(print, expression)
+                handleNoTypeArguments(()
+                beginArguments(()
+                  beginLiteralString('bar')
+                  endLiteralString(0, ))
+                endArguments(1, (, ))
+                handleSend(print, ))
+                handleExpressionStatement(print, ;)
+              endBlock(1, {, }, BlockKind(statement))
+            endSwitchCase(0, 1, null, null, 4, case, })
+          endSwitchBlock(1, {, })
+        endSwitchStatement(switch, })
+      endBlockFunctionBody(1, {, })
+    endTopLevelMethod(void, null, })
+  endTopLevelDeclaration(})
+  handleErrorToken(UnmatchedToken({))
+  handleRecoverableError(Message[Template(UnmatchedToken), Can't find '}' to match '{'., null, {string: }, lexeme: {}], UnmatchedToken({), UnmatchedToken({))
+endCompilationUnit(1, )

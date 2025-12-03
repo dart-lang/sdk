@@ -294,7 +294,7 @@ class EditTest {
 
   void test_toJson() {
     var edit = SourceEdit(1, 2, 'foo');
-    var expectedJson = {OFFSET: 1, LENGTH: 2, REPLACEMENT: 'foo'};
+    var expectedJson = {offsetKey: 1, lengthKey: 2, replacementKey: 'foo'};
     expect(edit.toJson(), expectedJson);
   }
 
@@ -349,11 +349,11 @@ class FileEditTest {
     fileEdit.add(SourceEdit(1, 2, 'aaa'));
     fileEdit.add(SourceEdit(10, 20, 'bbb'));
     var expectedJson = {
-      FILE: '/test.dart',
-      FILE_STAMP: 100,
-      EDITS: [
-        {OFFSET: 10, LENGTH: 20, REPLACEMENT: 'bbb'},
-        {OFFSET: 1, LENGTH: 2, REPLACEMENT: 'aaa'},
+      fileKey: '/test.dart',
+      fileStampKey: 100,
+      editsKey: [
+        {offsetKey: 10, lengthKey: 20, replacementKey: 'bbb'},
+        {offsetKey: 1, lengthKey: 2, replacementKey: 'aaa'},
       ],
     };
     expect(fileEdit.toJson(), expectedJson);
@@ -441,7 +441,7 @@ class PositionTest {
 
   void test_toJson() {
     var position = Position('/test.dart', 1);
-    var expectedJson = {FILE: '/test.dart', OFFSET: 1};
+    var expectedJson = {fileKey: '/test.dart', offsetKey: 1};
     expect(position.toJson(), expectedJson);
   }
 }

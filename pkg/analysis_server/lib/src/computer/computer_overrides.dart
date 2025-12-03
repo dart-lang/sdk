@@ -28,13 +28,17 @@ class DartUnitOverridesComputer {
   List<proto.Override> compute() {
     for (var unitMember in _unit.declarations) {
       if (unitMember is ClassDeclaration) {
-        _classMembers(unitMember.members);
+        if (unitMember.body case BlockClassBody body) {
+          _classMembers(body.members);
+        }
       } else if (unitMember is EnumDeclaration) {
-        _classMembers(unitMember.members);
+        _classMembers(unitMember.body.members);
       } else if (unitMember is ExtensionTypeDeclaration) {
-        _classMembers(unitMember.members);
+        if (unitMember.body case BlockClassBody body) {
+          _classMembers(body.members);
+        }
       } else if (unitMember is MixinDeclaration) {
-        _classMembers(unitMember.members);
+        _classMembers(unitMember.body.members);
       }
     }
     return _overrides;

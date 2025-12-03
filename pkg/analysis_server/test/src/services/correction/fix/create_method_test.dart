@@ -1294,7 +1294,7 @@ class A {
 class A {
   var f = myUndefinedMethod();
 
-  static myUndefinedMethod() {}
+  static Object? myUndefinedMethod() {}
 }
 ''');
   }
@@ -1309,7 +1309,7 @@ class A {
 class A {
   late var f = myUndefinedMethod();
 
-  myUndefinedMethod() {}
+  Object? myUndefinedMethod() {}
 }
 ''');
   }
@@ -1475,7 +1475,7 @@ class A {
 class A {
   static var f = myUndefinedMethod();
 
-  static myUndefinedMethod() {}
+  static Object? myUndefinedMethod() {}
 }
 ''');
   }
@@ -1490,7 +1490,7 @@ class A {
 class A {
   static late var f = myUndefinedMethod();
 
-  static myUndefinedMethod() {}
+  static Object? myUndefinedMethod() {}
 }
 ''');
   }

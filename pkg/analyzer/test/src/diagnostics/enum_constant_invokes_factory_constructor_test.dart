@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -31,13 +31,7 @@ extension type const ET(E it) implements E {
   const ET.named() : this(E.e1);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.enumConstantInvokesFactoryConstructor,
-          20,
-          5,
-        ),
-      ],
+      [error(diag.enumConstantInvokesFactoryConstructor, 20, 5)],
     );
   }
 
@@ -56,13 +50,7 @@ extension type const ET(E it) implements E {
   const ET.named() : this(E.e1);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.enumConstantInvokesFactoryConstructor,
-          27,
-          2,
-        ),
-      ],
+      [error(diag.enumConstantInvokesFactoryConstructor, 27, 2)],
     );
   }
 
@@ -81,13 +69,7 @@ extension type const ET(E it) implements E {
   const ET.named() : this(E.e1);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.enumConstantInvokesFactoryConstructor,
-          27,
-          2,
-        ),
-      ],
+      [error(diag.enumConstantInvokesFactoryConstructor, 27, 2)],
     );
   }
 }

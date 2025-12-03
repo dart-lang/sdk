@@ -24,15 +24,15 @@ package:analyzer_testing/mock_packages/mock_packages.dart:
     packagesRootPath (getter: String)
     pathContext (getter: Context)
     resourceProvider (getter: ResourceProvider)
-    addAngularMeta (method: Folder Function())
+    addAngularMeta (method: Folder Function(), deprecated)
     addFfi (method: Folder Function())
     addFixnum (method: Folder Function())
     addFlutter (method: Folder Function())
     addFlutterTest (method: Folder Function())
-    addJs (method: Folder Function())
-    addKernel (method: Folder Function())
+    addJs (method: Folder Function(), deprecated)
+    addKernel (method: Folder Function(), deprecated)
     addMeta (method: Folder Function())
-    addPedantic (method: Folder Function())
+    addPedantic (method: Folder Function(), deprecated)
     addTestReflectiveLoader (method: Folder Function())
     addUI (method: Folder Function())
     addVectorMath (method: Folder Function())
@@ -70,7 +70,7 @@ package:analyzer_testing/utilities/extensions/resource_provider.dart:
   ResourceProviderExtension (extension on ResourceProvider):
     convertPath (method: String Function(String))
 package:analyzer_testing/utilities/utilities.dart:
-  analysisOptionsContent (function: String Function({Map<String, Object?> errors, List<String> experiments, List<String> includes, List<String> legacyPlugins, List<String> rules, bool strictCasts, bool strictInference, bool strictRawTypes, List<String> unignorableNames}))
+  analysisOptionsContent (function: String Function({Map<String, Object?> errors, List<String> experiments, List<String> includes, List<String> legacyPlugins, bool propagateLinterExceptions, List<String> rules, bool strictCasts, bool strictInference, bool strictRawTypes, List<String> unignorableNames}))
   pubspecYamlContent (function: String Function({List<String> dependencies, String? name, String? sdkVersion}))
 dart:async:
   Future (referenced)

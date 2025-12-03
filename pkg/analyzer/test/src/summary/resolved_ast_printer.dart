@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -236,17 +235,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    if (useDeclaringConstructorsAst) {
-      expect(() => node.name, throwsUnsupportedError);
-      expect(() => node.typeParameters, throwsUnsupportedError);
-      expect(() => node.leftBracket, throwsUnsupportedError);
-      expect(() => node.members, throwsUnsupportedError);
-      expect(() => node.rightBracket, throwsUnsupportedError);
-    } else {
-      expect(() => node.namePart, throwsUnsupportedError);
-      expect(() => node.body, throwsUnsupportedError);
-    }
-
     _sink.writeln('ClassDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -364,6 +352,13 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.typeName != null) {
+      assert(
+        // ignore: deprecated_member_use_from_same_package
+        identical(node.returnType, node.typeName),
+      );
+    }
+
     _sink.writeln('ConstructorDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -514,6 +509,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitEmptyClassBody(EmptyClassBody node) {
+    _sink.writeln('EmptyClassBody');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {
     _sink.writeln('EmptyFunctionBody');
     _sink.withIndent(() {
@@ -553,19 +556,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    if (useDeclaringConstructorsAst) {
-      expect(() => node.name, throwsUnsupportedError);
-      expect(() => node.typeParameters, throwsUnsupportedError);
-      expect(() => node.leftBracket, throwsUnsupportedError);
-      expect(() => node.constants, throwsUnsupportedError);
-      expect(() => node.semicolon, throwsUnsupportedError);
-      expect(() => node.members, throwsUnsupportedError);
-      expect(() => node.rightBracket, throwsUnsupportedError);
-    } else {
-      expect(() => node.namePart, throwsUnsupportedError);
-      expect(() => node.body, throwsUnsupportedError);
-    }
-
     _sink.writeln('EnumDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -610,14 +600,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    if (useDeclaringConstructorsAst) {
-      expect(() => node.leftBracket, throwsUnsupportedError);
-      expect(() => node.members, throwsUnsupportedError);
-      expect(() => node.rightBracket, throwsUnsupportedError);
-    } else {
-      expect(() => node.body, throwsUnsupportedError);
-    }
-
     _sink.writeln('ExtensionDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -647,19 +629,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    if (useDeclaringConstructorsAst) {
-      expect(() => node.name, throwsUnsupportedError);
-      expect(() => node.representation, throwsUnsupportedError);
-      expect(() => node.constKeyword, throwsUnsupportedError);
-      expect(() => node.typeParameters, throwsUnsupportedError);
-      expect(() => node.leftBracket, throwsUnsupportedError);
-      expect(() => node.members, throwsUnsupportedError);
-      expect(() => node.rightBracket, throwsUnsupportedError);
-    } else {
-      expect(() => node.namePart, throwsUnsupportedError);
-      expect(() => node.body, throwsUnsupportedError);
-    }
-
     _sink.writeln('ExtensionTypeDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -835,7 +804,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeNamedChildEntities(node);
       if (_withResolution) {
         _writeGenericFunctionTypeElement(
-          'declaredElement',
+          'declaredFragment',
           node.declaredFragment,
         );
       }
@@ -1103,14 +1072,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    if (useDeclaringConstructorsAst) {
-      expect(() => node.leftBracket, throwsUnsupportedError);
-      expect(() => node.members, throwsUnsupportedError);
-      expect(() => node.rightBracket, throwsUnsupportedError);
-    } else {
-      expect(() => node.body, throwsUnsupportedError);
-    }
-
     _sink.writeln('MixinDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -1340,10 +1301,19 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    _sink.writeln('PrimaryConstructorBody');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     _sink.writeln('PrimaryConstructorDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
     });
   }
 
@@ -1440,24 +1410,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeNamedChildEntities(node);
       _writeElement('element', node.element);
       _writePatternMatchedValueType(node);
-    });
-  }
-
-  @override
-  void visitRepresentationConstructorName(RepresentationConstructorName node) {
-    _sink.writeln('RepresentationConstructorName');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-    });
-  }
-
-  @override
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    _sink.writeln('RepresentationDeclaration');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeFragment('fieldFragment', node.fieldFragment);
-      _writeFragment('constructorFragment', node.constructorFragment);
     });
   }
 
@@ -1832,12 +1784,12 @@ Expected parent: (${parent.runtimeType}) $parent
       if (fragment is LocalVariableFragmentImpl) {
         _writeDeclaredLocalVariableFragment(fragment);
       } else if (fragment is TypeParameterFragmentImpl) {
-        _writeFragment('declaredElement', fragment);
+        _writeFragment('declaredFragment', fragment);
         _sink.withIndent(() {
           _writeType('defaultType', fragment.element.defaultType);
         });
       } else {
-        _writeFragment('declaredElement', fragment);
+        _writeFragment('declaredFragment', fragment);
         if (fragment is ExecutableFragmentImpl) {
           _sink.withIndent(() {
             var element = fragment.element;
@@ -1855,6 +1807,9 @@ Expected parent: (${parent.runtimeType}) $parent
             });
             _sink.withIndent(() {
               _writeType('type', element.type);
+              if (element is FieldFormalParameterElementImpl) {
+                _elementPrinter.writeNamedElement2('field', element.field);
+              }
             });
           });
         }
@@ -2224,6 +2179,9 @@ Expected parent: (${parent.runtimeType}) $parent
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;
     } else if (parametersParent is MethodDeclaration) {
+      var declaredFragment = parametersParent.declaredFragment!;
+      return declaredFragment.formalParameters;
+    } else if (parametersParent is PrimaryConstructorDeclaration) {
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;
     }

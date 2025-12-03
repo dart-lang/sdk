@@ -8,6 +8,7 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
@@ -38,23 +39,6 @@ class ResolveNameInScopeTest extends PubPackageResolutionTest {
     return result;
   }
 
-  test_class_getter_different_fromExtends_thisClassSetter() async {
-    await assertNoDiagnostics('''
-class A {
-  int get foo => 0;
-}
-
-class B extends A {
-  set foo(int _) {}
-
-  void bar() {
-    this.foo;
-  }
-}
-''');
-    _checkGetterDifferent(findElement.setter('foo'));
-  }
-
   test_class_getter_different_importScope() async {
     newFile('$testPackageLibPath/a.dart', r'''
 set foo(int _) {}
@@ -73,7 +57,7 @@ class B extends A {
   }
 }
 ''',
-      [error(WarningCode.unusedImport, 7, 8)],
+      [error(diag.unusedImport, 7, 8)],
     );
     var import = findElement.importFind('package:test/a.dart');
     _checkGetterDifferent(import.topSet('foo'));
@@ -122,6 +106,36 @@ class B extends A {
     _checkGetterNone();
   }
 
+  test_class_getter_none_fromThisClass() async {
+    await assertNoDiagnostics('''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  set foo(int _) {}
+
+  void bar() {
+    this.foo;
+  }
+}
+''');
+    _checkGetterNone();
+  }
+
+  test_class_getter_none_thisClass() async {
+    await assertNoDiagnostics('''
+class A {
+  int get foo => 0;
+
+  void bar() {
+    this.foo;
+  }
+}
+''');
+    _checkGetterNone();
+  }
+
   test_class_getter_requested_importScope() async {
     newFile('$testPackageLibPath/a.dart', r'''
 int get foo => 0;
@@ -140,23 +154,10 @@ class B extends A {
   }
 }
 ''',
-      [error(WarningCode.unusedImport, 7, 8)],
+      [error(diag.unusedImport, 7, 8)],
     );
     var import = findElement.importFind('package:test/a.dart');
     _checkGetterRequested(import.topGet('foo'));
-  }
-
-  test_class_getter_requested_thisClass() async {
-    await assertNoDiagnostics('''
-class A {
-  int get foo => 0;
-
-  void bar() {
-    this.foo;
-  }
-}
-''');
-    _checkGetterRequested(findElement.getter('foo'));
   }
 
   test_class_method_different_fromExtends_topSetter() async {
@@ -198,6 +199,19 @@ extension E on A {
 }
 
 class A {
+  void bar() {
+    this.foo();
+  }
+}
+''');
+    _checkMethodNone();
+  }
+
+  test_class_method_none_thisClass() async {
+    await assertNoDiagnostics('''
+class A {
+  void foo() {}
+
   void bar() {
     this.foo();
   }
@@ -301,7 +315,7 @@ class B extends A {
   }
 }
 ''',
-      [error(WarningCode.unusedImport, 7, 8)],
+      [error(diag.unusedImport, 7, 8)],
     );
     var import = findElement.importFind('package:test/a.dart');
     _checkMethodRequested(import.topFunction('foo'));
@@ -476,19 +490,6 @@ class A {
     _checkMethodRequestedLocalVariable();
   }
 
-  test_class_method_requested_thisClass() async {
-    await assertNoDiagnostics('''
-class A {
-  void foo() {}
-
-  void bar() {
-    this.foo();
-  }
-}
-''');
-    _checkMethodRequested(findElement.method('foo'));
-  }
-
   test_class_method_requested_typeParameter_method() async {
     await assertNoDiagnostics('''
 class A {
@@ -574,6 +575,34 @@ class B extends A {
     _checkSetterNone();
   }
 
+  test_class_setter_none_thisClass() async {
+    await assertNoDiagnostics('''
+class A {
+  set foo(int _) {}
+
+  void bar() {
+    this.foo = 0;
+  }
+}
+''');
+    _checkSetterNone();
+  }
+
+  test_class_setter_none_thisClass_topLevelFunction() async {
+    await assertNoDiagnostics('''
+class A {
+  set foo(int _) {}
+
+  void bar() {
+    this.foo = 0;
+  }
+}
+
+void foo() {}
+''');
+    _checkSetterNone();
+  }
+
   test_class_setter_requested_fromExtends_topLevelVariable() async {
     await assertNoDiagnostics('''
 class A {
@@ -609,38 +638,10 @@ class B extends A {
   }
 }
 ''',
-      [error(WarningCode.unusedImport, 7, 8)],
+      [error(diag.unusedImport, 7, 8)],
     );
     var import = findElement.importFind('package:test/a.dart');
     _checkSetterRequested(import.topSet('foo'));
-  }
-
-  test_class_setter_requested_thisClass() async {
-    await assertNoDiagnostics('''
-class A {
-  set foo(int _) {}
-
-  void bar() {
-    this.foo = 0;
-  }
-}
-''');
-    _checkSetterRequested(findElement.setter('foo'));
-  }
-
-  test_class_setter_requested_thisClass_topLevelFunction() async {
-    await assertNoDiagnostics('''
-class A {
-  set foo(int _) {}
-
-  void bar() {
-    this.foo = 0;
-  }
-}
-
-void foo() {}
-''');
-    _checkSetterRequested(findElement.setter('foo'));
   }
 
   test_class_typeParameter_inConstructor() async {
@@ -780,6 +781,19 @@ typedef A<T> = List<T>;
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 
+  test_mixin_method_none_thisClass() async {
+    await assertNoDiagnostics('''
+mixin M {
+  void foo() {}
+
+  void bar() {
+    this.foo();
+  }
+}
+''');
+    _checkMethodNone();
+  }
+
   test_mixin_method_requested_formalParameter_method() async {
     await assertNoDiagnostics('''
 mixin M {
@@ -791,19 +805,6 @@ mixin M {
 }
 ''');
     _checkMethodRequested(findElement.parameter('foo'));
-  }
-
-  test_mixin_method_requested_thisClass() async {
-    await assertNoDiagnostics('''
-mixin M {
-  void foo() {}
-
-  void bar() {
-    this.foo();
-  }
-}
-''');
-    _checkMethodRequested(findElement.method('foo'));
   }
 
   test_mixin_typeParameter_inField() async {

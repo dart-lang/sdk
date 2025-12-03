@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,7 +25,7 @@ Object f(bool x) {
   };
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchExpression, 28, 6)],
+      [error(diag.nonExhaustiveSwitchExpression, 28, 6)],
     );
   }
 
@@ -78,7 +78,7 @@ Object f(E x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.nonExhaustiveSwitchExpression,
+          diag.nonExhaustiveSwitchExpression,
           44,
           6,
           correctionContains: 'E.a',
@@ -92,7 +92,117 @@ Object f(E x) {
       r'''
 void f(Unresolved x) => switch (x) {};
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 7, 10)],
+      [error(diag.undefinedClass, 7, 10)],
+    );
+  }
+
+  test_private_enum() async {
+    newFile(join(testPackageLibPath, 'private_enum.dart'), r'''
+enum _E { a, b }
+_E e() => _E.a;
+''');
+    await assertErrorsInCode(
+      '''
+import 'private_enum.dart';
+
+Object f() {
+  return switch (e()) {
+  };
+}
+''',
+      [error(diag.nonExhaustiveSwitchExpressionPrivate, 51, 6)],
+    );
+  }
+
+  test_private_enum_sameLibrary() async {
+    await assertErrorsInCode(
+      '''
+enum _E { a, b }
+
+Object f(_E e) {
+  return switch (e) {
+  };
+}
+''',
+      [
+        error(diag.unusedField, 10, 1),
+        error(diag.unusedField, 13, 1),
+        error(diag.nonExhaustiveSwitchExpression, 44, 6),
+      ],
+    );
+  }
+
+  test_private_enumConstant() async {
+    newFile(join(testPackageLibPath, 'private_enum.dart'), r'''
+enum E { a, b, _c }
+''');
+    await assertErrorsInCode(
+      '''
+import 'private_enum.dart';
+
+Object f(E e) {
+  return switch (e) {
+    E.a => 0,
+  };
+}
+''',
+      [error(diag.nonExhaustiveSwitchExpression, 54, 6)],
+    );
+  }
+
+  test_private_enumConstant_only() async {
+    newFile(join(testPackageLibPath, 'private_enum.dart'), r'''
+enum E { a, b, _c }
+''');
+    await assertErrorsInCode(
+      '''
+import 'private_enum.dart';
+
+Object f(E e) {
+  return switch (e) {
+    E.a => 0,
+    E.b => 1,
+  };
+}
+''',
+      [error(diag.nonExhaustiveSwitchExpressionPrivate, 54, 6)],
+    );
+  }
+
+  test_private_enumConstant_sameLibrary() async {
+    await assertErrorsInCode(
+      '''
+enum E { a, b, _c }
+Object f(E e) {
+  return switch (e) {
+    E.a => 0,
+    E.b => 1,
+  };
+}
+''',
+      [
+        error(diag.unusedField, 15, 2),
+        error(diag.nonExhaustiveSwitchExpression, 45, 6),
+      ],
+    );
+  }
+
+  test_private_sealed() async {
+    newFile(join(testPackageLibPath, 'private_sealed.dart'), r'''
+sealed class _A {}
+class B extends _A {}
+_A a() => B();
+''');
+    await assertErrorsInCode(
+      '''
+import 'private_sealed.dart';
+
+Object f() {
+  return switch (a()) {
+  };
+}
+''',
+      [error(diag.nonExhaustiveSwitchExpression, 53, 6)],
     );
   }
 }
@@ -109,7 +219,7 @@ void f(bool x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 19, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 19, 6)],
     );
   }
 
@@ -147,8 +257,8 @@ void f(bool x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 19, 6),
-        error(WarningCode.patternNeverMatchesValueType, 41, 3),
+        error(diag.nonExhaustiveSwitchStatement, 19, 6),
+        error(diag.patternNeverMatchesValueType, 41, 3),
       ],
     );
   }
@@ -175,7 +285,7 @@ void f(bool? x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 20, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 20, 6)],
     );
   }
 
@@ -206,7 +316,7 @@ void f(E x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 35, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 35, 6)],
     );
   }
 
@@ -243,7 +353,7 @@ void f(E x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.nonExhaustiveSwitchStatement,
+          diag.nonExhaustiveSwitchStatement,
           35,
           6,
           correctionContains: 'E.a',
@@ -284,8 +394,8 @@ void f(E x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.recursiveCompileTimeConstant, 11, 2),
-        error(CompileTimeErrorCode.recursiveCompileTimeConstant, 19, 2),
+        error(diag.recursiveCompileTimeConstant, 11, 2),
+        error(diag.recursiveCompileTimeConstant, 19, 2),
       ],
     );
   }
@@ -297,7 +407,7 @@ void f(Null x) {
   switch (x) {}
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 19, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 19, 6)],
     );
   }
 
@@ -340,7 +450,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 77, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 77, 6)],
     );
   }
 
@@ -394,7 +504,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 74, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 74, 6)],
     );
   }
 
@@ -428,7 +538,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 117, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 117, 6)],
     );
   }
 
@@ -451,7 +561,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 92, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 92, 6)],
     );
   }
 
@@ -492,7 +602,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 85, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 85, 6)],
     );
   }
 
@@ -527,7 +637,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 78, 10)],
+      [error(diag.undefinedIdentifier, 78, 10)],
     );
   }
 
@@ -544,7 +654,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 78, 10)],
+      [error(diag.undefinedClass, 78, 10)],
     );
   }
 
@@ -558,7 +668,7 @@ void f<T extends bool>(T x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 32, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 32, 6)],
     );
   }
 
@@ -586,7 +696,7 @@ void f<T>(T x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 40, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 40, 6)],
     );
   }
 
@@ -611,7 +721,7 @@ void f(Unresolved x) {
   switch (x) {}
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 7, 10)],
+      [error(diag.undefinedClass, 7, 10)],
     );
   }
 
@@ -624,5 +734,81 @@ void f(int x) {
   }
 }
 ''');
+  }
+
+  test_private_enum() async {
+    newFile(join(testPackageLibPath, 'private_enum.dart'), r'''
+enum _E { a, b }
+_E e() => _E.a;
+''');
+    await assertErrorsInCode(
+      '''
+import 'private_enum.dart';
+
+void f() {
+  switch (e()) {
+  }
+}
+''',
+      [error(diag.nonExhaustiveSwitchStatementPrivate, 42, 6)],
+    );
+  }
+
+  test_private_enumConstant() async {
+    newFile(join(testPackageLibPath, 'private_enum.dart'), r'''
+enum E { a, b, _c }
+''');
+    await assertErrorsInCode(
+      '''
+import 'private_enum.dart';
+
+void f(E e) {
+  switch (e) {
+    case E.a:
+      break;
+  }
+}
+''',
+      [error(diag.nonExhaustiveSwitchStatement, 45, 6)],
+    );
+  }
+
+  test_private_enumConstant_only() async {
+    newFile(join(testPackageLibPath, 'private_enum.dart'), r'''
+enum E { a, b, _c }
+''');
+    await assertErrorsInCode(
+      '''
+import 'private_enum.dart';
+
+void f(E e) {
+  switch (e) {
+    case E.a:
+    case E.b:
+      break;
+  }
+}
+''',
+      [error(diag.nonExhaustiveSwitchStatementPrivate, 45, 6)],
+    );
+  }
+
+  test_private_sealed() async {
+    newFile(join(testPackageLibPath, 'private_sealed.dart'), r'''
+sealed class _A {}
+class B extends _A {}
+_A a() => B();
+''');
+    await assertErrorsInCode(
+      '''
+import 'private_sealed.dart';
+
+Object f() {
+  switch (a()) {
+  }
+}
+''',
+      [error(diag.nonExhaustiveSwitchStatement, 46, 6)],
+    );
   }
 }

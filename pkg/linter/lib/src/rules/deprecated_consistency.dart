@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Missing deprecated annotation.';
 
@@ -20,9 +21,9 @@ class DeprecatedConsistency extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.deprecatedConsistencyConstructor,
-    LinterLintCode.deprecatedConsistencyField,
-    LinterLintCode.deprecatedConsistencyParameter,
+    diag.deprecatedConsistencyConstructor,
+    diag.deprecatedConsistencyField,
+    diag.deprecatedConsistencyParameter,
   ];
 
   @override
@@ -47,11 +48,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (constructorElement != null &&
         constructorElement.enclosingElement.hasDeprecated &&
         !constructorElement.hasDeprecated) {
-      var nodeToAnnotate = node.name ?? node.returnType;
+      // TODO(scheglov): support primary constructors
+      var nodeToAnnotate = node.name ?? node.typeName!;
       rule.reportAtOffset(
         nodeToAnnotate.offset,
         nodeToAnnotate.length,
-        diagnosticCode: LinterLintCode.deprecatedConsistencyConstructor,
+        diagnosticCode: diag.deprecatedConsistencyConstructor,
       );
     }
   }
@@ -65,10 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (field == null) return;
 
     if (field.hasDeprecated && !declaredElement.hasDeprecated) {
-      rule.reportAtNode(
-        node,
-        diagnosticCode: LinterLintCode.deprecatedConsistencyField,
-      );
+      rule.reportAtNode(node, diagnosticCode: diag.deprecatedConsistencyField);
     }
     if (!field.hasDeprecated && declaredElement.hasDeprecated) {
       var fieldFragment = field.firstFragment;
@@ -79,7 +78,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtOffset(
         nameOffset,
         nameLength,
-        diagnosticCode: LinterLintCode.deprecatedConsistencyParameter,
+        diagnosticCode: diag.deprecatedConsistencyParameter,
       );
     }
   }

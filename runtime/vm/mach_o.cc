@@ -34,6 +34,12 @@ DEFINE_FLAG(charp,
             "The install name to be used for the dynamic library. "
             "The output filename is used if not provided.");
 
+DEFINE_FLAG(bool,
+            macho_reduce_padding,
+            false,
+            "Whether to use a smaller alignment size for segments and the "
+            "text/const sections in Mach-O outputs.")
+
 #if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
 DEFINE_FLAG(charp,
             macho_min_os_version,
@@ -103,6 +109,9 @@ FOR_EACH_CHECKABLE_MACHO_CONTENTS_TYPE(DECLARE_CONTENTS_TYPE_CLASS)
 FOR_EACH_CONCRETE_MACHO_CONTENTS_TYPE(DECLARE_CONTENTS_TYPE_CLASS)
 #undef DECLARE_CONTENTS_TYPE_CLASS
 
+using MachORelocationsArray = ZoneGrowableArray<mach_o::relocation_info>;
+using MachORelocationAddendsArray = ZoneGrowableArray<intptr_t>;
+
 // The interface for a SharedObjectWriter::WriteStream with MachO-specific
 // utility methods.
 //
@@ -111,10 +120,11 @@ FOR_EACH_CONCRETE_MACHO_CONTENTS_TYPE(DECLARE_CONTENTS_TYPE_CLASS)
 class MachOWriteStream : public SharedObjectWriter::WriteStream {
   template <typename T, typename S>
   using only_if_unsigned = typename std::enable_if_t<std::is_unsigned_v<T>, S>;
+  using Relocation = SharedObjectWriter::Relocation;
 
  public:
   explicit MachOWriteStream(const MachOWriter& macho)
-      : SharedObjectWriter::WriteStream(), macho_(macho) {}
+      : SharedObjectWriter::WriteStream(macho.type()), macho_(macho) {}
 
   const MachOSegment& TextSegment() const;
 
@@ -179,8 +189,40 @@ class MachOWriteStream : public SharedObjectWriter::WriteStream {
   // Call once all content that should be hashed has been written to the stream.
   virtual void FinalizeHashedContent() = 0;
 
+  void set_current_relocation_addends(
+      const MachORelocationAddendsArray* array) {
+    current_relocation_addends_ = array;
+  }
+
  protected:
+  void WriteRelocatableValue(intptr_t address,
+                             const Relocation& reloc,
+                             intptr_t reloc_index) override {
+    if (type() != SharedObjectWriter::Type::Object) {
+      // Use the super implementation.
+      return SharedObjectWriter::WriteStream::WriteRelocatableValue(
+          address, reloc, reloc_index);
+    }
+    // Relocatable objects do not resolve relocations eagerly unless
+    // the source and target are the same, in which case the eagerly
+    // computed value has already been calculated as the "addend".
+    intptr_t to_write = 0;
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+    // For X64 and ARM64, the addend is stored in the relocated location
+    // as the MachOWriter only uses UNSIGNED/SUBTRACTOR relocation entries.
+    RELEASE_ASSERT(current_relocation_addends_ != nullptr);
+    to_write = current_relocation_addends_->At(reloc_index);
+#else
+    // Relocatable objects aren't handled for this architecture.
+    UNREACHABLE();
+#endif
+    ASSERT(Utils::IsInt(reloc.size_in_bytes * kBitsPerByte, to_write));
+    WriteBytes(reinterpret_cast<const uint8_t*>(&to_write),
+               reloc.size_in_bytes);
+  }
+
   const MachOWriter& macho_;
+  const MachORelocationAddendsArray* current_relocation_addends_ = nullptr;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MachOWriteStream);
@@ -574,17 +616,20 @@ class MachOSection : public MachOContents {
  public:
   MachOSection(Zone* zone,
                const char* name,
+               const char* segname,
+               intptr_t alignment,
                intptr_t type = mach_o::S_REGULAR,
                intptr_t attributes = mach_o::S_NO_ATTRIBUTES,
-               bool has_contents = true,
-               intptr_t alignment = MachOWriter::kPageSize)
+               bool has_contents = true)
       : MachOContents(/*needs_offset=*/has_contents,
                       /*in_segment=*/true),
         name_(name),
+        segname_(segname),
         flags_(mach_o::SectionFlags(type, attributes)),
         alignment_(alignment),
         portions_(zone, 0) {
     ASSERT(strlen(name) <= sizeof(SectionType::sectname));
+    ASSERT(strlen(segname) <= sizeof(SectionType::segname));
     ASSERT(Utils::IsPowerOfTwo(alignment));
     ASSERT_EQUAL(type & mach_o::SECTION_TYPE, static_cast<uint32_t>(type));
     ASSERT_EQUAL(attributes & mach_o::SECTION_ATTRIBUTES,
@@ -599,8 +644,22 @@ class MachOSection : public MachOContents {
   intptr_t Alignment() const override { return alignment_; }
 
   const char* name() const { return name_; }
+  const char* segname() const { return segname_; }
 
   bool HasName(const char* name) const { return strcmp(name_, name) == 0; }
+  bool HasSegname(const char* segname) const {
+    return strcmp(segname_, segname) == 0;
+  }
+
+  intptr_t index() const {
+    // The getter should not be called until after an initial index is assigned.
+    ASSERT(index_ != mach_o::NO_SECT);
+    return index_;
+  }
+  void set_index(intptr_t value) {
+    ASSERT(value != mach_o::NO_SECT);
+    index_ = value;
+  }
 
   struct Portion {
     void Write(MachOWriteStream* stream, intptr_t section_start) const {
@@ -662,14 +721,20 @@ class MachOSection : public MachOContents {
     return last.offset + last.size;
   }
 
+  // The first section in relocated objects will have a memory offset of 0, so
+  // don't use the superclass's implementation as all sections are allocated.
+  bool IsAllocated() const override { return true; }
+
   void WriteSelf(MachOWriteStream* stream) const override {
     if (!HasContents()) return;
+    stream->set_current_relocation_addends(relocation_addends_);
     for (const auto& portion : portions_) {
       // Each portion is aligned within the section.
       stream->Align(Alignment());
       ASSERT_EQUAL(stream->Position(), file_offset() + portion.offset);
       portion.Write(stream, memory_address());
     }
+    stream->set_current_relocation_addends(nullptr);
   }
 
   const Portion* FindPortion(const char* symbol_name) const {
@@ -690,20 +755,35 @@ class MachOSection : public MachOContents {
 
   void Accept(Visitor* visitor) override { visitor->VisitMachOSection(this); }
 
+  const MachORelocationsArray* relocations() const { return relocations_; }
+  void set_relocations(const MachORelocationsArray* relocations) {
+    relocations_ = relocations;
+  }
+  intptr_t num_relocations() const {
+    return relocations_ == nullptr ? 0 : relocations_->length();
+  }
+
+  const MachORelocationAddendsArray* relocation_addends() const {
+    return relocation_addends_;
+  }
+  void set_relocation_addends(const MachORelocationAddendsArray* array) {
+    relocation_addends_ = array;
+  }
+
  private:
   uint32_t HeaderInfoSize() const { return sizeof(SectionType); }
 
   // Called during MachOSegment::WriteLoadCommand.
-  void WriteHeaderInfo(MachOWriteStream* stream, const char* segname) const {
+  void WriteHeaderInfo(MachOWriteStream* stream) const {
     auto const start = stream->Position();
     stream->WriteFixedLengthCString(name_, sizeof(SectionType::sectname));
-    stream->WriteFixedLengthCString(segname, sizeof(SectionType::segname));
+    stream->WriteFixedLengthCString(segname_, sizeof(SectionType::segname));
     // While
     stream->WriteWord(memory_address());
     stream->WriteWord(MemorySize());
     stream->Write32(file_offset());
     stream->Write32(Utils::ShiftForPowerOfTwo(Alignment()));
-    stream->WriteOffsetCount(0, 0);  // No relocation entries.
+    stream->WriteOffsetCount(relocations_file_offset(), num_relocations());
     stream->Write32(flags_);
     // All reserved fields are 0 for our purposes.
     stream->Write32(0);  // reserved1
@@ -716,9 +796,26 @@ class MachOSection : public MachOContents {
   }
 
   const char* const name_;
+  const char* const segname_;
   const decltype(SectionType::flags) flags_ = 0;
   const intptr_t alignment_;
+  intptr_t index_ = mach_o::NO_SECT;
   GrowableArray<Portion> portions_;
+  // The array of relocation_info structs that should be output for this
+  // section iff the output format is a relocatable object.
+  const MachORelocationsArray* relocations_ = nullptr;
+  // A list of relocation addends for relocatable objects.
+  const MachORelocationAddendsArray* relocation_addends_ = nullptr;
+
+#define FOR_EACH_CONTENTS_LINEAR_FIELD(M) M(relocations_file_offset)
+
+ public:
+  FOR_EACH_CONTENTS_LINEAR_FIELD(DEFINE_LINEAR_FIELD_METHODS);
+
+ private:
+  FOR_EACH_CONTENTS_LINEAR_FIELD(DEFINE_LINEAR_FIELD);
+
+#undef FOR_EACH_CONTENTS_LINEAR_FIELD
 
   friend class MachOSegment;
 
@@ -771,7 +868,12 @@ class MachOSegment : public MachOCommand {
     return (initial_vm_protection_ & mach_o::VM_PROT_EXECUTE) != 0;
   }
 
-  intptr_t Alignment() const override { return MachOWriter::kPageSize; }
+  intptr_t Alignment() const override {
+    // TODO(dartbug.com/61973): Use the reduced padding size as the default
+    // for native (macOS/iOS) snapshots once the loading issue is resolved, or
+    // document why we can't use it for native snapshots loaded by the Dart VM.
+    return FLAG_macho_reduce_padding ? 64 : MachOWriter::kPageSize;
+  }
 
   // The text segment has a file and memory offset of 0, so the superclass's
   // implementations give false negatives after ComputeOffsets.
@@ -883,14 +985,25 @@ class MachOSegment : public MachOCommand {
     // sections instead of these being in separate load commands.
     for (auto* const c : contents_) {
       if (!c->IsMachOSection()) continue;
-      c->AsMachOSection()->WriteHeaderInfo(stream, name_);
+      c->AsMachOSection()->WriteHeaderInfo(stream);
     }
   }
 
-  MachOSection* FindSection(const char* name) const {
+  MachOSection* FindSection(const char* name, const char* segname) const {
+    // Unless this is the unnamed segment in a relocatable object file, there
+    // should be no need to check the segment name of the section.
+    const bool unnamed = HasName(mach_o::SEG_UNNAMED);
+    if (!unnamed && !HasName(segname)) {
+      return nullptr;
+    }
     for (auto* const c : contents_) {
       if (auto* const s = c->AsMachOSection()) {
-        if (s->HasName(name)) return s;
+        if (s->HasName(name)) {
+          ASSERT(unnamed || s->HasSegname(name_));
+          if (!unnamed || s->HasSegname(segname)) {
+            return s;
+          }
+        }
       }
     }
     return nullptr;
@@ -1233,8 +1346,8 @@ class MachOSymbolTable : public MachOCommand {
  public:
   static constexpr uint32_t kCommandCode = mach_o::LC_SYMTAB;
 
-  explicit MachOSymbolTable(Zone* zone)
-      : MachOCommand(kCommandCode),
+  MachOSymbolTable(Zone* zone, bool in_segment)
+      : MachOCommand(kCommandCode, /*needs_offset=*/true, in_segment),
         zone_(zone),
         strings_(zone),
         symbols_(zone, 0),
@@ -1283,49 +1396,53 @@ class MachOSymbolTable : public MachOCommand {
   struct Symbol {
     Symbol(intptr_t n_idx,
            intptr_t n_type,
-           intptr_t n_sect,
+           const MachOSection* section,
            intptr_t n_desc,
-           uword n_value)
+           uword section_offset_or_value)
         : name_index(n_idx),
           type(n_type),
-          section_index(n_sect),
+          section(section),
           description(n_desc),
-          value(n_value) {
+          section_offset_or_value(section_offset_or_value) {
       ASSERT(Utils::IsUint(32, n_idx));
       ASSERT(Utils::IsUint(8, n_type));
-      ASSERT(Utils::IsUint(8, n_sect));
       ASSERT(Utils::IsUint(16, n_desc));
-      ASSERT(Utils::IsUint(sizeof(compiler::target::uword) * kBitsPerByte,
-                           n_value));
     }
 
     void Write(MachOWriteStream* stream) const {
       const intptr_t start = stream->Position();
       stream->Write32(name_index);
       stream->WriteByte(type);
-      stream->WriteByte(section_index);
+      stream->WriteByte(section_index());
       stream->Write16(description);
-      stream->WriteWord(value);
+      stream->WriteWord(value());
       ASSERT_EQUAL(stream->Position() - start, sizeof(mach_o::nlist));
+    }
+
+    uint8_t section_index() const {
+      ASSERT(section == nullptr || Utils::IsUint(8, section->index()));
+      return section == nullptr ? mach_o::NO_SECT : section->index();
+    }
+
+    compiler::target::uword value() const {
+      const intptr_t base = section != nullptr ? section->memory_address() : 0;
+      ASSERT(Utils::IsUint(sizeof(compiler::target::uword) * kBitsPerByte,
+                           base + section_offset_or_value));
+      return base + section_offset_or_value;
     }
 
     // The index of the name in the symbol table's string table.
     uint32_t name_index;
     // See the mach_o::N_* constants for the encoding of this field.
     uint8_t type;
-    // The section to which this symbol belongs if not equal to mach_o::NO_SECT.
-    // The sections are indexed by their appearance in the load commands
-    // (e.g., the first section of the first segment command that contains
-    // sections has index 1, and the first section of the second segment command
-    // that contains sections has index [k + 1] if the first segment contains
-    // [k] sections).
-    uint8_t section_index;
+    // The section to which this symbol belongs, if any.
+    const MachOSection* section;
     // See the mach_o::N_* constants for the encoding of this field.
     uint16_t description;
-    // For symbols where section_index != macho_o::NO_SECT, this is the section
-    // offset until finalization, when it is converted to the offset into the
-    // snapshot.
-    compiler::target::uword value;
+    // If section == nullptr, then this is the final value of the symbol.
+    // Otherwise, it is used to calculate the final value, which can be
+    // computed once the section's memory address has been set.
+    intptr_t section_offset_or_value;
 
     DISALLOW_ALLOCATION();
   };
@@ -1336,9 +1453,9 @@ class MachOSymbolTable : public MachOCommand {
 
   void AddSymbol(const char* name,
                  intptr_t type,
-                 intptr_t section_index,
+                 const MachOSection* section,
                  intptr_t description,
-                 uword value,
+                 uword section_offset_or_value,
                  intptr_t label = -1) {
     // Section symbols should always have labels, and other symbols
     // (including symbolic debugging symbols) do not.
@@ -1351,7 +1468,8 @@ class MachOSymbolTable : public MachOCommand {
     auto const name_index = strings_.Add(name);
     ASSERT(*name == '\0' || name_index != 0);
     const intptr_t new_index = num_symbols();
-    symbols_.Add({name_index, type, section_index, description, value});
+    symbols_.Add(
+        {name_index, type, section, description, section_offset_or_value});
     if (label > 0) {
       DEBUG_ONLY(max_label_ = max_label_ > label ? max_label_ : label);
       // Store an 1-based index since 0 is kNoValue for IntMap.
@@ -1362,61 +1480,34 @@ class MachOSymbolTable : public MachOCommand {
   const Symbol* FindLabel(intptr_t label) const {
     ASSERT(label > 0);
     // The stored index is 1-based.
-    const intptr_t symbols_index = by_label_index_.Lookup(label) - 1;
+    const intptr_t symbols_index = IndexForLabel(label);
     if (symbols_index < 0) return nullptr;  // Not found.
     return &symbols_[symbols_index];
   }
 
-  void Initialize(const char* path,
+  intptr_t IndexForLabel(intptr_t label) const {
+    ASSERT(label > 0);
+    // The stored index is 1-based.
+    return by_label_index_.Lookup(label) - 1;
+  }
+
+  void Initialize(SharedObjectWriter::Type type,
+                  const char* path,
                   const GrowableArray<MachOSection*>& sections,
                   bool is_stripped);
-
-  void UpdateSectionIndices(const GrowableArray<intptr_t>& index_map) {
-    const intptr_t map_size = index_map.length();
-#if defined(DEBUG)
-    for (intptr_t i = 0; i < map_size; i++) {
-      const intptr_t new_index = index_map[i];
-      ASSERT(Utils::IsUint(8, new_index));
-      ASSERT(new_index < map_size);
-      if (i == mach_o::NO_SECT) {
-        ASSERT_EQUAL(new_index, mach_o::NO_SECT);
-      } else {
-        ASSERT(new_index != mach_o::NO_SECT);
-      }
-    }
-#endif
-    for (auto& symbol : symbols_) {
-      const uint8_t old_index = symbol.section_index;
-      ASSERT(old_index < map_size);
-      symbol.section_index = index_map[old_index];
-    }
-  }
-
-  void Finalize(const GrowableArray<uword>& address_map) {
-    const intptr_t map_size = address_map.length();
-#if defined(DEBUG)
-    for (intptr_t i = 0; i < map_size; i++) {
-      if (i == mach_o::NO_SECT) {
-        // The entry for NO_SECT must be 0 so that symbols with that index,
-        // like global symbols, are unchanged.
-        ASSERT_EQUAL(address_map[mach_o::NO_SECT], 0);
-      } else {
-        // No valid section begins at the start of the snapshot.
-        ASSERT(address_map[i] > 0);
-      }
-    }
-#endif
-    for (auto& symbol : symbols_) {
-      ASSERT(symbol.section_index < map_size);
-      symbol.value += address_map[symbol.section_index];
-    }
-  }
 
   uint32_t cmdsize() const override { return sizeof(mach_o::symtab_command); }
 
   intptr_t SelfMemorySize() const override {
+    if (!IsAllocated()) return 0;
+    return SelfFileSize();
+  }
+
+  intptr_t SelfFileSize() const override {
     return SymbolsSize() + strings_.FileSize();
   }
+
+  intptr_t FileSize() const override { return SelfFileSize(); }
 
   intptr_t Alignment() const override { return compiler::target::kWordSize; }
 
@@ -1466,8 +1557,9 @@ class MachODynamicSymbolTable : public MachOCommand {
  public:
   static constexpr uint32_t kCommandCode = mach_o::LC_DYSYMTAB;
 
-  explicit MachODynamicSymbolTable(const MachOSymbolTable& table)
-      : MachOCommand(kCommandCode), table_(table) {}
+  MachODynamicSymbolTable(const MachOSymbolTable& table, bool in_segment)
+      : MachOCommand(kCommandCode, /*needs_offset=*/true, in_segment),
+        table_(table) {}
 
   uint32_t cmdsize() const override { return sizeof(mach_o::dysymtab_command); }
 
@@ -1492,6 +1584,8 @@ class MachODynamicSymbolTable : public MachOCommand {
   // Currently no contents are written to the linkedit segment, as the
   // only non-zero fields are indexes/counts into the symbol table.
   intptr_t SelfMemorySize() const override { return 0; }
+  intptr_t SelfFileSize() const override { return 0; }
+  intptr_t FileSize() const override { return SelfFileSize(); }
 
   void Accept(Visitor* visitor) override {
     visitor->VisitMachODynamicSymbolTable(this);
@@ -1658,18 +1752,21 @@ class MachOHeader : public MachOContents {
   MachOHeader(Zone* zone,
               SnapshotType type,
               bool is_stripped,
+              bool has_separate_object,
               const char* identifier,
               const char* path,
               Dwarf* dwarf)
-      : MachOContents(),
+      : MachOContents(/*needs_offset=*/true,
+                      /*in_segment=*/type != SnapshotType::Object),
         zone_(zone),
         type_(type),
         is_stripped_(is_stripped),
+        has_separate_object_(has_separate_object),
         identifier_(identifier != nullptr ? identifier : ""),
         path_(path),
         dwarf_(dwarf),
         commands_(zone, 0),
-        full_symtab_(zone) {
+        full_symtab_(zone, /*in_segment=*/type != SnapshotType::Object) {
 #if defined(DART_TARGET_OS_MACOS)
     // A non-nullptr identifier must be provided for MacOS targets.
     ASSERT(identifier != nullptr);
@@ -1691,6 +1788,7 @@ class MachOHeader : public MachOContents {
     ASSERT(text_segment_ != nullptr);
     return *text_segment_;
   }
+  SharedObjectWriter::Type type() const { return type_; }
 
   intptr_t NumSections() const {
     intptr_t num_sections = 0;
@@ -1705,7 +1803,7 @@ class MachOHeader : public MachOContents {
   // The contents of the header is always at offset/address 0, so the
   // superclass's check returns a false negative here after ComputeOffsets.
   bool HasContents() const override { return true; }
-  bool IsAllocated() const override { return true; }
+  bool IsAllocated() const override { return type_ != SnapshotType::Object; }
   intptr_t Alignment() const override { return compiler::target::kWordSize; }
 
   // The header uses the default MemorySize() implementation, because
@@ -1721,6 +1819,11 @@ class MachOHeader : public MachOContents {
   }
 
   intptr_t SelfMemorySize() const override {
+    if (!IsAllocated()) return 0;
+    return SelfFileSize();
+  }
+
+  intptr_t SelfFileSize() const override {
     intptr_t size = SizeWithoutLoadCommands();
     for (auto* const command : commands_) {
       size += command->cmdsize();
@@ -1728,12 +1831,20 @@ class MachOHeader : public MachOContents {
     return size;
   }
 
+  intptr_t FileSize() const override { return SelfFileSize(); }
+
   uint32_t filetype() const {
-    if (type_ == SnapshotType::Snapshot) {
-      return mach_o::MH_DYLIB;
+    switch (type_) {
+      case SnapshotType::Snapshot:
+        return mach_o::MH_DYLIB;
+      case SnapshotType::DebugInfo:
+        return mach_o::MH_DSYM;
+      case SnapshotType::Object:
+        return mach_o::MH_OBJECT;
+      default:
+        UNREACHABLE();
+        return 0;
     }
-    ASSERT(type_ == SnapshotType::DebugInfo);
-    return mach_o::MH_DSYM;
   }
 
   uint32_t flags() const {
@@ -1741,7 +1852,7 @@ class MachOHeader : public MachOContents {
       return mach_o::MH_NOUNDEFS | mach_o::MH_DYLDLINK |
              mach_o::MH_NO_REEXPORTED_DYLIBS;
     }
-    ASSERT(type_ == SnapshotType::DebugInfo);
+    ASSERT(type_ == SnapshotType::DebugInfo || type_ == SnapshotType::Object);
     return 0;
   }
 
@@ -1855,18 +1966,27 @@ class MachOHeader : public MachOContents {
   // Returns the section with name [sectname] in segment [segname]
   // or nullptr if there is none.
   MachOSection* FindSection(const char* segname, const char* sectname) const {
-    auto* const s = FindSegment(segname);
-    if (s == nullptr) return nullptr;
-    return s->FindSection(sectname);
+    // All sections are in the unnamed segment for object files.
+    auto* const segment =
+        type_ == SnapshotType::Object ? text_segment_ : FindSegment(segname);
+    if (segment == nullptr) return nullptr;
+    return segment->FindSection(sectname, segname);
   }
 
   MachOSegment* EnsureTextSegment() {
     if (text_segment_ == nullptr) {
+      // For relocatable objects, all sections are put into a single unnamed
+      // segment.
+      auto* const name = type_ == SnapshotType::Object ? mach_o::SEG_UNNAMED
+                                                       : mach_o::SEG_TEXT;
       // Make sure it didn't get added outside this method.
-      ASSERT(FindSegment(mach_o::SEG_TEXT) == nullptr);
-      auto const vm_protection = mach_o::VM_PROT_READ | mach_o::VM_PROT_EXECUTE;
-      text_segment_ = new (zone())
-          MachOSegment(zone(), mach_o::SEG_TEXT, vm_protection, vm_protection);
+      ASSERT(FindSegment(name) == nullptr);
+      auto const vm_protection =
+          type_ == SnapshotType::Object
+              ? mach_o::VM_PROT_ALL
+              : mach_o::VM_PROT_READ | mach_o::VM_PROT_EXECUTE;
+      text_segment_ =
+          new (zone()) MachOSegment(zone(), name, vm_protection, vm_protection);
       commands_.Add(text_segment_);
     }
     return text_segment_;
@@ -1876,16 +1996,32 @@ class MachOHeader : public MachOContents {
 
   void Accept(Visitor* visitor) override { visitor->VisitMachOHeader(this); }
 
-  // Since the header is in the initial segment, visiting the load commands
-  // here and also visiting the header in MachOSegment::VisitChildren() would
-  // cause a cycle if, say, Default() is overridden to be recursive.
-  // Thus, the default VisitChildren implementation here does no recursion,
+  // Since the header is in the initial segment for most snapshot types,
+  // visiting the load commands here and also visiting the header in
+  // MachOSegment::VisitChildren() would cause a cycle if, say, Default()
+  // is overridden to be recursive. Thus, the default VisitChildren
+  // implementation here does no recursion.
   void VisitChildren(Visitor* visitor) override {}
-  void VisitSegments(Visitor* visitor) {
+  void VisitContents(Visitor* visitor) {
+    if (type_ == SnapshotType::Object) {
+      // The header is visited during the initial segment for other types.
+      Accept(visitor);
+    }
     for (auto* const c : commands_) {
-      if (!c->IsMachOSegment()) continue;
+      if (type_ != SnapshotType::Object) {
+        // All commands with non-header content should be part of a segment.
+        if (!c->IsMachOSegment()) continue;
+      }
       c->Accept(visitor);
     }
+  }
+
+  // Returns the symbol table that is included in the output, which
+  // may or may not be the full symbol table.
+  //
+  // Returns nullptr if called before symbol table initialization.
+  const MachOSymbolTable* IncludedSymbolTable() const {
+    return const_cast<MachOHeader*>(this)->IncludedSymbolTable();
   }
 
  private:
@@ -1921,6 +2057,9 @@ class MachOHeader : public MachOContents {
   // Used to determine whether to include non-global symbols in the
   // symbol table written to disk.
   bool const is_stripped_;
+  // Whether this is a snapshot that has an associated relocatable object
+  // emitted.
+  bool const has_separate_object_;
   // The identifier, used in the LC_ID_DYLIB command and the code signature.
   const char* const identifier_;
   // The absolute path, used to create an N_OSO symbolic debugging variable
@@ -1930,6 +2069,8 @@ class MachOHeader : public MachOContents {
   GrowableArray<MachOCommand*> commands_;
   // Contains all symbols for relocation calculations.
   MachOSymbolTable full_symtab_;
+  // For relocatable objects, the "text" segment is the unnamed segment that
+  // holds all sections. Otherwise, it is the text segment as expected.
   MachOSegment* text_segment_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(MachOHeader);
@@ -1939,6 +2080,8 @@ void MachOSegment::AddContents(MachOContents* c) {
   ASSERT(c != nullptr);
   // Segment contents are always allocated.
   ASSERT(c->IsAllocated());
+  // Only sections should be added to the unnamed segment.
+  ASSERT(!HasName(mach_o::SEG_UNNAMED) || c->IsMachOSection());
   // The order of segment contents is as follows:
   // 1) The header (if this is the initial segment).
   // 2) Content-containing sections and commands (in the linkedit segment).
@@ -1971,7 +2114,7 @@ bool MachOWriteStream::HasValueForLabel(intptr_t label, intptr_t* value) const {
   const auto& symtab = header.relocation_symbol_table();
   auto* const symbol = symtab.FindLabel(label);
   if (symbol == nullptr) return false;
-  *value = symbol->value;
+  *value = symbol->value();
   return true;
 }
 
@@ -1984,15 +2127,21 @@ MachOWriter::MachOWriter(Zone* zone,
                          Type type,
                          const char* id,
                          const char* path,
-                         Dwarf* dwarf)
+                         Dwarf* dwarf,
+                         MachOWriter* object_writer)
     : SharedObjectWriter(zone, stream, type, dwarf),
+      object_writer_(object_writer),
       header_(*new (zone) MachOHeader(
           zone,
           type,
           IsStripped(dwarf),
+          type == SharedObjectWriter::Type::Snapshot &&
+              object_writer != nullptr,
           FLAG_macho_install_name != nullptr ? FLAG_macho_install_name : id,
           path,
-          dwarf)) {}
+          dwarf)) {
+  ASSERT(type == Type::Snapshot || object_writer == nullptr);
+}
 
 void MachOWriter::AddText(const char* name,
                           intptr_t label,
@@ -2001,16 +2150,21 @@ void MachOWriter::AddText(const char* name,
                           const ZoneGrowableArray<Relocation>* relocations,
                           const ZoneGrowableArray<SymbolData>* symbols) {
   auto* const text_segment = header_.EnsureTextSegment();
-  auto* text_section = text_segment->FindSection(mach_o::SECT_TEXT);
+  auto* text_section =
+      text_segment->FindSection(mach_o::SECT_TEXT, mach_o::SEG_TEXT);
   if (text_section == nullptr) {
-    const bool has_contents = type_ == Type::Snapshot;
+    const bool has_contents = type_ != Type::DebugInfo;
     const intptr_t attributes =
         mach_o::S_ATTR_PURE_INSTRUCTIONS | mach_o::S_ATTR_SOME_INSTRUCTIONS;
     text_section = new (zone()) MachOSection(
-        zone(), mach_o::SECT_TEXT, mach_o::S_REGULAR, attributes, has_contents);
+        zone(), mach_o::SECT_TEXT, mach_o::SEG_TEXT, text_segment->Alignment(),
+        mach_o::S_REGULAR, attributes, has_contents);
     text_segment->AddContents(text_section);
   }
   text_section->AddPortion(bytes, size, relocations, symbols, name, label);
+  if (object_writer_ != nullptr) {
+    object_writer_->AddText(name, label, bytes, size, relocations, symbols);
+  }
 }
 
 void MachOWriter::AddROData(const char* name,
@@ -2021,15 +2175,19 @@ void MachOWriter::AddROData(const char* name,
                             const ZoneGrowableArray<SymbolData>* symbols) {
   // Const data goes in the text segment, not the data one.
   auto* const text_segment = header_.EnsureTextSegment();
-  auto* const_section = text_segment->FindSection(mach_o::SECT_CONST);
+  auto* const_section =
+      text_segment->FindSection(mach_o::SECT_CONST, mach_o::SEG_TEXT);
   if (const_section == nullptr) {
-    const bool has_contents = type_ == Type::Snapshot;
-    const_section =
-        new (zone()) MachOSection(zone(), mach_o::SECT_CONST, mach_o::S_REGULAR,
-                                  mach_o::S_NO_ATTRIBUTES, has_contents);
+    const bool has_contents = type_ != Type::DebugInfo;
+    const_section = new (zone()) MachOSection(
+        zone(), mach_o::SECT_CONST, mach_o::SEG_TEXT, text_segment->Alignment(),
+        mach_o::S_REGULAR, mach_o::S_NO_ATTRIBUTES, has_contents);
     text_segment->AddContents(const_section);
   }
   const_section->AddPortion(bytes, size, relocations, symbols, name, label);
+  if (object_writer_ != nullptr) {
+    object_writer_->AddROData(name, label, bytes, size, relocations, symbols);
+  }
 }
 
 class WriteVisitor : public MachOContents::Visitor {
@@ -2058,16 +2216,71 @@ class WriteVisitor : public MachOContents::Visitor {
   DISALLOW_COPY_AND_ASSIGN(WriteVisitor);
 };
 
+class WriteRelocationsVisitor : public MachOContents::Visitor {
+ public:
+  explicit WriteRelocationsVisitor(MachOWriteStream* stream)
+      : stream_(stream) {}
+
+  void Default(MachOContents* contents) override {}
+
+  void VisitMachOSegment(MachOSegment* segment) override {
+    segment->VisitChildren(this);
+  }
+
+  void VisitMachOSection(MachOSection* section) override {
+    if (auto* const relocations = section->relocations()) {
+      ASSERT_EQUAL(stream_->Position(), section->relocations_file_offset());
+      for (const auto& reloc : *relocations) {
+        stream_->Write32(reloc.address);
+        stream_->Write32(reloc.metadata);
+      }
+    } else {
+      ASSERT_EQUAL(section->relocations_file_offset(), 0);
+    }
+  }
+
+ private:
+  MachOWriteStream* stream_;
+  DISALLOW_COPY_AND_ASSIGN(WriteRelocationsVisitor);
+};
+
 void MachOWriter::Finalize() {
   header_.Finalize();
   if (header_.HasCommand(MachOCodeSignature::kCommandCode)) {
     HashingMachOWriteStream wrapped(zone_, unwrapped_stream_, *this);
     WriteVisitor visitor(&wrapped);
-    header_.VisitSegments(&visitor);
+    header_.VisitContents(&visitor);
+    // Relocatable objects aren't signed, so no relocations to write.
   } else {
     NonHashingMachOWriteStream wrapped(unwrapped_stream_, *this);
     WriteVisitor visitor(&wrapped);
-    header_.VisitSegments(&visitor);
+    header_.VisitContents(&visitor);
+    if (type_ == SharedObjectWriter::Type::Object) {
+      WriteRelocationsVisitor reloc_visitor(&wrapped);
+      header_.VisitContents(&reloc_visitor);
+    }
+  }
+  if (object_writer_ != nullptr) {
+    object_writer_->Finalize();
+  }
+}
+
+void MachOWriter::AssertConsistency(const SharedObjectWriter* debug) const {
+  if (FLAG_macho_reduce_padding) {
+    // TODO(sstrickl): This currently fails because the reduced padding
+    // and difference in header sizes means the virtual addresses won't
+    // align (though symbolicizing the symbol+offset (PCOffset) information
+    // in traces still gives appropriately matching information).
+    //
+    // However, the only usecase for this reduced padding creates a .dSYM
+    // for symbolization instead of using the separate debug info, so
+    // ignore this mismatch for now.
+    return;
+  }
+  if (auto* const debug_macho = debug->AsMachOWriter()) {
+    AssertConsistency(this, debug_macho);
+  } else {
+    FATAL("Expected both snapshot and debug to be MachO");
   }
 }
 
@@ -2121,12 +2334,12 @@ void MachOWriter::AssertConsistency(const MachOWriter* snapshot,
     if (auto* const snapshot_symbol = snapshot_symtab.FindLabel(i)) {
       auto* const debug_info_symbol = debug_info_symtab.FindLabel(i);
       ASSERT(debug_info_symbol != nullptr);
-      if (snapshot_symbol->value != debug_info_symbol->value) {
+      if (snapshot_symbol->value() != debug_info_symbol->value()) {
         FATAL("Snapshot: %s -> %" Px64 ", %s -> %" Px64 "",
               snapshot_symtab.strings().At(snapshot_symbol->name_index),
-              static_cast<uint64_t>(snapshot_symbol->value),
+              static_cast<uint64_t>(snapshot_symbol->value()),
               debug_info_symtab.strings().At(debug_info_symbol->name_index),
-              static_cast<uint64_t>(debug_info_symbol->value));
+              static_cast<uint64_t>(debug_info_symbol->value()));
       }
     } else {
       ASSERT(debug_info_symtab.FindLabel(i) == nullptr);
@@ -2150,14 +2363,16 @@ static uint32_t HashPortion(const MachOSection::Portion& portion) {
 // Any component of the build ID which does not have an associated section
 // in the output is kept as 0.
 void MachOHeader::GenerateUuid() {
+  // Don't create a UUID for a relocatable object.
+  if (type_ == SnapshotType::Object) return;
   // Not idempotent.
   ASSERT(!HasCommand(MachOUuid::kCommandCode));
   // Currently, we construct the UUID out of data from two different
   // sections in the text segment: the text section and the const section.
-  auto* const text_segment = FindSegment(mach_o::SEG_TEXT);
-  if (text_segment == nullptr) return;
+  if (text_segment_ == nullptr) return;
 
-  auto* const text_section = text_segment->FindSection(mach_o::SECT_TEXT);
+  auto* const text_section =
+      text_segment_->FindSection(mach_o::SECT_TEXT, mach_o::SEG_TEXT);
   // If there is no text section, then a UUID is not needed, as it is only
   // used to symbolicize non-symbolic stack traces.
   if (text_section == nullptr) return;
@@ -2169,7 +2384,8 @@ void MachOHeader::GenerateUuid() {
   // All MachO snapshots have at least one of the two instruction sections.
   ASSERT(vm_instructions != nullptr || isolate_instructions != nullptr);
 
-  auto* const data_section = text_segment->FindSection(mach_o::SECT_CONST);
+  auto* const data_section =
+      text_segment_->FindSection(mach_o::SECT_CONST, mach_o::SEG_TEXT);
   auto* const vm_data =
       data_section == nullptr
           ? nullptr
@@ -2195,18 +2411,28 @@ void MachOHeader::CreateBSS() {
   auto* const text_section = FindSection(mach_o::SEG_TEXT, mach_o::SECT_TEXT);
   ASSERT(text_section != nullptr);
 
-  // Not idempotent. Currently the data segment only contains BSS data, so it
-  // shouldn't already exist.
-  ASSERT(FindSegment(mach_o::SEG_DATA) == nullptr);
-  auto const vm_protection = mach_o::VM_PROT_READ | mach_o::VM_PROT_WRITE;
-  auto* const data_segment = new (zone())
-      MachOSegment(zone(), mach_o::SEG_DATA, vm_protection, vm_protection);
-  commands_.Add(data_segment);
+  // Not idempotent.
+  ASSERT(FindSection(mach_o::SECT_BSS, mach_o::SEG_DATA) == nullptr);
+  MachOSegment* data_segment = nullptr;
+  if (type_ == SnapshotType::Object) {
+    // The "text" segment in a relocatable object is the unnamed segment
+    // that contains all sections.
+    data_segment = EnsureTextSegment();
+    ASSERT(data_segment->HasName(mach_o::SEG_UNNAMED));
+  } else {
+    // Currently the data segment only contains BSS data, so it
+    // shouldn't already exist.
+    ASSERT(FindSegment(mach_o::SEG_DATA) == nullptr);
+    auto const vm_protection = mach_o::VM_PROT_READ | mach_o::VM_PROT_WRITE;
+    data_segment = new (zone())
+        MachOSegment(zone(), mach_o::SEG_DATA, vm_protection, vm_protection);
+    commands_.Add(data_segment);
+  }
 
-  auto* const bss_section =
-      new (zone()) MachOSection(zone(), mach_o::SECT_BSS, mach_o::S_ZEROFILL,
-                                mach_o::S_NO_ATTRIBUTES, /*has_contents=*/false,
-                                /*alignment=*/compiler::target::kWordSize);
+  auto* const bss_section = new (zone()) MachOSection(
+      zone(), mach_o::SECT_BSS, mach_o::SEG_DATA,
+      /*alignment=*/compiler::target::kWordSize, mach_o::S_ZEROFILL,
+      mach_o::S_NO_ATTRIBUTES, /*has_contents=*/false);
   data_segment->AddContents(bss_section);
 
   for (const auto& portion : text_section->portions()) {
@@ -2243,6 +2469,37 @@ void MachOHeader::CreateBSS() {
 void MachOHeader::GenerateCompactUnwindingInformation(
     DwarfSharedObjectStream& stream,
     const GrowableArray<Dwarf::FrameDescriptionEntry>& fdes) {
+  // Each instructions image starts with the Image header and the
+  // InstructionsSection header.
+  const intptr_t header_size =
+      Image::kHeaderSize + compiler::target::InstructionsSection::HeaderSize();
+
+  if (type_ == SnapshotType::Object) {
+    // In relocatable objects, the compact unwind information is written
+    // differently. In this case, it's just a flat table with entries of
+    // the following format:
+    //   start                (word-sized)
+    //   length               (32 bits)
+    //   encoding             (32 bits)
+    //   personality-function (word-sized, 0 if none)
+    //   ldsa                 (word-sized, 0 if none)
+    for (intptr_t i = 0, n = fdes.length(); i < n; i++) {
+      const auto& fde = fdes[i];
+      // The payload of the InstructionsSection.
+      stream.OffsetFromSymbol(fde.label, header_size);
+      stream.u4(fde.size);
+      stream.u4(mach_o::UNWIND_INFO_ENCODING_ARM64_MODE_FRAME);
+#if defined(TARGET_ARCH_IS_32_BIT)
+      stream.u4(0);  // Personality function
+      stream.u4(0);  // LDSA
+#else
+      stream.u8(0);  // Personality function
+      stream.u8(0);  // LDSA
+#endif
+    }
+    return;
+  }
+
   // Since we currently generate only regular second level pages, there's
   // no need for common encodings as those are only used by compressed
   // second level pages.
@@ -2344,10 +2601,6 @@ void MachOHeader::GenerateCompactUnwindingInformation(
   stream.u4(mach_o::UNWIND_INFO_REGULAR_SECOND_LEVEL_PAGE);
   stream.u2(sizeof(mach_o::unwind_info_regular_second_level_page_header));
   stream.u2(second_level_page_entry_count);
-  // Each instructions image starts with the Image header and the
-  // InstructionsSection header.
-  const intptr_t header_size =
-      Image::kHeaderSize + compiler::target::InstructionsSection::HeaderSize();
   // There are no instructions until the first InstructionsSection payload.
   stream.OffsetFromSymbol(fdes[0].label, 0, kInt32Size);
   stream.u4(mach_o::UNWIND_INFO_ENCODING_NONE);
@@ -2369,7 +2622,8 @@ void MachOHeader::GenerateCompactUnwindingInformation(
 
 void MachOHeader::GenerateUnwindingInformation() {
 #if !defined(TARGET_ARCH_IA32)
-  // Unwinding information is added to the text segment in Mach-O files.
+  // Unwinding information is added to the text segment in Mach-O files
+  // (except for relocatable object files, where the __LD segment name is used).
   // Thus, we need the size of the unwinding information even for debugging
   // information, since adding the unwinding information changes the memory size
   // of the initial text segment and thus changes the values for symbols
@@ -2380,25 +2634,27 @@ void MachOHeader::GenerateUnwindingInformation() {
   // just use an appropriate zerofill section for it.
   const bool use_zerofill = type_ == SnapshotType::DebugInfo;
   const intptr_t alignment = compiler::target::kWordSize;
-  auto add_unwind_section =
-      [&](MachOSegment* segment, const char* sectname,
+  auto create_unwind_section =
+      [&](const char* segname, const char* sectname,
           const ZoneWriteStream& stream,
-          const SharedObjectWriter::RelocationArray* relocations = nullptr) {
-        // Not idempotent.
-        ASSERT(segment->FindSection(sectname) == nullptr);
-        auto* const section = new (zone())
-            MachOSection(zone(), sectname,
-                         use_zerofill ? mach_o::S_ZEROFILL : mach_o::S_REGULAR,
-                         mach_o::S_NO_ATTRIBUTES, !use_zerofill, alignment);
-        section->AddPortion(use_zerofill ? nullptr : stream.buffer(),
-                            stream.bytes_written(),
-                            use_zerofill ? nullptr : relocations);
-        segment->AddContents(section);
-      };
+          const SharedObjectWriter::RelocationArray* relocations = nullptr,
+          const SharedObjectWriter::SymbolDataArray* symbols =
+              nullptr) -> MachOSection* {
+    // Not idempotent.
+    ASSERT(FindSection(sectname, segname) == nullptr);
+    auto* const section = new (zone())
+        MachOSection(zone(), sectname, segname, alignment,
+                     use_zerofill ? mach_o::S_ZEROFILL : mach_o::S_REGULAR,
+                     mach_o::S_NO_ATTRIBUTES, !use_zerofill);
+    section->AddPortion(use_zerofill ? nullptr : stream.buffer(),
+                        stream.bytes_written(),
+                        use_zerofill ? nullptr : relocations, symbols);
+    return section;
+  };
 
   ASSERT(text_segment_ != nullptr);
   if (auto* const text_section =
-          text_segment_->FindSection(mach_o::SECT_TEXT)) {
+          text_segment_->FindSection(mach_o::SECT_TEXT, mach_o::SEG_TEXT)) {
     // Generate the DWARF FDEs even for MacOS, because the same information
     // is used to create the compact unwinding info.
     GrowableArray<Dwarf::FrameDescriptionEntry> fdes(zone_, 0);
@@ -2412,38 +2668,63 @@ void MachOHeader::GenerateUnwindingInformation() {
     ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
     DwarfSharedObjectStream dwarf_stream(zone(), &stream);
 
+    SharedObjectWriter::SymbolDataArray* symbols = nullptr;
 #if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64)
     GenerateCompactUnwindingInformation(dwarf_stream, fdes);
-    auto* const sectname = mach_o::SECT_UNWIND_INFO;
+    auto* const sectname = type_ == SnapshotType::Object
+                               ? mach_o::SECT_COMPACT_UNWIND
+                               : mach_o::SECT_UNWIND_INFO;
 #else
     Dwarf::WriteCallFrameInformationRecords(&dwarf_stream, fdes);
     auto* const sectname = mach_o::SECT_EH_FRAME;
+    if (type_ == SnapshotType::Object) {
+      // To add appropriate relocations for the EH_FRAME section, a local symbol
+      // must be added since this section includes relocations with
+      // kSelfRelative source labels.
+      const size_t size = stream.bytes_written();
+      symbols = new (zone_) SharedObjectWriter::SymbolDataArray(zone_, 1);
+      symbols->Add({"_kDartMachOEhFrameSection",
+                    SharedObjectWriter::SymbolData::Type::Section, 0, size,
+                    SharedObjectWriter::kMachOEhFrameLabel});
+    }
 #endif
 
-    add_unwind_section(text_segment_, sectname, stream,
-                       dwarf_stream.relocations());
+    auto* const segname =
+        type_ == SnapshotType::Object ? mach_o::SEG_LD : mach_o::SEG_TEXT;
+    auto* const section = create_unwind_section(
+        segname, sectname, stream, dwarf_stream.relocations(), symbols);
+    text_segment_->AddContents(section);
   }
 
 #if defined(UNWINDING_RECORDS_WINDOWS_PRECOMPILER)
   // Append Windows unwinding instructions as a __unwind_info section at
   // the end of any executable segments.
-  for (auto* const command : commands_) {
-    if (auto* const segment = command->AsMachOSegment()) {
-      if (segment->IsExecutable()) {
-        // Only more zerofill sections can come after zerofill sections, and
-        // the unwinding instructions cover the entire executable segment up
-        // to the unwinding instructions including zerofill sections.
-        ASSERT(use_zerofill || !segment->HasZerofillSections());
-        const intptr_t records_size = UnwindingRecordsPlatform::SizeInBytes();
-        ZoneWriteStream stream(zone(), /*initial_size=*/records_size);
-        uint8_t* unwinding_instructions = zone()->Alloc<uint8_t>(records_size);
-        const intptr_t section_start =
-            Utils::RoundUp(segment->UnpaddedMemorySize(), alignment);
-        stream.WriteBytes(UnwindingRecords::GenerateRecordsInto(
-                              section_start, unwinding_instructions),
-                          records_size);
-        ASSERT_EQUAL(records_size, stream.Position());
-        add_unwind_section(segment, mach_o::SECT_UNWIND_INFO, stream);
+  //
+  // Don't do this for relocatable objects, because those can't be loaded
+  // by the non-native loader and there's no way to link them into a
+  // program since Mach-O is not a supported object type on Windows anyway.
+  if (type_ != SnapshotType::Object) {
+    for (auto* const command : commands_) {
+      if (auto* const segment = command->AsMachOSegment()) {
+        if (segment->IsExecutable()) {
+          // Only more zerofill sections can come after zerofill sections, and
+          // the unwinding instructions cover the entire executable segment up
+          // to the unwinding instructions including zerofill sections.
+          ASSERT(use_zerofill || !segment->HasZerofillSections());
+          const intptr_t records_size = UnwindingRecordsPlatform::SizeInBytes();
+          ZoneWriteStream stream(zone(), /*initial_size=*/records_size);
+          uint8_t* unwinding_instructions =
+              zone()->Alloc<uint8_t>(records_size);
+          const intptr_t section_start =
+              Utils::RoundUp(segment->UnpaddedMemorySize(), alignment);
+          stream.WriteBytes(UnwindingRecords::GenerateRecordsInto(
+                                section_start, unwinding_instructions),
+                            records_size);
+          ASSERT_EQUAL(records_size, stream.Position());
+          auto* const section = create_unwind_section(
+              segment->name(), mach_o::SECT_UNWIND_INFO, stream);
+          segment->AddContents(section);
+        }
       }
     }
   }
@@ -2457,10 +2738,8 @@ void MachOHeader::GenerateMiscellaneousCommands() {
     ASSERT(!HasCommand(MachOIdDylib::kCommandCode));
     commands_.Add(new (zone_) MachOIdDylib(identifier_));
 #if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
-    ASSERT(!HasCommand(MachOBuildVersion::kCommandCode));
     ASSERT(!HasCommand(MachOLoadDylib::kCommandCode));
     ASSERT(!HasCommand(MachORunPath::kCommandCode));
-    commands_.Add(new (zone_) MachOBuildVersion());
     commands_.Add(MachOLoadDylib::CreateLoadSystemDylib(zone_));
     if (FLAG_macho_rpath != nullptr) {
       const char* current = FLAG_macho_rpath;
@@ -2474,6 +2753,12 @@ void MachOHeader::GenerateMiscellaneousCommands() {
     }
 #endif
   }
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
+  if (type_ == SnapshotType::Snapshot || type_ == SnapshotType::Object) {
+    ASSERT(!HasCommand(MachOBuildVersion::kCommandCode));
+    commands_.Add(new (zone_) MachOBuildVersion());
+  }
+#endif
 }
 
 void MachOHeader::InitializeSymbolTables() {
@@ -2481,14 +2766,16 @@ void MachOHeader::InitializeSymbolTables() {
   ASSERT_EQUAL(full_symtab_.num_symbols(), 0);
   ASSERT(!HasCommand(MachOSymbolTable::kCommandCode));
 
-  // Grab all the sections in order.
+  // Grab all the sections in order and set their current index.
   GrowableArray<MachOSection*> sections(zone_, 0);
+  intptr_t section_index = 1;  // 1-based.
   for (auto* const command : commands_) {
     // Should be run before ComputeOffsets.
     ASSERT(!command->HasContents() || !command->file_offset_is_set());
     if (auto* const s = command->AsMachOSegment()) {
       for (auto* const c : s->contents()) {
         if (auto* const section = c->AsMachOSection()) {
+          section->set_index(section_index++);
           sections.Add(section);
         }
       }
@@ -2497,19 +2784,21 @@ void MachOHeader::InitializeSymbolTables() {
 
   // This symbol table is for the MachOWriter's internal use. All symbols
   // should be added to it so the writer can resolve relocations.
-  full_symtab_.Initialize(path_, sections, /*is_stripped=*/false);
+  full_symtab_.Initialize(type_, path_, sections, /*is_stripped=*/false);
   auto* table = &full_symtab_;
   if (is_stripped_) {
     // Create a separate symbol table that is actually written to the output.
     // This one will only contain what's needed for the dynamic symbol table.
-    auto* const table = new (zone()) MachOSymbolTable(zone());
-    table->Initialize(path_, sections, is_stripped_);
+    auto* const table = new (zone())
+        MachOSymbolTable(zone(), /*in_segment=*/type_ != SnapshotType::Object);
+    table->Initialize(type_, path_, sections, is_stripped_);
   }
   commands_.Add(table);
 
-  // For snapshots, include a dynamic symbol table as well.
-  if (type_ == SnapshotType::Snapshot) {
-    auto* const dynamic_symtab = new (zone()) MachODynamicSymbolTable(*table);
+  // For non-debugging information, include a dynamic symbol table as well.
+  if (type_ != SnapshotType::DebugInfo) {
+    auto* const dynamic_symtab = new (zone()) MachODynamicSymbolTable(
+        *table, /*in_segment=*/type_ != SnapshotType::Object);
     commands_.Add(dynamic_symtab);
   }
 }
@@ -2517,28 +2806,43 @@ void MachOHeader::InitializeSymbolTables() {
 void MachOHeader::FinalizeDwarfSections() {
   if (dwarf_ == nullptr) return;
 
+  if (has_separate_object_) {
+    // If there is an associated relocatable object, do not emit the DWARF
+    // sections; they'll be emitted in the relocatable object instead.
+    ASSERT(type_ == SnapshotType::Snapshot);
+    return;
+  }
+
   // Currently we only output DWARF information involving code.
 #if defined(DEBUG)
-  auto* const text_segment = FindSegment(mach_o::SEG_TEXT);
-  ASSERT(text_segment != nullptr);
-  ASSERT(text_segment->FindSection(mach_o::SECT_TEXT) != nullptr);
+  ASSERT(text_segment_ != nullptr);
+  ASSERT(text_segment_->FindSection(mach_o::SECT_TEXT, mach_o::SEG_TEXT) !=
+         nullptr);
 #endif
 
-  // Create the DWARF segment, which should not already exist.
-  ASSERT(FindSegment(mach_o::SEG_DWARF) == nullptr);
-  auto const init_vm_protection = mach_o::VM_PROT_READ | mach_o::VM_PROT_WRITE;
-  auto const max_vm_protection = init_vm_protection | mach_o::VM_PROT_EXECUTE;
-  auto* const dwarf_segment = new (zone()) MachOSegment(
-      zone(), mach_o::SEG_DWARF, init_vm_protection, max_vm_protection);
-  commands_.Add(dwarf_segment);
+  MachOSegment* dwarf_segment = nullptr;
+  if (type_ == SnapshotType::Object) {
+    // All sections are put into the unnamed segment.
+    dwarf_segment = text_segment_;
+    ASSERT(dwarf_segment->HasName(mach_o::SEG_UNNAMED));
+  } else {
+    // Create the DWARF segment, which should not already exist.
+    ASSERT(FindSegment(mach_o::SEG_DWARF) == nullptr);
+    auto const init_vm_protection =
+        mach_o::VM_PROT_READ | mach_o::VM_PROT_WRITE;
+    auto const max_vm_protection = init_vm_protection | mach_o::VM_PROT_EXECUTE;
+    dwarf_segment = new (zone()) MachOSegment(
+        zone(), mach_o::SEG_DWARF, init_vm_protection, max_vm_protection);
+    commands_.Add(dwarf_segment);
+  }
 
   const intptr_t alignment = 1;  // No extra padding.
   auto add_debug = [&](const char* name,
                        const DwarfSharedObjectStream& stream) {
-    ASSERT(!dwarf_segment->FindSection(name));
-    auto* const section = new (zone())
-        MachOSection(zone(), name, mach_o::S_REGULAR, mach_o::S_ATTR_DEBUG,
-                     /*has_contents=*/true, alignment);
+    ASSERT(!dwarf_segment->FindSection(name, mach_o::SEG_DWARF));
+    auto* const section =
+        new (zone()) MachOSection(zone(), name, mach_o::SEG_DWARF, alignment,
+                                  mach_o::S_REGULAR, mach_o::S_ATTR_DEBUG);
     section->AddPortion(stream.buffer(), stream.bytes_written(),
                         stream.relocations());
     dwarf_segment->AddContents(section);
@@ -2602,39 +2906,30 @@ void MachOHeader::FinalizeCommands() {
   GrowableArray<MachOSegment*> other_segments(zone_, 0);
 
   // Next comes any non-segment load commands that have allocated content
-  // outside of the header like the symbol table. A linkedit segment
-  // is created later to contain the non-header contents of these commands.
+  // outside of the header like the symbol table. For relocatable objects,
+  // the contents of these sections are written after the unnamed segment,
+  // otherwise a linkedit segment is created later to contain the non-header
+  // contents of these commands.
   GrowableArray<MachOCommand*> linkedit_commands(zone_, 0);
-
-  // Maps segments to the section count and old initial section index for
-  // that segment. (Sections are not reordered during this, so this is
-  // all that's needed to calculate new section indices.)
-  using SegmentMapTrait =
-      RawPointerKeyValueTrait<const MachOSegment,
-                              std::pair<intptr_t, intptr_t>>;
-  DirectChainedHashMap<SegmentMapTrait> section_info(zone_, num_commands);
-  intptr_t num_sections = 0;
   for (auto* const command : commands_) {
     // Check that we're not reordering after offsets have been computed.
     ASSERT(!command->HasContents() || !command->file_offset_is_set());
     if (auto* const s = command->AsMachOSegment()) {
-      const intptr_t count = s->NumSections();
-      if (count != 0) {
-        // Section indices start from 1.
-        section_info.Insert({s, {count, num_sections + 1}});
-        num_sections += count;
-      }
-      if (s->HasName(mach_o::SEG_TEXT)) {
+      if (s->HasName(mach_o::SEG_TEXT) || s->HasName(mach_o::SEG_UNNAMED)) {
+        ASSERT_EQUAL(type_ == SnapshotType::Object,
+                     s->HasName(mach_o::SEG_UNNAMED));
         ASSERT(text_segment == s);
       } else if (s->ContainsSymbols()) {
         symbol_segments.Add(s);
       } else {
         other_segments.Add(s);
       }
-    } else if (!command->HasContents()) {
-      header_only_commands.Add(command);
-    } else {
+    } else if (type_ == SnapshotType::Object || command->HasContents()) {
+      // Stick every non-segment into linkedit_commands so that the segment
+      // load command is first in a relocatable object.
       linkedit_commands.Add(command);
+    } else {
+      header_only_commands.Add(command);
     }
   }
 
@@ -2642,19 +2937,21 @@ void MachOHeader::FinalizeCommands() {
   // it only contains global exported symbols, which means there should
   // be a linkedit segment.
   ASSERT(!linkedit_commands.is_empty());
-  auto* const linkedit_segment =
-      new (zone_) MachOSegment(zone_, mach_o::SEG_LINKEDIT);
-  num_commands += 1;
-  for (auto* const c : linkedit_commands) {
-    linkedit_segment->AddContents(c);
-  }
-  if (type_ == SnapshotType::Snapshot && FLAG_macho_linker_signature) {
-    // Also include an embedded ad-hoc linker signed code signature as the
-    // last contents of the linkedit segment (which is the last segment).
-    auto* const signature = new (zone_) MachOCodeSignature(identifier_);
-    linkedit_segment->AddContents(signature);
-    linkedit_commands.Add(signature);
+  MachOSegment* linkedit_segment = nullptr;
+  if (type_ != SnapshotType::Object) {
+    linkedit_segment = new (zone_) MachOSegment(zone_, mach_o::SEG_LINKEDIT);
     num_commands += 1;
+    for (auto* const c : linkedit_commands) {
+      linkedit_segment->AddContents(c);
+    }
+    if (type_ == SnapshotType::Snapshot && FLAG_macho_linker_signature) {
+      // Also include an embedded ad-hoc linker signed code signature as the
+      // last contents of the linkedit segment (which is the last segment).
+      auto* const signature = new (zone_) MachOCodeSignature(identifier_);
+      linkedit_segment->AddContents(signature);
+      linkedit_commands.Add(signature);
+      num_commands += 1;
+    }
   }
 
   GrowableArray<MachOSegment*> segments(
@@ -2663,33 +2960,28 @@ void MachOHeader::FinalizeCommands() {
   segments.Add(text_segment);
   segments.AddArray(symbol_segments);
   segments.AddArray(other_segments);
-  segments.Add(linkedit_segment);
+  if (type_ != SnapshotType::Object) {
+    segments.Add(linkedit_segment);
+  }
 
-  // The initial segment in the file should have the header as its initial
-  // contents. Since the header is not a section, this won't change the
-  // section numbering.
-  segments[0]->AddContents(this);
+  if (type_ != SnapshotType::Object) {
+    // The initial segment in the file should have the header as its initial
+    // contents. Since the header is not a section, this won't change the
+    // section numbering.
+    segments[0]->AddContents(this);
+  }
 
   // Now populate reordered_commands.
   reordered_commands.AddArray(header_only_commands);
 
-  // While adding segments, also map old section indices to new ones. Include
-  // a map of mach_o::NO_SECT to mach_o::NO_SECT so that changing the section
-  // index on a non-section symbol is a no-op.
-  GrowableArray<intptr_t> index_map(zone_, num_sections + 1);
-  index_map.FillWith(mach_o::NO_SECT, 0, num_sections + 1);
-  // Section indices start from 1.
-  intptr_t current_section_index = 1;
-  for (auto* const s : segments) {
-    reordered_commands.Add(s);
-    auto* const kv = section_info.Lookup(s);
-    if (kv != nullptr) {
-      const auto& [num_sections, old_start] = SegmentMapTrait::ValueOf(*kv);
-      ASSERT(num_sections > 0);  // Otherwise it's not in the map.
-      ASSERT(old_start != mach_o::NO_SECT);
-      for (intptr_t i = 0; i < num_sections; ++i) {
+  // While adding segments, also re-index sections.
+  intptr_t current_section_index = 1;  // 1-based.
+  for (auto* const segment : segments) {
+    reordered_commands.Add(segment);
+    for (auto* const c : segment->contents()) {
+      if (auto* const s = c->AsMachOSection()) {
         ASSERT(current_section_index != mach_o::NO_SECT);
-        index_map[old_start + i] = current_section_index++;
+        s->set_index(current_section_index++);
       }
     }
   }
@@ -2701,33 +2993,17 @@ void MachOHeader::FinalizeCommands() {
   // Replace the content of commands_ with the reordered commands.
   commands_.Clear();
   commands_.AddArray(reordered_commands);
-
-  // This must be true for uses of the map to be correct.
-  ASSERT_EQUAL(index_map[mach_o::NO_SECT], mach_o::NO_SECT);
-#if defined(DEBUG)
-  for (intptr_t i = 1; i < num_sections; ++i) {
-    ASSERT(index_map[i] != mach_o::NO_SECT);
-  }
-#endif
-
-  // Update the section indices of any section-owned symbols.
-  full_symtab_.UpdateSectionIndices(index_map);
-  auto* const table = IncludedSymbolTable();
-  if (table != &full_symtab_) {
-    ASSERT(is_stripped_);
-    table->UpdateSectionIndices(index_map);
-  }
 }
 
 struct ContentOffsetsVisitor : public MachOContents::Visitor {
-  explicit ContentOffsetsVisitor(Zone* zone) : address_map(zone, 1) {
-    // Add NO_SECT -> 0 mapping.
-    address_map.Add(0);
-  }
+  explicit ContentOffsetsVisitor(Zone* zone) {}
 
   void Default(MachOContents* contents) {
     ASSERT_EQUAL(contents->IsMachOHeader(), file_offset == 0);
-    ASSERT_EQUAL(contents->IsMachOHeader(), memory_address == 0);
+    // This can't be strictly equal, because the header is not in a segment
+    // in relocatable objects and thus is not allocated, so the first
+    // allocated contents (a section) will have a memory offset of 0.
+    ASSERT(!contents->IsMachOHeader() || memory_address == 0);
     // Increment the file and memory offsets by the appropriate amounts.
     if (contents->HasContents()) {
       file_offset = Utils::RoundUp(file_offset, contents->Alignment());
@@ -2751,7 +3027,8 @@ struct ContentOffsetsVisitor : public MachOContents::Visitor {
 
   void VisitMachOSegment(MachOSegment* segment) {
     ASSERT_EQUAL(segment->IsInitial(), file_offset == 0);
-    ASSERT_EQUAL(segment->IsInitial(), memory_address == 0);
+    ASSERT_EQUAL(segment->IsInitial() || segment->HasName(mach_o::SEG_UNNAMED),
+                 memory_address == 0);
     // Segments are always allocated and we set the file offset even
     // when the segment doesn't actually write any contents.
     file_offset = Utils::RoundUp(file_offset, segment->Alignment());
@@ -2770,17 +3047,6 @@ struct ContentOffsetsVisitor : public MachOContents::Visitor {
                  segment->memory_address() + segment->MemorySize());
   }
 
-  void VisitMachOSection(MachOSection* section) {
-    // Sections do not contain other sections, so the visitor can use the
-    // default behavior without worrying about adding to the address map in
-    // the wrong order.
-    Visitor::VisitMachOSection(section);
-    address_map.Add(section->memory_address());
-  }
-
-  // Maps indices of allocated sections in the section table to memory offsets.
-  // Note that sections are 1-indexed, with 0 (NO_SECT) mapping to 0.
-  GrowableArray<uword> address_map;
   intptr_t file_offset = 0;
   intptr_t memory_address = 0;
 
@@ -2788,7 +3054,369 @@ struct ContentOffsetsVisitor : public MachOContents::Visitor {
   DISALLOW_COPY_AND_ASSIGN(ContentOffsetsVisitor);
 };
 
+class RelocationsConverter : public MachOContents::Visitor {
+  using SnapshotType = SharedObjectWriter::Type;
+  using Relocation = SharedObjectWriter::Relocation;
+
+ public:
+  explicit RelocationsConverter(Zone* zone,
+                                const MachOHeader& header,
+                                intptr_t start)
+      : zone_(zone),
+        output_is_relocatable_object_(header.type() == SnapshotType::Object),
+        symbol_table_(*ASSERT_NOTNULL(header.IncludedSymbolTable())),
+        file_offset_(Utils::RoundUp(start, compiler::target::kWordSize)),
+        portion_and_section_by_label_(zone) {
+    for (auto* const command : header.commands()) {
+      if (auto* const segment = command->AsMachOSegment()) {
+        for (auto* const c : segment->contents()) {
+          if (auto* const s = c->AsMachOSection()) {
+            for (const auto& p : s->portions()) {
+              portion_and_section_by_label_.Insert({p.label, {s, &p}});
+            }
+          }
+        }
+      }
+    }
+  }
+
+  void Default(MachOContents* contents) override {}
+
+  void VisitMachOSegment(MachOSegment* segment) override {
+    segment->VisitChildren(this);
+  }
+
+  void VisitMachOSection(MachOSection* section) override {
+    current_relocations_ = nullptr;
+    current_relocation_addends_ = nullptr;
+    if (output_is_relocatable_object_) {
+      ASSERT(section->file_offset_is_set());
+      current_section_ = section;
+      for (const auto& p : section->portions()) {
+        if (p.relocations == nullptr) continue;
+        if (p.symbols != nullptr && !p.symbols->is_empty()) {
+          // Local symbols are sorted in order of offset into the portion.
+          starting_index_for_self_ =
+              symbol_table_.IndexForLabel(p.symbols->At(0).label);
+        }
+        current_portion_ = &p;
+        for (const auto& reloc : *p.relocations) {
+          ConvertRelocation(reloc);
+        }
+        starting_index_for_self_ = -1;
+        current_portion_ = nullptr;
+      }
+      current_section_ = nullptr;
+    }
+    section->set_relocations(current_relocations_);
+    section->set_relocation_addends(current_relocation_addends_);
+    section->set_relocations_file_offset(
+        current_relocations_ != nullptr ? file_offset_ : 0);
+    file_offset_ +=
+        section->num_relocations() * sizeof(mach_o::relocation_info);
+  }
+
+ private:
+  static uint32_t RelocationSize(intptr_t size) {
+    switch (size) {
+      case 1:
+        return mach_o::RELOC_SIZE_BYTE;
+      case 2:
+        return mach_o::RELOC_SIZE_2BYTES;
+      case 4:
+        return mach_o::RELOC_SIZE_4BYTES;
+      case 8:
+        return mach_o::RELOC_SIZE_8BYTES;
+      default:
+        FATAL("Unexpected relocation size %" Pd "", size);
+        return mach_o::RELOC_SIZE_BYTE;
+    }
+  }
+
+  // Finds the closest symbol to the offset in the given section portion.
+  // Starts the search of local symbols in the symbol table from starting_index
+  // and updates starting_index if the closest symbol is a local symbol with an
+  // appropriate place to start the next search for any portion offsets after
+  // the current one.
+  intptr_t FindClosestSymbolIndexTo(intptr_t portion_offset,
+                                    const MachOSection* section,
+                                    const MachOSection::Portion* portion,
+                                    intptr_t& starting_index) {
+    const uword address =
+        section->memory_address() + portion->offset + portion_offset;
+    MachOSymbolTable::Symbol* current = nullptr;
+    if (starting_index >= 0) {
+      current = &symbol_table_.symbols()[starting_index];
+      if (current->value() == address) {
+        return starting_index;
+      } else if (current->value() < address) {
+        // Since index is the index of a local symbol, we're guaranteed
+        // that there's always at least one more symbol in the symbol table,
+        // as the global symbols come afterwards.
+        auto* next_symbol = &symbol_table_.symbols()[starting_index + 1];
+        // Search until we run out of local symbols for this section.
+        while (next_symbol->section_index() == section->index()) {
+          // Stop if the current symbol is closer than the next.
+          if (Utils::Abs(next_symbol->value() - address) >=
+              Utils::Abs(address - current->value())) {
+            break;
+          }
+          ++starting_index;
+          current = next_symbol;
+          next_symbol = &symbol_table_.symbols()[starting_index + 1];
+        }
+        return starting_index;
+      }
+      // Fall through to see if the closest global symbol preceding
+      // this address is closer.
+    }
+    intptr_t label = portion->label;
+    if (label == 0) {
+      // Search for a global symbol label in the portions preceding this one.
+      for (const auto& p : section->portions()) {
+        if (portion == &p) break;
+        if (p.label != 0) {
+          label = p.label;
+        }
+      }
+    }
+    if (current != nullptr) {
+      // Check to see if the found global symbol (if any) is closer than the
+      // local symbol following this address.
+      intptr_t global_index = symbol_table_.IndexForLabel(label);
+      if (global_index >= 0) {
+        const auto& global_symbol = symbol_table_.symbols()[global_index];
+        if (Utils::Abs(address - global_symbol.value()) <=
+            Utils::Abs(current->value() - address)) {
+          return global_index;
+        }
+      }
+      return starting_index;
+    }
+    // IndexForLabel will return a negative value for label == 0.
+    return symbol_table_.IndexForLabel(label);
+  }
+
+  MachORelocationsArray* EnsureCurrentRelocations() {
+    if (current_relocations_ == nullptr) {
+      current_relocations_ = new (zone_) MachORelocationsArray(zone_, 0);
+    }
+    return current_relocations_;
+  }
+
+  MachORelocationAddendsArray* EnsureCurrentRelocationAddends() {
+    if (current_relocation_addends_ == nullptr) {
+      current_relocation_addends_ =
+          new (zone_) MachORelocationAddendsArray(zone_, 0);
+    }
+    return current_relocation_addends_;
+  }
+
+  void ConvertRelocation(const Relocation& reloc) {
+    // In the Dart VM, we turn relocations into up to three different parts
+    // in a Mach-O relocatable object:
+    //
+    // - A SUBTRACTOR relocation entry for [reloc.source_label].
+    // - An UNSIGNED relocation entry for [reloc.target_label].
+    // - An addend stored at [reloc.section_offset] in the section contents.
+    //
+    // If the source and target labels are the same, then there are no
+    // relocation entries added and the addend is simply:
+    //    [reloc.target_offset] - [reloc.source_offset]
+    //
+    // If there are distinct source and target labels, then a SUBTRACTOR
+    // relocation entry for [reloc.source_label] is emitted followed by the
+    // UNSIGNED relocation entry for [reloc.target_label]. Both relocation
+    // entries are based on symbols. The addend, like the previous case, is:
+    //    [reloc.target_offset] - [reloc.source_offset]
+    //
+    // If [reloc.source_label] is kSnapshotRelative, then only an UNSIGNED
+    // relocation based on the section is emitted. Since a section-based
+    // relocation entry is used, the addend differs from the other two cases:
+    //     [current_section_.memory_address()] + [reloc.section_offset] +
+    //         [reloc.target_offset] - [reloc.source_offset]
+    // That is, the virtual address of the relocation is added to the addend.
+    if (!Utils::IsInt(kBitsPerInt32,
+                      current_portion_->offset + reloc.section_offset)) {
+      FATAL("Offset into section for relocation is not a 32-bit integer.");
+    }
+    int32_t section_offset = current_portion_->offset + reloc.section_offset;
+    const intptr_t address =
+        current_section_->memory_address() + section_offset;
+    if (reloc.target_label == SharedObjectWriter::kBuildIdLabel) {
+      ASSERT_EQUAL(reloc.target_offset, 0);
+      ASSERT_EQUAL(reloc.source_offset, 0);
+      ASSERT_EQUAL(reloc.size_in_bytes, compiler::target::kWordSize);
+      // Build IDs are UUID load commands in Mach-O and so have no
+      // associated symbol to use for relocations.
+      EnsureCurrentRelocationAddends()->Add(Image::kNoBuildId);
+      return;
+    }
+    intptr_t addend = reloc.target_offset - reloc.source_offset;
+    // If there is an emitted subtrahend (the source), emit it before
+    // the minuend (the target).
+    bool emitted_subtrahend = false;
+    if (reloc.source_label == reloc.target_label) {
+      // The relocation can be computed eagerly as the source and target
+      // refer to the same object.
+    } else if (reloc.source_label == Relocation::kSnapshotRelative) {
+      ASSERT_EQUAL(reloc.source_offset, 0);
+      ASSERT_EQUAL(reloc.size_in_bytes, compiler::target::kWordSize);
+      if (auto* const kv =
+              portion_and_section_by_label_.Lookup(reloc.target_label)) {
+        const auto [section, portion] = kv->value;
+        if (section == current_section_) {
+          ASSERT(section->HasName(mach_o::SECT_TEXT) &&
+                 section->HasSegname(mach_o::SEG_TEXT));
+          // This is considered an illegal text relocation by clang, so omit
+          // this relocation.
+          EnsureCurrentRelocationAddends()->Add(Image::kNoRelocatedAddress);
+          return;
+        }
+      }
+    } else {
+      // The subtrahend _must_ be a symbol.
+      intptr_t index = -1;
+      if (reloc.source_label == Relocation::kSelfRelative) {
+        index = FindClosestSymbolIndexTo(reloc.section_offset, current_section_,
+                                         current_portion_,
+                                         starting_index_for_self_);
+        if (index < 0) {
+          FATAL("Cannot find any symbol in section %" Pd "",
+                current_section_->index());
+        }
+        const auto& closest_symbol = symbol_table_.symbols()[index];
+        // Adjust the addend by subtracting the offset from the found symbol.
+        addend -= address - closest_symbol.value();
+      } else {
+        index = symbol_table_.IndexForLabel(reloc.source_label);
+        RELEASE_ASSERT(index >= 0);
+      }
+      if (!Utils::IsUint(mach_o::RELOC_METADATA_INDEX_BITS, index)) {
+        FATAL("Symbol index cannot fit into metadata payload: %" Pd "", index);
+      }
+      uint32_t source_metadata = index | mach_o::RELOC_EXTERN;
+#if defined(TARGET_ARCH_X64)
+      source_metadata |= mach_o::RELOC_TYPE_X64_SUBTRACTOR;
+#elif defined(TARGET_ARCH_ARM64)
+      source_metadata |= mach_o::RELOC_TYPE_ARM64_SUBTRACTOR;
+#else
+      // Relocatable objects aren't handled for this architecture.
+      UNREACHABLE();
+#endif
+      source_metadata |= RelocationSize(reloc.size_in_bytes);
+      EnsureCurrentRelocations()->Add({section_offset, source_metadata});
+      emitted_subtrahend = true;
+    }
+    // Now calculate the relocation entry for the base or minuend (target).
+    // If there is no subtrahend, the base is emitted as a relocation using
+    // a section index. If the target and source are the same, then no entries
+    // are emitted and the relocatable value is computed eagerly and stored as
+    // the addend.
+    //
+    // Note that the base addend for section-based relocations is the virtual
+    // address of the relocation, which is added here after determining which
+    // kind of relocation to use.
+    //
+    // For symbol-based relocations, the base addend is 0.
+    if (reloc.target_label != reloc.source_label) {
+      uint32_t target_metadata = 0;
+      intptr_t index = symbol_table_.IndexForLabel(reloc.target_label);
+      if (index >= 0) {
+        if (emitted_subtrahend) {
+          // Both subtrahend and minuend must be emitted as symbols.
+          target_metadata |= mach_o::RELOC_EXTERN;
+        } else {
+          const auto& symbol = symbol_table_.symbols()[index];
+          index = symbol.section_index();
+          addend += symbol.value();
+        }
+      } else if (reloc.target_label == Relocation::kSelfRelative) {
+        if (emitted_subtrahend) {
+          index = FindClosestSymbolIndexTo(reloc.section_offset,
+                                           current_section_, current_portion_,
+                                           starting_index_for_self_);
+          if (index < 0) {
+            FATAL("Cannot find any symbol in section %" Pd "",
+                  current_section_->index());
+          }
+          const auto& closest_symbol = symbol_table_.symbols()[index];
+          // Adjust the addend by adding the offset from the found symbol.
+          addend += address - closest_symbol.value();
+        } else {
+          index = current_section_->index();
+          addend += address;
+        }
+      } else {
+        auto* const kv =
+            portion_and_section_by_label_.Lookup(reloc.target_label);
+        RELEASE_ASSERT(kv != nullptr);
+        const auto [section, portion] = kv->value;
+        const intptr_t target_address =
+            section->memory_address() + portion->offset;
+        if (emitted_subtrahend) {
+          intptr_t starting_index = symbol_table_.IndexForLabel(portion->label);
+          index = FindClosestSymbolIndexTo(0, section, portion, starting_index);
+          if (index < 0) {
+            FATAL("Cannot find any symbol in section %" Pd "",
+                  section->index());
+          }
+          const auto& closest_symbol = symbol_table_.symbols()[index];
+          // Adjust the addend by adding the offset from the found symbol.
+          addend += target_address - closest_symbol.value();
+        } else {
+          index = section->index();
+          addend += target_address;
+        }
+        ASSERT(index != mach_o::NO_SECT);
+      }
+      if (!Utils::IsUint(mach_o::RELOC_METADATA_INDEX_BITS, index)) {
+        FATAL("Could not convert target label %" Pd
+              " of relocation, got %s index %" Pd " and addend %#" Px "",
+              reloc.target_label,
+              (target_metadata & mach_o::RELOC_EXTERN) != 0 ? "symbol"
+                                                            : "section",
+              index, addend);
+      }
+      target_metadata |= index;
+#if defined(TARGET_ARCH_X64)
+      target_metadata |= mach_o::RELOC_TYPE_X64_UNSIGNED;
+#elif defined(TARGET_ARCH_ARM64)
+      target_metadata |= mach_o::RELOC_TYPE_ARM64_UNSIGNED;
+#else
+      // Relocatable objects aren't handled for this architecture.
+      UNREACHABLE();
+#endif
+      target_metadata |= RelocationSize(reloc.size_in_bytes);
+      EnsureCurrentRelocations()->Add({section_offset, target_metadata});
+    }
+    if (!Utils::IsInt(reloc.size_in_bytes * kBitsPerByte, addend)) {
+      FATAL("Calculated addend for relocation too large: %#" Px "", addend);
+    }
+    EnsureCurrentRelocationAddends()->Add(addend);
+  }
+
+  Zone* const zone_;
+  const bool output_is_relocatable_object_;
+  const MachOSymbolTable& symbol_table_;
+  intptr_t file_offset_;
+  // A mapping of portion labels to the associated section and portion.
+  DirectChainedHashMap<IntKeyRawPointerValueTrait<
+      std::pair<const MachOSection*, const MachOSection::Portion*>>>
+      portion_and_section_by_label_;
+
+  // Internal state fields used by ConvertRelocation/ConvertRelocationLabel.
+  const MachOSection* current_section_ = nullptr;
+  const MachOSection::Portion* current_portion_ = nullptr;
+  MachORelocationsArray* current_relocations_ = nullptr;
+  MachORelocationAddendsArray* current_relocation_addends_ = nullptr;
+  intptr_t starting_index_for_self_ = -1;
+
+  DISALLOW_COPY_AND_ASSIGN(RelocationsConverter);
+};
+
 void MachOHeader::ComputeOffsets() {
+  // First, set the offsets of the load commands in the header.
   intptr_t header_offset = SizeWithoutLoadCommands();
   for (auto* const c : commands_) {
     ASSERT(
@@ -2797,121 +3425,121 @@ void MachOHeader::ComputeOffsets() {
     header_offset += c->cmdsize();
   }
 
+  // Next, set the offsets of the contents of load commands with post-header
+  // content (segments, symbol tables, etc.).
   ContentOffsetsVisitor visitor(zone());
-  // All commands with non-header content should be part of a segment.
-  // In addition, the header is visited during the initial segment.
-  VisitSegments(&visitor);
+  VisitContents(&visitor);
 
-  // Finalize the dynamic symbol table, now that the file offset for the
-  // symbol table has been calculated.
-
-  // Entry for NO_SECT + 1-indexed entries for sections.
-  ASSERT_EQUAL(visitor.address_map.length(), NumSections() + 1);
-
-  // Adjust addresses in symbol tables as we now have section memory offsets.
-  full_symtab_.Finalize(visitor.address_map);
-  auto* const table = IncludedSymbolTable();
-  if (table != &full_symtab_) {
-    ASSERT(is_stripped_);
-    table->Finalize(visitor.address_map);
-  }
+  // Finally, for relocatable objects, convert the relocations into appropriate
+  // relocation entries and addends and also set the offsets at which relocation
+  // information is stored for sections, as this information is written into
+  // the file after the other contents.
+  //
+  // For other types of output, there is no converted relocation information (as
+  // the relocatable values are fully computed), so this visitor sets the
+  // section fields for relocations to reflect this.
+  RelocationsConverter relocs_visitor(zone_, *this, visitor.file_offset);
+  VisitContents(&relocs_visitor);
 }
 
-void MachOSymbolTable::Initialize(const char* path,
+void MachOSymbolTable::Initialize(SharedObjectWriter::Type type,
+                                  const char* path,
                                   const GrowableArray<MachOSection*>& sections,
                                   bool is_stripped) {
+  using SnapshotType = SharedObjectWriter::Type;
   // Not idempotent.
   ASSERT(!num_local_symbols_is_set());
 
   // If symbolic debugging symbols are emitted, then any section
   // symbols are marked as alternate entries in favor of the symbolic
   // debugging symbols.
-  const intptr_t desc = is_stripped ? 0 : mach_o::N_ALT_ENTRY;
+  const intptr_t desc =
+      (type == SnapshotType::Object || is_stripped) ? 0 : mach_o::N_ALT_ENTRY;
 
   // For unstripped symbol tables, we do two initial passes. In the first
   // pass, we add section symbols for local static symbols.
   if (!is_stripped) {
     for (intptr_t i = 0, n = sections.length(); i < n; ++i) {
       auto* const section = sections[i];
-      const intptr_t section_index = i + 1;  // 1-indexed, as 0 is NO_SECT.
       for (const auto& portion : section->portions()) {
         if (portion.symbols != nullptr) {
           for (const auto& symbol_data : *portion.symbols) {
-            AddSymbol(symbol_data.name, mach_o::N_SECT, section_index, desc,
+            AddSymbol(symbol_data.name, mach_o::N_SECT, section, desc,
                       portion.offset + symbol_data.offset, symbol_data.label);
           }
         }
       }
     }
 
-    // In the second pass, we add appropriate symbolic debugging symbols.
-    using Type = SharedObjectWriter::SymbolData::Type;
-    if (path != nullptr) {
-      // The value of the OSO symbolic debugging symbol is the mtime of the
-      // object file. However, clang may warn about a mismatch if this is not
-      // 0 and differs from the actual mtime of the object file, so just use 0.
-      AddSymbol(path, mach_o::N_OSO, /*section_index=*/0,
-                /*description=*/1, /*value=*/0);
-    }
-    auto add_symbolic_debugging_symbols =
-        [&](const char* name, Type type, intptr_t section_index,
-            intptr_t offset, intptr_t size, bool is_global) {
-          switch (type) {
-            case Type::Function: {
-              AddSymbol("", mach_o::N_BNSYM, section_index, /*description=*/0,
-                        offset);
-              AddSymbol(name, mach_o::N_FUN, section_index, /*description=*/0,
-                        offset);
-              // The size is output as an unnamed N_FUN symbol with no section
-              // following the actual N_FUN symbol.
-              AddSymbol("", mach_o::N_FUN, mach_o::NO_SECT, /*description=*/0,
-                        size);
-              AddSymbol("", mach_o::N_ENSYM, section_index, /*description=*/0,
-                        offset + size);
+    // The second pass adds appropriate symbolic debugging symbols.  This pass
+    // is skipped for relocatable objects.
+    if (type != SnapshotType::Object) {
+      using Type = SharedObjectWriter::SymbolData::Type;
+      if (path != nullptr) {
+        // The value of the OSO symbolic debugging symbol is the mtime of the
+        // object file. However, clang may warn about a mismatch if this is not
+        // 0 and differs from the actual mtime of the object file.
+        AddSymbol(path, mach_o::N_OSO, /*section=*/nullptr,
+                  /*description=*/1, /*section_offset_or_value=*/0);
+      }
+      auto add_symbolic_debugging_symbols = [&](const char* name, Type type,
+                                                const MachOSection* section,
+                                                intptr_t offset, intptr_t size,
+                                                bool is_global) {
+        switch (type) {
+          case Type::Function: {
+            AddSymbol("", mach_o::N_BNSYM, section, /*description=*/0, offset);
+            AddSymbol(name, mach_o::N_FUN, section, /*description=*/0, offset);
+            // The size is output as an unnamed N_FUN symbol with no section
+            // following the actual N_FUN symbol.
+            AddSymbol("", mach_o::N_FUN, /*section=*/nullptr, /*description=*/0,
+                      size);
+            AddSymbol("", mach_o::N_ENSYM, section, /*description=*/0,
+                      offset + size);
 
-              break;
-            }
-            case Type::Section:
-            case Type::Object: {
-              if (is_global) {
-                AddSymbol(name, mach_o::N_GSYM, mach_o::NO_SECT,
-                          /*description=*/0,
-                          /*value=*/0);
-              } else {
-                AddSymbol(name, mach_o::N_STSYM, section_index,
-                          /*description=*/0, offset);
-              }
-              break;
-            }
+            break;
           }
-        };
-
-    for (intptr_t i = 0, n = sections.length(); i < n; ++i) {
-      auto* const section = sections[i];
-      const intptr_t section_index = i + 1;  // 1-indexed, as 0 is NO_SECT.
-      // We handle global symbols for text sections slightly differently than
-      // those for other sections.
-      const bool is_text_section = section->HasName(mach_o::SECT_TEXT);
-      for (const auto& portion : section->portions()) {
-        if (portion.symbol_name != nullptr) {
-          // Matching the symbolic debugging symbols created for assembled
-          // snapshots.
-          auto const type = is_text_section ? Type::Function : Type::Section;
-          // The "size" of a function symbol created for start of a text portion
-          // is up to the first function symbol.
-          auto const size = is_text_section && portion.symbols != nullptr
-                                ? portion.symbols->At(0).offset
-                                : portion.size;
-          add_symbolic_debugging_symbols(portion.symbol_name, type,
-                                         section_index, portion.offset, size,
-                                         /*is_global=*/true);
+          case Type::Section:
+          case Type::Object: {
+            if (is_global) {
+              AddSymbol(name, mach_o::N_GSYM, /*section=*/nullptr,
+                        /*description=*/0,
+                        /*section_offset_or_value=*/0);
+            } else {
+              AddSymbol(name, mach_o::N_STSYM, section,
+                        /*description=*/0, offset);
+            }
+            break;
+          }
         }
-        if (portion.symbols != nullptr) {
-          for (const auto& symbol_data : *portion.symbols) {
-            add_symbolic_debugging_symbols(
-                symbol_data.name, symbol_data.type, section_index,
-                portion.offset + symbol_data.offset, symbol_data.size,
-                /*is_global=*/false);
+      };
+
+      for (intptr_t i = 0, n = sections.length(); i < n; ++i) {
+        auto* const section = sections[i];
+        // We handle global symbols for text sections slightly differently than
+        // those for other sections.
+        const bool is_text_section = section->HasName(mach_o::SECT_TEXT);
+        for (const auto& portion : section->portions()) {
+          if (portion.symbol_name != nullptr) {
+            // Matching the symbolic debugging symbols created for assembled
+            // snapshots.
+            auto const type = is_text_section ? Type::Function : Type::Section;
+            // The "size" of a function symbol created for start of a text
+            // portion is up to the first function symbol.
+            auto const size = is_text_section && portion.symbols != nullptr
+                                  ? portion.symbols->At(0).offset
+                                  : portion.size;
+            add_symbolic_debugging_symbols(portion.symbol_name, type, section,
+                                           portion.offset, size,
+                                           /*is_global=*/true);
+          }
+          if (portion.symbols != nullptr) {
+            for (const auto& symbol_data : *portion.symbols) {
+              add_symbolic_debugging_symbols(
+                  symbol_data.name, symbol_data.type, section,
+                  portion.offset + symbol_data.offset, symbol_data.size,
+                  /*is_global=*/false);
+            }
           }
         }
       }
@@ -2923,11 +3551,10 @@ void MachOSymbolTable::Initialize(const char* path,
   // (so added to both stripped and unstripped symbol tables).
   for (intptr_t i = 0, n = sections.length(); i < n; ++i) {
     auto* const section = sections[i];
-    const intptr_t section_index = i + 1;  // 1-indexed, as 0 is NO_SECT.
     for (const auto& portion : section->portions()) {
       if (portion.symbol_name != nullptr) {
-        AddSymbol(portion.symbol_name, mach_o::N_SECT | mach_o::N_EXT,
-                  section_index, desc, portion.offset, portion.label);
+        AddSymbol(portion.symbol_name, mach_o::N_SECT | mach_o::N_EXT, section,
+                  desc, portion.offset, portion.label);
       }
     }
   }

@@ -38,13 +38,13 @@ class MakeFieldNotFinal extends ResolvedCorrectionProducer {
     var getter = node.writeOrReadElement;
 
     // The accessor must be a getter, and it must be synthetic.
-    if (!(getter is GetterElement && getter.isSynthetic)) {
+    if (!(getter is GetterElement && getter.isOriginVariable)) {
       return;
     }
 
     // The variable must be not synthetic, and have no setter yet.
     var variable = getter.variable;
-    if (variable.isSynthetic || variable.setter != null) {
+    if (!variable.isOriginDeclaration || variable.setter != null) {
       return;
     }
 

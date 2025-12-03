@@ -12,6 +12,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _cr = '\r';
 
@@ -28,7 +29,7 @@ class LinesLongerThan80Chars extends AnalysisRule {
     : super(name: LintNames.lines_longer_than_80_chars, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.linesLongerThan80Chars;
+  DiagnosticCode get diagnosticCode => diag.linesLongerThan80Chars;
 
   @override
   void registerNodeProcessors(

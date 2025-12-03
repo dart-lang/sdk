@@ -260,701 +260,539 @@ import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analysis_server_plugin/src/correction/ignore_diagnostic.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/error/ffi_code.dart';
-import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/parser.dart';
-import 'package:linter/src/lint_codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:linter/src/diagnostic.dart' as diag;
 
 final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
-  LinterLintCode.alwaysDeclareReturnTypesOfFunctions: [AddReturnType.new],
-  LinterLintCode.alwaysDeclareReturnTypesOfMethods: [AddReturnType.new],
-  LinterLintCode.alwaysPutControlBodyOnNewLine: [UseCurlyBraces.nonBulk],
-  LinterLintCode.alwaysPutRequiredNamedParametersFirst: [
+  diag.alwaysDeclareReturnTypesOfFunctions: [AddReturnType.new],
+  diag.alwaysDeclareReturnTypesOfMethods: [AddReturnType.new],
+  diag.alwaysPutControlBodyOnNewLine: [UseCurlyBraces.nonBulk],
+  diag.alwaysPutRequiredNamedParametersFirst: [
     MakeRequiredNamedParametersFirst.new,
   ],
-  LinterLintCode.alwaysSpecifyTypesAddType: [AddTypeAnnotation.bulkFixable],
-  LinterLintCode.alwaysSpecifyTypesSpecifyType: [AddTypeAnnotation.bulkFixable],
-  LinterLintCode.alwaysSpecifyTypesReplaceKeyword: [
-    AddTypeAnnotation.bulkFixable,
-  ],
-  LinterLintCode.alwaysSpecifyTypesSplitToTypes: [
-    AddTypeAnnotation.bulkFixable,
-  ],
-  LinterLintCode.alwaysUsePackageImports: [ConvertToPackageImport.new],
-  LinterLintCode.annotateOverrides: [AddOverride.new],
-  LinterLintCode.annotateRedeclares: [AddRedeclare.new],
-  LinterLintCode.avoidAnnotatingWithDynamic: [RemoveTypeAnnotation.other],
-  LinterLintCode.avoidBoolLiteralsInConditionalExpressions: [
+  diag.alwaysSpecifyTypesAddType: [AddTypeAnnotation.bulkFixable],
+  diag.alwaysSpecifyTypesSpecifyType: [AddTypeAnnotation.bulkFixable],
+  diag.alwaysSpecifyTypesReplaceKeyword: [AddTypeAnnotation.bulkFixable],
+  diag.alwaysSpecifyTypesSplitToTypes: [AddTypeAnnotation.bulkFixable],
+  diag.alwaysUsePackageImports: [ConvertToPackageImport.new],
+  diag.annotateOverrides: [AddOverride.new],
+  diag.annotateRedeclares: [AddRedeclare.new],
+  diag.avoidAnnotatingWithDynamic: [RemoveTypeAnnotation.other],
+  diag.avoidBoolLiteralsInConditionalExpressions: [
     ConvertToBooleanExpression.new,
   ],
-  LinterLintCode.avoidEmptyElse: [RemoveEmptyElse.new],
-  LinterLintCode.avoidEscapingInnerQuotes: [ConvertQuotes.new],
-  LinterLintCode.avoidFunctionLiteralsInForeachCalls: [
-    ConvertForEachToForLoop.new,
-  ],
-  LinterLintCode.avoidInitToNull: [RemoveInitializer.bulkFixable],
-  LinterLintCode.avoidMultipleDeclarationsPerLine: [
-    SplitMultipleDeclarations.new,
-  ],
-  LinterLintCode.avoidNullChecksInEqualityOperators: [RemoveComparison.new],
-  LinterLintCode.avoidPrint: [MakeConditionalOnDebugMode.new, RemovePrint.new],
-  LinterLintCode.avoidPrivateTypedefFunctions: [InlineTypedef.new],
-  LinterLintCode.avoidRedundantArgumentValues: [RemoveArgument.new],
-  LinterLintCode.avoidRelativeLibImports: [ConvertToPackageImport.new],
-  LinterLintCode.avoidRenamingMethodParameters: [RenameMethodParameter.new],
-  LinterLintCode.avoidReturnTypesOnSetters: [RemoveTypeAnnotation.other],
-  LinterLintCode.avoidReturningNullForVoidFromFunction: [
-    RemoveReturnedValue.new,
-  ],
-  LinterLintCode.avoidReturningNullForVoidFromMethod: [RemoveReturnedValue.new],
-  LinterLintCode.avoidSingleCascadeInExpressionStatements: [
+  diag.avoidEmptyElse: [RemoveEmptyElse.new],
+  diag.avoidEscapingInnerQuotes: [ConvertQuotes.new],
+  diag.avoidFunctionLiteralsInForeachCalls: [ConvertForEachToForLoop.new],
+  diag.avoidInitToNull: [RemoveInitializer.bulkFixable],
+  diag.avoidMultipleDeclarationsPerLine: [SplitMultipleDeclarations.new],
+  diag.avoidNullChecksInEqualityOperators: [RemoveComparison.new],
+  diag.avoidPrint: [MakeConditionalOnDebugMode.new, RemovePrint.new],
+  diag.avoidPrivateTypedefFunctions: [InlineTypedef.new],
+  diag.avoidRedundantArgumentValues: [RemoveArgument.new],
+  diag.avoidRelativeLibImports: [ConvertToPackageImport.new],
+  diag.avoidRenamingMethodParameters: [RenameMethodParameter.new],
+  diag.avoidReturnTypesOnSetters: [RemoveTypeAnnotation.other],
+  diag.avoidReturningNullForVoidFromFunction: [RemoveReturnedValue.new],
+  diag.avoidReturningNullForVoidFromMethod: [RemoveReturnedValue.new],
+  diag.avoidSingleCascadeInExpressionStatements: [
     // TODO(brianwilkerson): This fix should be applied to some non-lint
     //  diagnostics and should also be available as an assist.
     ReplaceCascadeWithDot.new,
   ],
-  LinterLintCode.avoidTypesAsParameterNamesFormalParameter: [
-    ConvertToOnType.new,
-  ],
-  LinterLintCode.avoidTypesOnClosureParameters: [
+  diag.avoidTypesAsParameterNamesFormalParameter: [ConvertToOnType.new],
+  diag.avoidTypesOnClosureParameters: [
     ReplaceWithIdentifier.new,
     RemoveTypeAnnotation.other,
   ],
-  LinterLintCode.avoidUnusedConstructorParameters: [RemoveUnusedParameter.new],
-  LinterLintCode.avoidUnnecessaryContainers: [FlutterRemoveWidget.new],
-  LinterLintCode.avoidVoidAsync: [ReplaceReturnTypeFuture.new],
-  LinterLintCode.awaitOnlyFutures: [RemoveAwait.new],
-  LinterLintCode.cascadeInvocations: [
-    ConvertToCascade.new,
-    ConvertRelatedToCascade.new,
-  ],
-  LinterLintCode.castNullableToNonNullable: [
-    AddNullCheck.withoutAssignabilityCheck,
-  ],
-  LinterLintCode.combinatorsOrdering: [SortCombinators.new],
-  LinterLintCode.constantIdentifierNames: [RenameToCamelCase.new],
-  LinterLintCode.curlyBracesInFlowControlStructures: [UseCurlyBraces.new],
-  LinterLintCode.danglingLibraryDocComments: [
-    MoveDocCommentToLibraryDirective.new,
-  ],
-  LinterLintCode.diagnosticDescribeAllProperties: [
-    AddDiagnosticPropertyReference.new,
-  ],
-  LinterLintCode.directivesOrderingDart: [OrganizeImports.new],
-  LinterLintCode.directivesOrderingAlphabetical: [OrganizeImports.new],
-  LinterLintCode.directivesOrderingExports: [OrganizeImports.new],
-  LinterLintCode.directivesOrderingPackageBeforeRelative: [OrganizeImports.new],
-  LinterLintCode.discardedFutures: [
-    AddAsync.discardedFutures,
-    WrapInUnawaited.new,
-  ],
-  LinterLintCode.emptyCatches: [RemoveEmptyCatch.new],
-  LinterLintCode.emptyConstructorBodies: [RemoveEmptyConstructorBody.new],
-  LinterLintCode.emptyStatements: [
-    RemoveEmptyStatement.new,
-    ReplaceWithBrackets.new,
-  ],
-  LinterLintCode.eolAtEndOfFile: [AddEolAtEndOfFile.new],
-  LinterLintCode.exhaustiveCases: [AddMissingEnumLikeCaseClauses.new],
-  LinterLintCode.flutterStyleTodos: [ConvertToFlutterStyleTodo.new],
-  LinterLintCode.hashAndEquals: [CreateMethod.equalityOrHashCode],
-  LinterLintCode.implicitCallTearoffs: [AddExplicitCall.new],
-  LinterLintCode.implicitReopen: [AddReopen.new],
-  LinterLintCode.invalidCasePatterns: [AddConst.new],
-  LinterLintCode.leadingNewlinesInMultilineStrings: [
-    AddLeadingNewlineToString.new,
-  ],
-  LinterLintCode.libraryAnnotations: [MoveAnnotationToLibraryDirective.new],
-  LinterLintCode.noDuplicateCaseValues: [RemoveDuplicateCase.new],
-  LinterLintCode.noLeadingUnderscoresForLibraryPrefixes: [
-    RemoveLeadingUnderscore.new,
-  ],
-  LinterLintCode.noLeadingUnderscoresForLocalIdentifiers: [
-    RemoveLeadingUnderscore.new,
-  ],
-  LinterLintCode.noLiteralBoolComparisons: [ConvertToBooleanExpression.new],
-  LinterLintCode.nonConstantIdentifierNames: [RenameToCamelCase.new],
-  LinterLintCode.noopPrimitiveOperations: [RemoveInvocation.new],
-  LinterLintCode.nullCheckOnNullableTypeParameter: [
-    ReplaceNullCheckWithCast.new,
-  ],
-  LinterLintCode.nullClosures: [ReplaceNullWithClosure.new],
-  LinterLintCode.omitLocalVariableTypes: [
+  diag.avoidUnusedConstructorParameters: [RemoveUnusedParameter.new],
+  diag.avoidUnnecessaryContainers: [FlutterRemoveWidget.new],
+  diag.avoidVoidAsync: [ReplaceReturnTypeFuture.new],
+  diag.awaitOnlyFutures: [RemoveAwait.new],
+  diag.cascadeInvocations: [ConvertToCascade.new, ConvertRelatedToCascade.new],
+  diag.castNullableToNonNullable: [AddNullCheck.withoutAssignabilityCheck],
+  diag.combinatorsOrdering: [SortCombinators.new],
+  diag.constantIdentifierNames: [RenameToCamelCase.new],
+  diag.curlyBracesInFlowControlStructures: [UseCurlyBraces.new],
+  diag.danglingLibraryDocComments: [MoveDocCommentToLibraryDirective.new],
+  diag.diagnosticDescribeAllProperties: [AddDiagnosticPropertyReference.new],
+  diag.directivesOrderingDart: [OrganizeImports.new],
+  diag.directivesOrderingAlphabetical: [OrganizeImports.new],
+  diag.directivesOrderingExports: [OrganizeImports.new],
+  diag.directivesOrderingPackageBeforeRelative: [OrganizeImports.new],
+  diag.discardedFutures: [AddAsync.discardedFutures, WrapInUnawaited.new],
+  diag.emptyCatches: [RemoveEmptyCatch.new],
+  diag.emptyConstructorBodies: [RemoveEmptyConstructorBody.new],
+  diag.emptyStatements: [RemoveEmptyStatement.new, ReplaceWithBrackets.new],
+  diag.eolAtEndOfFile: [AddEolAtEndOfFile.new],
+  diag.exhaustiveCases: [AddMissingEnumLikeCaseClauses.new],
+  diag.flutterStyleTodos: [ConvertToFlutterStyleTodo.new],
+  diag.hashAndEquals: [CreateMethod.equalityOrHashCode],
+  diag.implicitCallTearoffs: [AddExplicitCall.new],
+  diag.implicitReopen: [AddReopen.new],
+  diag.invalidCasePatterns: [AddConst.new],
+  diag.leadingNewlinesInMultilineStrings: [AddLeadingNewlineToString.new],
+  diag.libraryAnnotations: [MoveAnnotationToLibraryDirective.new],
+  diag.noDuplicateCaseValues: [RemoveDuplicateCase.new],
+  diag.noLeadingUnderscoresForLibraryPrefixes: [RemoveLeadingUnderscore.new],
+  diag.noLeadingUnderscoresForLocalIdentifiers: [RemoveLeadingUnderscore.new],
+  diag.noLiteralBoolComparisons: [ConvertToBooleanExpression.new],
+  diag.nonConstantIdentifierNames: [RenameToCamelCase.new],
+  diag.noopPrimitiveOperations: [RemoveInvocation.new],
+  diag.nullCheckOnNullableTypeParameter: [ReplaceNullCheckWithCast.new],
+  diag.nullClosures: [ReplaceNullWithClosure.new],
+  diag.omitLocalVariableTypes: [ReplaceWithVar.new, RemoveTypeAnnotation.other],
+  diag.omitObviousLocalVariableTypes: [
     ReplaceWithVar.new,
     RemoveTypeAnnotation.other,
   ],
-  LinterLintCode.omitObviousLocalVariableTypes: [
+  diag.omitObviousPropertyTypes: [
     ReplaceWithVar.new,
     RemoveTypeAnnotation.other,
   ],
-  LinterLintCode.omitObviousPropertyTypes: [
-    ReplaceWithVar.new,
-    RemoveTypeAnnotation.other,
-  ],
-  LinterLintCode.preferAdjacentStringConcatenation: [RemoveOperator.new],
-  LinterLintCode.preferCollectionLiterals: [
+  diag.preferAdjacentStringConcatenation: [RemoveOperator.new],
+  diag.preferCollectionLiterals: [
     ConvertToMapLiteral.new,
     ConvertToSetLiteral.new,
   ],
-  LinterLintCode.preferConditionalAssignment: [
-    ReplaceWithConditionalAssignment.new,
-  ],
-  LinterLintCode.preferConstConstructors: [
-    AddConst.new,
-    ReplaceNewWithConst.new,
-  ],
-  LinterLintCode.preferConstConstructorsInImmutables: [AddConst.new],
-  LinterLintCode.preferConstDeclarations: [ReplaceFinalWithConst.new],
-  LinterLintCode.preferConstLiteralsToCreateImmutables: [AddConst.new],
-  LinterLintCode.preferContainsAlwaysFalse: [ConvertToContains.new],
-  LinterLintCode.preferContainsAlwaysTrue: [ConvertToContains.new],
-  LinterLintCode.preferContainsUseContains: [ConvertToContains.new],
-  LinterLintCode.preferDoubleQuotes: [ConvertToDoubleQuotes.new],
-  LinterLintCode.preferExpressionFunctionBodies: [
-    ConvertToExpressionFunctionBody.new,
-  ],
-  LinterLintCode.preferFinalFields: [MakeFinal.new],
-  LinterLintCode.preferFinalInForEachPattern: [MakeFinal.new],
-  LinterLintCode.preferFinalInForEachVariable: [MakeFinal.new],
-  LinterLintCode.preferFinalLocals: [MakeFinal.new],
-  LinterLintCode.preferFinalParameters: [MakeFinal.new],
-  LinterLintCode.preferForElementsToMapFromiterable: [
+  diag.preferConditionalAssignment: [ReplaceWithConditionalAssignment.new],
+  diag.preferConstConstructors: [AddConst.new, ReplaceNewWithConst.new],
+  diag.preferConstConstructorsInImmutables: [AddConst.new],
+  diag.preferConstDeclarations: [ReplaceFinalWithConst.new],
+  diag.preferConstLiteralsToCreateImmutables: [AddConst.new],
+  diag.preferContainsAlwaysFalse: [ConvertToContains.new],
+  diag.preferContainsAlwaysTrue: [ConvertToContains.new],
+  diag.preferContainsUseContains: [ConvertToContains.new],
+  diag.preferDoubleQuotes: [ConvertToDoubleQuotes.new],
+  diag.preferExpressionFunctionBodies: [ConvertToExpressionFunctionBody.new],
+  diag.preferFinalFields: [MakeFinal.new],
+  diag.preferFinalInForEachPattern: [MakeFinal.new],
+  diag.preferFinalInForEachVariable: [MakeFinal.new],
+  diag.preferFinalLocals: [MakeFinal.new],
+  diag.preferFinalParameters: [MakeFinal.new],
+  diag.preferForElementsToMapFromiterable: [
     ConvertMapFromIterableToForLiteral.new,
   ],
-  LinterLintCode.preferForeach: [ConvertToForEach.new],
-  LinterLintCode.preferFunctionDeclarationsOverVariables: [
+  diag.preferForeach: [ConvertToForEach.new],
+  diag.preferFunctionDeclarationsOverVariables: [
     ConvertToFunctionDeclaration.new,
   ],
-  LinterLintCode.preferGenericFunctionTypeAliases: [
-    ConvertToGenericFunctionSyntax.new,
-  ],
-  LinterLintCode.preferIfElementsToConditionalExpressions: [
+  diag.preferGenericFunctionTypeAliases: [ConvertToGenericFunctionSyntax.new],
+  diag.preferIfElementsToConditionalExpressions: [
     ConvertConditionalExpressionToIfElement.new,
   ],
-  LinterLintCode.preferIfNullOperators: [ConvertToIfNull.preferIfNull],
-  LinterLintCode.preferInitializingFormals: [ConvertToInitializingFormal.new],
-  LinterLintCode.preferInlinedAddsSingle: [
+  diag.preferIfNullOperators: [ConvertToIfNull.preferIfNull],
+  diag.preferInitializingFormals: [ConvertToInitializingFormal.new],
+  diag.preferInlinedAddsSingle: [
     ConvertAddAllToSpread.new,
     InlineInvocation.new,
   ],
-  LinterLintCode.preferInlinedAddsMultiple: [
+  diag.preferInlinedAddsMultiple: [
     ConvertAddAllToSpread.new,
     InlineInvocation.new,
   ],
-  LinterLintCode.preferIntLiterals: [ConvertToIntLiteral.new],
-  LinterLintCode.preferInterpolationToComposeStrings: [
-    ReplaceWithInterpolation.new,
-  ],
-  LinterLintCode.preferIsEmptyAlwaysFalse: [ReplaceWithIsEmpty.new],
-  LinterLintCode.preferIsEmptyAlwaysTrue: [ReplaceWithIsEmpty.new],
-  LinterLintCode.preferIsEmptyUseIsEmpty: [ReplaceWithIsEmpty.new],
-  LinterLintCode.preferIsEmptyUseIsNotEmpty: [ReplaceWithIsEmpty.new],
-  LinterLintCode.preferIsNotEmpty: [UseIsNotEmpty.new],
-  LinterLintCode.preferIsNotOperator: [ConvertIntoIsNot.new],
-  LinterLintCode.preferIterableWheretype: [ConvertToWhereType.new],
-  LinterLintCode.preferNullAwareOperators: [ConvertToNullAware.new],
-  LinterLintCode.preferRelativeImports: [ConvertToRelativeImport.new],
-  LinterLintCode.preferSingleQuotes: [ConvertToSingleQuotes.new],
-  LinterLintCode.preferSpreadCollections: [ConvertAddAllToSpread.new],
-  LinterLintCode.preferTypingUninitializedVariablesForField: [
+  diag.preferIntLiterals: [ConvertToIntLiteral.new],
+  diag.preferInterpolationToComposeStrings: [ReplaceWithInterpolation.new],
+  diag.preferIsEmptyAlwaysFalse: [ReplaceWithIsEmpty.new],
+  diag.preferIsEmptyAlwaysTrue: [ReplaceWithIsEmpty.new],
+  diag.preferIsEmptyUseIsEmpty: [ReplaceWithIsEmpty.new],
+  diag.preferIsEmptyUseIsNotEmpty: [ReplaceWithIsEmpty.new],
+  diag.preferIsNotEmpty: [UseIsNotEmpty.new],
+  diag.preferIsNotOperator: [ConvertIntoIsNot.new],
+  diag.preferIterableWheretype: [ConvertToWhereType.new],
+  diag.preferNullAwareOperators: [ConvertToNullAware.new],
+  diag.preferRelativeImports: [ConvertToRelativeImport.new],
+  diag.preferSingleQuotes: [ConvertToSingleQuotes.new],
+  diag.preferSpreadCollections: [ConvertAddAllToSpread.new],
+  diag.preferTypingUninitializedVariablesForField: [
     AddTypeAnnotation.bulkFixable,
   ],
-  LinterLintCode.preferTypingUninitializedVariablesForLocalVariable: [
+  diag.preferTypingUninitializedVariablesForLocalVariable: [
     AddTypeAnnotation.bulkFixable,
   ],
-  LinterLintCode.preferVoidToNull: [ReplaceNullWithVoid.new],
-  LinterLintCode.requireTrailingCommas: [AddTrailingComma.new],
-  LinterLintCode.sizedBoxForWhitespace: [ReplaceContainerWithSizedBox.new],
-  LinterLintCode.slashForDocComments: [ConvertDocumentationIntoLine.new],
-  LinterLintCode.sortChildPropertiesLast: [SortChildPropertyLast.new],
-  LinterLintCode.sortConstructorsFirst: [SortConstructorFirst.new],
-  LinterLintCode.sortUnnamedConstructorsFirst: [
-    SortUnnamedConstructorFirst.new,
-  ],
-  LinterLintCode.specifyNonobviousLocalVariableTypes: [
-    AddTypeAnnotation.bulkFixable,
-  ],
-  LinterLintCode.specifyNonobviousPropertyTypes: [
-    AddTypeAnnotation.bulkFixable,
-  ],
-  LinterLintCode.strictTopLevelInferenceAddType: [AddReturnType.new],
-  LinterLintCode.typeAnnotatePublicApis: [AddTypeAnnotation.bulkFixable],
-  LinterLintCode.typeInitFormals: [RemoveTypeAnnotation.other],
-  LinterLintCode.typeLiteralInConstantPattern: [
+  diag.preferVoidToNull: [ReplaceNullWithVoid.new],
+  diag.requireTrailingCommas: [AddTrailingComma.new],
+  diag.sizedBoxForWhitespace: [ReplaceContainerWithSizedBox.new],
+  diag.slashForDocComments: [ConvertDocumentationIntoLine.new],
+  diag.sortChildPropertiesLast: [SortChildPropertyLast.new],
+  diag.sortConstructorsFirst: [SortConstructorFirst.new],
+  diag.sortUnnamedConstructorsFirst: [SortUnnamedConstructorFirst.new],
+  diag.specifyNonobviousLocalVariableTypes: [AddTypeAnnotation.bulkFixable],
+  diag.specifyNonobviousPropertyTypes: [AddTypeAnnotation.bulkFixable],
+  diag.strictTopLevelInferenceAddType: [AddReturnType.new],
+  diag.typeAnnotatePublicApis: [AddTypeAnnotation.bulkFixable],
+  diag.typeInitFormals: [RemoveTypeAnnotation.other],
+  diag.typeLiteralInConstantPattern: [
     ConvertToConstantPattern.new,
     ConvertToWildcardPattern.new,
   ],
-  LinterLintCode.unawaitedFutures: [AddAwait.unawaited, WrapInUnawaited.new],
-  LinterLintCode.unnecessaryAsync: [RemoveAsync.unnecessary],
-  LinterLintCode.unnecessaryAwaitInReturn: [RemoveAwait.new],
-  LinterLintCode.unnecessaryBraceInStringInterps: [
-    RemoveInterpolationBraces.new,
-  ],
-  LinterLintCode.unnecessaryBreaks: [RemoveBreak.new],
-  LinterLintCode.unnecessaryConst: [RemoveUnnecessaryConst.new],
-  LinterLintCode.unnecessaryConstructorName: [RemoveConstructorName.new],
-  LinterLintCode.unnecessaryFinalWithType: [ReplaceFinalWithVar.new],
-  LinterLintCode.unnecessaryFinalWithoutType: [ReplaceFinalWithVar.new],
-  LinterLintCode.unnecessaryGettersSetters: [MakeFieldPublic.new],
-  LinterLintCode.unnecessaryIgnoreName: [RemoveIgnoredDiagnostic.new],
-  LinterLintCode.unnecessaryIgnoreNameFile: [RemoveIgnoredDiagnostic.new],
-  LinterLintCode.unnecessaryIgnore: [RemoveComment.ignore],
-  LinterLintCode.unnecessaryIgnoreFile: [RemoveComment.ignore],
-  LinterLintCode.unnecessaryLambdas: [ReplaceWithTearOff.new],
-  LinterLintCode.unnecessaryLate: [RemoveUnnecessaryLate.new],
-  LinterLintCode.unnecessaryLibraryDirective: [
-    RemoveUnnecessaryLibraryDirective.new,
-  ],
-  LinterLintCode.unnecessaryLibraryName: [RemoveLibraryName.new],
-  LinterLintCode.unnecessaryNew: [RemoveUnnecessaryNew.new],
-  LinterLintCode.unnecessaryNullAwareAssignments: [RemoveAssignment.new],
-  LinterLintCode.unnecessaryNullChecks: [RemoveNonNullAssertion.new],
-  LinterLintCode.unnecessaryNullInIfNullOperators: [RemoveIfNullOperator.new],
-  LinterLintCode.unnecessaryNullableForFinalVariableDeclarations: [
+  diag.unawaitedFutures: [AddAwait.unawaited, WrapInUnawaited.new],
+  diag.unnecessaryAsync: [RemoveAsync.unnecessary],
+  diag.unnecessaryAwaitInReturn: [RemoveAwait.new],
+  diag.unnecessaryBraceInStringInterps: [RemoveInterpolationBraces.new],
+  diag.unnecessaryBreaks: [RemoveBreak.new],
+  diag.unnecessaryConst: [RemoveUnnecessaryConst.new],
+  diag.unnecessaryConstructorName: [RemoveConstructorName.new],
+  diag.unnecessaryFinalWithType: [ReplaceFinalWithVar.new],
+  diag.unnecessaryFinalWithoutType: [ReplaceFinalWithVar.new],
+  diag.unnecessaryGettersSetters: [MakeFieldPublic.new],
+  diag.unnecessaryIgnoreName: [RemoveIgnoredDiagnostic.new],
+  diag.unnecessaryIgnoreNameFile: [RemoveIgnoredDiagnostic.new],
+  diag.unnecessaryIgnore: [RemoveComment.ignore],
+  diag.unnecessaryIgnoreFile: [RemoveComment.ignore],
+  diag.unnecessaryLambdas: [ReplaceWithTearOff.new],
+  diag.unnecessaryLate: [RemoveUnnecessaryLate.new],
+  diag.unnecessaryLibraryDirective: [RemoveUnnecessaryLibraryDirective.new],
+  diag.unnecessaryLibraryName: [RemoveLibraryName.new],
+  diag.unnecessaryNew: [RemoveUnnecessaryNew.new],
+  diag.unnecessaryNullAwareAssignments: [RemoveAssignment.new],
+  diag.unnecessaryNullChecks: [RemoveNonNullAssertion.new],
+  diag.unnecessaryNullInIfNullOperators: [RemoveIfNullOperator.new],
+  diag.unnecessaryNullableForFinalVariableDeclarations: [
     RemoveQuestionMark.new,
   ],
-  LinterLintCode.unnecessaryOverrides: [RemoveMethodDeclaration.new],
-  LinterLintCode.unnecessaryParenthesis: [RemoveUnnecessaryParentheses.new],
-  LinterLintCode.unnecessaryRawStrings: [RemoveUnnecessaryRawString.new],
-  LinterLintCode.unnecessaryStringEscapes: [RemoveUnnecessaryStringEscape.new],
-  LinterLintCode.unnecessaryStringInterpolations: [
+  diag.unnecessaryOverrides: [RemoveMethodDeclaration.new],
+  diag.unnecessaryParenthesis: [RemoveUnnecessaryParentheses.new],
+  diag.unnecessaryRawStrings: [RemoveUnnecessaryRawString.new],
+  diag.unnecessaryStringEscapes: [RemoveUnnecessaryStringEscape.new],
+  diag.unnecessaryStringInterpolations: [
     RemoveUnnecessaryStringInterpolation.new,
   ],
-  LinterLintCode.unnecessaryToListInSpreads: [RemoveToList.new],
-  LinterLintCode.unnecessaryThis: [RemoveThisExpression.new],
-  LinterLintCode.unnecessaryUnawaited: [RemoveUnawaited.new],
-  LinterLintCode.unnecessaryUnderscores: [ConvertToWildcardVariable.new],
-  LinterLintCode.unreachableFromMain: [RemoveUnusedElement.new],
-  LinterLintCode.useColoredBox: [ReplaceContainerWithColoredBox.new],
-  LinterLintCode.useDecoratedBox: [ReplaceWithDecoratedBox.new],
-  LinterLintCode.useEnums: [ConvertClassToEnum.new],
-  LinterLintCode.useFullHexValuesForFlutterColors: [
-    ReplaceWithEightDigitHex.new,
-  ],
-  LinterLintCode.useFunctionTypeSyntaxForParameters: [
-    ConvertToGenericFunctionSyntax.new,
-  ],
-  LinterLintCode.useIfNullToConvertNullsToBools: [
+  diag.unnecessaryToListInSpreads: [RemoveToList.new],
+  diag.unnecessaryThis: [RemoveThisExpression.new],
+  diag.unnecessaryUnawaited: [RemoveUnawaited.new],
+  diag.unnecessaryUnderscores: [ConvertToWildcardVariable.new],
+  diag.unreachableFromMain: [RemoveUnusedElement.new],
+  diag.useColoredBox: [ReplaceContainerWithColoredBox.new],
+  diag.useDecoratedBox: [ReplaceWithDecoratedBox.new],
+  diag.useEnums: [ConvertClassToEnum.new],
+  diag.useFullHexValuesForFlutterColors: [ReplaceWithEightDigitHex.new],
+  diag.useFunctionTypeSyntaxForParameters: [ConvertToGenericFunctionSyntax.new],
+  diag.useIfNullToConvertNullsToBools: [
     ConvertToIfNull.useToConvertNullsToBools,
   ],
-  LinterLintCode.useKeyInWidgetConstructors: [AddKeyToConstructors.new],
-  LinterLintCode.useNamedConstants: [ReplaceWithNamedConstant.new],
-  LinterLintCode.useNullAwareElements: [
-    ConvertNullCheckToNullAwareElementOrEntry.new,
-  ],
-  LinterLintCode.useRawStrings: [ConvertToRawString.new],
-  LinterLintCode.useRethrowWhenPossible: [UseRethrow.new],
-  LinterLintCode.useStringInPartOfDirectives: [ReplaceWithPartOrUriEmpty.new],
-  LinterLintCode.useSuperParametersSingle: [ConvertToSuperParameters.new],
-  LinterLintCode.useSuperParametersMultiple: [ConvertToSuperParameters.new],
-  LinterLintCode.useTruncatingDivision: [UseEffectiveIntegerDivision.new],
+  diag.useKeyInWidgetConstructors: [AddKeyToConstructors.new],
+  diag.useNamedConstants: [ReplaceWithNamedConstant.new],
+  diag.useNullAwareElements: [ConvertNullCheckToNullAwareElementOrEntry.new],
+  diag.useRawStrings: [ConvertToRawString.new],
+  diag.useRethrowWhenPossible: [UseRethrow.new],
+  diag.useStringInPartOfDirectives: [ReplaceWithPartOrUriEmpty.new],
+  diag.useSuperParametersSingle: [ConvertToSuperParameters.new],
+  diag.useSuperParametersMultiple: [ConvertToSuperParameters.new],
+  diag.useTruncatingDivision: [UseEffectiveIntegerDivision.new],
 };
 
 final _builtInLintMultiGenerators = {
-  LinterLintCode.commentReferences: [
-    ImportLibrary.forType,
-    ImportLibrary.forExtension,
-  ],
-  LinterLintCode.deprecatedMemberUseFromSamePackageWithoutMessage: [
-    DataDriven.new,
-  ],
-  LinterLintCode.deprecatedMemberUseFromSamePackageWithMessage: [
-    DataDriven.new,
-  ],
+  diag.commentReferences: [ImportLibrary.forType, ImportLibrary.forExtension],
+  diag.deprecatedMemberUseFromSamePackageWithoutMessage: [DataDriven.new],
+  diag.deprecatedMemberUseFromSamePackageWithMessage: [DataDriven.new],
 };
 
 final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
-  CompileTimeErrorCode.abstractFieldInitializer: [
+  diag.abstractFieldInitializer: [RemoveAbstract.new, RemoveInitializer.new],
+  diag.abstractFieldConstructorInitializer: [
     RemoveAbstract.new,
     RemoveInitializer.new,
   ],
-  CompileTimeErrorCode.abstractFieldConstructorInitializer: [
-    RemoveAbstract.new,
-    RemoveInitializer.new,
-  ],
-  CompileTimeErrorCode.assertInRedirectingConstructor: [RemoveAssertion.new],
-  CompileTimeErrorCode.assignmentToFinal: [MakeFieldNotFinal.new, AddLate.new],
-  CompileTimeErrorCode.assignmentToFinalLocal: [MakeVariableNotFinal.new],
-  CompileTimeErrorCode.argumentTypeNotAssignable: [
+  diag.assertInRedirectingConstructor: [RemoveAssertion.new],
+  diag.assignmentToFinal: [MakeFieldNotFinal.new, AddLate.new],
+  diag.assignmentToFinalLocal: [MakeVariableNotFinal.new],
+  diag.argumentTypeNotAssignable: [
     AddExplicitCast.new,
     AddNullCheck.new,
     WrapInText.new,
     AddAwait.argumentType,
   ],
-  CompileTimeErrorCode.asyncForInWrongContext: [AddAsync.new],
-  CompileTimeErrorCode.augmentationModifierExtra: [RemoveLexeme.modifier],
-  CompileTimeErrorCode.awaitInLateLocalVariableInitializer: [RemoveLate.new],
-  CompileTimeErrorCode.awaitInWrongContext: [AddAsync.new],
-  CompileTimeErrorCode.bodyMightCompleteNormally: [AddAsync.missingReturn],
-  CompileTimeErrorCode.castToNonType: [ChangeTo.classOrMixin],
-  CompileTimeErrorCode.classInstantiationAccessToStaticMember: [
-    RemoveTypeArguments.new,
-  ],
-  CompileTimeErrorCode.concreteClassWithAbstractMember: [
+  diag.asyncForInWrongContext: [AddAsync.new],
+  diag.augmentationModifierExtra: [RemoveLexeme.modifier],
+  diag.awaitInLateLocalVariableInitializer: [RemoveLate.new],
+  diag.awaitInWrongContext: [AddAsync.new],
+  diag.bodyMightCompleteNormally: [AddAsync.missingReturn],
+  diag.castToNonType: [ChangeTo.classOrMixin],
+  diag.classInstantiationAccessToStaticMember: [RemoveTypeArguments.new],
+  diag.concreteClassWithAbstractMember: [
     ConvertIntoBlockBody.missingBody,
     CreateNoSuchMethod.new,
     MakeClassAbstract.new,
   ],
-  CompileTimeErrorCode.constEvalMethodInvocation: [RemoveConst.new],
-  CompileTimeErrorCode.constInitializedWithNonConstantValue: [
-    RemoveConst.new,
-    RemoveNew.new,
-  ],
-  CompileTimeErrorCode.constInstanceField: [AddStatic.new],
-  CompileTimeErrorCode.constWithNonConst: [RemoveConst.new],
-  CompileTimeErrorCode.constWithNonType: [ChangeTo.classOrMixin],
-  CompileTimeErrorCode.constantPatternWithNonConstantExpression: [AddConst.new],
-  CompileTimeErrorCode.defaultValueOnRequiredParameter: [
+  diag.constEvalMethodInvocation: [RemoveConst.new],
+  diag.constInitializedWithNonConstantValue: [RemoveConst.new, RemoveNew.new],
+  diag.constInstanceField: [AddStatic.new],
+  diag.constWithNonConst: [RemoveConst.new],
+  diag.constWithNonType: [ChangeTo.classOrMixin],
+  diag.constantPatternWithNonConstantExpression: [AddConst.new],
+  diag.defaultValueOnRequiredParameter: [
     RemoveDefaultValue.new,
     RemoveRequired.new,
   ],
-  CompileTimeErrorCode.dotShorthandUndefinedGetter: [
+  diag.dotShorthandUndefinedGetter: [
     AddEnumConstant.new,
     ChangeTo.getterOrSetter,
     CreateGetter.new,
     CreateField.new,
   ],
-  CompileTimeErrorCode.dotShorthandUndefinedInvocation: [
+  diag.dotShorthandUndefinedInvocation: [
     ChangeTo.method,
     CreateConstructor.new,
     CreateMethod.method,
   ],
-  CompileTimeErrorCode.emptyMapPattern: [
+  diag.emptyMapPattern: [
     ReplaceEmptyMapPattern.any,
     ReplaceEmptyMapPattern.empty,
   ],
-  CompileTimeErrorCode.enumWithAbstractMember: [
-    ConvertIntoBlockBody.missingBody,
-  ],
-  CompileTimeErrorCode.extendsDisallowedClass: [
-    RemoveNameFromDeclarationClause.new,
-  ],
-  CompileTimeErrorCode.extendsNonClass: [
+  diag.enumWithAbstractMember: [ConvertIntoBlockBody.missingBody],
+  diag.extendsDisallowedClass: [RemoveNameFromDeclarationClause.new],
+  diag.extendsNonClass: [
     ChangeTo.classOrMixin,
     RemoveNameFromDeclarationClause.new,
   ],
-  CompileTimeErrorCode.extendsTypeAliasExpandsToTypeParameter: [
+  diag.extendsTypeAliasExpandsToTypeParameter: [
     RemoveNameFromDeclarationClause.new,
   ],
-  CompileTimeErrorCode.extensionDeclaresMemberOfObject: [
-    RemoveMethodDeclaration.new,
-  ],
-  CompileTimeErrorCode.extensionDeclaresInstanceField: [ConvertIntoGetter.new],
-  CompileTimeErrorCode.extensionTypeDeclaresMemberOfObject: [
-    RemoveMethodDeclaration.new,
-  ],
-  CompileTimeErrorCode.extensionTypeDeclaresInstanceField: [
-    ConvertIntoGetter.new,
-  ],
-  CompileTimeErrorCode.extensionOverrideAccessToStaticMember: [
-    ReplaceWithExtensionName.new,
-  ],
-  CompileTimeErrorCode.extensionOverrideWithCascade: [
-    ReplaceCascadeWithDot.new,
-  ],
-  CompileTimeErrorCode.extensionTypeWithAbstractMember: [
-    ConvertIntoBlockBody.missingBody,
-  ],
-  CompileTimeErrorCode.extraPositionalArguments: [CreateConstructor.new],
-  CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed: [
+  diag.extensionDeclaresMemberOfObject: [RemoveMethodDeclaration.new],
+  diag.extensionDeclaresInstanceField: [ConvertIntoGetter.new],
+  diag.extensionTypeDeclaresMemberOfObject: [RemoveMethodDeclaration.new],
+  diag.extensionTypeDeclaresInstanceField: [ConvertIntoGetter.new],
+  diag.extensionOverrideAccessToStaticMember: [ReplaceWithExtensionName.new],
+  diag.extensionOverrideWithCascade: [ReplaceCascadeWithDot.new],
+  diag.extensionTypeWithAbstractMember: [ConvertIntoBlockBody.missingBody],
+  diag.extraPositionalArguments: [CreateConstructor.new],
+  diag.extraPositionalArgumentsCouldBeNamed: [
     CreateConstructor.new,
     ConvertToNamedArguments.new,
   ],
-  CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary: [
+  diag.finalClassExtendedOutsideOfLibrary: [
     RemoveNameFromDeclarationClause.new,
   ],
-  CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary: [
+  diag.finalClassImplementedOutsideOfLibrary: [
     RemoveNameFromDeclarationClause.new,
   ],
-  CompileTimeErrorCode.finalNotInitialized: [
+  diag.finalNotInitialized: [
     AddLate.new,
     CreateConstructorForFinalFields.requiredNamed,
     CreateConstructorForFinalFields.requiredPositional,
   ],
-  CompileTimeErrorCode.finalNotInitializedConstructor1: [
+  diag.finalNotInitializedConstructor1: [
     AddFieldFormalParameters.new,
     AddFieldFormalParameters.requiredNamed,
   ],
-  CompileTimeErrorCode.finalNotInitializedConstructor2: [
+  diag.finalNotInitializedConstructor2: [
     AddFieldFormalParameters.new,
     AddFieldFormalParameters.requiredNamed,
   ],
-  CompileTimeErrorCode.finalNotInitializedConstructor3Plus: [
+  diag.finalNotInitializedConstructor3Plus: [
     AddFieldFormalParameters.new,
     AddFieldFormalParameters.requiredNamed,
   ],
-  CompileTimeErrorCode.forInOfInvalidType: [AddAwait.forIn],
-  CompileTimeErrorCode.illegalAsyncGeneratorReturnType: [
-    ReplaceReturnTypeStream.new,
-  ],
-  CompileTimeErrorCode.illegalAsyncReturnType: [
-    ReplaceReturnTypeFuture.new,
-    RemoveAsync.new,
-  ],
-  CompileTimeErrorCode.illegalSyncGeneratorReturnType: [
-    ReplaceReturnTypeIterable.new,
-  ],
-  CompileTimeErrorCode.implementsDisallowedClass: [
+  diag.forInOfInvalidType: [AddAwait.forIn],
+  diag.illegalAsyncGeneratorReturnType: [ReplaceReturnTypeStream.new],
+  diag.illegalAsyncReturnType: [ReplaceReturnTypeFuture.new, RemoveAsync.new],
+  diag.illegalSyncGeneratorReturnType: [ReplaceReturnTypeIterable.new],
+  diag.implementsDisallowedClass: [RemoveNameFromDeclarationClause.new],
+  diag.implementsNonClass: [ChangeTo.classOrMixin],
+  diag.implementsRepeated: [RemoveNameFromDeclarationClause.new],
+  diag.implementsSuperClass: [RemoveNameFromDeclarationClause.new],
+  diag.implementsTypeAliasExpandsToTypeParameter: [
     RemoveNameFromDeclarationClause.new,
   ],
-  CompileTimeErrorCode.implementsNonClass: [ChangeTo.classOrMixin],
-  CompileTimeErrorCode.implementsRepeated: [
-    RemoveNameFromDeclarationClause.new,
-  ],
-  CompileTimeErrorCode.implementsSuperClass: [
-    RemoveNameFromDeclarationClause.new,
-  ],
-  CompileTimeErrorCode.implementsTypeAliasExpandsToTypeParameter: [
-    RemoveNameFromDeclarationClause.new,
-  ],
-  CompileTimeErrorCode.implicitSuperInitializerMissingArguments: [
-    AddSuperParameter.new,
-  ],
-  CompileTimeErrorCode.implicitThisReferenceInInitializer: [
+  diag.implicitSuperInitializerMissingArguments: [AddSuperParameter.new],
+  diag.implicitThisReferenceInInitializer: [
     ConvertIntoGetter.implicitThis,
     AddLate.implicitThis,
   ],
-  CompileTimeErrorCode.importOfNonLibrary: [RemoveUnusedImport.new],
-  CompileTimeErrorCode.importInternalLibrary: [RemoveUnusedImport.new],
-  CompileTimeErrorCode.initializingFormalForNonExistentField: [
-    ChangeTo.field,
-    CreateField.new,
-  ],
-  CompileTimeErrorCode.instanceAccessToStaticMember: [ChangeToStaticAccess.new],
-  CompileTimeErrorCode.integerLiteralImpreciseAsDouble: [
-    ChangeToNearestPreciseValue.new,
-  ],
-  CompileTimeErrorCode.invalidAnnotation: [ChangeTo.annotation],
-  CompileTimeErrorCode.invalidAssignment: [
+  diag.importOfNonLibrary: [RemoveUnusedImport.new],
+  diag.importInternalLibrary: [RemoveUnusedImport.new],
+  diag.initializingFormalForNonExistentField: [ChangeTo.field, CreateField.new],
+  diag.instanceAccessToStaticMember: [ChangeToStaticAccess.new],
+  diag.integerLiteralImpreciseAsDouble: [ChangeToNearestPreciseValue.new],
+  diag.invalidAnnotation: [ChangeTo.annotation],
+  diag.invalidAssignment: [
     AddExplicitCast.new,
     AddNullCheck.new,
     ChangeTypeAnnotation.new,
     MakeVariableNullable.new,
     AddAwait.assignment,
   ],
-  CompileTimeErrorCode.invalidConstant: [RemoveConst.new],
-  CompileTimeErrorCode.invalidModifierOnConstructor: [RemoveLexeme.modifier],
-  CompileTimeErrorCode.invalidModifierOnSetter: [RemoveLexeme.modifier],
-  CompileTimeErrorCode.invalidUseOfCovariant: [RemoveLexeme.keyword],
-  CompileTimeErrorCode.invocationOfNonFunctionExpression: [
+  diag.invalidConstant: [RemoveConst.new],
+  diag.invalidModifierOnConstructor: [RemoveLexeme.modifier],
+  diag.invalidModifierOnSetter: [RemoveLexeme.modifier],
+  diag.invalidUseOfCovariant: [RemoveLexeme.keyword],
+  diag.invocationOfNonFunctionExpression: [
     RemoveParenthesesInGetterInvocation.new,
   ],
-  CompileTimeErrorCode.lateFinalLocalAlreadyAssigned: [
-    MakeVariableNotFinal.new,
-  ],
-  CompileTimeErrorCode.listElementTypeNotAssignableNullability: [
+  diag.lateFinalLocalAlreadyAssigned: [MakeVariableNotFinal.new],
+  diag.listElementTypeNotAssignableNullability: [
     ConvertToNullAwareListElement.new,
   ],
-  CompileTimeErrorCode.mapKeyTypeNotAssignableNullability: [
-    ConvertToNullAwareMapEntryKey.new,
-  ],
-  CompileTimeErrorCode.mapValueTypeNotAssignableNullability: [
+  diag.mapKeyTypeNotAssignableNullability: [ConvertToNullAwareMapEntryKey.new],
+  diag.mapValueTypeNotAssignableNullability: [
     ConvertToNullAwareMapEntryValue.new,
   ],
-  CompileTimeErrorCode.missingDefaultValueForParameter: [
+  diag.missingDefaultValueForParameter: [
     AddRequiredKeyword.new,
     MakeVariableNullable.new,
   ],
-  CompileTimeErrorCode.missingDefaultValueForParameterPositional: [
-    MakeVariableNullable.new,
-  ],
-  CompileTimeErrorCode.missingDefaultValueForParameterWithAnnotation: [
-    AddRequiredKeyword.new,
-  ],
-  CompileTimeErrorCode.missingRequiredArgument: [
-    AddMissingRequiredArgument.new,
-  ],
-  CompileTimeErrorCode.mixinApplicationNotImplementedInterface: [
-    ExtendClassForMixin.new,
-  ],
-  CompileTimeErrorCode.mixinClassDeclarationExtendsNotObject: [
-    RemoveExtendsClause.new,
-  ],
-  CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase: [
-    AddClassModifier.baseModifier,
-  ],
-  CompileTimeErrorCode.mixinSubtypeOfFinalIsNotBase: [
-    AddClassModifier.baseModifier,
-  ],
-  CompileTimeErrorCode.mixinOfDisallowedClass: [
+  diag.missingDefaultValueForParameterPositional: [MakeVariableNullable.new],
+  diag.missingDefaultValueForParameterWithAnnotation: [AddRequiredKeyword.new],
+  diag.missingRequiredArgument: [AddMissingRequiredArgument.new],
+  diag.mixinApplicationNotImplementedInterface: [ExtendClassForMixin.new],
+  diag.mixinClassDeclarationExtendsNotObject: [RemoveExtendsClause.new],
+  diag.mixinSubtypeOfBaseIsNotBase: [AddClassModifier.baseModifier],
+  diag.mixinSubtypeOfFinalIsNotBase: [AddClassModifier.baseModifier],
+  diag.mixinOfDisallowedClass: [RemoveNameFromDeclarationClause.new],
+  diag.mixinOfNonClass: [ChangeTo.classOrMixin],
+  diag.mixinSuperClassConstraintDisallowedClass: [
     RemoveNameFromDeclarationClause.new,
   ],
-  CompileTimeErrorCode.mixinOfNonClass: [ChangeTo.classOrMixin],
-  CompileTimeErrorCode.mixinSuperClassConstraintDisallowedClass: [
+  diag.mixinSuperClassConstraintNonInterface: [
     RemoveNameFromDeclarationClause.new,
   ],
-  CompileTimeErrorCode.mixinSuperClassConstraintNonInterface: [
-    RemoveNameFromDeclarationClause.new,
-  ],
-  CompileTimeErrorCode.newWithNonType: [ChangeTo.classOrMixin],
-  CompileTimeErrorCode.newWithUndefinedConstructor: [CreateConstructor.new],
-  CompileTimeErrorCode.noAnnotationConstructorArguments: [
-    AddEmptyArgumentList.new,
-  ],
-  CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberFivePlus: [
+  diag.newWithNonType: [ChangeTo.classOrMixin],
+  diag.newWithUndefinedConstructor: [CreateConstructor.new],
+  diag.noAnnotationConstructorArguments: [AddEmptyArgumentList.new],
+  diag.nonAbstractClassInheritsAbstractMemberFivePlus: [
     CreateMissingOverrides.new,
     CreateNoSuchMethod.new,
     MakeClassAbstract.new,
   ],
-  CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberFour: [
+  diag.nonAbstractClassInheritsAbstractMemberFour: [
     CreateMissingOverrides.new,
     CreateNoSuchMethod.new,
     MakeClassAbstract.new,
   ],
-  CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne: [
+  diag.nonAbstractClassInheritsAbstractMemberOne: [
     CreateMissingOverrides.new,
     CreateNoSuchMethod.new,
     MakeClassAbstract.new,
   ],
-  CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberThree: [
+  diag.nonAbstractClassInheritsAbstractMemberThree: [
     CreateMissingOverrides.new,
     CreateNoSuchMethod.new,
     MakeClassAbstract.new,
   ],
-  CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberTwo: [
+  diag.nonAbstractClassInheritsAbstractMemberTwo: [
     CreateMissingOverrides.new,
     CreateNoSuchMethod.new,
     MakeClassAbstract.new,
   ],
-  CompileTimeErrorCode.nonBoolCondition: [AddNeNull.new, AddAwait.nonBool],
-  CompileTimeErrorCode.nonConstGenerativeEnumConstructor: [AddConst.new],
-  CompileTimeErrorCode.nonConstantListElement: [RemoveConst.new],
-  CompileTimeErrorCode.nonConstantListElementFromDeferredLibrary: [
-    RemoveConst.new,
-  ],
-  CompileTimeErrorCode.nonConstantMapElement: [RemoveConst.new],
-  CompileTimeErrorCode.nonConstantMapKey: [RemoveConst.new],
-  CompileTimeErrorCode.nonConstantMapKeyFromDeferredLibrary: [RemoveConst.new],
-  CompileTimeErrorCode.nonConstantMapPatternKey: [AddConst.new],
-  CompileTimeErrorCode.nonConstantMapValue: [RemoveConst.new],
-  CompileTimeErrorCode.nonConstantMapValueFromDeferredLibrary: [
-    RemoveConst.new,
-  ],
-  CompileTimeErrorCode.nonConstantRelationalPatternExpression: [AddConst.new],
-  CompileTimeErrorCode.nonConstantSetElement: [RemoveConst.new],
-  CompileTimeErrorCode.nonExhaustiveSwitchExpression: [
-    AddMissingSwitchCases.new,
-  ],
-  CompileTimeErrorCode.nonExhaustiveSwitchStatement: [
-    AddMissingSwitchCases.new,
-  ],
-  CompileTimeErrorCode.nonFinalFieldInEnum: [MakeFinal.new],
-  CompileTimeErrorCode.notAType: [ChangeTo.classOrMixin],
-  CompileTimeErrorCode.notInitializedNonNullableInstanceField: [AddLate.new],
-  CompileTimeErrorCode.nullableTypeInExtendsClause: [RemoveQuestionMark.new],
-  CompileTimeErrorCode.nullableTypeInImplementsClause: [RemoveQuestionMark.new],
-  CompileTimeErrorCode.nullableTypeInOnClause: [RemoveQuestionMark.new],
-  CompileTimeErrorCode.nullableTypeInWithClause: [RemoveQuestionMark.new],
-  CompileTimeErrorCode.obsoleteColonForDefaultValue: [
-    ReplaceColonWithEquals.new,
-  ],
-  CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingCommaByType: [
-    AddTrailingComma.new,
-  ],
-  CompileTimeErrorCode.returnOfInvalidTypeFromClosure: [
-    AddAsync.wrongReturnType,
-  ],
-  CompileTimeErrorCode.returnOfInvalidTypeFromFunction: [
+  diag.nonBoolCondition: [AddNeNull.new, AddAwait.nonBool],
+  diag.nonConstGenerativeEnumConstructor: [AddConst.new],
+  diag.nonConstantListElement: [RemoveConst.new],
+  diag.nonConstantListElementFromDeferredLibrary: [RemoveConst.new],
+  diag.nonConstantMapElement: [RemoveConst.new],
+  diag.nonConstantMapKey: [RemoveConst.new],
+  diag.nonConstantMapKeyFromDeferredLibrary: [RemoveConst.new],
+  diag.nonConstantMapPatternKey: [AddConst.new],
+  diag.nonConstantMapValue: [RemoveConst.new],
+  diag.nonConstantMapValueFromDeferredLibrary: [RemoveConst.new],
+  diag.nonConstantRelationalPatternExpression: [AddConst.new],
+  diag.nonConstantSetElement: [RemoveConst.new],
+  diag.nonExhaustiveSwitchExpression: [AddMissingSwitchCases.new],
+  diag.nonExhaustiveSwitchExpressionPrivate: [AddMissingSwitchCases.new],
+  diag.nonExhaustiveSwitchStatement: [AddMissingSwitchCases.new],
+  diag.nonExhaustiveSwitchStatementPrivate: [AddMissingSwitchCases.new],
+  diag.nonFinalFieldInEnum: [MakeFinal.new],
+  diag.notAType: [ChangeTo.classOrMixin],
+  diag.notInitializedNonNullableInstanceField: [AddLate.new],
+  diag.nullableTypeInExtendsClause: [RemoveQuestionMark.new],
+  diag.nullableTypeInImplementsClause: [RemoveQuestionMark.new],
+  diag.nullableTypeInOnClause: [RemoveQuestionMark.new],
+  diag.nullableTypeInWithClause: [RemoveQuestionMark.new],
+  diag.obsoleteColonForDefaultValue: [ReplaceColonWithEquals.new],
+  diag.recordLiteralOnePositionalNoTrailingCommaByType: [AddTrailingComma.new],
+  diag.returnOfInvalidTypeFromClosure: [AddAsync.wrongReturnType],
+  diag.returnOfInvalidTypeFromFunction: [
     AddAsync.wrongReturnType,
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
   ],
-  CompileTimeErrorCode.returnOfInvalidTypeFromMethod: [
+  diag.returnOfInvalidTypeFromMethod: [
     AddAsync.wrongReturnType,
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
   ],
-  CompileTimeErrorCode.setElementFromDeferredLibrary: [RemoveConst.new],
-  CompileTimeErrorCode.setElementTypeNotAssignableNullability: [
+  diag.setElementFromDeferredLibrary: [RemoveConst.new],
+  diag.setElementTypeNotAssignableNullability: [
     ConvertToNullAwareSetElement.new,
   ],
-  CompileTimeErrorCode.spreadExpressionFromDeferredLibrary: [RemoveConst.new],
-  CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed: [
+  diag.spreadExpressionFromDeferredLibrary: [RemoveConst.new],
+  diag.subtypeOfBaseIsNotBaseFinalOrSealed: [
     AddClassModifier.baseModifier,
     AddClassModifier.finalModifier,
     AddClassModifier.sealedModifier,
   ],
-  CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed: [
+  diag.subtypeOfFinalIsNotBaseFinalOrSealed: [
     AddClassModifier.baseModifier,
     AddClassModifier.finalModifier,
     AddClassModifier.sealedModifier,
   ],
-  CompileTimeErrorCode.superFormalParameterTypeIsNotSubtypeOfAssociated: [
+  diag.superFormalParameterTypeIsNotSubtypeOfAssociated: [
     RemoveTypeAnnotation.other,
   ],
-  CompileTimeErrorCode.superFormalParameterWithoutAssociatedNamed: [
+  diag.superFormalParameterWithoutAssociatedNamed: [
     ChangeTo.superFormalParameter,
+    AddMissingParameterNamed.new,
   ],
-  CompileTimeErrorCode.superInvocationNotLast: [MakeSuperInvocationLast.new],
-  CompileTimeErrorCode.switchCaseCompletesNormally: [AddSwitchCaseBreak.new],
-  CompileTimeErrorCode.typeTestWithUndefinedName: [ChangeTo.classOrMixin],
-  CompileTimeErrorCode.uncheckedInvocationOfNullableValue: [
+  diag.superInvocationNotLast: [MakeSuperInvocationLast.new],
+  diag.switchCaseCompletesNormally: [AddSwitchCaseBreak.new],
+  diag.typeTestWithUndefinedName: [ChangeTo.classOrMixin],
+  diag.uncheckedInvocationOfNullableValue: [
     AddNullCheck.new,
     ReplaceWithNullAware.single,
   ],
-  CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue: [
+  diag.uncheckedMethodInvocationOfNullableValue: [
     AddNullCheck.new,
     ExtractLocalVariable.new,
     ReplaceWithNullAware.single,
     CreateExtensionMethod.new,
   ],
-  CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue: [
+  diag.uncheckedOperatorInvocationOfNullableValue: [
     AddNullCheck.new,
     CreateExtensionOperator.new,
     CreateOperator.new,
   ],
-  CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue: [
+  diag.uncheckedPropertyAccessOfNullableValue: [
     AddNullCheck.new,
     ExtractLocalVariable.new,
     ReplaceWithNullAware.single,
     CreateExtensionGetter.new,
     CreateExtensionSetter.new,
   ],
-  CompileTimeErrorCode.uncheckedUseOfNullableValueAsCondition: [
-    AddNullCheck.new,
-  ],
-  CompileTimeErrorCode.uncheckedUseOfNullableValueAsIterator: [
-    AddNullCheck.new,
-  ],
-  CompileTimeErrorCode.uncheckedUseOfNullableValueInSpread: [
+  diag.uncheckedUseOfNullableValueAsCondition: [AddNullCheck.new],
+  diag.uncheckedUseOfNullableValueAsIterator: [AddNullCheck.new],
+  diag.uncheckedUseOfNullableValueInSpread: [
     AddNullCheck.new,
     ConvertToNullAwareSpread.new,
   ],
-  CompileTimeErrorCode.uncheckedUseOfNullableValueInYieldEach: [
-    AddNullCheck.new,
-  ],
-  CompileTimeErrorCode.undefinedAnnotation: [ChangeTo.annotation],
-  CompileTimeErrorCode.undefinedClass: [ChangeTo.classOrMixin],
-  CompileTimeErrorCode.undefinedClassBoolean: [ReplaceBooleanWithBool.new],
-  CompileTimeErrorCode.undefinedEnumConstant: [
+  diag.uncheckedUseOfNullableValueInYieldEach: [AddNullCheck.new],
+  diag.undefinedAnnotation: [ChangeTo.annotation],
+  diag.undefinedClass: [ChangeTo.classOrMixin],
+  diag.undefinedClassBoolean: [ReplaceBooleanWithBool.new],
+  diag.undefinedEnumConstant: [
     AddEnumConstant.new,
     ChangeTo.getterOrSetter,
     CreateMethodOrFunction.new,
   ],
-  CompileTimeErrorCode.undefinedEnumConstructorNamed: [CreateConstructor.new],
-  CompileTimeErrorCode.undefinedEnumConstructorUnnamed: [CreateConstructor.new],
-  CompileTimeErrorCode.undefinedExtensionGetter: [
+  diag.undefinedEnumConstructorNamed: [CreateConstructor.new],
+  diag.undefinedEnumConstructorUnnamed: [CreateConstructor.new],
+  diag.undefinedExtensionGetter: [
     ChangeTo.getterOrSetter,
     CreateExtensionGetter.new,
     CreateExtensionMethod.new,
   ],
-  CompileTimeErrorCode.undefinedExtensionMethod: [
+  diag.undefinedExtensionMethod: [
     ChangeTo.method,
     CreateExtensionMethod.new,
     CreateMethod.method,
   ],
-  CompileTimeErrorCode.undefinedExtensionOperator: [
-    CreateExtensionOperator.new,
-  ],
-  CompileTimeErrorCode.undefinedExtensionSetter: [
+  diag.undefinedExtensionOperator: [CreateExtensionOperator.new],
+  diag.undefinedExtensionSetter: [
     ChangeTo.getterOrSetter,
     CreateSetter.new,
     CreateExtensionSetter.new,
   ],
-  CompileTimeErrorCode.undefinedFunction: [
-    ChangeTo.function,
-    CreateFunction.new,
-  ],
-  CompileTimeErrorCode.undefinedGetter: [
+  diag.undefinedFunction: [ChangeTo.function, CreateFunction.new],
+  diag.undefinedGetter: [
     ChangeTo.getterOrSetter,
     CreateExtensionMethod.new,
     CreateExtensionGetter.new,
@@ -963,7 +801,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     CreateLocalVariable.new,
     CreateMethodOrFunction.new,
   ],
-  CompileTimeErrorCode.undefinedIdentifier: [
+  diag.undefinedIdentifier: [
     ChangeTo.getterOrSetter,
     CreateField.new,
     CreateGetter.new,
@@ -975,386 +813,330 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     CreateExtensionMethod.new,
     CreateExtensionSetter.new,
   ],
-  CompileTimeErrorCode.undefinedIdentifierAwait: [AddAsync.new],
-  CompileTimeErrorCode.undefinedMethod: [
+  diag.undefinedIdentifierAwait: [AddAsync.new],
+  diag.undefinedMethod: [
     ChangeTo.method,
     CreateExtensionMethod.new,
     CreateFunction.new,
     CreateMethod.method,
   ],
-  CompileTimeErrorCode.undefinedNamedParameter: [
+  diag.undefinedNamedParameter: [
     AddMissingParameterNamed.new,
     ConvertFlutterChild.new,
     ConvertFlutterChildren.new,
   ],
-  CompileTimeErrorCode.undefinedOperator: [
-    CreateExtensionOperator.new,
-    CreateOperator.new,
-  ],
-  CompileTimeErrorCode.undefinedSetter: [
+  diag.undefinedOperator: [CreateExtensionOperator.new, CreateOperator.new],
+  diag.undefinedSetter: [
     ChangeTo.getterOrSetter,
     CreateExtensionSetter.new,
     CreateField.new,
     CreateSetter.new,
   ],
-  CompileTimeErrorCode.unqualifiedReferenceToNonLocalStaticMember: [
+  diag.unqualifiedReferenceToNonLocalStaticMember: [
     // TODO(brianwilkerson): Consider adding fixes to create a field, getter,
     //  method or setter. The existing _addFix methods would need to be
     //  updated so that only the appropriate subset is generated.
     QualifyReference.new,
   ],
-  CompileTimeErrorCode.unqualifiedReferenceToStaticMemberOfExtendedType: [
+  diag.unqualifiedReferenceToStaticMemberOfExtendedType: [
     // TODO(brianwilkerson): Consider adding fixes to create a field, getter,
     //  method or setter. The existing producers would need to be updated so
     //  that only the appropriate subset is generated.
     QualifyReference.new,
   ],
-  CompileTimeErrorCode.uriDoesNotExist: [CreateFile.new],
-  ParserErrorCode.variablePatternKeywordInDeclarationContext: [RemoveVar.new],
-  CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor: [
+  diag.uriDoesNotExist: [CreateFile.new],
+  diag.variablePatternKeywordInDeclarationContext: [RemoveVar.new],
+  diag.wrongNumberOfTypeArgumentsConstructor: [
     MoveTypeArgumentsToClass.new,
     RemoveTypeArguments.new,
   ],
-  CompileTimeErrorCode.yieldOfInvalidType: [MakeReturnTypeNullable.new],
-  FfiCode.subtypeOfStructClassInExtends: [RemoveNameFromDeclarationClause.new],
-  FfiCode.subtypeOfStructClassInImplements: [
-    RemoveNameFromDeclarationClause.new,
-  ],
-  FfiCode.subtypeOfStructClassInWith: [RemoveNameFromDeclarationClause.new],
-  HintCode.deprecatedColonForDefaultValue: [ReplaceColonWithEquals.new],
-  HintCode.unnecessaryImport: [RemoveUnusedImport.new],
-  ParserErrorCode.abstractClassMember: [RemoveAbstract.bulkFixable],
-  ParserErrorCode.abstractStaticField: [RemoveLexeme.modifier],
-  ParserErrorCode.abstractStaticMethod: [RemoveLexeme.modifier],
-  ParserErrorCode.colonInPlaceOfIn: [ReplaceColonWithIn.new],
-  ParserErrorCode.constClass: [RemoveConst.new],
-  ParserErrorCode.constFactory: [RemoveConst.new],
-  ParserErrorCode.constMethod: [RemoveConst.new],
-  ParserErrorCode.covariantMember: [RemoveLexeme.modifier],
-  ParserErrorCode.defaultInSwitchExpression: [ReplaceWithWildcard.new],
-  ParserErrorCode.duplicatedModifier: [RemoveLexeme.modifier],
-  ParserErrorCode.emptyRecordLiteralWithComma: [RemoveComma.emptyRecordLiteral],
-  ParserErrorCode.emptyRecordTypeWithComma: [RemoveComma.emptyRecordType],
-  ParserErrorCode.expectedCatchClauseBody: [InsertBody.new],
-  ParserErrorCode.expectedClassBody: [InsertBody.new],
-  ParserErrorCode.expectedExtensionBody: [InsertBody.new],
-  ParserErrorCode.expectedExtensionTypeBody: [InsertBody.new],
-  ParserErrorCode.expectedFinallyClauseBody: [InsertBody.new],
-  ParserErrorCode.expectedMixinBody: [InsertBody.new],
-  ParserErrorCode.expectedSwitchExpressionBody: [InsertBody.new],
-  ParserErrorCode.expectedSwitchStatementBody: [InsertBody.new],
-  ParserErrorCode.expectedTryStatementBody: [InsertBody.new],
-  ParserErrorCode.expectedToken: [
+  diag.yieldOfInvalidType: [MakeReturnTypeNullable.new],
+  diag.subtypeOfStructClassInExtends: [RemoveNameFromDeclarationClause.new],
+  diag.subtypeOfStructClassInImplements: [RemoveNameFromDeclarationClause.new],
+  diag.subtypeOfStructClassInWith: [RemoveNameFromDeclarationClause.new],
+  diag.deprecatedColonForDefaultValue: [ReplaceColonWithEquals.new],
+  diag.unnecessaryImport: [RemoveUnusedImport.new],
+  diag.abstractClassMember: [RemoveAbstract.bulkFixable],
+  diag.abstractStaticField: [RemoveLexeme.modifier],
+  diag.abstractStaticMethod: [RemoveLexeme.modifier],
+  diag.colonInPlaceOfIn: [ReplaceColonWithIn.new],
+  diag.constClass: [RemoveConst.new],
+  diag.constFactory: [RemoveConst.new],
+  diag.constMethod: [RemoveConst.new],
+  diag.covariantMember: [RemoveLexeme.modifier],
+  diag.defaultInSwitchExpression: [ReplaceWithWildcard.new],
+  diag.duplicatedModifier: [RemoveLexeme.modifier],
+  diag.emptyRecordLiteralWithComma: [RemoveComma.emptyRecordLiteral],
+  diag.emptyRecordTypeWithComma: [RemoveComma.emptyRecordType],
+  diag.expectedCatchClauseBody: [InsertBody.new],
+  diag.expectedClassBody: [InsertBody.new],
+  diag.expectedExtensionBody: [InsertBody.new],
+  diag.expectedExtensionTypeBody: [InsertBody.new],
+  diag.expectedFinallyClauseBody: [InsertBody.new],
+  diag.expectedMixinBody: [InsertBody.new],
+  diag.expectedSwitchExpressionBody: [InsertBody.new],
+  diag.expectedSwitchStatementBody: [InsertBody.new],
+  diag.expectedTryStatementBody: [InsertBody.new],
+  diag.expectedToken: [
     InsertSemicolon.new,
     ReplaceWithArrow.new,
     InsertOnKeyword.new,
   ],
-  ParserErrorCode.extensionAugmentationHasOnClause: [RemoveOnClause.new],
-  ParserErrorCode.extensionDeclaresConstructor: [RemoveConstructor.new],
-  ParserErrorCode.externalClass: [RemoveLexeme.modifier],
-  ParserErrorCode.externalEnum: [RemoveLexeme.modifier],
-  ParserErrorCode.externalTypedef: [RemoveLexeme.modifier],
-  ParserErrorCode.extraneousModifier: [RemoveLexeme.modifier],
-  ParserErrorCode.factoryTopLevelDeclaration: [RemoveLexeme.modifier],
-  ParserErrorCode.finalEnum: [RemoveLexeme.modifier],
-  ParserErrorCode.finalConstructor: [RemoveLexeme.modifier],
-  ParserErrorCode.finalMethod: [RemoveLexeme.modifier],
-  ParserErrorCode.finalMixin: [RemoveLexeme.modifier],
-  ParserErrorCode.finalMixinClass: [RemoveLexeme.modifier],
-  ParserErrorCode.getterConstructor: [RemoveLexeme.keyword],
-  ParserErrorCode.getterWithParameters: [
-    RemoveParametersInGetterDeclaration.new,
-  ],
-  ParserErrorCode.interfaceMixin: [RemoveLexeme.modifier],
-  ParserErrorCode.interfaceMixinClass: [RemoveLexeme.modifier],
-  ParserErrorCode.invalidConstantPatternBinary: [AddConst.new],
-  ParserErrorCode.invalidConstantPatternGeneric: [AddConst.new],
-  ParserErrorCode.invalidConstantPatternNegation: [AddConst.new],
-  ParserErrorCode.invalidInsideUnaryPattern: [SurroundWithParentheses.new],
-  ParserErrorCode.invalidUseOfCovariantInExtension: [RemoveLexeme.modifier],
-  ParserErrorCode.latePatternVariableDeclaration: [RemoveLate.new],
-  ParserErrorCode.literalWithNew: [RemoveLexeme.keyword],
-  ParserErrorCode.missingConstFinalVarOrType: [AddTypeAnnotation.new],
-  ParserErrorCode.missingEnumBody: [InsertBody.new],
-  ParserErrorCode.missingFunctionBody: [ConvertIntoBlockBody.missingBody],
-  ParserErrorCode.missingTypedefParameters: [AddEmptyArgumentList.new],
-  ParserErrorCode.mixinDeclaresConstructor: [RemoveConstructor.new],
-  ParserErrorCode.patternAssignmentDeclaresVariable: [RemoveVarKeyword.new],
-  ParserErrorCode.recordLiteralOnePositionalNoTrailingComma: [
-    AddTrailingComma.new,
-  ],
-  ParserErrorCode.recordTypeOnePositionalNoTrailingComma: [
-    AddTrailingComma.new,
-  ],
-  ParserErrorCode.representationFieldTrailingComma: [
-    RemoveComma.representationField,
-  ],
-  ParserErrorCode.sealedMixin: [RemoveLexeme.modifier],
-  ParserErrorCode.sealedMixinClass: [RemoveLexeme.modifier],
-  ParserErrorCode.setterConstructor: [RemoveLexeme.keyword],
-  ParserErrorCode.staticConstructor: [RemoveLexeme.keyword],
-  ParserErrorCode.staticGetterWithoutBody: [ConvertIntoBlockBody.missingBody],
-  ParserErrorCode.staticSetterWithoutBody: [ConvertIntoBlockBody.missingBody],
-  ParserErrorCode.staticOperator: [RemoveLexeme.keyword],
-  ParserErrorCode.varAndType: [
-    RemoveTypeAnnotation.fixVarAndType,
-    RemoveVar.new,
-  ],
-  ParserErrorCode.varAsTypeName: [ReplaceVarWithDynamic.new],
-  ParserErrorCode.varReturnType: [RemoveVar.new],
-  ParserErrorCode.wrongSeparatorForPositionalParameter: [
-    ReplaceColonWithEquals.new,
-  ],
-  ScannerErrorCode.unexpectedSeparatorInNumber: [
-    RemoveUnexpectedUnderscores.new,
-  ],
-  StaticWarningCode.deadNullAwareExpression: [RemoveDeadIfNull.new],
-  StaticWarningCode.invalidNullAwareElement: [
-    ReplaceWithNotNullAwareElementOrEntry.entry,
-  ],
-  StaticWarningCode.invalidNullAwareMapEntryKey: [
+  diag.extensionAugmentationHasOnClause: [RemoveOnClause.new],
+  diag.extensionDeclaresConstructor: [RemoveConstructor.new],
+  diag.externalClass: [RemoveLexeme.modifier],
+  diag.externalEnum: [RemoveLexeme.modifier],
+  diag.externalTypedef: [RemoveLexeme.modifier],
+  diag.extraneousModifier: [RemoveLexeme.modifier],
+  diag.factoryTopLevelDeclaration: [RemoveLexeme.modifier],
+  diag.finalEnum: [RemoveLexeme.modifier],
+  diag.finalConstructor: [RemoveLexeme.modifier],
+  diag.finalMethod: [RemoveLexeme.modifier],
+  diag.finalMixin: [RemoveLexeme.modifier],
+  diag.finalMixinClass: [RemoveLexeme.modifier],
+  diag.getterConstructor: [RemoveLexeme.keyword],
+  diag.getterWithParameters: [RemoveParametersInGetterDeclaration.new],
+  diag.interfaceMixin: [RemoveLexeme.modifier],
+  diag.interfaceMixinClass: [RemoveLexeme.modifier],
+  diag.invalidConstantPatternBinary: [AddConst.new],
+  diag.invalidConstantPatternGeneric: [AddConst.new],
+  diag.invalidConstantPatternNegation: [AddConst.new],
+  diag.invalidInsideUnaryPattern: [SurroundWithParentheses.new],
+  diag.invalidUseOfCovariantInExtension: [RemoveLexeme.modifier],
+  diag.latePatternVariableDeclaration: [RemoveLate.new],
+  diag.literalWithNew: [RemoveLexeme.keyword],
+  diag.missingConstFinalVarOrType: [AddTypeAnnotation.new],
+  diag.missingEnumBody: [InsertBody.new],
+  diag.missingFunctionBody: [ConvertIntoBlockBody.missingBody],
+  diag.missingTypedefParameters: [AddEmptyArgumentList.new],
+  diag.mixinDeclaresConstructor: [RemoveConstructor.new],
+  diag.patternAssignmentDeclaresVariable: [RemoveVarKeyword.new],
+  diag.recordLiteralOnePositionalNoTrailingComma: [AddTrailingComma.new],
+  diag.recordTypeOnePositionalNoTrailingComma: [AddTrailingComma.new],
+  diag.representationFieldTrailingComma: [RemoveComma.representationField],
+  diag.sealedMixin: [RemoveLexeme.modifier],
+  diag.sealedMixinClass: [RemoveLexeme.modifier],
+  diag.setterConstructor: [RemoveLexeme.keyword],
+  diag.staticConstructor: [RemoveLexeme.keyword],
+  diag.staticGetterWithoutBody: [ConvertIntoBlockBody.missingBody],
+  diag.staticSetterWithoutBody: [ConvertIntoBlockBody.missingBody],
+  diag.staticOperator: [RemoveLexeme.keyword],
+  diag.varAndType: [RemoveTypeAnnotation.fixVarAndType, RemoveVar.new],
+  diag.varAsTypeName: [ReplaceVarWithDynamic.new],
+  diag.varReturnType: [RemoveVar.new],
+  diag.wrongSeparatorForPositionalParameter: [ReplaceColonWithEquals.new],
+  diag.unexpectedSeparatorInNumber: [RemoveUnexpectedUnderscores.new],
+  diag.deadNullAwareExpression: [RemoveDeadIfNull.new],
+  diag.invalidNullAwareElement: [ReplaceWithNotNullAwareElementOrEntry.entry],
+  diag.invalidNullAwareMapEntryKey: [
     ReplaceWithNotNullAwareElementOrEntry.mapKey,
   ],
-  StaticWarningCode.invalidNullAwareMapEntryValue: [
+  diag.invalidNullAwareMapEntryValue: [
     ReplaceWithNotNullAwareElementOrEntry.mapValue,
   ],
-  StaticWarningCode.invalidNullAwareOperator: [ReplaceWithNotNullAware.new],
-  StaticWarningCode.invalidNullAwareOperatorAfterShortCircuit: [
-    ReplaceWithNotNullAware.new,
-  ],
-  StaticWarningCode.missingEnumConstantInSwitch: [
-    AddMissingEnumCaseClauses.new,
-  ],
-  StaticWarningCode.unnecessaryNonNullAssertion: [RemoveNonNullAssertion.new],
-  StaticWarningCode.unnecessaryNullCheckPattern: [RemoveQuestionMark.new],
-  StaticWarningCode.unnecessaryNullAssertPattern: [RemoveNonNullAssertion.new],
-  WarningCode.bodyMightCompleteNormallyNullable: [AddReturnNull.new],
-  WarningCode.deadCode: [RemoveDeadCode.new],
-  WarningCode.deadCodeCatchFollowingCatch: [
+  diag.invalidNullAwareOperator: [ReplaceWithNotNullAware.new],
+  diag.invalidNullAwareOperatorAfterShortCircuit: [ReplaceWithNotNullAware.new],
+  diag.missingEnumConstantInSwitch: [AddMissingEnumCaseClauses.new],
+  diag.unnecessaryNonNullAssertion: [RemoveNonNullAssertion.new],
+  diag.unnecessaryNullCheckPattern: [RemoveQuestionMark.new],
+  diag.unnecessaryNullAssertPattern: [RemoveNonNullAssertion.new],
+  diag.bodyMightCompleteNormallyNullable: [AddReturnNull.new],
+  diag.deadCode: [RemoveDeadCode.new],
+  diag.deadCodeCatchFollowingCatch: [
     // TODO(brianwilkerson): Add a fix to move the unreachable catch clause to
     //  a place where it can be reached (when possible).
     RemoveDeadCode.new,
   ],
-  WarningCode.deadCodeLateWildcardVariableInitializer: [
+  diag.deadCodeLateWildcardVariableInitializer: [
     RemoveInitializer.notLate,
     RemoveLate.new,
   ],
-  WarningCode.deadCodeOnCatchSubtype: [
+  diag.deadCodeOnCatchSubtype: [
     // TODO(brianwilkerson): Add a fix to move the unreachable catch clause to
     //  a place where it can be reached (when possible).
     RemoveDeadCode.new,
   ],
-  WarningCode.deprecatedExtend: [RemoveExtendsClause.new],
-  WarningCode.deprecatedImplement: [RemoveNameFromDeclarationClause.new],
-  WarningCode.deprecatedImplementsFunction: [
-    RemoveNameFromDeclarationClause.new,
-  ],
-  WarningCode.deprecatedNewInCommentReference: [
+  diag.deprecatedExtend: [RemoveExtendsClause.new],
+  diag.deprecatedImplement: [RemoveNameFromDeclarationClause.new],
+  diag.deprecatedImplementsFunction: [RemoveNameFromDeclarationClause.new],
+  diag.deprecatedNewInCommentReference: [
     RemoveDeprecatedNewInCommentReference.new,
   ],
-  WarningCode.deprecatedSubclass: [RemoveNameFromDeclarationClause.new],
-  WarningCode.duplicateHiddenName: [RemoveNameFromCombinator.new],
-  WarningCode.duplicateImport: [RemoveUnusedImport.new],
-  WarningCode.duplicateShownName: [RemoveNameFromCombinator.new],
-  WarningCode.invalidAnnotationTarget: [RemoveAnnotation.new],
-  WarningCode.invalidInternalAnnotation: [RemoveAnnotation.new],
-  WarningCode.invalidLiteralAnnotation: [RemoveAnnotation.new],
-  WarningCode.invalidNonVirtualAnnotation: [RemoveAnnotation.new],
-  WarningCode.invalidReopenAnnotation: [RemoveAnnotation.new],
-  WarningCode.invalidVisibilityAnnotation: [RemoveAnnotation.new],
-  WarningCode.invalidVisibleForOverridingAnnotation: [RemoveAnnotation.new],
-  WarningCode.missingOverrideOfMustBeOverriddenOne: [
-    CreateMissingOverrides.new,
-  ],
-  WarningCode.missingOverrideOfMustBeOverriddenTwo: [
-    CreateMissingOverrides.new,
-  ],
-  WarningCode.missingOverrideOfMustBeOverriddenThreePlus: [
-    CreateMissingOverrides.new,
-  ],
-  WarningCode.missingRequiredParam: [AddMissingRequiredArgument.new],
-  WarningCode.missingRequiredParamWithDetails: [AddMissingRequiredArgument.new],
-  WarningCode.mustCallSuper: [AddCallSuper.new],
-  WarningCode.nonConstCallToLiteralConstructorUsingNew: [
-    ReplaceNewWithConst.new,
-  ],
-  WarningCode.nullCheckAlwaysFails: [RemoveNonNullAssertion.new],
-  WarningCode.nullableTypeInCatchClause: [RemoveQuestionMark.new],
-  WarningCode.overrideOnNonOverridingField: [RemoveAnnotation.new],
-  WarningCode.overrideOnNonOverridingGetter: [RemoveAnnotation.new],
-  WarningCode.overrideOnNonOverridingMethod: [RemoveAnnotation.new],
-  WarningCode.overrideOnNonOverridingSetter: [RemoveAnnotation.new],
-  WarningCode.redeclareOnNonRedeclaringMember: [RemoveAnnotation.new],
-  WarningCode.sdkVersionGtGtGtOperator: [UpdateSdkConstraints.version_2_14_0],
-  WarningCode.textDirectionCodePointInComment: [
+  diag.deprecatedSubclass: [RemoveNameFromDeclarationClause.new],
+  diag.duplicateHiddenName: [RemoveNameFromCombinator.new],
+  diag.duplicateImport: [RemoveUnusedImport.new],
+  diag.duplicateShownName: [RemoveNameFromCombinator.new],
+  diag.invalidAnnotationTarget: [RemoveAnnotation.new],
+  diag.invalidInternalAnnotation: [RemoveAnnotation.new],
+  diag.invalidLiteralAnnotation: [RemoveAnnotation.new],
+  diag.invalidNonVirtualAnnotation: [RemoveAnnotation.new],
+  diag.invalidReopenAnnotation: [RemoveAnnotation.new],
+  diag.invalidVisibilityAnnotation: [RemoveAnnotation.new],
+  diag.invalidVisibleForOverridingAnnotation: [RemoveAnnotation.new],
+  diag.missingOverrideOfMustBeOverriddenOne: [CreateMissingOverrides.new],
+  diag.missingOverrideOfMustBeOverriddenTwo: [CreateMissingOverrides.new],
+  diag.missingOverrideOfMustBeOverriddenThreePlus: [CreateMissingOverrides.new],
+  diag.missingRequiredParam: [AddMissingRequiredArgument.new],
+  diag.missingRequiredParamWithDetails: [AddMissingRequiredArgument.new],
+  diag.mustCallSuper: [AddCallSuper.new],
+  diag.nonConstCallToLiteralConstructorUsingNew: [ReplaceNewWithConst.new],
+  diag.nullCheckAlwaysFails: [RemoveNonNullAssertion.new],
+  diag.nullableTypeInCatchClause: [RemoveQuestionMark.new],
+  diag.overrideOnNonOverridingField: [RemoveAnnotation.new],
+  diag.overrideOnNonOverridingGetter: [RemoveAnnotation.new],
+  diag.overrideOnNonOverridingMethod: [RemoveAnnotation.new],
+  diag.overrideOnNonOverridingSetter: [RemoveAnnotation.new],
+  diag.redeclareOnNonRedeclaringMember: [RemoveAnnotation.new],
+  diag.sdkVersionGtGtGtOperator: [UpdateSdkConstraints.version_2_14_0],
+  diag.textDirectionCodePointInComment: [
     RemoveCharacter.new,
     ReplaceWithUnicodeEscape.new,
   ],
-  WarningCode.textDirectionCodePointInLiteral: [
+  diag.textDirectionCodePointInLiteral: [
     RemoveCharacter.new,
     ReplaceWithUnicodeEscape.new,
   ],
-  WarningCode.typeCheckIsNotNull: [UseNotEqNull.new],
-  WarningCode.typeCheckIsNull: [UseEqEqNull.new],
-  WarningCode.undefinedHiddenName: [RemoveNameFromCombinator.new],
-  WarningCode.undefinedShownName: [RemoveNameFromCombinator.new],
-  WarningCode.unnecessaryCast: [RemoveUnnecessaryCast.new],
-  WarningCode.unnecessaryFinal: [RemoveUnnecessaryFinal.new],
-  WarningCode.unnecessaryNanComparisonFalse: [
+  diag.typeCheckIsNotNull: [UseNotEqNull.new],
+  diag.typeCheckIsNull: [UseEqEqNull.new],
+  diag.undefinedHiddenName: [RemoveNameFromCombinator.new],
+  diag.undefinedShownName: [RemoveNameFromCombinator.new],
+  diag.unnecessaryCast: [RemoveUnnecessaryCast.new],
+  diag.unnecessaryFinal: [RemoveUnnecessaryFinal.new],
+  diag.unnecessaryNanComparisonFalse: [
     RemoveComparison.new,
     ReplaceWithIsNan.new,
   ],
-  WarningCode.unnecessaryNanComparisonTrue: [
+  diag.unnecessaryNanComparisonTrue: [
     RemoveComparison.new,
     ReplaceWithIsNan.new,
   ],
-  WarningCode.unnecessaryNullComparisonAlwaysNullFalse: [RemoveComparison.new],
-  WarningCode.unnecessaryNullComparisonAlwaysNullTrue: [RemoveComparison.new],
-  WarningCode.unnecessaryNullComparisonNeverNullFalse: [RemoveComparison.new],
-  WarningCode.unnecessaryNullComparisonNeverNullTrue: [RemoveComparison.new],
-  WarningCode.unnecessaryQuestionMark: [RemoveQuestionMark.new],
-  WarningCode.unnecessarySetLiteral: [ConvertIntoBlockBody.setLiteral],
-  WarningCode.unnecessaryTypeCheckFalse: [RemoveComparison.typeCheck],
-  WarningCode.unnecessaryTypeCheckTrue: [RemoveComparison.typeCheck],
-  WarningCode.unnecessaryWildcardPattern: [
-    RemoveUnnecessaryWildcardPattern.new,
-  ],
-  WarningCode.unreachableSwitchCase: [RemoveDeadCode.new],
-  WarningCode.unreachableSwitchDefault: [RemoveDeadCode.new],
-  WarningCode.unusedCatchClause: [RemoveUnusedCatchClause.new],
-  WarningCode.unusedCatchStack: [RemoveUnusedCatchStack.new],
-  WarningCode.unusedElement: [RemoveUnusedElement.new],
-  WarningCode.unusedElementParameter: [RemoveUnusedParameter.new],
-  WarningCode.unusedField: [RemoveUnusedField.new],
-  WarningCode.unusedImport: [RemoveUnusedImport.new],
-  WarningCode.unusedLabel: [RemoveUnusedLabel.new],
-  WarningCode.unusedLocalVariable: [
+  diag.unnecessaryNullComparisonAlwaysNullFalse: [RemoveComparison.new],
+  diag.unnecessaryNullComparisonAlwaysNullTrue: [RemoveComparison.new],
+  diag.unnecessaryNullComparisonNeverNullFalse: [RemoveComparison.new],
+  diag.unnecessaryNullComparisonNeverNullTrue: [RemoveComparison.new],
+  diag.unnecessaryQuestionMark: [RemoveQuestionMark.new],
+  diag.unnecessarySetLiteral: [ConvertIntoBlockBody.setLiteral],
+  diag.unnecessaryTypeCheckFalse: [RemoveComparison.typeCheck],
+  diag.unnecessaryTypeCheckTrue: [RemoveComparison.typeCheck],
+  diag.unnecessaryWildcardPattern: [RemoveUnnecessaryWildcardPattern.new],
+  diag.unreachableSwitchCase: [RemoveDeadCode.new],
+  diag.unreachableSwitchDefault: [RemoveDeadCode.new],
+  diag.unusedCatchClause: [RemoveUnusedCatchClause.new],
+  diag.unusedCatchStack: [RemoveUnusedCatchStack.new],
+  diag.unusedElement: [RemoveUnusedElement.new],
+  diag.unusedElementParameter: [RemoveUnusedParameter.new],
+  diag.unusedField: [RemoveUnusedField.new],
+  diag.unusedImport: [RemoveUnusedImport.new],
+  diag.unusedLabel: [RemoveUnusedLabel.new],
+  diag.unusedLocalVariable: [
     RemoveUnusedLocalVariable.new,
     ConvertToWildcardVariable.new,
   ],
-  WarningCode.unusedShownName: [
-    OrganizeImports.new,
-    RemoveNameFromCombinator.new,
-  ],
+  diag.unusedShownName: [OrganizeImports.new, RemoveNameFromCombinator.new],
 };
 
 final _builtInNonLintMultiGenerators = {
-  CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo: [
-    AddExtensionOverride.new,
-  ],
-  CompileTimeErrorCode.ambiguousExtensionMemberAccessThreeOrMore: [
-    AddExtensionOverride.new,
-  ],
-  CompileTimeErrorCode.ambiguousImport: [AmbiguousImportFix.new],
-  CompileTimeErrorCode.argumentTypeNotAssignable: [DataDriven.new],
-  CompileTimeErrorCode.castToNonType: [
+  diag.ambiguousExtensionMemberAccessTwo: [AddExtensionOverride.new],
+  diag.ambiguousExtensionMemberAccessThreeOrMore: [AddExtensionOverride.new],
+  diag.ambiguousImport: [AmbiguousImportFix.new],
+  diag.argumentTypeNotAssignable: [DataDriven.new],
+  diag.castToNonType: [
     CreateClass.new,
     CreateMixin.new,
     DataDriven.new,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.constWithNonType: [
-    CreateClass.new,
-    ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.dotShorthandUndefinedGetter: [DataDriven.new],
-  CompileTimeErrorCode.dotShorthandUndefinedInvocation: [DataDriven.new],
-  CompileTimeErrorCode.extendsNonClass: [
+  diag.constWithNonType: [CreateClass.new, ImportLibrary.forType],
+  diag.dotShorthandUndefinedGetter: [DataDriven.new],
+  diag.dotShorthandUndefinedInvocation: [DataDriven.new],
+  diag.extendsNonClass: [
     CreateClass.new,
     DataDriven.new,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.extraPositionalArguments: [
+  diag.extraPositionalArguments: [AddMissingParameter.new, DataDriven.new],
+  diag.extraPositionalArgumentsCouldBeNamed: [
     AddMissingParameter.new,
     DataDriven.new,
   ],
-  CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed: [
-    AddMissingParameter.new,
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.implementsNonClass: [
+  diag.implementsNonClass: [
     CreateClass.new,
     DataDriven.new,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.implicitSuperInitializerMissingArguments: [
+  diag.implicitSuperInitializerMissingArguments: [
     AddSuperConstructorInvocation.new,
   ],
-  CompileTimeErrorCode.invalidAnnotation: [
+  diag.invalidAnnotation: [
     CreateClass.new,
     ImportLibrary.forTopLevelVariable,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.invalidOverride: [DataDriven.new],
-  CompileTimeErrorCode.invalidOverrideSetter: [DataDriven.new],
-  CompileTimeErrorCode.missingRequiredArgument: [DataDriven.new],
-  CompileTimeErrorCode.mixinOfNonClass: [
+  diag.invalidOverride: [DataDriven.new],
+  diag.invalidOverrideSetter: [DataDriven.new],
+  diag.missingRequiredArgument: [DataDriven.new],
+  diag.mixinOfNonClass: [
     CreateClass.new,
     CreateMixin.new,
     DataDriven.new,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.mixinWithNonClassSuperclass: [
-    CreateClass.new,
-    ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.newWithNonType: [CreateClass.new, ImportLibrary.forType],
-  CompileTimeErrorCode.newWithUndefinedConstructorDefault: [DataDriven.new],
-  CompileTimeErrorCode.noDefaultSuperConstructorExplicit: [
-    AddSuperConstructorInvocation.new,
-  ],
-  CompileTimeErrorCode.noDefaultSuperConstructorImplicit: [
+  diag.mixinWithNonClassSuperclass: [CreateClass.new, ImportLibrary.forType],
+  diag.newWithNonType: [CreateClass.new, ImportLibrary.forType],
+  diag.newWithUndefinedConstructorDefault: [DataDriven.new],
+  diag.noDefaultSuperConstructorExplicit: [AddSuperConstructorInvocation.new],
+  diag.noDefaultSuperConstructorImplicit: [
     AddSuperConstructorInvocation.new,
     CreateConstructorSuper.new,
   ],
-  CompileTimeErrorCode.nonTypeInCatchClause: [ImportLibrary.forType],
-  CompileTimeErrorCode.nonTypeAsTypeArgument: [
+  diag.nonTypeInCatchClause: [ImportLibrary.forType],
+  diag.nonTypeAsTypeArgument: [
     CreateClass.new,
     CreateMixin.new,
     DataDriven.new,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.notAType: [
-    CreateClass.new,
-    ImportLibrary.forType,
-    CreateMixin.new,
-  ],
-  CompileTimeErrorCode.notEnoughPositionalArgumentsNamePlural: [DataDriven.new],
-  CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular: [
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.notEnoughPositionalArgumentsPlural: [DataDriven.new],
-  CompileTimeErrorCode.notEnoughPositionalArgumentsSingular: [DataDriven.new],
-  CompileTimeErrorCode.typeTestWithUndefinedName: [
+  diag.notAType: [CreateClass.new, ImportLibrary.forType, CreateMixin.new],
+  diag.notEnoughPositionalArgumentsNamePlural: [DataDriven.new],
+  diag.notEnoughPositionalArgumentsNameSingular: [DataDriven.new],
+  diag.notEnoughPositionalArgumentsPlural: [DataDriven.new],
+  diag.notEnoughPositionalArgumentsSingular: [DataDriven.new],
+  diag.typeTestWithUndefinedName: [
     CreateClass.new,
     CreateMixin.new,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue: [
+  diag.positionalSuperFormalParameterWithPositionalArgument: [
+    AddMissingParameter.new,
+  ],
+  diag.superFormalParameterWithoutAssociatedPositional: [
+    AddMissingParameter.new,
+  ],
+  diag.uncheckedMethodInvocationOfNullableValue: [
     ImportLibrary.forExtensionMember,
   ],
-  CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue: [
+  diag.uncheckedOperatorInvocationOfNullableValue: [
     ImportLibrary.forExtensionMember,
   ],
-  CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue: [
+  diag.uncheckedPropertyAccessOfNullableValue: [
     ImportLibrary.forExtensionMember,
   ],
-  CompileTimeErrorCode.undefinedAnnotation: [
+  diag.undefinedAnnotation: [
     CreateClass.new,
     ImportLibrary.forTopLevelVariable,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.undefinedClass: [
+  diag.undefinedClass: [
     CreateClass.new,
     DataDriven.new,
     ImportLibrary.forType,
     CreateMixin.new,
   ],
-  CompileTimeErrorCode.undefinedConstructorInInitializerDefault: [
+  diag.undefinedConstructorInInitializerDefault: [
     AddSuperConstructorInvocation.new,
   ],
-  CompileTimeErrorCode.undefinedExtensionGetter: [DataDriven.new],
-  CompileTimeErrorCode.undefinedFunction: [
+  diag.undefinedExtensionGetter: [DataDriven.new],
+  diag.undefinedFunction: [
     CreateClass.new,
     DataDriven.new,
     ImportLibrary.forExtension,
@@ -1362,7 +1144,7 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forFunction,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.undefinedGetter: [
+  diag.undefinedGetter: [
     CreateClass.new,
     DataDriven.new,
     ImportLibrary.forExtensionMember,
@@ -1370,7 +1152,7 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forType,
     CreateMixin.new,
   ],
-  CompileTimeErrorCode.undefinedIdentifier: [
+  diag.undefinedIdentifier: [
     CreateClass.new,
     DataDriven.new,
     ImportLibrary.forExtension,
@@ -1380,49 +1162,42 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forType,
     CreateMixin.new,
   ],
-  CompileTimeErrorCode.undefinedMethod: [
+  diag.undefinedMethod: [
     CreateClass.new,
     DataDriven.new,
     ImportLibrary.forExtensionMember,
     ImportLibrary.forFunction,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.undefinedNamedParameter: [
-    ChangeArgumentName.new,
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.undefinedOperator: [
+  diag.undefinedNamedParameter: [ChangeArgumentName.new, DataDriven.new],
+  diag.undefinedOperator: [
     ImportLibrary.forExtensionMember,
     UseDifferentDivisionOperator.new,
   ],
-  CompileTimeErrorCode.undefinedPrefixedName: [DataDriven.new],
-  CompileTimeErrorCode.undefinedSetter: [
+  diag.undefinedPrefixedName: [DataDriven.new],
+  diag.undefinedSetter: [
     DataDriven.new,
     // TODO(brianwilkerson): Support ImportLibrary for non-extension members.
     ImportLibrary.forExtensionMember,
   ],
-  CompileTimeErrorCode.wrongNumberOfTypeArguments: [DataDriven.new],
-  CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor: [DataDriven.new],
-  CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension: [DataDriven.new],
-  CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod: [DataDriven.new],
-  HintCode.deprecatedMemberUse: [DataDriven.new],
-  HintCode.deprecatedMemberUseWithMessage: [DataDriven.new],
-  WarningCode.deprecatedExportUse: [DataDriven.new],
-  WarningCode.multipleCombinators: [MergeCombinators.new],
-  WarningCode.overrideOnNonOverridingMethod: [DataDriven.new],
+  diag.wrongNumberOfTypeArguments: [DataDriven.new],
+  diag.wrongNumberOfTypeArgumentsConstructor: [DataDriven.new],
+  diag.wrongNumberOfTypeArgumentsExtension: [DataDriven.new],
+  diag.wrongNumberOfTypeArgumentsMethod: [DataDriven.new],
+  diag.deprecatedMemberUse: [DataDriven.new],
+  diag.deprecatedMemberUseWithMessage: [DataDriven.new],
+  diag.deprecatedExportUse: [DataDriven.new],
+  diag.multipleCombinators: [MergeCombinators.new],
+  diag.overrideOnNonOverridingMethod: [DataDriven.new],
 };
 
 final _builtInParseLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
-  LinterLintCode.preferGenericFunctionTypeAliases: [
-    ConvertToGenericFunctionSyntax.new,
-  ],
-  LinterLintCode.slashForDocComments: [ConvertDocumentationIntoLine.new],
-  LinterLintCode.unnecessaryConst: [RemoveUnnecessaryConst.new],
-  LinterLintCode.unnecessaryNew: [RemoveUnnecessaryNew.new],
-  LinterLintCode.unnecessaryStringEscapes: [RemoveUnnecessaryStringEscape.new],
-  LinterLintCode.useFunctionTypeSyntaxForParameters: [
-    ConvertToGenericFunctionSyntax.new,
-  ],
+  diag.preferGenericFunctionTypeAliases: [ConvertToGenericFunctionSyntax.new],
+  diag.slashForDocComments: [ConvertDocumentationIntoLine.new],
+  diag.unnecessaryConst: [RemoveUnnecessaryConst.new],
+  diag.unnecessaryNew: [RemoveUnnecessaryNew.new],
+  diag.unnecessaryStringEscapes: [RemoveUnnecessaryStringEscape.new],
+  diag.useFunctionTypeSyntaxForParameters: [ConvertToGenericFunctionSyntax.new],
 };
 
 /// Registers each mapping of diagnostic -> list-of-producer-generators with

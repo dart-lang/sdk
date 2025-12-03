@@ -9,15 +9,14 @@ import 'package:pub_semver/pub_semver.dart';
 /// depends on the supported Dart SDK version, and possibly on the presence of
 /// experimental flags.
 abstract class Feature {
+  /// Feature information for anonymous methods.
+  static final anonymous_methods = ExperimentalFeatures.anonymous_methods;
+
   /// Feature information for augmentations.
   static final augmentations = ExperimentalFeatures.augmentations;
 
   /// Feature information for class modifiers.
   static final class_modifiers = ExperimentalFeatures.class_modifiers;
-
-  /// Feature information for declaring constructors.
-  static final declaring_constructors =
-      ExperimentalFeatures.declaring_constructors;
 
   /// Feature information for number literal digit separators.
   static final digit_separators = ExperimentalFeatures.digit_separators;
@@ -80,6 +79,9 @@ abstract class Feature {
 
   /// Feature information for patterns.
   static final patterns = ExperimentalFeatures.patterns;
+
+  /// Feature information for primary constructors.
+  static final primary_constructors = ExperimentalFeatures.primary_constructors;
 
   /// Feature information for private named parameters.
   static final private_named_parameters =

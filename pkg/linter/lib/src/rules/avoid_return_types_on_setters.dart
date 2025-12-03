@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid return types on setters.';
 
@@ -21,7 +22,7 @@ class AvoidReturnTypesOnSetters extends AnalysisRule {
   bool get canUseParsedResult => true;
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoidReturnTypesOnSetters;
+  DiagnosticCode get diagnosticCode => diag.avoidReturnTypesOnSetters;
 
   @override
   void registerNodeProcessors(

@@ -76,7 +76,7 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
     for (var item in items) {
       buf.writeln(
         '<tr>'
-        '<td class="pre right"><a href="/timing?id=${item.id}">'
+        '<td class="pre right"><a href="timing?id=${item.id}">'
         '${formatLatencyTiming(item.performance.elapsed.inMilliseconds, item.requestLatency)}'
         '</a></td>'
         '<td>${escape(item.operation)}</td>'

@@ -401,6 +401,10 @@ class Intrinsifier {
       op == '_le_u' ||
       op == '_lt_u';
 
+  final Map<w.ModuleBuilder, w.ImportedFunction> _thisModuleGlobals = {};
+  late final w.FunctionType _thisModuleType = translator.typesBuilder
+      .defineFunction(const [], const [w.RefType.extern(nullable: false)]);
+
   Intrinsifier(this.codeGen);
 
   /// Generate inline code for an [InstanceGet] if the member is an inlined
@@ -832,6 +836,18 @@ class Intrinsifier {
           translator.constants.instantiateConstant(
               b, translator.types.rtt.mainModuleRtt, moduleRttType);
           return moduleRttType;
+      }
+    }
+
+    if (target.enclosingLibrary.name == 'dart._js_helper') {
+      if (target.name.text == 'thisModule') {
+        final resultType = w.RefType.extern(nullable: false);
+        final func = _thisModuleGlobals.putIfAbsent(b.moduleBuilder, () {
+          return b.moduleBuilder.functions
+              .import("\$moduleHelpers", "this", _thisModuleType);
+        });
+        b.call(func);
+        return resultType;
       }
     }
 
@@ -1933,8 +1949,10 @@ class Intrinsifier {
         b.ref_cast(w.RefType.def(
             translator.closureLayouter.genericVtableBaseStruct,
             nullable: false));
-        b.struct_get(translator.closureLayouter.genericVtableBaseStruct,
-            FieldIndex.vtableInstantiationTypeHashFunction);
+        b.struct_get(
+            translator.closureLayouter.genericVtableBaseStruct,
+            translator
+                .closureLayouter.vtableInstantiationTypeHashFunctionIndex);
         b.call_ref(translator
             .closureLayouter.instantiationClosureTypeHashFunctionType);
 
@@ -1964,9 +1982,11 @@ class Intrinsifier {
         b.ref_cast(w.RefType.def(
             translator.closureLayouter.genericVtableBaseStruct,
             nullable: false));
-        b.struct_get(translator.closureLayouter.genericVtableBaseStruct,
-            FieldIndex.vtableInstantiationTypeComparisonFunction);
 
+        final vtableIndex = translator
+            .closureLayouter.vtableInstantiationTypeComparisonFunctionIndex;
+        b.struct_get(
+            translator.closureLayouter.genericVtableBaseStruct, vtableIndex);
         b.call_ref(translator
             .closureLayouter.instantiationClosureTypeComparisonFunctionType);
 
@@ -2021,7 +2041,7 @@ class Intrinsifier {
         b.end();
         b.local_set(posArgsLocal);
 
-        // Convert named argument map to list, to be passed to shape and type
+        // Convert named argument map to array, to be passed to shape and type
         // checkers and the dynamic call entry.
         final namedArgsListLocal =
             b.addLocal(translator.nullableObjectArrayTypeRef);
@@ -2032,8 +2052,25 @@ class Intrinsifier {
 
         final noSuchMethodBlock = b.block();
 
-        generateDynamicFunctionCall(translator, b, closureLocal, typeArgsLocal,
-            posArgsLocal, namedArgsListLocal, noSuchMethodBlock);
+        generateDynamicClosureCallShapeAndTypeCheck(translator, b, closureLocal,
+            typeArgsLocal, posArgsLocal, namedArgsListLocal, noSuchMethodBlock);
+        if (translator.dynamicModuleSupportEnabled ||
+            translator.closureLayouter.usesFunctionApplyWithNamedArguments) {
+          generateDynamicClosureCallViaDynamicEntry(translator, b, closureLocal,
+              typeArgsLocal, posArgsLocal, namedArgsListLocal);
+        } else {
+          if (compilerAssertsEnabled) {
+            final good = b.block();
+            b.local_get(namedArgsListLocal);
+            b.array_len();
+            b.i32_eqz();
+            b.br_if(good);
+            b.unreachable();
+            b.end();
+          }
+          generateDynamicClosureCallViaPositionalArgs(
+              translator, b, closureLocal, typeArgsLocal, posArgsLocal);
+        }
         b.return_();
 
         b.end(); // noSuchMethodBlock

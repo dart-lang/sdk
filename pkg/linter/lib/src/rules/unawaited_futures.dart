@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/unused_futures.dart';
 
 const _desc =
@@ -22,7 +23,7 @@ class UnawaitedFutures extends AnalysisRule {
     : super(name: LintNames.unawaited_futures, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unawaitedFutures;
+  DiagnosticCode get diagnosticCode => diag.unawaitedFutures;
 
   @override
   void registerNodeProcessors(

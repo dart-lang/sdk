@@ -35,7 +35,6 @@
 library;
 
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:meta/meta.dart';
 
 export 'package:analyzer/src/dart/ast/ast.dart'
     show
@@ -177,6 +176,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         MethodReferenceExpression,
         MixinDeclaration,
         MixinOnClause,
+        // ignore: deprecated_member_use_from_same_package
         NamedCompilationUnitMember,
         NamedExpression,
         NamedType,
@@ -203,6 +203,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         PostfixExpression,
         PrefixedIdentifier,
         PrefixExpression,
+        PrimaryConstructorBody,
         PrimaryConstructorDeclaration,
         PrimaryConstructorName,
         PropertyAccess,
@@ -215,7 +216,9 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         RecordTypeAnnotationPositionalField,
         RedirectingConstructorInvocation,
         RelationalPattern,
+        // ignore: deprecated_member_use_from_same_package
         RepresentationConstructorName,
+        // ignore: deprecated_member_use_from_same_package
         RepresentationDeclaration,
         RestPatternElement,
         RethrowExpression,
@@ -263,44 +266,3 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         WildcardPattern,
         WithClause,
         YieldStatement;
-
-/// Controls how AST represents nodes related to the declaring constructors
-/// language feature.
-///
-/// Must be set before any interaction with the analyzer, specifically before
-/// parsing any code. Must not be changed after that.
-///
-/// For [ClassDeclaration], when `true`:
-/// 1. [ClassDeclaration.namePart] can be used.
-/// 2. [ClassDeclaration.name] throws [UnsupportedError].
-/// 3. [ClassDeclaration.typeParameters] throws [UnsupportedError].
-/// 4. [ClassDeclaration.body] can be used.
-/// 5. [ClassDeclaration.members] throws [UnsupportedError].
-/// 6. [ClassDeclaration.childEntities] returns `namePart` and `body`, and does
-///    not return `name`, `typeParameters`, or `members` entities.
-/// 7. [ClassDeclaration.visitChildren] visits `namePart` and `body`, and does
-///    not visit `typeParameters` or `members`.
-///
-/// For [EnumDeclaration], when `true`:
-/// 1. [EnumDeclaration.namePart] can be used.
-/// 2. [EnumDeclaration.name] throws [UnsupportedError].
-/// 3. [EnumDeclaration.typeParameters] throws [UnsupportedError].
-/// 4. [EnumDeclaration.childEntities] returns `namePart`, and does not
-///    return `name` or `typeParameters` entities.
-/// 5. [EnumDeclaration.visitChildren] visits `namePart`, and does not
-///    visit `typeParameters`.
-///
-/// For [ExtensionTypeDeclaration], when `true`:
-/// 1. [ExtensionTypeDeclaration.namePart] can be used.
-/// 2. [ExtensionTypeDeclaration.name] throws [UnsupportedError].
-/// 3. [ExtensionTypeDeclaration.typeParameters] throws [UnsupportedError].
-/// 4. [ExtensionTypeDeclaration.representation] throws [UnsupportedError].
-/// 5. [ExtensionTypeDeclaration.body] can be used.
-/// 6. [ExtensionTypeDeclaration.members] throws [UnsupportedError].
-/// 7. [ExtensionTypeDeclaration.childEntities] returns `namePart` and `body`,
-///    and does not return `name`, `typeParameters`, `representation`, or
-///    `members` entities.
-/// 8. [ExtensionTypeDeclaration.visitChildren] visits `namePart` and `body`,
-///    and does not visit `typeParameters`, `representation`, or `members`.
-@experimental
-bool useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;

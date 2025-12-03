@@ -9,7 +9,6 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
-import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -34,21 +33,21 @@ class EventsCollector {
   EventsCollector(this.test) {
     test.notificationListener = (notification) {
       switch (notification.event) {
-        case ANALYSIS_NOTIFICATION_ERRORS:
+        case analysisNotificationErrors:
           events.add(
             AnalysisErrorsParams.fromNotification(
               notification,
               clientUriConverter: test.server.uriConverter,
             ),
           );
-        case ANALYSIS_NOTIFICATION_FLUSH_RESULTS:
+        case analysisNotificationFlushResults:
           events.add(
             AnalysisFlushResultsParams.fromNotification(
               notification,
               clientUriConverter: test.server.uriConverter,
             ),
           );
-        case LSP_NOTIFICATION_NOTIFICATION:
+        case lspNotificationNotification:
           var params = LspNotificationParams.fromNotification(
             notification,
             clientUriConverter: test.server.uriConverter,
@@ -97,18 +96,6 @@ class EventsPrinter {
             event.files.sorted(),
             _writelnFile,
           );
-        case NotificationMessage():
-          switch (event.method) {
-            case CustomMethods.dartTextDocumentContentDidChange:
-              sink.writelnWithIndent(event.method);
-              var params =
-                  event.params as DartTextDocumentContentDidChangeParams;
-              sink.withIndent(() {
-                _writelnUri(params.uri, name: 'uri');
-              });
-            default:
-              throw UnimplementedError('${event.method}');
-          }
         default:
           throw UnimplementedError('${event.runtimeType}');
       }
@@ -124,23 +111,6 @@ class EventsPrinter {
       sink.write(file.posixPath);
     });
   }
-
-  void _writelnUri(Uri uri, {String? name}) {
-    sink.writeIndentedLine(() {
-      if (name != null) {
-        sink.write('$name: ');
-      }
-
-      if (uri.isScheme('file') || uri.isScheme('dart-macro+file')) {
-        var fileUri = uri.replace(scheme: 'file');
-        var path = resourceProvider.pathContext.fromUri(fileUri);
-        var file = resourceProvider.getFile(path);
-        uri = uri.replace(path: file.posixPath);
-      }
-
-      sink.write(uri);
-    });
-  }
 }
 
 class EventsPrinterConfiguration {}
@@ -149,7 +119,6 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     with
         LspRequestHelpersMixin,
         LspReverseRequestHelpersMixin,
-        LspNotificationHelpersMixin,
         LspEditHelpersMixin,
         ClientCapabilitiesHelperMixin,
         LspVerifyEditHelpersMixin,
@@ -191,7 +160,6 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
       server.editorClientCapabilities;
 
   /// A stream of [NotificationMessage]s from the server.
-  @override
   Stream<NotificationMessage> get notificationsFromServer =>
       _notificationsFromServer.stream;
 
@@ -206,7 +174,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   @override
   Stream<RequestMessage> get requestsFromServer => serverChannel
       .serverToClientRequests
-      .where((request) => request.method == LSP_REQUEST_HANDLE)
+      .where((request) => request.method == lspRequestHandle)
       .map((request) {
         var params = LspHandleParams.fromRequest(
           request,
@@ -312,7 +280,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   @override
   void processNotification(Notification notification) {
     super.processNotification(notification);
-    if (notification.event == LSP_NOTIFICATION_NOTIFICATION) {
+    if (notification.event == lspNotificationNotification) {
       var params = LspNotificationParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,

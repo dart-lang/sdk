@@ -4,21 +4,14 @@
 
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
-import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
 const _desc =
     r'Conditions should not unconditionally evaluate to `true` or to `false`.';
 
-class InvariantBooleans extends AnalysisRule {
-  InvariantBooleans()
-    : super(
-        name: LintNames.invariant_booleans,
-        description: _desc,
-        state: RuleState.removed(since: dart3),
-      );
-
-  @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.removedLint;
-}
+final invariantBooleans = RemovedAnalysisRule(
+  name: LintNames.invariant_booleans,
+  description: _desc,
+  since: dart3,
+);

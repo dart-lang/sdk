@@ -125,6 +125,7 @@ class AbstractContextTest
     List<String> cannotIgnore = const [],
     List<String> lints = const [],
     Map<String, Object?> errors = const {},
+    bool propagateLinterExceptions = true,
     bool strictCasts = false,
     bool strictInference = false,
     bool strictRawTypes = false,
@@ -134,6 +135,7 @@ class AbstractContextTest
         includes: includes,
         experiments: experiments,
         legacyPlugins: legacyPlugins,
+        propagateLinterExceptions: propagateLinterExceptions,
         rules: lints,
         errors: errors,
         unignorableNames: cannotIgnore,
@@ -277,6 +279,7 @@ class AbstractContextTest
       includedPaths: collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
+      withFineDependencies: true,
     );
 
     _addAnalyzedFilesToDrivers();

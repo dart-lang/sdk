@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Use collection literals when possible.';
@@ -22,7 +23,7 @@ class PreferCollectionLiterals extends AnalysisRule {
     : super(name: LintNames.prefer_collection_literals, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.preferCollectionLiterals;
+  DiagnosticCode get diagnosticCode => diag.preferCollectionLiterals;
 
   @override
   void registerNodeProcessors(

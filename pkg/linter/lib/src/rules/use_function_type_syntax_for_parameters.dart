@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Use generic function type syntax for parameters.';
 
@@ -24,8 +25,7 @@ class UseFunctionTypeSyntaxForParameters extends AnalysisRule {
   bool get canUseParsedResult => true;
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.useFunctionTypeSyntaxForParameters;
+  DiagnosticCode get diagnosticCode => diag.useFunctionTypeSyntaxForParameters;
 
   @override
   void registerNodeProcessors(

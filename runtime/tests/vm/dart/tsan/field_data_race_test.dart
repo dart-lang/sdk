@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--experimental-shared-data
+// VMOptions=--experimental-shared-data --no-osr --no-background-compilation
 
 import "dart:ffi";
 import "dart:io";
@@ -20,23 +20,24 @@ class Box {
 Box? box;
 
 @pragma("vm:never-inline")
-noopt() {}
-
-@pragma("vm:never-inline")
 dataRaceFromMain() {
   final localBox = box!;
-  for (var i = 0; i < 1000000; i++) {
-    localBox.foo += 1;
-    noopt();
+  for (var i = 0; i < 50000; i++) {
+    usleep(100);
+    var t = localBox.foo;
+    usleep(100);
+    localBox.foo = t + 1;
   }
 }
 
 @pragma("vm:never-inline")
 dataRaceFromChild() {
   final localBox = box!;
-  for (var i = 0; i < 1000000; i++) {
-    localBox.foo += 1;
-    noopt();
+  for (var i = 0; i < 50000; i++) {
+    usleep(100);
+    var t = localBox.foo;
+    usleep(100);
+    localBox.foo = t + 1;
   }
 }
 
@@ -52,8 +53,9 @@ dataRaceFromChildCaller() => dataRaceFromChild();
 @pragma("vm:never-inline")
 dataRaceFromChildCallerCaller() => dataRaceFromChildCaller();
 
-child(_) {
+child(replyPort) {
   dataRaceFromChildCallerCaller();
+  replyPort.send(null);
 }
 
 final nativeLib = dlopenPlatformSpecific('ffi_test_functions');
@@ -69,14 +71,27 @@ final setFfiNativeResolverForTest = nativeLib
 @Native<IntPtr Function(Handle, Handle, Handle)>(symbol: 'UnsafeSetSharedTo')
 external int unsafeSetSharedTo(Object library_name, String name, Object value);
 
+// Leaf: we don't want the two threads to synchronize via safepoint.
+final usleep = DynamicLibrary.process()
+    .lookupFunction<Void Function(Long), void Function(int)>(
+      'usleep',
+      isLeaf: true,
+    );
+
 main(List<String> arguments) {
   if (arguments.contains("--testee")) {
     setFfiNativeResolverForTest(getRootLibraryUrl());
     // At this point List is not allowed to be stored in shaded fields.
     // Still we want to use it here to test data race detection.
     unsafeSetSharedTo(getRootLibraryUrl(), "box", Box());
-    print(box); // side effect initialization
-    Isolate.spawn(child, null);
+
+    // Avoid synchronizing via lazy compilation.
+    usleep(0);
+    box!.foo += 0;
+
+    var port = new RawReceivePort();
+    port.handler = (_) => port.close();
+    Isolate.spawn(child, port.sendPort);
     dataRaceFromMainCallerCaller();
     return;
   }

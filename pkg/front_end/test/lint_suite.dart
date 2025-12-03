@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
     show DefaultExperimentalFeatures;
 import 'package:_fe_analyzer_shared/src/parser/listener.dart' show Listener;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
-    show FormalParameterKind, MemberKind, Parser;
+    show FormalParameterKind, MemberKind, Parser, DeclarationKind;
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
@@ -261,7 +261,8 @@ class ExplicitTypeLintListener extends LintListener {
   }
 
   @override
-  void endClassFields(
+  void endFields(
+    DeclarationKind kind,
     Token? abstractToken,
     Token? augmentToken,
     Token? externalToken,

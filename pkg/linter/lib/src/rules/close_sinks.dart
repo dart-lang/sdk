@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/leak_detector_visitor.dart';
 
@@ -18,7 +19,7 @@ class CloseSinks extends AnalysisRule {
   CloseSinks() : super(name: LintNames.close_sinks, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.closeSinks;
+  DiagnosticCode get diagnosticCode => diag.closeSinks;
 
   @override
   void registerNodeProcessors(

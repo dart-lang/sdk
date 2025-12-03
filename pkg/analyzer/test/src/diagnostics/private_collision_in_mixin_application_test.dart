@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -62,7 +62,7 @@ import 'a.dart';
 
 class C extends Object with A, B {}
 ''',
-      [error(CompileTimeErrorCode.privateCollisionInMixinApplication, 49, 1)],
+      [error(diag.privateCollisionInMixinApplication, 49, 1)],
     );
   }
 
@@ -84,7 +84,7 @@ import 'a.dart';
 class C extends Object with A {}
 class D extends C with B {}
 ''',
-      [error(CompileTimeErrorCode.privateCollisionInMixinApplication, 74, 1)],
+      [error(diag.privateCollisionInMixinApplication, 74, 1)],
     );
   }
 
@@ -106,7 +106,7 @@ import 'a.dart';
 class C extends Object with A {}
 class D extends C with B {}
 ''',
-      [error(CompileTimeErrorCode.privateCollisionInMixinApplication, 74, 1)],
+      [error(diag.privateCollisionInMixinApplication, 74, 1)],
     );
   }
 
@@ -127,7 +127,7 @@ import 'a.dart';
 
 class C extends Object with A, B {}
 ''',
-      [error(CompileTimeErrorCode.privateCollisionInMixinApplication, 49, 1)],
+      [error(diag.privateCollisionInMixinApplication, 49, 1)],
     );
   }
 
@@ -148,7 +148,7 @@ import 'a.dart';
 
 class C with A, B {}
 ''',
-      [error(CompileTimeErrorCode.privateCollisionInMixinApplication, 34, 1)],
+      [error(diag.privateCollisionInMixinApplication, 34, 1)],
     );
   }
 
@@ -169,7 +169,7 @@ import 'a.dart';
 
 class C with A, B {}
 ''',
-      [error(CompileTimeErrorCode.privateCollisionInMixinApplication, 34, 1)],
+      [error(diag.privateCollisionInMixinApplication, 34, 1)],
     );
   }
 
@@ -262,7 +262,7 @@ import 'a.dart';
 
 class C extends A with B {}
 ''',
-      [error(CompileTimeErrorCode.privateCollisionInMixinApplication, 41, 1)],
+      [error(diag.privateCollisionInMixinApplication, 41, 1)],
     );
   }
 
@@ -283,7 +283,7 @@ import 'a.dart';
 
 class C extends A with B {}
 ''',
-      [error(CompileTimeErrorCode.privateCollisionInMixinApplication, 41, 1)],
+      [error(diag.privateCollisionInMixinApplication, 41, 1)],
     );
   }
 
@@ -304,7 +304,7 @@ import 'a.dart';
 
 class C extends A with B {}
 ''',
-      [error(CompileTimeErrorCode.privateCollisionInMixinApplication, 41, 1)],
+      [error(diag.privateCollisionInMixinApplication, 41, 1)],
     );
   }
 
@@ -325,7 +325,7 @@ import 'a.dart';
 
 class C extends A with B {}
 ''',
-      [error(CompileTimeErrorCode.privateCollisionInMixinApplication, 41, 1)],
+      [error(diag.privateCollisionInMixinApplication, 41, 1)],
     );
   }
 
@@ -342,10 +342,7 @@ mixin B {
 
 class C extends Object with A, B {}
 ''',
-      [
-        error(WarningCode.unusedElement, 17, 4),
-        error(WarningCode.unusedElement, 47, 4),
-      ],
+      [error(diag.unusedElement, 17, 4), error(diag.unusedElement, 47, 4)],
     );
   }
 
@@ -362,10 +359,7 @@ mixin class B {
 
 class C extends Object with A, B {}
 ''',
-      [
-        error(WarningCode.unusedElement, 23, 4),
-        error(WarningCode.unusedElement, 59, 4),
-      ],
+      [error(diag.unusedElement, 23, 4), error(diag.unusedElement, 59, 4)],
     );
   }
 
@@ -388,7 +382,7 @@ class C extends A with B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.privateCollisionInMixinApplication,
+          diag.privateCollisionInMixinApplication,
           41,
           1,
           messageContains: ["'_foo'"],
@@ -416,7 +410,7 @@ class C extends A with B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.privateCollisionInMixinApplication,
+          diag.privateCollisionInMixinApplication,
           41,
           1,
           messageContains: ["'_foo'"],
@@ -442,7 +436,7 @@ import 'a.dart';
 
 class C = Object with A, B;
 ''',
-      [error(CompileTimeErrorCode.privateCollisionInMixinApplication, 43, 1)],
+      [error(diag.privateCollisionInMixinApplication, 43, 1)],
     );
   }
 
@@ -464,7 +458,7 @@ import 'a.dart';
 class C = Object with A;
 class D = C with B;
 ''',
-      [error(CompileTimeErrorCode.privateCollisionInMixinApplication, 60, 1)],
+      [error(diag.privateCollisionInMixinApplication, 60, 1)],
     );
   }
 
@@ -486,7 +480,7 @@ import 'a.dart';
 class C = Object with A;
 class D = C with B;
 ''',
-      [error(CompileTimeErrorCode.privateCollisionInMixinApplication, 60, 1)],
+      [error(diag.privateCollisionInMixinApplication, 60, 1)],
     );
   }
 
@@ -507,7 +501,7 @@ import 'a.dart';
 
 class C = Object with A, B;
 ''',
-      [error(CompileTimeErrorCode.privateCollisionInMixinApplication, 43, 1)],
+      [error(diag.privateCollisionInMixinApplication, 43, 1)],
     );
   }
 
@@ -528,7 +522,7 @@ import 'a.dart';
 
 class C = A with B;
 ''',
-      [error(CompileTimeErrorCode.privateCollisionInMixinApplication, 35, 1)],
+      [error(diag.privateCollisionInMixinApplication, 35, 1)],
     );
   }
 
@@ -549,7 +543,7 @@ import 'a.dart';
 
 class C = A with B;
 ''',
-      [error(CompileTimeErrorCode.privateCollisionInMixinApplication, 35, 1)],
+      [error(diag.privateCollisionInMixinApplication, 35, 1)],
     );
   }
 
@@ -572,7 +566,7 @@ enum E with A, B {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.privateCollisionInMixinApplication, 33, 1)],
+      [error(diag.privateCollisionInMixinApplication, 33, 1)],
     );
   }
 
@@ -612,7 +606,7 @@ enum E with A, B {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.privateCollisionInMixinApplication, 33, 1)],
+      [error(diag.privateCollisionInMixinApplication, 33, 1)],
     );
   }
 
@@ -657,7 +651,7 @@ enum E with A, B {
 ''',
       [
         error(
-          CompileTimeErrorCode.privateCollisionInMixinApplication,
+          diag.privateCollisionInMixinApplication,
           33,
           1,
           messageContains: ["'_foo'"],

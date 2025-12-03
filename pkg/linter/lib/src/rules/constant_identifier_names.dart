@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../utils.dart';
 
@@ -21,7 +22,7 @@ class ConstantIdentifierNames extends AnalysisRule {
     : super(name: LintNames.constant_identifier_names, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.constantIdentifierNames;
+  DiagnosticCode get diagnosticCode => diag.constantIdentifierNames;
 
   @override
   void registerNodeProcessors(

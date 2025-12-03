@@ -4,26 +4,6 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 
-/// The key in the client capabilities experimental object that enables the Dart
-/// TextDocumentContentProvider.
-///
-/// The presence of this key indicates that the client supports our
-/// (non-standard) way of using TextDocumentContentProvider. This will need to
-/// continue to be supported after switching to standard LSP support for some
-/// period to support outdated extensions.
-const dartExperimentalTextDocumentContentProviderKey =
-    'supportsDartTextDocumentContentProvider';
-
-/// The original key used for [dartExperimentalTextDocumentContentProviderKey].
-///
-/// This is temporarily supported to avoid the macro support vanishing for users
-/// for a period if their SDK is updated before Dart-Code passes the standard
-/// flag.
-///
-const dartExperimentalTextDocumentContentProviderLegacyKey =
-    // TODO(dantup): Remove this after the next beta branch.
-    'supportsDartTextDocumentContentProviderEXP1';
-
 /// A fixed set of ClientCapabilities used for clients that may execute LSP
 /// requests without performing standard LSP initialization (such as a DTD
 /// client or LSP-over-Legacy).
@@ -126,11 +106,6 @@ class LspClientCapabilities {
   final bool experimentalSnippetTextEdit;
   final Set<String> codeActionCommandParameterSupportedKinds;
   final bool supportsShowMessageRequest;
-
-  /// Whether the client supports the custom Dart TextDocumentContentProvider,
-  /// meaning it can request file contents from the server for custom URI
-  /// schemes.
-  final bool supportsDartExperimentalTextDocumentContentProvider;
 
   /// A set of commands that exist on the client that the server may call.
   final Set<String> supportedCommands;
@@ -251,8 +226,6 @@ class LspClientCapabilities {
       codeActionCommandParameterSupportedKinds:
           experimental.commandParameterKinds,
       supportsShowMessageRequest: experimental.showMessageRequest,
-      supportsDartExperimentalTextDocumentContentProvider:
-          experimental.dartTextDocumentContentProvider,
       supportedCommands: experimental.commands,
       experimentalCapabilitiesErrors: experimental.errors,
     );
@@ -293,7 +266,6 @@ class LspClientCapabilities {
     required this.experimentalSnippetTextEdit,
     required this.codeActionCommandParameterSupportedKinds,
     required this.supportsShowMessageRequest,
-    required this.supportsDartExperimentalTextDocumentContentProvider,
     required this.supportedCommands,
     required this.experimentalCapabilitiesErrors,
   });
@@ -319,14 +291,12 @@ class _ExperimentalClientCapabilities {
 
   final bool snippetTextEdit;
   final Set<String> commandParameterKinds;
-  final bool dartTextDocumentContentProvider;
   final Set<String> commands;
   final bool showMessageRequest;
 
   _ExperimentalClientCapabilities({
     required this.snippetTextEdit,
     required this.commandParameterKinds,
-    required this.dartTextDocumentContentProvider,
     required this.commands,
     required this.showMessageRequest,
     required this.errors,
@@ -392,15 +362,6 @@ class _ExperimentalClientCapabilities {
       commandParameters['supportedKinds'],
     );
 
-    // Macro/Augmentation content.
-    var dartContentValue =
-        experimental[dartExperimentalTextDocumentContentProviderKey] ??
-        experimental[dartExperimentalTextDocumentContentProviderLegacyKey];
-    var dartTextDocumentContentProvider = expectBool(
-      '.$dartExperimentalTextDocumentContentProviderKey',
-      dartContentValue,
-    );
-
     // Executable commands.
     var commands = expectNullableStringSet(
       '.commands',
@@ -423,7 +384,6 @@ class _ExperimentalClientCapabilities {
     return _ExperimentalClientCapabilities(
       snippetTextEdit: snippetTextEdit ?? false,
       commandParameterKinds: commandParameterKinds ?? {},
-      dartTextDocumentContentProvider: dartTextDocumentContentProvider ?? false,
       commands: commands ?? {},
       showMessageRequest: showMessageRequest ?? false,
       errors: errors,

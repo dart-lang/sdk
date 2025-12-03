@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/ffi_code.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -35,7 +35,7 @@ final class MyStruct extends Struct {
   external Array<Int8> arr;
 }
 ''',
-      [error(FfiCode.addressPosition, 200, 7)],
+      [error(diag.addressPosition, 200, 7)],
     );
   }
 
@@ -59,7 +59,7 @@ final class MyStruct extends Struct {
   external Array<Int8> arr;
 }
 ''',
-      [error(FfiCode.addressPosition, 202, 7)],
+      [error(diag.addressPosition, 202, 7)],
     );
   }
 
@@ -99,7 +99,7 @@ main() {
   myNonLeafNative(buffer.address.cast());
 }
 ''',
-      [error(FfiCode.addressPosition, 204, 7)],
+      [error(diag.addressPosition, 204, 7)],
     );
   }
 
@@ -138,7 +138,7 @@ final class MyUnion extends Union {
   external Array<Int8> arr;
 }
 ''',
-      [error(FfiCode.addressPosition, 196, 7)],
+      [error(diag.addressPosition, 196, 7)],
     );
   }
 
@@ -161,7 +161,7 @@ final class MyUnion extends Union {
   external Array<Int8> arr;
       }
 ''',
-      [error(FfiCode.addressPosition, 198, 7)],
+      [error(diag.addressPosition, 198, 7)],
     );
   }
 

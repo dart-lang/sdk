@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:matcher/src/core_matchers.dart';
 import 'package:test/test.dart' show expect;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -37,8 +37,8 @@ import 'b.dart';
 class A {}
 ''',
       [
-        error(CompileTimeErrorCode.invalidAnnotation, 35, 4),
-        error(CompileTimeErrorCode.ambiguousImport, 36, 3),
+        error(diag.invalidAnnotation, 35, 4),
+        error(diag.ambiguousImport, 36, 3),
       ],
     );
   }
@@ -55,7 +55,7 @@ class N {}''');
 import 'lib1.dart';
 import 'lib2.dart';
 f(p) {p as N;}''',
-      [error(CompileTimeErrorCode.ambiguousImport, 51, 1)],
+      [error(diag.ambiguousImport, 51, 1)],
     );
   }
 
@@ -71,10 +71,7 @@ class N {}''');
 import 'lib1.dart';
 import 'lib2.dart';
 class A extends N {}''',
-      [
-        error(CompileTimeErrorCode.ambiguousImport, 56, 1),
-        error(CompileTimeErrorCode.extendsNonClass, 56, 1),
-      ],
+      [error(diag.ambiguousImport, 56, 1), error(diag.extendsNonClass, 56, 1)],
     );
   }
 
@@ -91,8 +88,8 @@ import 'lib1.dart';
 import 'lib2.dart';
 class A implements N {}''',
       [
-        error(CompileTimeErrorCode.implementsNonClass, 59, 1),
-        error(CompileTimeErrorCode.ambiguousImport, 59, 1),
+        error(diag.implementsNonClass, 59, 1),
+        error(diag.ambiguousImport, 59, 1),
       ],
     );
   }
@@ -119,8 +116,8 @@ part 'part.dart';
     GatheringDiagnosticListener()
       ..addAll(partResult.diagnostics)
       ..assertErrors([
-        error(CompileTimeErrorCode.extendsNonClass, 36, 1),
-        error(CompileTimeErrorCode.ambiguousImport, 36, 1),
+        error(diag.extendsNonClass, 36, 1),
+        error(diag.ambiguousImport, 36, 1),
       ]);
   }
 
@@ -137,7 +134,7 @@ library L;
 import 'lib1.dart';
 import 'lib2.dart';
 f() {new N();}''',
-      [error(CompileTimeErrorCode.ambiguousImport, 60, 1)],
+      [error(diag.ambiguousImport, 60, 1)],
     );
   }
 
@@ -158,8 +155,8 @@ f() {
   print(n);
 }''',
       [
-        error(CompileTimeErrorCode.ambiguousImport, 59, 1),
-        error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 66, 3),
+        error(diag.ambiguousImport, 59, 1),
+        error(diag.dotShorthandUndefinedInvocation, 66, 3),
       ],
     );
   }
@@ -176,7 +173,7 @@ class N {}''');
 import 'lib1.dart';
 import 'lib2.dart';
 f(p) {p is N;}''',
-      [error(CompileTimeErrorCode.ambiguousImport, 51, 1)],
+      [error(diag.ambiguousImport, 51, 1)],
     );
   }
 
@@ -192,7 +189,7 @@ class N {}''');
 import 'lib1.dart';
 import 'lib2.dart';
 g() { N.FOO; }''',
-      [error(CompileTimeErrorCode.ambiguousImport, 46, 1)],
+      [error(diag.ambiguousImport, 46, 1)],
     );
   }
 
@@ -217,7 +214,7 @@ import 'dart:html';
 import 'dart:io';
 g(File f) {}
 ''',
-      [error(CompileTimeErrorCode.ambiguousImport, 40, 4)],
+      [error(diag.ambiguousImport, 40, 4)],
     );
   }
 
@@ -242,14 +239,14 @@ class A {
 }
 class B<T extends N> {}''',
       [
-        error(CompileTimeErrorCode.ambiguousImport, 48, 1),
-        error(CompileTimeErrorCode.ambiguousImport, 53, 1),
-        error(CompileTimeErrorCode.ambiguousImport, 59, 1),
-        error(CompileTimeErrorCode.ambiguousImport, 63, 1),
-        error(CompileTimeErrorCode.ambiguousImport, 72, 1),
-        error(WarningCode.unusedLocalVariable, 74, 1),
-        error(CompileTimeErrorCode.ambiguousImport, 106, 1),
-        error(CompileTimeErrorCode.ambiguousImport, 149, 1),
+        error(diag.ambiguousImport, 48, 1),
+        error(diag.ambiguousImport, 53, 1),
+        error(diag.ambiguousImport, 59, 1),
+        error(diag.ambiguousImport, 63, 1),
+        error(diag.ambiguousImport, 72, 1),
+        error(diag.unusedLocalVariable, 74, 1),
+        error(diag.ambiguousImport, 106, 1),
+        error(diag.ambiguousImport, 149, 1),
       ],
     );
   }
@@ -267,7 +264,7 @@ import 'lib1.dart';
 import 'lib2.dart';
 class A<T> {}
 A<N>? f() { return null; }''',
-      [error(CompileTimeErrorCode.ambiguousImport, 56, 1)],
+      [error(diag.ambiguousImport, 56, 1)],
     );
   }
 
@@ -284,7 +281,7 @@ import 'lib1.dart';
 import 'lib2.dart';
 class A<T> {}
 f() {new A<N>();}''',
-      [error(CompileTimeErrorCode.ambiguousImport, 65, 1)],
+      [error(diag.ambiguousImport, 65, 1)],
     );
   }
 
@@ -306,7 +303,7 @@ void f() {
   x;
 }
 ''',
-      [error(CompileTimeErrorCode.ambiguousImport, 48, 1)],
+      [error(diag.ambiguousImport, 48, 1)],
     );
   }
 
@@ -328,7 +325,7 @@ void f() {
   p.x;
 }
 ''',
-      [error(CompileTimeErrorCode.ambiguousImport, 60, 1)],
+      [error(diag.ambiguousImport, 60, 1)],
     );
   }
 
@@ -354,15 +351,10 @@ void f() {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.ambiguousImport,
-          48,
-          1,
-          messageContains: ["'x'"],
-        ),
-        error(CompileTimeErrorCode.ambiguousImport, 57, 1),
-        error(CompileTimeErrorCode.ambiguousImport, 69, 1),
-        error(CompileTimeErrorCode.ambiguousImport, 74, 1),
+        error(diag.ambiguousImport, 48, 1, messageContains: ["'x'"]),
+        error(diag.ambiguousImport, 57, 1),
+        error(diag.ambiguousImport, 69, 1),
+        error(diag.ambiguousImport, 74, 1),
       ],
     );
   }
@@ -389,10 +381,10 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ambiguousImport, 60, 1),
-        error(CompileTimeErrorCode.ambiguousImport, 71, 1),
-        error(CompileTimeErrorCode.ambiguousImport, 85, 1),
-        error(CompileTimeErrorCode.ambiguousImport, 92, 1),
+        error(diag.ambiguousImport, 60, 1),
+        error(diag.ambiguousImport, 71, 1),
+        error(diag.ambiguousImport, 85, 1),
+        error(diag.ambiguousImport, 92, 1),
       ],
     );
   }

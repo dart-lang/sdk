@@ -57,6 +57,10 @@ const int _declaresConstConstructorMask = _initializingFormalMask << 1;
 /// super-parameter initializers.
 const int _superInitializingFormalMask = _declaresConstConstructorMask << 1;
 
+/// Not a modifier, used by formal parameters to track if they are declaring
+/// parameters.
+const int _declaringParameterMask = _superInitializingFormalMask << 1;
+
 /// Extension type that encodes a set of modifiers as a bit mask.
 extension type const Modifiers(int _mask) implements Object {
   /// The empty set of modifiers.
@@ -477,6 +481,23 @@ extension type const Modifiers(int _mask) implements Object {
   bool get isSuperInitializingFormal =>
       (_mask & _superInitializingFormalMask) != 0;
 
+  /// The set of modifiers containing only the synthetic modifier used to denote
+  /// that a parameter is a declaring parameter.
+  ///
+  /// ```
+  /// DartDocTest(
+  ///     Modifiers.DeclaringParameter.isDeclaringParameter, true)
+  /// DartDocTest(Modifiers.DeclaringParameter.isEmpty, false)
+  /// DartDocTest(Modifiers.DeclaringParameter.isAbstract, false)
+  /// ```
+  static const Modifiers DeclaringParameter = const Modifiers(
+    _declaringParameterMask,
+  );
+
+  /// Returns `true` if the set of modifiers contains the synthetic modifier
+  /// used to denote that a parameter is a declaring parameter.
+  bool get isDeclaringParameter => (_mask & _declaringParameterMask) != 0;
+
   /// Returns `true` if this set of modifiers contains any syntactic modifiers.
   ///
   /// If [ignoreRequired] is `true`, `required` is ignored. If
@@ -531,7 +552,8 @@ extension type const Modifiers(int _mask) implements Object {
             _initializingFormalMask |
             _declaresConstConstructorMask |
             _namedMixinApplicationMask |
-            _superInitializingFormalMask);
+            _superInitializingFormalMask |
+            _declaringParameterMask);
     if (ignoreRequired) {
       mask &= ~_requiredMask;
     }

@@ -243,11 +243,6 @@ abstract class DiagnosticCode {
    * associated with the error will be created from the given [problemMessage]
    * template. The correction associated with the error will be created from the
    * given [correctionMessage] template.
-   * 
-   * If a non-null value is supplied for [uniqueNameCheck], it should be the
-   * same as [uniqueName]. This parameter is marked `@deprecated` because it
-   * should not be used by client; it exists as a temporary measure to aid in
-   * migration and will soon be removed.
    */
   const DiagnosticCode({
     String? correctionMessage,
@@ -256,12 +251,7 @@ abstract class DiagnosticCode {
     required this.name,
     required String problemMessage,
     required this.uniqueName,
-    @deprecated String? uniqueNameCheck,
-  }) : assert(
-         uniqueName == uniqueNameCheck || uniqueNameCheck == null,
-         '$uniqueName != $uniqueNameCheck',
-       ),
-       _correctionMessage = correctionMessage,
+  }) : _correctionMessage = correctionMessage,
        _problemMessage = problemMessage;
 
   /**
@@ -327,7 +317,7 @@ abstract class DiagnosticCode {
   String toString() => uniqueName;
 }
 
-class DiagnosticCodeImpl extends DiagnosticCode {
+abstract class DiagnosticCodeImpl extends DiagnosticCode {
   @override
   final DiagnosticType type;
 
@@ -339,7 +329,6 @@ class DiagnosticCodeImpl extends DiagnosticCode {
     required super.problemMessage,
     required this.type,
     required super.uniqueName,
-    required super.uniqueNameCheck,
   });
 
   @override
@@ -348,7 +337,7 @@ class DiagnosticCodeImpl extends DiagnosticCode {
 
 /// Private subtype of [DiagnosticCode] that supports runtime checking of
 /// parameter types.
-abstract class DiagnosticCodeWithExpectedTypes extends DiagnosticCodeImpl {
+class DiagnosticCodeWithExpectedTypes extends DiagnosticCodeImpl {
   final List<ExpectedType>? expectedTypes;
 
   const DiagnosticCodeWithExpectedTypes({
@@ -359,7 +348,6 @@ abstract class DiagnosticCodeWithExpectedTypes extends DiagnosticCodeImpl {
     required super.problemMessage,
     required super.type,
     required super.uniqueName,
-    required super.uniqueNameCheck,
     this.expectedTypes,
   });
 }
@@ -576,6 +564,34 @@ class DiagnosticType implements Comparable<DiagnosticType> {
 }
 
 /// Common functionality for [DiagnosticCode]-derived classes that represent
+/// errors that take arguments.
+///
+/// This class provides a [withArguments] getter, which can be used to supply
+/// arguments and produce a [LocatableDiagnostic].
+class DiagnosticWithArguments<T extends Function>
+    extends DiagnosticCodeWithExpectedTypes {
+  /// Function accepting named arguments and returning [LocatableDiagnostic].
+  ///
+  /// The value returned by this function can
+  /// be associated with a location in the source code using the
+  /// [LocatableDiagnostic.at] method, and then the result can be passed to
+  /// [DiagnosticReporter.reportError].
+  final T withArguments;
+
+  const DiagnosticWithArguments({
+    required super.name,
+    required super.problemMessage,
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
+    required super.type,
+    required super.uniqueName,
+    required super.expectedTypes,
+    required this.withArguments,
+  });
+}
+
+/// Common functionality for [DiagnosticCode]-derived classes that represent
 /// errors that do not take arguments.
 ///
 /// This class implements [LocatableDiagnostic], which means that instances can
@@ -603,6 +619,26 @@ base mixin DiagnosticWithoutArguments on DiagnosticCodeImpl
   @override
   LocatableDiagnostic withContextMessages(List<DiagnosticMessage> messages) =>
       new LocatableDiagnosticImpl(code, arguments, contextMessages: messages);
+}
+
+/// Concrete implementation of [DiagnosticWithoutArguments], used for diagnostic
+/// messages that don't take any arguments.
+///
+/// This needs to be a separate class from [DiagnosticWithoutArguments] because
+/// [DiagnosticWithoutArguments] is a mixin.
+final class DiagnosticWithoutArgumentsImpl
+    extends DiagnosticCodeWithExpectedTypes
+    with DiagnosticWithoutArguments {
+  const DiagnosticWithoutArgumentsImpl({
+    required super.name,
+    required super.problemMessage,
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
+    required super.type,
+    required super.uniqueName,
+    super.expectedTypes,
+  });
 }
 
 /// Expected type of a diagnostic code's parameter.

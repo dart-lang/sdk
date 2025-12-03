@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -24,13 +24,7 @@ class A {
   A(dynamic this.x) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.fieldInitializingFormalNotAssignable,
-          23,
-          14,
-        ),
-      ],
+      [error(diag.fieldInitializingFormalNotAssignable, 23, 14)],
     );
   }
 
@@ -42,13 +36,7 @@ class A {
   A(String this.x) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.fieldInitializingFormalNotAssignable,
-          23,
-          13,
-        ),
-      ],
+      [error(diag.fieldInitializingFormalNotAssignable, 23, 13)],
     );
   }
 
@@ -61,13 +49,7 @@ enum E {
   const E(dynamic this.x);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.fieldInitializingFormalNotAssignable,
-          42,
-          14,
-        ),
-      ],
+      [error(diag.fieldInitializingFormalNotAssignable, 42, 14)],
     );
   }
 
@@ -81,12 +63,8 @@ enum E {
 }
 ''',
       [
-        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 13, 2),
-        error(
-          CompileTimeErrorCode.fieldInitializingFormalNotAssignable,
-          43,
-          13,
-        ),
+        error(diag.constConstructorParamTypeMismatch, 13, 2),
+        error(diag.fieldInitializingFormalNotAssignable, 43, 13),
       ],
     );
   }

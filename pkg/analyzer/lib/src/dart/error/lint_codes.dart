@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// @docImport 'package:analyzer/src/error/codes.dart';
+/// @docImport 'package:analyzer/analysis_rule/analysis_rule.dart';
 library;
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
@@ -10,6 +11,7 @@ import 'package:_fe_analyzer_shared/src/base/errors.dart';
 
 export 'package:_fe_analyzer_shared/src/base/errors.dart'
     show
+        DiagnosticWithArguments,
         DiagnosticWithoutArguments,
         ExpectedType,
         LocatableDiagnostic,
@@ -26,17 +28,35 @@ class LintCode extends DiagnosticCode {
 
   /// Initializes a lint code.
   ///
-  /// If a non-null value is supplied for [uniqueNameCheck], it should be the
-  /// same as [uniqueName]. This parameter is marked `@deprecated` because it
-  /// should not be used by client; it exists as a temporary measure to aid in
-  /// migration and will soon be removed.
+  /// The [name] is a "snake_case" name for the reported diagnostic.
+  ///
+  /// The [problemMessage] is a concise, human-readable message indicating
+  /// the problematic behavior.
+  ///
+  /// The [correctionMessage], if given, is a concise, human-readable message
+  /// indicating one or two possible corrections.
+  ///
+  /// The [problemMessage] and [correctionMessage] text is printed with a
+  /// reported diagnostics. For example, `dart analyze` and `flutter analyze`
+  /// will print the [problemMessage] with each diagnostic. The [problemMessage]
+  /// and [correctionMessage] area each printed in an IDE's "problems" panel
+  /// with each diagnostic.
+  ///
+  /// The [problemMessage] and [correctionMessage] text can contain
+  /// interpolation placeholders, in the form of `{0}`, `{1}`, etc. When a
+  /// diagnostic for this LintCode is produced (for example with
+  /// [AnalysisRule.reportAtNode]) with arguments, they are interpolated into
+  /// the [problemMessage] and [correctionMessage]. If present, the first
+  /// argument (at position 0) replaces each instance of `{0}`, the second
+  /// argument (at position 1) replaces each instance of `{1}`, etc.
+  // TODO(srawlins): Add a 'url' parameter for plugin authors.
+  // TODO(srawlins): Document `uniqueName` and `severity`.
   const LintCode(
     String name,
     String problemMessage, {
     super.correctionMessage,
-    super.hasPublishedDocs,
+    @Deprecated('To be removed without replacement') super.hasPublishedDocs,
     String? uniqueName,
-    @deprecated super.uniqueNameCheck,
     this.severity = DiagnosticSeverity.INFO,
   }) : super(
          problemMessage: problemMessage,
@@ -60,20 +80,16 @@ class LintCode extends DiagnosticCode {
 
 /// Private subtype of [LintCode] that supports runtime checking of parameter
 /// types.
-class LintCodeWithExpectedTypes extends DiagnosticCodeWithExpectedTypes
+abstract class LintCodeWithExpectedTypes extends DiagnosticCodeWithExpectedTypes
     implements LintCode {
   const LintCodeWithExpectedTypes({
     required super.name,
     required super.problemMessage,
     super.correctionMessage,
     super.hasPublishedDocs,
-    String? uniqueName,
-    required super.uniqueNameCheck,
+    required super.uniqueName,
     required super.expectedTypes,
-  }) : super(
-         type: DiagnosticType.LINT,
-         uniqueName: uniqueName ?? 'LintCode.$name',
-       );
+  }) : super(type: DiagnosticType.LINT);
 
   @override
   int get hashCode => uniqueName.hashCode;
@@ -101,7 +117,6 @@ class SecurityLintCode extends DiagnosticCodeImpl implements LintCode {
          problemMessage: problemMessage,
          type: DiagnosticType.LINT,
          uniqueName: uniqueName ?? 'LintCode.$name',
-         uniqueNameCheck: null,
        );
 
   @override

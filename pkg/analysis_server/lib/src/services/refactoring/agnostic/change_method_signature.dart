@@ -311,8 +311,10 @@ class _AvailabilityAnalyzer {
     switch (node) {
       case ConstructorDeclaration():
         var nameRange = range.startEnd(
-          node.returnType,
-          node.name ?? node.returnType,
+          // TODO(scheglov): support primary constructors
+          node.typeName!,
+          // TODO(scheglov): support primary constructors
+          node.name ?? node.typeName!,
         );
         var selectionRange = refactoringContext.selectionRange;
         if (anyLocation || nameRange.covers(selectionRange)) {
@@ -1249,7 +1251,8 @@ extension on AstNode {
     if (self is SimpleIdentifier) {
       var constructorDeclaration = self.parent;
       if (constructorDeclaration is ConstructorDeclaration) {
-        if (constructorDeclaration.returnType == self) {
+        // TODO(scheglov): support primary constructors
+        if (constructorDeclaration.typeName! == self) {
           return constructorDeclaration;
         }
       }

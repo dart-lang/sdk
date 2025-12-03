@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -67,7 +67,7 @@ class C extends A {}
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed, 84, 1),
+        error(diag.subtypeOfBaseIsNotBaseFinalOrSealed, 84, 1),
       ],
     );
   }
@@ -151,7 +151,7 @@ class C extends S {}
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed, 51, 1),
+        error(diag.subtypeOfFinalIsNotBaseFinalOrSealed, 51, 1),
       ],
     );
   }
@@ -174,7 +174,7 @@ class C extends F {}
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed, 24, 1),
+        error(diag.subtypeOfFinalIsNotBaseFinalOrSealed, 24, 1),
       ],
     );
   }
@@ -203,11 +203,7 @@ class C extends I {}
 ''',
       [
         // No lint.
-        error(
-          CompileTimeErrorCode.interfaceClassExtendedOutsideOfLibrary,
-          34,
-          1,
-        ),
+        error(diag.interfaceClassExtendedOutsideOfLibrary, 34, 1),
       ],
     );
   }
@@ -262,11 +258,7 @@ mixin class M extends I {}
 ''',
       [
         // No lint.
-        error(
-          CompileTimeErrorCode.mixinClassDeclarationExtendsNotObject,
-          44,
-          1,
-        ),
+        error(diag.mixinClassDeclarationExtendsNotObject, 44, 1),
       ],
     );
   }
@@ -313,7 +305,7 @@ mixin M extends I {}
 ''',
       [
         // No lint.
-        error(ParserErrorCode.expectedInstead, 30, 7),
+        error(diag.expectedInstead, 30, 7),
       ],
     );
   }

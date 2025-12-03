@@ -98,20 +98,14 @@ class TimingResult {
 /// the time required to perform some sequence of server operations.
 abstract class TimingTest extends IntegrationTest {
   /// The number of times the test will be performed in order to warm up the VM.
-  static final int DEFAULT_WARMUP_COUNT = 10;
+  static const int _defaultWarmupCount = 10;
 
   /// The number of times the test will be performed in order to compute a time.
-  static final int DEFAULT_TIMING_COUNT = 10;
-
-  /// The file suffix used to identify Dart files.
-  static final String DART_SUFFIX = '.dart';
-
-  /// The file suffix used to identify HTML files.
-  static final String HTML_SUFFIX = '.html';
+  static const int _defaultTimingCount = 10;
 
   /// The amount of time to give the server to respond to a shutdown request
   /// before forcibly terminating it.
-  static const Duration SHUTDOWN_TIMEOUT = Duration(seconds: 5);
+  static const Duration _shutdownTimeout = Duration(seconds: 5);
 
   /// The connection to the analysis server.
   @override
@@ -127,11 +121,11 @@ abstract class TimingTest extends IntegrationTest {
 
   /// Return the number of iterations that should be performed in order to
   /// compute a time.
-  int get timingCount => DEFAULT_TIMING_COUNT;
+  int get timingCount => _defaultTimingCount;
 
   /// Return the number of iterations that should be performed in order to warm
   /// up the VM.
-  int get warmupCount => DEFAULT_WARMUP_COUNT;
+  int get warmupCount => _defaultWarmupCount;
 
   /// Perform any operations that need to be performed once before any
   /// iterations.
@@ -240,7 +234,7 @@ abstract class TimingTest extends IntegrationTest {
     // doesn't exit, then forcibly terminate it.
     sendServerShutdown();
     return server.exitCode.timeout(
-      SHUTDOWN_TIMEOUT,
+      _shutdownTimeout,
       onTimeout: () {
         return server.kill('server failed to exit');
       },

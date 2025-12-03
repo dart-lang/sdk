@@ -273,6 +273,33 @@ var white = [!Color(0xFF_FF_FF_FF)!];
     );
   }
 
+  Future<void> test_dotShorthand_constructor() async {
+    content = '''
+import 'package:flutter/material.dart';
+
+Color c1 = [!.new(0xffff0000)!];
+''';
+
+    await _checkPresentations(
+      select: Color(alpha: 1, red: 1, green: 0, blue: 0),
+      expectPresentations: [
+        _color(
+          'Color.fromARGB(255, 255, 0, 0)',
+          colorCode: '.fromARGB(255, 255, 0, 0)',
+        ),
+        _color(
+          'Color.fromRGBO(255, 0, 0, 1)',
+          colorCode: '.fromRGBO(255, 0, 0, 1)',
+        ),
+        _color(
+          'Color.from(alpha: 1, red: 1, green: 0, blue: 0)',
+          colorCode: '.from(alpha: 1, red: 1, green: 0, blue: 0)',
+        ),
+        _color('Color(0xFFFF0000)', colorCode: '.new(0xFFFF0000)'),
+      ],
+    );
+  }
+
   // Converting from ints to doubles should be rounded to 3 decimals to avoid
   // very large numbers (2 is not enough to represent 0-255 as it only allows
   // 100 numbers).

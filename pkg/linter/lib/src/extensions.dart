@@ -28,10 +28,14 @@ extension AstNodeExtension on AstNode {
 
   /// Whether this is the child of a private compilation unit member.
   bool get inPrivateMember {
-    var parent = this.parent;
+    var parent = this.parent?.parent;
     return switch (parent) {
-      NamedCompilationUnitMember() => parent.name.isPrivate,
+      ClassDeclaration() => parent.namePart.typeName.isPrivate,
+      EnumDeclaration() => parent.namePart.typeName.isPrivate,
       ExtensionDeclaration() => parent.name == null || parent.name.isPrivate,
+      ExtensionTypeDeclaration() =>
+        parent.primaryConstructor.typeName.isPrivate,
+      MixinDeclaration() => parent.name.isPrivate,
       _ => false,
     };
   }
@@ -205,7 +209,7 @@ extension ClassElementExtension on ClassElement {
     var enumConstants = <DartObject, Set<FieldElement>>{};
     for (var field in fields) {
       // Ensure static const.
-      if (field.isSynthetic || !field.isConst || !field.isStatic) {
+      if (field.isOriginGetterSetter || !field.isConst || !field.isStatic) {
         continue;
       }
       // Check for type equality.
@@ -460,7 +464,7 @@ extension ExpressionNullableExtension on Expression? {
 
 extension FieldDeclarationExtension on FieldDeclaration {
   bool get isInvalidExtensionTypeField =>
-      !isStatic && parent is ExtensionTypeDeclaration;
+      !isStatic && parent?.parent is ExtensionTypeDeclaration;
 }
 
 extension FunctionBodyExtension on FunctionBody? {

@@ -112,6 +112,21 @@ class B {
 ''');
   }
 
+  test_privateField_canceled_withNullCheck() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+class C<T> {
+  StreamSubscription<T>? subscription;
+  void unsubscribe() {
+    if (subscription != null) {
+      subscription!.cancel();
+      subscription = null;
+    }
+  }
+}
+''');
+  }
+
   test_privateField_notCanceled() async {
     await assertDiagnostics(
       r'''

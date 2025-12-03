@@ -2805,6 +2805,51 @@ void f() {
     expect(item.detail, isNot(contains('deprecated')));
   }
 
+  Future<void> test_isDeprecatedExtend_supportedFlag() async {
+    setCompletionItemDeprecatedFlagSupport();
+    content = '''
+@Deprecated.extend()
+class MyClass {}
+
+void f() {
+  MyCl^
+}
+''';
+
+    await initialize();
+
+    await openFile(mainFileUri, code.code);
+    var res = await getCompletion(mainFileUri, code.position.position);
+    var item = res.singleWhere((c) => c.label == 'MyClass');
+    expect(item.deprecated, isNull);
+    // If the client says it supports the deprecated flag, we should not show
+    // deprecated in the details.
+    expect(item.detail, isNot(contains('deprecated')));
+  }
+
+  Future<void> test_isDeprecatedExtend_supportedTag() async {
+    setCompletionItemTagSupport([CompletionItemTag.Deprecated]);
+
+    content = '''
+@Deprecated.extend()
+class MyClass {}
+
+void f() {
+  MyCl^
+}
+''';
+
+    await initialize();
+
+    await openFile(mainFileUri, code.code);
+    var res = await getCompletion(mainFileUri, code.position.position);
+    var item = res.singleWhere((c) => c.label == 'MyClass');
+    expect(item.tags, isNot(contains(CompletionItemTag.Deprecated)));
+    // If the client says it supports the deprecated tag, we should not show
+    // deprecated in the details.
+    expect(item.detail, isNot(contains('deprecated')));
+  }
+
   Future<void> test_isIncomplete_falseIfAllIncluded() async {
     content = '''
 import 'a.dart';

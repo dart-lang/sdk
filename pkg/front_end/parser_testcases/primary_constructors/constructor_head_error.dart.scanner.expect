@@ -1,0 +1,13 @@
+class C {
+new = 42;
+new() = 42;
+C() = C;
+C.name() = C;
+}
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+new[KeywordToken] =[SimpleToken] 42[StringToken];[SimpleToken]
+new[KeywordToken]([BeginToken])[SimpleToken] =[SimpleToken] 42[StringToken];[SimpleToken]
+C[StringToken]([BeginToken])[SimpleToken] =[SimpleToken] C[StringToken];[SimpleToken]
+C[StringToken].[SimpleToken]name[StringToken]([BeginToken])[SimpleToken] =[SimpleToken] C[StringToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

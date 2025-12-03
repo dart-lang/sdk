@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,7 +26,7 @@ class Foo {}
 import 'foo.dart';
 enum Bar implements Foo { one; }
 ''',
-      [error(WarningCode.deprecatedSubclass, 39, 3)],
+      [error(diag.deprecatedSubclass, 39, 3)],
     );
   }
 
@@ -41,7 +41,7 @@ class Foo {}
 import 'foo.dart';
 class Bar extends Foo {}
 ''',
-      [error(WarningCode.deprecatedSubclass, 37, 3)],
+      [error(diag.deprecatedSubclass, 37, 3)],
     );
   }
 
@@ -56,7 +56,7 @@ class Foo {}
 import 'foo.dart';
 class Bar implements Foo {}
 ''',
-      [error(WarningCode.deprecatedSubclass, 40, 3)],
+      [error(diag.deprecatedSubclass, 40, 3)],
     );
   }
 
@@ -71,7 +71,7 @@ mixin Foo {}
 import 'foo.dart';
 class Bar implements Foo {}
 ''',
-      [error(WarningCode.deprecatedSubclass, 40, 3)],
+      [error(diag.deprecatedSubclass, 40, 3)],
     );
   }
 
@@ -96,7 +96,7 @@ class Foo {}
 import 'foo.dart';
 class Bar extends Object with Foo {}
 ''',
-      [error(WarningCode.deprecatedSubclass, 65, 3)],
+      [error(diag.deprecatedSubclass, 65, 3)],
     );
   }
 
@@ -111,7 +111,7 @@ class Foo {}
 import 'foo.dart';
 mixin Bar implements Foo {}
 ''',
-      [error(WarningCode.deprecatedSubclass, 40, 3)],
+      [error(diag.deprecatedSubclass, 40, 3)],
     );
   }
 
@@ -126,7 +126,7 @@ class Foo {}
 import 'foo.dart';
 mixin Bar on Foo {}
 ''',
-      [error(WarningCode.deprecatedSubclass, 32, 3)],
+      [error(diag.deprecatedSubclass, 32, 3)],
     );
   }
 

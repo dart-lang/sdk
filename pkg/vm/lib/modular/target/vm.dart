@@ -98,6 +98,7 @@ class VmTarget extends Target {
     'dart:mirrors',
 
     'dart:typed_data',
+    'dart:_vm',
     'dart:vmservice_io',
     'dart:_vmservice',
     'dart:_builtin',
@@ -361,52 +362,6 @@ class VmTarget extends Target {
       arguments,
       offset,
       type,
-    );
-  }
-
-  @override
-  Expression instantiateNoSuchMethodError(
-    CoreTypes coreTypes,
-    Expression receiver,
-    String name,
-    Arguments arguments,
-    int offset, {
-    bool isMethod = false,
-    bool isGetter = false,
-    bool isSetter = false,
-    bool isField = false,
-    bool isLocalVariable = false,
-    bool isDynamic = false,
-    bool isSuper = false,
-    bool isStatic = false,
-    bool isConstructor = false,
-    bool isTopLevel = false,
-  }) {
-    int type = _invocationType(
-      isMethod: isMethod,
-      isGetter: isGetter,
-      isSetter: isSetter,
-      isField: isField,
-      isLocalVariable: isLocalVariable,
-      isDynamic: isDynamic,
-      isSuper: isSuper,
-      isStatic: isStatic,
-      isConstructor: isConstructor,
-      isTopLevel: isTopLevel,
-    );
-    return new StaticInvocation(
-      coreTypes.noSuchMethodErrorDefaultConstructor,
-      new Arguments(<Expression>[
-        receiver,
-        _instantiateInvocationMirrorWithType(
-          coreTypes,
-          receiver,
-          name,
-          arguments,
-          offset,
-          type,
-        ),
-      ]),
     );
   }
 

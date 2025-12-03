@@ -53,11 +53,13 @@ class D extends C {
     await resolveTestCode('''
 import 'package:meta/meta.dart';
 
+// ignore: deprecated_member_use
 void function({@required String param}) {}
 ''');
     await assertHasFix('''
 import 'package:meta/meta.dart';
 
+// ignore: deprecated_member_use
 void function({required String param}) {}
 ''');
   }
@@ -70,6 +72,7 @@ import 'package:meta/meta.dart';
 
 class A {
   String foo;
+  // ignore: deprecated_member_use
   A({@required this.foo});
 }
 ''');
@@ -78,6 +81,7 @@ import 'package:meta/meta.dart';
 
 class A {
   String foo;
+  // ignore: deprecated_member_use
   A({required this.foo});
 }
 ''');
@@ -89,11 +93,13 @@ class A {
     await resolveTestCode('''
 import 'package:meta/meta.dart';
 
+// ignore: deprecated_member_use
 void f({@required int g(String)}) { }
 ''');
     await assertHasFix('''
 import 'package:meta/meta.dart';
 
+// ignore: deprecated_member_use
 void f({required int g(String)}) { }
 ''');
   }
@@ -110,6 +116,7 @@ class Foo {
 
 const foo = Foo();
 
+// ignore: deprecated_member_use
 void function({@required @foo String param}) {}
 ''');
     await assertHasFix('''
@@ -121,6 +128,7 @@ class Foo {
 
 const foo = Foo();
 
+// ignore: deprecated_member_use
 void function({@foo required String param}) {}
 ''');
   }
@@ -137,6 +145,7 @@ class Foo {
 
 const foo = Foo();
 
+// ignore: deprecated_member_use
 void function({@foo @required String param}) {}
 ''');
     await assertHasFix('''
@@ -148,6 +157,7 @@ class Foo {
 
 const foo = Foo();
 
+// ignore: deprecated_member_use
 void function({@foo required String param}) {}
 ''');
   }
@@ -158,11 +168,13 @@ void function({@foo required String param}) {}
     await resolveTestCode('''
 import 'package:meta/meta.dart';
 
+// ignore: deprecated_member_use
 void function({@Required('reason') String param}) {}
 ''');
     await assertHasFix('''
 import 'package:meta/meta.dart';
 
+// ignore: deprecated_member_use
 void function({required String param}) {}
 ''');
   }

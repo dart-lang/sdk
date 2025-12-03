@@ -381,7 +381,7 @@ class C#4 extends core::Object { // from org-dartlang-testcase:///duplicated_dec
 }
 class Sub extends core::Object {
   constructor •() → self::Sub
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:70:11: Error: Can't use 'new' because it is declared more than once.
+    : invalid-initializer "pkg/front_end/testcases/general/duplicated_declarations.dart:70:11: Error: Can't use 'new' because it is declared more than once.
   Sub() : super(null);
           ^"
     ;

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -20,7 +20,7 @@ class ExtendsDisallowedClassTest extends PubPackageResolutionTest {
       '''
 class A extends bool {}
 ''',
-      [error(CompileTimeErrorCode.extendsDisallowedClass, 16, 4)],
+      [error(diag.extendsDisallowedClass, 16, 4)],
     );
   }
 
@@ -29,7 +29,7 @@ class A extends bool {}
       '''
 class A extends double {}
 ''',
-      [error(CompileTimeErrorCode.extendsDisallowedClass, 16, 6)],
+      [error(diag.extendsDisallowedClass, 16, 6)],
     );
   }
 
@@ -39,7 +39,7 @@ class A extends double {}
 import 'dart:async';
 class A extends FutureOr {}
 ''',
-      [error(CompileTimeErrorCode.extendsDisallowedClass, 37, 8)],
+      [error(diag.extendsDisallowedClass, 37, 8)],
     );
   }
 
@@ -49,7 +49,7 @@ class A extends FutureOr {}
 import 'dart:async';
 class A extends FutureOr<int> {}
 ''',
-      [error(CompileTimeErrorCode.extendsDisallowedClass, 37, 13)],
+      [error(diag.extendsDisallowedClass, 37, 13)],
     );
   }
 
@@ -60,7 +60,7 @@ import 'dart:async';
 typedef F = FutureOr<void>;
 class A extends F {}
 ''',
-      [error(CompileTimeErrorCode.extendsDisallowedClass, 65, 1)],
+      [error(diag.extendsDisallowedClass, 65, 1)],
     );
   }
 
@@ -70,7 +70,7 @@ class A extends F {}
 import 'dart:async';
 class A<T> extends FutureOr<T> {}
 ''',
-      [error(CompileTimeErrorCode.extendsDisallowedClass, 40, 11)],
+      [error(diag.extendsDisallowedClass, 40, 11)],
     );
   }
 
@@ -79,7 +79,7 @@ class A<T> extends FutureOr<T> {}
       '''
 class A extends int {}
 ''',
-      [error(CompileTimeErrorCode.extendsDisallowedClass, 16, 3)],
+      [error(diag.extendsDisallowedClass, 16, 3)],
     );
   }
 
@@ -88,7 +88,7 @@ class A extends int {}
       '''
 class A extends Null {}
 ''',
-      [error(CompileTimeErrorCode.extendsDisallowedClass, 16, 4)],
+      [error(diag.extendsDisallowedClass, 16, 4)],
     );
   }
 
@@ -97,7 +97,7 @@ class A extends Null {}
       '''
 class A extends num {}
 ''',
-      [error(CompileTimeErrorCode.extendsDisallowedClass, 16, 3)],
+      [error(diag.extendsDisallowedClass, 16, 3)],
     );
   }
 
@@ -106,7 +106,7 @@ class A extends num {}
       '''
 class A extends Record {}
 ''',
-      [error(CompileTimeErrorCode.extendsDisallowedClass, 16, 6)],
+      [error(diag.extendsDisallowedClass, 16, 6)],
     );
   }
 
@@ -115,7 +115,7 @@ class A extends Record {}
       '''
 class A extends String {}
 ''',
-      [error(CompileTimeErrorCode.extendsDisallowedClass, 16, 6)],
+      [error(diag.extendsDisallowedClass, 16, 6)],
     );
   }
 
@@ -132,9 +132,7 @@ augment class A extends String {}
 ''');
 
     await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.extendsDisallowedClass, 42, 6),
-    ]);
+    await assertErrorsInFile2(b, [error(diag.extendsDisallowedClass, 42, 6)]);
   }
 
   test_classTypeAlias_bool() async {
@@ -143,7 +141,7 @@ augment class A extends String {}
 class M {}
 class C = bool with M;
 ''',
-      [error(CompileTimeErrorCode.extendsDisallowedClass, 21, 4)],
+      [error(diag.extendsDisallowedClass, 21, 4)],
     );
   }
 
@@ -153,7 +151,7 @@ class C = bool with M;
 class M {}
 class C = double with M;
 ''',
-      [error(CompileTimeErrorCode.extendsDisallowedClass, 21, 6)],
+      [error(diag.extendsDisallowedClass, 21, 6)],
     );
   }
 
@@ -164,7 +162,7 @@ import 'dart:async';
 class M {}
 class C = FutureOr with M;
 ''',
-      [error(CompileTimeErrorCode.extendsDisallowedClass, 42, 8)],
+      [error(diag.extendsDisallowedClass, 42, 8)],
     );
   }
 
@@ -174,7 +172,7 @@ class C = FutureOr with M;
 class M {}
 class C = int with M;
 ''',
-      [error(CompileTimeErrorCode.extendsDisallowedClass, 21, 3)],
+      [error(diag.extendsDisallowedClass, 21, 3)],
     );
   }
 
@@ -184,7 +182,7 @@ class C = int with M;
 class M {}
 class C = Null with M;
 ''',
-      [error(CompileTimeErrorCode.extendsDisallowedClass, 21, 4)],
+      [error(diag.extendsDisallowedClass, 21, 4)],
     );
   }
 
@@ -194,7 +192,7 @@ class C = Null with M;
 class M {}
 class C = num with M;
 ''',
-      [error(CompileTimeErrorCode.extendsDisallowedClass, 21, 3)],
+      [error(diag.extendsDisallowedClass, 21, 3)],
     );
   }
 
@@ -204,7 +202,7 @@ class C = num with M;
 class M {}
 class C = String with M;
 ''',
-      [error(CompileTimeErrorCode.extendsDisallowedClass, 21, 6)],
+      [error(diag.extendsDisallowedClass, 21, 6)],
     );
   }
 }

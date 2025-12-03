@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/dart/error/todo_codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -60,7 +60,7 @@ void f() { }
 /// Docs.
 // TODO(user): msg.
 void f() { }
-''', filter: (e) => e.diagnosticCode != TodoCode.todo);
+''', filter: (e) => e.diagnosticCode != diag.todo);
   }
 
   Future<void> test_docCommentSolo() async {
@@ -71,7 +71,7 @@ void f() { }
     await assertHasFix('''
 // TODO(user): msg.
 void f() { }
-''', filter: (e) => e.diagnosticCode != TodoCode.todo);
+''', filter: (e) => e.diagnosticCode != diag.todo);
   }
 
   Future<void> test_extraLeadingSpace() async {
@@ -82,7 +82,7 @@ void f() { }
     await assertHasFix('''
 // TODO(user): msg.
 void f() { }
-''', filter: (e) => e.diagnosticCode != TodoCode.todo);
+''', filter: (e) => e.diagnosticCode != diag.todo);
   }
 
   Future<void> test_lowerCase() async {
@@ -101,7 +101,7 @@ void f() { }
 // TODO(user msg.
 void f() { }
 ''');
-    await assertNoFix(filter: (e) => e.diagnosticCode != TodoCode.todo);
+    await assertNoFix(filter: (e) => e.diagnosticCode != diag.todo);
   }
 
   Future<void> test_missingColon() async {
@@ -112,7 +112,7 @@ void f() { }
     await assertHasFix('''
 // TODO(user): msg.
 void f() { }
-''', filter: (e) => e.diagnosticCode != TodoCode.todo);
+''', filter: (e) => e.diagnosticCode != diag.todo);
   }
 
   Future<void> test_missingColon_surroundingComments() async {
@@ -127,7 +127,7 @@ void f() { }
 // TODO(user): msg.
 // Trailing comment.
 void f() { }
-''', filter: (e) => e.diagnosticCode != TodoCode.todo);
+''', filter: (e) => e.diagnosticCode != diag.todo);
   }
 
   Future<void> test_missingColonAndMessage() async {
@@ -135,7 +135,7 @@ void f() { }
 // TODO(user)
 void f() {}
 ''');
-    await assertNoFix(filter: (e) => e.diagnosticCode != TodoCode.todo);
+    await assertNoFix(filter: (e) => e.diagnosticCode != diag.todo);
   }
 
   Future<void> test_missingLeadingSpace() async {
@@ -154,6 +154,6 @@ void f() {}
     await assertHasFix('''
 // TODO(user): msg.
 void f() {}
-''', filter: (e) => e.diagnosticCode != TodoCode.todo);
+''', filter: (e) => e.diagnosticCode != diag.todo);
   }
 }

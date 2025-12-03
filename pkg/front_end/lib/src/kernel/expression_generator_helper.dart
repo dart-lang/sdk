@@ -85,7 +85,7 @@ abstract class ExpressionGeneratorHelper {
 
   LibraryFeatures get libraryFeatures;
 
-  bool isDeclaredInEnclosingCase(VariableDeclaration variable);
+  bool isDeclaredInEnclosingCase(ExpressionVariable variable);
 
   Generator processLookupResult({
     required LookupResult? lookupResult,
@@ -105,10 +105,7 @@ abstract class ExpressionGeneratorHelper {
     bool isTypeArgumentsInForest = false,
   });
 
-  Initializer buildInvalidInitializer(
-    Expression expression, [
-    int offset = TreeNode.noOffset,
-  ]);
+  Initializer buildInvalidInitializer(InvalidExpression expression);
 
   List<Initializer> createFieldInitializer(
     String name,
@@ -137,7 +134,7 @@ abstract class ExpressionGeneratorHelper {
     required int fileOffset,
   });
 
-  Expression buildUnresolvedError(
+  InvalidExpression buildUnresolvedError(
     String name,
     int fileOffset, {
     bool isSuper,
@@ -145,8 +142,6 @@ abstract class ExpressionGeneratorHelper {
     int? length,
     bool errorHasBeenReported,
   });
-
-  Expression buildProblemFromLocatedMessage(LocatedMessage message);
 
   Expression wrapInDeferredCheck(
     Expression expression,
@@ -231,17 +226,17 @@ abstract class ExpressionGeneratorHelper {
 
   /// Creates a [VariableGet] of the [variable] using [charOffset] as the file
   /// offset of the created node.
-  Expression createVariableGet(VariableDeclaration variable, int charOffset);
+  Expression createVariableGet(ExpressionVariable variable, int charOffset);
 
   /// Registers that [variable] is read from.
   ///
   /// This is needed for type promotion.
-  void registerVariableRead(VariableDeclaration variable);
+  void registerVariableRead(ExpressionVariable variable);
 
   /// Registers that [variable] is assigned to.
   ///
   /// This is needed for type promotion.
-  void registerVariableAssignment(VariableDeclaration variable);
+  void registerVariableAssignment(ExpressionVariable variable);
 
   TypeEnvironment get typeEnvironment;
 

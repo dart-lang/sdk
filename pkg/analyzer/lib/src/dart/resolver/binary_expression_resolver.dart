@@ -19,7 +19,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 
@@ -70,7 +70,7 @@ class BinaryExpressionResolver {
     if (operator != TokenType.BANG_EQ_EQ && operator != TokenType.EQ_EQ_EQ) {
       _diagnosticReporter.atToken(
         node.operator,
-        CompileTimeErrorCode.notBinaryOperator,
+        diag.notBinaryOperator,
         arguments: [operator.lexeme],
       );
     }
@@ -85,7 +85,7 @@ class BinaryExpressionResolver {
   }) {
     _resolver.boolExpressionVerifier.checkForNonBoolExpression(
       operand,
-      diagnosticCode: CompileTimeErrorCode.nonBoolOperand,
+      diagnosticCode: diag.nonBoolOperand,
       arguments: [operator],
       whyNotPromoted: whyNotPromoted,
     );
@@ -147,8 +147,8 @@ class BinaryExpressionResolver {
 
     void reportNullComparison(SyntacticEntity start, SyntacticEntity end) {
       var errorCode = notEqual
-          ? WarningCode.unnecessaryNullComparisonAlwaysNullFalse
-          : WarningCode.unnecessaryNullComparisonAlwaysNullTrue;
+          ? diag.unnecessaryNullComparisonAlwaysNullFalse
+          : diag.unnecessaryNullComparisonAlwaysNullTrue;
       var offset = start.offset;
       _diagnosticReporter.atOffset(
         offset: offset,
@@ -405,7 +405,7 @@ class BinaryExpressionResolver {
         // safe to assume `extension.name` is non-`null`.
         _diagnosticReporter.atToken(
           node.operator,
-          CompileTimeErrorCode.undefinedExtensionOperator,
+          diag.undefinedExtensionOperator,
           arguments: [methodName, extension.name!],
         );
       }
@@ -419,7 +419,7 @@ class BinaryExpressionResolver {
     if (identical(leftType, NeverTypeImpl.instance)) {
       _resolver.diagnosticReporter.atNode(
         leftOperand,
-        WarningCode.receiverOfTypeNever,
+        diag.receiverOfTypeNever,
       );
       return;
     }
@@ -444,13 +444,13 @@ class BinaryExpressionResolver {
       if (leftOperand is SuperExpression) {
         _diagnosticReporter.atToken(
           node.operator,
-          CompileTimeErrorCode.undefinedSuperOperator,
+          diag.undefinedSuperOperator,
           arguments: [methodName, leftType],
         );
       } else {
         _diagnosticReporter.atToken(
           node.operator,
-          CompileTimeErrorCode.undefinedOperator,
+          diag.undefinedOperator,
           arguments: [methodName, leftType],
         );
       }

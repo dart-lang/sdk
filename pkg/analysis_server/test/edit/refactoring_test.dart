@@ -1588,6 +1588,68 @@ void f() {
     expect(responseB, isResponseSuccess('2'));
   }
 
+  /// We shouldn't send a cancellation for a previous refactor request that
+  /// errored, since it is complete.
+  Future<void> test_cancelPendingRequest_notForErrored_fatalError() async {
+    addTestFile('''
+void f() {
+  int test = 0;
+  print(test);
+}
+''');
+
+    // Send an invalid params request.
+    test_simulateRefactoringException_final = true;
+    await sendRenameRequest('test =', 'nameB', id: '1');
+    test_simulateRefactoringException_final = false;
+
+    // Then send a successful request
+    await sendRenameRequest('test =', 'nameB', id: '2');
+
+    // Expect exactly one response for each ID.
+    expect(
+      serverChannel.responsesReceived.where((response) => response.id == '1'),
+      [isResponseFailure('1', RequestErrorCode.SERVER_ERROR)],
+    );
+    expect(
+      serverChannel.responsesReceived.where((response) => response.id == '2'),
+      [isResponseSuccess('2')],
+    );
+  }
+
+  /// We shouldn't send a cancellation for a previous refactor request that
+  /// errored, since it is complete.
+  Future<void> test_cancelPendingRequest_notForErrored_invalidPath() async {
+    addTestFile('''
+void f() {
+  int test = 0;
+  print(test);
+}
+''');
+
+    // Send an invalid path request.
+    var invalidRequest = EditGetRefactoringParams(
+      RefactoringKind.RENAME,
+      'INVALID_FILE_PATH',
+      -1,
+      0,
+      false,
+    ).toRequest('1', clientUriConverter: server.uriConverter);
+    await serverChannel.simulateRequestFromClient(invalidRequest);
+    // Then send a successful request
+    await sendRenameRequest('test =', 'nameB', id: '2');
+
+    // Expect exactly one response for each ID.
+    expect(
+      serverChannel.responsesReceived.where((response) => response.id == '1'),
+      [isResponseFailure('1', RequestErrorCode.INVALID_FILE_PATH_FORMAT)],
+    );
+    expect(
+      serverChannel.responsesReceived.where((response) => response.id == '2'),
+      [isResponseSuccess('2')],
+    );
+  }
+
   Future<void> test_class() {
     addTestFile('''
 class Test {

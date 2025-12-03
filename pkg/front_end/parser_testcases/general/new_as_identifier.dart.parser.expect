@@ -5,7 +5,7 @@ C.new();
 
 
 
-C.constructor_field_initializer() : *synthetic*=this.*synthetic*{}new operator= (){}null;
+C.constructor_field_initializer() : *synthetic*=this.*synthetic*{}new ()= null;
 }
 
 class D {
@@ -46,7 +46,7 @@ C[StringToken].[SimpleToken]new[StringToken]([BeginToken])[SimpleToken];[SimpleT
 
 
 
-C[StringToken].[SimpleToken]constructor_field_initializer[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] [SyntheticStringToken]=[SyntheticToken]this[KeywordToken].[SimpleToken][SyntheticStringToken]{[SyntheticBeginToken]}[SyntheticToken]new[KeywordToken] operator[SyntheticKeywordToken]=[SimpleToken] ([SyntheticBeginToken])[SyntheticToken]{[SyntheticBeginToken]}[SyntheticToken]null[KeywordToken];[SimpleToken]
+C[StringToken].[SimpleToken]constructor_field_initializer[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] [SyntheticStringToken]=[SyntheticToken]this[KeywordToken].[SimpleToken][SyntheticStringToken]{[SyntheticBeginToken]}[SyntheticToken]new[KeywordToken] ([SyntheticBeginToken])[SyntheticToken]=[SimpleToken] null[KeywordToken];[SimpleToken]
 }[SimpleToken]
 
 class[KeywordToken] D[StringToken] {[BeginToken]

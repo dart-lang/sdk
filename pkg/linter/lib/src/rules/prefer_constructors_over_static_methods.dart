@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r'Prefer defining constructors instead of static methods to create '
@@ -27,8 +28,7 @@ class PreferConstructorsOverStaticMethods extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.preferConstructorsOverStaticMethods;
+  DiagnosticCode get diagnosticCode => diag.preferConstructorsOverStaticMethods;
 
   @override
   void registerNodeProcessors(
@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var returnType = node.returnType?.type;
     if (returnType is! InterfaceType) return;
 
-    var interfaceType = node.parent.typeToCheckOrNull();
+    var interfaceType = node.parent?.parent.typeToCheckOrNull();
     if (interfaceType != returnType) return;
 
     if (_hasNewInvocation(returnType, node.body)) {
@@ -87,9 +87,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 extension on AstNode? {
   InterfaceType? typeToCheckOrNull() => switch (this) {
     ExtensionTypeDeclaration e =>
-      e.typeParameters == null ? e.declaredFragment?.element.thisType : null,
+      e.primaryConstructor.typeParameters == null
+          ? e.declaredFragment?.element.thisType
+          : null,
     ClassDeclaration c =>
-      c.typeParameters == null ? c.declaredFragment?.element.thisType : null,
+      c.namePart.typeParameters == null
+          ? c.declaredFragment?.element.thisType
+          : null,
     _ => null,
   };
 }

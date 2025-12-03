@@ -88,7 +88,6 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     node.visitChildren(this);
   }
 
-  @experimental
   @override
   void visitBlockClassBody(BlockClassBody node) {
     _runSubscriptions(node, _registry._forBlockClassBody);
@@ -283,7 +282,6 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     node.visitChildren(this);
   }
 
-  @experimental
   @override
   void visitEmptyClassBody(EmptyClassBody node) {
     _runSubscriptions(node, _registry._forEmptyClassBody);
@@ -302,7 +300,6 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     node.visitChildren(this);
   }
 
-  @experimental
   @override
   void visitEnumBody(EnumBody node) {
     _runSubscriptions(node, _registry._forEnumBody);
@@ -681,7 +678,6 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     node.visitChildren(this);
   }
 
-  @experimental
   @override
   void visitNameWithTypeParameters(NameWithTypeParameters node) {
     _runSubscriptions(node, _registry._forNameWithTypeParameters);
@@ -804,14 +800,18 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     node.visitChildren(this);
   }
 
-  @experimental
+  @override
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    _runSubscriptions(node, _registry._forPrimaryConstructorBody);
+    node.visitChildren(this);
+  }
+
   @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     _runSubscriptions(node, _registry._forPrimaryConstructorDeclaration);
     node.visitChildren(this);
   }
 
-  @experimental
   @override
   void visitPrimaryConstructorName(PrimaryConstructorName node) {
     _runSubscriptions(node, _registry._forPrimaryConstructorName);
@@ -881,12 +881,14 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   void visitRepresentationConstructorName(RepresentationConstructorName node) {
     _runSubscriptions(node, _registry._forRepresentationConstructorName);
     node.visitChildren(this);
   }
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   void visitRepresentationDeclaration(RepresentationDeclaration node) {
     _runSubscriptions(node, _registry._forRepresentationDeclaration);
     node.visitChildren(this);
@@ -1462,6 +1464,9 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   final List<_Subscription<PrefixExpression>> _forPrefixExpression = [];
 
+  final List<_Subscription<PrimaryConstructorBody>> _forPrimaryConstructorBody =
+      [];
+
   final List<_Subscription<PrimaryConstructorDeclaration>>
   _forPrimaryConstructorDeclaration = [];
 
@@ -1490,9 +1495,11 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   final List<_Subscription<RelationalPattern>> _forRelationalPattern = [];
 
+  // ignore: deprecated_member_use_from_same_package
   final List<_Subscription<RepresentationConstructorName>>
   _forRepresentationConstructorName = [];
 
+  // ignore: deprecated_member_use_from_same_package
   final List<_Subscription<RepresentationDeclaration>>
   _forRepresentationDeclaration = [];
 
@@ -2357,6 +2364,16 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   }
 
   @override
+  void addPrimaryConstructorBody(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  ) {
+    _forPrimaryConstructorBody.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
   void addPrimaryConstructorDeclaration(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -2442,6 +2459,7 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   }
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   void addRepresentationConstructorName(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -2452,6 +2470,7 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   }
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   void addRepresentationDeclaration(
     AbstractAnalysisRule rule,
     AstVisitor visitor,

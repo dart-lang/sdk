@@ -53,7 +53,7 @@ class FixesPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       var (:time, :details) = producerTimeAndDetails(request);
       buf.writeln(
         '<tr>'
-        '<td class="pre right"><a href="/timing?id=${request.id}&kind=getFixes">'
+        '<td class="pre right"><a href="timing?id=${request.id}&kind=getFixes">'
         '${formatLatencyTiming(request.elapsedInMilliseconds, request.requestLatency)}'
         '</a></td>'
         '<td><abbr title="$details">${printMilliseconds(time)}</abbr></td>'

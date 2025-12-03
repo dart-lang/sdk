@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,7 +23,7 @@ class NullArgumentToNonNullCompleterCompleteTest
 import 'dart:async';
 void f() => Completer<int>().complete();
 ''',
-      [error(WarningCode.nullArgumentToNonNullType, 33, 27)],
+      [error(diag.nullArgumentToNonNullType, 33, 27)],
     );
   }
 
@@ -42,7 +42,7 @@ void f() {
 import 'dart:async';
 void f() => Completer<int>().complete(null);
 ''',
-      [error(WarningCode.nullArgumentToNonNullType, 59, 4)],
+      [error(diag.nullArgumentToNonNullType, 59, 4)],
     );
   }
 
@@ -63,7 +63,7 @@ void f() {
 import 'dart:async';
 void f(Null a) => Completer<int>().complete(a);
 ''',
-      [error(WarningCode.nullArgumentToNonNullType, 65, 1)],
+      [error(diag.nullArgumentToNonNullType, 65, 1)],
     );
   }
 }
@@ -75,7 +75,7 @@ class NullArgumentToNonNullFutureValueTest extends PubPackageResolutionTest {
       '''
 void foo() => Future<int>.value();
 ''',
-      [error(WarningCode.nullArgumentToNonNullType, 14, 19)],
+      [error(diag.nullArgumentToNonNullType, 14, 19)],
     );
   }
 
@@ -93,7 +93,7 @@ void f() {
       '''
 void foo() => Future<int>.value(null);
 ''',
-      [error(WarningCode.nullArgumentToNonNullType, 32, 4)],
+      [error(diag.nullArgumentToNonNullType, 32, 4)],
     );
   }
 
@@ -111,7 +111,7 @@ void f() {
       '''
 void foo(Null a) => Future<int>.value(a);
 ''',
-      [error(WarningCode.nullArgumentToNonNullType, 38, 1)],
+      [error(diag.nullArgumentToNonNullType, 38, 1)],
     );
   }
 }

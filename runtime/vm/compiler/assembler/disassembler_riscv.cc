@@ -84,6 +84,7 @@ class RISCVDisassembler {
   void DisassembleAMO16(Instr instr);
   void DisassembleAMO32(Instr instr);
   void DisassembleAMO64(Instr instr);
+  void DisassembleAMO128(Instr instr);
   void DisassembleLOADFP(Instr instr);
   void DisassembleSTOREFP(Instr instr);
   void DisassembleFMADD(Instr instr);
@@ -91,6 +92,9 @@ class RISCVDisassembler {
   void DisassembleFNMADD(Instr instr);
   void DisassembleFNMSUB(Instr instr);
   void DisassembleOPFP(Instr instr);
+  void DisassembleOPV(Instr instr);
+  void DisassembleOPV_CFG(Instr instr);
+  void DisassembleOPV_IVX(Instr instr);
 
   void UnknownInstruction(Instr instr);
   void UnknownInstruction(CInstr instr);
@@ -180,6 +184,9 @@ void RISCVDisassembler::DisassembleInstruction(Instr instr) {
       break;
     case OPFP:
       DisassembleOPFP(instr);
+      break;
+    case OPV:
+      DisassembleOPV(instr);
       break;
     default:
       if ((instr.encoding() == 0) ||
@@ -294,8 +301,16 @@ void RISCVDisassembler::DisassembleInstruction(CInstr instr) {
     case C_LUI:
       if (instr.rd() == SP) {
         Print("addi 'rd, 'rs1, 'i16imm", instr, RV_C);
-      } else {
+      } else if ((instr.rd() != ZR) && (instr.u_imm() != 0)) {
         Print("lui 'rd, 'uimm", instr, RV_C);
+      } else if (instr.encoding() == C_SSPUSH) {
+        Print("sspush ra", instr, RV_Zicfiss | RV_C);
+      } else if (instr.encoding() == C_SSPOPCHK) {
+        Print("sspopchk t0", instr, RV_Zicfiss | RV_C);
+      } else if ((instr.encoding() & C_MOP_MASK) == C_MOP) {
+        Print("c.mop.'mopn", instr, RV_Zcmop);
+      } else {
+        UnknownInstruction(instr);
       }
       break;
     case C_ADDI:
@@ -557,11 +572,29 @@ void RISCVDisassembler::DisassembleLOAD(Instr instr) {
 
 void RISCVDisassembler::DisassembleLOADFP(Instr instr) {
   switch (instr.funct3()) {
+    case H:
+      Print("flh 'frd, 'iimm('rs1)", instr, RV_Zfhmin);
+      break;
     case S:
       Print("flw 'frd, 'iimm('rs1)", instr, RV_F);
       break;
     case D:
       Print("fld 'frd, 'iimm('rs1)", instr, RV_D);
+      break;
+    case Q:
+      Print("flq 'frd, 'iimm('rs1)", instr, RV_Q);
+      break;
+    case E8:
+      Print("vle8.v 'vd, ('rs1)'vm", instr, RV_V);
+      break;
+    case E16:
+      Print("vle16.v 'vd, ('rs1)'vm", instr, RV_V);
+      break;
+    case E32:
+      Print("vle32.v 'vd, ('rs1)'vm", instr, RV_V);
+      break;
+    case E64:
+      Print("vle64.v 'vd, ('rs1)'vm", instr, RV_V);
       break;
     default:
       UnknownInstruction(instr);
@@ -591,11 +624,29 @@ void RISCVDisassembler::DisassembleSTORE(Instr instr) {
 
 void RISCVDisassembler::DisassembleSTOREFP(Instr instr) {
   switch (instr.funct3()) {
+    case H:
+      Print("fsh 'frs2, 'simm('rs1)", instr, RV_Zfhmin);
+      break;
     case S:
       Print("fsw 'frs2, 'simm('rs1)", instr, RV_F);
       break;
     case D:
       Print("fsd 'frs2, 'simm('rs1)", instr, RV_D);
+      break;
+    case Q:
+      Print("fsq 'frs2, 'simm('rs1)", instr, RV_Q);
+      break;
+    case E8:
+      Print("vse8.v 'vs3, ('rs1)'vm", instr, RV_V);
+      break;
+    case E16:
+      Print("vse16.v 'vs3, ('rs1)'vm", instr, RV_V);
+      break;
+    case E32:
+      Print("vse32.v 'vs3, ('rs1)'vm", instr, RV_V);
+      break;
+    case E64:
+      Print("vse64.v 'vs3, ('rs1)'vm", instr, RV_V);
       break;
     default:
       UnknownInstruction(instr);
@@ -1104,7 +1155,7 @@ void RISCVDisassembler::DisassembleMISCMEM(Instr instr) {
 
 void RISCVDisassembler::DisassembleSYSTEM(Instr instr) {
   switch (instr.funct3()) {
-    case 0:
+    case PRIV:
       switch (instr.funct12()) {
         case ECALL:
           if (instr.rs1() == ZR) {
@@ -1120,6 +1171,26 @@ void RISCVDisassembler::DisassembleSYSTEM(Instr instr) {
           UnknownInstruction(instr);
       }
       break;
+    case MOP: {
+      if ((instr.funct7() == SSPUSH) && (instr.rd() == ZR) &&
+          (instr.rs1() == ZR) &&
+          ((instr.rs2() == Register(1)) || (instr.rs2() == Register(5)))) {
+        Print("sspush 'rs2", instr, RV_Zicfiss);
+      } else if ((instr.funct12() == SSPOPCHK) && (instr.rd() == ZR) &&
+                 ((instr.rs1() == Register(1)) ||
+                  (instr.rs1() == Register(5)))) {
+        Print("sspopchk 'rs1", instr, RV_Zicfiss);
+      } else if ((instr.funct12() == SSRDP) && (instr.rs1() == ZR)) {
+        Print("ssrdp 'rd", instr, RV_Zicfiss);
+      } else if ((instr.funct12() & MOP_R_MASK) == MOP_R) {
+        Print("mop.r.'moprn 'rd, 'rs1", instr, RV_Zimop);
+      } else if ((instr.funct7() & MOP_RR_MASK) == MOP_RR) {
+        Print("mop.rr.'moprrn 'rd, 'rs1, 'rs2", instr, RV_Zimop);
+      } else {
+        UnknownInstruction(instr);
+      }
+      break;
+    }
     case CSRRW:
       if (instr.rd() == ZR) {
         Print("csrw 'csr, 'rs1", instr, RV_I);
@@ -1182,6 +1253,9 @@ void RISCVDisassembler::DisassembleAMO(Instr instr) {
       break;
     case WIDTH64:
       DisassembleAMO64(instr);
+      break;
+    case WIDTH128:
+      DisassembleAMO128(instr);
       break;
     default:
       UnknownInstruction(instr);
@@ -1309,6 +1383,12 @@ void RISCVDisassembler::DisassembleAMO32(Instr instr) {
     case STOREORDERED:
       Print("sw'order 'rs2, ('rs1)", instr, RV_Zalasr);
       break;
+    case SSAMOSWAP:
+      Print("ssamoswap.w'order 'rd, 'rs2, ('rs1)", instr, RV_Zicfiss);
+      break;
+    case AMOCAS:
+      Print("amocas.w'order 'rd, 'rs2, ('rs1)", instr, RV_Zacas);
+      break;
     default:
       UnknownInstruction(instr);
   }
@@ -1355,6 +1435,24 @@ void RISCVDisassembler::DisassembleAMO64(Instr instr) {
       break;
     case STOREORDERED:
       Print("sd'order 'rs2, ('rs1)", instr, RV_Zalasr);
+      break;
+    case SSAMOSWAP:
+      Print("ssamoswap.d'order 'rd, 'rs2, ('rs1)", instr, RV_Zicfiss);
+      break;
+#endif
+    case AMOCAS:
+      Print("amocas.d'order 'rd, 'rs2, ('rs1)", instr, RV_Zacas);
+      break;
+    default:
+      UnknownInstruction(instr);
+  }
+}
+
+void RISCVDisassembler::DisassembleAMO128(Instr instr) {
+  switch (instr.funct5()) {
+#if XLEN >= 64
+    case AMOCAS:
+      Print("amocas.q'order 'rd, 'rs2, ('rs1)", instr, RV_Zacas);
       break;
 #endif
     default:
@@ -1772,6 +1870,40 @@ void RISCVDisassembler::DisassembleOPFP(Instr instr) {
   }
 }
 
+void RISCVDisassembler::DisassembleOPV(Instr instr) {
+  switch (instr.funct3()) {
+    case OPCFG:
+      DisassembleOPV_CFG(instr);
+      break;
+    case OPIVX:
+      DisassembleOPV_IVX(instr);
+      break;
+    default:
+      UnknownInstruction(instr);
+  }
+}
+
+void RISCVDisassembler::DisassembleOPV_CFG(Instr instr) {
+  if ((instr.encoding() & 0x80000000) == 0) {
+    Print("vsetvli 'rd, 'rs1, 'vtypei", instr, RV_V);
+  } else {
+    // vsetivli
+    // vsetvl
+    UnknownInstruction(instr);
+  }
+}
+
+void RISCVDisassembler::DisassembleOPV_IVX(Instr instr) {
+  switch (instr.funct6()) {
+    case VMV:
+      Print("vmv.v.x 'vd, 'rs1'vm", instr, RV_V);
+      break;
+    default:
+      UnknownInstruction(instr);
+      break;
+  }
+}
+
 void RISCVDisassembler::UnknownInstruction(Instr instr) {
   if (instr.encoding() == 0) {
     Print("trap", instr, RV_I);
@@ -1917,6 +2049,12 @@ const char* RISCVDisassembler::PrintOption(const char* format, Instr instr) {
       if ((succ & HartEffects::kWrite) != 0) Printf("w");
     }
     return format + 8;
+  } else if (STRING_STARTS_WITH(format, "moprn")) {
+    Printf("%" Pd, DecodeMoprn(instr.encoding()));
+    return format + 5;
+  } else if (STRING_STARTS_WITH(format, "moprrn")) {
+    Printf("%" Pd, DecodeMoprrn(instr.encoding()));
+    return format + 6;
   } else if (STRING_STARTS_WITH(format, "frd")) {
     Printf("%s", fpu_reg_names[instr.frd()]);
     return format + 3;
@@ -1963,6 +2101,88 @@ const char* RISCVDisassembler::PrintOption(const char* format, Instr instr) {
         break;
     }
     return format + 4;
+  } else if (STRING_STARTS_WITH(format, "vd")) {
+    Printf("%s", vector_reg_names[instr.vd()]);
+    return format + 2;
+  } else if (STRING_STARTS_WITH(format, "vs1")) {
+    Printf("%s", vector_reg_names[instr.vs1()]);
+    return format + 3;
+  } else if (STRING_STARTS_WITH(format, "vs2")) {
+    Printf("%s", vector_reg_names[instr.vs2()]);
+    return format + 3;
+  } else if (STRING_STARTS_WITH(format, "vs3")) {
+    Printf("%s", vector_reg_names[instr.vs3()]);
+    return format + 3;
+  } else if (STRING_STARTS_WITH(format, "vtypei")) {
+    intx_t vtypei = instr.itype_imm();
+
+    // SEW
+    switch ((vtypei >> 3) & 0b111) {
+      case e8:
+        Printf("e8");
+        break;
+      case e16:
+        Printf("e16");
+        break;
+      case e32:
+        Printf("e32");
+        break;
+      case e64:
+        Printf("e64");
+        break;
+      default:
+        Printf("invalid sew");
+        break;
+    }
+
+    // LMUL
+    switch ((vtypei >> 0) & 0b111) {
+      case mf8:
+        Printf(", mf8");
+        break;
+      case mf4:
+        Printf(", mf4");
+        break;
+      case mf2:
+        Printf(", mf2");
+        break;
+      case m1:
+        Printf(", m1");
+        break;
+      case m2:
+        Printf(", m2");
+        break;
+      case m4:
+        Printf(", m4");
+        break;
+      case m8:
+        Printf(", m8");
+        break;
+      default:
+        Printf(", invalid lmul");
+        break;
+    }
+
+    // VTA
+    if ((vtypei & (1 << 6)) == 0) {
+      Printf(", tu");
+    } else {
+      Printf(", ta");
+    }
+
+    // VMA
+    if ((vtypei & (1 << 7)) == 0) {
+      Printf(", mu");
+    } else {
+      Printf(", ma");
+    }
+
+    return format + 6;
+  } else if (STRING_STARTS_WITH(format, "vm")) {
+    if (instr.vm()) {
+      Printf(", v0.t");
+    }
+    return format + 2;
   }
 
   FATAL("Bad format %s\n", format);
@@ -2052,6 +2272,9 @@ const char* RISCVDisassembler::PrintOption(const char* format, CInstr instr) {
   } else if (STRING_STARTS_WITH(format, "shamt")) {
     Printf("0x%x", instr.shamt());
     return format + 5;
+  } else if (STRING_STARTS_WITH(format, "mopn")) {
+    Printf("%" Pd, DecodeCMopn(instr.encoding()));
+    return format + 4;
   }
 
   FATAL("Bad format %s\n", format);

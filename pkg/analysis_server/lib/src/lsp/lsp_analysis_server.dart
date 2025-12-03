@@ -47,7 +47,6 @@ import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
-import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
@@ -398,15 +397,6 @@ class LspAnalysisServer extends AnalysisServer {
     var initializationOptions = _initializationOptions =
         LspInitializationOptions(rawInitializationOptions);
 
-    /// Enable virtual file support.
-    var supportsVirtualFiles =
-        _clientCapabilities
-            ?.supportsDartExperimentalTextDocumentContentProvider ??
-        false;
-    if (supportsVirtualFiles) {
-      uriConverter = ClientUriConverter.withVirtualFileSupport(pathContext);
-    }
-
     // Set whether to allow interleaved requests.
     if (initializationOptions.allowOverlappingHandlers
         case var allowOverlappingHandlers?) {
@@ -569,7 +559,7 @@ class LspAnalysisServer extends AnalysisServer {
         logException(errorMessage, error, stackTrace);
         completer?.setComplete();
       }
-    }, socketError);
+    }, unhandledZoneError);
   }
 
   /// Logs the error on the client using window/logMessage.
@@ -1001,8 +991,20 @@ class LspAnalysisServer extends AnalysisServer {
   /// There was an error related to the socket from which messages are being
   /// read.
   void socketError(Object error, StackTrace? stackTrace) {
-    // Don't send to instrumentation service; not an internal error.
+    // Don't send to instrumentation service; not an internal error. Probably
+    // caused by server shutdown or similar.
     sendServerErrorNotification('Socket error', error, stackTrace);
+  }
+
+  /// There was an unhandled async error in the zone used to execute the
+  /// message handler.
+  void unhandledZoneError(Object error, StackTrace? stackTrace) {
+    // Record to the instrumentation log so the stack trace is accessible. This
+    // is an unhandled exception that was not awaited and is almost certainly a
+    // bug.
+    instrumentationService.logException(error, stackTrace);
+
+    sendServerErrorNotification('Unhandled handler error', error, stackTrace);
   }
 
   /// Updates the active set of workspace folders.

@@ -83,7 +83,7 @@ static extension-type-member method ExtensionType1|constructor#(core::int i) →
   ;
 static extension-type-member synthetic method ExtensionType1|constructor#_#new#tearOff(core::int i) → self::ExtensionType1% /* erasure=core::int, declared=! */
   return self::ExtensionType1|constructor#(i);
-static extension-type-member method ExtensionType2|constructor#(core::int i) → self::ExtensionType2% /* erasure=core::int, declared=! */ {
+static extension-type-member const method ExtensionType2|constructor#(core::int i) → self::ExtensionType2% /* erasure=core::int, declared=! */ {
   lowered final self::ExtensionType2% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }

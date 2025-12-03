@@ -109,13 +109,75 @@ sealed class FieldEncoding {
   void registerSuperCall();
 }
 
-class RegularFieldEncoding implements FieldEncoding {
-  final FieldFragment _fragment;
-  final bool isEnumElement;
+mixin RegularFieldEncodingMixin implements FieldEncoding {
   Field? _field;
   DartType _type = const DynamicType();
 
-  RegularFieldEncoding(this._fragment, {required this.isEnumElement}) {}
+  void _buildOutlineNode(
+    SourceLibraryBuilder libraryBuilder,
+    NameScheme nameScheme,
+    PropertyReferences references, {
+    required String name,
+    required bool isAbstractOrExternal,
+    required List<TypeParameter>? classTypeParameters,
+    required bool hasSetter,
+    required bool isLate,
+    required bool isFinal,
+    required bool isConst,
+    required bool isCovariant,
+    required Uri fileUri,
+    required bool isEnumElement,
+    required int nameOffset,
+    required int endOffset,
+    required bool isExtensionMember,
+    required bool isExtensionTypeMember,
+    required bool isInstanceMember,
+  }) {
+    bool isImmutable = !hasSetter;
+    _field = isImmutable
+        ? new Field.immutable(
+            dummyName,
+            type: _type,
+            isFinal: isFinal,
+            isConst: isConst,
+            isLate: isLate,
+            fileUri: fileUri,
+            fieldReference: references.fieldReference,
+            getterReference: references.getterReference,
+            isEnumElement: isEnumElement,
+          )
+        : new Field.mutable(
+            dummyName,
+            type: _type,
+            isFinal: isFinal,
+            isLate: isLate,
+            fileUri: fileUri,
+            fieldReference: references.fieldReference,
+            getterReference: references.getterReference,
+            setterReference: references.setterReference,
+          );
+    nameScheme
+        .getFieldMemberName(FieldNameType.Field, name, isSynthesized: false)
+        .attachMember(_field!);
+    _field!
+      ..fileOffset = nameOffset
+      ..fileEndOffset = endOffset;
+    _field!..isCovariantByDeclaration = isCovariant;
+    if (isExtensionMember) {
+      _field!
+        ..isStatic = true
+        ..isExtensionMember = true;
+    } else if (isExtensionTypeMember) {
+      _field!
+        ..isStatic = !isInstanceMember
+        ..isExtensionTypeMember = true;
+    } else {
+      _field!
+        ..isStatic = !isInstanceMember
+        ..isExtensionMember = false;
+    }
+    _field!.isLate = isLate;
+  }
 
   @override
   DartType get type => _type;
@@ -144,80 +206,6 @@ class RegularFieldEncoding implements FieldEncoding {
         ..fileOffset = fileOffset
         ..isSynthetic = isSynthetic,
     ];
-  }
-
-  @override
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    NameScheme nameScheme,
-    PropertyReferences references, {
-    required bool isAbstractOrExternal,
-    required List<TypeParameter>? classTypeParameters,
-  }) {
-    bool isImmutable = _fragment.modifiers.isLate
-        ? (_fragment.modifiers.isFinal && _fragment.modifiers.hasInitializer)
-        : (_fragment.modifiers.isFinal || _fragment.modifiers.isConst);
-    _field = isImmutable
-        ? new Field.immutable(
-            dummyName,
-            type: _type,
-            isFinal: _fragment.modifiers.isFinal,
-            isConst: _fragment.modifiers.isConst,
-            isLate: _fragment.modifiers.isLate,
-            fileUri: _fragment.fileUri,
-            fieldReference: references.fieldReference,
-            getterReference: references.getterReference,
-            isEnumElement: isEnumElement,
-          )
-        : new Field.mutable(
-            dummyName,
-            type: _type,
-            isFinal: _fragment.modifiers.isFinal,
-            isLate: _fragment.modifiers.isLate,
-            fileUri: _fragment.fileUri,
-            fieldReference: references.fieldReference,
-            getterReference: references.getterReference,
-            setterReference: references.setterReference,
-          );
-    nameScheme
-        .getFieldMemberName(
-          FieldNameType.Field,
-          _fragment.name,
-          isSynthesized: false,
-        )
-        .attachMember(_field!);
-    _field!
-      ..fileOffset = _fragment.nameOffset
-      ..fileEndOffset = _fragment.endOffset;
-    _field!..isCovariantByDeclaration = _fragment.modifiers.isCovariant;
-    if (_fragment.builder.isExtensionMember) {
-      _field!
-        ..isStatic = true
-        ..isExtensionMember = true;
-    } else if (_fragment.builder.isExtensionTypeMember) {
-      _field!
-        ..isStatic = _fragment.builder.isStatic
-        ..isExtensionTypeMember = true;
-    } else {
-      bool isInstanceMember =
-          !_fragment.builder.isStatic && !_fragment.builder.isTopLevel;
-      _field!
-        ..isStatic = !isInstanceMember
-        ..isExtensionMember = false;
-    }
-    _field!.isLate = _fragment.modifiers.isLate;
-  }
-
-  @override
-  void registerMembers(BuildNodesCallback f) {
-    f(
-      member: _field!,
-      kind:
-          _fragment.builder.isExtensionMember ||
-              _fragment.builder.isExtensionTypeMember
-          ? BuiltMemberKind.ExtensionField
-          : BuiltMemberKind.Field,
-    );
   }
 
   @override
@@ -261,16 +249,6 @@ class RegularFieldEncoding implements FieldEncoding {
   ];
 
   @override
-  List<ClassMember> get localMembers => <ClassMember>[
-    new _FieldClassMember(_fragment.builder, _fragment, forSetter: false),
-  ];
-
-  @override
-  List<ClassMember> get localSetters => _fragment.hasSetter
-      ? [new _FieldClassMember(_fragment.builder, _fragment, forSetter: true)]
-      : const [];
-
-  @override
   void buildImplicitDefaultValue() {
     _field!.initializer = new NullLiteral()..parent = _field;
   }
@@ -294,6 +272,194 @@ class RegularFieldEncoding implements FieldEncoding {
   void registerSuperCall() {
     _field!.transformerFlags |= TransformerFlag.superCalls;
   }
+}
+
+class RegularFieldEncoding with RegularFieldEncodingMixin {
+  final FieldFragment _fragment;
+  final bool isEnumElement;
+
+  RegularFieldEncoding(this._fragment, {required this.isEnumElement}) {}
+
+  @override
+  void buildOutlineNode(
+    SourceLibraryBuilder libraryBuilder,
+    NameScheme nameScheme,
+    PropertyReferences references, {
+    required bool isAbstractOrExternal,
+    required List<TypeParameter>? classTypeParameters,
+  }) {
+    _buildOutlineNode(
+      libraryBuilder,
+      nameScheme,
+      references,
+      name: _fragment.name,
+      isAbstractOrExternal: isAbstractOrExternal,
+      classTypeParameters: classTypeParameters,
+      hasSetter: _fragment.hasSetter,
+      isLate: _fragment.modifiers.isLate,
+      isFinal: _fragment.modifiers.isFinal,
+      isConst: _fragment.modifiers.isConst,
+      isCovariant: _fragment.modifiers.isCovariant,
+      fileUri: _fragment.fileUri,
+      isEnumElement: isEnumElement,
+      nameOffset: _fragment.nameOffset,
+      endOffset: _fragment.endOffset,
+      isExtensionMember: _fragment.builder.isExtensionMember,
+      isExtensionTypeMember: _fragment.builder.isExtensionTypeMember,
+      isInstanceMember:
+          !_fragment.builder.isStatic && !_fragment.builder.isTopLevel,
+    );
+    // bool isImmutable = _fragment.modifiers.isLate
+    //     ? (_fragment.modifiers.isFinal && _fragment.modifiers.hasInitializer)
+    //     : (_fragment.modifiers.isFinal || _fragment.modifiers.isConst);
+    // _field = isImmutable
+    //     ? new Field.immutable(
+    //         dummyName,
+    //         type: _type,
+    //         isFinal: _fragment.modifiers.isFinal,
+    //         isConst: _fragment.modifiers.isConst,
+    //         isLate: _fragment.modifiers.isLate,
+    //         fileUri: _fragment.fileUri,
+    //         fieldReference: references.fieldReference,
+    //         getterReference: references.getterReference,
+    //         isEnumElement: isEnumElement,
+    //       )
+    //     : new Field.mutable(
+    //         dummyName,
+    //         type: _type,
+    //         isFinal: _fragment.modifiers.isFinal,
+    //         isLate: _fragment.modifiers.isLate,
+    //         fileUri: _fragment.fileUri,
+    //         fieldReference: references.fieldReference,
+    //         getterReference: references.getterReference,
+    //         setterReference: references.setterReference,
+    //       );
+    // nameScheme
+    //     .getFieldMemberName(
+    //       FieldNameType.Field,
+    //       _fragment.name,
+    //       isSynthesized: false,
+    //     )
+    //     .attachMember(_field!);
+    // _field!
+    //   ..fileOffset = _fragment.nameOffset
+    //   ..fileEndOffset = _fragment.endOffset;
+    // _field!..isCovariantByDeclaration = _fragment.modifiers.isCovariant;
+    // if (_fragment.builder.isExtensionMember) {
+    //   _field!
+    //     ..isStatic = true
+    //     ..isExtensionMember = true;
+    // } else if (_fragment.builder.isExtensionTypeMember) {
+    //   _field!
+    //     ..isStatic = _fragment.builder.isStatic
+    //     ..isExtensionTypeMember = true;
+    // } else {
+    //   bool isInstanceMember =
+    //       !_fragment.builder.isStatic && !_fragment.builder.isTopLevel;
+    //   _field!
+    //     ..isStatic = !isInstanceMember
+    //     ..isExtensionMember = false;
+    // }
+    // _field!.isLate = _fragment.modifiers.isLate;
+  }
+
+  @override
+  void registerMembers(BuildNodesCallback f) {
+    f(
+      member: _field!,
+      kind:
+          _fragment.builder.isExtensionMember ||
+              _fragment.builder.isExtensionTypeMember
+          ? BuiltMemberKind.ExtensionField
+          : BuiltMemberKind.Field,
+    );
+  }
+
+  @override
+  List<ClassMember> get localMembers => <ClassMember>[
+    new _FieldClassMember(
+      _fragment.builder,
+      uriOffset: _fragment.uriOffset,
+      isStatic: _fragment.modifiers.isStatic,
+      forSetter: false,
+    ),
+  ];
+
+  @override
+  List<ClassMember> get localSetters => _fragment.hasSetter
+      ? [
+          new _FieldClassMember(
+            _fragment.builder,
+            uriOffset: _fragment.uriOffset,
+            isStatic: _fragment.modifiers.isStatic,
+            forSetter: true,
+          ),
+        ]
+      : const [];
+}
+
+class PrimaryConstructorFieldEncoding with RegularFieldEncodingMixin {
+  final PrimaryConstructorFieldFragment _fragment;
+
+  PrimaryConstructorFieldEncoding(this._fragment);
+
+  @override
+  void buildOutlineNode(
+    SourceLibraryBuilder libraryBuilder,
+    NameScheme nameScheme,
+    PropertyReferences references, {
+    required bool isAbstractOrExternal,
+    required List<TypeParameter>? classTypeParameters,
+  }) {
+    _buildOutlineNode(
+      libraryBuilder,
+      nameScheme,
+      references,
+      name: _fragment.name,
+      isAbstractOrExternal: isAbstractOrExternal,
+      classTypeParameters: classTypeParameters,
+      hasSetter: _fragment.hasSetter,
+      isLate: _fragment.modifiers.isLate,
+      isFinal: _fragment.modifiers.isFinal,
+      isConst: _fragment.modifiers.isConst,
+      isCovariant: _fragment.modifiers.isCovariant,
+      fileUri: _fragment.fileUri,
+      isEnumElement: false,
+      nameOffset: _fragment.nameOffset,
+      endOffset: _fragment.nameOffset,
+      isExtensionMember: false,
+      isExtensionTypeMember: false,
+      isInstanceMember: true,
+    );
+  }
+
+  @override
+  void registerMembers(BuildNodesCallback f) {
+    f(member: _field!, kind: BuiltMemberKind.Field);
+  }
+
+  @override
+  List<ClassMember> get localMembers => <ClassMember>[
+    new _FieldClassMember(
+      _fragment.builder,
+      uriOffset: _fragment.uriOffset,
+      isStatic: _fragment.modifiers.isStatic,
+      forSetter: false,
+    ),
+  ];
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<ClassMember> get localSetters => _fragment.hasSetter
+      ? [
+          new _FieldClassMember(
+            _fragment.builder,
+            uriOffset: _fragment.uriOffset,
+            isStatic: _fragment.modifiers.isStatic,
+            forSetter: true,
+          ),
+        ]
+      : const [];
 }
 
 abstract class AbstractLateFieldEncoding implements FieldEncoding {

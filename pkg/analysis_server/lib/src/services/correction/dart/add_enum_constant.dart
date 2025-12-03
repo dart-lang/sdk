@@ -61,7 +61,7 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
     var targetSource = targetFragment.libraryFragment.source;
     var targetFile = targetSource.fullName;
 
-    var constructors = targetNode.members
+    var constructors = targetNode.body.members
         .whereType<ConstructorDeclaration>()
         .where((con) => con.factoryKeyword == null);
 
@@ -75,7 +75,7 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
     var constructorName = length == 1 ? constructors.first.name?.lexeme : null;
     var addition = constructorName != null ? '.$constructorName()' : '';
 
-    var lastConstant = targetNode.constants.lastOrNull;
+    var lastConstant = targetNode.body.constants.lastOrNull;
 
     await builder.addDartFileEdit(targetFile, (builder) {
       if (lastConstant != null) {
@@ -85,7 +85,7 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
           builder.write(addition);
         });
       } else {
-        builder.addInsertion(targetNode.rightBracket.offset, (builder) {
+        builder.addInsertion(targetNode.body.rightBracket.offset, (builder) {
           builder.write(_constantName);
           builder.write(addition);
         });

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,7 +26,7 @@ class B {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 58, 2)],
+      [error(diag.undefinedOperator, 58, 2)],
     );
   }
 
@@ -40,7 +40,7 @@ f(var a) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 44, 1)],
+      [error(diag.undefinedOperator, 44, 1)],
     );
   }
 
@@ -50,7 +50,7 @@ f(var a) {
 enum E { A }
 f(E e) => e + 1;
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 25, 1)],
+      [error(diag.undefinedOperator, 25, 1)],
     );
   }
 
@@ -67,7 +67,7 @@ f(var a) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 87, 1)],
+      [error(diag.undefinedOperator, 87, 1)],
     );
   }
 
@@ -77,7 +77,7 @@ f(var a) {
 mixin M {}
 f(M m) => m + 1;
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 23, 1)],
+      [error(diag.undefinedOperator, 23, 1)],
     );
   }
 
@@ -91,8 +91,8 @@ f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.undefinedOperator, 24, 3),
-        error(CompileTimeErrorCode.undefinedOperator, 24, 3),
+        error(diag.undefinedOperator, 24, 3),
+        error(diag.undefinedOperator, 24, 3),
       ],
     );
   }
@@ -118,7 +118,7 @@ f(E e) {
   e[0];
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 25, 3)],
+      [error(diag.undefinedOperator, 25, 3)],
     );
   }
 
@@ -151,7 +151,7 @@ f(A a) {
   a[0];
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 125, 3)],
+      [error(diag.undefinedOperator, 125, 3)],
     );
   }
 
@@ -164,7 +164,7 @@ f(A a) {
   a[0];
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 24, 3)],
+      [error(diag.undefinedOperator, 24, 3)],
     );
   }
 
@@ -176,7 +176,7 @@ f(M m) {
   m[0];
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 23, 3)],
+      [error(diag.undefinedOperator, 23, 3)],
     );
   }
 
@@ -187,7 +187,7 @@ f(Null x) {
   x[0];
 }
 ''',
-      [error(CompileTimeErrorCode.invalidUseOfNullValue, 15, 1)],
+      [error(diag.invalidUseOfNullValue, 15, 1)],
     );
   }
 
@@ -206,7 +206,7 @@ f(A a) {
   a[0] = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 125, 3)],
+      [error(diag.undefinedOperator, 125, 3)],
     );
   }
 
@@ -233,7 +233,7 @@ f(A a) {
   a[0] = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 24, 3)],
+      [error(diag.undefinedOperator, 24, 3)],
     );
   }
 
@@ -246,8 +246,8 @@ f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.undefinedOperator, 23, 3),
-        error(CompileTimeErrorCode.undefinedOperator, 23, 3),
+        error(diag.undefinedOperator, 23, 3),
+        error(diag.undefinedOperator, 23, 3),
       ],
     );
   }
@@ -260,7 +260,7 @@ f(A a) {
   a[0];
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 23, 3)],
+      [error(diag.undefinedOperator, 23, 3)],
     );
   }
 
@@ -272,7 +272,7 @@ f(A a) {
   a[0] = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 23, 3)],
+      [error(diag.undefinedOperator, 23, 3)],
     );
   }
 
@@ -284,7 +284,7 @@ m() {
   x - 3;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidUseOfNullValue, 20, 1)],
+      [error(diag.invalidUseOfNullValue, 20, 1)],
     );
   }
 
@@ -297,8 +297,8 @@ m() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 13, 1),
-        error(CompileTimeErrorCode.invalidUseOfNullValue, 20, 2),
+        error(diag.unusedLocalVariable, 13, 1),
+        error(diag.invalidUseOfNullValue, 20, 2),
       ],
     );
   }
@@ -311,7 +311,7 @@ m() {
   x + 3;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidUseOfNullValue, 20, 1)],
+      [error(diag.invalidUseOfNullValue, 20, 1)],
     );
   }
 
@@ -323,7 +323,7 @@ f(A a) {
   a + 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 24, 1)],
+      [error(diag.undefinedOperator, 24, 1)],
     );
   }
 
@@ -336,8 +336,8 @@ m() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 13, 1),
-        error(CompileTimeErrorCode.invalidUseOfNullValue, 20, 2),
+        error(diag.unusedLocalVariable, 13, 1),
+        error(diag.invalidUseOfNullValue, 20, 2),
       ],
     );
   }
@@ -351,8 +351,8 @@ m() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 13, 1),
-        error(CompileTimeErrorCode.invalidUseOfNullValue, 19, 2),
+        error(diag.unusedLocalVariable, 13, 1),
+        error(diag.invalidUseOfNullValue, 19, 2),
       ],
     );
   }
@@ -367,7 +367,7 @@ f(var a) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 43, 2)],
+      [error(diag.undefinedOperator, 43, 2)],
     );
   }
 
@@ -384,7 +384,7 @@ f(var a) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 101, 2)],
+      [error(diag.undefinedOperator, 101, 2)],
     );
   }
 
@@ -396,7 +396,7 @@ f(M m) {
   m++;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 23, 2)],
+      [error(diag.undefinedOperator, 23, 2)],
     );
   }
 
@@ -408,7 +408,7 @@ f(A a) {
   a++;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 23, 2)],
+      [error(diag.undefinedOperator, 23, 2)],
     );
   }
 
@@ -421,8 +421,8 @@ m() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 13, 1),
-        error(CompileTimeErrorCode.invalidUseOfNullValue, 19, 2),
+        error(diag.unusedLocalVariable, 13, 1),
+        error(diag.invalidUseOfNullValue, 19, 2),
       ],
     );
   }
@@ -436,8 +436,8 @@ m() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 13, 1),
-        error(CompileTimeErrorCode.invalidUseOfNullValue, 18, 2),
+        error(diag.unusedLocalVariable, 13, 1),
+        error(diag.invalidUseOfNullValue, 18, 2),
       ],
     );
   }
@@ -452,7 +452,7 @@ f(var a) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 42, 2)],
+      [error(diag.undefinedOperator, 42, 2)],
     );
   }
 
@@ -469,7 +469,7 @@ f(var a) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 100, 2)],
+      [error(diag.undefinedOperator, 100, 2)],
     );
   }
 
@@ -481,7 +481,7 @@ f(M m) {
   -m;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 22, 1)],
+      [error(diag.undefinedOperator, 22, 1)],
     );
   }
 
@@ -493,7 +493,7 @@ f(A a) {
   ++a;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 22, 2)],
+      [error(diag.undefinedOperator, 22, 2)],
     );
   }
 
@@ -506,8 +506,8 @@ m() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 13, 1),
-        error(CompileTimeErrorCode.invalidUseOfNullValue, 18, 2),
+        error(diag.unusedLocalVariable, 13, 1),
+        error(diag.invalidUseOfNullValue, 18, 2),
       ],
     );
   }
@@ -528,8 +528,8 @@ m() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 13, 1),
-        error(CompileTimeErrorCode.invalidUseOfNullValue, 18, 1),
+        error(diag.unusedLocalVariable, 13, 1),
+        error(diag.invalidUseOfNullValue, 18, 1),
       ],
     );
   }

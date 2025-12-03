@@ -11,6 +11,7 @@ export 'globals.dart' show GlobalsBuilder;
 export 'global.dart' show GlobalBuilder;
 export 'functions.dart' show FunctionsBuilder;
 export 'function.dart' show FunctionBuilder;
+export 'elements.dart' show ElementsBuilder;
 export 'memories.dart' show MemoriesBuilder;
 export 'module.dart' show ModuleBuilder;
 export 'tables.dart' show TablesBuilder;

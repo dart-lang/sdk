@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -64,7 +64,7 @@ void f() {
   g(() async => {1});
 }
 ''',
-      [error(WarningCode.unnecessarySetLiteral, 67, 3)],
+      [error(diag.unnecessarySetLiteral, 67, 3)],
     );
   }
 
@@ -103,7 +103,7 @@ void f() {
   g(() async => {1});
 }
 ''',
-      [error(WarningCode.unnecessarySetLiteral, 91, 3)],
+      [error(diag.unnecessarySetLiteral, 91, 3)],
     );
   }
 
@@ -126,7 +126,7 @@ void f() {
   g(() => {1, 2});
 }
 ''',
-      [error(WarningCode.unnecessarySetLiteral, 53, 6)],
+      [error(diag.unnecessarySetLiteral, 53, 6)],
     );
   }
 
@@ -139,7 +139,7 @@ void f(bool b) {
   g(() => {1, if (b) 2 else 3, 4, for (;;) 5},);
 }
 ''',
-      [error(WarningCode.unnecessarySetLiteral, 59, 35)],
+      [error(diag.unnecessarySetLiteral, 59, 35)],
     );
   }
 
@@ -162,7 +162,7 @@ void f() {
   g((value) => {if (value) print('')});
 }
 ''',
-      [error(WarningCode.unnecessarySetLiteral, 62, 22)],
+      [error(diag.unnecessarySetLiteral, 62, 22)],
     );
   }
 
@@ -175,7 +175,7 @@ void f() {
   g(() => {1});
 }
 ''',
-      [error(WarningCode.unnecessarySetLiteral, 53, 3)],
+      [error(diag.unnecessarySetLiteral, 53, 3)],
     );
   }
 
@@ -212,7 +212,7 @@ Future<Object> f() async => {1};
       r'''
 Future<void> f() async => {1};
 ''',
-      [error(WarningCode.unnecessarySetLiteral, 26, 3)],
+      [error(diag.unnecessarySetLiteral, 26, 3)],
     );
   }
 
@@ -239,7 +239,7 @@ import 'dart:async';
 
 FutureOr<void> f() async => {1};
 ''',
-      [error(WarningCode.unnecessarySetLiteral, 50, 3)],
+      [error(diag.unnecessarySetLiteral, 50, 3)],
     );
   }
 
@@ -254,7 +254,7 @@ void f() => {1: 2};
       r'''
 void f() => {1, 2};
 ''',
-      [error(WarningCode.unnecessarySetLiteral, 12, 6)],
+      [error(diag.unnecessarySetLiteral, 12, 6)],
     );
   }
 
@@ -263,7 +263,7 @@ void f() => {1, 2};
       r'''
 void f(bool b) => {1, if (b) 2 else 3, 4, for (;;) 5};
 ''',
-      [error(WarningCode.unnecessarySetLiteral, 18, 35)],
+      [error(diag.unnecessarySetLiteral, 18, 35)],
     );
   }
 
@@ -278,7 +278,7 @@ Object f() => {1};
       r'''
 void f(bool value) => {if (value) print('')};
 ''',
-      [error(WarningCode.unnecessarySetLiteral, 22, 22)],
+      [error(diag.unnecessarySetLiteral, 22, 22)],
     );
   }
 
@@ -287,7 +287,7 @@ void f(bool value) => {if (value) print('')};
       r'''
 void f() => {1};
 ''',
-      [error(WarningCode.unnecessarySetLiteral, 12, 3)],
+      [error(diag.unnecessarySetLiteral, 12, 3)],
     );
   }
 }

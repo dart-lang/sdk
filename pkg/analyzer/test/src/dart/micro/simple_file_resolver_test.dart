@@ -6,11 +6,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
-import 'package:analyzer/src/error/codes.dart';
-import 'package:linter/src/lint_codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -119,9 +118,9 @@ elementFactory
     package:dart.test/b.dart
     package:dart.test/c.dart
 unlinkedUnitStore
-  1: [k00, k01, k02, k06, k07, k08, k09, k10]
+  1: [k00, k01, k02, k06, k07, k08, k09, k10, k11]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11, k12]
 ''');
 
     // Without changes we refresh nothing.
@@ -201,9 +200,9 @@ elementFactory
     package:dart.test/b.dart
     package:dart.test/c.dart
 unlinkedUnitStore
-  1: [k00, k01, k02, k06, k07, k08, k09, k10]
+  1: [k00, k01, k02, k06, k07, k08, k09, k10, k11]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11, k12]
 ''');
 
     // We already know a.dart, refresh nothing.
@@ -283,9 +282,9 @@ elementFactory
     package:dart.test/b.dart
     package:dart.test/c.dart
 unlinkedUnitStore
-  1: [k00, k01, k02, k06, k07, k08, k09, k10]
+  1: [k00, k01, k02, k06, k07, k08, k09, k10, k11]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11, k12]
 ''');
 
     // Change a.dart, discard data for a.dart and c.dart, but not b.dart
@@ -331,9 +330,9 @@ elementFactory
   hasElement
     package:dart.test/b.dart
 unlinkedUnitStore
-  1: [k01, k06, k07, k08, k09, k10]
+  1: [k01, k06, k07, k08, k09, k10, k11]
 byteStore
-  1: [k01, k04, k06, k07, k08, k09, k10, k11]
+  1: [k01, k04, k06, k07, k08, k09, k10, k11, k12]
 ''');
 
     // Resolve, read again a.dart and c.dart
@@ -343,17 +342,17 @@ files
   /workspace/dart/test/lib/a.dart
     uri: package:dart.test/a.dart
     current
-      id: file_8
-      kind: library_8
+      id: file_9
+      kind: library_9
         libraryImports
           library_3 dart:core synthetic
-        fileKinds: library_8
+        fileKinds: library_9
         cycle_4
           dependencies: dart:core
-          libraries: library_8
+          libraries: library_9
           apiSignature_0
           users: cycle_5
-      referencingFiles: file_9
+      referencingFiles: file_10
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00, k00]
@@ -370,23 +369,23 @@ files
           libraries: library_1
           apiSignature_1
           users: cycle_5
-      referencingFiles: file_9
+      referencingFiles: file_10
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
   /workspace/dart/test/lib/c.dart
     uri: package:dart.test/c.dart
     current
-      id: file_9
-      kind: library_9
+      id: file_10
+      kind: library_10
         libraryImports
-          library_8
+          library_9
           library_1
           library_3 dart:core synthetic
-        fileKinds: library_9
+        fileKinds: library_10
         cycle_5
           dependencies: cycle_1 cycle_4 dart:core
-          libraries: library_9
+          libraries: library_10
           apiSignature_2
       unlinkedKey: k02
     unlinkedGet: []
@@ -413,9 +412,9 @@ elementFactory
     package:dart.test/b.dart
     package:dart.test/c.dart
 unlinkedUnitStore
-  1: [k00, k01, k02, k06, k07, k08, k09, k10]
+  1: [k00, k01, k02, k06, k07, k08, k09, k10, k11]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11, k12]
 ''');
   }
 
@@ -430,9 +429,7 @@ void f(A a, B b) {}
 ''');
 
     result = await resolveFile(b);
-    assertErrorsInResolvedUnit(result, [
-      error(CompileTimeErrorCode.undefinedClass, 29, 1),
-    ]);
+    assertErrorsInResolvedUnit(result, [error(diag.undefinedClass, 29, 1)]);
 
     newFile(a.path, r'''
 class A {}
@@ -460,9 +457,7 @@ void f(A a) {
 ''');
 
     result = await resolveFile(b);
-    assertErrorsInResolvedUnit(result, [
-      error(CompileTimeErrorCode.assignmentToFinal, 36, 3),
-    ]);
+    assertErrorsInResolvedUnit(result, [error(diag.assignmentToFinal, 36, 3)]);
 
     newFile(a.path, r'''
 class A {
@@ -487,9 +482,7 @@ part of 'a.dart';
 ''');
 
     result = await resolveFile(a);
-    assertErrorsInResolvedUnit(result, [
-      error(CompileTimeErrorCode.undefinedFunction, 24, 1),
-    ]);
+    assertErrorsInResolvedUnit(result, [error(diag.undefinedFunction, 24, 1)]);
 
     // Update a.dart, and notify the resolver. We need this to have at least
     // one change, so that we decided to rebuild the library summary.
@@ -578,9 +571,9 @@ elementFactory
   hasElement
     package:dart.test/a.dart
 unlinkedUnitStore
-  1: [k00, k01, k03, k04, k05, k06, k07]
+  1: [k00, k01, k03, k04, k05, k06, k07, k08]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08]
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09]
 ''');
 
     // Change b.dart, discard both b.dart and a.dart
@@ -601,9 +594,9 @@ libraryCycles
     put: [k02]
 elementFactory
 unlinkedUnitStore
-  1: [k03, k04, k05, k06, k07]
-byteStore
   1: [k03, k04, k05, k06, k07, k08]
+byteStore
+  1: [k03, k04, k05, k06, k07, k08, k09]
 ''');
 
     // Resolve, read a.dart and b.dart
@@ -613,16 +606,16 @@ files
   /workspace/dart/test/lib/a.dart
     uri: package:dart.test/a.dart
     current
-      id: file_7
-      kind: library_7
+      id: file_8
+      kind: library_8
         libraryImports
           library_2 dart:core synthetic
         partIncludes
-          partOfUriKnown_8
-        fileKinds: library_7 partOfUriKnown_8
+          partOfUriKnown_9
+        fileKinds: library_8 partOfUriKnown_9
         cycle_2
           dependencies: dart:core
-          libraries: library_7
+          libraries: library_8
           apiSignature_0
       unlinkedKey: k00
     unlinkedGet: []
@@ -630,11 +623,11 @@ files
   /workspace/dart/test/lib/b.dart
     uri: package:dart.test/b.dart
     current
-      id: file_8
-      kind: partOfUriKnown_8
-        uriFile: file_7
-        library: library_7
-      referencingFiles: file_7
+      id: file_9
+      kind: partOfUriKnown_9
+        uriFile: file_8
+        library: library_8
+      referencingFiles: file_8
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01, k01]
@@ -648,9 +641,9 @@ elementFactory
   hasElement
     package:dart.test/a.dart
 unlinkedUnitStore
-  1: [k00, k01, k03, k04, k05, k06, k07]
+  1: [k00, k01, k03, k04, k05, k06, k07, k08]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08]
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09]
 ''');
   }
 
@@ -736,9 +729,9 @@ elementFactory
     package:dart.test/a.dart
     package:dart.test/c.dart
 unlinkedUnitStore
-  1: [k00, k01, k02, k05, k06, k07, k08, k09]
+  1: [k00, k01, k02, k05, k06, k07, k08, k09, k10]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10]
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
 ''');
 
     // Should invalidate a.dart, b.dart, c.dart
@@ -766,9 +759,9 @@ libraryCycles
     put: [k04]
 elementFactory
 unlinkedUnitStore
-  1: [k05, k06, k07, k08, k09]
-byteStore
   1: [k05, k06, k07, k08, k09, k10]
+byteStore
+  1: [k05, k06, k07, k08, k09, k10, k11]
 ''');
 
     // Read again a.dart, b.dart, c.dart
@@ -778,45 +771,45 @@ files
   /workspace/dart/test/lib/a.dart
     uri: package:dart.test/a.dart
     current
-      id: file_8
-      kind: library_8
+      id: file_9
+      kind: library_9
         libraryImports
           library_3 dart:core synthetic
         partIncludes
-          partOfUriKnown_9
-        fileKinds: library_8 partOfUriKnown_9
+          partOfUriKnown_10
+        fileKinds: library_9 partOfUriKnown_10
         cycle_3
           dependencies: dart:core
-          libraries: library_8
+          libraries: library_9
           apiSignature_0
           users: cycle_4
-      referencingFiles: file_10
+      referencingFiles: file_11
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00, k00]
   /workspace/dart/test/lib/b.dart
     uri: package:dart.test/b.dart
     current
-      id: file_9
-      kind: partOfUriKnown_9
-        uriFile: file_8
-        library: library_8
-      referencingFiles: file_8
+      id: file_10
+      kind: partOfUriKnown_10
+        uriFile: file_9
+        library: library_9
+      referencingFiles: file_9
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01, k01]
   /workspace/dart/test/lib/c.dart
     uri: package:dart.test/c.dart
     current
-      id: file_10
-      kind: library_10
+      id: file_11
+      kind: library_11
         libraryImports
-          library_8
+          library_9
           library_3 dart:core synthetic
-        fileKinds: library_10
+        fileKinds: library_11
         cycle_4
           dependencies: cycle_3 dart:core
-          libraries: library_10
+          libraries: library_11
           apiSignature_1
       unlinkedKey: k02
     unlinkedGet: []
@@ -837,9 +830,9 @@ elementFactory
     package:dart.test/a.dart
     package:dart.test/c.dart
 unlinkedUnitStore
-  1: [k00, k01, k02, k05, k06, k07, k08, k09]
+  1: [k00, k01, k02, k05, k06, k07, k08, k09, k10]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10]
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
 ''');
   }
 }
@@ -858,7 +851,7 @@ analyzer:
 num a = 0;
 int b = a;
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 19, 1)],
+      [error(diag.invalidAssignment, 19, 1)],
     );
   }
 
@@ -874,7 +867,7 @@ analyzer:
 num a = 0;
 int b = a;
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 19, 1)],
+      [error(diag.invalidAssignment, 19, 1)],
     );
   }
 
@@ -898,7 +891,7 @@ analyzer:
 num a = 0;
 int b = a;
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 19, 1)],
+      [error(diag.invalidAssignment, 19, 1)],
     );
   }
 
@@ -922,7 +915,7 @@ analyzer:
 num a = 0;
 int b = a;
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 19, 1)],
+      [error(diag.invalidAssignment, 19, 1)],
     );
   }
 
@@ -940,7 +933,7 @@ main() {
   a;
 }
 ''',
-      [error(LinterLintCode.omitLocalVariableTypes, 11, 3)],
+      [error(diag.omitLocalVariableTypes, 11, 3)],
     );
   }
 
@@ -990,9 +983,9 @@ elementFactory
   hasElement
     package:dart.test/a.dart
 unlinkedUnitStore
-  1: [k00, k02, k03, k04, k05, k06]
+  1: [k00, k02, k03, k04, k05, k06, k07]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08]
 ''');
 
     fileResolver.dispose();
@@ -1011,7 +1004,7 @@ libraryCycles
     put: [k01]
 elementFactory
 unlinkedUnitStore
-  1: [k00, k02, k03, k04, k05, k06]
+  1: [k00, k02, k03, k04, k05, k06, k07]
 byteStore
 ''');
   }
@@ -1047,7 +1040,7 @@ String f(Map<int, String> a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.returnOfInvalidTypeFromFunction,
+          diag.returnOfInvalidTypeFromFunction,
           40,
           4,
           messageContains: ["'String'", 'String?'],
@@ -1372,7 +1365,7 @@ var foo = 0;
     expect(result.path, convertPath('/workspace/dart/test/lib/test.dart'));
     expect(result.uri.toString(), 'package:dart.test/test.dart');
     assertErrorsInList(result.diagnostics, [
-      error(CompileTimeErrorCode.undefinedIdentifier, 8, 1),
+      error(diag.undefinedIdentifier, 8, 1),
     ]);
     expect(result.lineInfo.lineStarts, [0, 11, 24]);
   }
@@ -1396,7 +1389,7 @@ var a = 42
 
     var errorsResult = await fileResolver.getErrors2(path: a.path);
     assertErrorsInList(errorsResult.diagnostics, [
-      error(ParserErrorCode.expectedToken, 8, 2),
+      error(diag.expectedToken, 8, 2),
     ]);
   }
 
@@ -1412,7 +1405,7 @@ var a = 42
 
     var errorsResult = await fileResolver.getErrors2(path: b.path);
     assertErrorsInList(errorsResult.diagnostics, [
-      error(ParserErrorCode.expectedToken, 26, 2),
+      error(diag.expectedToken, 26, 2),
     ]);
   }
 
@@ -1574,9 +1567,9 @@ elementFactory
   hasReader
     package:dart.test/a.dart
 unlinkedUnitStore
-  1: [k00, k02, k03, k04, k05, k06]
+  1: [k00, k02, k03, k04, k05, k06, k07]
 byteStore
-  1: [k00, k02, k03, k04, k05, k06]
+  1: [k00, k02, k03, k04, k05, k06, k07]
 ''');
 
     await fileResolver.getLibraryByUri2(uriStr: 'package:dart.test/a.dart');
@@ -1609,9 +1602,9 @@ elementFactory
   hasReader
     package:dart.test/a.dart
 unlinkedUnitStore
-  1: [k00, k02, k03, k04, k05, k06]
+  1: [k00, k02, k03, k04, k05, k06, k07]
 byteStore
-  1: [k00, k02, k03, k04, k05, k06]
+  1: [k00, k02, k03, k04, k05, k06, k07]
 ''');
 
     await fileResolver.linkLibraries2(path: b.path);
@@ -1634,26 +1627,26 @@ files
           libraries: library_0
           apiSignature_0
           users: cycle_2
-      referencingFiles: file_6
+      referencingFiles: file_7
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
   /workspace/dart/test/lib/b.dart
     uri: package:dart.test/b.dart
     current
-      id: file_6
-      kind: library_6
+      id: file_7
+      kind: library_7
         libraryImports
           library_0
           library_1 dart:core synthetic
-        fileKinds: library_6
+        fileKinds: library_7
         cycle_2
           dependencies: cycle_0 dart:core
-          libraries: library_6
+          libraries: library_7
           apiSignature_1
-      unlinkedKey: k07
+      unlinkedKey: k08
     unlinkedGet: []
-    unlinkedPut: [k07]
+    unlinkedPut: [k08]
 libraryCycles
   /workspace/dart/test/lib/a.dart
     current: cycle_0
@@ -1662,18 +1655,18 @@ libraryCycles
     put: [k01, k01]
   /workspace/dart/test/lib/b.dart
     current: cycle_2
-      key: k08
-    get: [k08]
-    put: [k08]
+      key: k09
+    get: [k09]
+    put: [k09]
 elementFactory
   hasElement
     package:dart.test/a.dart
   hasReader
     package:dart.test/b.dart
 unlinkedUnitStore
-  1: [k00, k02, k03, k04, k05, k06, k07]
+  1: [k00, k02, k03, k04, k05, k06, k07, k08]
 byteStore
-  1: [k00, k02, k03, k04, k05, k06, k07]
+  1: [k00, k02, k03, k04, k05, k06, k07, k08]
 ''');
 
     var b_library = await fileResolver.getLibraryByUri2(
@@ -1702,26 +1695,26 @@ files
           libraries: library_0
           apiSignature_0
           users: cycle_2
-      referencingFiles: file_6
+      referencingFiles: file_7
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
   /workspace/dart/test/lib/b.dart
     uri: package:dart.test/b.dart
     current
-      id: file_6
-      kind: library_6
+      id: file_7
+      kind: library_7
         libraryImports
           library_0
           library_1 dart:core synthetic
-        fileKinds: library_6
+        fileKinds: library_7
         cycle_2
           dependencies: cycle_0 dart:core
-          libraries: library_6
+          libraries: library_7
           apiSignature_1
-      unlinkedKey: k07
+      unlinkedKey: k08
     unlinkedGet: []
-    unlinkedPut: [k07]
+    unlinkedPut: [k08]
 libraryCycles
   /workspace/dart/test/lib/a.dart
     current: cycle_0
@@ -1730,9 +1723,9 @@ libraryCycles
     put: [k01, k01]
   /workspace/dart/test/lib/b.dart
     current: cycle_2
-      key: k08
-    get: [k08]
-    put: [k08]
+      key: k09
+    get: [k09]
+    put: [k09]
 elementFactory
   hasElement
     package:dart.test/a.dart
@@ -1740,9 +1733,9 @@ elementFactory
   hasReader
     package:dart.test/b.dart
 unlinkedUnitStore
-  1: [k00, k02, k03, k04, k05, k06, k07]
+  1: [k00, k02, k03, k04, k05, k06, k07, k08]
 byteStore
-  1: [k00, k02, k03, k04, k05, k06, k07]
+  1: [k00, k02, k03, k04, k05, k06, k07, k08]
 ''');
   }
 
@@ -1786,16 +1779,16 @@ elementFactory
   hasReader
     package:dart.test/test.dart
 unlinkedUnitStore
-  1: [k00, k02, k03, k04, k05, k06]
+  1: [k00, k02, k03, k04, k05, k06, k07]
 byteStore
-  1: [k00, k02, k03, k04, k05, k06]
+  1: [k00, k02, k03, k04, k05, k06, k07]
 ''');
 
     var result = await getTestErrors();
     expect(result.path, testFile.path);
     expect(result.uri.toString(), 'package:dart.test/test.dart');
     assertErrorsInList(result.diagnostics, [
-      error(CompileTimeErrorCode.undefinedIdentifier, 8, 1),
+      error(diag.undefinedIdentifier, 8, 1),
     ]);
     expect(result.lineInfo.lineStarts, [0, 11, 24]);
 
@@ -1829,9 +1822,9 @@ elementFactory
   hasReader
     package:dart.test/test.dart
 unlinkedUnitStore
-  1: [k00, k02, k03, k04, k05, k06]
+  1: [k00, k02, k03, k04, k05, k06, k07]
 byteStore
-  1: [k00, k02, k03, k04, k05, k06]
+  1: [k00, k02, k03, k04, k05, k06, k07]
 ''');
   }
 
@@ -1989,9 +1982,9 @@ elementFactory
     package:dart.aaa/b.dart
     package:dart.aaa/c.dart
 unlinkedUnitStore
-  1: [k00, k01, k02, k06, k07, k08, k09, k10]
+  1: [k00, k01, k02, k06, k07, k08, k09, k10, k11]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11, k12]
 ''');
 
     fileResolver.removeFilesNotNecessaryForAnalysisOf([c.path]);
@@ -2055,9 +2048,9 @@ elementFactory
     package:dart.aaa/a.dart
     package:dart.aaa/c.dart
 unlinkedUnitStore
-  1: [k00, k02, k06, k07, k08, k09, k10]
+  1: [k00, k02, k06, k07, k08, k09, k10, k11]
 byteStore
-  1: [k00, k02, k03, k05, k06, k07, k08, k09, k10, k11]
+  1: [k00, k02, k03, k05, k06, k07, k08, k09, k10, k11, k12]
 ''');
   }
 
@@ -2232,9 +2225,9 @@ elementFactory
     package:dart.aaa/e.dart
     package:dart.aaa/f.dart
 unlinkedUnitStore
-  1: [k00, k01, k02, k03, k04, k05, k12, k13, k14, k15, k16]
+  1: [k00, k01, k02, k03, k04, k05, k12, k13, k14, k15, k16, k17]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11, k12, k13, k14, k15, k16, k17]
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11, k12, k13, k14, k15, k16, k17, k18]
 ''');
 
     fileResolver.removeFilesNotNecessaryForAnalysisOf([d.path, f.path]);
@@ -2349,9 +2342,9 @@ elementFactory
     package:dart.aaa/d.dart
     package:dart.aaa/f.dart
 unlinkedUnitStore
-  1: [k00, k02, k03, k05, k12, k13, k14, k15, k16]
+  1: [k00, k02, k03, k05, k12, k13, k14, k15, k16, k17]
 byteStore
-  1: [k00, k02, k03, k05, k06, k08, k09, k11, k12, k13, k14, k15, k16, k17]
+  1: [k00, k02, k03, k05, k06, k08, k09, k11, k12, k13, k14, k15, k16, k17, k18]
 ''');
   }
 
@@ -2393,9 +2386,9 @@ elementFactory
   hasElement
     package:dart.aaa/a.dart
 unlinkedUnitStore
-  1: [k00, k02, k03, k04, k05, k06]
+  1: [k00, k02, k03, k04, k05, k06, k07]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08]
 ''');
   }
 
@@ -2583,7 +2576,7 @@ void f(MyEnum myEnum) {
       r'''
 import 'foo:bar';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 9)],
+      [error(diag.uriDoesNotExist, 7, 9)],
     );
   }
 
@@ -2592,7 +2585,7 @@ import 'foo:bar';
       r'''
 import 'dart:math';
 ''',
-      [error(WarningCode.unusedImport, 7, 11)],
+      [error(diag.unusedImport, 7, 11)],
     );
   }
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -28,7 +28,7 @@ class C {}
 @Deprecated.subclass()
 final class C {}
 ''',
-      [error(WarningCode.invalidDeprecatedSubclassAnnotation, 1, 19)],
+      [error(diag.invalidDeprecatedSubclassAnnotation, 1, 19)],
     );
   }
 
@@ -39,8 +39,8 @@ final class C {}
 class _C {}
 ''',
       [
-        error(WarningCode.invalidDeprecatedSubclassAnnotation, 1, 19),
-        error(WarningCode.unusedElement, 29, 2),
+        error(diag.invalidDeprecatedSubclassAnnotation, 1, 19),
+        error(diag.unusedElement, 29, 2),
       ],
     );
   }
@@ -51,7 +51,7 @@ class _C {}
 @Deprecated.subclass()
 sealed class C {}
 ''',
-      [error(WarningCode.invalidDeprecatedSubclassAnnotation, 1, 19)],
+      [error(diag.invalidDeprecatedSubclassAnnotation, 1, 19)],
     );
   }
 
@@ -61,7 +61,7 @@ sealed class C {}
 @Deprecated.subclass()
 enum E { one; }
 ''',
-      [error(WarningCode.invalidDeprecatedSubclassAnnotation, 1, 19)],
+      [error(diag.invalidDeprecatedSubclassAnnotation, 1, 19)],
     );
   }
 
@@ -78,7 +78,7 @@ mixin M {}
 @Deprecated.subclass()
 base mixin M {}
 ''',
-      [error(WarningCode.invalidDeprecatedSubclassAnnotation, 1, 19)],
+      [error(diag.invalidDeprecatedSubclassAnnotation, 1, 19)],
     );
   }
 
@@ -89,8 +89,8 @@ base mixin M {}
 mixin _M {}
 ''',
       [
-        error(WarningCode.invalidDeprecatedSubclassAnnotation, 1, 19),
-        error(WarningCode.unusedElement, 29, 2),
+        error(diag.invalidDeprecatedSubclassAnnotation, 1, 19),
+        error(diag.unusedElement, 29, 2),
       ],
     );
   }
@@ -110,7 +110,7 @@ final class C {}
 @Deprecated.subclass()
 typedef D = C;
 ''',
-      [error(WarningCode.invalidDeprecatedSubclassAnnotation, 18, 19)],
+      [error(diag.invalidDeprecatedSubclassAnnotation, 18, 19)],
     );
   }
 }

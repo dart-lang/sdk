@@ -219,10 +219,7 @@ class ServerCapabilitiesComputer {
         // Some of these fields are objects where bools could be sufficient to
         // allow for future expansion without potentially breaking clients by
         // changing the data type.
-        if (clientCapabilities
-            .supportsDartExperimentalTextDocumentContentProvider)
-          'dartTextDocumentContentProvider':
-              features.dartTextDocumentContentProvider.staticRegistration,
+
         // Indicate that we support the 'updateDiagnosticInformation'
         // custom request.
         'updateDiagnosticInformation': {},

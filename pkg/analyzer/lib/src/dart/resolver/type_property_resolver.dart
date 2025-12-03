@@ -17,7 +17,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving properties (getters, setters, or methods).
@@ -128,27 +128,24 @@ class TypePropertyResolver {
       DiagnosticCode errorCode;
       List<String> arguments;
       if (parentNode == null) {
-        errorCode = CompileTimeErrorCode.uncheckedInvocationOfNullableValue;
+        errorCode = diag.uncheckedInvocationOfNullableValue;
         arguments = [];
       } else {
         if (parentNode is CascadeExpression) {
           parentNode = parentNode.cascadeSections.first;
         }
         if (parentNode is BinaryExpression || parentNode is RelationalPattern) {
-          errorCode =
-              CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue;
+          errorCode = diag.uncheckedOperatorInvocationOfNullableValue;
           arguments = [name];
         } else if (parentNode is MethodInvocation ||
             parentNode is MethodReferenceExpression) {
-          errorCode =
-              CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue;
+          errorCode = diag.uncheckedMethodInvocationOfNullableValue;
           arguments = [name];
         } else if (parentNode is FunctionExpressionInvocation) {
-          errorCode = CompileTimeErrorCode.uncheckedInvocationOfNullableValue;
+          errorCode = diag.uncheckedInvocationOfNullableValue;
           arguments = [];
         } else {
-          errorCode =
-              CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue;
+          errorCode = diag.uncheckedPropertyAccessOfNullableValue;
           arguments = [name];
         }
       }
@@ -241,7 +238,7 @@ class TypePropertyResolver {
   }
 
   /// Resolve static invocations for [declaration].
-  ResolutionResult resolveForDeclaration({
+  ResolutionResult resolveStaticExtension({
     required InterfaceElement declaration,
     required String name,
     required bool hasRead,
@@ -256,21 +253,26 @@ class TypePropertyResolver {
     _nameErrorEntity = nameErrorEntity;
     _resetResult();
 
-    var getterName = Name(_definingLibrary.uri, _name);
-    var result = _extensionResolver.findExtensionForDeclaration(
+    var memberName = Name(_definingLibrary.uri, _name);
+    var result = _extensionResolver.findStaticExtension(
       declaration,
       _nameErrorEntity,
-      getterName,
+      memberName,
     );
-    // TODO(cstefantsova): Add the support for setters and methods.
+
     _reportedGetterError =
         result == const AmbiguousStaticExtensionResolutionError();
-    _reportedSetterError = false;
+    _reportedSetterError =
+        result == const AmbiguousStaticExtensionResolutionError();
 
-    if (result.member != null) {
-      // TODO(cstefantsova): Add the support for setters and methods.
+    if (result.member != null && hasRead) {
       _needsGetterError = false;
       _getterRequested = result.member;
+    }
+
+    if (result.member != null && hasWrite) {
+      _needsSetterError = false;
+      _setterRequested = result.member;
     }
 
     return _toResult();

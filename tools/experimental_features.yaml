@@ -176,8 +176,16 @@ features:
     #     print(C(message: 'feature enabled')._message);
     #   }
 
-  declaring-constructors:
+  primary-constructors:
     help: "Less verbose constructors."
+
+  anonymous-methods:
+    help: "Anonymous methods."
+    # TODO(eernst): Enable this when the feature is implemented.
+    # validation: |
+    #   void main() {
+    #     2.{ print('Anonymous methods enabled: $isEven'); };
+    #   }
 
 # Experiment flag only used for testing.
   test-experiment:

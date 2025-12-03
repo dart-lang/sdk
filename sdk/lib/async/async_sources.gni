@@ -21,4 +21,8 @@ async_sdk_sources = [
   "stream_transformers.dart",
   "timer.dart",
   "zone.dart",
+  "zone_api.dart",
+  "zone_delegate.dart",
+  "zone_root.dart",
+  "zone_specification.dart",
 ]

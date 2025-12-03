@@ -1,0 +1,15 @@
+NOTICE: Stream was rewritten by parser!
+
+class C {
+new ()= *synthetic*;42;
+new() = *synthetic*;42;
+C() = C;
+C.name() = C;
+}
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+new[KeywordToken] ([SyntheticBeginToken])[SyntheticToken]=[SimpleToken] [SyntheticStringToken];[SyntheticToken]42[StringToken];[SimpleToken]
+new[KeywordToken]([BeginToken])[SimpleToken] =[SimpleToken] [SyntheticStringToken];[SyntheticToken]42[StringToken];[SimpleToken]
+C[StringToken]([BeginToken])[SimpleToken] =[SimpleToken] C[StringToken];[SimpleToken]
+C[StringToken].[SimpleToken]name[StringToken]([BeginToken])[SimpleToken] =[SimpleToken] C[StringToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

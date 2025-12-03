@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -18,7 +18,7 @@ main() {
 class UnqualifiedReferenceToNonLocalStaticMemberTest
     extends PubPackageResolutionTest {
   DiagnosticCode get _errorCode =>
-      CompileTimeErrorCode.unqualifiedReferenceToNonLocalStaticMember;
+      diag.unqualifiedReferenceToNonLocalStaticMember;
 
   test_getter() async {
     await assertErrorsInCode(

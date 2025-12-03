@@ -251,7 +251,7 @@ static extension-type-member method E11|constructor#(core::bool foo) → self::E
   ;
 static extension-type-member synthetic method E11|constructor#_#new#tearOff(core::bool foo) → self::E11% /* erasure=core::bool, declared=! */
   return self::E11|constructor#(foo);
-static extension-type-member method E12|constructor#(has-declared-initializer core::bool foo) → self::E12% /* erasure=core::bool, declared=! */
+static extension-type-member method E12|constructor#(core::bool foo = false) → self::E12% /* erasure=core::bool, declared=! */
   ;
 static extension-type-member synthetic method E12|constructor#_#new#tearOff(has-declared-initializer core::bool foo) → self::E12% /* erasure=core::bool, declared=! */
   return self::E12|constructor#(foo);

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,7 +21,7 @@ class InvalidLanguageOverrideTest extends PubPackageResolutionTest {
 // @dart = 11.12
 int i = 0;
 ''',
-      [error(WarningCode.invalidLanguageVersionOverrideGreater, 0, 16)],
+      [error(diag.invalidLanguageVersionOverrideGreater, 0, 16)],
     );
   }
 
@@ -31,7 +31,7 @@ int i = 0;
 // @dart = 3.190
 int i = 0;
 ''',
-      [error(WarningCode.invalidLanguageVersionOverrideGreater, 0, 16)],
+      [error(diag.invalidLanguageVersionOverrideGreater, 0, 16)],
     );
   }
 
@@ -91,7 +91,7 @@ class A {
   void test() {}
 }
 ''',
-      [error(WarningCode.invalidLanguageVersionOverrideLocation, 15, 11)],
+      [error(diag.invalidLanguageVersionOverrideLocation, 15, 11)],
     );
   }
 
@@ -101,7 +101,7 @@ class A {
 class A {}
 // @dart = 3.0
 ''',
-      [error(WarningCode.invalidLanguageVersionOverrideLocation, 14, 11)],
+      [error(diag.invalidLanguageVersionOverrideLocation, 14, 11)],
     );
   }
 
@@ -111,7 +111,7 @@ class A {}
 class A {}
 // @dart = 3.0
 ''',
-      [error(WarningCode.invalidLanguageVersionOverrideLocation, 14, 11)],
+      [error(diag.invalidLanguageVersionOverrideLocation, 14, 11)],
     );
   }
 
@@ -122,7 +122,7 @@ import 'dart:core';
 // @dart = 3.0
 class A {}
 ''',
-      [error(WarningCode.invalidLanguageVersionOverrideLocation, 23, 11)],
+      [error(diag.invalidLanguageVersionOverrideLocation, 23, 11)],
     );
   }
 
@@ -150,7 +150,7 @@ class A {
 // dart = 2.0
 int i = 0;
 ''',
-      [error(WarningCode.invalidLanguageVersionOverrideAtSign, 0, 13)],
+      [error(diag.invalidLanguageVersionOverrideAtSign, 0, 13)],
     );
   }
 
@@ -160,7 +160,7 @@ int i = 0;
 // @dart 2.0
 int i = 0;
 ''',
-      [error(WarningCode.invalidLanguageVersionOverrideEquals, 0, 12)],
+      [error(diag.invalidLanguageVersionOverrideEquals, 0, 12)],
     );
   }
 
@@ -227,7 +227,7 @@ int i = 0;
 // @dart >= 2.0
 int i = 0;
 ''',
-      [error(WarningCode.invalidLanguageVersionOverrideEquals, 0, 15)],
+      [error(diag.invalidLanguageVersionOverrideEquals, 0, 15)],
     );
   }
 
@@ -246,7 +246,7 @@ int i = 0;
 // @Dart = 2.0
 int i = 0;
 ''',
-      [error(WarningCode.invalidLanguageVersionOverrideLowerCase, 16, 14)],
+      [error(diag.invalidLanguageVersionOverrideLowerCase, 16, 14)],
     );
   }
 
@@ -256,7 +256,7 @@ int i = 0;
 /// @dart = 2.0
 int i = 0;
 ''',
-      [error(WarningCode.invalidLanguageVersionOverrideTwoSlashes, 0, 15)],
+      [error(diag.invalidLanguageVersionOverrideTwoSlashes, 0, 15)],
     );
   }
 
@@ -266,7 +266,7 @@ int i = 0;
 // dart @ 2.0
 int i = 0;
 ''',
-      [error(WarningCode.invalidLanguageVersionOverrideAtSign, 0, 13)],
+      [error(diag.invalidLanguageVersionOverrideAtSign, 0, 13)],
     );
   }
 
@@ -276,7 +276,7 @@ int i = 0;
 // @Dart = 2.0
 int i = 0;
 ''',
-      [error(WarningCode.invalidLanguageVersionOverrideLowerCase, 0, 14)],
+      [error(diag.invalidLanguageVersionOverrideLowerCase, 0, 14)],
     );
   }
 
@@ -287,7 +287,7 @@ int i = 0;
 // @Dart = 2.0
 int i = 0;
 ''',
-      [error(WarningCode.invalidLanguageVersionOverrideLowerCase, 13, 14)],
+      [error(diag.invalidLanguageVersionOverrideLowerCase, 13, 14)],
     );
   }
 
@@ -299,7 +299,7 @@ int i = 0;
 // @Dart = 2.0
 int i = 0;
 ''',
-      [error(WarningCode.invalidLanguageVersionOverrideLowerCase, 14, 14)],
+      [error(diag.invalidLanguageVersionOverrideLowerCase, 14, 14)],
     );
   }
 
@@ -309,7 +309,7 @@ int i = 0;
 // @dart:2.0
 int i = 0;
 ''',
-      [error(WarningCode.invalidLanguageVersionOverrideEquals, 0, 12)],
+      [error(diag.invalidLanguageVersionOverrideEquals, 0, 12)],
     );
   }
 
@@ -319,7 +319,7 @@ int i = 0;
 // @dart : 2.0
 int i = 0;
 ''',
-      [error(WarningCode.invalidLanguageVersionOverrideEquals, 0, 14)],
+      [error(diag.invalidLanguageVersionOverrideEquals, 0, 14)],
     );
   }
 
@@ -329,13 +329,7 @@ int i = 0;
 // @dart = 2.0.0
 int i = 0;
 ''',
-      [
-        error(
-          WarningCode.invalidLanguageVersionOverrideTrailingCharacters,
-          0,
-          16,
-        ),
-      ],
+      [error(diag.invalidLanguageVersionOverrideTrailingCharacters, 0, 16)],
     );
   }
 
@@ -345,7 +339,7 @@ int i = 0;
 // @dart = 2
 int i = 0;
 ''',
-      [error(WarningCode.invalidLanguageVersionOverrideNumber, 0, 12)],
+      [error(diag.invalidLanguageVersionOverrideNumber, 0, 12)],
     );
   }
 
@@ -355,7 +349,7 @@ int i = 0;
 // @dart = v2.0
 int i = 0;
 ''',
-      [error(WarningCode.invalidLanguageVersionOverridePrefix, 0, 15)],
+      [error(diag.invalidLanguageVersionOverridePrefix, 0, 15)],
     );
   }
 }

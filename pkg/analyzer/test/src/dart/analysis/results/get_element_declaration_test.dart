@@ -28,7 +28,7 @@ class A {}
     var fragment = findNode.classDeclaration('A').declaredFragment!;
     var result = await getFragmentDeclaration(fragment);
     var node = result!.node as ClassDeclaration;
-    expect(node.name.lexeme, 'A');
+    expect(node.namePart.typeName.lexeme, 'A');
   }
 
   test_class_duplicate() async {
@@ -40,16 +40,22 @@ class A {} // 2
       var fragment = findNode.classDeclaration('A {} // 1').declaredFragment!;
       var result = await getFragmentDeclaration(fragment);
       var node = result!.node as ClassDeclaration;
-      expect(node.name.lexeme, 'A');
-      expect(node.name.offset, this.result.content.indexOf('A {} // 1'));
+      expect(node.namePart.typeName.lexeme, 'A');
+      expect(
+        node.namePart.typeName.offset,
+        this.result.content.indexOf('A {} // 1'),
+      );
     }
 
     {
       var fragment = findNode.classDeclaration('A {} // 2').declaredFragment!;
       var result = await getFragmentDeclaration(fragment);
       var node = result!.node as ClassDeclaration;
-      expect(node.name.lexeme, 'A');
-      expect(node.name.offset, this.result.content.indexOf('A {} // 2'));
+      expect(node.namePart.typeName.lexeme, 'A');
+      expect(
+        node.namePart.typeName.offset,
+        this.result.content.indexOf('A {} // 2'),
+      );
     }
   }
 
@@ -64,7 +70,7 @@ part 'a.dart';
     var fragment = findElement2.class_('A').firstFragment;
     var result = await getFragmentDeclaration(fragment);
     var node = result!.node as ClassDeclaration;
-    expect(node.name.lexeme, 'A');
+    expect(node.namePart.typeName.lexeme, 'A');
   }
 
   test_class_missingName() async {
@@ -147,7 +153,7 @@ class A {
       var result = await getFragmentDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name, isNull);
-      expect(node.returnType.offset, this.result.content.indexOf('A(); // 1'));
+      expect(node.typeName!.offset, this.result.content.indexOf('A(); // 1'));
     }
 
     {
@@ -155,7 +161,7 @@ class A {
       var result = await getFragmentDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name, isNull);
-      expect(node.returnType.offset, this.result.content.indexOf('A(); // 2'));
+      expect(node.typeName!.offset, this.result.content.indexOf('A(); // 2'));
     }
   }
 
@@ -163,10 +169,11 @@ class A {
     await resolveTestCode(r'''
 class A {}
 ''');
-    var element = findElement2.unnamedConstructor('A').firstFragment;
-    expect(element.isSynthetic, isTrue);
+    var element = findElement2.unnamedConstructor('A');
+    expect(element.isOriginImplicitDefault, isTrue);
 
-    var result = await getFragmentDeclaration(element);
+    var fragment = element.firstFragment;
+    var result = await getFragmentDeclaration(fragment);
     expect(result, isNull);
   }
 
@@ -177,7 +184,7 @@ enum MyEnum {a, b, c}
     var fragment = findElement2.enum_('MyEnum').firstFragment;
     var result = await getFragmentDeclaration(fragment);
     var node = result!.node as EnumDeclaration;
-    expect(node.name.lexeme, 'MyEnum');
+    expect(node.namePart.typeName.lexeme, 'MyEnum');
   }
 
   test_enum_constant() async {

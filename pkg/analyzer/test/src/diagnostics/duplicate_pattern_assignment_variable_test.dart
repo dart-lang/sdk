@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,7 +26,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.duplicatePatternAssignmentVariable,
+          diag.duplicatePatternAssignmentVariable,
           38,
           1,
           contextMessages: [message(testFile, 23, 1)],
@@ -46,7 +46,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.duplicatePatternAssignmentVariable,
+          diag.duplicatePatternAssignmentVariable,
           26,
           1,
           contextMessages: [message(testFile, 23, 1)],
@@ -66,13 +66,13 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.duplicatePatternAssignmentVariable,
+          diag.duplicatePatternAssignmentVariable,
           26,
           1,
           contextMessages: [message(testFile, 23, 1)],
         ),
         error(
-          CompileTimeErrorCode.duplicatePatternAssignmentVariable,
+          diag.duplicatePatternAssignmentVariable,
           29,
           1,
           contextMessages: [message(testFile, 23, 1)],

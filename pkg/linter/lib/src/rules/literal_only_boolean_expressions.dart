@@ -8,16 +8,18 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Boolean expression composed only with literals.';
 
 bool _onlyLiterals(Expression? rawExpression) {
   var expression = rawExpression?.unParenthesized;
   if (expression is Literal) {
-    return expression is! StringInterpolation ||
+    return expression is! StringLiteral ||
         expression.computeConstantValue() != null;
   }
   if (expression is PrefixExpression) {
@@ -30,6 +32,10 @@ bool _onlyLiterals(Expression? rawExpression) {
     return _onlyLiterals(expression.leftOperand) &&
         _onlyLiterals(expression.rightOperand);
   }
+  if (expression is IsExpression) {
+    if (expression.type.type?.element is TypeParameterElement) return false;
+    return _onlyLiterals(expression.expression);
+  }
   return false;
 }
 
@@ -41,8 +47,7 @@ class LiteralOnlyBooleanExpressions extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.literalOnlyBooleanExpressions;
+  DiagnosticCode get diagnosticCode => diag.literalOnlyBooleanExpressions;
 
   @override
   void registerNodeProcessors(

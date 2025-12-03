@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid calling `toString()` on `runtimeType`.';
 
@@ -21,7 +22,7 @@ class NoRuntimeTypeToString extends AnalysisRule {
     : super(name: LintNames.no_runtimeType_toString, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.noRuntimetypeTostring;
+  DiagnosticCode get diagnosticCode => diag.noRuntimetypeTostring;
 
   @override
   void registerNodeProcessors(

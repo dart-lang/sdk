@@ -20,16 +20,27 @@ class KernelBytecodeDisassembler : public AllStatic {
   // Return true if all instructions were successfully decoded, false otherwise.
   static void Disassemble(uword start,
                           uword end,
+                          uword base,
                           DisassemblyFormatter* formatter,
                           const Bytecode& bytecode);
 
   static void Disassemble(uword start,
                           uword end,
+                          uword base,
                           DisassemblyFormatter* formatter) {
-    Disassemble(start, end, formatter, Bytecode::Handle());
+    Disassemble(start, end, base, formatter, Bytecode::Handle());
+  }
+
+  static void Disassemble(uword start,
+                          uword end,
+                          DisassemblyFormatter* formatter,
+                          const Bytecode& bytecode) {
+    ASSERT(!bytecode.IsNull());
+    Disassemble(start, end, bytecode.PayloadStart(), formatter, bytecode);
   }
 
   static void Disassemble(uword start, uword end, const Bytecode& bytecode) {
+    ASSERT(!bytecode.IsNull());
 #if !defined(PRODUCT)
     DisassembleToStdout stdout_formatter;
     LogBlock lb;
@@ -39,14 +50,18 @@ class KernelBytecodeDisassembler : public AllStatic {
 #endif
   }
 
-  static void Disassemble(uword start, uword end) {
+  static void Disassemble(uword start, uword end, uword base) {
 #if !defined(PRODUCT)
     DisassembleToStdout stdout_formatter;
     LogBlock lb;
-    Disassemble(start, end, &stdout_formatter);
+    Disassemble(start, end, base, &stdout_formatter);
 #else
     UNREACHABLE();
 #endif
+  }
+
+  static void Disassemble(uword start, uword end) {
+    Disassemble(start, end, start);
   }
 
   static void Disassemble(uword start,
@@ -56,7 +71,7 @@ class KernelBytecodeDisassembler : public AllStatic {
 #if !defined(PRODUCT)
     DisassembleToMemory memory_formatter(buffer, buffer_size);
     LogBlock lb;
-    Disassemble(start, end, &memory_formatter);
+    Disassemble(start, end, start, &memory_formatter);
 #else
     UNREACHABLE();
 #endif

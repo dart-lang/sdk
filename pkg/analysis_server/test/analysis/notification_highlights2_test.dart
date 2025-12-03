@@ -1306,7 +1306,7 @@ extension type const A<T>.named(int it) implements num {}
 1:24 |T| TYPE_PARAMETER
 1:27 |named| CONSTRUCTOR
 1:33 |int| CLASS
-1:37 |it| INSTANCE_FIELD_DECLARATION
+1:37 |it| PARAMETER_DECLARATION
 1:41 |implements| BUILT_IN
 1:52 |num| CLASS
 ''');
@@ -2761,12 +2761,12 @@ class HighlightsTestSupport extends PubPackageAnalysisServerTest {
 
   @override
   void processNotification(Notification notification) {
-    if (notification.event == SERVER_NOTIFICATION_ERROR) {
+    if (notification.event == serverNotificationError) {
       print('SERVER_NOTIFICATION_ERROR: ${notification.toJson()}');
       _resultsAvailable.complete();
       fail('SERVER_NOTIFICATION_ERROR');
     }
-    if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
+    if (notification.event == analysisNotificationHighlights) {
       var params = AnalysisHighlightsParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -33,13 +33,7 @@ interface class Foo {}
 import 'foo.dart';
 class Bar extends Foo {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.interfaceClassExtendedOutsideOfLibrary,
-          37,
-          3,
-        ),
-      ],
+      [error(diag.interfaceClassExtendedOutsideOfLibrary, 37, 3)],
     );
   }
 
@@ -54,13 +48,7 @@ typedef FooTypedef = Foo;
 import 'foo.dart';
 class Bar extends FooTypedef {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.interfaceClassExtendedOutsideOfLibrary,
-          37,
-          10,
-        ),
-      ],
+      [error(diag.interfaceClassExtendedOutsideOfLibrary, 37, 10)],
     );
   }
 
@@ -75,13 +63,7 @@ import 'foo.dart';
 typedef FooTypedef = Foo;
 class Bar extends FooTypedef {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.interfaceClassExtendedOutsideOfLibrary,
-          63,
-          10,
-        ),
-      ],
+      [error(diag.interfaceClassExtendedOutsideOfLibrary, 63, 10)],
     );
   }
 

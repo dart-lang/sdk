@@ -261,6 +261,75 @@ void f(A a) {
 ''');
   }
 
+  Future<void> test_futureIterable_int() async {
+    await resolveTestCode('''
+class C {
+  Future<void> f() async {
+    for (int v in await test) {
+      print(v);
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Future<Iterable<int>> get test => null;
+
+  Future<void> f() async {
+    for (int v in await test) {
+      print(v);
+    }
+  }
+}
+''');
+  }
+
+  Future<void> test_futureIterable_nullableObject() async {
+    await resolveTestCode('''
+class C {
+  Future<void> f() async {
+    for (var v in await test) {
+      print(v);
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Future<Iterable<Object?>> get test => null;
+
+  Future<void> f() async {
+    for (var v in await test) {
+      print(v);
+    }
+  }
+}
+''');
+  }
+
+  Future<void> test_futureStream_NullableObject() async {
+    await resolveTestCode('''
+class C {
+  Future<void> f() async {
+    await for (var v in await test) {
+      print(v);
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Future<Stream<Object?>> get test => null;
+
+  Future<void> f() async {
+    await for (var v in await test) {
+      print(v);
+    }
+  }
+}
+''');
+  }
+
   Future<void> test_guard() async {
     await resolveTestCode('''
 class A {
@@ -463,6 +532,101 @@ extension E on String {
 ''');
     // This should be handled by create extension member fixes
     await assertNoFix();
+  }
+
+  Future<void> test_iterable_identifier() async {
+    await resolveTestCode('''
+class C {
+  void f() {
+    int v;
+    for (v in test) {
+      print(v);
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Iterable<int> get test => null;
+
+  void f() {
+    int v;
+    for (v in test) {
+      print(v);
+    }
+  }
+}
+''');
+  }
+
+  Future<void> test_iterable_int() async {
+    await resolveTestCode('''
+class C {
+  void f() {
+    for (int v in test) {
+      print(v);
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Iterable<int> get test => null;
+
+  void f() {
+    for (int v in test) {
+      print(v);
+    }
+  }
+}
+''');
+  }
+
+  Future<void> test_iterable_nullableObject() async {
+    await resolveTestCode('''
+class C {
+  void f() {
+    for (var v in test) {
+      print(v);
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Iterable<Object?> get test => null;
+
+  void f() {
+    for (var v in test) {
+      print(v);
+    }
+  }
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/62093')
+  Future<void> test_iterable_recordDestructuring() async {
+    await resolveTestCode('''
+class C {
+  void f() {
+    for (var (int v) in test) {
+      print(v);
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Iterable<(int,)> get test => null;
+
+  void f() {
+    for (var (int v) in test) {
+      print(v);
+    }
+  }
+}
+''');
   }
 
   Future<void> test_location_afterLastGetter() async {
@@ -999,6 +1163,52 @@ void f(String s) {
 ''');
     // This should be handled by create extension member fixes
     await assertNoFix();
+  }
+
+  Future<void> test_stream_int() async {
+    await resolveTestCode('''
+class C {
+  Future<void> f() async {
+    await for (int v in test) {
+      print(v);
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Stream<int> get test => null;
+
+  Future<void> f() async {
+    await for (int v in test) {
+      print(v);
+    }
+  }
+}
+''');
+  }
+
+  Future<void> test_stream_nullableObject() async {
+    await resolveTestCode('''
+class C {
+  Future<void> f() async {
+    await for (var v in test) {
+      print(v);
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Stream<Object?> get test => null;
+
+  Future<void> f() async {
+    await for (var v in test) {
+      print(v);
+    }
+  }
+}
+''');
   }
 
   Future<void> test_unqualified_instance_asInvocationArgument() async {

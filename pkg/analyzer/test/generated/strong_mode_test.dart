@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -255,8 +255,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     void test() { var x = f(3); }
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 32, 4),
-      error(WarningCode.unusedLocalVariable, 60, 1),
+      error(diag.returnOfInvalidTypeFromFunction, 32, 4),
+      error(diag.unusedLocalVariable, 60, 1),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -278,8 +278,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     void test() { var x = f(3); }
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 32, 4),
-      error(WarningCode.unusedLocalVariable, 60, 1),
+      error(diag.returnOfInvalidTypeFromFunction, 32, 4),
+      error(diag.unusedLocalVariable, 60, 1),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -298,8 +298,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       void test() { var x = f(3); }
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 46, 4),
-      error(WarningCode.unusedLocalVariable, 76, 1),
+      error(diag.returnOfInvalidTypeFromFunction, 46, 4),
+      error(diag.unusedLocalVariable, 76, 1),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -323,8 +323,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     void test() { var x = f(3)(4); }
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 82, 4),
-      error(WarningCode.unusedLocalVariable, 110, 1),
+      error(diag.returnOfInvalidTypeFromFunction, 82, 4),
+      error(diag.unusedLocalVariable, 110, 1),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -349,10 +349,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     void test() { var x = f(3)(null); }
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 82, 4),
-      error(WarningCode.unusedLocalVariable, 110, 1),
-      error(CompileTimeErrorCode.couldNotInfer, 114, 1),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 119, 4),
+      error(diag.returnOfInvalidTypeFromFunction, 82, 4),
+      error(diag.unusedLocalVariable, 110, 1),
+      error(diag.couldNotInfer, 114, 1),
+      error(diag.argumentTypeNotAssignable, 119, 4),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -391,7 +391,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       class B<S> extends A<S> {}
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.noGenerativeConstructorsInSuperclass, 92, 4),
+      error(diag.noGenerativeConstructorsInSuperclass, 92, 4),
     ]);
 
     ConstructorDeclaration constructor = AstFinder.getConstructorInClass(
@@ -447,7 +447,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         return (x) => x;
      }
    ''';
-    await assertErrorsInCode(code, [error(WarningCode.unusedElement, 144, 5)]);
+    await assertErrorsInCode(code, [error(diag.unusedElement, 144, 5)]);
 
     Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
 
@@ -489,15 +489,15 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
      }
    ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 91, 2),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 107, 4),
-      error(WarningCode.unusedLocalVariable, 144, 2),
-      error(WarningCode.unusedLocalVariable, 200, 2),
-      error(CompileTimeErrorCode.invalidAssignment, 205, 21),
-      error(WarningCode.unusedLocalVariable, 259, 2),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 275, 1),
-      error(WarningCode.unusedLocalVariable, 309, 2),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 330, 1),
+      error(diag.unusedLocalVariable, 91, 2),
+      error(diag.returnOfInvalidTypeFromClosure, 107, 4),
+      error(diag.unusedLocalVariable, 144, 2),
+      error(diag.unusedLocalVariable, 200, 2),
+      error(diag.invalidAssignment, 205, 21),
+      error(diag.unusedLocalVariable, 259, 2),
+      error(diag.returnOfInvalidTypeFromClosure, 275, 1),
+      error(diag.unusedLocalVariable, 309, 2),
+      error(diag.returnOfInvalidTypeFromClosure, 330, 1),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -531,14 +531,14 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
      }
    ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 91, 2),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 103, 4),
-      error(WarningCode.unusedLocalVariable, 140, 2),
-      error(WarningCode.unusedLocalVariable, 192, 2),
-      error(WarningCode.unusedLocalVariable, 244, 2),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 256, 1),
-      error(WarningCode.unusedLocalVariable, 290, 2),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 307, 1),
+      error(diag.unusedLocalVariable, 91, 2),
+      error(diag.returnOfInvalidTypeFromClosure, 103, 4),
+      error(diag.unusedLocalVariable, 140, 2),
+      error(diag.unusedLocalVariable, 192, 2),
+      error(diag.unusedLocalVariable, 244, 2),
+      error(diag.returnOfInvalidTypeFromClosure, 256, 1),
+      error(diag.unusedLocalVariable, 290, 2),
+      error(diag.returnOfInvalidTypeFromClosure, 307, 1),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -571,13 +571,13 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
      }
    ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 97, 2),
-      error(WarningCode.unusedLocalVariable, 161, 2),
-      error(CompileTimeErrorCode.invalidAssignment, 166, 23),
-      error(WarningCode.unusedLocalVariable, 228, 2),
-      error(CompileTimeErrorCode.listElementTypeNotAssignable, 245, 1),
-      error(WarningCode.unusedLocalVariable, 286, 2),
-      error(CompileTimeErrorCode.listElementTypeNotAssignable, 308, 1),
+      error(diag.unusedLocalVariable, 97, 2),
+      error(diag.unusedLocalVariable, 161, 2),
+      error(diag.invalidAssignment, 166, 23),
+      error(diag.unusedLocalVariable, 228, 2),
+      error(diag.listElementTypeNotAssignable, 245, 1),
+      error(diag.unusedLocalVariable, 286, 2),
+      error(diag.listElementTypeNotAssignable, 308, 1),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -619,11 +619,11 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
      }
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 66, 4),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 154, 4),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 262, 21),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 337, 1),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 397, 1),
+      error(diag.argumentTypeNotAssignable, 66, 4),
+      error(diag.returnOfInvalidTypeFromClosure, 154, 4),
+      error(diag.argumentTypeNotAssignable, 262, 21),
+      error(diag.returnOfInvalidTypeFromClosure, 337, 1),
+      error(diag.returnOfInvalidTypeFromClosure, 397, 1),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -659,10 +659,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
      }
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 66, 4),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 150, 4),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 318, 1),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 374, 1),
+      error(diag.argumentTypeNotAssignable, 66, 4),
+      error(diag.returnOfInvalidTypeFromClosure, 150, 4),
+      error(diag.returnOfInvalidTypeFromClosure, 318, 1),
+      error(diag.returnOfInvalidTypeFromClosure, 374, 1),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -696,11 +696,11 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
      }
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 49, 4),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 101, 4),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 153, 21),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 200, 1),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 232, 1),
+      error(diag.argumentTypeNotAssignable, 49, 4),
+      error(diag.returnOfInvalidTypeFromClosure, 101, 4),
+      error(diag.argumentTypeNotAssignable, 153, 21),
+      error(diag.returnOfInvalidTypeFromClosure, 200, 1),
+      error(diag.returnOfInvalidTypeFromClosure, 232, 1),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -734,10 +734,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
      }
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 49, 4),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 97, 4),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 181, 1),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 209, 1),
+      error(diag.argumentTypeNotAssignable, 49, 4),
+      error(diag.returnOfInvalidTypeFromClosure, 97, 4),
+      error(diag.returnOfInvalidTypeFromClosure, 181, 1),
+      error(diag.returnOfInvalidTypeFromClosure, 209, 1),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -773,11 +773,11 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
      }
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 66, 4),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 152, 4),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 256, 21),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 329, 1),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 387, 1),
+      error(diag.argumentTypeNotAssignable, 66, 4),
+      error(diag.returnOfInvalidTypeFromClosure, 152, 4),
+      error(diag.argumentTypeNotAssignable, 256, 21),
+      error(diag.returnOfInvalidTypeFromClosure, 329, 1),
+      error(diag.returnOfInvalidTypeFromClosure, 387, 1),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -813,10 +813,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
      }
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 66, 4),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 148, 4),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 310, 1),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 364, 1),
+      error(diag.argumentTypeNotAssignable, 66, 4),
+      error(diag.returnOfInvalidTypeFromClosure, 148, 4),
+      error(diag.returnOfInvalidTypeFromClosure, 310, 1),
+      error(diag.returnOfInvalidTypeFromClosure, 364, 1),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -850,13 +850,13 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
      }
    ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 88, 2),
-      error(WarningCode.unusedLocalVariable, 131, 2),
-      error(WarningCode.unusedLocalVariable, 179, 2),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 191, 1),
-      error(WarningCode.unusedLocalVariable, 225, 2),
-      error(CompileTimeErrorCode.undefinedMethod, 239, 11),
-      error(WarningCode.unusedLocalVariable, 288, 2),
+      error(diag.unusedLocalVariable, 88, 2),
+      error(diag.unusedLocalVariable, 131, 2),
+      error(diag.unusedLocalVariable, 179, 2),
+      error(diag.returnOfInvalidTypeFromClosure, 191, 1),
+      error(diag.unusedLocalVariable, 225, 2),
+      error(diag.undefinedMethod, 239, 11),
+      error(diag.unusedLocalVariable, 288, 2),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -936,9 +936,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     Future<T> mk<T>(FutureOr<T> x) => null;
     Future<int> test() => mk(new Future<int>.value(42));
     ''',
-      expectedDiagnostics: [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 60, 4),
-      ],
+      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 60, 4)],
     );
     _isFutureOfInt(invoke.staticType as InterfaceType);
   }
@@ -951,9 +949,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     Future<T> mk<T>(FutureOr<T> x) => null;
     FutureOr<int> test() => mk(new Future<int>.value(42));
     ''',
-      expectedDiagnostics: [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 60, 4),
-      ],
+      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 60, 4)],
     );
     _isFutureOfInt(invoke.staticType as InterfaceType);
   }
@@ -966,9 +962,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     Future<T> mk<T>(FutureOr<T> x) => null;
     Future<int> test() => mk(new Future.value(42));
     ''',
-      expectedDiagnostics: [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 60, 4),
-      ],
+      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 60, 4)],
     );
     _isFutureOfInt(invoke.staticType as InterfaceType);
     _isFutureOfInt(
@@ -984,9 +978,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     Future<T> mk<T>(FutureOr<T> x) => null;
     FutureOr<int> test() => mk(new Future.value(42));
     ''',
-      expectedDiagnostics: [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 60, 4),
-      ],
+      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 60, 4)],
     );
     _isFutureOfInt(invoke.staticType as InterfaceType);
     _isFutureOfInt(
@@ -1002,9 +994,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     Future<T> mk<T>(FutureOr<T> x) => null;
     FutureOr<num> test() => mk(new Future.value(42));
     ''',
-      expectedDiagnostics: [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 60, 4),
-      ],
+      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 60, 4)],
     );
     _isFutureOf([_isNum])(invoke.staticType as InterfaceType);
     _isFutureOf([_isNum])(
@@ -1020,9 +1010,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     T mk<T>(T x) => null;
     FutureOr<int> test() => mk(new Future.value(42));
     ''',
-      expectedDiagnostics: [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 42, 4),
-      ],
+      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 42, 4)],
     );
     _isFutureOrOfInt(invoke.staticType as InterfaceType);
     _isFutureOfInt(
@@ -1038,9 +1026,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       T mk<T extends Future<int>>(T x) => null;
       FutureOr<int> test() => mk(new Future.value(42));
     ''',
-      expectedDiagnostics: [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 64, 4),
-      ],
+      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 64, 4)],
     );
     _isFutureOfInt(invoke.staticType as InterfaceType);
     _isFutureOfInt(
@@ -1058,9 +1044,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     T mk<T extends Future<Object>>(T x) => null;
     FutureOr<int> test() => mk(new Future.value(42));
     ''',
-      expectedDiagnostics: [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 65, 4),
-      ],
+      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 65, 4)],
     );
     _isFutureOfInt(invoke.staticType as InterfaceType);
     _isFutureOfInt(
@@ -1076,9 +1060,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     List<T> mk<T>(T x) => null;
     FutureOr<List<int>> test() => mk(3);
     ''',
-      expectedDiagnostics: [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 48, 4),
-      ],
+      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 48, 4)],
     );
     _isListOf(_isInt)(invoke.staticType as InterfaceType);
     _isInt(invoke.argumentList.arguments[0].typeOrThrow);
@@ -1098,7 +1080,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       r'''
     dynamic test(FutureOr<int> x) => x.abs();
     ''',
-      expectedDiagnostics: [error(CompileTimeErrorCode.undefinedMethod, 61, 3)],
+      expectedDiagnostics: [error(diag.undefinedMethod, 61, 3)],
     );
     _isInvalidType(invoke.typeOrThrow);
   }
@@ -1109,7 +1091,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       r'''
     dynamic test(FutureOr<int> x) => x.then((x) => x);
     ''',
-      expectedDiagnostics: [error(CompileTimeErrorCode.undefinedMethod, 61, 4)],
+      expectedDiagnostics: [error(diag.undefinedMethod, 61, 4)],
     );
     _isInvalidType(invoke.typeOrThrow);
   }
@@ -1121,11 +1103,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     dynamic test(FutureOr<dynamic> x) => x.abs();
     ''',
       expectedDiagnostics: [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          65,
-          3,
-        ),
+        error(diag.uncheckedMethodInvocationOfNullableValue, 65, 3),
       ],
     );
     _isInvalidType(invoke.typeOrThrow);
@@ -1139,7 +1117,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     test() => f.then((int x) {});
     ''',
       expectedDiagnostics: [
-        error(CompileTimeErrorCode.notInitializedNonNullableVariable, 79, 1),
+        error(diag.notInitializedNonNullableVariable, 79, 1),
       ],
     );
     _isFunction2Of(_isInt, _isNull)(
@@ -1156,7 +1134,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     test() => f.then((int x) {return;});
     ''',
       expectedDiagnostics: [
-        error(CompileTimeErrorCode.notInitializedNonNullableVariable, 79, 1),
+        error(diag.notInitializedNonNullableVariable, 79, 1),
       ],
     );
     _isFunction2Of(_isInt, _isNull)(
@@ -1173,7 +1151,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     test() => f.then((int x) {return null;});
     ''',
       expectedDiagnostics: [
-        error(CompileTimeErrorCode.notInitializedNonNullableVariable, 79, 1),
+        error(diag.notInitializedNonNullableVariable, 79, 1),
       ],
     );
     _isFunction2Of(_isInt, _isNull)(
@@ -1190,9 +1168,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     Future<T> mk<T>(FutureOr<T> x) => null;
     dynamic test() => mk(new Future<int>.value(42));
     ''',
-      expectedDiagnostics: [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 60, 4),
-      ],
+      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 60, 4)],
     );
     _isFutureOfInt(invoke.staticType as InterfaceType);
   }
@@ -1205,9 +1181,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     T mk<T extends Future<Object>>(FutureOr<T> x) => null;
     dynamic test() => mk(new Future<int>.value(42));
     ''',
-      expectedDiagnostics: [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 75, 4),
-      ],
+      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 75, 4)],
     );
     _isFutureOfInt(invoke.staticType as InterfaceType);
   }
@@ -1220,7 +1194,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     test() => f.then<Null>((int x) {});
     ''',
       expectedDiagnostics: [
-        error(CompileTimeErrorCode.notInitializedNonNullableVariable, 79, 1),
+        error(diag.notInitializedNonNullableVariable, 79, 1),
       ],
     );
     _isFunction2Of(_isInt, _isNull)(
@@ -1237,7 +1211,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     test() => f.then<Null>((int x) {return;});
     ''',
       expectedDiagnostics: [
-        error(CompileTimeErrorCode.notInitializedNonNullableVariable, 79, 1),
+        error(diag.notInitializedNonNullableVariable, 79, 1),
       ],
     );
     _isFunction2Of(_isInt, _isNull)(
@@ -1254,7 +1228,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     test() => f.then<Null>((int x) { return null;});
     ''',
       expectedDiagnostics: [
-        error(CompileTimeErrorCode.notInitializedNonNullableVariable, 79, 1),
+        error(diag.notInitializedNonNullableVariable, 79, 1),
       ],
     );
     _isFunction2Of(_isInt, _isNull)(
@@ -1291,11 +1265,11 @@ void test() {
 }
    ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 205, 2),
-      error(WarningCode.unusedLocalVariable, 241, 2),
-      error(WarningCode.unusedLocalVariable, 284, 2),
-      error(WarningCode.unusedLocalVariable, 318, 2),
-      error(WarningCode.unusedLocalVariable, 347, 2),
+      error(diag.unusedLocalVariable, 205, 2),
+      error(diag.unusedLocalVariable, 241, 2),
+      error(diag.unusedLocalVariable, 284, 2),
+      error(diag.unusedLocalVariable, 318, 2),
+      error(diag.unusedLocalVariable, 347, 2),
     ]);
 
     Element elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
@@ -1326,9 +1300,7 @@ void test() {
           var c = new C((items) {});
         }
         ''';
-    await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 225, 1),
-    ]);
+    await assertErrorsInCode(code, [error(diag.unusedLocalVariable, 225, 1)]);
 
     DartType cType = findElement2.localVar('c').type;
     Element elementC = AstFinder.getClass(unit, "C").declaredFragment!.element;
@@ -1347,9 +1319,9 @@ test() {
 }
  ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 84, 1),
-      error(CompileTimeErrorCode.couldNotInfer, 88, 1),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 90, 15),
+      error(diag.unusedLocalVariable, 84, 1),
+      error(diag.couldNotInfer, 88, 1),
+      error(diag.argumentTypeNotAssignable, 90, 15),
     ]);
     _expectInferenceError(r'''
 Couldn't infer type parameter 'T'.
@@ -1374,10 +1346,10 @@ test() {
 }
  ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 95, 1),
-      error(CompileTimeErrorCode.couldNotInfer, 99, 1),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 101, 15),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 118, 16),
+      error(diag.unusedLocalVariable, 95, 1),
+      error(diag.couldNotInfer, 99, 1),
+      error(diag.argumentTypeNotAssignable, 101, 15),
+      error(diag.argumentTypeNotAssignable, 118, 16),
     ]);
     _expectInferenceError(r'''
 Couldn't infer type parameter 'T'.
@@ -1403,9 +1375,9 @@ test() {
 }
  ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 56, 5),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 68, 1),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 71, 1),
+      error(diag.unusedLocalVariable, 56, 5),
+      error(diag.argumentTypeNotAssignable, 68, 1),
+      error(diag.argumentTypeNotAssignable, 71, 1),
     ]);
 
     var node = findNode.singleMethodInvocation;
@@ -1448,8 +1420,8 @@ test() {
 }
  ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 94, 5),
-      error(CompileTimeErrorCode.invalidAssignment, 102, 3),
+      error(diag.unusedLocalVariable, 94, 5),
+      error(diag.invalidAssignment, 102, 3),
     ]);
   }
 
@@ -1465,8 +1437,8 @@ test(Iterable values) {
 }
  ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 158, 1),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 195, 3),
+      error(diag.unusedLocalVariable, 158, 1),
+      error(diag.argumentTypeNotAssignable, 195, 3),
     ]);
   }
 
@@ -1481,9 +1453,9 @@ test() {
 }
  ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 80, 1),
-      error(CompileTimeErrorCode.couldNotInfer, 84, 1),
-      error(CompileTimeErrorCode.invalidAssignment, 84, 5),
+      error(diag.unusedLocalVariable, 80, 1),
+      error(diag.couldNotInfer, 84, 1),
+      error(diag.invalidAssignment, 84, 5),
     ]);
     _expectInferenceError(r'''
 Couldn't infer type parameter 'T'.
@@ -1505,8 +1477,8 @@ Consider passing explicit type argument(s) to the generic.
      }
    ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 33, 1),
-      error(WarningCode.unusedLocalVariable, 58, 2),
+      error(diag.unusedLocalVariable, 33, 1),
+      error(diag.unusedLocalVariable, 58, 2),
     ]);
   }
 
@@ -1522,7 +1494,7 @@ void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) targ
   _mergeSort(target, compare, list);
 }
     ''';
-    await assertErrorsInCode(code, [error(WarningCode.unusedElement, 5, 10)]);
+    await assertErrorsInCode(code, [error(diag.unusedElement, 5, 10)]);
 
     var node = findNode.singleBlock;
     assertResolvedNodeText(node, r'''
@@ -1689,7 +1661,7 @@ void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
   _mergeSort(target, compare, list);
 }
     ''';
-    await assertErrorsInCode(code, [error(WarningCode.unusedElement, 5, 10)]);
+    await assertErrorsInCode(code, [error(diag.unusedElement, 5, 10)]);
 
     var node = findNode.singleBlock;
     assertResolvedNodeText(node, r'''
@@ -1856,7 +1828,7 @@ void _mergeSort<T>(T list, int compare(T a, T b), T target) {
   _mergeSort(target, compare, list);
 }
     ''';
-    await assertErrorsInCode(code, [error(WarningCode.unusedElement, 5, 10)]);
+    await assertErrorsInCode(code, [error(diag.unusedElement, 5, 10)]);
 
     var node = findNode.singleBlock;
     assertResolvedNodeText(node, r'''
@@ -2021,8 +1993,8 @@ test() {
 }
     ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 22, 4),
-      error(WarningCode.unusedLocalVariable, 61, 1),
+      error(diag.argumentTypeNotAssignable, 22, 4),
+      error(diag.unusedLocalVariable, 61, 1),
     ]);
 
     var node = findNode.methodInvocation('f(g)');
@@ -2066,7 +2038,7 @@ abstract class Iterable<T> {
 num test(Iterable values) => values.fold(values.first as num, max);
     ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 190, 3),
+      error(diag.argumentTypeNotAssignable, 190, 3),
     ]);
 
     var node = findNode.methodInvocation('values.fold');
@@ -2268,83 +2240,75 @@ MethodInvocation
         A<int, String> a5 = new F.named(3, "hello", "hello");
       }''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 547, 4),
-      error(CompileTimeErrorCode.missingDefaultValueForParameter, 633, 1),
-      error(CompileTimeErrorCode.missingDefaultValueForParameter, 644, 1),
-      error(
-        CompileTimeErrorCode.missingDefaultValueForParameterPositional,
-        692,
-        1,
-      ),
-      error(
-        CompileTimeErrorCode.missingDefaultValueForParameterPositional,
-        697,
-        1,
-      ),
-      error(WarningCode.unusedLocalVariable, 769, 2),
-      error(WarningCode.unusedLocalVariable, 816, 2),
-      error(WarningCode.unusedLocalVariable, 869, 2),
-      error(WarningCode.unusedLocalVariable, 929, 2),
-      error(WarningCode.unusedLocalVariable, 995, 2),
-      error(CompileTimeErrorCode.invalidAssignment, 1000, 31),
-      error(WarningCode.unusedLocalVariable, 1056, 2),
-      error(CompileTimeErrorCode.invalidAssignment, 1061, 41),
-      error(WarningCode.unusedLocalVariable, 1157, 2),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 1168, 7),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 1177, 1),
-      error(WarningCode.unusedLocalVariable, 1204, 2),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 1221, 7),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 1230, 1),
-      error(WarningCode.unusedLocalVariable, 1286, 2),
-      error(WarningCode.unusedLocalVariable, 1333, 2),
-      error(WarningCode.unusedLocalVariable, 1386, 2),
-      error(WarningCode.unusedLocalVariable, 1446, 2),
-      error(WarningCode.unusedLocalVariable, 1512, 2),
-      error(CompileTimeErrorCode.invalidAssignment, 1517, 34),
-      error(WarningCode.unusedLocalVariable, 1576, 2),
-      error(CompileTimeErrorCode.invalidAssignment, 1581, 41),
-      error(WarningCode.unusedLocalVariable, 1676, 2),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 1687, 1),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 1690, 7),
-      error(WarningCode.unusedLocalVariable, 1723, 2),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 1740, 1),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 1743, 7),
-      error(WarningCode.unusedLocalVariable, 1802, 2),
-      error(WarningCode.unusedLocalVariable, 1837, 2),
-      error(WarningCode.unusedLocalVariable, 1878, 2),
-      error(WarningCode.unusedLocalVariable, 1918, 2),
-      error(WarningCode.unusedLocalVariable, 1964, 2),
-      error(CompileTimeErrorCode.invalidAssignment, 1969, 17),
-      error(WarningCode.unusedLocalVariable, 2008, 2),
-      error(CompileTimeErrorCode.invalidAssignment, 2013, 23),
-      error(WarningCode.unusedLocalVariable, 2087, 2),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 2098, 7),
-      error(WarningCode.unusedLocalVariable, 2128, 2),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 2145, 7),
-      error(WarningCode.unusedLocalVariable, 2208, 2),
-      error(WarningCode.unusedLocalVariable, 2252, 2),
-      error(WarningCode.unusedLocalVariable, 2302, 2),
-      error(WarningCode.unusedLocalVariable, 2359, 2),
-      error(WarningCode.unusedLocalVariable, 2425, 2),
-      error(CompileTimeErrorCode.invalidAssignment, 2430, 28),
-      error(WarningCode.unusedLocalVariable, 2483, 2),
-      error(CompileTimeErrorCode.invalidAssignment, 2488, 38),
-      error(WarningCode.unusedLocalVariable, 2580, 2),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 2591, 1),
-      error(WarningCode.unusedLocalVariable, 2618, 2),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 2635, 1),
-      error(WarningCode.unusedLocalVariable, 2694, 2),
-      error(WarningCode.unusedLocalVariable, 2805, 2),
-      error(WarningCode.unusedLocalVariable, 2874, 2),
-      error(CompileTimeErrorCode.listElementTypeNotAssignable, 2901, 7),
-      error(CompileTimeErrorCode.listElementTypeNotAssignable, 2914, 1),
-      error(WarningCode.unusedLocalVariable, 2942, 2),
-      error(WarningCode.unusedLocalVariable, 3007, 2),
-      error(WarningCode.unusedLocalVariable, 3060, 2),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 3089, 7),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 3098, 1),
-      error(WarningCode.unusedLocalVariable, 3125, 2),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 3154, 7),
+      error(diag.argumentTypeNotAssignable, 547, 4),
+      error(diag.missingDefaultValueForParameter, 633, 1),
+      error(diag.missingDefaultValueForParameter, 644, 1),
+      error(diag.missingDefaultValueForParameterPositional, 692, 1),
+      error(diag.missingDefaultValueForParameterPositional, 697, 1),
+      error(diag.unusedLocalVariable, 769, 2),
+      error(diag.unusedLocalVariable, 816, 2),
+      error(diag.unusedLocalVariable, 869, 2),
+      error(diag.unusedLocalVariable, 929, 2),
+      error(diag.unusedLocalVariable, 995, 2),
+      error(diag.invalidAssignment, 1000, 31),
+      error(diag.unusedLocalVariable, 1056, 2),
+      error(diag.invalidAssignment, 1061, 41),
+      error(diag.unusedLocalVariable, 1157, 2),
+      error(diag.argumentTypeNotAssignable, 1168, 7),
+      error(diag.argumentTypeNotAssignable, 1177, 1),
+      error(diag.unusedLocalVariable, 1204, 2),
+      error(diag.argumentTypeNotAssignable, 1221, 7),
+      error(diag.argumentTypeNotAssignable, 1230, 1),
+      error(diag.unusedLocalVariable, 1286, 2),
+      error(diag.unusedLocalVariable, 1333, 2),
+      error(diag.unusedLocalVariable, 1386, 2),
+      error(diag.unusedLocalVariable, 1446, 2),
+      error(diag.unusedLocalVariable, 1512, 2),
+      error(diag.invalidAssignment, 1517, 34),
+      error(diag.unusedLocalVariable, 1576, 2),
+      error(diag.invalidAssignment, 1581, 41),
+      error(diag.unusedLocalVariable, 1676, 2),
+      error(diag.argumentTypeNotAssignable, 1687, 1),
+      error(diag.argumentTypeNotAssignable, 1690, 7),
+      error(diag.unusedLocalVariable, 1723, 2),
+      error(diag.argumentTypeNotAssignable, 1740, 1),
+      error(diag.argumentTypeNotAssignable, 1743, 7),
+      error(diag.unusedLocalVariable, 1802, 2),
+      error(diag.unusedLocalVariable, 1837, 2),
+      error(diag.unusedLocalVariable, 1878, 2),
+      error(diag.unusedLocalVariable, 1918, 2),
+      error(diag.unusedLocalVariable, 1964, 2),
+      error(diag.invalidAssignment, 1969, 17),
+      error(diag.unusedLocalVariable, 2008, 2),
+      error(diag.invalidAssignment, 2013, 23),
+      error(diag.unusedLocalVariable, 2087, 2),
+      error(diag.argumentTypeNotAssignable, 2098, 7),
+      error(diag.unusedLocalVariable, 2128, 2),
+      error(diag.argumentTypeNotAssignable, 2145, 7),
+      error(diag.unusedLocalVariable, 2208, 2),
+      error(diag.unusedLocalVariable, 2252, 2),
+      error(diag.unusedLocalVariable, 2302, 2),
+      error(diag.unusedLocalVariable, 2359, 2),
+      error(diag.unusedLocalVariable, 2425, 2),
+      error(diag.invalidAssignment, 2430, 28),
+      error(diag.unusedLocalVariable, 2483, 2),
+      error(diag.invalidAssignment, 2488, 38),
+      error(diag.unusedLocalVariable, 2580, 2),
+      error(diag.argumentTypeNotAssignable, 2591, 1),
+      error(diag.unusedLocalVariable, 2618, 2),
+      error(diag.argumentTypeNotAssignable, 2635, 1),
+      error(diag.unusedLocalVariable, 2694, 2),
+      error(diag.unusedLocalVariable, 2805, 2),
+      error(diag.unusedLocalVariable, 2874, 2),
+      error(diag.listElementTypeNotAssignable, 2901, 7),
+      error(diag.listElementTypeNotAssignable, 2914, 1),
+      error(diag.unusedLocalVariable, 2942, 2),
+      error(diag.unusedLocalVariable, 3007, 2),
+      error(diag.unusedLocalVariable, 3060, 2),
+      error(diag.argumentTypeNotAssignable, 3089, 7),
+      error(diag.argumentTypeNotAssignable, 3098, 1),
+      error(diag.unusedLocalVariable, 3125, 2),
+      error(diag.argumentTypeNotAssignable, 3154, 7),
     ]);
 
     Expression rhs(AstNode stmt) {
@@ -2502,11 +2466,11 @@ MethodInvocation
      }
    ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 45, 2),
-      error(WarningCode.unusedLocalVariable, 84, 2),
-      error(WarningCode.unusedLocalVariable, 124, 2),
-      error(WarningCode.unusedLocalVariable, 165, 2),
-      error(CompileTimeErrorCode.listElementTypeNotAssignable, 172, 7),
+      error(diag.unusedLocalVariable, 45, 2),
+      error(diag.unusedLocalVariable, 84, 2),
+      error(diag.unusedLocalVariable, 124, 2),
+      error(diag.unusedLocalVariable, 165, 2),
+      error(diag.listElementTypeNotAssignable, 172, 7),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -2551,12 +2515,12 @@ MethodInvocation
      }
    ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 39, 2),
-      error(WarningCode.unusedLocalVariable, 66, 2),
-      error(WarningCode.unusedLocalVariable, 94, 2),
-      error(CompileTimeErrorCode.listElementTypeNotAssignable, 100, 7),
-      error(WarningCode.unusedLocalVariable, 128, 2),
-      error(CompileTimeErrorCode.listElementTypeNotAssignable, 134, 7),
+      error(diag.unusedLocalVariable, 39, 2),
+      error(diag.unusedLocalVariable, 66, 2),
+      error(diag.unusedLocalVariable, 94, 2),
+      error(diag.listElementTypeNotAssignable, 100, 7),
+      error(diag.unusedLocalVariable, 128, 2),
+      error(diag.listElementTypeNotAssignable, 134, 7),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -2588,12 +2552,12 @@ MethodInvocation
      }
    ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 45, 2),
-      error(WarningCode.unusedLocalVariable, 84, 2),
-      error(WarningCode.unusedLocalVariable, 124, 2),
-      error(CompileTimeErrorCode.listElementTypeNotAssignable, 136, 7),
-      error(WarningCode.unusedLocalVariable, 170, 2),
-      error(CompileTimeErrorCode.listElementTypeNotAssignable, 182, 7),
+      error(diag.unusedLocalVariable, 45, 2),
+      error(diag.unusedLocalVariable, 84, 2),
+      error(diag.unusedLocalVariable, 124, 2),
+      error(diag.listElementTypeNotAssignable, 136, 7),
+      error(diag.unusedLocalVariable, 170, 2),
+      error(diag.listElementTypeNotAssignable, 182, 7),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -2625,14 +2589,14 @@ MethodInvocation
      }
    ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 39, 2),
-      error(CompileTimeErrorCode.invalidAssignment, 44, 7),
-      error(WarningCode.unusedLocalVariable, 71, 2),
-      error(CompileTimeErrorCode.invalidAssignment, 76, 8),
-      error(WarningCode.unusedLocalVariable, 104, 2),
-      error(CompileTimeErrorCode.invalidAssignment, 109, 17),
-      error(WarningCode.unusedLocalVariable, 146, 2),
-      error(CompileTimeErrorCode.invalidAssignment, 151, 21),
+      error(diag.unusedLocalVariable, 39, 2),
+      error(diag.invalidAssignment, 44, 7),
+      error(diag.unusedLocalVariable, 71, 2),
+      error(diag.invalidAssignment, 76, 8),
+      error(diag.unusedLocalVariable, 104, 2),
+      error(diag.invalidAssignment, 109, 17),
+      error(diag.unusedLocalVariable, 146, 2),
+      error(diag.invalidAssignment, 151, 21),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -2662,12 +2626,12 @@ MethodInvocation
      }
    ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 43, 2),
-      error(WarningCode.unusedLocalVariable, 74, 2),
-      error(WarningCode.unusedLocalVariable, 106, 2),
-      error(CompileTimeErrorCode.listElementTypeNotAssignable, 112, 7),
-      error(WarningCode.unusedLocalVariable, 144, 2),
-      error(CompileTimeErrorCode.listElementTypeNotAssignable, 150, 7),
+      error(diag.unusedLocalVariable, 43, 2),
+      error(diag.unusedLocalVariable, 74, 2),
+      error(diag.unusedLocalVariable, 106, 2),
+      error(diag.listElementTypeNotAssignable, 112, 7),
+      error(diag.unusedLocalVariable, 144, 2),
+      error(diag.listElementTypeNotAssignable, 150, 7),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -2700,15 +2664,15 @@ MethodInvocation
      }
    ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 52, 2),
-      error(WarningCode.unusedLocalVariable, 92, 2),
-      error(WarningCode.unusedLocalVariable, 144, 2),
-      error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 150, 7),
-      error(WarningCode.unusedLocalVariable, 202, 2),
-      error(CompileTimeErrorCode.listElementTypeNotAssignable, 212, 1),
-      error(WarningCode.unusedLocalVariable, 248, 2),
-      error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 267, 7),
-      error(CompileTimeErrorCode.listElementTypeNotAssignable, 277, 1),
+      error(diag.unusedLocalVariable, 52, 2),
+      error(diag.unusedLocalVariable, 92, 2),
+      error(diag.unusedLocalVariable, 144, 2),
+      error(diag.mapKeyTypeNotAssignable, 150, 7),
+      error(diag.unusedLocalVariable, 202, 2),
+      error(diag.listElementTypeNotAssignable, 212, 1),
+      error(diag.unusedLocalVariable, 248, 2),
+      error(diag.mapKeyTypeNotAssignable, 267, 7),
+      error(diag.listElementTypeNotAssignable, 277, 1),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -2763,15 +2727,15 @@ MethodInvocation
      }
    ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 46, 2),
-      error(WarningCode.unusedLocalVariable, 80, 2),
-      error(WarningCode.unusedLocalVariable, 124, 2),
-      error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 130, 7),
-      error(WarningCode.unusedLocalVariable, 174, 2),
-      error(CompileTimeErrorCode.mapValueTypeNotAssignable, 183, 1),
-      error(WarningCode.unusedLocalVariable, 212, 2),
-      error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 229, 7),
-      error(CompileTimeErrorCode.mapValueTypeNotAssignable, 238, 1),
+      error(diag.unusedLocalVariable, 46, 2),
+      error(diag.unusedLocalVariable, 80, 2),
+      error(diag.unusedLocalVariable, 124, 2),
+      error(diag.mapKeyTypeNotAssignable, 130, 7),
+      error(diag.unusedLocalVariable, 174, 2),
+      error(diag.mapValueTypeNotAssignable, 183, 1),
+      error(diag.unusedLocalVariable, 212, 2),
+      error(diag.mapKeyTypeNotAssignable, 229, 7),
+      error(diag.mapValueTypeNotAssignable, 238, 1),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -2806,15 +2770,15 @@ MethodInvocation
      }
    ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unusedLocalVariable, 46, 2),
-      error(CompileTimeErrorCode.invalidAssignment, 51, 16),
-      error(WarningCode.unusedLocalVariable, 94, 2),
-      error(CompileTimeErrorCode.invalidAssignment, 99, 26),
-      error(WarningCode.unusedLocalVariable, 152, 2),
-      error(CompileTimeErrorCode.invalidAssignment, 157, 32),
-      error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 172, 7),
-      error(WarningCode.unusedLocalVariable, 216, 2),
-      error(CompileTimeErrorCode.invalidAssignment, 221, 20),
+      error(diag.unusedLocalVariable, 46, 2),
+      error(diag.invalidAssignment, 51, 16),
+      error(diag.unusedLocalVariable, 94, 2),
+      error(diag.invalidAssignment, 99, 26),
+      error(diag.unusedLocalVariable, 152, 2),
+      error(diag.invalidAssignment, 157, 32),
+      error(diag.mapKeyTypeNotAssignable, 172, 7),
+      error(diag.unusedLocalVariable, 216, 2),
+      error(diag.invalidAssignment, 221, 20),
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -2847,7 +2811,7 @@ MethodInvocation
       }
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.listElementTypeNotAssignable, 101, 1),
+      error(diag.listElementTypeNotAssignable, 101, 1),
     ]);
 
     Expression methodReturnValue(String methodName) {
@@ -2880,7 +2844,7 @@ MethodInvocation
     String test() => f((l) => l.length);
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 72, 4),
+      error(diag.returnOfInvalidTypeFromFunction, 72, 4),
     ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
@@ -2906,9 +2870,9 @@ MethodInvocation
     A<int, String> test() => new B(3);
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.notInitializedNonNullableInstanceField, 28, 1),
-      error(CompileTimeErrorCode.notInitializedNonNullableInstanceField, 39, 1),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 126, 1),
+      error(diag.notInitializedNonNullableInstanceField, 28, 1),
+      error(diag.notInitializedNonNullableInstanceField, 39, 1),
+      error(diag.argumentTypeNotAssignable, 126, 1),
     ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
@@ -2932,8 +2896,8 @@ MethodInvocation
     A<num, num> test() => new B(3);
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.notInitializedNonNullableInstanceField, 28, 1),
-      error(CompileTimeErrorCode.notInitializedNonNullableInstanceField, 39, 1),
+      error(diag.notInitializedNonNullableInstanceField, 28, 1),
+      error(diag.notInitializedNonNullableInstanceField, 39, 1),
     ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
@@ -2958,9 +2922,9 @@ MethodInvocation
     A<int, double> test() => new B(3);
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.notInitializedNonNullableInstanceField, 28, 1),
-      error(CompileTimeErrorCode.notInitializedNonNullableInstanceField, 39, 1),
-      error(CompileTimeErrorCode.argumentTypeNotAssignable, 126, 1),
+      error(diag.notInitializedNonNullableInstanceField, 28, 1),
+      error(diag.notInitializedNonNullableInstanceField, 39, 1),
+      error(diag.argumentTypeNotAssignable, 126, 1),
     ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
@@ -2985,8 +2949,8 @@ MethodInvocation
     A<int, num> test() => new B();
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.notInitializedNonNullableInstanceField, 28, 1),
-      error(CompileTimeErrorCode.notInitializedNonNullableInstanceField, 39, 1),
+      error(diag.notInitializedNonNullableInstanceField, 28, 1),
+      error(diag.notInitializedNonNullableInstanceField, 39, 1),
     ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
@@ -3013,8 +2977,8 @@ MethodInvocation
     Contra1<A<int, String>> test() => mkA();
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.notInitializedNonNullableInstanceField, 28, 1),
-      error(CompileTimeErrorCode.notInitializedNonNullableInstanceField, 39, 1),
+      error(diag.notInitializedNonNullableInstanceField, 28, 1),
+      error(diag.notInitializedNonNullableInstanceField, 39, 1),
     ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
@@ -3041,8 +3005,8 @@ MethodInvocation
     Contra1<A<num, num>> test() => mkA();
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.notInitializedNonNullableInstanceField, 28, 1),
-      error(CompileTimeErrorCode.notInitializedNonNullableInstanceField, 39, 1),
+      error(diag.notInitializedNonNullableInstanceField, 28, 1),
+      error(diag.notInitializedNonNullableInstanceField, 39, 1),
     ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
@@ -3070,8 +3034,8 @@ MethodInvocation
     Contra1<A<int, double>> test() => mkA();
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.notInitializedNonNullableInstanceField, 28, 1),
-      error(CompileTimeErrorCode.notInitializedNonNullableInstanceField, 39, 1),
+      error(diag.notInitializedNonNullableInstanceField, 28, 1),
+      error(diag.notInitializedNonNullableInstanceField, 39, 1),
     ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
@@ -3099,8 +3063,8 @@ MethodInvocation
     Contra1<A<int, num>> test() => mkA();
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.notInitializedNonNullableInstanceField, 28, 1),
-      error(CompileTimeErrorCode.notInitializedNonNullableInstanceField, 39, 1),
+      error(diag.notInitializedNonNullableInstanceField, 28, 1),
+      error(diag.notInitializedNonNullableInstanceField, 39, 1),
     ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
@@ -3126,7 +3090,8 @@ class B<T2, U2> {
     await assertNoErrorsInCode(code);
 
     var b = unit.declarations[1] as ClassDeclaration;
-    var bConstructor = b.members[0] as ConstructorDeclaration;
+    var classBody = b.body as BlockClassBody;
+    var bConstructor = classBody.members[0] as ConstructorDeclaration;
     var redirected = bConstructor.redirectedConstructor as ConstructorName;
 
     var typeName = redirected.type;
@@ -3159,7 +3124,8 @@ class B<T2, U2> {
 ''');
 
     var b = result.unit.declarations[1] as ClassDeclaration;
-    var bConstructor = b.members[0] as ConstructorDeclaration;
+    var classBody = b.body as BlockClassBody;
+    var bConstructor = classBody.members[0] as ConstructorDeclaration;
     var redirected = bConstructor.redirectedConstructor as ConstructorName;
 
     var typeName = redirected.type;
@@ -3199,7 +3165,7 @@ class B<T2, U2> {
     Func1<num, String> test() => f(42);
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 74, 4),
+      error(diag.returnOfInvalidTypeFromFunction, 74, 4),
     ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
@@ -3219,7 +3185,7 @@ class B<T2, U2> {
     Func1<String, num> test() => f(42);
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 74, 4),
+      error(diag.returnOfInvalidTypeFromFunction, 74, 4),
     ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
@@ -3240,7 +3206,7 @@ class B<T2, U2> {
     dynamic test() => f(42, (num x) => x);
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 82, 4),
+      error(diag.returnOfInvalidTypeFromFunction, 82, 4),
     ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
@@ -3260,7 +3226,7 @@ class B<T2, U2> {
     dynamic test() => f(42, (num x) => x);
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 82, 4),
+      error(diag.returnOfInvalidTypeFromFunction, 82, 4),
     ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
@@ -3280,8 +3246,8 @@ class B<T2, U2> {
     num test() => g(f(3));
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 74, 4),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 112, 4),
+      error(diag.returnOfInvalidTypeFromFunction, 74, 4),
+      error(diag.returnOfInvalidTypeFromFunction, 112, 4),
     ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
@@ -3303,8 +3269,8 @@ class B<T2, U2> {
     num test() => g(f(3));
    ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 74, 4),
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 112, 4),
+      error(diag.returnOfInvalidTypeFromFunction, 74, 4),
+      error(diag.returnOfInvalidTypeFromFunction, 112, 4),
     ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
@@ -3337,11 +3303,11 @@ class B<T2, U2> {
     _isListOf(_isString)(exp.staticType as InterfaceType);
   }
 
-  /// Verifies the result has [CompileTimeErrorCode.couldNotInfer] with
+  /// Verifies the result has [diag.couldNotInfer] with
   /// the expected [errorMessage].
   void _expectInferenceError(String errorMessage) {
     var errors = result.diagnostics
-        .where((e) => e.diagnosticCode == CompileTimeErrorCode.couldNotInfer)
+        .where((e) => e.diagnosticCode == diag.couldNotInfer)
         .map((e) => e.message)
         .toList();
     expect(errors.length, 1);
@@ -3386,7 +3352,7 @@ main() {
   var foo = a.hashCode;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 35, 3)],
+      [error(diag.unusedLocalVariable, 35, 3)],
     );
     expectInitializerType('foo', 'int');
   }
@@ -3409,7 +3375,7 @@ main() {
                                      (x.then((x) => x) == null);
    ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unnecessaryNullComparisonNeverNullFalse, 139, 7),
+      error(diag.unnecessaryNullComparisonNeverNullFalse, 139, 7),
     ]);
   }
 
@@ -3433,7 +3399,7 @@ main() {
                                                   (x.then((x) => x) == null);
    ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.unnecessaryNullComparisonNeverNullFalse, 163, 7),
+      error(diag.unnecessaryNullComparisonNeverNullFalse, 163, 7),
     ]);
   }
 
@@ -3445,13 +3411,13 @@ void main() {
   x = 42;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 21, 1)],
+      [error(diag.unusedLocalVariable, 21, 1)],
     );
   }
 
   test_genericFunction() async {
     await assertErrorsInCode(r'T f<T>(T x) => null;', [
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 15, 4),
+      error(diag.returnOfInvalidTypeFromFunction, 15, 4),
     ]);
 
     var node = findNode.functionDeclaration('f<T>');
@@ -3468,7 +3434,7 @@ FunctionDeclaration
       typeParameters
         TypeParameter
           name: T
-          declaredElement: <testLibraryFragment> T@4
+          declaredFragment: <testLibraryFragment> T@4
             defaultType: dynamic
       rightBracket: >
     parameters: FormalParameterList
@@ -3479,7 +3445,7 @@ FunctionDeclaration
           element: #E0 T
           type: T
         name: x
-        declaredElement: <testLibraryFragment> x@9
+        declaredFragment: <testLibraryFragment> x@9
           element: isPublic
             type: T
       rightParenthesis: )
@@ -3489,11 +3455,11 @@ FunctionDeclaration
         literal: null
         staticType: Null
       semicolon: ;
-    declaredElement: <testLibraryFragment> f@2
+    declaredFragment: <testLibraryFragment> f@2
       element: <testLibrary>::@function::f
         type: T Function<T>(T)
     staticType: T Function<T>(T)
-  declaredElement: <testLibraryFragment> f@2
+  declaredFragment: <testLibraryFragment> f@2
     element: <testLibrary>::@function::f
       type: T Function<T>(T)
 ''');
@@ -3501,7 +3467,7 @@ FunctionDeclaration
 
   test_genericFunction_bounds() async {
     await assertErrorsInCode(r'T f<T extends num>(T x) => null;', [
-      error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 27, 4),
+      error(diag.returnOfInvalidTypeFromFunction, 27, 4),
     ]);
 
     var node = findNode.functionDeclaration('f<T');
@@ -3523,7 +3489,7 @@ FunctionDeclaration
             name: num
             element: dart:core::@class::num
             type: num
-          declaredElement: <testLibraryFragment> T@4
+          declaredFragment: <testLibraryFragment> T@4
             defaultType: num
       rightBracket: >
     parameters: FormalParameterList
@@ -3534,7 +3500,7 @@ FunctionDeclaration
           element: #E0 T
           type: T
         name: x
-        declaredElement: <testLibraryFragment> x@21
+        declaredFragment: <testLibraryFragment> x@21
           element: isPublic
             type: T
       rightParenthesis: )
@@ -3544,11 +3510,11 @@ FunctionDeclaration
         literal: null
         staticType: Null
       semicolon: ;
-    declaredElement: <testLibraryFragment> f@2
+    declaredFragment: <testLibraryFragment> f@2
       element: <testLibrary>::@function::f
         type: T Function<T extends num>(T)
     staticType: T Function<T extends num>(T)
-  declaredElement: <testLibraryFragment> f@2
+  declaredFragment: <testLibraryFragment> f@2
     element: <testLibrary>::@function::f
       type: T Function<T extends num>(T)
 ''');
@@ -3571,7 +3537,7 @@ class C<E> {
   static T f<T>(T x) => null;
 }
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 37, 4)],
+      [error(diag.returnOfInvalidTypeFromMethod, 37, 4)],
     );
 
     var node = findNode.methodDeclaration('f<T>');
@@ -3588,7 +3554,7 @@ MethodDeclaration
     typeParameters
       TypeParameter
         name: T
-        declaredElement: <testLibraryFragment> T@26
+        declaredFragment: <testLibraryFragment> T@26
           defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
@@ -3599,7 +3565,7 @@ MethodDeclaration
         element: #E0 T
         type: T
       name: x
-      declaredElement: <testLibraryFragment> x@31
+      declaredFragment: <testLibraryFragment> x@31
         element: isPublic
           type: T
     rightParenthesis: )
@@ -3609,7 +3575,7 @@ MethodDeclaration
       literal: null
       staticType: Null
     semicolon: ;
-  declaredElement: <testLibraryFragment> f@24
+  declaredFragment: <testLibraryFragment> f@24
     element: <testLibrary>::@class::C::@method::f
       type: T Function<T>(T)
 ''');
@@ -3647,25 +3613,13 @@ class D<S> {
 }
 ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.notInitializedNonNullableVariable, 23, 2),
-      error(CompileTimeErrorCode.notInitializedNonNullableVariable, 49, 2),
-      error(CompileTimeErrorCode.notInitializedNonNullableInstanceField, 57, 2),
-      error(
-        CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-        141,
-        2,
-      ),
-      error(CompileTimeErrorCode.notInitializedNonNullableVariable, 179, 2),
-      error(
-        CompileTimeErrorCode.notInitializedNonNullableInstanceField,
-        187,
-        2,
-      ),
-      error(
-        CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-        271,
-        2,
-      ),
+      error(diag.notInitializedNonNullableVariable, 23, 2),
+      error(diag.notInitializedNonNullableVariable, 49, 2),
+      error(diag.notInitializedNonNullableInstanceField, 57, 2),
+      error(diag.notAssignedPotentiallyNonNullableLocalVariable, 141, 2),
+      error(diag.notInitializedNonNullableVariable, 179, 2),
+      error(diag.notInitializedNonNullableInstanceField, 187, 2),
+      error(diag.notAssignedPotentiallyNonNullableLocalVariable, 271, 2),
     ]);
 
     checkBody(String className) {
@@ -3697,13 +3651,7 @@ List<Object> ccc = [null];
 List<Object> ddd = [1 as dynamic];
 List<Object> eee = [new Object()];
 ''',
-      [
-        error(
-          CompileTimeErrorCode.listElementTypeNotAssignableNullability,
-          73,
-          4,
-        ),
-      ],
+      [error(diag.listElementTypeNotAssignableNullability, 73, 4)],
     );
     expectInitializerType('aaa', 'List<Object>');
     expectInitializerType('bbb', 'List<Object>');
@@ -3723,8 +3671,8 @@ main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 36, 4),
-        error(WarningCode.unusedLocalVariable, 65, 9),
+        error(diag.returnOfInvalidTypeFromMethod, 36, 4),
+        error(diag.unusedLocalVariable, 65, 9),
       ],
     );
     assertType(findElement2.method('f').type, 'List<T> Function<T>(E)');
@@ -3752,13 +3700,9 @@ main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 36, 4),
-        error(WarningCode.unusedLocalVariable, 82, 1),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          86,
-          9,
-        ),
+        error(diag.returnOfInvalidTypeFromMethod, 36, 4),
+        error(diag.unusedLocalVariable, 82, 1),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 86, 9),
       ],
     );
     var f = findNode.simple('f<int>').parent as MethodInvocation;
@@ -3795,19 +3739,19 @@ void test<S>(T Function<T>(T) pf) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 30, 4),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 60, 4),
-        error(CompileTimeErrorCode.invalidAssignment, 96, 4),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 123, 4),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 224, 4),
-        error(WarningCode.unusedLocalVariable, 237, 10),
-        error(WarningCode.unusedLocalVariable, 281, 10),
-        error(WarningCode.unusedLocalVariable, 315, 10),
-        error(WarningCode.unusedLocalVariable, 349, 15),
-        error(WarningCode.unusedLocalVariable, 388, 10),
-        error(WarningCode.unusedLocalVariable, 423, 12),
-        error(WarningCode.unusedLocalVariable, 460, 9),
-        error(WarningCode.unusedLocalVariable, 492, 9),
+        error(diag.returnOfInvalidTypeFromMethod, 30, 4),
+        error(diag.returnOfInvalidTypeFromMethod, 60, 4),
+        error(diag.invalidAssignment, 96, 4),
+        error(diag.returnOfInvalidTypeFromFunction, 123, 4),
+        error(diag.returnOfInvalidTypeFromFunction, 224, 4),
+        error(diag.unusedLocalVariable, 237, 10),
+        error(diag.unusedLocalVariable, 281, 10),
+        error(diag.unusedLocalVariable, 315, 10),
+        error(diag.unusedLocalVariable, 349, 15),
+        error(diag.unusedLocalVariable, 388, 10),
+        error(diag.unusedLocalVariable, 423, 12),
+        error(diag.unusedLocalVariable, 460, 9),
+        error(diag.unusedLocalVariable, 492, 9),
       ],
     );
     _assertLocalVarType('lambdaCall', "int");
@@ -3827,7 +3771,7 @@ void test<S>(T pf<T>(T e)) {
   var paramCall = (pf)<int>(3);
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 35, 9)],
+      [error(diag.unusedLocalVariable, 35, 9)],
     );
     _assertLocalVarType('paramCall', "int");
   }
@@ -3839,7 +3783,7 @@ void test<S>(T pf<T>(T e)) {
   var paramCall = (pf)(3);
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 35, 9)],
+      [error(diag.unusedLocalVariable, 35, 9)],
     );
     _assertLocalVarType('paramCall', "int");
   }
@@ -3870,19 +3814,19 @@ void test<S>(T Function<T>(T) pf) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 30, 4),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 60, 4),
-        error(CompileTimeErrorCode.invalidAssignment, 96, 4),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 123, 4),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 224, 4),
-        error(WarningCode.unusedLocalVariable, 237, 10),
-        error(WarningCode.unusedLocalVariable, 276, 10),
-        error(WarningCode.unusedLocalVariable, 305, 10),
-        error(WarningCode.unusedLocalVariable, 334, 15),
-        error(WarningCode.unusedLocalVariable, 368, 10),
-        error(WarningCode.unusedLocalVariable, 398, 12),
-        error(WarningCode.unusedLocalVariable, 430, 9),
-        error(WarningCode.unusedLocalVariable, 457, 9),
+        error(diag.returnOfInvalidTypeFromMethod, 30, 4),
+        error(diag.returnOfInvalidTypeFromMethod, 60, 4),
+        error(diag.invalidAssignment, 96, 4),
+        error(diag.returnOfInvalidTypeFromFunction, 123, 4),
+        error(diag.returnOfInvalidTypeFromFunction, 224, 4),
+        error(diag.unusedLocalVariable, 237, 10),
+        error(diag.unusedLocalVariable, 276, 10),
+        error(diag.unusedLocalVariable, 305, 10),
+        error(diag.unusedLocalVariable, 334, 15),
+        error(diag.unusedLocalVariable, 368, 10),
+        error(diag.unusedLocalVariable, 398, 12),
+        error(diag.unusedLocalVariable, 430, 9),
+        error(diag.unusedLocalVariable, 457, 9),
       ],
     );
     _assertLocalVarType('lambdaCall', "int");
@@ -3919,18 +3863,18 @@ void test<S>(T Function<T>(T) pf) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 30, 4),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 60, 4),
-        error(CompileTimeErrorCode.invalidAssignment, 96, 4),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 123, 4),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 224, 4),
-        error(WarningCode.unusedLocalVariable, 236, 10),
-        error(WarningCode.unusedLocalVariable, 268, 10),
-        error(WarningCode.unusedLocalVariable, 300, 15),
-        error(WarningCode.unusedLocalVariable, 337, 10),
-        error(WarningCode.unusedLocalVariable, 370, 12),
-        error(WarningCode.unusedLocalVariable, 405, 9),
-        error(WarningCode.unusedLocalVariable, 435, 9),
+        error(diag.returnOfInvalidTypeFromMethod, 30, 4),
+        error(diag.returnOfInvalidTypeFromMethod, 60, 4),
+        error(diag.invalidAssignment, 96, 4),
+        error(diag.returnOfInvalidTypeFromFunction, 123, 4),
+        error(diag.returnOfInvalidTypeFromFunction, 224, 4),
+        error(diag.unusedLocalVariable, 236, 10),
+        error(diag.unusedLocalVariable, 268, 10),
+        error(diag.unusedLocalVariable, 300, 15),
+        error(diag.unusedLocalVariable, 337, 10),
+        error(diag.unusedLocalVariable, 370, 12),
+        error(diag.unusedLocalVariable, 405, 9),
+        error(diag.unusedLocalVariable, 435, 9),
       ],
     );
     _assertLocalVarType('methodCall', "int");
@@ -3949,7 +3893,7 @@ void test<S>(T pf<T>(T e)) {
   var paramCall = pf<int>(3);
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 35, 9)],
+      [error(diag.unusedLocalVariable, 35, 9)],
     );
     _assertLocalVarType('paramCall', "int");
   }
@@ -3961,7 +3905,7 @@ void test<S>(T pf<T>(T e)) {
   var paramCall = pf(3);
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 35, 9)],
+      [error(diag.unusedLocalVariable, 35, 9)],
     );
     _assertLocalVarType('paramCall', "int");
   }
@@ -3990,18 +3934,18 @@ void test<S>(T Function<T>(T) pf) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 30, 4),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 60, 4),
-        error(CompileTimeErrorCode.invalidAssignment, 96, 4),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 123, 4),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 224, 4),
-        error(WarningCode.unusedLocalVariable, 236, 10),
-        error(WarningCode.unusedLocalVariable, 263, 10),
-        error(WarningCode.unusedLocalVariable, 290, 15),
-        error(WarningCode.unusedLocalVariable, 322, 10),
-        error(WarningCode.unusedLocalVariable, 350, 12),
-        error(WarningCode.unusedLocalVariable, 380, 9),
-        error(WarningCode.unusedLocalVariable, 405, 9),
+        error(diag.returnOfInvalidTypeFromMethod, 30, 4),
+        error(diag.returnOfInvalidTypeFromMethod, 60, 4),
+        error(diag.invalidAssignment, 96, 4),
+        error(diag.returnOfInvalidTypeFromFunction, 123, 4),
+        error(diag.returnOfInvalidTypeFromFunction, 224, 4),
+        error(diag.unusedLocalVariable, 236, 10),
+        error(diag.unusedLocalVariable, 263, 10),
+        error(diag.unusedLocalVariable, 290, 15),
+        error(diag.unusedLocalVariable, 322, 10),
+        error(diag.unusedLocalVariable, 350, 12),
+        error(diag.unusedLocalVariable, 380, 9),
+        error(diag.unusedLocalVariable, 405, 9),
       ],
     );
     _assertLocalVarType('methodCall', "int");
@@ -4024,8 +3968,8 @@ main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 41, 4),
-        error(WarningCode.unusedLocalVariable, 70, 9),
+        error(diag.returnOfInvalidTypeFromMethod, 41, 4),
+        error(diag.unusedLocalVariable, 70, 9),
       ],
     );
     assertType(
@@ -4051,7 +3995,7 @@ void test<S>(T pf<T>(T e)) {
   var paramTearOff = pf;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 35, 12)],
+      [error(diag.unusedLocalVariable, 35, 12)],
     );
     _assertLocalVarType('paramTearOff', "T Function<T>(T)");
   }
@@ -4071,8 +4015,8 @@ void foo() {
   list.map((e) => 3);
 }''',
       [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 40, 4),
-        error(CompileTimeErrorCode.invalidAssignment, 75, 4),
+        error(diag.returnOfInvalidTypeFromMethod, 40, 4),
+        error(diag.invalidAssignment, 75, 4),
       ],
     );
 
@@ -4098,7 +4042,7 @@ MethodInvocation
           leftParenthesis: (
           parameter: SimpleFormalParameter
             name: e
-            declaredElement: <testLibraryFragment> e@93
+            declaredFragment: <testLibraryFragment> e@93
               element: hasImplicitType isPublic
                 type: dynamic
           rightParenthesis: )
@@ -4108,7 +4052,7 @@ MethodInvocation
             token: e
             element: e@93
             staticType: dynamic
-        declaredElement: <testLibraryFragment> null@null
+        declaredFragment: <testLibraryFragment> null@null
           element: null@null
             type: dynamic Function(dynamic)
         correspondingParameter: ParameterMember
@@ -4144,7 +4088,7 @@ MethodInvocation
           leftParenthesis: (
           parameter: SimpleFormalParameter
             name: e
-            declaredElement: <testLibraryFragment> e@115
+            declaredFragment: <testLibraryFragment> e@115
               element: hasImplicitType isPublic
                 type: dynamic
           rightParenthesis: )
@@ -4153,7 +4097,7 @@ MethodInvocation
           expression: IntegerLiteral
             literal: 3
             staticType: int
-        declaredElement: <testLibraryFragment> null@null
+        declaredFragment: <testLibraryFragment> null@null
           element: null@null
             type: int Function(dynamic)
         correspondingParameter: ParameterMember
@@ -4176,7 +4120,7 @@ main() {
   var foo = max(1.0, 2.0);
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 35, 3)],
+      [error(diag.unusedLocalVariable, 35, 3)],
     );
     expectInitializerType('foo', 'double');
   }
@@ -4189,7 +4133,7 @@ main() {
   var foo = math.max(1.0, 2.0);
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 43, 3)],
+      [error(diag.unusedLocalVariable, 43, 3)],
     );
     expectInitializerType('foo', 'double');
   }
@@ -4202,7 +4146,7 @@ main() {
   var foo = max(1.0, 2);
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 35, 3)],
+      [error(diag.unusedLocalVariable, 35, 3)],
     );
     expectInitializerType('foo', 'num');
   }
@@ -4215,7 +4159,7 @@ main() {
   var foo = max(1, 2.0);
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 35, 3)],
+      [error(diag.unusedLocalVariable, 35, 3)],
     );
     expectInitializerType('foo', 'num');
   }
@@ -4228,7 +4172,7 @@ main() {
   var foo = max(1, 2);
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 35, 3)],
+      [error(diag.unusedLocalVariable, 35, 3)],
     );
     expectInitializerType('foo', 'int');
   }
@@ -4255,7 +4199,7 @@ class C<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 96, 4)],
+      [error(diag.returnOfInvalidTypeFromMethod, 96, 4)],
     );
 
     var node1 = findNode.methodInvocation('f<int>(3);');
@@ -4327,8 +4271,8 @@ class C<T> {
 }
 ''',
       [
-        error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 56, 3),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 106, 4),
+        error(diag.typeArgumentNotMatchingBounds, 56, 3),
+        error(diag.returnOfInvalidTypeFromMethod, 106, 4),
       ],
     );
 
@@ -4408,8 +4352,8 @@ S f<S>(S x) {
 }
 ''',
       [
-        error(WarningCode.unusedElement, 16, 1),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 41, 4),
+        error(diag.unusedElement, 16, 1),
+        error(diag.returnOfInvalidTypeFromFunction, 41, 4),
       ],
     );
     assertType(findElement2.topFunction('f').type, 'S Function<S>(S)');
@@ -4430,8 +4374,8 @@ class D extends C {
 }
 ''',
       [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 27, 4),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 72, 4),
+        error(diag.returnOfInvalidTypeFromMethod, 27, 4),
+        error(diag.returnOfInvalidTypeFromMethod, 72, 4),
       ],
     );
 
@@ -4448,7 +4392,7 @@ MethodDeclaration
     typeParameters
       TypeParameter
         name: T
-        declaredElement: <testLibraryFragment> T@61
+        declaredFragment: <testLibraryFragment> T@61
           defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
@@ -4459,7 +4403,7 @@ MethodDeclaration
         element: #E0 T
         type: T
       name: y
-      declaredElement: <testLibraryFragment> y@66
+      declaredFragment: <testLibraryFragment> y@66
         element: isPublic
           type: T
     rightParenthesis: )
@@ -4469,7 +4413,7 @@ MethodDeclaration
       literal: null
       staticType: Null
     semicolon: ;
-  declaredElement: <testLibraryFragment> f@59
+  declaredFragment: <testLibraryFragment> f@59
     element: <testLibrary>::@class::D::@method::f
       type: T Function<T>(T)
 ''');
@@ -4492,9 +4436,9 @@ class D extends B {
 }
 ''',
       [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 48, 4),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 141, 4),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 247, 4),
+        error(diag.returnOfInvalidTypeFromMethod, 48, 4),
+        error(diag.returnOfInvalidTypeFromMethod, 141, 4),
+        error(diag.returnOfInvalidTypeFromMethod, 247, 4),
       ],
     );
   }
@@ -4511,13 +4455,7 @@ class B extends A {
   int x;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.notInitializedNonNullableInstanceField,
-          87,
-          1,
-        ),
-      ],
+      [error(diag.notInitializedNonNullableInstanceField, 87, 1)],
     );
   }
 
@@ -4550,14 +4488,14 @@ class D extends C {
   T f<T extends B>(T x) => null;
 }''',
       [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 69, 4),
+        error(diag.returnOfInvalidTypeFromMethod, 69, 4),
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           101,
           1,
           contextMessages: [message(testFile, 46, 1)],
         ),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 124, 4),
+        error(diag.returnOfInvalidTypeFromMethod, 124, 4),
       ],
     );
   }
@@ -4574,14 +4512,14 @@ class D extends C {
   T f<T extends A>(T x) => null;
 }''',
       [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 69, 4),
+        error(diag.returnOfInvalidTypeFromMethod, 69, 4),
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           101,
           1,
           contextMessages: [message(testFile, 46, 1)],
         ),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 124, 4),
+        error(diag.returnOfInvalidTypeFromMethod, 124, 4),
       ],
     );
   }
@@ -4596,14 +4534,14 @@ class D extends C {
   String f<S>(S x) => null;
 }''',
       [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 37, 4),
+        error(diag.returnOfInvalidTypeFromMethod, 37, 4),
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           74,
           1,
           contextMessages: [message(testFile, 24, 1)],
         ),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 87, 4),
+        error(diag.returnOfInvalidTypeFromMethod, 87, 4),
       ],
     );
   }
@@ -4618,14 +4556,14 @@ class D extends C {
   S f<T, S>(T x) => null;
 }''',
       [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 27, 4),
+        error(diag.returnOfInvalidTypeFromMethod, 27, 4),
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           59,
           1,
           contextMessages: [message(testFile, 14, 1)],
         ),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 75, 4),
+        error(diag.returnOfInvalidTypeFromMethod, 75, 4),
       ],
     );
   }
@@ -4652,8 +4590,8 @@ C toSpan(dynamic element) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 122, 1),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 160, 4),
+        error(diag.unusedLocalVariable, 122, 1),
+        error(diag.returnOfInvalidTypeFromFunction, 160, 4),
       ],
     );
     _assertLocalVarType('y', 'List<C>');
@@ -4683,18 +4621,18 @@ void test<S>(T Function<T>(T) pf) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 30, 4),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 60, 4),
-        error(CompileTimeErrorCode.invalidAssignment, 96, 4),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 123, 4),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 224, 4),
-        error(WarningCode.unusedLocalVariable, 236, 13),
-        error(WarningCode.unusedLocalVariable, 263, 13),
-        error(WarningCode.unusedLocalVariable, 290, 18),
-        error(WarningCode.unusedLocalVariable, 322, 13),
-        error(WarningCode.unusedLocalVariable, 350, 15),
-        error(WarningCode.unusedLocalVariable, 380, 12),
-        error(WarningCode.unusedLocalVariable, 405, 12),
+        error(diag.returnOfInvalidTypeFromMethod, 30, 4),
+        error(diag.returnOfInvalidTypeFromMethod, 60, 4),
+        error(diag.invalidAssignment, 96, 4),
+        error(diag.returnOfInvalidTypeFromFunction, 123, 4),
+        error(diag.returnOfInvalidTypeFromFunction, 224, 4),
+        error(diag.unusedLocalVariable, 236, 13),
+        error(diag.unusedLocalVariable, 263, 13),
+        error(diag.unusedLocalVariable, 290, 18),
+        error(diag.unusedLocalVariable, 322, 13),
+        error(diag.unusedLocalVariable, 350, 15),
+        error(diag.unusedLocalVariable, 380, 12),
+        error(diag.unusedLocalVariable, 405, 12),
       ],
     );
     _assertLocalVarType('methodTearOff', "T Function<T>(int)");
@@ -4748,8 +4686,8 @@ main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.invalidAssignment, 69, 4),
-        error(WarningCode.unusedLocalVariable, 81, 3),
+        error(diag.invalidAssignment, 69, 4),
+        error(diag.unusedLocalVariable, 81, 3),
       ],
     );
 
@@ -4767,8 +4705,8 @@ main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.invalidAssignment, 105, 4),
-        error(WarningCode.unusedLocalVariable, 117, 3),
+        error(diag.invalidAssignment, 105, 4),
+        error(diag.unusedLocalVariable, 117, 3),
       ],
     );
     expectInitializerType('foo', 'Future<String>');
@@ -4784,13 +4722,9 @@ void main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 40, 3),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          46,
-          1,
-        ),
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 85, 1),
+        error(diag.unusedLocalVariable, 40, 3),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 46, 1),
+        error(diag.argumentTypeNotAssignable, 85, 1),
       ],
     );
     // Note: this correctly reports the error
@@ -4813,9 +4747,9 @@ void test() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 37, 4),
-        error(CompileTimeErrorCode.invalidAssignment, 73, 4),
-        error(WarningCode.unusedLocalVariable, 102, 9),
+        error(diag.returnOfInvalidTypeFromMethod, 37, 4),
+        error(diag.invalidAssignment, 73, 4),
+        error(diag.unusedLocalVariable, 102, 9),
       ],
     );
     _assertLocalVarType('fieldRead', "T Function<T>(T)");
@@ -4840,12 +4774,12 @@ void test() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 116, 2),
-        error(WarningCode.unusedLocalVariable, 124, 2),
-        error(WarningCode.unusedLocalVariable, 132, 2),
-        error(WarningCode.unusedLocalVariable, 142, 2),
-        error(WarningCode.unusedLocalVariable, 162, 2),
-        error(WarningCode.unusedLocalVariable, 182, 2),
+        error(diag.unusedLocalVariable, 116, 2),
+        error(diag.unusedLocalVariable, 124, 2),
+        error(diag.unusedLocalVariable, 132, 2),
+        error(diag.unusedLocalVariable, 142, 2),
+        error(diag.unusedLocalVariable, 162, 2),
+        error(diag.unusedLocalVariable, 182, 2),
       ],
     );
     _assertLocalVarType('ai', "A<dynamic>");
@@ -4866,13 +4800,13 @@ class D extends C {}
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           69,
           1,
           contextMessages: [message(testFile, 69, 1)],
         ),
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           69,
           1,
           contextMessages: [message(testFile, 69, 1)],
@@ -4892,10 +4826,10 @@ void test() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 73, 1),
-        error(CompileTimeErrorCode.couldNotInfer, 81, 1),
+        error(diag.unusedLocalVariable, 73, 1),
+        error(diag.couldNotInfer, 81, 1),
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           81,
           1,
           contextMessages: [message(testFile, 81, 1)],
@@ -4911,7 +4845,7 @@ void test() {
 class C<T0 extends List<T1>, T1 extends List<T0>> {}
 C c;
 ''',
-      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 55, 1)],
+      [error(diag.notInitializedNonNullableVariable, 55, 1)],
     );
     _assertTopVarType('c', 'C<List<dynamic>, List<dynamic>>');
   }
@@ -4922,7 +4856,7 @@ C c;
 class C<T extends C<T>> {}
 C c;
 ''',
-      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 29, 1)],
+      [error(diag.notInitializedNonNullableVariable, 29, 1)],
     );
     _assertTopVarType('c', 'C<C<dynamic>>');
   }
@@ -4934,7 +4868,7 @@ class A<E> {}
 class C<T extends A<T>> {}
 C c;
 ''',
-      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 43, 1)],
+      [error(diag.notInitializedNonNullableVariable, 43, 1)],
     );
     _assertTopVarType('c', 'C<A<dynamic>>');
   }
@@ -4948,12 +4882,12 @@ C c;
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           48,
           1,
           contextMessages: [message(testFile, 48, 1), message(testFile, 48, 1)],
         ),
-        error(CompileTimeErrorCode.notInitializedNonNullableVariable, 50, 1),
+        error(diag.notInitializedNonNullableVariable, 50, 1),
       ],
     );
     _assertTopVarType('c', 'C<dynamic Function(dynamic)>');
@@ -4965,7 +4899,7 @@ C c;
 class C<T0 extends Map<T1, T2>, T1 extends List, T2 extends int> {}
 C c;
 ''',
-      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 70, 1)],
+      [error(diag.notInitializedNonNullableVariable, 70, 1)],
     );
     _assertTopVarType('c', 'C<Map<List<dynamic>, int>, List<dynamic>, int>');
   }
@@ -4976,7 +4910,7 @@ C c;
 class C<T0 extends T1, T1 extends int> {}
 C c;
 ''',
-      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 44, 1)],
+      [error(diag.notInitializedNonNullableVariable, 44, 1)],
     );
     _assertTopVarType('c', 'C<int, int>');
   }
@@ -4987,7 +4921,7 @@ C c;
 class C<T0 extends Map<T1, T1>, T1 extends int> {}
 C c;
 ''',
-      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 53, 1)],
+      [error(diag.notInitializedNonNullableVariable, 53, 1)],
     );
     _assertTopVarType('c', 'C<Map<int, int>, int>');
   }
@@ -4998,7 +4932,7 @@ C c;
 class C<T0 extends int, T1 extends T0> {}
 C c;
 ''',
-      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 44, 1)],
+      [error(diag.notInitializedNonNullableVariable, 44, 1)],
     );
     _assertTopVarType('c', 'C<int, int>');
   }
@@ -5009,7 +4943,7 @@ C c;
 class C<T0 extends Map<T1, T2>, T1 extends List<T2>, T2 extends int> {}
 C c;
 ''',
-      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 74, 1)],
+      [error(diag.notInitializedNonNullableVariable, 74, 1)],
     );
     _assertTopVarType('c', 'C<Map<List<int>, int>, List<int>, int>');
   }
@@ -5029,10 +4963,10 @@ void main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 114, 1),
-        error(WarningCode.unusedLocalVariable, 121, 1),
-        error(WarningCode.unusedLocalVariable, 128, 1),
-        error(WarningCode.unusedLocalVariable, 135, 1),
+        error(diag.unusedLocalVariable, 114, 1),
+        error(diag.unusedLocalVariable, 121, 1),
+        error(diag.unusedLocalVariable, 128, 1),
+        error(diag.unusedLocalVariable, 135, 1),
       ],
     );
     _assertLocalVarType('a', 'A<dynamic>');
@@ -5053,9 +4987,9 @@ void g() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.bodyMightCompleteNormally, 3, 1),
-        error(WarningCode.unusedLocalVariable, 69, 1),
-        error(CompileTimeErrorCode.couldNotInfer, 73, 1),
+        error(diag.bodyMightCompleteNormally, 3, 1),
+        error(diag.unusedLocalVariable, 69, 1),
+        error(diag.couldNotInfer, 73, 1),
       ],
     );
     _assertLocalVarType('c', 'List<Object?>');
@@ -5073,8 +5007,8 @@ class C<T> {
 }
 ''',
       [
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 97, 4),
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 103, 4),
+        error(diag.argumentTypeNotAssignable, 97, 4),
+        error(diag.argumentTypeNotAssignable, 103, 4),
       ],
     );
 
@@ -5083,7 +5017,9 @@ class C<T> {
 MethodInvocation
   methodName: SimpleIdentifier
     token: m
-    element: <testLibrary>::@class::C::@method::m
+    element: MethodMember
+      baseElement: <testLibrary>::@class::C::@method::m
+      substitution: {T: T, S0: S0, S1: S1}
     staticType: void Function<S0 extends T, S1 extends List<S0>>(S0, S1)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5091,13 +5027,13 @@ MethodInvocation
       NullLiteral
         literal: null
         correspondingParameter: ParameterMember
-          baseElement: <testLibrary>::@class::C::@method::m::@formalParameter::p0
+          baseElement: p0@null
           substitution: {S0: T, S1: List<T>}
         staticType: Null
       NullLiteral
         literal: null
         correspondingParameter: ParameterMember
-          baseElement: <testLibrary>::@class::C::@method::m::@formalParameter::p1
+          baseElement: p1@null
           substitution: {S0: T, S1: List<T>}
         staticType: Null
     rightParenthesis: )
@@ -5120,7 +5056,7 @@ class C<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 69, 4)],
+      [error(diag.returnOfInvalidTypeFromMethod, 69, 4)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -5128,7 +5064,9 @@ class C<T> {
 MethodInvocation
   methodName: SimpleIdentifier
     token: m
-    element: <testLibrary>::@class::C::@method::m
+    element: MethodMember
+      baseElement: <testLibrary>::@class::C::@method::m
+      substitution: {T: T, S0: S0, S1: S1}
     staticType: Map<S0, S1> Function<S0 extends T, S1 extends List<S0>>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5152,7 +5090,7 @@ class C<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 67, 4)],
+      [error(diag.argumentTypeNotAssignable, 67, 4)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -5160,7 +5098,9 @@ class C<T> {
 MethodInvocation
   methodName: SimpleIdentifier
     token: m
-    element: <testLibrary>::@class::C::@method::m
+    element: MethodMember
+      baseElement: <testLibrary>::@class::C::@method::m
+      substitution: {T: T, S: S}
     staticType: void Function<S extends T>(S)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5168,7 +5108,7 @@ MethodInvocation
       NullLiteral
         literal: null
         correspondingParameter: ParameterMember
-          baseElement: <testLibrary>::@class::C::@method::m::@formalParameter::p0
+          baseElement: p0@null
           substitution: {S: T}
         staticType: Null
     rightParenthesis: )
@@ -5190,7 +5130,7 @@ class C<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 37, 4)],
+      [error(diag.returnOfInvalidTypeFromMethod, 37, 4)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -5198,7 +5138,9 @@ class C<T> {
 MethodInvocation
   methodName: SimpleIdentifier
     token: m
-    element: <testLibrary>::@class::C::@method::m
+    element: MethodMember
+      baseElement: <testLibrary>::@class::C::@method::m
+      substitution: {T: T, S: S}
     staticType: S Function<S extends T>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5218,7 +5160,7 @@ class C<E> {
   static final h = g;
 }
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 37, 4)],
+      [error(diag.returnOfInvalidTypeFromMethod, 37, 4)],
     );
   }
 
@@ -5249,12 +5191,12 @@ void main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 69, 2),
-        error(WarningCode.unusedLocalVariable, 94, 2),
-        error(WarningCode.unusedLocalVariable, 117, 2),
-        error(WarningCode.unusedLocalVariable, 183, 2),
-        error(WarningCode.unusedLocalVariable, 210, 2),
-        error(WarningCode.unusedLocalVariable, 235, 2),
+        error(diag.unusedLocalVariable, 69, 2),
+        error(diag.unusedLocalVariable, 94, 2),
+        error(diag.unusedLocalVariable, 117, 2),
+        error(diag.unusedLocalVariable, 183, 2),
+        error(diag.unusedLocalVariable, 210, 2),
+        error(diag.unusedLocalVariable, 235, 2),
       ],
     );
   }
@@ -5286,72 +5228,24 @@ void main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 63, 2),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          68,
-          1,
-        ),
-        error(WarningCode.unusedLocalVariable, 88, 2),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          93,
-          1,
-        ),
-        error(WarningCode.unusedLocalVariable, 111, 2),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          116,
-          1,
-        ),
-        error(WarningCode.unusedLocalVariable, 177, 2),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          183,
-          1,
-        ),
-        error(WarningCode.unusedLocalVariable, 204, 2),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          210,
-          1,
-        ),
-        error(WarningCode.unusedLocalVariable, 229, 2),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          235,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          276,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          293,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          308,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          361,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          380,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          397,
-          1,
-        ),
+        error(diag.unusedLocalVariable, 63, 2),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 68, 1),
+        error(diag.unusedLocalVariable, 88, 2),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 93, 1),
+        error(diag.unusedLocalVariable, 111, 2),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 116, 1),
+        error(diag.unusedLocalVariable, 177, 2),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 183, 1),
+        error(diag.unusedLocalVariable, 204, 2),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 210, 1),
+        error(diag.unusedLocalVariable, 229, 2),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 235, 1),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 276, 1),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 293, 1),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 308, 1),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 361, 1),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 380, 1),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 397, 1),
       ],
     );
   }
@@ -5383,13 +5277,13 @@ void main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 16, 4),
-        error(WarningCode.unusedLocalVariable, 71, 2),
-        error(WarningCode.unusedLocalVariable, 96, 2),
-        error(WarningCode.unusedLocalVariable, 119, 2),
-        error(WarningCode.unusedLocalVariable, 185, 2),
-        error(WarningCode.unusedLocalVariable, 212, 2),
-        error(WarningCode.unusedLocalVariable, 237, 2),
+        error(diag.returnOfInvalidTypeFromFunction, 16, 4),
+        error(diag.unusedLocalVariable, 71, 2),
+        error(diag.unusedLocalVariable, 96, 2),
+        error(diag.unusedLocalVariable, 119, 2),
+        error(diag.unusedLocalVariable, 185, 2),
+        error(diag.unusedLocalVariable, 212, 2),
+        error(diag.unusedLocalVariable, 237, 2),
       ],
     );
   }
@@ -5423,72 +5317,24 @@ void main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 107, 2),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          112,
-          1,
-        ),
-        error(WarningCode.unusedLocalVariable, 132, 2),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          137,
-          1,
-        ),
-        error(WarningCode.unusedLocalVariable, 155, 2),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          160,
-          1,
-        ),
-        error(WarningCode.unusedLocalVariable, 221, 2),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          227,
-          1,
-        ),
-        error(WarningCode.unusedLocalVariable, 248, 2),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          254,
-          1,
-        ),
-        error(WarningCode.unusedLocalVariable, 273, 2),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          279,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          320,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          337,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          352,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          405,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          424,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          441,
-          1,
-        ),
+        error(diag.unusedLocalVariable, 107, 2),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 112, 1),
+        error(diag.unusedLocalVariable, 132, 2),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 137, 1),
+        error(diag.unusedLocalVariable, 155, 2),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 160, 1),
+        error(diag.unusedLocalVariable, 221, 2),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 227, 1),
+        error(diag.unusedLocalVariable, 248, 2),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 254, 1),
+        error(diag.unusedLocalVariable, 273, 2),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 279, 1),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 320, 1),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 337, 1),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 352, 1),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 405, 1),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 424, 1),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 441, 1),
       ],
     );
   }
@@ -5496,7 +5342,7 @@ void main() {
   test_returnOfInvalidType_object_void() async {
     await assertErrorsInCode(
       "Object f() { void voidFn() => null; return voidFn(); }",
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 43, 8)],
+      [error(diag.returnOfInvalidTypeFromFunction, 43, 8)],
     );
   }
 
@@ -5509,8 +5355,8 @@ class A {
 dynamic set g(int x) => null;
 ''',
       [
-        error(CompileTimeErrorCode.nonVoidReturnForSetter, 12, 7),
-        error(CompileTimeErrorCode.nonVoidReturnForSetter, 47, 7),
+        error(diag.nonVoidReturnForSetter, 12, 7),
+        error(diag.nonVoidReturnForSetter, 47, 7),
       ],
     );
   }
@@ -5535,7 +5381,7 @@ class A {
 }
 set g(int x) => 42;
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 41, 4)],
+      [error(diag.returnOfInvalidTypeFromFunction, 41, 4)],
     );
   }
 
@@ -5558,10 +5404,10 @@ class A {
 Object set g(x) => null;
 ''',
       [
-        error(CompileTimeErrorCode.nonVoidReturnForSetter, 12, 6),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 38, 4),
-        error(CompileTimeErrorCode.nonVoidReturnForSetter, 46, 6),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 65, 4),
+        error(diag.nonVoidReturnForSetter, 12, 6),
+        error(diag.returnOfInvalidTypeFromFunction, 38, 4),
+        error(diag.nonVoidReturnForSetter, 46, 6),
+        error(diag.returnOfInvalidTypeFromFunction, 65, 4),
       ],
     );
   }
@@ -5573,10 +5419,7 @@ main() {
   var foo = (true) ? null : 3;
 }
 ''',
-      [
-        error(WarningCode.unusedLocalVariable, 15, 3),
-        error(WarningCode.deadCode, 37, 1),
-      ],
+      [error(diag.unusedLocalVariable, 15, 3), error(diag.deadCode, 37, 1)],
     );
     expectInitializerType('foo', 'int?');
   }
@@ -5588,10 +5431,7 @@ main() {
   var foo = (true) ? 3 : null;
 }
 ''',
-      [
-        error(WarningCode.unusedLocalVariable, 15, 3),
-        error(WarningCode.deadCode, 34, 4),
-      ],
+      [error(diag.unusedLocalVariable, 15, 3), error(diag.deadCode, 34, 4)],
     );
     expectInitializerType('foo', 'int?');
   }

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/ascii_utils.dart';
 
 const _desc = r'Name source files using `lowercase_with_underscores`.';
@@ -18,7 +19,7 @@ class FileNames extends AnalysisRule {
   FileNames() : super(name: LintNames.file_names, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.fileNames;
+  DiagnosticCode get diagnosticCode => diag.fileNames;
 
   @override
   void registerNodeProcessors(

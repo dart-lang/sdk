@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
@@ -25,7 +25,7 @@ class SetLiteralTest extends PubPackageResolutionTest {
       '''
 Set<int> a = {'a'};
 ''',
-      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 14, 3)],
+      [error(diag.setElementTypeNotAssignable, 14, 3)],
     );
     assertType(setLiteral('{'), 'Set<int>');
   }
@@ -80,7 +80,7 @@ class A<E extends Set<int>> {
   E a = {};
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 38, 2)],
+      [error(diag.invalidAssignment, 38, 2)],
     );
     assertType(setLiteral('{}'), 'Set<dynamic>');
   }
@@ -92,7 +92,7 @@ class A<E extends Set<dynamic>> {
   E a = {};
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 42, 2)],
+      [error(diag.invalidAssignment, 42, 2)],
     );
     assertType(setLiteral('{}'), 'Set<dynamic>');
   }
@@ -124,7 +124,7 @@ class C<T extends Object?> {
       '''
 Set<String> a = <String>{0};
 ''',
-      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 25, 1)],
+      [error(diag.setElementTypeNotAssignable, 25, 1)],
     );
     assertType(setLiteral('{'), 'Set<String>');
   }
@@ -149,7 +149,7 @@ Set<String> a = <String>{'a'};
       '''
 Set<String> a = <int>{};
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 16, 7)],
+      [error(diag.invalidAssignment, 16, 7)],
     );
     assertType(setLiteral('{'), 'Set<int>');
   }
@@ -310,7 +310,7 @@ void f(Never a, bool b) async {
   var v = {...a, if (b) throw 0};
 }
 ''',
-      [error(WarningCode.deadCode, 87, 12)],
+      [error(diag.deadCode, 87, 12)],
     );
     assertType(setLiteral('{...'), 'Set<Never>');
   }
@@ -324,8 +324,8 @@ void f(Never a, bool b) async {
 }
 ''',
       [
-        error(StaticWarningCode.invalidNullAwareOperator, 77, 4),
-        error(WarningCode.deadCode, 88, 12),
+        error(diag.invalidNullAwareOperator, 77, 4),
+        error(diag.deadCode, 88, 12),
       ],
     );
     assertType(setLiteral('{...'), 'Set<Never>');
@@ -360,8 +360,8 @@ void f<T extends Never>(T a, bool b) async {
 }
 ''',
       [
-        error(StaticWarningCode.invalidNullAwareOperator, 90, 4),
-        error(WarningCode.deadCode, 101, 12),
+        error(diag.invalidNullAwareOperator, 90, 4),
+        error(diag.deadCode, 101, 12),
       ],
     );
     assertType(setLiteral('{...'), 'Set<Never>');
@@ -395,7 +395,7 @@ void f<T extends Never>(T a, bool b) async {
   var v = {...a, if (b) throw 0};
 }
 ''',
-      [error(WarningCode.deadCode, 100, 12)],
+      [error(diag.deadCode, 100, 12)],
     );
     assertType(setLiteral('{...'), 'Set<Never>');
   }
@@ -408,7 +408,7 @@ void f<T extends num>(T a) {
   var v = {...a};
 }
 ''',
-      [error(CompileTimeErrorCode.ambiguousSetOrMapLiteralEither, 73, 6)],
+      [error(diag.ambiguousSetOrMapLiteralEither, 73, 6)],
     );
     assertType(setLiteral('{...'), 'dynamic');
   }
@@ -421,7 +421,7 @@ void f<T extends num>(T a) {
   var v = {...a, 0};
 }
 ''',
-      [error(CompileTimeErrorCode.ambiguousSetOrMapLiteralEither, 73, 9)],
+      [error(diag.ambiguousSetOrMapLiteralEither, 73, 9)],
     );
     assertType(setLiteral('{...'), 'dynamic');
   }
@@ -431,7 +431,7 @@ void f<T extends num>(T a) {
       '''
 var a = <String>{1};
 ''',
-      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 17, 1)],
+      [error(diag.setElementTypeNotAssignable, 17, 1)],
     );
     assertType(setLiteral('{'), 'Set<String>');
   }

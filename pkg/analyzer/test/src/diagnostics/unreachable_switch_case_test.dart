@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -28,7 +28,7 @@ Object f(bool x) {
   };
 }
 ''',
-      [error(WarningCode.unreachableSwitchCase, 82, 2)],
+      [error(diag.unreachableSwitchCase, 82, 2)],
     );
   }
 
@@ -44,10 +44,10 @@ Object f(bool x) {
 }
 ''',
       [
-        error(WarningCode.deadCode, 57, 9),
-        error(WarningCode.unreachableSwitchCase, 62, 2),
-        error(WarningCode.deadCode, 72, 10),
-        error(WarningCode.unreachableSwitchCase, 78, 2),
+        error(diag.deadCode, 57, 9),
+        error(diag.unreachableSwitchCase, 62, 2),
+        error(diag.deadCode, 72, 10),
+        error(diag.unreachableSwitchCase, 78, 2),
       ],
     );
   }
@@ -73,7 +73,7 @@ Object f(E e, bool b) => switch (e) {
   E.e1 when b => 2,
 };
 ''',
-      [error(WarningCode.unreachableSwitchCase, 96, 2)],
+      [error(diag.unreachableSwitchCase, 96, 2)],
     );
   }
 
@@ -87,7 +87,7 @@ int f(Object? x) {
   };
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 45, 10)],
+      [error(diag.undefinedClass, 45, 10)],
     );
   }
 }
@@ -107,7 +107,7 @@ void f(bool x) {
   }
 }
 ''',
-      [error(WarningCode.unreachableSwitchCase, 67, 4)],
+      [error(diag.unreachableSwitchCase, 67, 4)],
     );
   }
 
@@ -125,7 +125,7 @@ void f(Object? x) {
   };
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 69, 10)],
+      [error(diag.undefinedIdentifier, 69, 10)],
     );
   }
 
@@ -143,7 +143,7 @@ void f(Object? x) {
   };
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 69, 10)],
+      [error(diag.undefinedClass, 69, 10)],
     );
   }
 
@@ -178,7 +178,7 @@ void f(E e, bool b) {
   }
 }
 ''',
-      [error(WarningCode.unreachableSwitchCase, 115, 4)],
+      [error(diag.unreachableSwitchCase, 115, 4)],
     );
   }
 
@@ -196,11 +196,11 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.deadCode, 64, 4),
-        error(WarningCode.unreachableSwitchCase, 64, 4),
-        error(WarningCode.deadCode, 80, 4),
-        error(WarningCode.unreachableSwitchCase, 80, 4),
-        error(WarningCode.deadCode, 98, 6),
+        error(diag.deadCode, 64, 4),
+        error(diag.unreachableSwitchCase, 64, 4),
+        error(diag.deadCode, 80, 4),
+        error(diag.unreachableSwitchCase, 80, 4),
+        error(diag.deadCode, 98, 6),
       ],
     );
   }

@@ -27,7 +27,7 @@ class Class extends core::Object /*hasConstConstructor*/  {
   static synthetic method /* from org-dartlang-testcase:///patch_lib.dart */ _#fact#tearOff({has-declared-initializer core::bool defaultValue}) → self2::Class
     return self2::Class::fact(defaultValue: defaultValue);
   @_in::patch
-  static factory /* from org-dartlang-testcase:///patch_lib.dart */ constFact({core::bool defaultValue = true}) → self2::Class
+  static const factory /* from org-dartlang-testcase:///patch_lib.dart */ constFact({core::bool defaultValue = true}) → self2::Class
     ;
   static synthetic method /* from org-dartlang-testcase:///patch_lib.dart */ _#constFact#tearOff({has-declared-initializer core::bool defaultValue}) → self2::Class
     return self2::Class::constFact(defaultValue: defaultValue);

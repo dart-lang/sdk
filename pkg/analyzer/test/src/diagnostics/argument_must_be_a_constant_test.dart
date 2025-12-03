@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/ffi_code.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -28,7 +28,7 @@ doThings() {
   f(8);
 }
 ''',
-      [error(FfiCode.argumentMustBeAConstant, 231, 6)],
+      [error(diag.argumentMustBeAConstant, 231, 6)],
     );
   }
 
@@ -45,7 +45,7 @@ doThings() {
   f(8);
 }
 ''',
-      [error(FfiCode.argumentMustBeAConstant, 233, 6)],
+      [error(diag.argumentMustBeAConstant, 233, 6)],
     );
   }
 
@@ -61,7 +61,7 @@ doThings(bool isLeaf) {
   f(8);
 }
 ''',
-      [error(FfiCode.argumentMustBeAConstant, 221, 6)],
+      [error(diag.argumentMustBeAConstant, 221, 6)],
     );
   }
 
@@ -76,7 +76,7 @@ void testFromFunctionFunctionExceptionValueMustBeConst() {
   Pointer.fromFunction<NativeDoubleUnOp>(myTimesThree, notAConst);
 }
 ''',
-      [error(FfiCode.argumentMustBeAConstant, 250, 9)],
+      [error(diag.argumentMustBeAConstant, 250, 9)],
     );
   }
 
@@ -91,7 +91,7 @@ doThings(bool isLeaf) {
   l.lookupFunction<Int8UnOp, IntUnOp>("timesFour", isLeaf:isLeaf);
 }
 ''',
-      [error(FfiCode.argumentMustBeAConstant, 230, 6)],
+      [error(diag.argumentMustBeAConstant, 230, 6)],
     );
   }
 }

@@ -325,8 +325,8 @@ class Parser {
   /// `true` if the 'enhanced-parts' feature is enabled.
   final bool _isEnhancedPartsFeatureEnabled;
 
-  /// `true` if the 'declaring-constructors' feature is enabled.
-  final bool _isDeclaringConstructorsFeatureEnabled;
+  /// `true` if the 'primary-constructors' feature is enabled.
+  final bool _isPrimaryConstructorsFeatureEnabled;
 
   /// `true` if the 'private-named-parameters' feature is enabled.
   final bool _isPrivateNamedParametersEnabled;
@@ -354,8 +354,8 @@ class Parser {
        ),
        _isEnhancedPartsFeatureEnabled = experimentalFeatures
            .isExperimentEnabled(ExperimentalFlag.enhancedParts),
-       _isDeclaringConstructorsFeatureEnabled = experimentalFeatures
-           .isExperimentEnabled(ExperimentalFlag.declaringConstructors),
+       _isPrimaryConstructorsFeatureEnabled = experimentalFeatures
+           .isExperimentEnabled(ExperimentalFlag.primaryConstructors),
        _isPrivateNamedParametersEnabled = experimentalFeatures
            .isExperimentEnabled(ExperimentalFlag.privateNamedParameters);
 
@@ -2215,9 +2215,9 @@ class Parser {
                 codes.codeFunctionTypedParameterVar,
               );
             } else {
-              if (!_isDeclaringConstructorsFeatureEnabled) {
+              if (!_isPrimaryConstructorsFeatureEnabled) {
                 reportExperimentNotEnabled(
-                  ExperimentalFlag.declaringConstructors,
+                  ExperimentalFlag.primaryConstructors,
                   varFinalOrConst,
                   varFinalOrConst,
                 );
@@ -2237,9 +2237,9 @@ class Parser {
             codes.codeFunctionTypedParameterVar,
           );
         } else {
-          if (!_isDeclaringConstructorsFeatureEnabled) {
+          if (!_isPrimaryConstructorsFeatureEnabled) {
             reportExperimentNotEnabled(
-              ExperimentalFlag.declaringConstructors,
+              ExperimentalFlag.primaryConstructors,
               varFinalOrConst,
               varFinalOrConst,
             );
@@ -2258,9 +2258,9 @@ class Parser {
           if (memberKind != MemberKind.PrimaryConstructor) {
             reportRecoverableError(varFinalOrConst, codes.codeTypeAfterVar);
           } else {
-            if (!_isDeclaringConstructorsFeatureEnabled) {
+            if (!_isPrimaryConstructorsFeatureEnabled) {
               reportExperimentNotEnabled(
-                ExperimentalFlag.declaringConstructors,
+                ExperimentalFlag.primaryConstructors,
                 varOrFinal,
                 varOrFinal,
               );
@@ -3051,6 +3051,10 @@ class Parser {
   /// typeWithParameters
   ///     :    typeIdentifier typeParameters?
   ///     ;
+  /// classBody
+  ///     :    '{' (metadata memberDeclaration)* '}'
+  ///     |    ';'
+  ///     ;
   /// ```
   Token parseClass(
     Token token,
@@ -3066,16 +3070,28 @@ class Parser {
       /* forExtensionType = */ false,
     );
     token = parseClassHeaderOpt(token, beginToken, classKeyword);
-    if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
-      // Recovery
-      token = parseClassHeaderRecovery(start, beginToken, classKeyword);
-      ensureBlock(token, BlockKind.classDeclaration);
+    if (token.next!.isA(TokenType.SEMICOLON)) {
+      Token semicolonToken = token = token.next!;
+      if (!_isPrimaryConstructorsFeatureEnabled) {
+        reportExperimentNotEnabled(
+          ExperimentalFlag.primaryConstructors,
+          semicolonToken,
+          semicolonToken,
+        );
+      }
+      listener.handleNoClassBody(semicolonToken);
+    } else {
+      if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
+        // Recovery
+        token = parseClassHeaderRecovery(start, beginToken, classKeyword);
+        ensureBlock(token, BlockKind.classDeclaration);
+      }
+      token = parseClassOrMixinOrExtensionBody(
+        token,
+        DeclarationKind.Class,
+        className,
+      );
     }
-    token = parseClassOrMixinOrExtensionBody(
-      token,
-      DeclarationKind.Class,
-      className,
-    );
     listener.endClassDeclaration(beginToken, token);
     return token;
   }
@@ -3699,6 +3715,24 @@ class Parser {
     return token;
   }
 
+  Token parsePrimaryConstructorBody(Token token) {
+    Token beginToken = token;
+    listener.beginPrimaryConstructorBody(token);
+
+    Token? beforeInitializers = token;
+    token = parseInitializersOpt(beforeInitializers);
+
+    token = parseAsyncModifierOpt(token);
+    token = parseFunctionBody(
+      token,
+      /* ofFunctionExpression = */ false,
+      /* allowAbstract = */ inPlainSync,
+    );
+
+    listener.endPrimaryConstructorBody(beginToken, beforeInitializers, token);
+    return token;
+  }
+
   /// Parses an extension type declaration after
   ///
   ///    'extension' 'type'
@@ -3751,19 +3785,31 @@ class Parser {
     );
     Token start = token;
     token = parseClassOrMixinOrEnumImplementsOpt(token);
-    if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
-      // TODO(johnniwinther): Reuse logic from [parseClassHeaderRecovery] to
-      // handle `extends`, `with` and out-of-order/duplicate clauses.
-      token = parseExtensionTypeHeaderRecovery(start, extensionKeyword);
+    if (token.next!.isA(TokenType.SEMICOLON)) {
+      Token semicolonToken = token = token.next!;
+      if (!_isPrimaryConstructorsFeatureEnabled) {
+        reportExperimentNotEnabled(
+          ExperimentalFlag.primaryConstructors,
+          semicolonToken,
+          semicolonToken,
+        );
+      }
+      listener.handleNoExtensionTypeBody(semicolonToken);
+    } else {
+      if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
+        // TODO(johnniwinther): Reuse logic from [parseClassHeaderRecovery] to
+        // handle `extends`, `with` and out-of-order/duplicate clauses.
+        token = parseExtensionTypeHeaderRecovery(start, extensionKeyword);
 
-      // Recovery
-      ensureBlock(token, BlockKind.extensionTypeDeclaration);
+        // Recovery
+        ensureBlock(token, BlockKind.extensionTypeDeclaration);
+      }
+      token = parseClassOrMixinOrExtensionBody(
+        token,
+        DeclarationKind.ExtensionType,
+        name.lexeme,
+      );
     }
-    token = parseClassOrMixinOrExtensionBody(
-      token,
-      DeclarationKind.ExtensionType,
-      name.lexeme,
-    );
     listener.endExtensionTypeDeclaration(
       beginToken,
       augmentToken,
@@ -3987,7 +4033,7 @@ class Parser {
     }
 
     Token beforeType = token;
-    if (varFinalOrConst != null) {
+    if (varFinalOrConst != null && !varFinalOrConst.isA(Keyword.CONST)) {
       Token? afterOuterPattern = skipOuterPattern(beforeType);
       if (afterOuterPattern != null &&
           (afterOuterPattern.next!.isA(TokenType.EQ))) {
@@ -4280,45 +4326,10 @@ class Parser {
     switch (kind) {
       case DeclarationKind.TopLevel:
         assert(abstractToken == null);
-        listener.endTopLevelFields(
-          augmentToken,
-          externalToken,
-          staticToken,
-          covariantToken,
-          lateToken,
-          varFinalOrConst,
-          fieldCount,
-          beforeStart.next!,
-          token,
-        );
         break;
       case DeclarationKind.Class:
-        listener.endClassFields(
-          abstractToken,
-          augmentToken,
-          externalToken,
-          staticToken,
-          covariantToken,
-          lateToken,
-          varFinalOrConst,
-          fieldCount,
-          beforeStart.next!,
-          token,
-        );
-        break;
       case DeclarationKind.Mixin:
-        listener.endMixinFields(
-          abstractToken,
-          augmentToken,
-          externalToken,
-          staticToken,
-          covariantToken,
-          lateToken,
-          varFinalOrConst,
-          fieldCount,
-          beforeStart.next!,
-          token,
-        );
+      case DeclarationKind.Enum:
         break;
       case DeclarationKind.Extension:
         if (abstractToken != null) {
@@ -4330,18 +4341,6 @@ class Parser {
             codes.codeExtensionDeclaresInstanceField,
           );
         }
-        listener.endExtensionFields(
-          abstractToken,
-          augmentToken,
-          externalToken,
-          staticToken,
-          covariantToken,
-          lateToken,
-          varFinalOrConst,
-          fieldCount,
-          beforeStart.next!,
-          token,
-        );
         break;
       case DeclarationKind.ExtensionType:
         if (staticToken == null && externalToken == null) {
@@ -4350,33 +4349,34 @@ class Parser {
             codes.codeExtensionTypeDeclaresInstanceField,
           );
         }
-        listener.endExtensionTypeFields(
-          abstractToken,
-          augmentToken,
-          externalToken,
-          staticToken,
-          covariantToken,
-          lateToken,
-          varFinalOrConst,
-          fieldCount,
-          beforeStart.next!,
-          token,
-        );
         break;
-      case DeclarationKind.Enum:
-        listener.endEnumFields(
-          abstractToken,
-          augmentToken,
-          externalToken,
-          staticToken,
-          covariantToken,
-          lateToken,
-          varFinalOrConst,
-          fieldCount,
-          beforeStart.next!,
-          token,
-        );
-        break;
+    }
+    if (kind == DeclarationKind.TopLevel) {
+      listener.endTopLevelFields(
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        fieldCount,
+        beforeStart.next!,
+        token,
+      );
+    } else {
+      listener.endFields(
+        kind,
+        abstractToken,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        fieldCount,
+        beforeStart.next!,
+        token,
+      );
     }
     return token;
   }
@@ -5164,7 +5164,7 @@ class Parser {
     listener.beginMember();
 
     Token beforeType = token;
-    if (varFinalOrConst != null) {
+    if (varFinalOrConst != null && !varFinalOrConst.isA(Keyword.CONST)) {
       Token? afterOuterPattern = skipOuterPattern(beforeType);
       if (afterOuterPattern != null &&
           (afterOuterPattern.next!.isA(TokenType.EQ))) {
@@ -5204,9 +5204,19 @@ class Parser {
     token = typeInfo.skipType(token);
     next = token.next!;
 
+    Token? newToken;
     Token? getOrSet;
     bool nameIsRecovered = false;
-    if (next.type != TokenType.IDENTIFIER) {
+    if (next.isA(Keyword.NEW)) {
+      newToken = next;
+      if (!_isPrimaryConstructorsFeatureEnabled) {
+        reportExperimentNotEnabled(
+          ExperimentalFlag.primaryConstructors,
+          newToken,
+          newToken,
+        );
+      }
+    } else if (next.type != TokenType.IDENTIFIER) {
       String? value = next.stringValue;
       if (identical(value, 'get') || identical(value, 'set')) {
         if (next.next!.isIdentifier) {
@@ -5222,7 +5232,7 @@ class Parser {
         // Fall through to continue parsing `get` or `set` as an identifier.
       } else if (identical(value, 'factory')) {
         Token next2 = next.next!;
-        if (next2.isIdentifier || next2.isModifier) {
+        if (next2.isIdentifier || next2.isModifier || next2.isA(Keyword.NEW)) {
           if (beforeType != token) {
             reportRecoverableError(token, codes.codeTypeBeforeFactory);
           }
@@ -5239,9 +5249,31 @@ class Parser {
             externalToken,
             staticToken ?? covariantToken,
             varFinalOrConst,
+            /* hasName = */ true,
           );
           listener.endMember();
           return token;
+        } else if (_isPrimaryConstructorsFeatureEnabled &&
+            next2.isA(TokenType.OPEN_PAREN)) {
+          if (typeInfo == noType &&
+              covariantToken == null &&
+              //externalToken = null &&
+              lateToken == null &&
+              staticToken == null &&
+              (varFinalOrConst == null || varFinalOrConst.isA(Keyword.CONST)) &&
+              abstractToken == null) {
+            token = parseFactoryMethod(
+              token,
+              kind,
+              beforeStart,
+              externalToken,
+              staticToken ?? covariantToken,
+              varFinalOrConst,
+              /* hasName = */ false,
+            );
+            listener.endMember();
+            return token;
+          }
         }
         // Fall through to continue parsing `factory` as an identifier.
       } else if (identical(value, 'operator')) {
@@ -5262,6 +5294,7 @@ class Parser {
             beforeType,
             typeInfo,
             getOrSet,
+            newToken,
             token.next!,
             kind,
             enclosingDeclarationName,
@@ -5302,6 +5335,7 @@ class Parser {
             beforeType,
             typeInfo,
             getOrSet,
+            newToken,
             token.next!,
             kind,
             enclosingDeclarationName,
@@ -5311,6 +5345,22 @@ class Parser {
           return token;
         }
         // Fall through to continue parsing `operator` as an identifier.
+      } else if (identical(value, 'this')) {
+        Token next2 = next.next!;
+        if (next2.isA(TokenType.COLON) ||
+            next2.isA(TokenType.SEMICOLON) ||
+            next2.isA(TokenType.OPEN_CURLY_BRACKET)) {
+          if (!_isPrimaryConstructorsFeatureEnabled) {
+            reportExperimentNotEnabled(
+              ExperimentalFlag.primaryConstructors,
+              next,
+              next,
+            );
+          }
+          token = parsePrimaryConstructorBody(next);
+          listener.endMember();
+          return token;
+        }
       } else if (!next.isIdentifier ||
           (identical(value, 'typedef') &&
               token == beforeStart &&
@@ -5332,6 +5382,7 @@ class Parser {
           beforeType,
           typeInfo,
           getOrSet,
+          newToken,
           kind,
           enclosingDeclarationName,
         );
@@ -5376,6 +5427,7 @@ class Parser {
     next = next.next!;
     String? value = next.stringValue;
     if (getOrSet != null ||
+        newToken != null ||
         identical(value, '(') ||
         identical(value, '{') ||
         identical(value, '<') ||
@@ -5393,6 +5445,7 @@ class Parser {
         beforeType,
         typeInfo,
         getOrSet,
+        newToken,
         token.next!,
         kind,
         enclosingDeclarationName,
@@ -5423,6 +5476,84 @@ class Parser {
     return token;
   }
 
+  /// Returns `true` if a method-like declaration is determined to be a
+  /// constructor.
+  ///
+  /// [name] is the token for the (first) name of the declaration or the
+  /// `operator` token if [isOperator] is `true`.
+  ///
+  /// [getOrSet] is the token for `get` or `set` if this occurred prior to the
+  /// [name].
+  ///
+  /// [newToken] is the token for `new` if this occurred prior to the name.
+  ///
+  /// [enclosingDeclarationName] is the name of the enclosing class, mixin,
+  /// enum, extension or extension type.
+  bool _isConstructor(
+    Token name,
+    Token? getOrSet,
+    Token? newToken,
+    String? enclosingDeclarationName,
+    bool isOperator,
+  ) {
+    // TODO(johnniwinther): Update this to match what we want and not what we
+    //  happened to do during error recovery.
+    if (newToken != null) {
+      return true;
+    }
+    Token afterName;
+    if (name.isKeywordOrIdentifier) {
+      afterName = name.next!;
+    } else {
+      // Recovery (identifier is synthesized)
+      afterName = name;
+    }
+    if (afterName.isA(TokenType.PERIOD)) {
+      // This is only legal for constructors.
+      return true;
+    }
+
+    if (isOperator) {
+      if (afterName.isOperator) {
+        afterName = afterName.next!;
+      } else if (isUnaryMinus(afterName)) {
+        afterName = afterName.next!.next!;
+      }
+    }
+    if (afterName.isA(TokenType.BANG)) {
+      // Recovery
+      afterName = afterName.next!;
+    }
+    if (afterName.isA(TokenType.LT)) {
+      if (afterName.endGroup != null) {
+        afterName = afterName.endGroup!.next!;
+        if (afterName.isA(TokenType.EQ)) {
+          // Recovery
+          afterName = afterName.next!;
+        }
+      }
+    }
+
+    if (afterName.isA(TokenType.OPEN_PAREN)) {
+      Token afterParen = afterName.endGroup!.next!;
+      if (afterParen.isA(TokenType.COLON)) {
+        return true;
+      }
+    } else if (afterName.isA(TokenType.COLON)) {
+      return true;
+    }
+
+    if (getOrSet != null) {
+      return false;
+    }
+
+    if (name.lexeme == enclosingDeclarationName) {
+      return true;
+    }
+
+    return false;
+  }
+
   Token parseMethod(
     Token beforeStart,
     Token? abstractToken,
@@ -5435,6 +5566,7 @@ class Parser {
     Token beforeType,
     TypeInfo typeInfo,
     Token? getOrSet,
+    Token? newToken,
     Token name,
     DeclarationKind kind,
     String? enclosingDeclarationName,
@@ -5472,6 +5604,14 @@ class Parser {
       }
     }
 
+    bool isConstructor = _isConstructor(
+      name,
+      getOrSet,
+      newToken,
+      enclosingDeclarationName,
+      isOperator,
+    );
+
     if (staticToken != null) {
       if (isOperator) {
         reportRecoverableError(staticToken, codes.codeStaticOperator);
@@ -5505,19 +5645,34 @@ class Parser {
       }
     }
 
-    // TODO(danrubel): Consider parsing the name before calling beginMethod
-    // rather than passing the name token into beginMethod.
-    listener.beginMethod(
-      kind,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      varFinalOrConst,
-      getOrSet,
-      name,
-      enclosingDeclarationName,
-    );
+    if (isConstructor) {
+      listener.beginConstructor(
+        kind,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        varFinalOrConst,
+        getOrSet,
+        newToken,
+        name,
+        enclosingDeclarationName,
+      );
+    } else {
+      // TODO(danrubel): Consider parsing the name before calling beginMethod
+      // rather than passing the name token into beginMethod.
+      listener.beginMethod(
+        kind,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        varFinalOrConst,
+        getOrSet,
+        name,
+        enclosingDeclarationName,
+      );
+    }
 
     Token token = typeInfo.parseType(beforeType, this);
     assert(
@@ -5535,6 +5690,37 @@ class Parser {
 
     if (isOperator) {
       token = parseOperatorName(token);
+    } else if (newToken != null) {
+      token = token.next!;
+      if (token.next!.isIdentifier) {
+        Token identifier = token = token.next!;
+        listener.handleIdentifier(
+          identifier,
+          IdentifierContext.methodDeclaration,
+        );
+        // Recovery: This call only does something if the next token is
+        // a '.' --- that's not legal for constructors using 'new' so we'll
+        // report an error and recover better by allowing it.
+        Token qualified = parseQualifiedRestOpt(
+          token,
+          IdentifierContext.methodDeclarationContinuation,
+        );
+        if (token != qualified) {
+          hasQualifiedName = true;
+          reportRecoverableError(token, codes.codeNewConstructorQualifiedName);
+        }
+        token = qualified;
+      } else if (token.next!.isA(Keyword.NEW)) {
+        // This a constructor declaration like `new new();` which isn't allowed.
+        Token identifier = token = token.next!;
+        reportRecoverableError(identifier, codes.codeNewConstructorNewName);
+        listener.handleIdentifier(
+          identifier,
+          IdentifierContext.methodDeclaration,
+        );
+      } else {
+        listener.handleNoIdentifier(token, IdentifierContext.methodDeclaration);
+      }
     } else {
       token = ensureIdentifierPotentiallyRecovered(
         token,
@@ -5626,26 +5812,11 @@ class Parser {
     }
     asyncState = savedAsyncModifier;
 
-    bool isConstructor = false;
-    if (name.next!.isA(TokenType.PERIOD) || beforeInitializers != null) {
-      // This is only legal for constructors.
-      isConstructor = true;
-    } else if (name.lexeme == enclosingDeclarationName) {
-      if (getOrSet != null) {
-        // Recovery: The (simple) get/set member name is invalid.
-        // Report an error and continue with invalid name
-        // (keeping it as a getter/setter).
-        reportRecoverableError(name, codes.codeMemberWithSameNameAsClass);
-      } else {
-        isConstructor = true;
-      }
-    }
-
     if (isConstructor) {
       //
       // constructor
       //
-      if (name.lexeme != enclosingDeclarationName) {
+      if (newToken == null && name.lexeme != enclosingDeclarationName) {
         reportRecoverableError(name, codes.codeConstructorWithWrongName);
       }
       if (staticToken != null) {
@@ -5672,84 +5843,45 @@ class Parser {
       }
 
       switch (kind) {
-        case DeclarationKind.Class:
-          // TODO(danrubel): Remove getOrSet from constructor events
-          listener.endClassConstructor(
-            getOrSet,
-            beforeStart.next!,
-            beforeParam.next!,
-            beforeInitializers?.next,
-            token,
-          );
-          break;
         case DeclarationKind.Mixin:
           reportRecoverableError(name, codes.codeMixinDeclaresConstructor);
-          listener.endMixinConstructor(
-            getOrSet,
-            beforeStart.next!,
-            beforeParam.next!,
-            beforeInitializers?.next,
-            token,
-          );
           break;
         case DeclarationKind.Extension:
           reportRecoverableError(name, codes.codeExtensionDeclaresConstructor);
-          listener.endExtensionConstructor(
-            getOrSet,
-            beforeStart.next!,
-            beforeParam.next!,
-            beforeInitializers?.next,
-            token,
-          );
           break;
+        case DeclarationKind.Class:
         case DeclarationKind.ExtensionType:
-          listener.endExtensionTypeConstructor(
-            getOrSet,
-            beforeStart.next!,
-            beforeParam.next!,
-            beforeInitializers?.next,
-            token,
-          );
+        case DeclarationKind.Enum:
           break;
         case DeclarationKind.TopLevel:
           throw "Internal error: TopLevel constructor.";
-        case DeclarationKind.Enum:
-          listener.endEnumConstructor(
-            getOrSet,
-            beforeStart.next!,
-            beforeParam.next!,
-            beforeInitializers?.next,
-            token,
-          );
-          break;
       }
+      listener.endConstructor(
+        kind,
+        beforeStart.next!,
+        newToken,
+        beforeParam.next!,
+        beforeInitializers?.next,
+        token,
+      );
     } else {
       //
       // method
       //
+      if (name.lexeme == enclosingDeclarationName && getOrSet != null) {
+        // Recovery: The (simple) get/set member name is invalid.
+        // Report an error and continue with invalid name
+        // (keeping it as a getter/setter).
+        reportRecoverableError(name, codes.codeMemberWithSameNameAsClass);
+      }
       if (varFinalOrConst != null) {
         assert(varFinalOrConst.isA(Keyword.CONST));
         reportRecoverableError(varFinalOrConst, codes.codeConstMethod);
       }
       switch (kind) {
         case DeclarationKind.Class:
-          // TODO(danrubel): Remove beginInitializers token from method events
-          listener.endClassMethod(
-            getOrSet,
-            beforeStart.next!,
-            beforeParam.next!,
-            beforeInitializers?.next,
-            token,
-          );
-          break;
         case DeclarationKind.Mixin:
-          listener.endMixinMethod(
-            getOrSet,
-            beforeStart.next!,
-            beforeParam.next!,
-            beforeInitializers?.next,
-            token,
-          );
+        case DeclarationKind.Enum:
           break;
         case DeclarationKind.Extension:
           if (bodyStart.isA(TokenType.SEMICOLON) && externalToken == null) {
@@ -5758,13 +5890,6 @@ class Parser {
               codes.codeExtensionDeclaresAbstractMember,
             );
           }
-          listener.endExtensionMethod(
-            getOrSet,
-            beforeStart.next!,
-            beforeParam.next!,
-            beforeInitializers?.next,
-            token,
-          );
           break;
         case DeclarationKind.ExtensionType:
           if (bodyStart.isA(TokenType.SEMICOLON) && externalToken == null) {
@@ -5773,26 +5898,19 @@ class Parser {
               codes.codeExtensionTypeDeclaresAbstractMember,
             );
           }
-          listener.endExtensionTypeMethod(
-            getOrSet,
-            beforeStart.next!,
-            beforeParam.next!,
-            beforeInitializers?.next,
-            token,
-          );
           break;
         case DeclarationKind.TopLevel:
           throw "Internal error: TopLevel method.";
-        case DeclarationKind.Enum:
-          listener.endEnumMethod(
-            getOrSet,
-            beforeStart.next!,
-            beforeParam.next!,
-            beforeInitializers?.next,
-            token,
-          );
-          break;
       }
+      // TODO(danrubel): Remove beginInitializers token from method events
+      listener.endMethod(
+        kind,
+        getOrSet,
+        beforeStart.next!,
+        beforeParam.next!,
+        beforeInitializers?.next,
+        token,
+      );
     }
     return token;
   }
@@ -5804,6 +5922,7 @@ class Parser {
     Token? externalToken,
     Token? staticOrCovariant,
     Token? varFinalOrConst,
+    bool hasName,
   ) {
     Token factoryKeyword = token = token.next!;
     assert(factoryKeyword.isA(Keyword.FACTORY));
@@ -5836,17 +5955,24 @@ class Parser {
       varFinalOrConst = null;
     }
 
-    listener.beginFactoryMethod(
-      kind,
-      beforeStart,
-      externalToken,
-      varFinalOrConst,
-    );
-    token = ensureIdentifier(token, IdentifierContext.methodDeclaration);
-    token = parseQualifiedRestOpt(
-      token,
-      IdentifierContext.methodDeclarationContinuation,
-    );
+    listener.beginFactory(kind, beforeStart, externalToken, varFinalOrConst);
+    if (!hasName) {
+      listener.handleNoIdentifier(token, IdentifierContext.methodDeclaration);
+    } else if (token.next!.isA(Keyword.NEW) &&
+        !token.next!.next!.isA(TokenType.PERIOD)) {
+      Token identifier = token = token.next!;
+      reportRecoverableError(identifier, codes.codeFactoryConstructorNewName);
+      listener.handleIdentifier(
+        identifier,
+        IdentifierContext.methodDeclaration,
+      );
+    } else {
+      token = ensureIdentifier(token, IdentifierContext.methodDeclaration);
+      token = parseQualifiedRestOpt(
+        token,
+        IdentifierContext.methodDeclarationContinuation,
+      );
+    }
     token = parseMethodTypeVar(token);
     token = parseFormalParametersRequiredOpt(token, MemberKind.Factory);
     Token asyncToken = token.next!;
@@ -5883,21 +6009,13 @@ class Parser {
     }
     switch (kind) {
       case DeclarationKind.Class:
-        listener.endClassFactoryMethod(
-          beforeStart.next!,
-          factoryKeyword,
-          token,
-        );
+      case DeclarationKind.Enum:
+      case DeclarationKind.ExtensionType:
         break;
       case DeclarationKind.Mixin:
         reportRecoverableError(
           factoryKeyword,
           codes.codeMixinDeclaresConstructor,
-        );
-        listener.endMixinFactoryMethod(
-          beforeStart.next!,
-          factoryKeyword,
-          token,
         );
         break;
       case DeclarationKind.Extension:
@@ -5905,25 +6023,11 @@ class Parser {
           factoryKeyword,
           codes.codeExtensionDeclaresConstructor,
         );
-        listener.endExtensionFactoryMethod(
-          beforeStart.next!,
-          factoryKeyword,
-          token,
-        );
-        break;
-      case DeclarationKind.ExtensionType:
-        listener.endExtensionTypeFactoryMethod(
-          beforeStart.next!,
-          factoryKeyword,
-          token,
-        );
         break;
       case DeclarationKind.TopLevel:
         throw "Internal error: TopLevel factory.";
-      case DeclarationKind.Enum:
-        listener.endEnumFactoryMethod(beforeStart.next!, factoryKeyword, token);
-        break;
     }
+    listener.endFactory(kind, beforeStart.next!, factoryKeyword, token);
     return token;
   }
 
@@ -10815,6 +10919,7 @@ class Parser {
       beforeType,
       typeInfo,
       /* getOrSet = */ null,
+      /* newToken = */ null,
       beforeName.next!,
       kind,
       enclosingDeclarationName,
@@ -10840,6 +10945,7 @@ class Parser {
     Token beforeType,
     TypeInfo typeInfo,
     Token? getOrSet,
+    Token? newToken,
     DeclarationKind kind,
     String? enclosingDeclarationName,
   ) {
@@ -10884,6 +10990,7 @@ class Parser {
         beforeType,
         typeInfo,
         getOrSet,
+        newToken,
         token.next!,
         kind,
         enclosingDeclarationName,

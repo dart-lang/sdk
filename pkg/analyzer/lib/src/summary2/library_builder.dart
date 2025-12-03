@@ -4,7 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' as file_state;
 import 'package:analyzer/src/dart/analysis/file_state.dart' hide DirectiveUri;
@@ -156,7 +155,8 @@ class LibraryBuilder {
       if (classElement.isMixinApplication) continue;
       if (classElement.constructors.isNotEmpty) continue;
 
-      var fragment = ConstructorFragmentImpl(name: 'new')..isSynthetic = true;
+      var fragment = ConstructorFragmentImpl(name: 'new');
+      fragment.isOriginImplicitDefault = true;
       fragment.typeName = classElement.name;
       classElement.firstFragment.constructors = [fragment].toFixedList();
 
@@ -234,8 +234,8 @@ class LibraryBuilder {
       if (hasConstructor(enumElement)) continue;
 
       var constructorFragment = ConstructorFragmentImpl(name: 'new')
+        ..isOriginImplicitDefault = true
         ..isConst = true
-        ..isSynthetic = true
         ..typeName = enumElement.name;
       enumElement.firstFragment.addConstructor(constructorFragment);
 
@@ -265,10 +265,7 @@ class LibraryBuilder {
         if (declaration is ast.MixinDeclarationImpl) {
           var names = <String>{};
           var collector = MixinSuperInvokedNamesCollector(names);
-          for (var executable
-              in useDeclaringConstructorsAst
-                  ? declaration.body.members
-                  : declaration.members) {
+          for (var executable in declaration.body.members) {
             if (executable is ast.MethodDeclarationImpl) {
               executable.body.accept(collector);
             }
@@ -335,7 +332,9 @@ class LibraryBuilder {
       for (var constructor in interfaceElement.constructors) {
         for (var parameter in constructor.formalParameters) {
           if (parameter is FieldFormalParameterElementImpl) {
-            parameter.field = interfaceElement.getField(parameter.name ?? '');
+            parameter.field = interfaceElement.getField(
+              parameter.privateName ?? parameter.name ?? '',
+            );
           }
         }
       }
@@ -924,7 +923,7 @@ class _FieldPromotability
     InterfaceElementImpl class_,
   ) {
     for (var field in class_.fields) {
-      if (field.isStatic || field.isSynthetic) {
+      if (field.isStatic || field.isOriginGetterSetter) {
         continue;
       }
 
@@ -945,7 +944,7 @@ class _FieldPromotability
     }
 
     for (var getter in class_.getters) {
-      if (getter.isStatic || getter.isSynthetic) {
+      if (getter.isStatic || getter.isOriginVariable) {
         continue;
       }
 

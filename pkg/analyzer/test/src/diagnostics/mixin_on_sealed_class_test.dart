@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -39,7 +39,7 @@ import 'package:meta/meta.dart';
 import 'package:foo/foo.dart';
 mixin Bar on Foo {}
 ''',
-      [error(WarningCode.mixinOnSealedClass, 31, 19)],
+      [error(diag.mixinOnSealedClass, 31, 19)],
     );
   }
 

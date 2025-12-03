@@ -54,7 +54,7 @@ class UnreachableIfFinder extends RecursiveVisitor {
 
   List<Warning> warnings = [];
 
-  Map<VariableDeclaration, bool> knownValues = {};
+  Map<ExpressionVariable, bool> knownValues = {};
 
   @override
   void visitIfStatement(IfStatement node) {
@@ -75,7 +75,7 @@ class UnreachableIfFinder extends RecursiveVisitor {
     // TODO(jensj): We could make the visit return a bool? instead and use that
     // from the condition instead of doing special casing on `Not` and
     // `VariableGet`.
-    VariableDeclaration? newKnownValueHere;
+    ExpressionVariable? newKnownValueHere;
     bool conditionNegated = false;
 
     if (condition is Not) {

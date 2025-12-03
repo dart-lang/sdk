@@ -4,20 +4,13 @@
 
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
-import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
 const _desc = r'Do use sound null safety.';
 
-class EnableNullSafety extends AnalysisRule {
-  EnableNullSafety()
-    : super(
-        name: LintNames.enable_null_safety,
-        description: _desc,
-        state: RuleState.removed(since: dart3),
-      );
-
-  @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.removedLint;
-}
+final enableNullSafety = RemovedAnalysisRule(
+  name: LintNames.enable_null_safety,
+  description: _desc,
+  since: dart3,
+);

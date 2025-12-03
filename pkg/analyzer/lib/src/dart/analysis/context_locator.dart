@@ -406,28 +406,33 @@ class ContextLocatorImpl {
     File? optionsFile,
     File? packagesFile,
   ) {
-    //
-    // If the options and packages files are allowed to be locally specified,
-    // then look to see whether they are.
-    //
-    File? localOptionsFile;
-    if (optionsFile == null) {
-      localOptionsFile = folder.existingAnalysisOptionsYamlFile;
-    }
-    File? localPackagesFile;
-    if (packagesFile == null) {
-      localPackagesFile = _getPackagesFile(folder);
-    }
+    var packagesFileToUse =
+        packagesFile ?? _getPackagesFile(folder) ?? containingRoot.packagesFile;
     var buildGnFile = folder.getExistingFile(file_paths.buildGn);
+
+    var optionsFileToUse = optionsFile;
+    if (optionsFileToUse == null) {
+      optionsFileToUse = folder.existingAnalysisOptionsYamlFile;
+      if (optionsFileToUse == null) {
+        var parentFolder = folder.parent;
+        while (parentFolder != containingRoot.root) {
+          optionsFileToUse = parentFolder.existingAnalysisOptionsYamlFile;
+          if (optionsFileToUse != null) {
+            break;
+          }
+          parentFolder = parentFolder.parent;
+        }
+      }
+    }
 
     var localEnabledPlugins = _getEnabledLegacyPlugins(
       containingRoot.workspace,
-      localOptionsFile,
+      optionsFileToUse,
     );
     // Legacy plugins differ only if there is an analysis_options and it
     // contains a different set of plugins from the containing context.
     var pluginsDiffer =
-        localOptionsFile != null &&
+        optionsFileToUse != null &&
         !const SetEquality<String>().equals(
           containingRootEnabledLegacyPlugins,
           localEnabledPlugins,
@@ -437,38 +442,20 @@ class ContextLocatorImpl {
 
     // Create a context root for the given [folder] if a packages or build file
     // is locally specified, or the set of enabled legacy plugins changed.
-    if (pluginsDiffer || localPackagesFile != null || buildGnFile != null) {
-      if (optionsFile != null) {
-        localOptionsFile = optionsFile;
-      }
-      if (packagesFile != null) {
-        localPackagesFile = packagesFile;
-      }
-      var rootPackagesFile = localPackagesFile ?? containingRoot.packagesFile;
+    if (pluginsDiffer ||
+        packagesFileToUse != containingRoot.packagesFile ||
+        buildGnFile != null) {
       var workspace = _createWorkspace(
         folder: folder,
-        packagesFile: rootPackagesFile,
+        packagesFile: packagesFileToUse,
         buildGnFile: buildGnFile,
       );
-      // Check for analysis options file in the parent directories, from
-      // root folder to the containing root folder. Pick the one closest
-      // to the root.
-      if (localOptionsFile == null) {
-        var parentFolder = folder.parent;
-        while (parentFolder != containingRoot.root) {
-          localOptionsFile = parentFolder.existingAnalysisOptionsYamlFile;
-          if (localOptionsFile != null) {
-            break;
-          }
-          parentFolder = parentFolder.parent;
-        }
-      }
       var root = ContextRootImpl(
         resourceProvider,
         folder,
         workspace,
-        optionsFile: localOptionsFile ?? containingRoot.optionsFile,
-        packagesFile: rootPackagesFile,
+        optionsFile: optionsFileToUse ?? containingRoot.optionsFile,
+        packagesFile: packagesFileToUse,
       );
       root.included.add(folder);
       containingRoot.excluded.add(folder);
@@ -480,12 +467,12 @@ class ContextLocatorImpl {
       usedThisRoot = false;
     }
 
-    if (localOptionsFile != null) {
+    if (optionsFileToUse != null) {
       (containingRoot as ContextRootImpl).optionsFileMap[folder] =
-          localOptionsFile;
+          optionsFileToUse;
       // Add excluded globs.
       var excludes = _getExcludedGlobs(
-        localOptionsFile,
+        optionsFileToUse,
         containingRoot.workspace,
       );
       containingRoot.excludedGlobs.addAll(excludes);

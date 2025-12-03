@@ -45,13 +45,13 @@ class AnalyticsManager {
 
   static const openWorkspacePathsKey = 'openWorkspacePaths';
 
-  static const refactoringKindEnumKey = EDIT_REQUEST_GET_REFACTORING_KIND;
+  static const refactoringKindEnumKey = editRequestGetRefactoringKind;
 
-  static const includedKey = ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_INCLUDED;
+  static const includedKey = analysisRequestSetAnalysisRootsIncluded;
 
-  static const excludedKey = ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_EXCLUDED;
+  static const excludedKey = analysisRequestSetAnalysisRootsExcluded;
 
-  static const filesKey = ANALYSIS_REQUEST_SET_PRIORITY_FILES_FILES;
+  static const filesKey = analysisRequestSetPriorityFilesFiles;
 
   /// The object used to send analytics.
   final Analytics analytics;
@@ -321,7 +321,7 @@ class AnalyticsManager {
 
   /// Record data from the given [params].
   void startedGetRefactoring(EditGetRefactoringParams params) {
-    var requestData = getRequestData(EDIT_REQUEST_GET_REFACTORING);
+    var requestData = getRequestData(editRequestGetRefactoring);
     requestData.addEnumValue(refactoringKindEnumKey, params.kind.name);
   }
 
@@ -351,16 +351,16 @@ class AnalyticsManager {
 
   /// Record data from the given [params].
   void startedSetAnalysisRoots(AnalysisSetAnalysisRootsParams params) {
-    var requestData = getRequestData(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS);
+    var requestData = getRequestData(analysisRequestSetAnalysisRoots);
     requestData.addValue(includedKey, params.included.length);
     requestData.addValue(excludedKey, params.excluded.length);
   }
 
   /// Record data from the given [params].
   void startedSetPriorityFiles(AnalysisSetPriorityFilesParams params) {
-    var requestData = getRequestData(ANALYSIS_REQUEST_SET_PRIORITY_FILES);
+    var requestData = getRequestData(analysisRequestSetPriorityFiles);
     requestData.addValue(
-      ANALYSIS_REQUEST_SET_PRIORITY_FILES_FILES,
+      analysisRequestSetPriorityFilesFiles,
       params.files.length,
     );
   }
@@ -627,6 +627,11 @@ class AnalyticsManager {
             statistics.produceErrorsActualFileLineCount,
         produceErrorsDurationMs: statistics.produceErrorsMs,
         produceErrorsElementsDurationMs: statistics.produceErrorsElementsMs,
+        libraryDiagnosticsBundleFailures: statistics
+            .libraryDiagnosticsBundleRequirementsFailures
+            .entries
+            .map((e) => '${e.key.id}:${e.value}')
+            .join(','),
       ),
     );
 

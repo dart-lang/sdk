@@ -17,6 +17,12 @@ import 'package:vm/metadata/procedure_attributes.dart'
 import 'package:vm/metadata/table_selector.dart'
     show TableSelectorMetadataRepository;
 
+final bool compilerAssertsEnabled = (() {
+  bool compilerAsserts = false;
+  assert(compilerAsserts = true);
+  return compilerAsserts;
+})();
+
 bool hasPragma(CoreTypes coreTypes, Annotatable node, String name) {
   return getPragma(coreTypes, node, name, defaultValue: '') != null;
 }
@@ -77,6 +83,24 @@ List<int> _intToLittleEndianBytes(int i) {
 }
 
 String intToBase64(int i) => base64.encode(_intToLittleEndianBytes(i));
+
+/// Maps ints to minimal length strings.
+///
+/// For simplicity, this only uses combinations of 1-byte characters. The 2+
+/// byte characters don't significantly impact the average string size.
+///
+/// Starts at 1 to avoid emitting the empty string.
+String intToMinString(int i) {
+  assert(i >= 0);
+  i += 1;
+  final codeUnits = <int>[];
+  while (i > 0) {
+    int remainder = i % 128;
+    i ~/= 128;
+    codeUnits.add(remainder);
+  }
+  return String.fromCharCodes(codeUnits);
+}
 
 Component createEmptyComponent() {
   return Component()

@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -13,6 +12,9 @@ main() {
     defineReflectiveTests(InstanceCreationExpressionResolutionTest);
     defineReflectiveTests(
       InstanceCreationExpressionResolutionTest_WithoutConstructorTearoffs,
+    );
+    defineReflectiveTests(
+      InstanceCreationExpressionResolutionTest_WithoutPrivateNamedParameters,
     );
   });
 }
@@ -36,7 +38,7 @@ void f() {
   A.new(0);
 }
 ''',
-      [error(ParserErrorCode.experimentNotEnabled, 40, 3)],
+      [error(diag.experimentNotEnabled, 40, 3)],
     );
 
     // Resolution should continue even though the experiment is not enabled.
@@ -63,6 +65,58 @@ InstanceCreationExpression
         staticType: int
     rightParenthesis: )
   staticType: A
+''');
+  }
+}
+
+@reflectiveTest
+class InstanceCreationExpressionResolutionTest_WithoutPrivateNamedParameters
+    extends PubPackageResolutionTest
+    with WithoutPrivateNamedParametersMixin {
+  test_preFeature() async {
+    await assertErrorsInCode(
+      '''
+class C {
+  int? _x;
+  C({this._x});
+}
+
+main() {
+  C(x: 123);
+}
+''',
+      [
+        error(diag.unusedField, 17, 2),
+        error(diag.experimentNotEnabledOffByDefault, 31, 2),
+        error(diag.undefinedNamedParameter, 53, 1),
+      ],
+    );
+
+    var node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      element: <testLibrary>::@class::C
+      type: C
+    element: <testLibrary>::@class::C::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: x
+            element: <null>
+            staticType: null
+          colon: :
+        expression: IntegerLiteral
+          literal: 123
+          staticType: int
+        correspondingParameter: <null>
+    rightParenthesis: )
+  staticType: C
 ''');
   }
 }
@@ -201,7 +255,7 @@ void f() {
   A(0);
 }
 ''',
-      [error(WarningCode.unusedElement, 33, 1)],
+      [error(diag.unusedElement, 33, 1)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -539,7 +593,7 @@ void f() {
   A();
 }
 ''',
-      [error(WarningCode.unusedElement, 30, 1)],
+      [error(diag.unusedElement, 30, 1)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -640,7 +694,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.newWithUndefinedConstructor, 31, 10)],
+      [error(diag.newWithUndefinedConstructor, 31, 10)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -715,7 +769,7 @@ InstanceCreationExpression
       r'''
 final foo = Map<int>();
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 12, 8)],
+      [error(diag.wrongNumberOfTypeArguments, 12, 8)],
     );
 
     var node = findNode.instanceCreation('Map<int>');
@@ -757,7 +811,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
+          diag.wrongNumberOfTypeArgumentsConstructor,
           53,
           5,
           messageContains: ["The constructor 'Foo.bar'"],
@@ -812,7 +866,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
+          diag.wrongNumberOfTypeArgumentsConstructor,
           53,
           5,
           messageContains: ["The constructor 'Foo.new'"],
@@ -868,7 +922,7 @@ main() {
   new p.Foo.bar<int>();
 }
 ''',
-      [error(ParserErrorCode.constructorWithTypeArguments, 44, 3)],
+      [error(diag.constructorWithTypeArguments, 44, 3)],
     );
 
     // TODO(brianwilkerson): Test this more carefully after we can re-write the
@@ -922,13 +976,7 @@ main() {
   Foo.bar<int>();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
-          49,
-          5,
-        ),
-      ],
+      [error(diag.wrongNumberOfTypeArgumentsConstructor, 49, 5)],
     );
 
     var node = findNode.instanceCreation('Foo.bar<int>');
@@ -978,13 +1026,7 @@ main() {
   p.Foo.bar<int>();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
-          43,
-          5,
-        ),
-      ],
+      [error(diag.wrongNumberOfTypeArgumentsConstructor, 43, 5)],
     );
 
     var node = findNode.instanceCreation('Foo.bar<int>');
@@ -1237,7 +1279,7 @@ void f() {
   new A.named(0);
 }
 ''',
-      [error(CompileTimeErrorCode.newWithUndefinedConstructor, 48, 5)],
+      [error(diag.newWithUndefinedConstructor, 48, 5)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -1277,7 +1319,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.newWithNonType, 48, 6)],
+      [error(diag.newWithNonType, 48, 6)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -1746,7 +1788,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.newWithUndefinedConstructor, 54, 3)],
+      [error(diag.newWithUndefinedConstructor, 54, 3)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -1790,7 +1832,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.newWithNonType, 55, 3)],
+      [error(diag.newWithNonType, 55, 3)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -1928,6 +1970,95 @@ InstanceCreationExpression
 ''');
   }
 
+  test_privateNamedParameter_privateNamedArgument() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  int? _x;
+  C({this._x});
+}
+
+main() {
+  C(_x: 123);
+}
+''',
+      [
+        error(diag.unusedField, 17, 2),
+        error(diag.undefinedNamedParameter, 53, 2),
+      ],
+    );
+
+    var node = findNode.instanceCreation('C(_x');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      element: <testLibrary>::@class::C
+      type: C
+    element: <testLibrary>::@class::C::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: _x
+            element: <null>
+            staticType: null
+          colon: :
+        expression: IntegerLiteral
+          literal: 123
+          staticType: int
+        correspondingParameter: <null>
+    rightParenthesis: )
+  staticType: C
+''');
+  }
+
+  test_privateNamedParameter_publicNamedArgument() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  int? _x;
+  C({this._x});
+}
+
+main() {
+  C(x: 123);
+}
+''',
+      [error(diag.unusedField, 17, 2)],
+    );
+
+    var node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      element: <testLibrary>::@class::C
+      type: C
+    element: <testLibrary>::@class::C::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: x
+            element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+            staticType: null
+          colon: :
+        expression: IntegerLiteral
+          literal: 123
+          staticType: int
+        correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+    rightParenthesis: )
+  staticType: C
+''');
+  }
+
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_typeAlias_generic_class_generic_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
@@ -2010,7 +2141,7 @@ void f() {
   X(0);
 }
 ''',
-      [error(WarningCode.unusedElement, 33, 1)],
+      [error(diag.unusedElement, 33, 1)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -2225,7 +2356,7 @@ void f() {
   B.named(0);
 }
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 77, 1)],
+      [error(diag.argumentTypeNotAssignable, 77, 1)],
     );
 
     var node = findNode.instanceCreation('B.named(0)');
@@ -2273,7 +2404,7 @@ void f() {
   B(0);
 }
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 65, 1)],
+      [error(diag.argumentTypeNotAssignable, 65, 1)],
     );
 
     var node = findNode.instanceCreation('B(0)');
@@ -2369,7 +2500,7 @@ void f() {
   X();
 }
 ''',
-      [error(WarningCode.unusedElement, 30, 1)],
+      [error(diag.unusedElement, 30, 1)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -2507,7 +2638,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.newWithNonType, 17, 10)],
+      [error(diag.newWithNonType, 17, 10)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -2540,7 +2671,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 17, 16)],
+      [error(diag.undefinedIdentifier, 17, 16)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -2577,7 +2708,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 17, 14)],
+      [error(diag.undefinedIdentifier, 17, 14)],
     );
 
     var node = findNode.singleInstanceCreationExpression;

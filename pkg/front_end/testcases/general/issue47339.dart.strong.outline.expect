@@ -8,14 +8,14 @@ class Foo extends core::Object /*hasConstConstructor*/  {
   const constructor named() → self::Foo
     : super core::Object::•()
     ;
-  static factory namedFactory() → self::Foo /* redirection-target: self::Foo::named */
+  static const factory namedFactory() → self::Foo /* redirection-target: self::Foo::named */
     return new self::Foo::named();
 }
 class FooGeneric<X extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
   const constructor named() → self::FooGeneric<self::FooGeneric::X%>
     : super core::Object::•()
     ;
-  static factory namedFactory<X extends core::Object? = dynamic>() → self::FooGeneric<self::FooGeneric::namedFactory::X%> /* redirection-target: self::FooGeneric::named<self::FooGeneric::namedFactory::X%>*/
+  static const factory namedFactory<X extends core::Object? = dynamic>() → self::FooGeneric<self::FooGeneric::namedFactory::X%> /* redirection-target: self::FooGeneric::named<self::FooGeneric::namedFactory::X%>*/
     return new self::FooGeneric::named<self::FooGeneric::namedFactory::X%>();
 }
 static const field self::Foo bar = const self::Foo::named();

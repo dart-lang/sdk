@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -56,7 +56,7 @@ A createA() {
   return B();
 }
 ''',
-      [error(WarningCode.unusedResult, 83, 7)],
+      [error(diag.unusedResult, 83, 7)],
     );
   }
 
@@ -77,7 +77,7 @@ void f(A a) {
 ''',
       [
         error(
-          WarningCode.unusedResult,
+          diag.unusedResult,
           96,
           1,
           text: "The value of 'a' should be used.",
@@ -105,7 +105,7 @@ void f(A a) {
 ''',
       [
         error(
-          WarningCode.unusedResult,
+          diag.unusedResult,
           130,
           1,
           text: "The value of 'b' should be used.",
@@ -133,7 +133,7 @@ void f(A a) {
 ''',
       [
         error(
-          WarningCode.unusedResult,
+          diag.unusedResult,
           127,
           1,
           text: "The value of 'b' should be used.",
@@ -163,7 +163,7 @@ void f(A a) {
 ''',
       [
         error(
-          WarningCode.unusedResult,
+          diag.unusedResult,
           170,
           1,
           text: "The value of 'a' should be used.",
@@ -202,7 +202,7 @@ void f() {
   A();
 }
 ''',
-      [error(WarningCode.unusedResult, 80, 3)],
+      [error(diag.unusedResult, 80, 3)],
     );
   }
 
@@ -300,7 +300,7 @@ void main() {
   A().foo;
 }
 ''',
-      [error(WarningCode.unusedResult, 104, 3)],
+      [error(diag.unusedResult, 104, 3)],
     );
   }
 
@@ -394,7 +394,7 @@ void main() {
   A().foo;
 }
 ''',
-      [error(WarningCode.unusedResult, 95, 3)],
+      [error(diag.unusedResult, 95, 3)],
     );
   }
 
@@ -412,7 +412,7 @@ void f(bool b) {
   b ? A().foo : 0;
 }
 ''',
-      [error(WarningCode.unusedResult, 102, 3)],
+      [error(diag.unusedResult, 102, 3)],
     );
   }
 
@@ -430,7 +430,7 @@ void f(bool b) {
   b ? (A().foo) : 0;
 }
 ''',
-      [error(WarningCode.unusedResult, 103, 3)],
+      [error(diag.unusedResult, 103, 3)],
     );
   }
 
@@ -452,7 +452,7 @@ void main() {
   });
 }
 ''',
-      [error(WarningCode.unusedResult, 130, 3)],
+      [error(diag.unusedResult, 130, 3)],
     );
   }
 
@@ -550,7 +550,7 @@ void main() {
   A.foo;
 }
 ''',
-      [error(WarningCode.unusedResult, 100, 3)],
+      [error(diag.unusedResult, 100, 3)],
     );
   }
 
@@ -581,7 +581,7 @@ void f() {
   foo;
 }
 ''',
-      [error(WarningCode.unusedResult, 77, 3)],
+      [error(diag.unusedResult, 77, 3)],
     );
   }
 
@@ -686,7 +686,7 @@ void main() {
   A().foo;
 }
 ''',
-      [error(WarningCode.unusedResult, 100, 3)],
+      [error(diag.unusedResult, 100, 3)],
     );
   }
 
@@ -927,7 +927,7 @@ void f(A a) {
   for (var i = 1; i < 7; a.foo()) {}
 }
 ''',
-      [error(WarningCode.unusedResult, 119, 3)],
+      [error(diag.unusedResult, 119, 3)],
     );
   }
 
@@ -1071,7 +1071,7 @@ void f(A a) {
   a.foo()!;
 }
 ''',
-      [error(WarningCode.unusedResult, 97, 3)],
+      [error(diag.unusedResult, 97, 3)],
     );
   }
 
@@ -1120,7 +1120,7 @@ f() {
 @useResult
 (int, int) g() => (0, 0);
 ''',
-      [error(WarningCode.unusedResult, 42, 1)],
+      [error(diag.unusedResult, 42, 1)],
     );
   }
 
@@ -1282,7 +1282,7 @@ void main() {
 ''',
       [
         error(
-          WarningCode.unusedResult,
+          diag.unusedResult,
           98,
           3,
           text: "The value of 'foo' should be used.",
@@ -1309,7 +1309,7 @@ class C {
 ''',
       [
         error(
-          WarningCode.unusedResult,
+          diag.unusedResult,
           127,
           2,
           text: "The value of 'm1' should be used.",
@@ -1670,7 +1670,7 @@ void main() {
   baz(); // OK
 }
 ''',
-      [error(WarningCode.unusedResult, 108, 3)],
+      [error(diag.unusedResult, 108, 3)],
     );
   }
 
@@ -1699,7 +1699,7 @@ void main() {
   foo();
 }
 ''',
-      [error(WarningCode.unusedResult, 133, 3)],
+      [error(diag.unusedResult, 133, 3)],
     );
   }
 
@@ -1715,7 +1715,7 @@ void main() {
   foo('none');
 }
 ''',
-      [error(WarningCode.unusedResult, 146, 3)],
+      [error(diag.unusedResult, 146, 3)],
     );
   }
 
@@ -1798,7 +1798,7 @@ void main() {
   foo;
 }
 ''',
-      [error(WarningCode.unusedResult, 75, 3)],
+      [error(diag.unusedResult, 75, 3)],
     );
   }
 

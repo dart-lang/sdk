@@ -276,6 +276,8 @@ mixin KernelNodes {
       index.getTopLevelProcedure("dart:core", "_runtimeTypeEquals");
   late final Procedure runtimeTypeHashCode =
       index.getTopLevelProcedure("dart:core", "_runtimeTypeHashCode");
+  late final Procedure? functionApply =
+      index.tryGetProcedure('dart:core', 'Function', 'apply');
 
   // dart:core invocation/exception procedures
   late final Procedure invocationGetterFactory =
@@ -437,10 +439,10 @@ mixin KernelNodes {
       index.getTopLevelField('dart:_internal', 'boxedIntImmutableArray');
 
   // Deferred loading.
-  late final Procedure? loadLibraryFromLoadId = index.tryGetProcedure(
-      'dart:_internal', LibraryIndex.topLevel, 'loadLibraryFromLoadId');
-  late final Procedure? checkLibraryIsLoadedFromLoadId = index
-      .getTopLevelProcedure('dart:_internal', 'checkLibraryIsLoadedFromLoadId');
+  late final Procedure? checkLibraryIsLoadedFromLoadId = index.tryGetProcedure(
+      'dart:_internal',
+      LibraryIndex.topLevel,
+      'checkLibraryIsLoadedFromLoadId');
   late final Procedure? dartInternalLoadingMapGetter = index.tryGetProcedure(
       'dart:_internal', LibraryIndex.topLevel, 'get:_loadingMap');
   late final Procedure? dartInternalLoadingMapNamesGetter =

@@ -16,7 +16,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/error/inference_error.dart';
@@ -50,10 +50,11 @@ class InheritanceOverrideVerifier {
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
-          classNameToken: declaration.name,
+          node: declaration,
+          classNameToken: declaration.namePart.typeName,
           classElement: fragment.element,
           implementsClause: declaration.implementsClause,
-          members: declaration.members,
+          members: declaration.body.members,
           superclass: declaration.extendsClause?.superclass,
           withClause: declaration.withClause,
         );
@@ -70,6 +71,7 @@ class InheritanceOverrideVerifier {
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
+          node: declaration,
           classNameToken: declaration.name,
           classElement: fragment.element,
           implementsClause: declaration.implementsClause,
@@ -89,10 +91,11 @@ class InheritanceOverrideVerifier {
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
-          classNameToken: declaration.name,
+          node: declaration,
+          classNameToken: declaration.namePart.typeName,
           classElement: fragment.element,
           implementsClause: declaration.implementsClause,
-          members: declaration.members,
+          members: declaration.body.members,
           withClause: declaration.withClause,
         );
         if (fragment.isAugmentation) {
@@ -108,10 +111,11 @@ class InheritanceOverrideVerifier {
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
+          node: declaration,
           classNameToken: declaration.name,
           classElement: fragment.element,
           implementsClause: declaration.implementsClause,
-          members: declaration.members,
+          members: declaration.body.members,
           onClause: declaration.onClause,
         );
         if (fragment.isAugmentation) {
@@ -133,17 +137,15 @@ class InheritanceOverrideVerifier {
   /// Returns [ExecutableElement] members that are in the interface of the
   /// given class with `@mustBeOverridden`, but don't have implementations.
   static List<ExecutableElement> missingMustBeOverridden(
-    NamedCompilationUnitMember node,
+    CompilationUnitMember node,
   ) {
-    return _missingMustBeOverridden[node.name] ?? const [];
+    return _missingMustBeOverridden[node] ?? const [];
   }
 
   /// Returns [ExecutableElement] members that are in the interface of the
   /// given class, but don't have concrete implementations.
-  static List<ExecutableElement> missingOverrides(
-    NamedCompilationUnitMember node,
-  ) {
-    return _missingOverrides[node.name] ?? const [];
+  static List<ExecutableElement> missingOverrides(CompilationUnitMember node) {
+    return _missingOverrides[node] ?? const [];
   }
 }
 
@@ -158,6 +160,7 @@ class _ClassVerifier {
   final Uri libraryUri;
   final InterfaceElementImpl classElement;
 
+  final CompilationUnitMember node;
   final Token classNameToken;
   final List<ClassMember> members;
   final ImplementsClause? implementsClause;
@@ -178,6 +181,7 @@ class _ClassVerifier {
     required this.reporter,
     required this.featureSet,
     required this.library,
+    required this.node,
     required this.classNameToken,
     required this.classElement,
     this.implementsClause,
@@ -199,10 +203,7 @@ class _ClassVerifier {
         element is ClassElementImpl &&
         !element.isAbstract &&
         implementsDartCoreEnum) {
-      reporter.atToken(
-        classNameToken,
-        CompileTimeErrorCode.concreteClassHasEnumSuperinterface,
-      );
+      reporter.atToken(classNameToken, diag.concreteClassHasEnumSuperinterface);
       return true;
     }
 
@@ -353,8 +354,8 @@ class _ClassVerifier {
           diagnosticReporter: reporter,
           errorNode: classNameToken,
           diagnosticCode: concreteElement is InternalSetterElement
-              ? CompileTimeErrorCode.invalidImplementationOverrideSetter
-              : CompileTimeErrorCode.invalidImplementationOverride,
+              ? diag.invalidImplementationOverrideSetter
+              : diag.invalidImplementationOverride,
         );
       }
 
@@ -406,8 +407,8 @@ class _ClassVerifier {
         diagnosticReporter: reporter,
         errorNode: node,
         diagnosticCode: member is SetterElement
-            ? CompileTimeErrorCode.invalidOverrideSetter
-            : CompileTimeErrorCode.invalidOverride,
+            ? diag.invalidOverrideSetter
+            : diag.invalidOverride,
       );
     }
 
@@ -489,10 +490,7 @@ class _ClassVerifier {
     return _checkDirectSuperType(
       type: type,
       hasEnum: () {
-        reporter.atNode(
-          namedType,
-          CompileTimeErrorCode.concreteClassHasEnumSuperinterface,
-        );
+        reporter.atNode(namedType, diag.concreteClassHasEnumSuperinterface);
       },
       notSubtypable: () {
         reporter.atNode(namedType, diagnosticCode, arguments: [type]);
@@ -509,7 +507,7 @@ class _ClassVerifier {
       for (var namedType in implementsClause!.interfaces) {
         if (_checkDirectSuperTypeNode(
           namedType,
-          CompileTimeErrorCode.implementsDisallowedClass,
+          diag.implementsDisallowedClass,
         )) {
           hasError = true;
         }
@@ -519,26 +517,20 @@ class _ClassVerifier {
       for (var namedType in onClause!.superclassConstraints) {
         if (_checkDirectSuperTypeNode(
           namedType,
-          CompileTimeErrorCode.mixinSuperClassConstraintDisallowedClass,
+          diag.mixinSuperClassConstraintDisallowedClass,
         )) {
           hasError = true;
         }
       }
     }
     if (superclass != null) {
-      if (_checkDirectSuperTypeNode(
-        superclass!,
-        CompileTimeErrorCode.extendsDisallowedClass,
-      )) {
+      if (_checkDirectSuperTypeNode(superclass!, diag.extendsDisallowedClass)) {
         hasError = true;
       }
     }
     if (withClause != null) {
       for (var namedType in withClause!.mixinTypes) {
-        if (_checkDirectSuperTypeNode(
-          namedType,
-          CompileTimeErrorCode.mixinOfDisallowedClass,
-        )) {
+        if (_checkDirectSuperTypeNode(namedType, diag.mixinOfDisallowedClass)) {
           hasError = true;
         }
         if (classElement is EnumElementImpl && _checkMixinOfEnum(namedType)) {
@@ -552,11 +544,11 @@ class _ClassVerifier {
 
   /// Check that [classElement] is not a superinterface to itself.
   ///
-  /// See [CompileTimeErrorCode.recursiveInterfaceInheritance],
-  /// [CompileTimeErrorCode.recursiveInterfaceInheritanceExtends],
-  /// [CompileTimeErrorCode.recursiveInterfaceInheritanceImplements],
-  /// [CompileTimeErrorCode.recursiveInterfaceInheritanceOn],
-  /// [CompileTimeErrorCode.recursiveInterfaceInheritanceWith].
+  /// See [diag.recursiveInterfaceInheritance],
+  /// [diag.recursiveInterfaceInheritanceExtends],
+  /// [diag.recursiveInterfaceInheritanceImplements],
+  /// [diag.recursiveInterfaceInheritanceOn],
+  /// [diag.recursiveInterfaceInheritanceWith].
   bool _checkForRecursiveInterfaceInheritance(InterfaceElementImpl element) {
     var cycle = element.interfaceCycle;
     if (cycle == null) {
@@ -567,7 +559,7 @@ class _ClassVerifier {
       if (superclass.element == element) {
         reporter.atElement2(
           element,
-          CompileTimeErrorCode.recursiveInterfaceInheritanceExtends,
+          diag.recursiveInterfaceInheritanceExtends,
           arguments: [element.displayName],
         );
         return true;
@@ -579,7 +571,7 @@ class _ClassVerifier {
         if (typeAnnotation.element == element) {
           reporter.atElement2(
             element,
-            CompileTimeErrorCode.recursiveInterfaceInheritanceOn,
+            diag.recursiveInterfaceInheritanceOn,
             arguments: [element.displayName],
           );
           return true;
@@ -592,7 +584,7 @@ class _ClassVerifier {
         if (typeAnnotation.element == element) {
           reporter.atElement2(
             element,
-            CompileTimeErrorCode.recursiveInterfaceInheritanceWith,
+            diag.recursiveInterfaceInheritanceWith,
             arguments: [element.displayName],
           );
           return true;
@@ -605,7 +597,7 @@ class _ClassVerifier {
         if (typeAnnotation.element == element) {
           reporter.atElement2(
             element,
-            CompileTimeErrorCode.recursiveInterfaceInheritanceImplements,
+            diag.recursiveInterfaceInheritanceImplements,
             arguments: [element.displayName],
           );
           return true;
@@ -615,7 +607,7 @@ class _ClassVerifier {
 
     reporter.atElement2(
       classElement,
-      CompileTimeErrorCode.recursiveInterfaceInheritance,
+      diag.recursiveInterfaceInheritance,
       arguments: [
         element.displayName,
         cycle.map((e) => e.displayName).join(', '),
@@ -634,7 +626,7 @@ class _ClassVerifier {
         if (const {'index', 'hashCode', '=='}.contains(name.lexeme)) {
           reporter.atToken(
             name,
-            CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration,
+            diag.illegalConcreteEnumMemberDeclaration,
             arguments: [name.lexeme],
           );
         }
@@ -664,7 +656,7 @@ class _ClassVerifier {
             if (enclosingClass is! ClassElement || filter(enclosingClass)) {
               reporter.atToken(
                 classNameToken,
-                CompileTimeErrorCode.illegalConcreteEnumMemberInheritance,
+                diag.illegalConcreteEnumMemberInheritance,
                 arguments: [memberName, enclosingClass.name!],
               );
             }
@@ -680,7 +672,7 @@ class _ClassVerifier {
 
   void _checkIllegalEnumValuesDeclaration(Token name) {
     if (implementsDartCoreEnum && name.lexeme == 'values') {
-      reporter.atToken(name, CompileTimeErrorCode.illegalEnumValuesDeclaration);
+      reporter.atToken(name, diag.illegalEnumValuesDeclaration);
     }
   }
 
@@ -698,7 +690,7 @@ class _ClassVerifier {
       if (inherited != null) {
         reporter.atToken(
           classNameToken,
-          CompileTimeErrorCode.illegalEnumValuesInheritance,
+          diag.illegalEnumValuesInheritance,
           arguments: [inherited.enclosingElement!.name!],
         );
       }
@@ -717,14 +709,13 @@ class _ClassVerifier {
       return false;
     }
 
-    if (interfaceElement.fields.every((e) => e.isStatic || e.isSynthetic)) {
+    if (interfaceElement.fields.every(
+      (e) => e.isStatic || e.isOriginGetterSetter,
+    )) {
       return false;
     }
 
-    reporter.atNode(
-      namedType,
-      CompileTimeErrorCode.enumMixinWithInstanceVariable,
-    );
+    reporter.atNode(namedType, diag.enumMixinWithInstanceVariable);
     return true;
   }
 
@@ -753,8 +744,8 @@ class _ClassVerifier {
         reporter.atNode(
           member,
           classElement is EnumElement
-              ? CompileTimeErrorCode.enumWithAbstractMember
-              : CompileTimeErrorCode.concreteClassWithAbstractMember,
+              ? diag.enumWithAbstractMember
+              : diag.concreteClassWithAbstractMember,
           arguments: [displayName, classElement.name ?? ''],
         );
         return true;
@@ -794,7 +785,7 @@ class _ClassVerifier {
       // `conflict.method.enclosingElement.name` are both non-`null`.
       reporter.atToken(
         token,
-        CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
+        diag.inconsistentInheritanceGetterAndMethod,
         arguments: [
           name.name,
           conflict.getter.enclosingElement!.name!,
@@ -812,7 +803,7 @@ class _ClassVerifier {
 
       reporter.atToken(
         token,
-        CompileTimeErrorCode.inconsistentInheritance,
+        diag.inconsistentInheritance,
         arguments: [name.name, candidatesStr],
       );
     } else {
@@ -827,7 +818,7 @@ class _ClassVerifier {
       return;
     }
 
-    _missingOverrides[classNameToken] = elements;
+    _missingOverrides[node] = elements;
 
     var descriptions = <String>[];
     for (var element in elements) {
@@ -849,25 +840,25 @@ class _ClassVerifier {
     if (descriptions.length == 1) {
       reporter.atToken(
         classNameToken,
-        CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
+        diag.nonAbstractClassInheritsAbstractMemberOne,
         arguments: [descriptions[0]],
       );
     } else if (descriptions.length == 2) {
       reporter.atToken(
         classNameToken,
-        CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberTwo,
+        diag.nonAbstractClassInheritsAbstractMemberTwo,
         arguments: [descriptions[0], descriptions[1]],
       );
     } else if (descriptions.length == 3) {
       reporter.atToken(
         classNameToken,
-        CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberThree,
+        diag.nonAbstractClassInheritsAbstractMemberThree,
         arguments: [descriptions[0], descriptions[1], descriptions[2]],
       );
     } else if (descriptions.length == 4) {
       reporter.atToken(
         classNameToken,
-        CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberFour,
+        diag.nonAbstractClassInheritsAbstractMemberFour,
         arguments: [
           descriptions[0],
           descriptions[1],
@@ -878,7 +869,7 @@ class _ClassVerifier {
     } else {
       reporter.atToken(
         classNameToken,
-        CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberFivePlus,
+        diag.nonAbstractClassInheritsAbstractMemberFivePlus,
         arguments: [
           descriptions[0],
           descriptions[1],
@@ -898,7 +889,7 @@ class _ClassVerifier {
           TopLevelInferenceErrorKind.overrideNoCombinedSuperSignature) {
         reporter.atToken(
           node.name,
-          CompileTimeErrorCode.noCombinedSuperSignature,
+          diag.noCombinedSuperSignature,
           arguments: [classElement.name ?? '', inferenceError!.arguments[0]],
         );
         return true;
@@ -940,7 +931,7 @@ class _ClassVerifier {
           continue;
         }
         if (method.metadata.hasMustBeOverridden) {
-          var methodDeclaration = classElement.getMethod(method.name!);
+          var methodDeclaration = classElement.getMethod(method.lookupName!);
           if (methodDeclaration == null || methodDeclaration.isAbstract) {
             notOverridden.add(method.baseElement);
           }
@@ -981,7 +972,7 @@ class _ClassVerifier {
       return;
     }
 
-    _missingMustBeOverridden[classNameToken] = notOverridden.toList();
+    _missingMustBeOverridden[node] = notOverridden.toList();
     var namesForError = notOverridden
         .map((e) {
           var name = e.name!;
@@ -996,19 +987,19 @@ class _ClassVerifier {
     if (namesForError.length == 1) {
       reporter.atToken(
         classNameToken,
-        WarningCode.missingOverrideOfMustBeOverriddenOne,
+        diag.missingOverrideOfMustBeOverriddenOne,
         arguments: namesForError,
       );
     } else if (namesForError.length == 2) {
       reporter.atToken(
         classNameToken,
-        WarningCode.missingOverrideOfMustBeOverriddenTwo,
+        diag.missingOverrideOfMustBeOverriddenTwo,
         arguments: namesForError,
       );
     } else {
       reporter.atToken(
         classNameToken,
-        WarningCode.missingOverrideOfMustBeOverriddenThreePlus,
+        diag.missingOverrideOfMustBeOverriddenThreePlus,
         arguments: [
           namesForError[0],
           namesForError[1],

@@ -12,6 +12,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/lint/pub.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// Describes a static analysis rule, either a lint rule (which must be enabled
 /// via analysis options) or a warning rule (which is enabled by default).
@@ -159,6 +160,13 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
 
   /// Reports a diagnostic at [node] with message [arguments] and
   /// [contextMessages].
+  ///
+  /// {@template analyzer.lib.analysis_rule.analysis_rule.arguments}
+  /// The [arguments] are interpolated into the [DiagnosticCode.problemMessage]
+  /// and [DiagnosticCode.correctionMessage] text. If present, the first
+  /// argument (at position 0) replaces each instance of `{0}`, the second
+  /// argument (at position 1) replaces each instance of `{1}`, etc.
+  /// {@endtemplate}
   Diagnostic? reportAtNode(
     AstNode? node, {
     List<Object> arguments = const [],
@@ -172,6 +180,8 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
 
   /// Reports a diagnostic at [offset], with [length], with message [arguments]
   /// and [contextMessages].
+  ///
+  /// {@macro analyzer.lib.analysis_rule.analysis_rule.arguments}
   Diagnostic reportAtOffset(
     int offset,
     int length, {
@@ -187,6 +197,8 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
 
   /// Reports a diagnostic at Pubspec [node], with message [arguments] and
   /// [contextMessages].
+  ///
+  /// {@macro analyzer.lib.analysis_rule.analysis_rule.arguments}
   Diagnostic reportAtPubNode(
     PubspecNode node, {
     List<Object> arguments = const [],
@@ -200,6 +212,8 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
 
   /// Reports a diagnostic at [token], with message [arguments] and
   /// [contextMessages].
+  ///
+  /// {@macro analyzer.lib.analysis_rule.analysis_rule.arguments}
   Diagnostic? reportAtToken(
     Token token, {
     List<Object> arguments = const [],
@@ -223,6 +237,8 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
 
   /// Reports [diagnosticCode] at [node] with message [arguments] and
   /// [contextMessages].
+  ///
+  /// {@macro analyzer.lib.analysis_rule.analysis_rule.arguments}
   Diagnostic? reportAtNode(
     AstNode? node, {
     List<Object> arguments = const [],
@@ -237,6 +253,8 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
 
   /// Reports [diagnosticCode] at [offset], with [length], with message [arguments]
   /// and [contextMessages].
+  ///
+  /// {@macro analyzer.lib.analysis_rule.analysis_rule.arguments}
   Diagnostic reportAtOffset(
     int offset,
     int length, {
@@ -253,6 +271,8 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
 
   /// Reports [diagnosticCode] at Pubspec [node], with message [arguments] and
   /// [contextMessages].
+  ///
+  /// {@macro analyzer.lib.analysis_rule.analysis_rule.arguments}
   Diagnostic reportAtPubNode(
     PubspecNode node, {
     required DiagnosticCode diagnosticCode,
@@ -274,6 +294,8 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
 
   /// Reports [diagnosticCode] at [token], with message [arguments] and
   /// [contextMessages].
+  ///
+  /// {@macro analyzer.lib.analysis_rule.analysis_rule.arguments}
   Diagnostic? reportAtToken(
     Token token, {
     required DiagnosticCode diagnosticCode,
@@ -285,4 +307,22 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
     arguments: arguments,
     contextMessages: contextMessages,
   );
+}
+
+/// Describes an [AbstractAnalysisRule] whose implementation has been removed.
+final class RemovedAnalysisRule extends MultiAnalysisRule {
+  RemovedAnalysisRule({
+    required super.name,
+    required super.description,
+    Version? since,
+    String? replacedBy,
+  }) : super(
+         // Note: the reason `RuleState.removed` is deprecated is to encourage
+         // clients to use `AbstractAnalysisRule`, so this reference is ok.
+         // ignore: deprecated_member_use_from_same_package
+         state: RuleState.removed(since: since, replacedBy: replacedBy),
+       );
+
+  @override
+  List<DiagnosticCode> get diagnosticCodes => const [];
 }

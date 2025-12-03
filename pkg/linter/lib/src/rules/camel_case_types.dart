@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../utils.dart';
 
@@ -21,7 +22,7 @@ class CamelCaseTypes extends AnalysisRule {
     : super(name: LintNames.camel_case_types, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.camelCaseTypes;
+  DiagnosticCode get diagnosticCode => diag.camelCaseTypes;
 
   @override
   void registerNodeProcessors(
@@ -55,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     if (node.isAugmentation) return;
 
-    check(node.name);
+    check(node.namePart.typeName);
   }
 
   @override
@@ -67,14 +68,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitEnumDeclaration(EnumDeclaration node) {
     if (node.isAugmentation) return;
 
-    check(node.name);
+    check(node.namePart.typeName);
   }
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     if (node.isAugmentation) return;
 
-    check(node.name);
+    check(node.primaryConstructor.typeName);
   }
 
   @override

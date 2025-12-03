@@ -21,6 +21,14 @@ export 'memories.dart' show Memories;
 export 'memory.dart' show DefinedMemory, ImportedMemory, Memory, MemoryExport;
 export 'module.dart' show Module;
 export 'tables.dart' show Tables;
+export 'elements.dart' show Elements;
+export 'element.dart'
+    show
+        ElementSegment,
+        ActiveElementSegment,
+        ActiveFunctionElementSegment,
+        ActiveExpressionElementSegment,
+        DeclarativeElementSegment;
 export 'table.dart' show DefinedTable, ImportedTable, Table, TableExport;
 export 'tags.dart' show DefinedTag, ImportedTag, Tag, Tags, TagExport;
 export 'types.dart' show Types;

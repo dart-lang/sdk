@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,16 +29,13 @@ class C {
 }
 ''',
       diagnostics: [
-        expectedError(ParserErrorCode.missingAssignmentInInitializer, 18, 4),
-        expectedError(ParserErrorCode.missingIdentifier, 23, 3),
-        expectedError(ParserErrorCode.missingFunctionBody, 23, 3),
-        expectedError(ParserErrorCode.expectedClassMember, 23, 3),
-        expectedError(ParserErrorCode.missingKeywordOperator, 27, 1),
-        expectedError(ParserErrorCode.invalidOperator, 27, 1),
-        expectedError(ParserErrorCode.missingMethodParameters, 27, 1),
-        expectedError(ParserErrorCode.missingFunctionBody, 29, 4),
-        expectedError(ParserErrorCode.expectedClassMember, 29, 4),
-        expectedError(ParserErrorCode.expectedClassMember, 33, 1),
+        error(diag.missingAssignmentInInitializer, 18, 4),
+        error(diag.missingIdentifier, 23, 3),
+        error(diag.missingFunctionBody, 23, 3),
+        error(diag.experimentNotEnabledOffByDefault, 23, 3),
+        error(diag.missingMethodParameters, 23, 3),
+        error(diag.redirectionInNonFactoryConstructor, 27, 1),
+        error(diag.expectedIdentifierButGotKeyword, 29, 4),
       ],
     );
   }
@@ -195,8 +192,9 @@ class C {
 }
 ''');
     var classDeclaration = unit.declarations.single as ClassDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
     var constructorDeclaration =
-        classDeclaration.members.single as ConstructorDeclaration;
+        classBody.members.single as ConstructorDeclaration;
     expect(constructorDeclaration.name!.lexeme, 'new');
   }
 
@@ -208,8 +206,8 @@ class C {
 }
 ''');
     var classDeclaration = unit.declarations.single as ClassDeclaration;
-    var constructorDeclaration =
-        classDeclaration.members[0] as ConstructorDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
+    var constructorDeclaration = classBody.members[0] as ConstructorDeclaration;
     expect(constructorDeclaration.name!.lexeme, 'new');
   }
 
@@ -315,11 +313,12 @@ class C {
 }
 ''',
       featureSet: FeatureSets.language_2_13,
-      diagnostics: [expectedError(ParserErrorCode.experimentNotEnabled, 14, 3)],
+      diagnostics: [expectedError(diag.experimentNotEnabled, 14, 3)],
     );
     var classDeclaration = unit.declarations.single as ClassDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
     var constructorDeclaration =
-        classDeclaration.members.single as ConstructorDeclaration;
+        classBody.members.single as ConstructorDeclaration;
     expect(constructorDeclaration.name!.lexeme, 'new');
   }
 
@@ -330,8 +329,9 @@ class C {
 }
 ''');
     var classDeclaration = unit.declarations.single as ClassDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
     var constructorDeclaration =
-        classDeclaration.members.single as ConstructorDeclaration;
+        classBody.members.single as ConstructorDeclaration;
     expect(constructorDeclaration.initializers, isEmpty);
     // Parsing treats `new` as an identifier, so `D.new` is classified as a
     // type.  Resolution will change the type to `D` and the name to `new` if
@@ -351,8 +351,9 @@ class C {
 }
 ''');
     var classDeclaration = unit.declarations.single as ClassDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
     var constructorDeclaration =
-        classDeclaration.members.single as ConstructorDeclaration;
+        classBody.members.single as ConstructorDeclaration;
     expect(constructorDeclaration.initializers, isEmpty);
     var redirectedConstructor = constructorDeclaration.redirectedConstructor!;
     var type = redirectedConstructor.type;
@@ -368,8 +369,9 @@ class C {
 }
 ''');
     var classDeclaration = unit.declarations.single as ClassDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
     var constructorDeclaration =
-        classDeclaration.members.single as ConstructorDeclaration;
+        classBody.members.single as ConstructorDeclaration;
     expect(constructorDeclaration.initializers, isEmpty);
     var redirectedConstructor = constructorDeclaration.redirectedConstructor!;
     var type = redirectedConstructor.type;
@@ -386,8 +388,9 @@ class C {
 }
 ''');
     var classDeclaration = unit.declarations.single as ClassDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
     var constructorDeclaration =
-        classDeclaration.members.single as ConstructorDeclaration;
+        classBody.members.single as ConstructorDeclaration;
     expect(constructorDeclaration.initializers, isEmpty);
     var redirectedConstructor = constructorDeclaration.redirectedConstructor!;
     var type = redirectedConstructor.type;
@@ -404,8 +407,9 @@ class C extends B {
 }
 ''');
     var classDeclaration = unit.declarations.single as ClassDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
     var constructorDeclaration =
-        classDeclaration.members.single as ConstructorDeclaration;
+        classBody.members.single as ConstructorDeclaration;
     expect(constructorDeclaration.redirectedConstructor, isNull);
     var superConstructorInvocation =
         constructorDeclaration.initializers.single
@@ -421,8 +425,8 @@ class C {
 }
 ''');
     var classDeclaration = unit.declarations.single as ClassDeclaration;
-    var constructorDeclaration =
-        classDeclaration.members[0] as ConstructorDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
+    var constructorDeclaration = classBody.members[0] as ConstructorDeclaration;
     expect(constructorDeclaration.redirectedConstructor, isNull);
     var redirectingConstructorInvocation =
         constructorDeclaration.initializers.single

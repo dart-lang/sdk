@@ -6,7 +6,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// A resolver for [InstanceCreationExpression] and
@@ -72,7 +72,6 @@ class InstanceCreationExpressionResolver {
       dotShorthandContextType,
     );
 
-    // TODO(kallentu): Support other context types
     if (dotShorthandContextType is InterfaceTypeImpl) {
       InterfaceElementImpl? contextElement = dotShorthandContextType.element;
       // This branch will be true if we're resolving an explicitly marked
@@ -87,26 +86,26 @@ class InstanceCreationExpressionResolver {
         } else {
           _resolver.diagnosticReporter.atNode(
             node.constructorName,
-            CompileTimeErrorCode.constWithUndefinedConstructor,
+            diag.constWithUndefinedConstructor,
             arguments: [contextType, node.constructorName.name],
           );
         }
       }
 
       var typeArguments = node.typeArguments;
-      if (contextElement is ClassElementImpl && contextElement.isAbstract) {
-        var constructorElement = node.element;
-        if (constructorElement != null && !constructorElement.isFactory) {
-          _resolver.diagnosticReporter.atNode(
-            node,
-            CompileTimeErrorCode.instantiateAbstractClass,
-          );
-        }
+      var constructorElement = node.element;
+      if (contextElement is ClassElementImpl &&
+          contextElement.isAbstract &&
+          constructorElement != null &&
+          !constructorElement.isFactory) {
+        _resolver.diagnosticReporter.atNode(
+          node,
+          diag.instantiateAbstractClass,
+        );
       } else if (typeArguments != null) {
         _resolver.diagnosticReporter.atNode(
           typeArguments,
-          CompileTimeErrorCode
-              .wrongNumberOfTypeArgumentsDotShorthandConstructor,
+          diag.wrongNumberOfTypeArgumentsDotShorthandConstructor,
           arguments: [
             dotShorthandContextType.getDisplayString(),
             node.constructorName.name,
@@ -116,7 +115,7 @@ class InstanceCreationExpressionResolver {
     } else {
       _resolver.diagnosticReporter.atNode(
         node,
-        CompileTimeErrorCode.dotShorthandMissingContext,
+        diag.dotShorthandMissingContext,
       );
     }
 

@@ -208,6 +208,16 @@ abstract class Listener implements UnescapeErrorListener {
     logEvent("ClassDeclaration");
   }
 
+  /// Handle `;` as a class body.
+  void handleNoClassBody(Token semicolonToken) {
+    logEvent("NoClassBody");
+  }
+
+  /// Handle `;` as an extension type body.
+  void handleNoExtensionTypeBody(Token semicolonToken) {
+    logEvent("NoExtensionTypeBody");
+  }
+
   /// Handle the beginning of a mixin declaration.
   void beginMixinDeclaration(
     Token beginToken,
@@ -346,6 +356,21 @@ abstract class Listener implements UnescapeErrorListener {
     bool forExtensionType,
   ) {}
 
+  void beginPrimaryConstructorBody(Token token) {}
+
+  // Handles the `this` body block for a primary constructor. Substructures:
+  /// - metadata
+  /// - initializers
+  /// - async marker
+  /// - body
+  void endPrimaryConstructorBody(
+    Token beginToken,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    logEvent("endPrimaryConstructorBody");
+  }
+
   void beginCombinators(Token token) {}
 
   void endCombinators(int count) {
@@ -443,32 +468,6 @@ abstract class Listener implements UnescapeErrorListener {
     logEvent("Enum");
   }
 
-  /// Handle the end of an enum constructor declaration.  Substructures:
-  /// - metadata
-  /// - return type
-  /// - method name (identifier, possibly qualified)
-  /// - type variables
-  /// - formal parameters
-  /// - initializers
-  /// - async marker
-  /// - body
-  void endEnumConstructor(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
-  }
-
   /// Handle the enum elements. Substructures:
   /// - [elementsCount] times:
   ///   - Enum element
@@ -503,14 +502,6 @@ abstract class Listener implements UnescapeErrorListener {
     logEvent("EnumElement");
   }
 
-  void endEnumFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    endClassFactoryMethod(beginToken, factoryKeyword, endToken);
-  }
-
   void beginExport(Token token) {}
 
   /// Handle the end of an export directive.  Substructures:
@@ -533,48 +524,20 @@ abstract class Listener implements UnescapeErrorListener {
     logEvent("ExpressionStatement");
   }
 
-  /// Note that this is ended by [endClassFactoryMethod],
-  /// [endMixinFactoryMethod] or [endExtensionFactoryMethod].
-  void beginFactoryMethod(
+  void beginFactory(
     DeclarationKind declarationKind,
     Token lastConsumed,
     Token? externalToken,
     Token? constToken,
   ) {}
 
-  void endClassFactoryMethod(
+  void endFactory(
+    DeclarationKind kind,
     Token beginToken,
     Token factoryKeyword,
     Token endToken,
   ) {
-    logEvent("ClassFactoryMethod");
-  }
-
-  void endMixinFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassFactoryMethod(beginToken, factoryKeyword, endToken);
-  }
-
-  void endExtensionFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassFactoryMethod(beginToken, factoryKeyword, endToken);
-  }
-
-  void endExtensionTypeFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassFactoryMethod(beginToken, factoryKeyword, endToken);
+    logEvent("Factory");
   }
 
   void beginFormalParameter(
@@ -621,7 +584,8 @@ abstract class Listener implements UnescapeErrorListener {
   /// - Variable declarations (count times)
   ///
   /// Started by [beginFields].
-  void endClassFields(
+  void endFields(
+    DeclarationKind kind,
     Token? abstractToken,
     Token? augmentToken,
     Token? externalToken,
@@ -634,166 +598,6 @@ abstract class Listener implements UnescapeErrorListener {
     Token endToken,
   ) {
     logEvent("Fields");
-  }
-
-  /// Handle the end of a mixin field declaration.  Substructures:
-  /// - Metadata
-  /// - Modifiers
-  /// - Type
-  /// - Variable declarations (count times)
-  ///
-  /// Started by [beginFields].
-  void endMixinFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassFields(
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      count,
-      beginToken,
-      endToken,
-    );
-  }
-
-  /// Handle the end of a extension field declaration.  Substructures:
-  /// - Metadata
-  /// - Modifiers
-  /// - Type
-  /// - Variable declarations (count times)
-  ///
-  /// Started by [beginFields].
-  void endExtensionFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassFields(
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      count,
-      beginToken,
-      endToken,
-    );
-  }
-
-  /// Handle the end of a extension type field declaration.  Substructures:
-  /// - Metadata
-  /// - Modifiers
-  /// - Type
-  /// - Variable declarations (count times)
-  ///
-  /// Started by [beginFields].
-  void endExtensionTypeFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassFields(
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      count,
-      beginToken,
-      endToken,
-    );
-  }
-
-  /// Handle the end of an enum field declaration.  Substructures:
-  /// - Metadata
-  /// - Modifiers
-  /// - Type
-  /// - Variable declarations (count times)
-  ///
-  /// Started by [beginFields].
-  void endEnumFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    endClassFields(
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      count,
-      beginToken,
-      endToken,
-    );
-  }
-
-  /// Handle the end of an enum method declaration.  Substructures:
-  /// - metadata
-  /// - return type
-  /// - method name (identifier, possibly qualified)
-  /// - type variables
-  /// - formal parameters
-  /// - initializers
-  /// - async marker
-  /// - body
-  void endEnumMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
   }
 
   /// Marks that the grammar term `forInitializerStatement` has been parsed and
@@ -1335,8 +1139,7 @@ abstract class Listener implements UnescapeErrorListener {
 
   /// Called for class-like members (class, mixin, extension), but each member
   /// should also have a more specific begin/end pair, e.g.
-  /// [beginFactoryMethod]/[endClassFactoryMethod]/[endMixinFactoryMethod]/
-  /// [endExtensionFactoryMethod].
+  /// [beginFactory]/[endFactory].
   void beginMember() {}
 
   /// Handle an invalid member declaration. Substructures:
@@ -1350,19 +1153,13 @@ abstract class Listener implements UnescapeErrorListener {
   /// Members will actually be begin/end'ed by more specific
   /// events as well.
   /// Normally listeners should probably override
-  /// [endClassFields], [endMixinFields], [endExtensionFields],
-  /// [endClassMethod], [endMixinMethod], [endExtensionMethod],
-  /// [endClassConstructor], [endMixinConstructor],
-  /// or [endExtensionConstructor] instead.
+  /// [endFields], [endMethod] or [endConstructor] instead.
   void endMember() {
     logEvent("Member");
   }
 
   /// Handle the beginning of a class-like method declaration.  Substructures:
   /// - metadata
-  /// Note that this is ended with [endClassConstructor], [endClassMethod],
-  /// [endExtensionConstructor], [endExtensionMethod], [endMixinConstructor] or
-  /// [endMixinMethod].
   void beginMethod(
     DeclarationKind declarationKind,
     Token? augmentToken,
@@ -1375,7 +1172,8 @@ abstract class Listener implements UnescapeErrorListener {
     String? enclosingDeclarationName,
   ) {}
 
-  /// Handle the end of a class method declaration.  Substructures:
+  /// Handle the end of a method declaration in a class, enum, mixin, extension
+  /// or extension type.  Substructures:
   /// - metadata
   /// - return type
   /// - method name (identifier, possibly qualified)
@@ -1384,43 +1182,33 @@ abstract class Listener implements UnescapeErrorListener {
   /// - initializers
   /// - async marker
   /// - body
-  void endClassMethod(
+  void endMethod(
+    DeclarationKind kind,
     Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
-    logEvent("ClassMethod");
+    logEvent("Method");
   }
 
-  /// Handle the end of a mixin method declaration.  Substructures:
+  /// Handle the beginning of a constructor declaration.  Substructures:
   /// - metadata
-  /// - return type
-  /// - method name (identifier, possibly qualified)
-  /// - type variables
-  /// - formal parameters
-  /// - initializers
-  /// - async marker
-  /// - body
-  void endMixinMethod(
+  void beginConstructor(
+    DeclarationKind declarationKind,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
     Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
-  }
+    Token? newToken,
+    Token name,
+    String? enclosingDeclarationName,
+  ) {}
 
-  /// Handle the end of a extension method declaration.  Substructures:
+  /// Handle the end of a constructor declaration.  Substructures:
   /// - metadata
   /// - return type
   /// - method name (identifier, possibly qualified)
@@ -1429,152 +1217,15 @@ abstract class Listener implements UnescapeErrorListener {
   /// - initializers
   /// - async marker
   /// - body
-  void endExtensionMethod(
-    Token? getOrSet,
+  void endConstructor(
+    DeclarationKind kind,
     Token beginToken,
+    Token? newToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
-  }
-
-  /// Handle the end of a extension type method declaration.  Substructures:
-  /// - metadata
-  /// - return type
-  /// - method name (identifier, possibly qualified)
-  /// - type variables
-  /// - formal parameters
-  /// - initializers
-  /// - async marker
-  /// - body
-  void endExtensionTypeMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
-  }
-
-  /// Handle the end of a class constructor declaration.  Substructures:
-  /// - metadata
-  /// - return type
-  /// - method name (identifier, possibly qualified)
-  /// - type variables
-  /// - formal parameters
-  /// - initializers
-  /// - async marker
-  /// - body
-  void endClassConstructor(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
-  }
-
-  /// Handle the end of a mixin constructor declaration.  Substructures:
-  /// - metadata
-  /// - return type
-  /// - method name (identifier, possibly qualified)
-  /// - type variables
-  /// - formal parameters
-  /// - initializers
-  /// - async marker
-  /// - body
-  void endMixinConstructor(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
-  }
-
-  /// Handle the end of a extension constructor declaration.  Substructures:
-  /// - metadata
-  /// - return type
-  /// - method name (identifier, possibly qualified)
-  /// - type variables
-  /// - formal parameters
-  /// - initializers
-  /// - async marker
-  /// - body
-  void endExtensionConstructor(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
-  }
-
-  /// Handle the end of an extension type constructor declaration.
-  /// Substructures:
-  /// - metadata
-  /// - return type
-  /// - method name (identifier, possibly qualified)
-  /// - type variables
-  /// - formal parameters
-  /// - initializers
-  /// - async marker
-  /// - body
-  void endExtensionTypeConstructor(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassConstructor(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
+    logEvent("ClassConstructor");
   }
 
   void beginMetadataStar(Token token) {}
@@ -1779,8 +1430,7 @@ abstract class Listener implements UnescapeErrorListener {
   void beginTopLevelMember(Token token) {}
 
   /// Marks the beginning of a fields declaration.
-  /// Note that this is ended with [endTopLevelFields], [endClassFields],
-  /// [endMixinFields] or [endExtensionFields].
+  /// Note that this is ended with [endTopLevelFields] or [endFields].
   void beginFields(
     DeclarationKind declarationKind,
     Token? abstractToken,
@@ -2377,6 +2027,10 @@ abstract class Listener implements UnescapeErrorListener {
 
   void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
     logEvent("NoConstructorReferenceContinuationAfterTypeArguments");
+  }
+
+  void handleNoIdentifier(Token token, IdentifierContext identifierContext) {
+    logEvent("NoIdentifier");
   }
 
   void handleNoTypeNameInConstructorReference(Token token) {

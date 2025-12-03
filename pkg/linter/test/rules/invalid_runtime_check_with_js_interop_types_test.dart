@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,10 +17,18 @@ void main() {
 @reflectiveTest
 class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
   @override
-  bool get addJsPackageDep => true;
+  String get lintRule => LintNames.invalid_runtime_check_with_js_interop_types;
 
   @override
-  String get lintRule => LintNames.invalid_runtime_check_with_js_interop_types;
+  void setUp() {
+    newPackage('js').addFile('lib/js.dart', r'''
+library js;
+
+// ignore: EXPORT_INTERNAL_LIBRARY
+export 'dart:_js_annotations' show JS, staticInterop;
+''');
+    super.setUp();
+  }
 
   test_baseTypesAs_dart_type_as_js_type() async {
     await _testCasts([_AsCast('int', 'JSNumber')]);
@@ -444,8 +453,8 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
     }
     ''',
       [
-        error(WarningCode.castFromNullAlwaysFails, 54, 13),
-        error(WarningCode.deadCode, 75, 17),
+        error(diag.castFromNullAlwaysFails, 54, 13),
+        error(diag.deadCode, 75, 17),
       ],
     );
   }
@@ -501,7 +510,7 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
       null is JSArray?;
     }
     ''',
-      [error(WarningCode.unnecessaryTypeCheckTrue, 75, 16)],
+      [error(diag.unnecessaryTypeCheckTrue, 75, 16)],
     );
   }
 
@@ -1268,16 +1277,10 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
       if (typeTest.lint) lints.add(lint(code.length, test.length));
       if (typeTest.unnecessary) {
         if (cast) {
-          lints.add(
-            error(WarningCode.unnecessaryCast, code.length, test.length),
-          );
+          lints.add(error(diag.unnecessaryCast, code.length, test.length));
         } else {
           lints.add(
-            error(
-              WarningCode.unnecessaryTypeCheckTrue,
-              code.length,
-              test.length,
-            ),
+            error(diag.unnecessaryTypeCheckTrue, code.length, test.length),
           );
         }
       }

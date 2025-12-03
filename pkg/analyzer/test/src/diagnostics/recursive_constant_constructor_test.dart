@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -24,8 +24,8 @@ class A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.recursiveConstantConstructor, 18, 1),
-        error(CompileTimeErrorCode.recursiveCompileTimeConstant, 31, 1),
+        error(diag.recursiveConstantConstructor, 18, 1),
+        error(diag.recursiveCompileTimeConstant, 31, 1),
       ],
     );
   }
@@ -40,8 +40,8 @@ class C {
 }
 ''',
       [
-        error(CompileTimeErrorCode.recursiveCompileTimeConstant, 6, 1),
-        error(CompileTimeErrorCode.recursiveConstantConstructor, 39, 1),
+        error(diag.recursiveCompileTimeConstant, 6, 1),
+        error(diag.recursiveConstantConstructor, 39, 1),
       ],
     );
   }
@@ -54,7 +54,7 @@ class A {
   const A() : a = const A();
 }
 ''',
-      [error(CompileTimeErrorCode.recursiveConstantConstructor, 31, 1)],
+      [error(diag.recursiveConstantConstructor, 31, 1)],
     );
   }
 
@@ -71,8 +71,8 @@ class A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.recursiveConstantConstructor, 31, 1),
-        error(CompileTimeErrorCode.recursiveConstantConstructor, 85, 1),
+        error(diag.recursiveConstantConstructor, 31, 1),
+        error(diag.recursiveConstantConstructor, 85, 1),
       ],
     );
   }

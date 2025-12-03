@@ -20,6 +20,7 @@ import 'dart:convert';
 
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/analyzer_messages.dart';
+import 'package:analyzer_utilities/located_error.dart';
 import 'package:analyzer_utilities/messages.dart';
 import 'package:analyzer_utilities/tools.dart';
 
@@ -33,26 +34,7 @@ final List<GeneratedContent> allTargets = _analyzerGeneratedFiles();
 /// Generates a list of [GeneratedContent] objects describing all the analyzer
 /// files that need to be generated.
 List<GeneratedContent> _analyzerGeneratedFiles() {
-  var classesByFile =
-      <GeneratedDiagnosticFile, List<GeneratedDiagnosticClassInfo>>{};
-  for (var diagnosticClassInfo in diagnosticClasses) {
-    if (diagnosticClassInfo is! GeneratedDiagnosticClassInfo) continue;
-
-    // Lint codes are generated separately.
-    if (diagnosticClassInfo == linterLintCodeInfo) continue;
-
-    (classesByFile[diagnosticClassInfo.file] ??= []).add(diagnosticClassInfo);
-  }
   return [
-    for (var entry in classesByFile.entries)
-      GeneratedFile(entry.key.path, (pkgRoot) async {
-        var codeGenerator = _AnalyzerDiagnosticGenerator(
-          entry.key,
-          entry.value,
-        );
-        codeGenerator.generate();
-        return codeGenerator.out.toString();
-      }),
     GeneratedFile('analyzer/lib/src/diagnostic/diagnostic_code_values.g.dart', (
       pkgRoot,
     ) async {
@@ -60,17 +42,33 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
       codeGenerator.generate();
       return codeGenerator.out.toString();
     }),
+    for (var package in AnalyzerDiagnosticPackage.values)
+      GeneratedFile(
+        '${package.dirName}/lib/${package.diagnosticPathPart}.g.dart',
+        (pkgRoot) async {
+          var codeGenerator = _AnalyzerDiagnosticGenerator(
+            package: package,
+            parentLibrary:
+                'package:${package.dirName}/${package.diagnosticPathPart}.dart',
+          );
+          codeGenerator.generate();
+          return codeGenerator.out.toString();
+        },
+      ),
   ];
 }
 
-/// Code generator for analyzer diagnostic classes.
+/// Code generator for files containing analyzer diagnostics as top level
+/// constants.
 class _AnalyzerDiagnosticGenerator {
-  final GeneratedDiagnosticFile file;
+  /// The package into which diagnostic will be generated.
+  final AnalyzerDiagnosticPackage package;
 
-  final List<GeneratedDiagnosticClassInfo> diagnosticClasses;
+  /// The Uri of the library that the generated file will be a part of.
+  final String parentLibrary;
 
   final StringBuffer out = StringBuffer('''
-// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -78,115 +76,30 @@ class _AnalyzerDiagnosticGenerator {
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
-
-// While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
-// codes here.
 ''');
 
-  _AnalyzerDiagnosticGenerator(this.file, this.diagnosticClasses);
+  _AnalyzerDiagnosticGenerator({
+    required this.package,
+    required this.parentLibrary,
+  });
 
   void generate() {
-    out.writeln('// ignore_for_file: deprecated_member_use_from_same_package');
-    if (file.shouldIgnorePreferSingleQuotes) {
-      out.writeln('// ignore_for_file: prefer_single_quotes');
-    }
-    out.write('''
-// 
-// Generated comments don't quite align with flutter style.
-// ignore_for_file: flutter_style_todos
-''');
+    package.writeIgnoresTo(out);
     out.writeln();
     out.write('''
-part of ${json.encode(file.parentLibrary)};
+part of ${json.encode(parentLibrary)};
 ''');
-    for (var diagnosticClass
-        in diagnosticClasses.toList()
-          ..sort((a, b) => a.name.compareTo(b.name))) {
-      out.writeln();
-      if (diagnosticClass.comment.isNotEmpty) {
-        diagnosticClass.comment.trimRight().split('\n').forEach((line) {
-          out.writeln('/// $line');
-        });
-      }
-      out.write(
-        'class ${diagnosticClass.name} extends DiagnosticCodeWithExpectedTypes {',
-      );
-      var memberAccumulator = MemberAccumulator();
+    out.writeln();
 
-      for (var message
-          in diagnosticTables.activeMessagesByPackage[diagnosticClass
-              .package]!) {
-        if (message.analyzerCode.diagnosticClass != diagnosticClass) continue;
+    var memberAccumulator = MemberAccumulator();
 
-        LocatedError.wrap(span: message.keySpan, () {
-          message.toAnalyzerCode(memberAccumulator: memberAccumulator);
-        });
-      }
-
-      var constructor = StringBuffer();
-      constructor.writeln(
-        '/// Initialize a newly created error code to have the given '
-        '[name].',
-      );
-      constructor.writeln('const ${diagnosticClass.name}({');
-      constructor.writeln('required super.name,');
-      constructor.writeln('required super.problemMessage,');
-      constructor.writeln('super.correctionMessage,');
-      constructor.writeln('super.hasPublishedDocs = false,');
-      constructor.writeln('super.isUnresolvedIdentifier = false,');
-      constructor.writeln('String? uniqueName,');
-      constructor.writeln('required String super.uniqueNameCheck,');
-      constructor.writeln('required super.expectedTypes,');
-      constructor.writeln('}) : super(');
-      constructor.writeln('type: ${diagnosticClass.typeCode},');
-      constructor.writeln(
-        "uniqueName: '${diagnosticClass.name}.\${uniqueName ?? name}',",
-      );
-      constructor.writeln(');');
-      memberAccumulator.constructors[''] = constructor.toString();
-
-      memberAccumulator.writeTo(out);
-      out.writeln('}');
-
-      out.writeln();
-      _outputDerivedClass(diagnosticClass, withArguments: true);
-      out.writeln();
-      _outputDerivedClass(diagnosticClass, withArguments: false);
+    for (var message in diagnosticTables.activeMessagesByPackage[package]!) {
+      LocatedError.wrap(span: message.keySpan, () {
+        message.toAnalyzerCode(memberAccumulator: memberAccumulator);
+      });
     }
-  }
 
-  void _outputDerivedClass(
-    GeneratedDiagnosticClassInfo diagnosticClass, {
-    required bool withArguments,
-  }) {
-    var className = withArguments
-        ? diagnosticClass.templateName
-        : diagnosticClass.withoutArgumentsName;
-    out.writeln('final class $className');
-    if (withArguments) out.writeln('<T extends Function>');
-    out.writeln('    extends ${diagnosticClass.name}');
-    if (!withArguments) out.writeln('    with DiagnosticWithoutArguments');
-    out.writeln('{');
-    if (withArguments) {
-      out.writeln('final T withArguments;');
-      out.writeln();
-    }
-    out.writeln(
-      '/// Initialize a newly created error code to have the given '
-      '[name].',
-    );
-    out.writeln('const $className({');
-    out.writeln('required super.name,');
-    out.writeln('required super.problemMessage,');
-    out.writeln('super.correctionMessage,');
-    out.writeln('super.hasPublishedDocs = false,');
-    out.writeln('super.isUnresolvedIdentifier = false,');
-    out.writeln('super.uniqueName,');
-    out.writeln('required super.uniqueNameCheck,');
-    out.writeln('required super.expectedTypes,');
-    if (withArguments) out.writeln('required this.withArguments,');
-    out.writeln('});');
-    out.writeln('}');
+    memberAccumulator.writeTo(out);
   }
 }
 
@@ -200,17 +113,10 @@ class _DiagnosticCodeValuesGenerator {
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
-
-// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
-// code, as they match names declared in the source configuration files.
-// ignore_for_file: constant_identifier_names
-
-// While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
-// codes here.
-// ignore_for_file: deprecated_member_use_from_same_package
 ''');
 
   void generate() {
+    AnalyzerDiagnosticPackage.analyzer.writeIgnoresTo(out);
     out.writeln();
     out.writeln(r'''
 part of 'diagnostic_code_values.dart';
@@ -223,9 +129,7 @@ part of 'diagnostic_code_values.dart';
     for (var message
         in diagnosticTables.activeMessagesByPackage[AnalyzerDiagnosticPackage
             .analyzer]!) {
-      var analyzerCode = message.analyzerCode;
-      var diagnosticName = analyzerCode.camelCaseName;
-      out.writeln('  ${analyzerCode.diagnosticClass.name}.$diagnosticName,');
+      out.writeln('  ${message.analyzerCode.analyzerCodeReference},');
     }
     out.writeln('];');
     out.writeln();

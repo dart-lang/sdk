@@ -227,9 +227,11 @@ class BytecodeGenerator extends RecursiveVisitor {
         if (source == null) {
           final importUri =
               objectTable.getConstStringHandle(astSource.importUri.toString());
+          // Use asMember instead of asConstructor because some const
+          // constructors from extension types are desugared to procedures.
           final coveredConstConstructors = astSource
               .constantCoverageConstructors
-              ?.map((r) => objectTable.getHandle(r.asConstructor)!)
+              ?.map((r) => objectTable.getHandle(r.asMember)!)
               .toList();
           source = new SourceFile(importUri, coveredConstConstructors);
           bytecodeComponent.sourceFiles.add(source);
@@ -500,6 +502,9 @@ class BytecodeGenerator extends RecursiveVisitor {
     if (field.isExtensionMember) {
       flags |= FieldDeclaration.isExtensionMemberFlag;
     }
+    if (field.isExtensionTypeMember) {
+      flags |= FieldDeclaration.isExtensionTypeMemberFlag;
+    }
     // In NNBD libraries, static fields with initializers are implicitly late.
     if (field.isLate || (field.isStatic && field.initializer != null)) {
       flags |= FieldDeclaration.isLateFlag;
@@ -566,6 +571,9 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
     if (member.isExtensionMember) {
       flags |= FunctionDeclaration.isExtensionMemberFlag;
+    }
+    if (member.isExtensionTypeMember) {
+      flags |= FunctionDeclaration.isExtensionTypeMemberFlag;
     }
 
     FunctionNode function = member.function!;
@@ -4337,7 +4345,16 @@ class BytecodeGenerator extends RecursiveVisitor {
       final initializer = node.initializer;
       final bool emitStore = !_skipVariableInitialization(node, isCaptured);
       int maxInitializerPosition = node.fileOffset;
+      if (node.isSynthesized) {
+        asm.currentSourcePositionFlags |= SourcePositions.syntheticFlag;
+      }
       if (emitStore) {
+        // Record the source position at the start of the bytecode generated
+        // for storing the variable.
+        if (initializer != null) {
+          _recordSourcePosition(node.fileEqualsOffset);
+        }
+        _emitSourcePosition();
         if (isCaptured) {
           _genPushContextForVariable(node);
         }
@@ -4357,12 +4374,6 @@ class BytecodeGenerator extends RecursiveVisitor {
       }
 
       if (emitStore) {
-        if (!node.isSynthesized) {
-          if (initializer != null) {
-            _recordSourcePosition(node.fileEqualsOffset);
-          }
-          _emitSourcePosition();
-        }
         _genStoreVar(node);
       }
     }

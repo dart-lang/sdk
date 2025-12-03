@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r"Don't use constant patterns with type literals.";
 
@@ -21,8 +22,7 @@ class TypeLiteralInConstantPattern extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.typeLiteralInConstantPattern;
+  DiagnosticCode get diagnosticCode => diag.typeLiteralInConstantPattern;
 
   @override
   void registerNodeProcessors(

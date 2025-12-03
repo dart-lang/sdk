@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -394,7 +393,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.dotShorthandMissingContext, 46, 7)],
+      [error(diag.dotShorthandMissingContext, 46, 7)],
     );
   }
 
@@ -406,7 +405,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.dotShorthandMissingContext, 24, 7)],
+      [error(diag.dotShorthandMissingContext, 24, 7)],
     );
   }
 
@@ -420,7 +419,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.dotShorthandUndefinedGetter, 36, 6)],
+      [error(diag.dotShorthandUndefinedGetter, 36, 6)],
     );
   }
 
@@ -436,7 +435,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.dotShorthandUndefinedGetter, 49, 3)],
+      [error(diag.dotShorthandUndefinedGetter, 49, 3)],
     );
   }
 
@@ -598,8 +597,8 @@ void main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.dotShorthandMissingContext, 88, 7),
-        error(ParserErrorCode.illegalAssignmentToNonAssignable, 95, 2),
+        error(diag.dotShorthandMissingContext, 88, 7),
+        error(diag.illegalAssignmentToNonAssignable, 95, 2),
       ],
     );
   }
@@ -619,8 +618,8 @@ void main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.dotShorthandMissingContext, 90, 7),
-        error(ParserErrorCode.missingAssignableSelector, 91, 6),
+        error(diag.dotShorthandMissingContext, 90, 7),
+        error(diag.missingAssignableSelector, 91, 6),
       ],
     );
   }
@@ -661,13 +660,7 @@ Function fn() {
   return .new;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.tearoffOfGenerativeConstructorOfAbstractClass,
-          25,
-          4,
-        ),
-      ],
+      [error(diag.tearoffOfGenerativeConstructorOfAbstractClass, 25, 4)],
     );
   }
 

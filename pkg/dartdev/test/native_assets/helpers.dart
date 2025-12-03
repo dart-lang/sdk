@@ -114,7 +114,8 @@ Future<void> copyTestProjects(Uri copyTargetUri, Logger logger,
       'code_assets',
       'data_assets',
       'hooks',
-      'native_toolchain_c'
+      'native_toolchain_c',
+      'record_use',
     ])
       package: {
         'path': sdkRoot
@@ -123,9 +124,6 @@ Future<void> copyTestProjects(Uri copyTargetUri, Logger logger,
       },
     'meta': {
       'path': sdkRoot.resolve('pkg/meta/').toFilePath(),
-    },
-    'record_use': {
-      'path': sdkRoot.resolve('pkg/record_use/').toFilePath(),
     },
   };
   final userDefinesWorkspace = {};
@@ -284,8 +282,8 @@ Future<void> recordUseTest(
     await runPackageTest(
       packageUnderTest,
       fun,
-      const ['drop_dylib_recording'],
-      sdkRootUri.resolve('pkg/record_use/'),
+      const ['drop_dylib_recording', 'drop_data_asset'],
+      sdkRootUri.resolve('third_party/pkg/native/pkgs/record_use/'),
       sdkRootUri,
       false,
     );

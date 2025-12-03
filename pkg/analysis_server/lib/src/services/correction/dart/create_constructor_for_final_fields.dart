@@ -16,6 +16,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
+import '../../../utilities/extensions/ast.dart';
+
 /// The boolean value indicates whether the field is required.
 /// The string value is the field/parameter name.
 typedef _FieldRecord = (bool, String);
@@ -52,8 +54,8 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
       return;
     }
 
-    var container = fieldDeclaration.parent;
-    if (container is! NamedCompilationUnitMember) {
+    var container = fieldDeclaration.parent?.parent;
+    if (container is! CompilationUnitMember) {
       return;
     }
 
@@ -67,9 +69,9 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         }
         fixContext = _FixContext(
           builder: builder,
-          containerName: container.name.lexeme,
+          containerName: container.namePart.typeName.lexeme,
           superType: superType,
-          variableLists: container.members.interestingVariableLists,
+          variableLists: container.members2.interestingVariableLists,
         );
       case EnumDeclaration():
         superType = container.declaredFragment?.element.supertype;
@@ -78,9 +80,9 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         }
         fixContext = _FixContext(
           builder: builder,
-          containerName: container.name.lexeme,
+          containerName: container.namePart.typeName.lexeme,
           superType: superType,
-          variableLists: container.members.interestingVariableLists,
+          variableLists: container.body.members.interestingVariableLists,
         );
       case _:
         return;
@@ -145,7 +147,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
 
   Future<void> _forFlutterWidget({
     required _FixContext fixContext,
-    required NamedCompilationUnitMember classDeclaration,
+    required CompilationUnitMember classDeclaration,
     required bool requiredNamedParametersFirst,
   }) async {
     if (unit.featureSet.isEnabled(Feature.super_parameters)) {
@@ -165,7 +167,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
 
   Future<void> _forFlutterWithoutSuperParameters({
     required _FixContext fixContext,
-    required NamedCompilationUnitMember classDeclaration,
+    required CompilationUnitMember classDeclaration,
     required bool requiredNamedParametersFirst,
   }) async {
     var keyClass = await sessionHelper.getFlutterClass('Key');
@@ -220,7 +222,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
 
   Future<void> _forFlutterWithSuperParameters({
     required _FixContext fixContext,
-    required NamedCompilationUnitMember classDeclaration,
+    required CompilationUnitMember classDeclaration,
     required bool requiredNamedParametersFirst,
   }) async {
     await fixContext.builder.addDartFileEdit(file, (builder) {
@@ -263,7 +265,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
 
   Future<void> _notFlutterNamed({
     required _FixContext fixContext,
-    required NamedCompilationUnitMember containerDeclaration,
+    required CompilationUnitMember containerDeclaration,
     required bool isConst,
     required List<_Field> fields,
     required bool requiredNamedParametersFirst,
@@ -344,7 +346,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
 
   Future<void> _notFlutterRequiredPositional({
     required _FixContext fixContext,
-    required NamedCompilationUnitMember containerDeclaration,
+    required CompilationUnitMember containerDeclaration,
     required bool isConst,
     required List<_Field> fields,
   }) async {
@@ -373,7 +375,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
 
   Future<void> _notFlutterWidget({
     required _FixContext fixContext,
-    required NamedCompilationUnitMember containerDeclaration,
+    required CompilationUnitMember containerDeclaration,
     required bool isConst,
     required bool requiredNamedParametersFirst,
   }) async {

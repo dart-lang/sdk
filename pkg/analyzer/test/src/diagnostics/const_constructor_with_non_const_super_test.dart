@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,7 +25,7 @@ class B extends A {
   const B(): super();
 }
 ''',
-      [error(CompileTimeErrorCode.constConstructorWithNonConstSuper, 52, 7)],
+      [error(diag.constConstructorWithNonConstSuper, 52, 7)],
     );
   }
 
@@ -39,7 +39,7 @@ class B extends A {
   const B();
 }
 ''',
-      [error(CompileTimeErrorCode.constConstructorWithNonConstSuper, 47, 1)],
+      [error(diag.constConstructorWithNonConstSuper, 47, 1)],
     );
   }
 
@@ -70,7 +70,7 @@ class B extends A {
   const B.bar() : super._();
 }
 ''',
-      [error(CompileTimeErrorCode.constConstructorWithNonConstSuper, 111, 9)],
+      [error(diag.constConstructorWithNonConstSuper, 111, 9)],
     );
   }
 

@@ -1084,9 +1084,7 @@ if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
   }
 }
 
-# This flag is set in runtime/runtime_args.gni
-# The analyze_snapshot tool is only supported on 64 bit AOT builds running under
-# linux and android platforms
+# This flag is set in runtime/runtime_args.gni.
 if (build_analyze_snapshot) {
   dart_executable("analyze_snapshot") {
     use_product_mode = dart_runtime_mode == "release"
@@ -1127,6 +1125,11 @@ executable("process_test") {
 
 executable("abstract_socket_test") {
   sources = [ "abstract_socket_test.cc" ]
+  include_dirs = [ ".." ]
+}
+
+executable("create_process_test_helper") {
+  sources = [ "create_process_test_helper.cc" ]
   include_dirs = [ ".." ]
 }
 

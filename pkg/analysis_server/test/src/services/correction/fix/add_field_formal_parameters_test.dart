@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,7 +20,7 @@ void main() {
 @reflectiveTest
 class AddFieldFormalNamedParametersTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.addInitializingFormalNamesParameters;
+  FixKind get kind => DartFixKind.addInitializingFormalNamedParameters;
 
   Future<void> test_enum() async {
     await resolveTestCode('''
@@ -221,6 +221,113 @@ class Test {
 }
 ''');
   }
+
+  Future<void> test_privateField() async {
+    await resolveTestCode('''
+class A {
+  A({int? other});
+
+  final int _foo;
+}
+''');
+    await assertHasFix(
+      '''
+class A {
+  A({int? other, required int foo}) : _foo = foo;
+
+  final int _foo;
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.finalNotInitializedConstructor1,
+    );
+  }
+
+  Future<void> test_privateField_alphaNumeric() async {
+    await resolveTestCode('''
+class C {
+  C();
+
+  final int _1to1;
+}
+''');
+    await assertHasFix(
+      '''
+class C {
+  C({required int p1to1}) : _1to1 = p1to1;
+
+  final int _1to1;
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.finalNotInitializedConstructor1,
+    );
+  }
+
+  Future<void> test_privateField_initializer() async {
+    await resolveTestCode('''
+class A {
+  A({int? other}) : assert(true);
+
+  final int _foo;
+}
+''');
+    await assertHasFix(
+      '''
+class A {
+  A({int? other, required int foo}) : _foo = foo, assert(true);
+
+  final int _foo;
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.finalNotInitializedConstructor1,
+    );
+  }
+
+  Future<void> test_privateField_numeric() async {
+    await resolveTestCode('''
+class C {
+  C();
+
+  final int _3;
+}
+''');
+    await assertHasFix(
+      '''
+class C {
+  C({required int p3}) : _3 = p3;
+
+  final int _3;
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.finalNotInitializedConstructor1,
+    );
+  }
+
+  Future<void> test_privateFields() async {
+    await resolveTestCode('''
+class A {
+  A({int? other});
+
+  final int _foo;
+  final String _bar;
+}
+''');
+    await assertHasFix(
+      '''
+class A {
+  A({int? other, required int foo, required String bar}) : _foo = foo, _bar = bar;
+
+  final int _foo;
+  final String _bar;
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.finalNotInitializedConstructor2,
+    );
+  }
 }
 
 @reflectiveTest
@@ -387,8 +494,7 @@ class Test {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode ==
-          CompileTimeErrorCode.finalNotInitializedConstructor1,
+          diagnostic.diagnosticCode == diag.finalNotInitializedConstructor1,
     );
   }
 }

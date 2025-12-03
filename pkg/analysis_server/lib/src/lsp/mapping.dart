@@ -34,7 +34,7 @@ import 'package:analyzer/src/dart/analysis/search.dart'
     as server
     show DeclarationKind;
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:collection/collection.dart';
@@ -52,13 +52,13 @@ final completionFilterTextSplitPattern = RegExp(r'=>|[\(]');
 final completionSetterTypePattern = RegExp(r'^\((\S+)\s+\S+\)$');
 
 final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
-  _diagnosticCode(WarningCode.deadCode): [lsp.DiagnosticTag.Unnecessary],
-  _diagnosticCode(HintCode.deprecatedMemberUse): [lsp.DiagnosticTag.Deprecated],
+  _diagnosticCode(diag.deadCode): [lsp.DiagnosticTag.Unnecessary],
+  _diagnosticCode(diag.deprecatedMemberUse): [lsp.DiagnosticTag.Deprecated],
   'deprecated_member_use_from_same_package': [lsp.DiagnosticTag.Deprecated],
   'deprecated_member_use_from_same_package_with_message': [
     lsp.DiagnosticTag.Deprecated,
   ],
-  _diagnosticCode(HintCode.deprecatedMemberUseWithMessage): [
+  _diagnosticCode(diag.deprecatedMemberUseWithMessage): [
     lsp.DiagnosticTag.Deprecated,
   ],
 };
@@ -1382,7 +1382,9 @@ String toElementName(server.Element element) {
   return element.name.isNotEmpty
       ? element.name
       : (element.kind == server.ElementKind.EXTENSION
-            ? '<unnamed extension>'
+            ? (element.extendedType?.isNotEmpty ?? false)
+                  ? 'extension on ${element.extendedType}'
+                  : '<unnamed extension>'
             : '<unnamed>');
 }
 

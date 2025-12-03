@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/ascii_utils.dart';
 
@@ -21,7 +22,7 @@ class TypeAnnotatePublicApis extends AnalysisRule {
     : super(name: LintNames.type_annotate_public_apis, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.typeAnnotatePublicApis;
+  DiagnosticCode get diagnosticCode => diag.typeAnnotatePublicApis;
 
   @override
   List<String> get incompatibleRules => const ['omit_obvious_property_types'];

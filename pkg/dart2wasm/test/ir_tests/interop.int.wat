@@ -6,12 +6,17 @@
     (field $value i64))))
   (func $"dart2wasm._274 (import)" (import "dart2wasm" "_274") (param externref) (result externref))
   (func $"dart2wasm._275 (import)" (import "dart2wasm" "_275") (param externref) (result externref))
-  (global $"intValueNullable initialized" (mut i32) <...>)
-  (global $intValueNullable (mut (ref null $BoxedInt)) <...>)
-  (global $"ktrue initialized" (mut i32) <...>)
-  (global $ktrue (mut i32) <...>)
   (global $"intValue initialized" (mut i32) <...>)
+  (global $"intValueNullable initialized" (mut i32) <...>)
+  (global $"ktrue initialized" (mut i32) <...>)
   (global $intValue (mut i64) <...>)
+  (global $intValueNullable (mut (ref null $BoxedInt)) <...>)
+  (global $ktrue (mut i32) <...>)
+  (func $_throwArgumentNullError <noInline>  <...>)
+  (func $intValue implicit getter (result i64) <...>)
+  (func $ktrue implicit getter (result i32) <...>)
+  (func $sinkInt <noInline> (param $var0 i64) <...>)
+  (func $sinkIntNullable <noInline> (param $var0 (ref null $BoxedInt)) <...>)
   (func $"testIntConstant <noInline>"
     (local $var0 externref)
     i64.const 1
@@ -37,7 +42,7 @@
     if (result (ref null $BoxedInt))
       ref.null none
     else
-      i32.const 63
+      i32.const 65
       local.get $var0
       call $dartifyInt
       struct.new $BoxedInt
@@ -78,7 +83,7 @@
         call $"ktrue implicit getter"
       end
       if (result (ref null $BoxedInt))
-        i32.const 63
+        i32.const 65
         global.get $"intValue initialized"
         if (result i64)
           global.get $intValue
@@ -108,20 +113,15 @@
     if (result (ref null $BoxedInt))
       ref.null none
     else
-      i32.const 63
+      i32.const 65
       local.get $var1
       call $dartifyInt
       struct.new $BoxedInt
     end
     call $"sinkIntNullable <noInline>"
   )
-  (func $jsifyRaw (param $var0 (ref null $#Top)) (result externref) <...>)
-  (func $isDartNull (param $var0 externref) (result i32) <...>)
   (func $dartifyInt (param $var0 externref) (result i64) <...>)
-  (func $sinkIntNullable <noInline> (param $var0 (ref null $BoxedInt)) <...>)
+  (func $isDartNull (param $var0 externref) (result i32) <...>)
   (func $jsifyInt (param $var0 i64) (result externref) <...>)
-  (func $_throwArgumentNullError <noInline>  <...>)
-  (func $ktrue implicit getter (result i32) <...>)
-  (func $intValue implicit getter (result i64) <...>)
-  (func $sinkInt <noInline> (param $var0 i64) <...>)
+  (func $jsifyRaw (param $var0 (ref null $#Top)) (result externref) <...>)
 )

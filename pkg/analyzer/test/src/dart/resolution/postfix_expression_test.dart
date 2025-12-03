@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -71,7 +70,7 @@ void f(int x) {
   x ++ ++;
 }
 ''',
-      [error(ParserErrorCode.illegalAssignmentToNonAssignable, 23, 2)],
+      [error(diag.illegalAssignmentToNonAssignable, 23, 2)],
     );
 
     var node = findNode.postfix('++;');
@@ -108,7 +107,7 @@ void f(A a) {
   a++;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 29, 2)],
+      [error(diag.undefinedOperator, 29, 2)],
     );
 
     var node = findNode.postfix('++;');
@@ -159,7 +158,7 @@ void f(int x) {
   ++x++;
 }
 ''',
-      [error(ParserErrorCode.missingAssignableSelector, 21, 2)],
+      [error(diag.missingAssignableSelector, 21, 2)],
     );
 
     var node = findNode.prefix('++x');
@@ -308,7 +307,7 @@ void f() {
   (0)++;
 }
 ''',
-      [error(ParserErrorCode.illegalAssignmentToNonAssignable, 16, 2)],
+      [error(diag.illegalAssignmentToNonAssignable, 16, 2)],
     );
 
     var node = findNode.postfix('(0)++');
@@ -338,7 +337,7 @@ void f() {
   int++;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToType, 13, 3)],
+      [error(diag.assignmentToType, 13, 3)],
     );
 
     var node = findNode.postfix('int++');
@@ -365,7 +364,7 @@ void f<T>() {
   T++;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToType, 16, 1)],
+      [error(diag.assignmentToType, 16, 1)],
     );
 
     var node = findNode.postfix('T++');
@@ -848,7 +847,7 @@ class A {
   }
 }
 ''',
-      [error(ParserErrorCode.illegalAssignmentToNonAssignable, 32, 2)],
+      [error(diag.illegalAssignmentToNonAssignable, 32, 2)],
     );
 
     var node = findNode.singlePostfixExpression;
@@ -876,7 +875,7 @@ void f(Object? x) {
   }++);
 }
 ''',
-      [error(ParserErrorCode.illegalAssignmentToNonAssignable, 51, 2)],
+      [error(diag.illegalAssignmentToNonAssignable, 51, 2)],
     );
 
     var node = findNode.postfix('++');
@@ -920,7 +919,7 @@ void f() {
   x++;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 13, 1)],
+      [error(diag.undefinedIdentifier, 13, 1)],
     );
 
     var node = findNode.singlePostfixExpression;
@@ -1043,7 +1042,7 @@ void f(Null x) {
   x!;
 }
 ''',
-      [error(WarningCode.nullCheckAlwaysFails, 19, 2)],
+      [error(diag.nullCheckAlwaysFails, 19, 2)],
     );
 
     assertType(findNode.postfix('x!'), 'Never');
@@ -1124,8 +1123,8 @@ void test9(Foo? foo, int? a) => foo?[a]!.baz;
 void test10(Foo? foo, int? a, int b) => foo?[a]![b];
 ''',
       [
-        error(StaticWarningCode.unnecessaryNonNullAssertion, 107, 1),
-        error(StaticWarningCode.unnecessaryNonNullAssertion, 173, 1),
+        error(diag.unnecessaryNonNullAssertion, 107, 1),
+        error(diag.unnecessaryNonNullAssertion, 173, 1),
       ],
     );
 
@@ -1185,7 +1184,7 @@ class B extends A {
   }
 }
 ''',
-      [error(ParserErrorCode.missingAssignableSelector, 70, 6)],
+      [error(diag.missingAssignableSelector, 70, 6)],
     );
 
     var node = findNode.methodInvocation('foo();');

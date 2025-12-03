@@ -44,17 +44,21 @@ class ValueOption<T> extends Option<T> {
       void Function(WasmCompilerOptions o, T v) applyToOptions,
       T Function(dynamic v) converter,
       {String? defaultsTo,
+      String? abbr,
       bool hide = false})
-      : super(name, (a) => a.addOption(name, defaultsTo: defaultsTo),
-            applyToOptions, converter);
+      : super(
+            name,
+            (a) => a.addOption(name, defaultsTo: defaultsTo, abbr: abbr),
+            applyToOptions,
+            converter);
 }
 
 class IntOption extends ValueOption<int> {
   IntOption(
       String name, void Function(WasmCompilerOptions o, int v) applyToOptions,
-      {String? defaultsTo})
+      {String? defaultsTo, String? abbr})
       : super(name, applyToOptions, (v) => int.parse(v),
-            defaultsTo: defaultsTo);
+            defaultsTo: defaultsTo, abbr: abbr);
 }
 
 class StringOption extends ValueOption<String> {

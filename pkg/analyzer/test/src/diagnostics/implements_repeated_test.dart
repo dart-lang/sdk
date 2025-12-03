@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,7 +21,7 @@ class ImplementsRepeatedTest extends PubPackageResolutionTest {
 class A {}
 class B implements A, A {}
 ''',
-      [error(CompileTimeErrorCode.implementsRepeated, 33, 1)],
+      [error(diag.implementsRepeated, 33, 1)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -57,9 +57,7 @@ augment class B implements A {}
 
     await assertErrorsInFile2(a, []);
 
-    await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.implementsRepeated, 46, 1),
-    ]);
+    await assertErrorsInFile2(b, [error(diag.implementsRepeated, 46, 1)]);
   }
 
   test_class_implements_2times_viaTypeAlias() async {
@@ -69,7 +67,7 @@ class A {}
 typedef B = A;
 class C implements A, B {}
 ''',
-      [error(CompileTimeErrorCode.implementsRepeated, 48, 1)],
+      [error(diag.implementsRepeated, 48, 1)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -96,9 +94,9 @@ class A {} class C{}
 class B implements A, A, A, A {}
 ''',
       [
-        error(CompileTimeErrorCode.implementsRepeated, 43, 1),
-        error(CompileTimeErrorCode.implementsRepeated, 46, 1),
-        error(CompileTimeErrorCode.implementsRepeated, 49, 1),
+        error(diag.implementsRepeated, 43, 1),
+        error(diag.implementsRepeated, 46, 1),
+        error(diag.implementsRepeated, 49, 1),
       ],
     );
   }
@@ -111,7 +109,7 @@ enum E implements A, A {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.implementsRepeated, 32, 1)],
+      [error(diag.implementsRepeated, 32, 1)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -147,9 +145,7 @@ augment enum E implements A {}
 
     await assertErrorsInFile2(a, []);
 
-    await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.implementsRepeated, 45, 1),
-    ]);
+    await assertErrorsInFile2(b, [error(diag.implementsRepeated, 45, 1)]);
   }
 
   test_enum_implements_2times_viaTypeAlias() async {
@@ -161,7 +157,7 @@ enum E implements A, B {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.implementsRepeated, 47, 1)],
+      [error(diag.implementsRepeated, 47, 1)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -190,9 +186,9 @@ enum E implements A, A, A, A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.implementsRepeated, 42, 1),
-        error(CompileTimeErrorCode.implementsRepeated, 45, 1),
-        error(CompileTimeErrorCode.implementsRepeated, 48, 1),
+        error(diag.implementsRepeated, 42, 1),
+        error(diag.implementsRepeated, 45, 1),
+        error(diag.implementsRepeated, 48, 1),
       ],
     );
   }
@@ -202,7 +198,7 @@ enum E implements A, A, A, A {
       r'''
 extension type A(int it) implements int, int {}
 ''',
-      [error(CompileTimeErrorCode.implementsRepeated, 41, 3)],
+      [error(diag.implementsRepeated, 41, 3)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -237,9 +233,7 @@ augment extension type A(int it) implements int {}
 
     await assertErrorsInFile2(a, []);
 
-    await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.implementsRepeated, 63, 3),
-    ]);
+    await assertErrorsInFile2(b, [error(diag.implementsRepeated, 63, 3)]);
   }
 
   test_extensionType_implements_2times_viaTypeAlias() async {
@@ -248,7 +242,7 @@ augment extension type A(int it) implements int {}
 typedef A = int;
 extension type B(int it) implements int, A {}
 ''',
-      [error(CompileTimeErrorCode.implementsRepeated, 58, 1)],
+      [error(diag.implementsRepeated, 58, 1)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -274,9 +268,9 @@ ImplementsClause
 extension type A(int it) implements int, int, int, int {}
 ''',
       [
-        error(CompileTimeErrorCode.implementsRepeated, 41, 3),
-        error(CompileTimeErrorCode.implementsRepeated, 46, 3),
-        error(CompileTimeErrorCode.implementsRepeated, 51, 3),
+        error(diag.implementsRepeated, 41, 3),
+        error(diag.implementsRepeated, 46, 3),
+        error(diag.implementsRepeated, 51, 3),
       ],
     );
   }
@@ -287,7 +281,7 @@ extension type A(int it) implements int, int, int, int {}
 class A {}
 mixin M implements A, A {}
 ''',
-      [error(CompileTimeErrorCode.implementsRepeated, 33, 1)],
+      [error(diag.implementsRepeated, 33, 1)],
     );
   }
 
@@ -308,9 +302,7 @@ augment mixin M implements A {}
 
     await assertErrorsInFile2(a, []);
 
-    await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.implementsRepeated, 46, 1),
-    ]);
+    await assertErrorsInFile2(b, [error(diag.implementsRepeated, 46, 1)]);
   }
 
   test_mixin_implements_4times() async {
@@ -320,9 +312,9 @@ class A {}
 mixin M implements A, A, A, A {}
 ''',
       [
-        error(CompileTimeErrorCode.implementsRepeated, 33, 1),
-        error(CompileTimeErrorCode.implementsRepeated, 36, 1),
-        error(CompileTimeErrorCode.implementsRepeated, 39, 1),
+        error(diag.implementsRepeated, 33, 1),
+        error(diag.implementsRepeated, 36, 1),
+        error(diag.implementsRepeated, 39, 1),
       ],
     );
   }

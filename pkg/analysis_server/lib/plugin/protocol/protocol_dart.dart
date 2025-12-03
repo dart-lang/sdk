@@ -19,12 +19,13 @@ Element convertElement(engine.Element element) {
   var aliasedType = getAliasedTypeString(element);
   var elementParameters = getParametersString(element);
   var elementReturnType = getReturnTypeString(element);
+  var extendedType = getExtendedTypeString(element);
   return Element(
     kind,
     name,
     Element.makeFlags(
       isPrivate: element.isPrivate,
-      isDeprecated: element.metadata.hasDeprecated,
+      isDeprecated: element.isDeprecatedWithKind('use'),
       isAbstract: _isAbstract(element),
       isConst: _isConst(element),
       isFinal: _isFinal(element),
@@ -35,6 +36,7 @@ Element convertElement(engine.Element element) {
     aliasedType: aliasedType,
     parameters: elementParameters,
     returnType: elementReturnType,
+    extendedType: extendedType,
   );
 }
 
@@ -136,7 +138,7 @@ Element convertLibraryFragment(LibraryFragmentImpl fragment) {
     path.basename(fragment.source.fullName),
     Element.makeFlags(
       isPrivate: fragment.isPrivate,
-      isDeprecated: fragment.library.metadata.hasDeprecated,
+      isDeprecated: fragment.library.isDeprecatedWithKind('use'),
     ),
     location: newLocation_fromFragment(fragment),
   );

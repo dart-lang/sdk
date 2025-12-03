@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -34,7 +34,7 @@ import 'other.dart' show Stream, Future hide Stream;
         DartFixKind.mergeCombinatorsHideShow,
       ],
       filter: (error) {
-        return error.diagnosticCode == WarningCode.multipleCombinators;
+        return error.diagnosticCode == diag.multipleCombinators;
       },
     );
   }
@@ -49,7 +49,7 @@ import 'other.dart' hide Stream hide Future;
         DartFixKind.mergeCombinatorsShowHide,
       ],
       filter: (error) {
-        return error.diagnosticCode == WarningCode.multipleCombinators;
+        return error.diagnosticCode == diag.multipleCombinators;
       },
     );
   }
@@ -58,7 +58,7 @@ import 'other.dart' hide Stream hide Future;
 @reflectiveTest
 class MergeHideUsingHideTest extends _MergeCombinatorTest {
   @override
-  DiagnosticCode get diagnosticCode => WarningCode.multipleCombinators;
+  DiagnosticCode get diagnosticCode => diag.multipleCombinators;
 
   @override
   FixKind get kind => DartFixKind.mergeCombinatorsHideHide;
@@ -170,7 +170,7 @@ import 'other.dart' show Stream, FutureOr, Future show Stream, FutureOr;
 @reflectiveTest
 class MergeHideUsingShowTest extends _MergeCombinatorTest {
   @override
-  DiagnosticCode get diagnosticCode => WarningCode.multipleCombinators;
+  DiagnosticCode get diagnosticCode => diag.multipleCombinators;
 
   @override
   FixKind get kind => DartFixKind.mergeCombinatorsShowHide;
@@ -282,7 +282,7 @@ import 'other.dart' show Stream, FutureOr, Future show Stream, FutureOr;
 @reflectiveTest
 class MergeShowUsingHideTest extends _MergeCombinatorTest {
   @override
-  DiagnosticCode get diagnosticCode => WarningCode.multipleCombinators;
+  DiagnosticCode get diagnosticCode => diag.multipleCombinators;
 
   @override
   FixKind get kind => DartFixKind.mergeCombinatorsHideShow;
@@ -422,7 +422,7 @@ import 'other.dart' hide Completer, Future, Timer;
 @reflectiveTest
 class MergeShowUsingShowTest extends _MergeCombinatorTest {
   @override
-  DiagnosticCode get diagnosticCode => WarningCode.multipleCombinators;
+  DiagnosticCode get diagnosticCode => diag.multipleCombinators;
 
   @override
   FixKind get kind => DartFixKind.mergeCombinatorsShowShow;

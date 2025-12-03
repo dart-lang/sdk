@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Put required named parameters first.';
 
@@ -22,7 +23,7 @@ class AlwaysPutRequiredNamedParametersFirst extends AnalysisRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.alwaysPutRequiredNamedParametersFirst;
+      diag.alwaysPutRequiredNamedParametersFirst;
 
   @override
   void registerNodeProcessors(

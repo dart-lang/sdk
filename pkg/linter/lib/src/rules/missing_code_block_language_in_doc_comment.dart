@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'A code block is missing a specified language.';
 
@@ -23,7 +24,7 @@ class MissingCodeBlockLanguageInDocComment extends AnalysisRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.missingCodeBlockLanguageInDocComment;
+      diag.missingCodeBlockLanguageInDocComment;
 
   @override
   void registerNodeProcessors(

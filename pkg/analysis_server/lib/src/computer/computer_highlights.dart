@@ -868,7 +868,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(node.mixinKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.classKeyword, HighlightRegionType.KEYWORD);
     computer._addRegion_token(
-      node.name,
+      node.namePart.typeName,
       HighlightRegionType.CLASS,
       semanticTokenModifiers: {SemanticTokenModifiers.declaration},
     );
@@ -1042,7 +1042,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     // computer._addRegion_token(
     //     node.augmentKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.enumKeyword, HighlightRegionType.KEYWORD);
-    computer._addRegion_token(node.name, HighlightRegionType.ENUM);
+    computer._addRegion_token(node.namePart.typeName, HighlightRegionType.ENUM);
     super.visitEnumDeclaration(node);
   }
 
@@ -1102,10 +1102,13 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
     computer._addRegion_token(node.typeKeyword, HighlightRegionType.BUILT_IN);
 
-    computer._addRegion_token(node.constKeyword, HighlightRegionType.BUILT_IN);
-
+    var primaryConstructor = node.primaryConstructor;
     computer._addRegion_token(
-      node.name,
+      primaryConstructor.constKeyword,
+      HighlightRegionType.BUILT_IN,
+    );
+    computer._addRegion_token(
+      primaryConstructor.typeName,
       HighlightRegionType.EXTENSION_TYPE,
       semanticTokenModifiers: {SemanticTokenModifiers.declaration},
     );
@@ -1591,6 +1594,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorName(PrimaryConstructorName node) {
+    computer._addRegion_token(node.name, HighlightRegionType.CONSTRUCTOR);
+    super.visitPrimaryConstructorName(node);
+  }
+
+  @override
   void visitRecordLiteral(RecordLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_RECORD);
     computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
@@ -1615,31 +1624,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     }
 
     super.visitRecordTypeAnnotation(node);
-  }
-
-  @override
-  void visitRepresentationConstructorName(RepresentationConstructorName node) {
-    computer._addRegion_token(
-      node.name,
-      HighlightRegionType.CONSTRUCTOR,
-      semanticTokenType: SemanticTokenTypes.method,
-      semanticTokenModifiers: {
-        CustomSemanticTokenModifiers.constructor,
-        SemanticTokenModifiers.declaration,
-      },
-    );
-
-    super.visitRepresentationConstructorName(node);
-  }
-
-  @override
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    computer._addRegion_token(
-      node.fieldName,
-      HighlightRegionType.INSTANCE_FIELD_DECLARATION,
-    );
-
-    super.visitRepresentationDeclaration(node);
   }
 
   @override

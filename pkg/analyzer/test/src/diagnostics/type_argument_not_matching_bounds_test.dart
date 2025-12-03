@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -24,7 +24,7 @@ mixin C {}
 class G<E extends A> {}
 class D = G<B> with C;
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 69, 1)],
+      [error(diag.typeArgumentNotMatchingBounds, 69, 1)],
     );
   }
 
@@ -38,7 +38,7 @@ class G<E extends A> {
 }
 f() { return const G<B>(); }
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 81, 1)],
+      [error(diag.typeArgumentNotMatchingBounds, 81, 1)],
     );
   }
 
@@ -62,8 +62,8 @@ enum E<T extends int> {
 }
 ''',
       [
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 28, 2),
-        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 28, 2),
+        error(diag.argumentTypeNotAssignable, 28, 2),
+        error(diag.constConstructorParamTypeMismatch, 28, 2),
       ],
     );
   }
@@ -83,7 +83,7 @@ enum E<T extends int> {
   v<String>()
 }
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 28, 6)],
+      [error(diag.typeArgumentNotMatchingBounds, 28, 6)],
     );
   }
 
@@ -95,7 +95,7 @@ class B {}
 class G<E extends A> {}
 class C extends G<B>{}
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 64, 1)],
+      [error(diag.typeArgumentNotMatchingBounds, 64, 1)],
     );
   }
 
@@ -106,7 +106,7 @@ class C extends G<B>{}
 class X<T extends Type> {}
 class Y<U> extends X<U> {}
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 48, 1)],
+      [error(diag.typeArgumentNotMatchingBounds, 48, 1)],
     );
   }
 
@@ -121,7 +121,7 @@ void f() {
   E<String>(0).foo();
 }
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 70, 6)],
+      [error(diag.typeArgumentNotMatchingBounds, 70, 6)],
     );
   }
 
@@ -136,7 +136,7 @@ void f() {
   E<String>(0)();
 }
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 71, 6)],
+      [error(diag.typeArgumentNotMatchingBounds, 71, 6)],
     );
   }
 
@@ -149,7 +149,7 @@ void f(A a) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           52,
           1,
           contextMessages: [message(testFile, 52, 1)],
@@ -165,7 +165,7 @@ extension type A<T extends num>(int it) {}
 
 void f(A<String> a) {}
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 53, 6)],
+      [error(diag.typeArgumentNotMatchingBounds, 53, 6)],
     );
   }
 
@@ -182,7 +182,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           71,
           1,
           contextMessages: [message(testFile, 69, 4)],
@@ -198,7 +198,7 @@ void f() {
   (<T extends num>() {})<String>();
 }
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 36, 6)],
+      [error(diag.typeArgumentNotMatchingBounds, 36, 6)],
     );
   }
 
@@ -213,7 +213,7 @@ void f(C c) {
   c<String>();
 }
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 63, 6)],
+      [error(diag.typeArgumentNotMatchingBounds, 63, 6)],
     );
   }
 
@@ -225,7 +225,7 @@ void bar() {
   foo<String>;
 }
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 51, 6)],
+      [error(diag.typeArgumentNotMatchingBounds, 51, 6)],
     );
   }
 
@@ -257,7 +257,7 @@ G<B> f() => throw 0;
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           48,
           1,
           contextMessages: [message(testFile, 46, 4)],
@@ -276,7 +276,7 @@ typedef G<B> f();
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           56,
           1,
           contextMessages: [message(testFile, 54, 4)],
@@ -295,7 +295,7 @@ f(G<B> h()) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           50,
           1,
           contextMessages: [message(testFile, 48, 4)],
@@ -314,7 +314,7 @@ void f(CB<FB<F>> a) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           119,
           5,
           contextMessages: [message(testFile, 116, 9)],
@@ -340,7 +340,7 @@ class B {}
 class G<E extends A> {}
 class C implements G<B>{}
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 67, 1)],
+      [error(diag.typeArgumentNotMatchingBounds, 67, 1)],
     );
   }
 
@@ -354,7 +354,7 @@ var b = 1 is G<B>;
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           61,
           1,
           contextMessages: [message(testFile, 59, 4)],
@@ -384,7 +384,7 @@ class A<T extends num> {
 @A<String>()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 44, 6)],
+      [error(diag.typeArgumentNotMatchingBounds, 44, 6)],
     );
   }
 
@@ -400,7 +400,7 @@ typedef B<T extends num> = A<T>;
 @B<String>()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 66, 6)],
+      [error(diag.typeArgumentNotMatchingBounds, 66, 6)],
     );
   }
 
@@ -425,7 +425,7 @@ void g() {
   f<F>();
 }
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 131, 1)],
+      [error(diag.typeArgumentNotMatchingBounds, 131, 1)],
     );
   }
 
@@ -443,7 +443,7 @@ main() {
   print(f<String>('hello', 'world'));
 }
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 145, 6)],
+      [error(diag.typeArgumentNotMatchingBounds, 145, 6)],
     );
   }
 
@@ -464,7 +464,7 @@ f(PointFactory factory) {
   print(factory.point<String>('hello', 'world'));
 }
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 202, 6)],
+      [error(diag.typeArgumentNotMatchingBounds, 202, 6)],
     );
   }
 
@@ -483,7 +483,7 @@ main() {
   print(f<String>('hello', 'world'));
 }
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 140, 6)],
+      [error(diag.typeArgumentNotMatchingBounds, 140, 6)],
     );
   }
 
@@ -499,7 +499,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           60,
           1,
           contextMessages: [message(testFile, 58, 4)],
@@ -516,7 +516,7 @@ class B {}
 class G<E extends A> {}
 f() { return new G<B>(); }
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 65, 1)],
+      [error(diag.typeArgumentNotMatchingBounds, 65, 1)],
     );
   }
 
@@ -538,7 +538,7 @@ class C extends B {}
 class G<E extends B> {}
 f() { return new G<A>(); }
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 96, 1)],
+      [error(diag.typeArgumentNotMatchingBounds, 96, 1)],
     );
   }
 
@@ -550,7 +550,7 @@ class B {}
 class G<T extends A> {}
 typedef X = G<B>;
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 60, 1)],
+      [error(diag.typeArgumentNotMatchingBounds, 60, 1)],
     );
   }
 
@@ -578,7 +578,7 @@ class B {}
 class G<T extends A> {}
 typedef X = G<B>;
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 60, 1)],
+      [error(diag.typeArgumentNotMatchingBounds, 60, 1)],
     );
   }
 
@@ -597,7 +597,7 @@ typedef X<T> = A;
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           42,
           1,
           contextMessages: [message(testFile, 42, 1)],
@@ -615,7 +615,7 @@ void f(X<String> a) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           58,
           6,
           contextMessages: [message(testFile, 56, 9)],
@@ -645,8 +645,8 @@ main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 94, 1),
-        error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 104, 1),
+        error(diag.unusedLocalVariable, 94, 1),
+        error(diag.typeArgumentNotMatchingBounds, 104, 1),
       ],
     );
   }
@@ -663,7 +663,7 @@ void main() {}
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           65,
           3,
           contextMessages: [message(testFile, 65, 3)],
@@ -683,7 +683,7 @@ foo(G g) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           92,
           1,
           contextMessages: [message(testFile, 92, 1), message(testFile, 92, 1)],
@@ -702,7 +702,7 @@ F<B> fff = (throw 42);
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           50,
           1,
           contextMessages: [message(testFile, 48, 4)],
@@ -749,7 +749,7 @@ f(G<B> g) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           50,
           1,
           contextMessages: [message(testFile, 48, 4)],
@@ -769,8 +769,8 @@ class X<T extends A> {
 }
 ''',
       [
-        error(CompileTimeErrorCode.redirectToInvalidReturnType, 99, 4),
-        error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 101, 1),
+        error(diag.redirectToInvalidReturnType, 99, 4),
+        error(diag.typeArgumentNotMatchingBounds, 101, 1),
       ],
     );
   }
@@ -833,7 +833,7 @@ C<D<B>> c = (throw 0);
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           64,
           1,
           contextMessages: [message(testFile, 62, 4)],
@@ -850,7 +850,7 @@ var t = C<String>;
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           36,
           6,
           contextMessages: [message(testFile, 34, 9)],
@@ -867,7 +867,7 @@ var t = Cb<String>;
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           56,
           6,
           contextMessages: [message(testFile, 53, 10)],
@@ -885,7 +885,7 @@ var t = D<String>;
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           51,
           6,
           contextMessages: [message(testFile, 49, 9)],
@@ -905,7 +905,7 @@ class D<F extends G<B>> {}
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           77,
           1,
           contextMessages: [message(testFile, 75, 4)],
@@ -924,7 +924,7 @@ G<B> g = (throw 0);
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           48,
           1,
           contextMessages: [message(testFile, 46, 4)],
@@ -941,7 +941,7 @@ class B {}
 mixin G<E extends A> {}
 class C extends Object with G<B>{}
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 76, 1)],
+      [error(diag.typeArgumentNotMatchingBounds, 76, 1)],
     );
   }
 }

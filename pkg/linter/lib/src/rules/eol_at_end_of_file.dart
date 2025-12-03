@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Put a single newline at end of file.';
 
@@ -18,7 +19,7 @@ class EolAtEndOfFile extends AnalysisRule {
     : super(name: LintNames.eol_at_end_of_file, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.eolAtEndOfFile;
+  DiagnosticCode get diagnosticCode => diag.eolAtEndOfFile;
 
   @override
   void registerNodeProcessors(

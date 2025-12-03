@@ -356,6 +356,12 @@ class SearchMatchImpl implements SearchMatch {
     if (kind == SearchResultKind.INVOCATION) {
       return MatchKind.INVOCATION;
     }
+    if (kind == SearchResultKind.DOT_SHORTHANDS_CONSTRUCTOR_TEAR_OFF) {
+      return MatchKind.DOT_SHORTHANDS_CONSTRUCTOR_TEAR_OFF;
+    }
+    if (kind == SearchResultKind.DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION) {
+      return MatchKind.DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION;
+    }
     if (kind ==
         SearchResultKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS) {
       return MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS;
@@ -374,6 +380,9 @@ class SearchMatchImpl implements SearchMatch {
     }
     if (kind == SearchResultKind.REFERENCE_IN_WITH_CLAUSE) {
       return MatchKind.REFERENCE_IN_WITH_CLAUSE;
+    }
+    if (kind == SearchResultKind.REFERENCE_IN_PATTERN_FIELD) {
+      return MatchKind.REFERENCE_IN_PATTERN_FIELD;
     }
     return MatchKind.REFERENCE;
   }

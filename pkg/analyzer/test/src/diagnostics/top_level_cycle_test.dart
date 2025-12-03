@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,10 +23,7 @@ class A {
   static final y = x + 1;
 }
 ''',
-      [
-        error(CompileTimeErrorCode.topLevelCycle, 25, 1),
-        error(CompileTimeErrorCode.topLevelCycle, 51, 1),
-      ],
+      [error(diag.topLevelCycle, 25, 1), error(diag.topLevelCycle, 51, 1)],
     );
   }
 
@@ -39,10 +36,7 @@ class A {
   final c = a;
 }
 ''',
-      [
-        error(CompileTimeErrorCode.topLevelCycle, 25, 1),
-        error(CompileTimeErrorCode.topLevelCycle, 66, 1),
-      ],
+      [error(diag.topLevelCycle, 25, 1), error(diag.topLevelCycle, 66, 1)],
     );
   }
 
@@ -52,10 +46,7 @@ class A {
 var x = y + 1;
 var y = x + 1;
 ''',
-      [
-        error(CompileTimeErrorCode.topLevelCycle, 4, 1),
-        error(CompileTimeErrorCode.topLevelCycle, 19, 1),
-      ],
+      [error(diag.topLevelCycle, 4, 1), error(diag.topLevelCycle, 19, 1)],
     );
   }
 
@@ -64,7 +55,7 @@ var y = x + 1;
       r'''
 var x = x;
 ''',
-      [error(CompileTimeErrorCode.topLevelCycle, 4, 1)],
+      [error(diag.topLevelCycle, 4, 1)],
     );
   }
 
@@ -77,7 +68,7 @@ var elems = [
   ],
 ];
 ''',
-      [error(CompileTimeErrorCode.topLevelCycle, 4, 5)],
+      [error(diag.topLevelCycle, 4, 5)],
     );
   }
 }

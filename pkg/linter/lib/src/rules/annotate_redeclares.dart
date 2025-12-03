@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Annotate redeclared members.';
 
@@ -24,7 +25,7 @@ class AnnotateRedeclares extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.annotateRedeclares;
+  DiagnosticCode get diagnosticCode => diag.annotateRedeclares;
 
   @override
   void registerNodeProcessors(
@@ -43,12 +44,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    node.members.whereType<MethodDeclaration>().forEach(_check);
+    if (node.body case BlockClassBody body) {
+      body.members.whereType<MethodDeclaration>().forEach(_check);
+    }
   }
 
   void _check(MethodDeclaration node) {
     if (node.isStatic) return;
-    var parent = node.parent;
+    var parent = node.parent?.parent;
     // Shouldn't happen.
     if (parent is! ExtensionTypeDeclaration) return;
 

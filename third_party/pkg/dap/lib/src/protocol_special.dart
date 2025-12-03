@@ -58,33 +58,17 @@ abstract class ToJsonable {
 /// A custom version of [InitializeRequestArguments] that adds custom Dart
 /// capabilities not covered by the DAP spec.
 class DartInitializeRequestArguments extends InitializeRequestArguments {
-  /// Whether the client supports URIs in places where we would normally send
-  /// file paths.
-  ///
-  /// This may be replaced by something standard DAP in future
-  /// https://github.com/microsoft/debug-adapter-protocol/issues/444
-  final bool supportsDartUris;
-
   /// A reader for protocol arguments that throws detailed exceptions if
   /// arguments aren't of the correct type.
   static final arg = DebugAdapterArgumentReader('initialize');
 
   DartInitializeRequestArguments({
     required super.adapterID,
-    this.supportsDartUris = false,
     super.supportsRunInTerminalRequest,
     super.supportsProgressReporting,
   });
 
-  DartInitializeRequestArguments.fromMap(super.obj)
-      : supportsDartUris = arg.read<bool?>(obj, 'supportsDartUris') ?? false,
-        super.fromMap();
-
-  @override
-  Map<String, Object?> toJson() => {
-        ...super.toJson(),
-        if (supportsDartUris) 'supportsDartUris': supportsDartUris,
-      };
+  DartInitializeRequestArguments.fromMap(super.obj) : super.fromMap();
 
   static DartInitializeRequestArguments fromJson(Map<String, Object?> obj) =>
       DartInitializeRequestArguments.fromMap(obj);

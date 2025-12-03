@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,7 +23,7 @@ class A {
   A() : x = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.externalFieldConstructorInitializer, 36, 1)],
+      [error(diag.externalFieldConstructorInitializer, 36, 1)],
     );
   }
 
@@ -35,7 +35,7 @@ class A {
   A() : x = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.externalFieldConstructorInitializer, 42, 1)],
+      [error(diag.externalFieldConstructorInitializer, 42, 1)],
     );
   }
 
@@ -47,7 +47,7 @@ class A {
   A(this.x);
 }
 ''',
-      [error(CompileTimeErrorCode.externalFieldConstructorInitializer, 43, 1)],
+      [error(diag.externalFieldConstructorInitializer, 43, 1)],
     );
   }
 
@@ -68,7 +68,7 @@ class A {
   A(this.x);
 }
 ''',
-      [error(CompileTimeErrorCode.externalFieldConstructorInitializer, 37, 1)],
+      [error(diag.externalFieldConstructorInitializer, 37, 1)],
     );
   }
 

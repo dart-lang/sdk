@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r'Prefer intValue.isOdd/isEven instead of checking the result of % 2.';
@@ -20,7 +21,7 @@ class UseIsEvenRatherThanModulo extends AnalysisRule {
     : super(name: LintNames.use_is_even_rather_than_modulo, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.useIsEvenRatherThanModulo;
+  DiagnosticCode get diagnosticCode => diag.useIsEvenRatherThanModulo;
 
   @override
   void registerNodeProcessors(

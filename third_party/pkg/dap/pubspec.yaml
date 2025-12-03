@@ -1,5 +1,5 @@
 name: dap
-version: 1.4.0
+version: 1.5.0-wip
 description: >-
   A package of classes that are generated from the DAP specifications along with
   their generating code.

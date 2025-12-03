@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,13 +26,7 @@ f() {
   E(null).m();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.extensionOverrideArgumentNotAssignable,
-          50,
-          4,
-        ),
-      ],
+      [error(diag.extensionOverrideArgumentNotAssignable, 50, 4)],
     );
   }
 
@@ -72,13 +66,7 @@ void f(A a) {
   E(a).m();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.extensionOverrideArgumentNotAssignable,
-          85,
-          1,
-        ),
-      ],
+      [error(diag.extensionOverrideArgumentNotAssignable, 85, 1)],
     );
   }
 
@@ -94,13 +82,7 @@ void f(B b) {
   E(b).m();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.extensionOverrideArgumentNotAssignable,
-          75,
-          1,
-        ),
-      ],
+      [error(diag.extensionOverrideArgumentNotAssignable, 75, 1)],
     );
   }
 }

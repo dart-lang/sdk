@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid using unnecessary statements.';
 
@@ -20,7 +21,7 @@ class UnnecessaryStatements extends AnalysisRule {
     : super(name: LintNames.unnecessary_statements, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryStatements;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryStatements;
 
   @override
   void registerNodeProcessors(
@@ -130,7 +131,7 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor<void> {
     // Allow getters; getters with side effects were the main cause of false
     // positives.
     var element = node.identifier.element;
-    if (element is GetterElement && !element.isSynthetic) {
+    if (element is GetterElement && element.isOriginDeclaration) {
       return;
     }
 
@@ -151,7 +152,7 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor<void> {
     // Allow getters; previously getters with side effects were the main cause
     // of false positives.
     var element = node.propertyName.element;
-    if (element is GetterElement && !element.isSynthetic) {
+    if (element is GetterElement && element.isOriginDeclaration) {
       return;
     }
 
@@ -168,7 +169,7 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor<void> {
     // Allow getter (in this case with an implicit `this.`); previously, getters
     // with side effects were the main cause of false positives.
     var element = node.element;
-    if (element is GetterElement && !element.isSynthetic) {
+    if (element is GetterElement && element.isOriginDeclaration) {
       return;
     }
 

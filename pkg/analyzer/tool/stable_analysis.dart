@@ -102,6 +102,7 @@ void main(List<String> args) {
         if (!silent) print("Enabled $added lints");
       }
     },
+    withFineDependencies: true,
   );
   DriverBasedAnalysisContext context = collection.contexts[0];
   AnalysisDriver analysisDriver = context.driver;

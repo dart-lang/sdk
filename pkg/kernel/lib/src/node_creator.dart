@@ -790,7 +790,6 @@ class NodeCreator {
         return IntLiteral(42)..fileOffset = _needFileOffset();
       case ExpressionKind.InvalidExpression:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => InvalidExpression(null)..fileOffset = _needFileOffset(),
           () => InvalidExpression('foo')..fileOffset = _needFileOffset(),
           () => InvalidExpression('foo', _createExpression())
             ..fileOffset = _needFileOffset(),
@@ -1599,7 +1598,7 @@ class NodeCreator {
   /// If there are any pending initializers, one of these is created.
   Initializer _createInitializer() {
     if (_pendingInitializers.isEmpty) {
-      return InvalidInitializer()..fileOffset = _needFileOffset();
+      return InvalidInitializer('')..fileOffset = _needFileOffset();
     }
     InitializerKind kind = _pendingInitializers.keys.first;
     return _createInitializerFromKind(kind);
@@ -1623,7 +1622,7 @@ class NodeCreator {
             _needField(isStatic: false), _createExpression())
           ..fileOffset = _needFileOffset();
       case InitializerKind.InvalidInitializer:
-        return InvalidInitializer()..fileOffset = _needFileOffset();
+        return InvalidInitializer('')..fileOffset = _needFileOffset();
       case InitializerKind.LocalInitializer:
         return LocalInitializer(_createVariableDeclaration())
           ..fileOffset = _needFileOffset();

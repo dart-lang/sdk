@@ -232,19 +232,13 @@ class FactoryDeclarationImpl
     }
 
     if (_fragment.formals != null) {
-      // For const constructors we need to include default parameter values
-      // into the outline. For all other formals we need to call
-      // buildOutlineExpressions to clear initializerToken to prevent
-      // consuming too much memory.
       for (FormalParameterBuilder formal in _fragment.formals!) {
         formal.buildOutlineExpressions(
-          libraryBuilder,
-          factoryBuilder.declarationBuilder,
+          libraryBuilder: libraryBuilder,
+          declarationBuilder: factoryBuilder.declarationBuilder,
+          memberBuilder: factoryBuilder,
           extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
           scope: _fragment.typeParameterScope,
-          buildDefaultValue:
-              FormalParameterBuilder // force line break
-              .needsDefaultValuesBuiltAsOutlineExpressions(factoryBuilder),
         );
       }
     }

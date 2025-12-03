@@ -5,6 +5,10 @@
 import '../shared/shared.dart';
 
 @pragma('dyn-module:entry-point')
-Object? dynamicModuleEntrypoint() => method(value);
+Object? dynamicModuleEntrypoint() => [
+  method(value),
+  const C.foo42(),
+  const C.foo43(),
+];
 
 int method(B b) => b.foo();

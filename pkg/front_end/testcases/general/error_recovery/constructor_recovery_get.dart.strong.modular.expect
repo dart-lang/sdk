@@ -52,7 +52,7 @@ import "dart:core" as core;
 
 class Foo extends core::Object {
   constructor •() → self::Foo
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/error_recovery/constructor_recovery_get.dart:9:15: Error: 'initializer' isn't an instance field of this class.
+    : invalid-initializer "pkg/front_end/testcases/general/error_recovery/constructor_recovery_get.dart:9:15: Error: 'initializer' isn't an instance field of this class.
   get Foo() : initializer = true { }
               ^^^^^^^^^^^" {}
   constructor x() → self::Foo

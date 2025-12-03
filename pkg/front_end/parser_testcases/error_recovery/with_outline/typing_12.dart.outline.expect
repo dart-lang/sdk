@@ -1,5 +1,5 @@
 Class: Foo
-Class method: Foo.foo_method1
-Class method: Foo.foo_method2
+Method: Foo.foo_method1
+Method: Foo.foo_method2
 Top-level method: toplevel_method1
 Top-level method: toplevel_method2

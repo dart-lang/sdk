@@ -28,7 +28,6 @@ import '../builder/formal_parameter_builder.dart' as type;
 import '../builder/metadata_builder.dart' as type;
 import '../builder/record_type_builder.dart' as type;
 import '../builder/type_builder.dart' as type;
-import '../fragment/fragment.dart' as type;
 import '../kernel/body_builder.dart'
     as type
     show
@@ -229,8 +228,8 @@ class ValueKinds {
       const SingleValueKind<List<type.TypeBuilder>>();
   static const ValueKind TypeBuilderListOrNull =
       const SingleValueKind<List<type.TypeBuilder>>(NullValues.TypeBuilderList);
-  static const ValueKind TypeParameterFragmentListOrNull =
-      const SingleValueKind<List<type.TypeParameterFragment>>(
+  static const ValueKind NominalTypeParametersOrNull =
+      const SingleValueKind<type.NominalParameters>(
         NullValues.NominalParameters,
       );
   static const ValueKind NominalVariableListOrNull =

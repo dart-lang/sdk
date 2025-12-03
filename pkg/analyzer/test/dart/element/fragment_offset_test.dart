@@ -4,8 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -67,7 +66,7 @@ class C {}
     checkOffset<ClassFragment>(
       classDeclaration,
       classDeclaration.declaredFragment!,
-      classDeclaration.name.offset,
+      classDeclaration.namePart.typeName.offset,
     );
   }
 
@@ -90,7 +89,7 @@ class C = Object with M;
 mixin M {}
 class = Object with M;
 ''',
-      [error(ParserErrorCode.missingIdentifier, 17, 1)],
+      [error(diag.missingIdentifier, 17, 1)],
     );
     var classTypeAlias = findNode.classTypeAlias('Object with M');
     checkOffsetInRange<ClassFragment>(
@@ -106,7 +105,7 @@ library; // Ensures that the class declaration isn't at offset 0
 
 class {}
 ''',
-      [error(ParserErrorCode.missingIdentifier, 72, 1)],
+      [error(diag.missingIdentifier, 72, 1)],
     );
     var classDeclaration = findNode.classDeclaration('class {}');
     checkOffsetInRange<ClassFragment>(
@@ -127,7 +126,7 @@ class C {}
           .element
           .unnamedConstructor!
           .firstFragment,
-      classDeclaration.name.offset,
+      classDeclaration.namePart.typeName.offset,
     );
   }
 
@@ -138,7 +137,7 @@ class C {
   C.();
 }
 ''',
-      [error(ParserErrorCode.missingIdentifier, 14, 1)],
+      [error(diag.missingIdentifier, 14, 1)],
     );
     var constructorDeclaration = findNode.constructor('C.()');
     checkOffsetInRange<ConstructorFragment>(
@@ -171,7 +170,7 @@ class C {
     checkOffset<ConstructorFragment>(
       constructorDeclaration,
       constructorDeclaration.declaredFragment!,
-      constructorDeclaration.returnType.offset,
+      constructorDeclaration.typeName!.offset,
     );
   }
 
@@ -195,7 +194,7 @@ enum E { e1 }
     checkOffset<EnumFragment>(
       enumDeclaration,
       enumDeclaration.declaredFragment!,
-      enumDeclaration.name.offset,
+      enumDeclaration.namePart.typeName.offset,
     );
   }
 
@@ -206,7 +205,7 @@ library; // Ensures that the enum declaration isn't at offset 0
 
 enum { e1 }
 ''',
-      [error(ParserErrorCode.missingIdentifier, 70, 1)],
+      [error(diag.missingIdentifier, 70, 1)],
     );
     var enumDeclaration = findNode.enumDeclaration('enum { e1 }');
     checkOffsetInRange<EnumFragment>(
@@ -250,7 +249,7 @@ extension type E(int i) {}
     checkOffset<ExtensionTypeFragment>(
       extensionTypeDeclaration,
       extensionTypeDeclaration.declaredFragment!,
-      extensionTypeDeclaration.name.offset,
+      extensionTypeDeclaration.primaryConstructor.typeName.offset,
     );
   }
 
@@ -261,7 +260,7 @@ library; // Ensures that the extension type declaration isn't at offset 0
 
 extension type(int i) {}
 ''',
-      [error(ParserErrorCode.missingIdentifier, 89, 1)],
+      [error(diag.missingIdentifier, 89, 1)],
     );
     var extensionTypeDeclaration = findNode.extensionTypeDeclaration(
       'extension type(int i)',
@@ -296,12 +295,8 @@ class C {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.initializingFormalForNonExistentField,
-          24,
-          5,
-        ),
-        error(ParserErrorCode.missingIdentifier, 29, 1),
+        error(diag.initializingFormalForNonExistentField, 24, 5),
+        error(diag.missingIdentifier, 29, 1),
       ],
     );
     var parameter = findNode.fieldFormalParameter('this.');
@@ -376,21 +371,7 @@ enum E { e1 }
       enumDeclaration.declaredFragment!.element
           .getField('values')!
           .firstFragment,
-      enumDeclaration.name.offset,
-    );
-  }
-
-  test_fieldFragment_extensionTypeRepresentationField() async {
-    await assertNoErrorsInCode(r'''
-extension type E(int i) {}
-''');
-    var representationDeclaration = findNode
-        .extensionTypeDeclaration('int i')
-        .representation;
-    checkOffset<FieldFragment>(
-      representationDeclaration,
-      representationDeclaration.fieldFragment!,
-      representationDeclaration.fieldName.offset,
+      enumDeclaration.namePart.typeName.offset,
     );
   }
 
@@ -411,7 +392,7 @@ void f(int x) {}
       r'''
 void f((int x)) {}
 ''',
-      [error(ParserErrorCode.missingIdentifier, 7, 1)],
+      [error(diag.missingIdentifier, 7, 1)],
     );
     var function = findNode.functionDeclaration('f(');
     var parameter =
@@ -429,7 +410,7 @@ void f((int x)) {}
       r'''
 void f(void (int x)) {}
 ''',
-      [error(ParserErrorCode.missingIdentifier, 12, 1)],
+      [error(diag.missingIdentifier, 12, 1)],
     );
     var function = findNode.functionDeclaration('f(');
     var parameter =
@@ -770,7 +751,7 @@ library; // Ensures that the mixin declaration isn't at offset 0
 
 mixin {}
 ''',
-      [error(ParserErrorCode.missingIdentifier, 72, 1)],
+      [error(diag.missingIdentifier, 72, 1)],
     );
     var mixinDeclaration = findNode.mixinDeclaration('mixin {}');
     checkOffsetInRange<MixinFragment>(
@@ -825,7 +806,7 @@ import 'dart:math' as a; // second
 // ignore: unused_import
 import 'dart:async' as;
 ''',
-      [error(ParserErrorCode.missingIdentifier, 47, 1)],
+      [error(diag.missingIdentifier, 47, 1)],
     );
     var importDirective = findNode.import('as;');
     checkOffsetInRange<PrefixFragment>(
@@ -924,7 +905,7 @@ class C extends B {
   C(super.);
 }
 ''',
-      [error(ParserErrorCode.missingIdentifier, 58, 1)],
+      [error(diag.missingIdentifier, 58, 1)],
     );
     var parameter = findNode.superFormalParameter('super.');
     checkOffsetInRange<SuperFormalParameterFragment>(
@@ -1012,10 +993,7 @@ library; // Ensures that the function type alias declaration isn't at offset 0
 
 typedef void();
 ''',
-      [
-        error(WarningCode.unusedElement, 0, 0),
-        error(ParserErrorCode.missingIdentifier, 92, 1),
-      ],
+      [error(diag.unusedElement, 0, 0), error(diag.missingIdentifier, 92, 1)],
     );
     var functionTypeAlias = findNode.functionTypeAlias('void()');
     checkOffsetInRange<TypeAliasFragment>(
@@ -1043,10 +1021,7 @@ library; // Ensures that the generic type alias declaration isn't at offset 0
 
 typedef = int;
 ''',
-      [
-        error(WarningCode.unusedElement, 0, 0),
-        error(ParserErrorCode.missingIdentifier, 87, 1),
-      ],
+      [error(diag.unusedElement, 0, 0), error(diag.missingIdentifier, 87, 1)],
     );
     var genericTypeAlias = findNode.genericTypeAlias('= int');
     checkOffsetInRange<TypeAliasFragment>(

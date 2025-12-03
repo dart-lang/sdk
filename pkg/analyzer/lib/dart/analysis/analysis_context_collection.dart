@@ -27,7 +27,14 @@ abstract class AnalysisContextCollection {
     List<String>? excludedPaths,
     ResourceProvider? resourceProvider,
     String? sdkPath,
-  }) = AnalysisContextCollectionImpl;
+  }) {
+    return AnalysisContextCollectionImpl(
+      includedPaths: includedPaths,
+      excludedPaths: excludedPaths,
+      resourceProvider: resourceProvider,
+      sdkPath: sdkPath,
+    );
+  }
 
   /// Return all of the analysis contexts in this collection.
   List<AnalysisContext> get contexts;

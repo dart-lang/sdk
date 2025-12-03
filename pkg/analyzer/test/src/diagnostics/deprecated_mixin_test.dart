@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ typedef Foo2 = Foo;
 import 'foo.dart';
 class Bar with Foo {}
 ''',
-      [error(WarningCode.deprecatedMixin, 34, 3)],
+      [error(diag.deprecatedMixin, 34, 3)],
     );
   }
 
@@ -43,7 +43,7 @@ mixin class Foo = Object with M;
 import 'foo.dart';
 class Bar with Foo {}
 ''',
-      [error(WarningCode.deprecatedMixin, 34, 3)],
+      [error(diag.deprecatedMixin, 34, 3)],
     );
   }
 
@@ -58,7 +58,7 @@ mixin class Foo {}
 import 'foo.dart';
 class Bar with Foo {}
 ''',
-      [error(WarningCode.deprecatedMixin, 34, 3)],
+      [error(diag.deprecatedMixin, 34, 3)],
     );
   }
 
@@ -73,7 +73,7 @@ mixin class Foo {}
 import 'foo.dart';
 class Bar = Object with Foo;
 ''',
-      [error(WarningCode.deprecatedMixin, 43, 3)],
+      [error(diag.deprecatedMixin, 43, 3)],
     );
   }
 
@@ -90,7 +90,7 @@ enum Bar with Foo {
   one, two;
 }
 ''',
-      [error(WarningCode.deprecatedMixin, 33, 3)],
+      [error(diag.deprecatedMixin, 33, 3)],
     );
   }
 

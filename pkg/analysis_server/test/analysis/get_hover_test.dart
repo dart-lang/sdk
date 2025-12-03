@@ -1254,7 +1254,7 @@ void f(A<int> a) {
     expect(hover.elementDescription, 'int foo<U>(int t, U u)');
     expect(hover.elementKind, 'method');
     // types
-    expect(hover.staticType, isNull);
+    expect(hover.staticType, 'int Function<U>(int, U)');
     expect(hover.propagatedType, isNull);
     // no parameter
     expect(hover.parameter, isNull);
@@ -1281,7 +1281,7 @@ void f() {
     expect(hover.elementDescription, 'int foo<U>(U u)');
     expect(hover.elementKind, 'method');
     // types
-    expect(hover.staticType, isNull);
+    expect(hover.staticType, 'int Function<U>(U)');
     expect(hover.propagatedType, isNull);
     // no parameter
     expect(hover.parameter, isNull);
@@ -1700,6 +1700,21 @@ class B extends A{
     // element
     expect(hover.elementDescription, '[int a]');
     expect(hover.elementKind, 'parameter');
+  }
+
+  Future<void> test_parameter_reference_deprecated_optional() async {
+    newFile(testFilePath, '''
+void f({@Deprecated.optional() int p}) {}
+void g() {
+  f(p: 1);
+}
+''');
+    var hover = await prepareHover('f(p: 1);');
+    // element
+    expect(hover.containingLibraryPath, testFile.path);
+    expect(hover.elementDescription, 'void f({int p})');
+    expect(hover.elementKind, 'function');
+    expect(hover.isDeprecated, isFalse);
   }
 
   Future<void> test_parameter_reference_fieldFormal() async {

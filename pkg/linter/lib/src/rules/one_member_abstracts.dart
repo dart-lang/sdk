@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc =
@@ -20,7 +21,7 @@ class OneMemberAbstracts extends AnalysisRule {
     : super(name: LintNames.one_member_abstracts, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.oneMemberAbstracts;
+  DiagnosticCode get diagnosticCode => diag.oneMemberAbstracts;
 
   @override
   void registerNodeProcessors(
@@ -60,6 +61,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     var name = method.name;
     if (name == null) return;
 
-    rule.reportAtToken(node.name, arguments: [name]);
+    rule.reportAtToken(node.namePart.typeName, arguments: [name]);
   }
 }

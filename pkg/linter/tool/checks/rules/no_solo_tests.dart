@@ -9,10 +9,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/diagnostic.dart' as diag;
 
 class NoSoloTests extends AnalysisRule {
-  static const DiagnosticCode code = LinterLintCode.noSoloTests;
+  static const DiagnosticCode code = diag.noSoloTests;
 
   NoSoloTests()
     : super(name: 'no_solo_tests', description: "Don't commit soloed tests.");

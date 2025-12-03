@@ -124,7 +124,7 @@ class _ElementRecorder {
     LibraryImport? import,
   ) {
     if (referencedElement is PropertyAccessorElement) {
-      if (referencedElement.isSynthetic) {
+      if (referencedElement.isOriginVariable) {
         referencedElement = referencedElement.variable;
       }
     }
@@ -221,17 +221,17 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
     if (extensionElement != null) {
       recorder.recordDeclaration(node.offset, extensionElement);
       for (var getter in extensionElement.getters) {
-        if (!getter.isStatic && !getter.isSynthetic) {
+        if (!getter.isStatic && getter.isOriginDeclaration) {
           recorder.recordDeclaration(node.offset, getter);
         }
       }
       for (var setter in extensionElement.setters) {
-        if (!setter.isStatic && !setter.isSynthetic) {
+        if (!setter.isStatic && setter.isOriginDeclaration) {
           recorder.recordDeclaration(node.offset, setter);
         }
       }
       for (var field in extensionElement.fields) {
-        if (!field.isStatic && !field.isSynthetic) {
+        if (!field.isStatic && field.isOriginDeclaration) {
           recorder.recordDeclaration(node.offset, field);
         }
       }

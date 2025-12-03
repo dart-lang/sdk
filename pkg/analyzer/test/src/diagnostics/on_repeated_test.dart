@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,7 +21,7 @@ class OnRepeatedTest extends PubPackageResolutionTest {
 class A {}
 mixin M on A, A {}
 ''',
-      [error(CompileTimeErrorCode.onRepeated, 25, 1)],
+      [error(diag.onRepeated, 25, 1)],
     );
   }
 
@@ -42,9 +42,7 @@ augment mixin M on A {}
 
     await assertErrorsInFile2(a, []);
 
-    await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.onRepeated, 38, 1),
-    ]);
+    await assertErrorsInFile2(b, [error(diag.onRepeated, 38, 1)]);
   }
 
   test_2times_viaTypeAlias() async {
@@ -54,7 +52,7 @@ class A {}
 typedef B = A;
 mixin M on A, B {}
 ''',
-      [error(CompileTimeErrorCode.onRepeated, 40, 1)],
+      [error(diag.onRepeated, 40, 1)],
     );
   }
 }

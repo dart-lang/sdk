@@ -36,7 +36,7 @@ class ConstructorInitializerResolver {
     InterfaceElementImpl interfaceElement,
     ConstructorElementImpl element,
   ) {
-    if (element.isSynthetic) return;
+    if (!element.isOriginDeclaration) return;
 
     for (var fragment in element.fragments) {
       var node = _linker.getLinkingNode2(fragment);

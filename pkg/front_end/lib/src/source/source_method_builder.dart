@@ -164,7 +164,6 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
         methodBuilder: this,
         annotatable: _invokeTarget,
         annotatableFileUri: _invokeTarget.fileUri,
-        isClassInstanceMember: isClassInstanceMember,
       );
       for (int i = 0; i < _augmentations.length; i++) {
         MethodDeclaration augmentation = _augmentations[i];
@@ -175,7 +174,6 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
           methodBuilder: this,
           annotatable: _invokeTarget,
           annotatableFileUri: _invokeTarget.fileUri,
-          isClassInstanceMember: isClassInstanceMember,
         );
       }
       hasBuiltOutlineExpressions = true;

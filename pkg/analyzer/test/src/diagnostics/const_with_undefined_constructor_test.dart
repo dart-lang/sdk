@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.constWithUndefinedConstructor,
+          diag.constWithUndefinedConstructor,
           48,
           17,
           messageContains: ["class 'A'", "constructor 'noSuchConstructor'"],
@@ -46,7 +46,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.constWithUndefinedConstructor,
+          diag.constWithUndefinedConstructor,
           56,
           17,
           messageContains: [
@@ -69,7 +69,7 @@ f() {
   return const B();
 }
 ''',
-      [error(CompileTimeErrorCode.constWithUndefinedConstructorDefault, 66, 1)],
+      [error(diag.constWithUndefinedConstructorDefault, 66, 1)],
     );
   }
 
@@ -85,7 +85,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.constWithUndefinedConstructorDefault,
+          diag.constWithUndefinedConstructorDefault,
           51,
           1,
           messageContains: ["'A'"],
@@ -109,7 +109,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.constWithUndefinedConstructorDefault,
+          diag.constWithUndefinedConstructorDefault,
           49,
           6,
           messageContains: ["'lib1.A'"],
@@ -129,7 +129,7 @@ enum E {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.constWithUndefinedConstructor, 21, 1)],
+      [error(diag.constWithUndefinedConstructor, 21, 1)],
     );
   }
 
@@ -146,7 +146,7 @@ enum E {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.constWithUndefinedConstructor, 21, 3)],
+      [error(diag.constWithUndefinedConstructor, 21, 3)],
     );
   }
 
@@ -161,7 +161,7 @@ enum E {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.constWithUndefinedConstructor, 21, 3)],
+      [error(diag.constWithUndefinedConstructor, 21, 3)],
     );
   }
 }

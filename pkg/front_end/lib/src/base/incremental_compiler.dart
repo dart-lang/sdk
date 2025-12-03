@@ -34,7 +34,9 @@ import 'package:kernel/kernel.dart'
         DartType,
         DynamicType,
         Expression,
+        ExpressionVariable,
         ExtensionType,
+        Field,
         FunctionNode,
         InterfaceType,
         Library,
@@ -43,6 +45,7 @@ import 'package:kernel/kernel.dart'
         Name,
         NamedNode,
         Node,
+        Nullability,
         Procedure,
         ProcedureKind,
         Reference,
@@ -51,13 +54,12 @@ import 'package:kernel/kernel.dart'
         Supertype,
         TreeNode,
         TypeParameter,
+        TypeParameterType,
         VariableDeclaration,
         VariableGet,
         VariableSet,
         VisitorDefault,
-        VisitorVoidMixin,
-        TypeParameterType,
-        Field;
+        VisitorVoidMixin;
 import 'package:kernel/kernel.dart' as kernel show Combinator;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart'
@@ -330,6 +332,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             reusedResult,
             c,
             uriTranslator,
+            context
+                .options
+                .target
+                .incrementalCompilerIncludeMixinApplicationInvalidatedLibraries,
           );
       recorderForTesting?.recordRebuildBodiesCount(
         experimentalInvalidation?.missingSources.length ?? 0,
@@ -526,6 +532,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             c,
             cleanedUpBuilders: cleanedUpBuilders,
           );
+      if (experimentalInvalidation != null &&
+          experimentalInvalidation.invalidatedMixinApplicationLibraries !=
+              null) {
+        outputLibraries = {
+          ...outputLibraries,
+          ...experimentalInvalidation.invalidatedMixinApplicationLibraries!,
+        }.toList();
+      }
       List<String> problemsAsJson = _componentProblems.reissueProblems(
         context,
         currentKernelTarget,
@@ -1116,6 +1130,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     ReusageResult reusedResult,
     CompilerContext c,
     UriTranslator uriTranslator,
+    bool collectMixinsToo,
   ) async {
     Set<DillLibraryBuilder>? rebuildBodies;
     Set<DillLibraryBuilder> originalNotReusedLibraries;
@@ -1230,6 +1245,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     // procedures, if the changed file is used as a mixin anywhere else
     // we can't only recompile the changed file.
     // TODO(jensj): Check for mixins in a smarter and faster way.
+    Set<Library>? invalidatedMixinApplicationLibraries;
     if (!skipExperimentalInvalidationChecksForTesting) {
       for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
         if (missingSources!.contains(builder.fileUri)) {
@@ -1253,6 +1269,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               );
               return null;
             }
+          }
+          if (collectMixinsToo &&
+              c.mixedInClass != null &&
+              missingSources.contains(c.mixedInClass!.fileUri)) {
+            (invalidatedMixinApplicationLibraries ??= {}).add(
+              c.enclosingLibrary,
+            );
           }
         }
       }
@@ -1322,6 +1345,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       rebuildBodies,
       originalNotReusedLibraries,
       missingSources,
+      invalidatedMixinApplicationLibraries,
     );
   }
 
@@ -1835,6 +1859,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       LibraryBuilder libraryBuilder = compilationUnit.libraryBuilder;
       List<VariableDeclarationImpl> extraKnownVariables = [];
       String? usedMethodName = methodName;
+      Substitution? substitution;
       if (scriptUri != null && offset != TreeNode.noOffset) {
         Uri? scriptUriAsUri = Uri.tryParse(scriptUri);
         if (scriptUriAsUri != null) {
@@ -1875,23 +1900,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             );
           }
 
-          Map<TypeParameter, TypeParameterType> substitutionMap = {};
-          Map<String, TypeParameter> typeDefinitionNamesMap = {};
-          for (TypeParameter typeDefinition in typeDefinitions) {
-            if (typeDefinition.name != null) {
-              typeDefinitionNamesMap[typeDefinition.name!] = typeDefinition;
-            }
-          }
-          for (TypeParameter typeParameter in foundScope.typeParameters) {
-            TypeParameter? match = typeDefinitionNamesMap[typeParameter.name];
-            if (match != null) {
-              substitutionMap[typeParameter] = new TypeParameterType(
-                match,
-                match.computeNullabilityFromBound(),
+          substitution =
+              _calculateExpressionEvaluationTypeParameterSubstitution(
+                typeDefinitions,
+                foundScope.typeParameters,
               );
-            }
-          }
-          Substitution substitution = Substitution.fromMap(substitutionMap);
 
           final bool alwaysInlineConstants = lastGoodKernelTarget
               .backendTarget
@@ -1947,6 +1960,22 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               usedDefinitions[def.key] = substitution.substituteType(
                 def.value.type,
               );
+            } else if (existingType is InterfaceType &&
+                existingType.classNode.enclosingLibrary.importUri.isScheme(
+                  "dart",
+                )) {
+              // The VM tells us about a type from the platform.
+              // We use the static type instead because the compiler for
+              // instance special case int in certain places which is - by the
+              // VM - often described as _Smi.
+              DartType usedType = substitution.substituteType(def.value.type);
+              if (existingType.nullability == Nullability.nonNullable &&
+                  usedType.nullability == Nullability.nullable) {
+                // If a statically nullable type is known to be non-null,
+                // we keep that information though.
+                usedType = usedType.toNonNull();
+              }
+              usedDefinitions[def.key] = usedType;
             }
           }
         }
@@ -2017,7 +2046,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                   // If we setup the extensionType (and later the
                   // `extensionThis`) we should also set the type correctly
                   // (at least in a non-static setting).
-                  usedDefinitions[syntheticThisName] = positionals.first.type;
+                  if (substitution == null || substitution.isEmpty) {
+                    // Re-do substitutions if the old one is empty - in case the
+                    // finding of scope didn't find the right thing (e.g.
+                    // sometimes the VM claims to be on the offset for a method
+                    // name while having data as if it is inside the method).
+                    substitution =
+                        _calculateExpressionEvaluationTypeParameterSubstitution(
+                          typeDefinitions,
+                          subBuilder.invokeTarget?.function?.typeParameters,
+                        );
+                  }
+                  usedDefinitions[syntheticThisName] = substitution
+                      .substituteType(positionals.first.type);
                 }
                 isStatic = false;
               }
@@ -2248,6 +2289,32 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       return procedure;
     });
+  }
+
+  // Coverage-ignore(suite): Not run.
+  Substitution _calculateExpressionEvaluationTypeParameterSubstitution(
+    List<TypeParameter> typeDefinitions,
+    List<TypeParameter>? typeParameters,
+  ) {
+    Map<TypeParameter, TypeParameterType> substitutionMap = {};
+    Map<String, TypeParameter> typeDefinitionNamesMap = {};
+    for (TypeParameter typeDefinition in typeDefinitions) {
+      if (typeDefinition.name != null) {
+        typeDefinitionNamesMap[typeDefinition.name!] = typeDefinition;
+      }
+    }
+    if (typeParameters != null) {
+      for (TypeParameter typeParameter in typeParameters) {
+        TypeParameter? match = typeDefinitionNamesMap[typeParameter.name];
+        if (match != null) {
+          substitutionMap[typeParameter] = new TypeParameterType(
+            match,
+            match.computeNullabilityFromBound(),
+          );
+        }
+      }
+    }
+    return Substitution.fromMap(substitutionMap);
   }
 
   // Coverage-ignore(suite): Not run.
@@ -2525,7 +2592,7 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
 
   ExpressionInferenceResult _returnKnownVariableUnavailable(
     Expression node,
-    VariableDeclaration variable,
+    ExpressionVariable variable,
     ProblemReporting problemReporting,
     CompilerContext compilerContext,
     Uri fileUri,
@@ -2536,10 +2603,10 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
         compilerContext: compilerContext,
         expression: node,
         message: codeExpressionEvaluationKnownVariableUnavailable
-            .withArgumentsOld(variable.name!),
+            .withArgumentsOld(variable.cosmeticName!),
         fileUri: fileUri,
         fileOffset: node.fileOffset,
-        length: variable.name!.length,
+        length: variable.cosmeticName!.length,
         errorHasBeenReported: false,
         includeExpression: false,
       ),
@@ -2682,11 +2749,13 @@ class ExperimentalInvalidation {
   final Set<DillLibraryBuilder> rebuildBodies;
   final Set<DillLibraryBuilder> originalNotReusedLibraries;
   final Set<Uri> missingSources;
+  final Set<Library>? invalidatedMixinApplicationLibraries;
 
   ExperimentalInvalidation(
     this.rebuildBodies,
     this.originalNotReusedLibraries,
     this.missingSources,
+    this.invalidatedMixinApplicationLibraries,
   );
 }
 

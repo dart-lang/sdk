@@ -335,9 +335,12 @@ class Driver implements ServerStarter {
     // Initialize the session logging service.
     var sessionLogFilePath = results.option(sessionLogOption);
     _sessionLogger = SessionLogger();
+    var inMemorySink = SessionLoggerInMemorySink(maxBufferLength: 256);
+    _sessionLogger.sink = inMemorySink;
     if (sessionLogFilePath != null) {
-      _sessionLogger.sink = SessionLoggerFileSink(sessionLogFilePath);
+      inMemorySink.nextLogger = SessionLoggerFileSink(sessionLogFilePath);
     }
+    _sessionLogger.logCommandLine(arguments: arguments);
 
     int? diagnosticServerPort;
     var portValue =
@@ -899,6 +902,7 @@ class Driver implements ServerStarter {
     parser.addFlag(
       withFineDependenciesOption,
       help: 'Enable fine-grained dependencies.',
+      defaultsTo: true,
       hide: true,
     );
     parser.addFlag(

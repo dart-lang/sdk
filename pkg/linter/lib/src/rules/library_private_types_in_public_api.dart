@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Avoid using private types in public APIs.';
@@ -24,8 +25,7 @@ class LibraryPrivateTypesInPublicApi extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.libraryPrivateTypesInPublicApi;
+  DiagnosticCode get diagnosticCode => diag.libraryPrivateTypesInPublicApi;
 
   @override
   void registerNodeProcessors(
@@ -44,16 +44,22 @@ class Validator extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    if (Identifier.isPrivateName(node.name.lexeme)) {
+    var namePart = node.namePart;
+    if (isPrivateName(namePart.typeName.lexeme)) {
       return;
     }
-    node.typeParameters?.accept(this);
-    node.members.accept(this);
+    namePart.typeParameters?.accept(this);
+    if (node.body case BlockClassBody body) {
+      body.members.accept(this);
+    }
+    if (namePart is PrimaryConstructorDeclaration) {
+      visitPrimaryConstructorDeclaration(namePart);
+    }
   }
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
-    if (Identifier.isPrivateName(node.name.lexeme)) {
+    if (isPrivateName(node.name.lexeme)) {
       return;
     }
     node.superclass.accept(this);
@@ -62,18 +68,8 @@ class Validator extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var name = node.name;
-    if (name != null && Identifier.isPrivateName(name.lexeme)) {
-      return;
-    }
-
-    var parent = node.parent;
-
-    // Enum constructors are effectively private so don't visit their params.
-    if (parent is EnumDeclaration) return;
-
-    // Select modified class types are also effectively private.
-    if (parent != null && parent.isEffectivelyPrivate) return;
+    if (isPrivateName(node.name?.lexeme)) return;
+    if (isEffectivelyPrivate(node)) return;
 
     node.parameters.accept(this);
   }
@@ -85,11 +81,11 @@ class Validator extends SimpleAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    if (Identifier.isPrivateName(node.name.lexeme)) {
+    if (Identifier.isPrivateName(node.namePart.typeName.lexeme)) {
       return;
     }
-    node.typeParameters?.accept(this);
-    node.members.accept(this);
+    node.namePart.typeParameters?.accept(this);
+    node.body.members.accept(this);
   }
 
   @override
@@ -100,18 +96,29 @@ class Validator extends SimpleAstVisitor<void> {
     }
     node.typeParameters?.accept(this);
     node.onClause?.extendedType.accept(this);
-    node.members.accept(this);
+    node.body.members.accept(this);
   }
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    if (Identifier.isPrivateName(node.name.lexeme)) return;
-    node.typeParameters?.accept(this);
-    var representation = node.representation;
-    if (!Identifier.isPrivateName(representation.fieldName.lexeme)) {
-      representation.fieldType.accept(this);
+    if (Identifier.isPrivateName(node.primaryConstructor.typeName.lexeme)) {
+      return;
     }
-    node.members.accept(this);
+    node.primaryConstructor.typeParameters?.accept(this);
+
+    for (var formalParameter
+        in node.primaryConstructor.formalParameters.parameters) {
+      if (formalParameter is SimpleFormalParameter) {
+        var name = formalParameter.name;
+        if (name != null && !Identifier.isPrivateName(name.lexeme)) {
+          formalParameter.type!.accept(this);
+        }
+      }
+    }
+
+    if (node.body case BlockClassBody body) {
+      body.members.accept(this);
+    }
   }
 
   @override
@@ -214,7 +221,7 @@ class Validator extends SimpleAstVisitor<void> {
     }
     node.onClause?.superclassConstraints.accept(this);
     node.typeParameters?.accept(this);
-    node.members.accept(this);
+    node.body.members.accept(this);
   }
 
   @override
@@ -224,6 +231,14 @@ class Validator extends SimpleAstVisitor<void> {
       rule.reportAtToken(node.name);
     }
     node.typeArguments?.accept(this);
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    if (isPrivateName(node.constructorName?.name.lexeme)) return;
+    if (isEffectivelyPrivate(node)) return;
+
+    node.formalParameters.accept(this);
   }
 
   @override
@@ -280,6 +295,16 @@ class Validator extends SimpleAstVisitor<void> {
   @override
   void visitTypeParameterList(TypeParameterList node) {
     node.typeParameters.accept(this);
+  }
+
+  static bool isEffectivelyPrivate(AstNode node) {
+    var parent = node.parent?.parent;
+
+    // Enum constructors are effectively private so don't visit their params.
+    if (parent is EnumDeclaration) return true;
+
+    // Select modified class types are also effectively private.
+    return parent != null && parent.isEffectivelyPrivate;
   }
 
   /// Return `true` if the given [element] is private or is defined in a private

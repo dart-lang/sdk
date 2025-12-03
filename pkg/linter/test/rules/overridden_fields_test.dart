@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -78,7 +79,7 @@ class B extends A {
   int x = 9;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingFieldAndMethod, 55, 1)],
+      [error(diag.conflictingFieldAndMethod, 55, 1)],
     );
   }
 
@@ -302,18 +303,18 @@ class GC34 extends GC33 {
 }
 ''',
       [
-        error(WarningCode.overrideOnNonOverridingField, 120, 1),
+        error(diag.overrideOnNonOverridingField, 120, 1),
         lint(127, 5),
         lint(194, 9),
-        error(CompileTimeErrorCode.mixinInheritsFromNotObject, 273, 4),
+        error(diag.mixinInheritsFromNotObject, 273, 4),
         lint(301, 9),
         lint(343, 5),
         lint(418, 9),
-        error(CompileTimeErrorCode.mixinInheritsFromNotObject, 472, 4),
+        error(diag.mixinInheritsFromNotObject, 472, 4),
         lint(500, 9),
         lint(542, 5),
         lint(617, 9),
-        error(CompileTimeErrorCode.mixinInheritsFromNotObject, 751, 4),
+        error(diag.mixinInheritsFromNotObject, 751, 4),
         lint(779, 9),
         lint(821, 4),
         lint(883, 1),
@@ -391,8 +392,8 @@ class B extends A {
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 27, 1),
+        error(diag.recursiveInterfaceInheritance, 6, 1),
+        error(diag.recursiveInterfaceInheritance, 27, 1),
       ],
     );
   }

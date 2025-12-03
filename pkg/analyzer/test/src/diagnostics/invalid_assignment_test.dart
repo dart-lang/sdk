@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ class C {
 
 String Function(String) f = C();
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 76, 3)],
+      [error(diag.invalidAssignment, 76, 3)],
     );
   }
 
@@ -45,7 +45,7 @@ void Function(bool, String) f = C(7);
         // The type arguments of the instance of `C` should be accurate and be
         // taken into account when evaluating the assignment of the implicit call
         // reference.
-        error(CompileTimeErrorCode.invalidAssignment, 86, 4),
+        error(diag.invalidAssignment, 86, 4),
       ],
     );
   }
@@ -59,7 +59,7 @@ class C {
 
 void Function() f = C();
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 56, 3)],
+      [error(diag.invalidAssignment, 56, 3)],
     );
   }
 
@@ -73,7 +73,7 @@ class C {
 
 int Function(int) f = C();
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 72, 3)],
+      [error(diag.invalidAssignment, 72, 3)],
     );
   }
 
@@ -87,7 +87,7 @@ enum E implements J {
 }
 I x = E.v;
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 56, 3)],
+      [error(diag.invalidAssignment, 56, 3)],
     );
   }
 
@@ -101,9 +101,9 @@ void f(A<int> a) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 61, 1),
+        error(diag.unusedLocalVariable, 61, 1),
         error(
-          CompileTimeErrorCode.invalidAssignment,
+          diag.invalidAssignment,
           65,
           1,
           messageContains: ['A<int>', 'A<String>'],
@@ -122,9 +122,9 @@ void f(A<int> a) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 56, 1),
+        error(diag.unusedLocalVariable, 56, 1),
         error(
-          CompileTimeErrorCode.invalidAssignment,
+          diag.invalidAssignment,
           60,
           1,
           messageContains: ['A<int>', 'A<String>'],
@@ -143,9 +143,9 @@ void f(A<int> a) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 55, 1),
+        error(diag.unusedLocalVariable, 55, 1),
         error(
-          CompileTimeErrorCode.invalidAssignment,
+          diag.invalidAssignment,
           59,
           1,
           messageContains: ['A<int>', 'A<String>'],
@@ -161,7 +161,7 @@ class C {}
 
 Function f = C();
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 25, 3)],
+      [error(diag.invalidAssignment, 25, 3)],
     );
   }
 
@@ -172,7 +172,7 @@ class C {}
 
 String Function(String) f = C();
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 40, 3)],
+      [error(diag.invalidAssignment, 40, 3)],
     );
   }
 
@@ -185,7 +185,7 @@ class C {
 
 void Function(String) f = C();
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 61, 3)],
+      [error(diag.invalidAssignment, 61, 3)],
     );
   }
 
@@ -199,7 +199,7 @@ class D<U extends Function> {
   U f = C();
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 72, 3)],
+      [error(diag.invalidAssignment, 72, 3)],
     );
   }
 
@@ -213,7 +213,7 @@ class D<U extends void Function(int)> {
   U f = C();
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 82, 3)],
+      [error(diag.invalidAssignment, 82, 3)],
     );
   }
 
@@ -423,7 +423,7 @@ f() {
   g = () => 0;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 12, 1)],
+      [error(diag.unusedLocalVariable, 12, 1)],
     );
   }
 
@@ -435,7 +435,7 @@ void f(int a) {
   String v = (a)..isEven;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 64, 1)],
+      [error(diag.invalidAssignment, 64, 1)],
     );
   }
 
@@ -453,10 +453,7 @@ void main() {
   b += 3;
 }
 ''',
-      [
-        error(WarningCode.unusedField, 19, 6),
-        error(WarningCode.unusedLocalVariable, 116, 1),
-      ],
+      [error(diag.unusedField, 19, 6), error(diag.unusedLocalVariable, 116, 1)],
     );
   }
 
@@ -489,7 +486,7 @@ class C<T> {
 
 C Function(String) g = C<int>.new;
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 49, 10)],
+      [error(diag.invalidAssignment, 49, 10)],
     );
   }
 
@@ -499,7 +496,7 @@ C Function(String) g = C<int>.new;
 f({String x = 0}) {
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 14, 1)],
+      [error(diag.invalidAssignment, 14, 1)],
     );
   }
 
@@ -514,7 +511,7 @@ f({String x = '0'}) {
       r'''
 f([String x = 0]) {
 }''',
-      [error(CompileTimeErrorCode.invalidAssignment, 14, 1)],
+      [error(diag.invalidAssignment, 14, 1)],
     );
   }
 
@@ -532,7 +529,7 @@ class C {
   String x = (() => 5)();
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 23, 11)],
+      [error(diag.invalidAssignment, 23, 11)],
     );
   }
 
@@ -549,7 +546,7 @@ U Function<U>(U) foo = f;
 T f<T>(T a) => a;
 U Function<U>(U, int) foo = f;
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 46, 1)],
+      [error(diag.invalidAssignment, 46, 1)],
     );
   }
 
@@ -566,7 +563,7 @@ int Function(int) foo = f;
 T f<T>(T a) => a;
 int Function(int, int) foo = f;
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 47, 1)],
+      [error(diag.invalidAssignment, 47, 1)],
     );
   }
 
@@ -612,7 +609,7 @@ void f<T>(T a) {}
 
 void Function(String) g = f<int>;
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 45, 6)],
+      [error(diag.invalidAssignment, 45, 6)],
     );
   }
 
@@ -624,7 +621,7 @@ void f(int i) {
   d ??= i;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 37, 1)],
+      [error(diag.invalidAssignment, 37, 1)],
     );
   }
 
@@ -736,7 +733,7 @@ f(var y) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 80, 1)],
+      [error(diag.invalidAssignment, 80, 1)],
     );
   }
 
@@ -749,7 +746,7 @@ f() {
   x = y;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 12, 1)],
+      [error(diag.unusedLocalVariable, 12, 1)],
     );
   }
 
@@ -760,7 +757,7 @@ void f(Never x) {
   x = null;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 24, 4)],
+      [error(diag.invalidAssignment, 24, 4)],
     );
   }
 
@@ -773,8 +770,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 12, 1),
-        error(CompileTimeErrorCode.invalidAssignment, 21, 3),
+        error(diag.unusedLocalVariable, 12, 1),
+        error(diag.invalidAssignment, 21, 3),
       ],
     );
   }
@@ -789,7 +786,7 @@ f(var y) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 44, 1)],
+      [error(diag.invalidAssignment, 44, 1)],
     );
   }
 
@@ -801,7 +798,7 @@ void f(int a) {
   String v = (a);
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 64, 1)],
+      [error(diag.invalidAssignment, 64, 1)],
     );
   }
 
@@ -818,7 +815,7 @@ f(A a) {
   a++;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 65, 3)],
+      [error(diag.invalidAssignment, 65, 3)],
     );
   }
 
@@ -851,7 +848,7 @@ f(C c) {
   c.a++;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 91, 5)],
+      [error(diag.invalidAssignment, 91, 5)],
     );
   }
 
@@ -884,7 +881,7 @@ f(A a) {
   ++a;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 65, 3)],
+      [error(diag.invalidAssignment, 65, 3)],
     );
   }
 
@@ -917,7 +914,7 @@ f(C c) {
   ++c.a;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 91, 5)],
+      [error(diag.invalidAssignment, 91, 5)],
     );
   }
 
@@ -955,10 +952,10 @@ void f<X extends A, Y extends B>(X x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 127, 1),
-        error(WarningCode.unusedLocalVariable, 140, 1),
-        error(WarningCode.unusedLocalVariable, 153, 2),
-        error(WarningCode.unusedLocalVariable, 167, 1),
+        error(diag.unusedLocalVariable, 127, 1),
+        error(diag.unusedLocalVariable, 140, 1),
+        error(diag.unusedLocalVariable, 153, 2),
+        error(diag.unusedLocalVariable, 167, 1),
       ],
     );
   }
@@ -971,7 +968,7 @@ void f() {
   print(r);
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 28, 12)],
+      [error(diag.invalidAssignment, 28, 12)],
     );
   }
 
@@ -982,7 +979,7 @@ void f((int a, int b) r) {
   r = (a: 1, b: 2);
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 33, 12)],
+      [error(diag.invalidAssignment, 33, 12)],
     );
   }
 
@@ -996,7 +993,7 @@ class C {
   (int, int)? r;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 22, 12)],
+      [error(diag.invalidAssignment, 22, 12)],
     );
   }
 
@@ -1008,7 +1005,7 @@ class C<T> {
   T t = int;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 21, 3)],
+      [error(diag.invalidAssignment, 21, 3)],
     );
   }
 
@@ -1022,7 +1019,7 @@ f() {
   A.x = '0';
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 46, 3)],
+      [error(diag.invalidAssignment, 46, 3)],
     );
   }
 
@@ -1038,7 +1035,7 @@ f(var y) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 74, 1)],
+      [error(diag.invalidAssignment, 74, 1)],
     );
   }
 
@@ -1051,7 +1048,7 @@ void f() {
   x = null;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 37, 4)],
+      [error(diag.invalidAssignment, 37, 4)],
     );
   }
 
@@ -1060,7 +1057,7 @@ void f() {
       '''
 int x = 'string';
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 8, 8)],
+      [error(diag.invalidAssignment, 8, 8)],
     );
   }
 
@@ -1075,7 +1072,7 @@ class B<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 58, 1)],
+      [error(diag.invalidAssignment, 58, 1)],
     );
   }
 
@@ -1094,7 +1091,7 @@ void f<X extends A, Y extends B>(X x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 131, 1)],
+      [error(diag.invalidAssignment, 131, 1)],
     );
   }
 
@@ -1105,7 +1102,7 @@ class A {
   int x = 'string';
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 20, 8)],
+      [error(diag.invalidAssignment, 20, 8)],
     );
   }
 
@@ -1127,7 +1124,7 @@ main() {
   print(n);
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 218, 7)],
+      [error(diag.invalidAssignment, 218, 7)],
     );
   }
 }
@@ -1141,7 +1138,7 @@ class InvalidAssignmentWithStrictCastsTest extends PubPackageResolutionTest
 dynamic a;
 void Function(int i) f = a;
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 36, 1)],
+      [error(diag.invalidAssignment, 36, 1)],
     );
   }
 
@@ -1151,7 +1148,7 @@ void Function(int i) f = a;
 dynamic a;
 int b = a;
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 19, 1)],
+      [error(diag.invalidAssignment, 19, 1)],
     );
   }
 
@@ -1161,7 +1158,7 @@ int b = a;
 dynamic a;
 (int i, ) r = a;
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 25, 1)],
+      [error(diag.invalidAssignment, 25, 1)],
     );
   }
 }

@@ -524,6 +524,8 @@ collection
 collections
 collector
 collects
+collide
+colliding
 colon
 colons
 color
@@ -2766,6 +2768,7 @@ satisfying
 save
 saved
 says
+scaffolding
 scalar
 scan
 scanned
@@ -2827,6 +2830,7 @@ serialized
 serializes
 serializing
 serious
+served
 set
 sets
 setter

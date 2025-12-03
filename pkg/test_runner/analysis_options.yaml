@@ -3,9 +3,6 @@ include: package:lints/recommended.yaml
 analyzer:
   language:
     strict-casts: true
-  errors:
-    # TODO: These issues should be addressed.
-    exhaustive_cases: ignore
 
 linter:
   rules:

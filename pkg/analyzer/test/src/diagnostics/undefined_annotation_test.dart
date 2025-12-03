@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -32,7 +32,7 @@ main() {
 main() {
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedAnnotation, 0, 11)],
+      [error(diag.undefinedAnnotation, 0, 11)],
     );
   }
 
@@ -43,7 +43,7 @@ main() {
 main() {
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedAnnotation, 0, 13)],
+      [error(diag.undefinedAnnotation, 0, 13)],
     );
   }
 
@@ -53,7 +53,7 @@ main() {
 @p.A(0)
 class B {}
 ''',
-      [error(CompileTimeErrorCode.undefinedAnnotation, 0, 7)],
+      [error(diag.undefinedAnnotation, 0, 7)],
     );
   }
 
@@ -65,7 +65,7 @@ import 'dart:math' as p;
 @p.A(0)
 class B {}
 ''',
-      [error(CompileTimeErrorCode.undefinedAnnotation, 26, 7)],
+      [error(diag.undefinedAnnotation, 26, 7)],
     );
   }
 
@@ -77,7 +77,7 @@ import 'dart:math' as p;
 main() {
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedAnnotation, 25, 13)],
+      [error(diag.undefinedAnnotation, 25, 13)],
     );
   }
 
@@ -89,7 +89,7 @@ class A {
   static const foo = null;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedAnnotation, 0, 4)],
+      [error(diag.undefinedAnnotation, 0, 4)],
     );
   }
 }

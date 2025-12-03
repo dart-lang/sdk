@@ -26,6 +26,7 @@ import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:pub_semver/pub_semver.dart';
 
 /// The buffer that accumulates types and elements as is, so that they
@@ -314,6 +315,14 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
   }
 
   @override
+  bool isEnum(TypeImpl type) {
+    if (type is InterfaceTypeImpl) {
+      return type.element is EnumElement;
+    }
+    return false;
+  }
+
+  @override
   bool isGeneric(TypeImpl type) {
     return type is InterfaceTypeImpl && type.typeArguments.isNotEmpty;
   }
@@ -355,6 +364,11 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
   @override
   bool isSubtypeOf(TypeImpl s, TypeImpl t) {
     return _typeSystem.isSubtypeOf(s, t);
+  }
+
+  @override
+  Uri? libraryUri(TypeImpl type) {
+    return type.element?.library?.uri;
   }
 
   @override
@@ -444,8 +458,8 @@ class MissingPatternEnumValuePart extends MissingPatternPart {
 
 abstract class MissingPatternPart {
   /// Expando associating each
-  /// [CompileTimeErrorCode.nonExhaustiveSwitchExpression] or
-  /// [CompileTimeErrorCode.nonExhaustiveSwitchStatement] diagnostic with a
+  /// [diag.nonExhaustiveSwitchExpression] or
+  /// [diag.nonExhaustiveSwitchStatement] diagnostic with a
   /// list of missing patterns; this data is used by the analysis server to add
   /// missing switch cases.
   static final byDiagnostic = Expando<List<List<MissingPatternPart>>>();

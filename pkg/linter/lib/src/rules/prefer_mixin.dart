@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Prefer using mixins.';
 
@@ -19,7 +20,7 @@ class PreferMixin extends AnalysisRule {
   PreferMixin() : super(name: LintNames.prefer_mixin, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.preferMixin;
+  DiagnosticCode get diagnosticCode => diag.preferMixin;
 
   @override
   void registerNodeProcessors(

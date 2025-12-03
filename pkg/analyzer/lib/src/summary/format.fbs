@@ -47,15 +47,31 @@ enum IndexRelationKind : byte {
   IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS,
 
   /// Left: any element.
+  ///   Is invoked by a dot shorthand constructor invocation.
+  /// Right: location.
+  IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR,
+
+  /// Left: any element.
   ///   Is referenced (and not invoked, read/written) at.
   /// Right: location.
   IS_REFERENCED_BY,
+
+  /// Left: a pattern field.
+  ///  Is referenced at.
+  /// Right: location.
+  IS_REFERENCED_BY_PATTERN_FIELD,
 
   /// Left: a constructor.
   ///   Is referenced by a constructor tear-off at, which is special because
   ///   the name of the constructor is required (`new` for unnamed).
   /// Right: location.
   IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF,
+
+  /// Left: a constructor.
+  ///   Is referenced by a constructor tear-off at, which is special because
+  ///   the name of the constructor is required (`new` for unnamed).
+  /// Right: location.
+  IS_REFERENCED_BY_DOT_SHORTHAND_CONSTRUCTOR_TEAR_OFF,
 
   /// Left: unresolved member name.
   ///   Is read at.

@@ -1170,6 +1170,26 @@ DART_EXPORT void SetArgumentTo42(void* token) {
   *reinterpret_cast<intptr_t*>(token) = 42;
 }
 
+DART_EXPORT Dart_PersistentHandle NewPersistentHandle(Dart_Handle object) {
+  return Dart_NewPersistentHandle(object);
+}
+
+DART_EXPORT void DeletePersistentHandleFinalizer(void* handle) {
+  printf("C: Finalizer deleting persistent handle %p\n", handle);
+  Dart_DeletePersistentHandle(reinterpret_cast<Dart_PersistentHandle>(handle));
+}
+
+DART_EXPORT Dart_WeakPersistentHandle
+NewWeakPersistentHandle(Dart_Handle object) {
+  return Dart_NewWeakPersistentHandle(object, nullptr, 0, [](void*, void*) {});
+}
+
+DART_EXPORT void DeleteWeakPersistentHandleFinalizer(void* handle) {
+  printf("C: Finalizer deleting weak persistent handle %p\n", handle);
+  Dart_DeleteWeakPersistentHandle(
+      reinterpret_cast<Dart_WeakPersistentHandle>(handle));
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Functions for testing @Native.
 

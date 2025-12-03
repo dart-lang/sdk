@@ -25,25 +25,30 @@ EXECUTABLE_NAMES = {
     'win32': {
         'chrome': 'chrome.exe',
         'crashpad_handler': 'crashpad_handler.exe',
-        'dart': 'dart.exe',\
-        'dart_product': 'dart_product.exe',
+        'dart': 'dart.exe',
+        'dartvm': 'dartvm.exe',
         'dartaotruntime': 'dartaotruntime.exe',
         'dartaotruntime_product': 'dartaotruntime_product.exe',
         'firefox': 'firefox.exe',
         'gen_snapshot': 'gen_snapshot.exe',
+        'gen_snapshot_product': 'gen_snapshot_product.exe',
+        'run_vm_tests': 'run_vm_tests.exe',
         'git': 'git.exe',
         'iexplore': 'iexplore.exe',
         'vctip': 'vctip.exe',
         'mspdbsrv': 'mspdbsrv.exe',
+        'explorer': 'explorer.exe',
     },
     'linux': {
         'chrome': 'chrome',
         'dart': 'dart',
-        'dart_product': 'dart_product',
+        'dartvm': 'dartvm',
         'dartaotruntime': 'dartaotruntime',
         'dartaotruntime_product': 'dartaotruntime_product',
         'firefox': 'firefox',
         'gen_snapshot': 'gen_snapshot',
+        'gen_snapshot_product': 'gen_snapshot_product',
+        'run_vm_tests': 'run_vm_tests',
         'flutter_tester': 'flutter_tester',
         'git': 'git',
     },
@@ -51,11 +56,13 @@ EXECUTABLE_NAMES = {
         'chrome': 'Chrome',
         'chrome_helper': 'Chrome Helper',
         'dart': 'dart',
-        'dart_product': 'dart_product',
+        'dartvm': 'dartvm',
         'dartaotruntime': 'dartaotruntime',
         'dartaotruntime_product': 'dartaotruntime_product',
         'firefox': 'firefox',
         'gen_snapshot': 'gen_snapshot',
+        'gen_snapshot_product': 'gen_snapshot_product',
+        'run_vm_tests': 'run_vm_tests',
         'git': 'git',
         'safari': 'Safari',
     }
@@ -274,9 +281,12 @@ def KillVSBuild():
 
 def KillDart():
     status = Kill("dart", dump_stacks=True)
+    status += Kill("dartvm", dump_stacks=True)
     status += Kill("gen_snapshot", dump_stacks=True)
+    status += Kill("gen_snapshot_product", dump_stacks=True)
     status += Kill("dartaotruntime", dump_stacks=True)
     status += Kill("dartaotruntime_product", dump_stacks=True)
+    status += Kill("run_vm_tests", dump_stacks=True)
     status += Kill("flutter_tester", dump_stacks=True)
     status += Kill("crashpad_handler", dump_stacks=True)
     return status
@@ -297,6 +307,20 @@ def Main():
         status += KillVSBuild()
     if options.kill_browsers == 'True':
         status += KillBrowsers()
+    if os_name == 'win32':
+        # On Windows 11, a bunch of files accumulate in temp named `xml_file (#).xml`.
+        # These seem to be created by taskbar widgets. The swarming client is unable
+        # to delete them, presumably because Explorer normally still running. Killing
+        # Explorer should allow these files to be deleted. If it doesn't restart, it
+        # should also prevent them from being created.
+        status += Kill('explorer')
+        for path, dirs, files in os.walk(os.environ['TEMP']):
+            for filename in files:
+                print(os.path.join(path, filename))
+        for path, dirs, files in os.walk(
+                os.path.join(os.environ['LOCALAPPDATA'], 'Temp')):
+            for filename in files:
+                print(os.path.join(path, filename))
     return status
 
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -36,7 +36,7 @@ f() {
   s.length;
 }
 ''',
-      [error(WarningCode.unusedShownName, 24, 1)],
+      [error(diag.unusedShownName, 24, 1)],
     );
   }
 
@@ -149,7 +149,7 @@ class B {}
 import 'lib1.dart' show A, B;
 A a = A();
 ''',
-      [error(WarningCode.unusedShownName, 27, 1)],
+      [error(diag.unusedShownName, 27, 1)],
     );
   }
 
@@ -161,7 +161,7 @@ main() {
   print(max(1, 2));
 }
 ''',
-      [error(WarningCode.undefinedShownName, 29, 6)],
+      [error(diag.undefinedShownName, 29, 6)],
     );
   }
 
@@ -175,7 +175,7 @@ class B {}
 import 'lib1.dart' as p show A, B;
 p.A a = p.A();
 ''',
-      [error(WarningCode.unusedShownName, 32, 1)],
+      [error(diag.unusedShownName, 32, 1)],
     );
   }
 
@@ -193,10 +193,7 @@ import 'lib1.dart' show C, D;
 A a = A();
 C c = C();
 ''',
-      [
-        error(WarningCode.unusedShownName, 27, 1),
-        error(WarningCode.unusedShownName, 57, 1),
-      ],
+      [error(diag.unusedShownName, 27, 1), error(diag.unusedShownName, 57, 1)],
     );
   }
 
@@ -215,7 +212,7 @@ int a = var1;
 int b = var2;
 int c = var3;
 ''',
-      [error(WarningCode.unusedShownName, 66, 4)],
+      [error(diag.unusedShownName, 66, 4)],
     );
   }
 }

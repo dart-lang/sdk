@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r"Don't have a library name in a `library` declaration.";
 
@@ -19,7 +20,7 @@ class UnnecessaryLibraryName extends AnalysisRule {
     : super(name: LintNames.unnecessary_library_name, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryLibraryName;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryLibraryName;
 
   @override
   void registerNodeProcessors(

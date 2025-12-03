@@ -4,18 +4,23 @@
 
 import 'package:expect/expect.dart';
 
-import 'package:smith/configuration.dart' show Architecture;
-
 final _one = int.parse('1');
 final _two = int.parse('2');
 
-final _objects = [Object(), Architecture.x64, Architecture.arm];
+final message1 = 'foo';
+final message2 = 'bar';
 
-final archX64 = _objects[_one];
-final archArm = _objects[_two];
+final _objects = [
+  Object(),
+  ExpectException(message1),
+  ExpectException(message2),
+];
+
+final first = _objects[_one];
+final second = _objects[_two];
 
 main() {
-  // We get the normal `Architecture.toString()`
-  Expect.equals('x64', archX64.toString());
-  Expect.equals('arm', archArm.toString());
+  // We get the normal `ExpectException.toString()`
+  Expect.equals(message1, first.toString());
+  Expect.equals(message2, second.toString());
 }

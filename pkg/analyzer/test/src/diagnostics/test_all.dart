@@ -227,6 +227,8 @@ import 'duplicate_part_test.dart' as duplicate_part;
 import 'duplicate_pattern_assignment_variable_test.dart'
     as duplicate_pattern_assignment_variable;
 import 'duplicate_pattern_field_test.dart' as duplicate_pattern_field;
+import 'duplicate_private_named_parameter_test.dart'
+    as duplicate_private_named_parameter;
 import 'duplicate_rest_element_in_pattern_test.dart'
     as duplicate_rest_element_in_pattern;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
@@ -672,6 +674,8 @@ import 'non_native_function_type_argument_to_pointer_test.dart'
     as non_native_function_type_argument_to_pointer;
 import 'non_nullable_equals_parameter_test.dart' as non_null_equals_parameters;
 import 'non_positive_array_dimension_test.dart' as non_positive_array_dimension;
+import 'non_redirecting_generative_constructor_with_primary_test.dart'
+    as non_redirecting_generative_constructor_with_primary;
 import 'non_sized_type_argument_test.dart' as non_sized_type_argument;
 import 'non_type_as_type_argument_test.dart' as non_type_as_type_argument;
 import 'non_type_in_catch_clause_test.dart' as non_type_in_catch_clause;
@@ -1105,6 +1109,7 @@ main() {
     duplicate_part.main();
     duplicate_pattern_assignment_variable.main();
     duplicate_pattern_field.main();
+    duplicate_private_named_parameter.main();
     duplicate_rest_element_in_pattern.main();
     duplicate_shown_name.main();
     duplicate_variable_pattern.main();
@@ -1384,6 +1389,7 @@ main() {
     non_native_function_type_argument_to_pointer.main();
     non_null_equals_parameters.main();
     non_positive_array_dimension.main();
+    non_redirecting_generative_constructor_with_primary.main();
     non_sized_type_argument.main();
     non_type_as_type_argument.main();
     non_type_in_catch_clause.main();

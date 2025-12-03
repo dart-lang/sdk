@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,13 +27,7 @@ class B extends A<int> {
   B(num super.a);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.superFormalParameterTypeIsNotSubtypeOfAssociated,
-          65,
-          1,
-        ),
-      ],
+      [error(diag.superFormalParameterTypeIsNotSubtypeOfAssociated, 65, 1)],
     );
   }
 
@@ -72,13 +66,7 @@ class B extends A {
   B({required num super.a});
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.superFormalParameterTypeIsNotSubtypeOfAssociated,
-          80,
-          1,
-        ),
-      ],
+      [error(diag.superFormalParameterTypeIsNotSubtypeOfAssociated, 80, 1)],
     );
   }
 
@@ -129,13 +117,7 @@ class B extends A {
   B(num super.a);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.superFormalParameterTypeIsNotSubtypeOfAssociated,
-          59,
-          1,
-        ),
-      ],
+      [error(diag.superFormalParameterTypeIsNotSubtypeOfAssociated, 59, 1)],
     );
   }
 
@@ -151,13 +133,7 @@ class B extends A {
   B(dynamic super.a);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.superFormalParameterTypeIsNotSubtypeOfAssociated,
-          63,
-          1,
-        ),
-      ],
+      [error(diag.superFormalParameterTypeIsNotSubtypeOfAssociated, 63, 1)],
     );
   }
 

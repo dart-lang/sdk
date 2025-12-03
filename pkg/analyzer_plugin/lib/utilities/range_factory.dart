@@ -136,9 +136,6 @@ class RangeFactory {
     return SourceRange(node.offset, node.length);
   }
 
-  @Deprecated("Use 'diagnostic' instead")
-  SourceRange error(Diagnostic d) => diagnostic(d);
-
   /// Returns a source range that covers the name of the given [fragment].
   ///
   /// Returns `null` if the [fragment] does not have an explicit name location,

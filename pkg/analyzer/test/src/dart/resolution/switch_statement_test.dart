@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -603,8 +603,7 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .patternVariableSharedCaseScopeDifferentFinalityOrType,
+          diag.patternVariableSharedCaseScopeDifferentFinalityOrType,
           101,
           1,
         ),
@@ -706,8 +705,7 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .patternVariableSharedCaseScopeDifferentFinalityOrType,
+          diag.patternVariableSharedCaseScopeDifferentFinalityOrType,
           101,
           1,
         ),
@@ -809,8 +807,7 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .patternVariableSharedCaseScopeDifferentFinalityOrType,
+          diag.patternVariableSharedCaseScopeDifferentFinalityOrType,
           95,
           1,
         ),
@@ -909,13 +906,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.patternVariableSharedCaseScopeNotAllCases,
-          80,
-          1,
-        ),
-      ],
+      [error(diag.patternVariableSharedCaseScopeNotAllCases, 80, 1)],
     );
 
     var node = findNode.switchStatement('switch');
@@ -990,13 +981,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.patternVariableSharedCaseScopeNotAllCases,
-          80,
-          1,
-        ),
-      ],
+      [error(diag.patternVariableSharedCaseScopeNotAllCases, 80, 1)],
     );
 
     var node = findNode.switchStatement('switch');
@@ -1071,13 +1056,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.patternVariableSharedCaseScopeHasLabel,
-          81,
-          1,
-        ),
-      ],
+      [error(diag.patternVariableSharedCaseScopeHasLabel, 81, 1)],
     );
 
     var node = findNode.switchStatement('switch');
@@ -1148,14 +1127,10 @@ void f(Object? x) {
 }
 ''',
       [
-        error(WarningCode.deadCode, 55, 4),
-        error(WarningCode.unreachableSwitchCase, 55, 4),
-        error(WarningCode.deadCode, 71, 7),
-        error(
-          CompileTimeErrorCode.patternVariableSharedCaseScopeHasLabel,
-          86,
-          1,
-        ),
+        error(diag.deadCode, 55, 4),
+        error(diag.unreachableSwitchCase, 55, 4),
+        error(diag.deadCode, 71, 7),
+        error(diag.patternVariableSharedCaseScopeHasLabel, 86, 1),
       ],
     );
 
@@ -1219,12 +1194,8 @@ void f(Object? x) {
 }
 ''',
       [
-        error(WarningCode.unusedLabel, 39, 8),
-        error(
-          CompileTimeErrorCode.patternVariableSharedCaseScopeHasLabel,
-          81,
-          1,
-        ),
+        error(diag.unusedLabel, 39, 8),
+        error(diag.patternVariableSharedCaseScopeHasLabel, 81, 1),
       ],
     );
 
@@ -1302,21 +1273,9 @@ void f(Object? x) {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.patternVariableSharedCaseScopeNotAllCases,
-          95,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.patternVariableSharedCaseScopeNotAllCases,
-          104,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.patternVariableSharedCaseScopeNotAllCases,
-          113,
-          1,
-        ),
+        error(diag.patternVariableSharedCaseScopeNotAllCases, 95, 1),
+        error(diag.patternVariableSharedCaseScopeNotAllCases, 104, 1),
+        error(diag.patternVariableSharedCaseScopeNotAllCases, 113, 1),
       ],
     );
 
@@ -1407,7 +1366,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 56, 8)],
+      [error(diag.deadCode, 56, 8)],
     );
 
     var node = findNode.switchStatement('switch');
@@ -1480,13 +1439,9 @@ void f(Object? x) {
 }
 ''',
       [
+        error(diag.nonConstantRelationalPatternExpression, 68, 1),
         error(
-          CompileTimeErrorCode.nonConstantRelationalPatternExpression,
-          68,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.referencedBeforeDeclaration,
+          diag.referencedBeforeDeclaration,
           68,
           1,
           contextMessages: [message(testFile, 62, 1)],

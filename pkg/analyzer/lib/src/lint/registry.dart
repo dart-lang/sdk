@@ -4,8 +4,8 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
-import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/lint/config.dart';
 
 /// Registry of lint rules and warning rules.
@@ -20,7 +20,7 @@ class Registry with IterableMixin<AbstractAnalysisRule> {
   final Map<String, AbstractAnalysisRule> _warningRules = {};
 
   /// A table mapping unique names to lint codes.
-  final Map<String, LintCode> _codeMap = {};
+  final Map<String, DiagnosticCode> _codeMap = {};
 
   @override
   Iterator<AbstractAnalysisRule> get iterator => _rules.values.iterator;
@@ -39,7 +39,7 @@ class Registry with IterableMixin<AbstractAnalysisRule> {
   AbstractAnalysisRule? operator [](String name) => _rules[name];
 
   /// Returns the lint code that has the given [uniqueName].
-  LintCode? codeForUniqueName(String uniqueName) => _codeMap[uniqueName];
+  DiagnosticCode? codeForUniqueName(String uniqueName) => _codeMap[uniqueName];
 
   /// Returns a list of the enabled rules.
   ///
@@ -70,7 +70,7 @@ class Registry with IterableMixin<AbstractAnalysisRule> {
   void registerLintRule(AbstractAnalysisRule rule) {
     _lintRules[rule.name] = rule;
     for (var code in rule.diagnosticCodes) {
-      _codeMap[code.uniqueName] = code as LintCode;
+      _codeMap[code.uniqueName] = code;
     }
   }
 
@@ -78,7 +78,7 @@ class Registry with IterableMixin<AbstractAnalysisRule> {
   void registerWarningRule(AbstractAnalysisRule rule) {
     _warningRules[rule.name] = rule;
     for (var code in rule.diagnosticCodes) {
-      _codeMap[code.uniqueName] = code as LintCode;
+      _codeMap[code.uniqueName] = code;
     }
   }
 

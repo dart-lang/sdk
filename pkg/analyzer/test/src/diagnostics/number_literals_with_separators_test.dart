@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -28,13 +28,13 @@ class NumberLiteralsWithSeparatorsTest extends PubPackageResolutionTest {
 
   Future<void> test_missing_number_after_e_1() async {
     await assertErrorsInCode('dynamic x = 1_234_567e;', [
-      error(ScannerErrorCode.missingDigit, 21, 1),
+      error(diag.missingDigit, 21, 1),
     ]);
   }
 
   Future<void> test_missing_number_after_e_2() async {
     await assertErrorsInCode('dynamic x = 1.234_567e;', [
-      error(ScannerErrorCode.missingDigit, 21, 1),
+      error(diag.missingDigit, 21, 1),
     ]);
   }
 

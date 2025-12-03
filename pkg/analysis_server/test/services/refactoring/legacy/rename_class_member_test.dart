@@ -757,6 +757,33 @@ class A {
   }
 
   Future<void>
+  test_createChange_FieldElement_fieldFormalParameter_dotShorthandConstructorInvocation() async {
+    await indexTestUnit('''
+void foo() {
+  A _ = .new(va^lue: 42);
+}
+
+class A {
+  A({required this.value});
+  final int value;
+}
+''');
+    createRenameRefactoring();
+    expect(refactoring.oldName, 'value');
+    refactoring.newName = 'newName';
+    await assertSuccessfulRefactoring('''
+void foo() {
+  A _ = .new(newName: 42);
+}
+
+class A {
+  A({required this.newName});
+  final int newName;
+}
+''');
+  }
+
+  Future<void>
   test_createChange_FieldElement_fieldFormalParameter_named() async {
     await indexTestUnit('''
 class A {
@@ -1428,6 +1455,36 @@ class A<NewName> {
   List<NewName> items = [];
   A(this.field);
   NewName method(NewName p) => field;
+}
+''');
+  }
+
+  Future<void> test_memberWithSameName() async {
+    await indexTestUnit('''
+class Foo {
+  Foo.bar() {
+    bar();
+  }
+  void ^bar() {
+    var _ = Foo.bar();
+  }
+}
+''');
+    // configure refactoring
+    createRenameRefactoring();
+    expect(refactoring.refactoringName, 'Rename Method');
+    expect(refactoring.elementKindName, 'method');
+    expect(refactoring.oldName, 'bar');
+    // validate change
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+class Foo {
+  Foo.bar() {
+    newName();
+  }
+  void newName() {
+    var _ = Foo.bar();
+  }
 }
 ''');
   }
@@ -2743,6 +2800,23 @@ extension type E<^Test>(int it) {
 extension type E<NewName>(int it) {
   NewName method(NewName a) => a;
 }
+''');
+  }
+
+  Future<void> test_dotShorthandInvocation() async {
+    await indexTestUnit('''
+class A {
+  static A ^foo() => A();
+}
+A a = .foo();
+''');
+    createRenameRefactoring();
+    refactoring.newName = 'newName';
+    await assertSuccessfulRefactoring('''
+class A {
+  static A newName() => A();
+}
+A a = .newName();
 ''');
   }
 }

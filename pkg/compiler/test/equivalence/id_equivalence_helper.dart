@@ -459,7 +459,7 @@ class TestConfig {
   const TestConfig(this.marker, this.name, this.options);
 }
 
-/// Check code for all test files int [data] using [computeFromAst] and
+/// Check code for all test files in [data] using [computeFromAst] and
 /// [computeFromKernel] from the respective front ends. If [skipForKernel]
 /// contains the name of the test file it isn't tested for kernel.
 ///

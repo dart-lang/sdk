@@ -297,6 +297,19 @@ extension type AppBundleDirectory._(Directory directory) {
   File get pubspec => File.fromUri(directory.uri.resolve('pubspec.yaml'));
 
   File get pubspecLock => File.fromUri(directory.uri.resolve('pubspec.lock'));
+
+  bool pubspecLockIsIdenticalTo(File otherLockFile) {
+    final pubspecLockStat = pubspecLock.statSync();
+    final otherLockFileStat = otherLockFile.statSync();
+    if (pubspecLockStat.type != FileSystemEntityType.file ||
+        otherLockFileStat.type != FileSystemEntityType.file) {
+      return false;
+    }
+    if (pubspecLockStat.size != otherLockFileStat.size) {
+      return false;
+    }
+    return pubspecLock.readAsStringSync() == otherLockFile.readAsStringSync();
+  }
 }
 
 /// An executable inside an [AppBundleDirectory].

@@ -8,6 +8,8 @@ import 'dart:convert';
 
 import 'package:source_maps/parser.dart';
 
+final isMinified = const bool.fromEnvironment('dart.tool.dart2wasm.minify');
+
 void f() {
   g();
 }
@@ -144,7 +146,10 @@ List<(String?, int?, int?, String?)?> parseStack(
     if (moduleIdMatch == null) {
       throw 'Unable to parse module name in frame "$line"';
     }
-    final moduleId = int.parse(moduleIdMatch.group(1)!);
+    final moduleIdString = moduleIdMatch.group(1)!;
+    final moduleId = isMinified
+        ? parseMinifiedModule(moduleIdString)
+        : int.parse(moduleIdString.replaceAll('module', ''));
     final uri = getFilename(testName, moduleId);
     final span = mapping.spanFor(0, offset, uri: uri);
     if (span == null) {
@@ -161,6 +166,17 @@ List<(String?, int?, int?, String?)?> parseStack(
   return parsed;
 }
 
+int parseMinifiedModule(String moduleName) {
+  final codeUnits = moduleName.codeUnits;
+  int result = 0;
+  int power = 1;
+  for (final codeUnit in codeUnits) {
+    result += codeUnit * power;
+    power *= 128;
+  }
+  return result - 1;
+}
+
 /// Read the file at the given [path].
 ///
 /// This relies on the `readbuffer` function provided by d8.
@@ -171,4 +187,4 @@ external JSArrayBuffer readbuffer(JSString path);
 Uint8List readfile(String path) => Uint8List.view(readbuffer(path.toJS).toDart);
 
 final stackTraceHexOffsetRegExp = RegExp(r'wasm-function.*(0x[0-9a-fA-F]+)\)$');
-final stackTraceModuleNameRegExp = RegExp(r'wasm/module([0-9]+)');
+final stackTraceModuleNameRegExp = RegExp(r'wasm/(.*)-[0-9a-z]+:');

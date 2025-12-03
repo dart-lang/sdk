@@ -1153,9 +1153,8 @@ extension type E(int i) {}
         SemanticTokenModifiers.declaration,
       ]),
       _Token('int', SemanticTokenTypes.class_),
-      _Token('i', SemanticTokenTypes.variable, [
+      _Token('i', SemanticTokenTypes.parameter, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.instance,
       ]),
     ];
 

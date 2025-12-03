@@ -6,7 +6,7 @@ class A extends core::Object /*hasConstConstructor*/  {
   const constructor •(core::int x) → self::A
     : super core::Object::•()
     ;
-  static factory redir(core::int x) → self::A /* redirection-target: self::A::• */
+  static const factory redir(core::int x) → self::A /* redirection-target: self::A::• */
     return new self::A::•(x);
 }
 @/*original=self::A::redir*/ const self::A::•(1)

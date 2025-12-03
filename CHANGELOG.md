@@ -27,9 +27,36 @@
 
 [#61550]: https://github.com/dart-lang/sdk/issues/61550
 
+### Tools
+
+#### Pub
+
+- "Glob" support for pub workspaces.
+
+  Now to include all packages inside `pkgs/` in the workspace, simply write:
+
+  ```yaml
+  workspace:
+    - pkgs/*
+  ```
+
+  Supported if the Dart SDK constraint of the containing package is 3.11.0 or
+  higher.
+
+- New commmand `dart pub cache gc` for reclaiming disk space from your pub
+  cache.
+
+  It works by removing  packages from your pub cache that are not referenced by
+  any of your current projects.
+
+- New flag `dart pub publish --dry-run --ignore-warnings`
+
+  Given this flag, `dart pub publish --dry-run` will only exit non-zero if your
+  project validation has errors.
+
 ## 3.10.0
 
-**Released on:** Unreleased
+**Released on:** 2025-11-12
 
 ### Language
 
@@ -133,6 +160,16 @@ instead.
 
 [writing an analyzer plugin]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_a_plugin.md
 [using analyzer plugins]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/using_plugins.md
+
+#### Hooks
+
+Support for **hooks** -- formerly know as _native assets_ -- are now stable.
+
+You can currently use hooks to do things such as compile or download native assets
+(code written in other languages that are compiled into machine code),
+and then call these assets from the Dart code of a package.
+
+For more details see the [hooks documentation](https://dart.dev/tools/hooks).
 
 #### Dart CLI and Dart VM
 

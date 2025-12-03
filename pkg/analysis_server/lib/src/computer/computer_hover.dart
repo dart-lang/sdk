@@ -39,7 +39,7 @@ class DartUnitHoverComputer {
       return null;
     }
 
-    var locationEntity = _locationEntity(node);
+    var locationEntity = _locationEntity(node, _offset);
     node = _targetNode(node);
     if (node == null || locationEntity == null) {
       return null;
@@ -68,7 +68,7 @@ class DartUnitHoverComputer {
         // short code that illustrates the element meaning.
         hover.elementDescription = _elementDisplayString(node, element);
         hover.elementKind = element.kind.displayName;
-        hover.isDeprecated = element.metadata.hasDeprecated;
+        hover.isDeprecated = element.isDeprecatedWithKind('use');
         // not local element
         if (element.enclosingElement is! ExecutableElement) {
           // containing class
@@ -139,9 +139,10 @@ class DartUnitHoverComputer {
     } else if (node is DotShorthandConstructorInvocation) {
       return (offset: node.offset, length: node.length);
     } else if (node is ConstructorDeclaration) {
-      var offset = node.returnType.offset;
-      var end = node.name?.end ?? node.returnType.end;
-      var length = end - node.returnType.offset;
+      // TODO(scheglov): support primary constructors
+      var offset = node.typeName!.offset;
+      var end = node.name?.end ?? node.typeName!.end;
+      var length = end - node.typeName!.offset;
       return (offset: offset, length: length);
     } else {
       return (offset: entity.offset, length: entity.length);
@@ -187,23 +188,39 @@ class DartUnitHoverComputer {
   /// hover.
   ///
   /// Returns `null` if there is no valid entity for this hover.
-  SyntacticEntity? _locationEntity(AstNode node) {
+  SyntacticEntity? _locationEntity(AstNode node, int offset) {
     return switch (node) {
+      BinaryExpression() => node.operator,
+      ConditionalExpression()
+          when offset >= node.question.offset && offset <= node.question.end =>
+        node.question,
+      ConditionalExpression()
+          when offset >= node.colon.offset && offset <= node.colon.end =>
+        node.colon,
+      AssignmentExpression() => node.operator,
+      PrefixExpression() => node.operator,
+      PostfixExpression() => node.operator,
       CatchClauseParameter() => node.name,
-      NamedCompilationUnitMember() => node.name,
+      ClassDeclaration() => node.namePart.typeName,
+      ConstructorDeclaration() => node.name ?? node.typeName!,
+      DeclaredIdentifier() => node.name,
+      EnumDeclaration() => node.namePart.typeName,
       Expression() => node,
       ExtensionDeclaration() => node.name,
+      ExtensionTypeDeclaration() => node.primaryConstructor.typeName,
       FormalParameter() => node.name,
+      FunctionDeclaration() => node.name,
+      ImportPrefixReference() => node.name,
+      LibraryDirective() => node.libraryKeyword,
       MethodDeclaration() => node.name,
+      MixinDeclaration() => node.name,
+      NameWithTypeParameters() => node.typeName,
       NamedType() => node.name,
-      ConstructorDeclaration() => node.name ?? node.returnType,
-      DeclaredIdentifier() => node.name,
+      PatternFieldName() => node.name,
+      TypeAlias() => node.name,
       VariableDeclaration() => node.name,
       VariablePattern() => node.name,
-      PatternFieldName() => node.name,
       WildcardPattern() => node.name,
-      LibraryDirective() => node.libraryKeyword,
-      ImportPrefixReference() => node.name,
       _ => null,
     };
   }
@@ -230,14 +247,16 @@ class DartUnitHoverComputer {
   /// Adjusts the target node for constructors.
   AstNode? _targetNode(AstNode node) {
     var parent = node.parent;
-    var grandParent = parent?.parent;
-    if (parent is NamedType &&
-        grandParent is ConstructorName &&
-        grandParent.parent is InstanceCreationExpression) {
-      return grandParent.parent;
+    var parent2 = parent?.parent;
+    if (node is ClassNamePart) {
+      return parent;
+    } else if (parent is NamedType &&
+        parent2 is ConstructorName &&
+        parent2.parent is InstanceCreationExpression) {
+      return parent2.parent;
     } else if (parent is ConstructorName &&
-        grandParent is InstanceCreationExpression) {
-      return grandParent;
+        parent2 is InstanceCreationExpression) {
+      return parent2;
     } else if (node is SimpleIdentifier &&
         parent is ConstructorDeclaration &&
         parent.name != null) {

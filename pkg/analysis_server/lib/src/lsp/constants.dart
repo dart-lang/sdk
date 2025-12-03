@@ -152,10 +152,6 @@ abstract final class CustomMethods {
   static const summary = Method('dart/textDocument/summary');
   static const super_ = Method('dart/textDocument/super');
   static const imports = Method('dart/textDocument/imports');
-  static const dartTextDocumentContent = Method('dart/textDocumentContent');
-  static const dartTextDocumentContentDidChange = Method(
-    'dart/textDocumentContentDidChange',
-  );
 
   /// Method for requesting the set of editable arguments at a location in a
   /// document.

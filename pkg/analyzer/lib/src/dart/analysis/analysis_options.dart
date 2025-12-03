@@ -281,35 +281,26 @@ final class AnalysisOptionsBuilder {
     if (cannotIgnore is! YamlList) {
       return;
     }
-    var stringValues = cannotIgnore.whereType<String>().toSet();
-    for (var severity in AnalysisOptionsFile.severities) {
-      if (stringValues.contains(severity)) {
-        // [severity] is a marker denoting all diagnostic codes with severity
-        // equal to [severity].
-        stringValues.remove(severity);
-        // Replace name like 'error' with diagnostic codes with this named
-        // severity.
-        for (var d in diagnosticCodeValues) {
-          // If the severity of [error] is also changed in this options file
-          // to be [severity], we add [error] to the un-ignorable list.
+    for (var entry in cannotIgnore) {
+      if (entry is! String) continue;
+      if (severityMap[entry] case var severity?) {
+        for (var diagnostic in diagnosticCodeValues) {
+          // If the severity of [error] is also changed in this options file,
+          // use the changed severity.
           var processors = errorProcessors.where(
-            (processor) => processor.code == d.name,
+            (processor) => processor.code == diagnostic.name.toLowerCase(),
           );
-          if (processors.isNotEmpty &&
-              processors.first.severity?.displayName == severity) {
-            unignorableDiagnosticCodeNames.add(d.name);
-            continue;
-          }
-          // Otherwise, add [error] if its default severity is [severity].
-          if (d.severity.displayName == severity) {
-            unignorableDiagnosticCodeNames.add(d.name);
+          DiagnosticSeverity? diagnosticSeverity = processors.isNotEmpty
+              ? processors.first.severity
+              : diagnostic.severity;
+          if (diagnosticSeverity == severity) {
+            unignorableDiagnosticCodeNames.add(diagnostic.name.toLowerCase());
           }
         }
+      } else {
+        unignorableDiagnosticCodeNames.add(entry.toLowerCase());
       }
     }
-    unignorableDiagnosticCodeNames.addAll(
-      stringValues.map((name) => name.toUpperCase()),
-    );
   }
 
   PluginSource? _getSource(
@@ -435,6 +426,8 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   /// The set of "un-ignorable" diagnostic names, as parsed from an analysis
   /// options file.
+  ///
+  /// All entries in this set are in `lower_snake_case` form.
   final Set<String> unignorableDiagnosticCodeNames;
 
   /// Returns a newly instantiated [AnalysisOptionsImpl].
@@ -546,6 +539,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     required this.formatterOptions,
     required this.unignorableDiagnosticCodeNames,
   }) : _contextFeatures = contextFeatures {
+    assert(unignorableDiagnosticCodeNames.every((n) => n == n.toLowerCase()));
     (codeStyleOptions as CodeStyleOptionsImpl).options = this;
   }
 

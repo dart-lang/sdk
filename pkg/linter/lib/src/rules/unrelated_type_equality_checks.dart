@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/dart_type_utilities.dart';
 
 const _desc =
@@ -24,8 +25,8 @@ class UnrelatedTypeEqualityChecks extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.unrelatedTypeEqualityChecksInExpression,
-    LinterLintCode.unrelatedTypeEqualityChecksInPattern,
+    diag.unrelatedTypeEqualityChecksInExpression,
+    diag.unrelatedTypeEqualityChecksInPattern,
   ];
 
   @override
@@ -64,7 +65,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     rule.reportAtToken(
       node.operator,
-      diagnosticCode: LinterLintCode.unrelatedTypeEqualityChecksInExpression,
+      diagnosticCode: diag.unrelatedTypeEqualityChecksInExpression,
       arguments: [rightType.getDisplayString(), leftType.getDisplayString()],
     );
   }
@@ -80,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     rule.reportAtNode(
       node,
-      diagnosticCode: LinterLintCode.unrelatedTypeEqualityChecksInPattern,
+      diagnosticCode: diag.unrelatedTypeEqualityChecksInPattern,
       arguments: [operandType.getDisplayString(), valueType.getDisplayString()],
     );
   }

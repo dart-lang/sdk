@@ -25,14 +25,48 @@ const int maxArrayNewFixedLength = 10000;
 /// the main module).
 const bool forceDelayedConstantDefinition = false;
 
-class ConstantDefinition {
-  final w.ModuleBuilder module;
+/// Describes where the constant slot is defined and how to access it.
+sealed class ConstantDefinition {
+  bool get isLazy;
+  w.BaseFunction initializer(w.ModuleBuilder usingModule);
+}
+
+/// The value for the constant is stored in a global slot.
+///
+/// We use this mechanism if the constant is accessed only within a given
+/// module.
+final class GlobalBasedConstantDefinition extends ConstantDefinition {
   final w.Global global;
   final w.BaseFunction? _initFunction;
 
-  ConstantDefinition(this.module, this.global, this._initFunction);
+  GlobalBasedConstantDefinition(this.global, this._initFunction);
 
+  @override
   bool get isLazy => _initFunction != null;
+
+  @override
+  w.BaseFunction initializer(w.ModuleBuilder usingModule) => _initFunction!;
+}
+
+/// The value for the (lazy) constant is stored in a table slot.
+///
+/// We use this mechanism if the constant is accessed across modules and each
+/// module will bring it's own copy of the initializer function.
+final class TableBasedConstantDefinition extends ConstantDefinition {
+  final w.Table table;
+  final int tableIndex;
+  final Map<w.ModuleBuilder, w.BaseFunction> _initFunctionPerUsingModule;
+
+  TableBasedConstantDefinition(
+      this.table, this.tableIndex, this._initFunctionPerUsingModule);
+
+  @override
+  bool get isLazy => true;
+
+  @override
+  w.BaseFunction initializer(w.ModuleBuilder usingModule) {
+    return _initFunctionPerUsingModule[usingModule]!;
+  }
 }
 
 class ConstantInfo {
@@ -84,11 +118,21 @@ class ConstantInfo {
       void Function(w.Global) printLazyInitializer) {
     final definition = _definition;
     if (definition != null) {
-      final initFunction = definition._initFunction;
-      if (initFunction != null) {
-        printFunction(initFunction);
-      } else {
-        printLazyInitializer(definition.global);
+      switch (definition) {
+        case GlobalBasedConstantDefinition():
+          final initFunction = definition._initFunction;
+          if (initFunction != null) {
+            printFunction(initFunction);
+          } else {
+            printLazyInitializer(definition.global);
+          }
+          break;
+        case TableBasedConstantDefinition():
+          for (final initFunction
+              in definition._initFunctionPerUsingModule.values) {
+            printFunction(initFunction);
+          }
+          break;
       }
     }
   }
@@ -253,10 +297,11 @@ class Constants {
           _constantAccessor._defineConstantInModuleRecursive(baseModule, info);
     }
 
-    if (definition != null && !definition.isLazy) {
-      if (definition.module == usingModule) return true;
-      if (definition.module == baseModule) return true;
-      if (definition.module == translator.mainModule) return true;
+    if (definition is GlobalBasedConstantDefinition && !definition.isLazy) {
+      final definingModule = definition.global.enclosingModule;
+      if (definingModule == usingModule.module) return true;
+      if (definingModule == baseModule.module) return true;
+      if (definingModule == translator.mainModule.module) return true;
     }
 
     return false;
@@ -1135,17 +1180,17 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
         final b = function.body;
 
-        final closureLocal = function.locals[0];
         final typeArgsListLocal = function.locals[1]; // empty
         final posArgsListLocal = function.locals[2];
         final namedArgsListLocal = function.locals[3];
 
-        b.local_get(closureLocal);
+        constants.instantiateConstant(
+            b, tearOffConstantInfo.constant, translator.topTypeNonNullable);
         constants.instantiateConstant(
             b, typeArgsArrayConstantInfo.constant, typeArgsListLocal.type);
         b.local_get(posArgsListLocal);
         b.local_get(namedArgsListLocal);
-        translator.callFunction(tearOffClosure.dynamicCallEntry, b);
+        translator.callFunction(tearOffClosure.dynamicCallEntry!, b);
         b.end();
 
         return function;
@@ -1190,8 +1235,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       void fillVtableEntry(int posArgCount, NameCombination nameCombination) {
         final fieldIndex = instantiationOfTearOffRepresentation
             .fieldIndexForSignature(posArgCount, nameCombination.names);
-        final signature =
-            instantiationOfTearOffRepresentation.getVtableFieldType(fieldIndex);
+        final signature = instantiationOfTearOffRepresentation.vtableStruct
+            .getVtableEntryAt(fieldIndex);
 
         w.BaseFunction function;
         if (nameCombination.names.isNotEmpty &&
@@ -1224,8 +1269,10 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         declareAndAddRefFunc(function);
       }
 
-      void makeVtable(w.BaseFunction dynamicCallEntry) {
-        declareAndAddRefFunc(dynamicCallEntry);
+      void makeVtable(w.BaseFunction? dynamicCallEntry) {
+        if (dynamicCallEntry != null) {
+          declareAndAddRefFunc(dynamicCallEntry);
+        }
         assert(!instantiationOfTearOffRepresentation.isGeneric);
 
         if (translator.dynamicModuleSupportEnabled) {
@@ -1259,7 +1306,10 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       }
       b.struct_new(tearOffRepresentation.instantiationContextStruct!);
 
-      makeVtable(makeDynamicCallEntry());
+      makeVtable((translator.dynamicModuleSupportEnabled ||
+              translator.closureLayouter.usesFunctionApplyWithNamedArguments)
+          ? makeDynamicCallEntry()
+          : null);
       constants.instantiateConstant(
           b, functionTypeInfo.constant, types.nonNullableTypeType);
       b.struct_new(closureStruct);
@@ -1472,6 +1522,12 @@ class _ConstantAccessor {
   /// transitively refers to.
   final Map<ConstantInfo, Set<w.ModuleBuilder>> moduleUses = {};
 
+  /// We maintain a table for lazily initialized constants that are used across
+  /// modules. This avoids having many invidiual globals of the same type with
+  /// null initializer.
+  final Map<w.RefType, w.TableBuilder> lazySlotTables = {};
+  late final tableImporter = WasmTableImporter(translator, 'constant-table');
+
   _ConstantAccessor(this.translator);
 
   /// Reads a constant.
@@ -1501,7 +1557,7 @@ class _ConstantAccessor {
 
     if (existingDefinition != null) {
       // We already have a defined constant. Possibly import it and then use it.
-      return _readDefinedConstant(b, info, existingDefinition);
+      return _readDefinedConstant(b, b.moduleBuilder, info, existingDefinition);
     }
 
     // We have to guarantee that using the constant synchronously works. If the
@@ -1517,7 +1573,7 @@ class _ConstantAccessor {
         usingModule == translator.mainModule) {
       final definition =
           _defineConstantInModuleRecursive(translator.mainModule, info);
-      return _readDefinedConstant(b, info, definition);
+      return _readDefinedConstant(b, usingModule, info, definition);
     }
 
     // Remember for the transitive DAG of [constant] that we use it in this
@@ -1531,19 +1587,6 @@ class _ConstantAccessor {
     }
 
     rememberConstantUse(info);
-
-    // If we have uses in multiple modules, we should place it a module that is
-    // guaranteed to be loaded at the use time of those modules.
-    //
-    // => We are conservative and assign it to the main module.
-    //
-    // NOTE: Improve this by finding the closest common ancestor between the
-    // modules in the loading graph.
-    if (!forceDelayedConstantDefinition && moduleUses[info]!.length > 1) {
-      final definition =
-          _defineConstantInModuleRecursive(translator.mainModule, info);
-      return _readDefinedConstant(b, info, definition);
-    }
 
     // The current module is the only one using the constant atm, but in the
     // future other modules may also use it. So we don't know where to place
@@ -1559,37 +1602,61 @@ class _ConstantAccessor {
     if (patchInstructions != null) {
       translator.linkingActions.add(() {
         // All constant uses have been discovered during codegen phase so we can
-        // know decide into which module to place the constant and patch the
+        // now decide into which module to place the constant and patch the
         // constant access to load it from there.
         final definition =
             info._definition ?? _defineConstantInModuleRecursive(null, info);
-        _readDefinedConstant(patchInstructions, info, definition);
+        _readDefinedConstant(patchInstructions, usingModule, info, definition);
       });
     }
 
     return info.type;
   }
 
-  w.ValueType _readDefinedConstant(w.InstructionsBuilder b, ConstantInfo info,
+  /// Reads the given constant.
+  ///
+  /// Normally `b.moduleBuilder == usingModule`, except for the situation where
+  /// the read happens under a load guard.
+  ///
+  /// In that case the `b.moduleBuilder` may not have an initializer function
+  /// (to reduce its size) and instead it can rely on the load guarded deferred
+  /// module to be loaded by the time we read the constant, so it can use that
+  /// deferred module's constant initializer.
+  w.ValueType _readDefinedConstant(
+      w.InstructionsBuilder b,
+      w.ModuleBuilder usingModule,
+      ConstantInfo info,
       ConstantDefinition definition) {
-    final globalDefinition = definition.global;
-    final globalInitializer = definition._initFunction;
-
     // Eagerly initialized constant.
-    if (globalInitializer == null) {
-      translator.globals.readGlobal(b, globalDefinition);
-      return globalDefinition.type.type;
+    if (definition is GlobalBasedConstantDefinition && !definition.isLazy) {
+      translator.globals.readGlobal(b, definition.global);
+      return definition.global.type.type;
     }
 
     // Lazily initialized constant.
-    w.ValueType type = globalDefinition.type.type.withNullability(false);
-    w.Label done = b.block(const [], [type]);
-    translator.globals.readGlobal(b, globalDefinition);
-    b.br_on_non_null(done);
+    assert(definition.isLazy);
 
-    translator.callFunction(globalInitializer, b);
-    b.end();
-    return type;
+    switch (definition) {
+      case GlobalBasedConstantDefinition():
+        // Use global & lazy initializer function.
+        w.Label done = b.block(const [], [info.type]);
+        translator.globals.readGlobal(b, definition.global);
+        b.br_on_non_null(done);
+        translator.callFunction(definition.initializer(usingModule), b);
+        b.end();
+        break;
+      case TableBasedConstantDefinition():
+        // Use table & lazy initializer function.
+        w.Label done = b.block(const [], [info.type]);
+        b.i32_const(definition.tableIndex);
+        b.table_get(tableImporter.get(definition.table, b.moduleBuilder));
+        b.br_on_non_null(done);
+        translator.callFunction(definition.initializer(usingModule), b);
+        b.end();
+        break;
+    }
+
+    return info.type;
   }
 
   /// If [assignedModule] is not null assigns all undefined constants to that
@@ -1612,25 +1679,40 @@ class _ConstantAccessor {
     //
     // We want to choose a module that is available by the time the constant is
     // used. If only one module uses the constant we place it in that module. If
-    // it's used by multiple modules we (conservatively) place it in the main
-    // module.
-    //
-    // NOTE: Improve this by finding the closest common ancestor between the
-    // modules in the loading graph.
+    // it's used by multiple modules we make a global in the main module and
+    // make all using modules bring an initializer function with them.
+    Set<w.ModuleBuilder>? deferredUses;
     if (assignedModule == null) {
       final uses = moduleUses[info]!;
       assert(uses.isNotEmpty);
-      assignedModule = uses.length == 1 ? uses.single : translator.mainModule;
+      if (uses.length == 1) {
+        assignedModule = uses.single;
+      } else if (uses.contains(translator.mainModule)) {
+        assignedModule = translator.mainModule;
+      } else {
+        // Will become lazy constant with global in main module and initializer
+        // in all using modules.
+        deferredUses = uses;
+      }
     }
-    return _defineConstantInModule(assignedModule, info);
+    return _defineConstantInModule(assignedModule, deferredUses, info);
   }
 
-  ConstantDefinition _defineConstantInModule(
-      w.ModuleBuilder targetModule, ConstantInfo info) {
+  ConstantDefinition _defineConstantInModule(w.ModuleBuilder? targetModule,
+      Set<w.ModuleBuilder>? deferredUses, ConstantInfo info) {
+    assert((targetModule != null) != (deferredUses != null));
+    assert(deferredUses == null ||
+        deferredUses.length > 1 &&
+            !deferredUses.contains(translator.mainModule));
+
     final constant = info.constant;
 
     // The constant itself may be forced to be lazy (e.g. array size too large).
     bool lazy = !info.canBeEager;
+
+    // If there's uses in N different deferred modules, we make it lazy, define
+    // global in main module & initializer in each using module.
+    lazy |= deferredUses != null;
 
     // The constant's children may influence laziness.
     if (!lazy) {
@@ -1638,20 +1720,24 @@ class _ConstantAccessor {
         final definition = child._definition!;
 
         // If the child is lazy, this constant becomes lazy.
-        if (definition._initFunction != null) {
+        if (definition.isLazy) {
           lazy = true;
           break;
         }
 
+        // The child isn't lazy, so it cannot be a table-based constant
+        // definition.
+        definition as GlobalBasedConstantDefinition;
+
         // If we place the constant in a module that may be loaded before the
         // constants of children, it must get initialized lazily.
-        final childModule = definition.module;
+        final childModule = definition.global.enclosingModule;
         final baseModule = translator.isDynamicSubmodule
             ? translator.dynamicSubmodule
             : translator.mainModule;
-        if (childModule != targetModule &&
-            childModule != translator.mainModule &&
-            childModule != baseModule) {
+        if (childModule != targetModule?.module &&
+            childModule != translator.mainModule.module &&
+            childModule != baseModule.module) {
           lazy = true;
           break;
         }
@@ -1663,25 +1749,44 @@ class _ConstantAccessor {
     if (!lazy) {
       // The constant codegen code may decide to make it lazy depending on which
       // module it's going to be placed in.
-      lazy = info._forceLazy(info, targetModule);
+      lazy = info._forceLazy(info, targetModule!);
     }
 
     // Define the lazy or non-lazy constant in the module.
     final ConstantDefinition definition;
     if (lazy) {
-      final (global, initFunction) = _createLazyConstant(targetModule, info);
-      definition = ConstantDefinition(targetModule, global, initFunction);
+      if (targetModule == null) {
+        final w.TableBuilder table = lazySlotTables.putIfAbsent(info.type, () {
+          return translator.mainModule.tables
+              .define(info.type.withNullability(true), 0);
+        });
+        final tableIndex = table.minSize++;
+        final name = _constantName(info.constant);
+        final initFunctions = {
+          for (final usingModule in deferredUses!)
+            usingModule: _createLazyTableInitializer(
+                usingModule, table, tableIndex, name, info),
+        };
+        definition =
+            TableBasedConstantDefinition(table, tableIndex, initFunctions);
+      } else {
+        final (global, initFunction) = _createLazyConstant(targetModule, info);
+        definition = GlobalBasedConstantDefinition(global, initFunction);
+      }
     } else {
-      final global = _createNonLazyConstant(targetModule, info);
-      definition = ConstantDefinition(targetModule, global, null);
+      final global = _createNonLazyConstant(targetModule!, info);
+      definition = GlobalBasedConstantDefinition(global, null);
     }
     info.setDefinition(definition);
 
     if (info.exportByMainApp) {
       assert(translator.dynamicModuleSupportEnabled &&
           !translator.isDynamicSubmodule);
+      // Current dynamic module implementation requires main module to be
+      // monolitic.
+      definition as GlobalBasedConstantDefinition;
       translator.exporter.exportDynamicConstant(
-          targetModule, constant, definition.global,
+          targetModule!, constant, definition.global,
           initializer: definition._initFunction);
     }
     return definition;
@@ -1714,39 +1819,72 @@ class _ConstantAccessor {
     }
 
     info._definition =
-        ConstantDefinition(fakeMainApp, fakeGlobal, fakeInitializer);
+        GlobalBasedConstantDefinition(fakeGlobal, fakeInitializer);
   }
 
   (w.GlobalBuilder, w.FunctionBuilder) _createLazyConstant(
       w.ModuleBuilder targetModule, ConstantInfo info) {
-    final constant = info.constant;
-    final type = info.type;
-    final generator = info._codeGen;
+    final name = _constantName(info.constant);
 
-    // Create uninitialized global and function to initialize it.
+    final definedGlobal = _createLazyGlobal(targetModule, name, info);
+    final initFunction =
+        _createLazyGlobalInitializer(targetModule, definedGlobal, name, info);
 
-    final name = _constantName(constant);
-    final globalType = w.GlobalType(type.withNullability(true));
-    final definedGlobal = targetModule.globals.define(globalType, name);
+    return (definedGlobal, initFunction);
+  }
+
+  w.GlobalBuilder _createLazyGlobal(
+      w.ModuleBuilder module, String name, ConstantInfo info) {
+    final globalType = w.GlobalType(info.type.withNullability(true));
+    final definedGlobal = module.globals.define(globalType, name);
     definedGlobal.initializer.ref_null(w.HeapType.none);
     definedGlobal.initializer.end();
+    return definedGlobal;
+  }
 
+  w.FunctionBuilder _createLazyGlobalInitializer(w.ModuleBuilder module,
+      w.GlobalBuilder definedGlobal, String name, ConstantInfo info) {
+    final type = info.type;
     final initFunctionType =
         translator.typesBuilder.defineFunction(const [], [type]);
-    final initFunction = targetModule.functions
-        .define(initFunctionType, '$name (lazy initializer)}');
-    final b2 = initFunction.body;
-    generator(info, b2, true);
+    final initFunction =
+        module.functions.define(initFunctionType, '$name (lazy initializer)}');
+    final b = initFunction.body;
+    info._codeGen(info, b, true);
     if (info.needsRuntimeCanonicalization) {
-      final valueLocal = b2.addLocal(type);
-      constant.accept(ConstantCanonicalizer(translator, b2, valueLocal));
+      final valueLocal = b.addLocal(type);
+      info.constant.accept(ConstantCanonicalizer(translator, b, valueLocal));
     }
-    w.Local temp = b2.addLocal(type);
-    b2.local_tee(temp);
-    b2.global_set(definedGlobal);
-    b2.local_get(temp);
-    b2.end();
-    return (definedGlobal, initFunction);
+    w.Local temp = b.addLocal(type);
+    b.local_tee(temp);
+    translator.globals.writeGlobal(b, definedGlobal);
+    b.local_get(temp);
+    b.end();
+
+    return initFunction;
+  }
+
+  w.FunctionBuilder _createLazyTableInitializer(w.ModuleBuilder module,
+      w.TableBuilder table, int tableIndex, String name, ConstantInfo info) {
+    final type = info.type;
+    final initFunctionType =
+        translator.typesBuilder.defineFunction(const [], [type]);
+    final initFunction =
+        module.functions.define(initFunctionType, '$name (lazy initializer)}');
+    final b = initFunction.body;
+    b.i32_const(tableIndex);
+    info._codeGen(info, b, true);
+    if (info.needsRuntimeCanonicalization) {
+      final valueLocal = b.addLocal(type);
+      info.constant.accept(ConstantCanonicalizer(translator, b, valueLocal));
+    }
+    w.Local temp = b.addLocal(type);
+    b.local_tee(temp);
+    b.table_set(tableImporter.get(table, module));
+    b.local_get(temp);
+    b.end();
+
+    return initFunction;
   }
 
   w.GlobalBuilder _createNonLazyConstant(

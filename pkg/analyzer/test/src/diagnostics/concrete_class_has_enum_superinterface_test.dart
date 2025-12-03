@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ abstract class A implements Enum {}
       '''
 class A implements Enum {}
 ''',
-      [error(CompileTimeErrorCode.concreteClassHasEnumSuperinterface, 19, 4)],
+      [error(diag.concreteClassHasEnumSuperinterface, 19, 4)],
     );
   }
 
@@ -37,7 +37,7 @@ class A implements Enum {}
 abstract class A implements Enum {}
 class B implements A {}
 ''',
-      [error(CompileTimeErrorCode.concreteClassHasEnumSuperinterface, 42, 1)],
+      [error(diag.concreteClassHasEnumSuperinterface, 42, 1)],
     );
   }
 
@@ -47,7 +47,7 @@ class B implements A {}
 class M {}
 class A = Object with M implements Enum;
 ''',
-      [error(CompileTimeErrorCode.concreteClassHasEnumSuperinterface, 46, 4)],
+      [error(diag.concreteClassHasEnumSuperinterface, 46, 4)],
     );
   }
 
@@ -58,7 +58,7 @@ mixin M {}
 abstract class A implements Enum {}
 class B = Object with M implements A;
 ''',
-      [error(CompileTimeErrorCode.concreteClassHasEnumSuperinterface, 53, 1)],
+      [error(diag.concreteClassHasEnumSuperinterface, 53, 1)],
     );
   }
 

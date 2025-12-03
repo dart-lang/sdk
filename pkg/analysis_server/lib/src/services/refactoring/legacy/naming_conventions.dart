@@ -179,8 +179,7 @@ RefactoringStatus _validateIdentifier(
   // invalid characters
   for (var i = 0; i < length; i++) {
     var currentChar = identifier.codeUnitAt(i);
-    if (!currentChar.isLetterOrDigitOrUnderscore &&
-        currentChar != CHAR_DOLLAR) {
+    if (!currentChar.isLetterOrDigitOrUnderscore && currentChar != charDollar) {
       var charStr = String.fromCharCode(currentChar);
       var message = "$desc must not contain '$charStr'.";
       return RefactoringStatus.fatal(message);
@@ -189,8 +188,8 @@ RefactoringStatus _validateIdentifier(
   // first character
   var currentChar = identifier.codeUnitAt(0);
   if (!currentChar.isLetter &&
-      currentChar != CHAR_UNDERSCORE &&
-      currentChar != CHAR_DOLLAR) {
+      currentChar != charUnderscore &&
+      currentChar != charDollar) {
     var message = '$desc must begin with $beginDesc.';
     return RefactoringStatus.fatal(message);
   }
@@ -216,11 +215,11 @@ RefactoringStatus _validateLowerCamelCase(
     return status;
   }
   // is private, OK
-  if (identifier.codeUnitAt(0) == CHAR_UNDERSCORE) {
+  if (identifier.codeUnitAt(0) == charUnderscore) {
     return RefactoringStatus();
   }
   // leading $, OK
-  if (identifier.codeUnitAt(0) == CHAR_DOLLAR) {
+  if (identifier.codeUnitAt(0) == charDollar) {
     return RefactoringStatus();
   }
   // does not start with lower case
@@ -245,11 +244,11 @@ RefactoringStatus _validateUpperCamelCase(String identifier, String desc) {
     return status;
   }
   // is private, OK
-  if (identifier.codeUnitAt(0) == CHAR_UNDERSCORE) {
+  if (identifier.codeUnitAt(0) == charUnderscore) {
     return RefactoringStatus();
   }
   // leading $, OK
-  if (identifier.codeUnitAt(0) == CHAR_DOLLAR) {
+  if (identifier.codeUnitAt(0) == charDollar) {
     return RefactoringStatus();
   }
   // does not start with upper case

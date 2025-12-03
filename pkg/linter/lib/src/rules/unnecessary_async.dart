@@ -14,6 +14,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'No await no async.';
 
@@ -26,7 +27,7 @@ class UnnecessaryAsync extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryAsync;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryAsync;
 
   @override
   void registerNodeProcessors(

@@ -10,6 +10,9 @@ final dartAotExecutable = Uri.parse(Platform.resolvedExecutable)
 final dart2wasmSnapshot = Uri.parse(Platform.resolvedExecutable)
     .resolve('snapshots/dart2wasm_product.snapshot')
     .toFilePath();
+final wasmOptExecutable = Uri.parse(Platform.resolvedExecutable)
+    .resolve('utils/wasm-opt')
+    .toFilePath();
 final platformDill = Uri.parse(Platform.resolvedExecutable)
     .resolve('../lib/_internal/dart2wasm_platform.dill')
     .toFilePath();

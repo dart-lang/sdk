@@ -1,0 +1,78 @@
+--- foo1
+B0 = EntryBlock()
+  v4 = Constant(null)
+  Parameter(this)
+  Parameter(a)
+  Parameter(b)
+  Return(v4)
+
+--- instanceCalls
+B0 = EntryBlock() dominates:(B20, B22, B19)
+  v17 = Constant(null)
+  v1 = Parameter(obj)
+  v2 = Parameter(obj2)
+  v3 = Parameter(a)
+  v4 = Parameter(b)
+  v5 = Parameter(c)
+  InterfaceCall A.foo1(v1, v3)
+  InterfaceCall A.foo1(v1, v3, v4)
+  v14 = InterfaceCall getter A.foo2(v1)
+  v18 = Comparison ==(v2, v17)
+  Branch(v18, true: B19, false: B20)
+B19 = TargetBlock() idom:B0
+  Goto(B22)
+B20 = TargetBlock() idom:B0 dominates:(B29, B31, B28)
+  v26 = TypeCast(v2, A, unchecked)
+  v27 = InterfaceCall Object.==(v1, v26)
+  Branch(v27, true: B28, false: B29)
+B28 = TargetBlock() idom:B20
+  v36 = UnaryIntOp toDouble(v14)
+  v37 = BinaryDoubleOp +(v5, v36)
+  InterfaceCall setter A.foo3(v1, v37)
+  Goto(B31)
+B29 = TargetBlock() idom:B20
+  Goto(B31)
+B31 = JoinBlock(B29, B28) idom:B20
+  Goto(B22)
+B22 = JoinBlock(B31, B19) idom:B0
+  Return(v17)
+
+--- staticCalls
+B0 = EntryBlock() dominates:(B7, B9, B6)
+  v4 = Constant(0)
+  v12 = Constant(1)
+  v20 = Constant(null)
+  v1 = Parameter(a)
+  v2 = Parameter(b)
+  v5 = Comparison int >(v1, v4)
+  Branch(v5, true: B6, false: B7)
+B6 = TargetBlock() idom:B0
+  v13 = BinaryIntOp -(v1, v12)
+  DirectCall staticCalls(v13, v2)
+  Goto(B9)
+B7 = TargetBlock() idom:B0
+  Goto(B9)
+B9 = JoinBlock(B7, B6) idom:B0
+  v17 = DirectCall getter sField()
+  v18 = BinaryIntOp +(v17, v12)
+  DirectCall setter sField(v18)
+  Return(v20)
+
+--- dynamicCalls
+B0 = EntryBlock()
+  v13 = Constant(1)
+  v16 = Constant(null)
+  v1 = Parameter(x)
+  v2 = Parameter(y)
+  v3 = Parameter(z)
+  DynamicCall foo1(v1, v2, v3)
+  v9 = DynamicCall get bar(v2)
+  v14 = DynamicCall +(v9, v13)
+  DynamicCall set baz(v3, v14)
+  Return(v16)
+
+--- main
+B0 = EntryBlock()
+  v1 = Constant(null)
+  Return(v1)
+

@@ -708,6 +708,44 @@ class MicroAssembler : public AssemblerBase {
   void fltqd(Register rd, FRegister rs1, FRegister rs2);
   void fleqd(Register rd, FRegister rs1, FRegister rs2);
 
+  // ==== Zimop: May-be-operations ====
+  void mopr(intptr_t n, Register rd, Register rs1);
+  void moprr(intptr_t n, Register rd, Register rs1, Register rs2);
+  // ==== Zcmop: Compressed may-be-operations ====
+  void cmop(intptr_t n);
+
+  // ==== Zicfiss: Shadow stack ====
+  void sspush(Register rs2);
+  void sspopchk(Register rs1);
+  void ssrdp(Register rd);
+  void ssamoswapw(Register rd,
+                  Register rs2,
+                  Address addr,
+                  std::memory_order order = std::memory_order_relaxed);
+#if XLEN >= 64
+  void ssamoswapd(Register rd,
+                  Register rs2,
+                  Address addr,
+                  std::memory_order order = std::memory_order_relaxed);
+#endif  // XLEN >= 64
+
+  // ==== RV32V: Vectors ====
+  void vsetvli(Register rd,
+               Register rs1,
+               ElementWidth sew,
+               LengthMultiplier lmul,
+               TailMode vta,
+               MaskMode vma);
+  void vle8v(VRegister vd, Address rs1, VectorMask vm = unmasked);
+  void vle16v(VRegister vd, Address rs1, VectorMask vm = unmasked);
+  void vle32v(VRegister vd, Address rs1, VectorMask vm = unmasked);
+  void vle64v(VRegister vd, Address rs1, VectorMask vm = unmasked);
+  void vse8v(VRegister vs3, Address rs1, VectorMask vm = unmasked);
+  void vse16v(VRegister vs3, Address rs1, VectorMask vm = unmasked);
+  void vse32v(VRegister vs3, Address rs1, VectorMask vm = unmasked);
+  void vse64v(VRegister vs3, Address rs1, VectorMask vm = unmasked);
+  void vmvvx(VRegister vd, Register rs1, VectorMask vm = unmasked);
+
   // ==== Zalasr: Load-acquire, store-release ====
   void lb(Register rd, Address addr, std::memory_order order);
   void lh(Register rd, Address addr, std::memory_order order);
@@ -719,6 +757,22 @@ class MicroAssembler : public AssemblerBase {
 #if XLEN >= 64
   void ld(Register rd, Address addr, std::memory_order order);
   void sd(Register rs2, Address addr, std::memory_order order);
+#endif
+
+  // ==== Zacas: Compare-and-swap ====
+  void amocasw(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amocasd(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+#if XLEN >= 64
+  void amocasq(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
 #endif
 
   // ==== Dart Simulator Debugging ====
@@ -889,6 +943,11 @@ class MicroAssembler : public AssemblerBase {
                   FRegister rd,
                   Opcode opcode);
 
+  void EmitIType(Funct12 funct12,
+                 Register rs1,
+                 Funct3 funct3,
+                 Register rd,
+                 Opcode opcode);
   void EmitIType(intptr_t imm,
                  Register rs1,
                  Funct3 funct3,
@@ -1026,6 +1085,8 @@ class Assembler : public MicroAssembler {
 
   // Debugging and bringup support.
   void Breakpoint() override { trap(); }
+
+  void StoreStoreFence() override { fence(kWrite, kWrite); }
 
   void SetPrologueOffset() {
     if (prologue_offset_ == -1) {

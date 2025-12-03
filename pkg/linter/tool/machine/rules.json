@@ -143,7 +143,7 @@
     "state": "stable",
     "incompatible": [],
     "sets": [],
-    "fixStatus": "needsFix",
+    "fixStatus": "hasFix",
     "details": "**AVOID** `bool` literals in conditional expressions.\n\n**BAD:**\n```dart\ncondition ? true : boolExpression\ncondition ? false : boolExpression\ncondition ? boolExpression : true\ncondition ? boolExpression : false\n```\n\n**GOOD:**\n```dart\ncondition || boolExpression\n!condition && boolExpression\n!condition || boolExpression\ncondition && boolExpression\n```",
     "sinceDartSdk": "2.0"
   },
@@ -1922,14 +1922,14 @@
     "categories": [
       "style"
     ],
-    "state": "stable",
+    "state": "deprecated",
     "incompatible": [
       "unnecessary_final",
       "avoid_final_parameters"
     ],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "**DO** prefer declaring parameters as final if they are not reassigned in\nthe function body.\n\nDeclaring parameters as final when possible is a good practice because it helps\navoid accidental reassignments.\n\n**BAD:**\n```dart\nvoid badParameter(String label) { // LINT\n  print(label);\n}\n```\n\n**GOOD:**\n```dart\nvoid goodParameter(final String label) { // OK\n  print(label);\n}\n```\n\n**BAD:**\n```dart\nvoid badExpression(int value) => print(value); // LINT\n```\n\n**GOOD:**\n```dart\nvoid goodExpression(final int value) => print(value); // OK\n```\n\n**BAD:**\n```dart\n[1, 4, 6, 8].forEach((value) => print(value + 2)); // LINT\n```\n\n**GOOD:**\n```dart\n[1, 4, 6, 8].forEach((final value) => print(value + 2)); // OK\n```\n\n**GOOD:**\n```dart\nvoid mutableParameter(String label) { // OK\n  print(label);\n  label = 'Hello Linter!';\n  print(label);\n}\n```",
+    "details": "**Note:** This lint rule was deprecated in Dart 3.11 and\nis set to be removed in a future release of the Dart SDK.\nIf you want to ensure parameters aren't reassigned in function bodies,\nconsider enabling the\n[`parameter_assignments`](https://dart.dev/lints/parameter_assignments)\nlint rule instead.\n\n**DO** prefer declaring parameters as final if they are not reassigned in\nthe function body.\n\nDeclaring parameters as final when possible is a good practice because it helps\navoid accidental reassignments.\n\n**BAD:**\n```dart\nvoid badParameter(String label) { // LINT\n  print(label);\n}\n```\n\n**GOOD:**\n```dart\nvoid goodParameter(final String label) { // OK\n  print(label);\n}\n```\n\n**BAD:**\n```dart\nvoid badExpression(int value) => print(value); // LINT\n```\n\n**GOOD:**\n```dart\nvoid goodExpression(final int value) => print(value); // OK\n```\n\n**BAD:**\n```dart\n[1, 4, 6, 8].forEach((value) => print(value + 2)); // LINT\n```\n\n**GOOD:**\n```dart\n[1, 4, 6, 8].forEach((final value) => print(value + 2)); // OK\n```\n\n**GOOD:**\n```dart\nvoid mutableParameter(String label) { // OK\n  print(label);\n  label = 'Hello Linter!';\n  print(label);\n}\n```",
     "sinceDartSdk": "2.14"
   },
   {
@@ -2274,6 +2274,19 @@
     "fixStatus": "noFix",
     "details": "**DON'T** create recursive getters.\n\nRecursive getters are getters which return themselves as a value.  This is\nusually a typo.\n\n**BAD:**\n```dart\nint get field => field; // LINT\n```\n\n**BAD:**\n```dart\nint get otherField {\n  return otherField; // LINT\n}\n```\n\n**GOOD:**\n```dart\nint get field => _field;\n```",
     "sinceDartSdk": "2.0"
+  },
+  {
+    "name": "remove_deprecations_in_breaking_versions",
+    "description": "Deprecation in major version.",
+    "categories": [
+      "publicInterface"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "needsFix",
+    "details": "**DO** Remove deprecated elements in breaking version numbers.\nBreaking version numbers are on the form `x.0.0` or `0.x.0`.\n\nFor example given a package with a `pubspec.yaml` file containing:\n\n```yaml\nname: p\nversion: 2.0.0\nenvironment:\n  sdk: ^3.9.0\n```\n\n**BAD:**\n```dart\n@deprecated\nvoid f() {}\n```\n\n**GOOD:**\n```dart\n// (f is removed).\n```\n\n**GOOD:**\n```yaml\nname: p\nversion: 1.0.1\nenvironment:\n  sdk: ^3.9.0\n```",
+    "sinceDartSdk": "3.10"
   },
   {
     "name": "require_trailing_commas",

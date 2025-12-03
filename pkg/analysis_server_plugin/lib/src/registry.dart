@@ -44,7 +44,7 @@ final class PluginRegistryImpl implements PluginRegistry {
   }
 
   @override
-  void registerFixForRule(LintCode code, ProducerGenerator generator) {
+  void registerFixForRule(DiagnosticCode code, ProducerGenerator generator) {
     var producer = generator(context: StubCorrectionProducerContext.instance);
     var fixKind = producer.fixKind;
     if (fixKind == null) {

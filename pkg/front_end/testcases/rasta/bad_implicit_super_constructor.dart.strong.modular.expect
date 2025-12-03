@@ -16,14 +16,14 @@ import "dart:core" as core;
 
 class A extends core::Object {
   constructor •(dynamic x) → self::A
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:6:10: Error: 'x' isn't an instance field of this class.
+    : invalid-initializer "pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:6:10: Error: 'x' isn't an instance field of this class.
   A(this.x);
          ^"
     ;
 }
 class B extends self::A /*hasConstConstructor*/  {
   const constructor •() → self::B
-    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:10:9: Error: The implicitly called unnamed constructor from 'A' has required parameters.
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:10:9: Error: The implicitly called unnamed constructor from 'A' has required parameters.
 Try adding an explicit super initializer with the required arguments.
   const B();
         ^"

@@ -146,7 +146,7 @@ Dart_Handle Loader::DeferredLoadHandler(intptr_t loading_unit_id) {
   AppSnapshot* loading_unit_snapshot = Snapshot::TryReadAppSnapshot(unit_url);
   Dart_Handle result;
   if (loading_unit_snapshot != nullptr) {
-    isolate_group_data->AddLoadingUnit(loading_unit_snapshot);
+    isolate_group_data->AddLoadedSnapshot(loading_unit_snapshot);
     const uint8_t* isolate_snapshot_data = nullptr;
     const uint8_t* isolate_snapshot_instructions = nullptr;
     const uint8_t* ignore_vm_snapshot_data;

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -78,7 +78,7 @@ SwitchExpression
       r'''
 final a = switch (0) {};
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchExpression, 10, 6)],
+      [error(diag.nonExhaustiveSwitchExpression, 10, 6)],
     );
 
     var node = findNode.singleSwitchExpression;
@@ -153,7 +153,7 @@ void f(void x) {
   });
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 27, 1)],
+      [error(diag.useOfVoidResult, 27, 1)],
     );
 
     var node = findNode.singleSwitchExpression;
@@ -532,7 +532,7 @@ void f(Object? x) {
   });
 }
 ''',
-      [error(WarningCode.deadCode, 52, 8)],
+      [error(diag.deadCode, 52, 8)],
     );
 
     var node = findNode.switchExpression('switch');
@@ -611,13 +611,9 @@ void f(Object? x) {
 }
 ''',
       [
+        error(diag.nonConstantRelationalPatternExpression, 64, 1),
         error(
-          CompileTimeErrorCode.nonConstantRelationalPatternExpression,
-          64,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.referencedBeforeDeclaration,
+          diag.referencedBeforeDeclaration,
           64,
           1,
           contextMessages: [message(testFile, 58, 1)],
@@ -707,7 +703,7 @@ void f(Object? x) {
   });
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 72, 1)],
+      [error(diag.undefinedIdentifier, 72, 1)],
     );
 
     var node = findNode.switchExpression('switch');

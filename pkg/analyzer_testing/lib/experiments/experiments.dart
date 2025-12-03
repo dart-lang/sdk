@@ -14,12 +14,12 @@ import 'package:analyzer/dart/analysis/features.dart';
 ///
 /// The flags in the list are kept in alphabetic order for ease of determining
 /// whether a given flag is already included.
-List<String> experimentsForTests = [
+List<String> experimentsForTests = List.unmodifiable([
   Feature.augmentations.enableString,
-  Feature.declaring_constructors.enableString,
   Feature.enhanced_parts.enableString,
   Feature.macros.enableString,
+  Feature.primary_constructors.enableString,
   Feature.private_named_parameters.enableString,
   Feature.static_extensions.enableString,
   Feature.variance.enableString,
-];
+]);

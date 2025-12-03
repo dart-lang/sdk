@@ -614,6 +614,7 @@ mixin _ConstructorDeclarationMixin
   void _buildTypeParametersAndFormalsForOutlineExpressions({
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
+    required SourceConstructorBuilder constructorBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required ClassHierarchy classHierarchy,
   });
@@ -644,6 +645,7 @@ mixin _ConstructorDeclarationMixin
     _buildTypeParametersAndFormalsForOutlineExpressions(
       libraryBuilder: libraryBuilder,
       declarationBuilder: declarationBuilder,
+      constructorBuilder: constructorBuilder,
       bodyBuilderContext: bodyBuilderContext,
       classHierarchy: classHierarchy,
     );
@@ -795,6 +797,7 @@ mixin _RegularConstructorDeclarationMixin
   void _buildTypeParametersAndFormals({
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
+    required SourceConstructorBuilder constructorBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required ClassHierarchy classHierarchy,
     required ExtensionScope extensionScope,
@@ -811,17 +814,13 @@ mixin _RegularConstructorDeclarationMixin
     }
 
     if (formals != null) {
-      // For const constructors we need to include default parameter values
-      // into the outline. For all other formals we need to call
-      // buildOutlineExpressions to clear initializerToken to prevent
-      // consuming too much memory.
       for (FormalParameterBuilder formal in formals!) {
         formal.buildOutlineExpressions(
-          libraryBuilder,
-          declarationBuilder,
+          libraryBuilder: libraryBuilder,
+          declarationBuilder: declarationBuilder,
+          memberBuilder: constructorBuilder,
           extensionScope: extensionScope,
           scope: typeParameterScope,
-          buildDefaultValue: true,
         );
       }
     }
@@ -1008,12 +1007,14 @@ class RegularConstructorDeclaration
   void _buildTypeParametersAndFormalsForOutlineExpressions({
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
+    required SourceConstructorBuilder constructorBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required ClassHierarchy classHierarchy,
   }) {
     _buildTypeParametersAndFormals(
       libraryBuilder: libraryBuilder,
       declarationBuilder: declarationBuilder,
+      constructorBuilder: constructorBuilder,
       bodyBuilderContext: bodyBuilderContext,
       classHierarchy: classHierarchy,
       extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
@@ -1155,12 +1156,14 @@ class DefaultEnumConstructorDeclaration
   void _buildTypeParametersAndFormalsForOutlineExpressions({
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
+    required SourceConstructorBuilder constructorBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required ClassHierarchy classHierarchy,
   }) {
     _buildTypeParametersAndFormals(
       libraryBuilder: libraryBuilder,
       declarationBuilder: declarationBuilder,
+      constructorBuilder: constructorBuilder,
       bodyBuilderContext: bodyBuilderContext,
       classHierarchy: classHierarchy,
       extensionScope: _extensionScope,
@@ -1243,6 +1246,7 @@ class PrimaryConstructorDeclaration
   void _buildTypeParametersAndFormals({
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
+    required SourceConstructorBuilder constructorBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required ClassHierarchy classHierarchy,
     required ExtensionScope extensionScope,
@@ -1265,11 +1269,11 @@ class PrimaryConstructorDeclaration
       // consuming too much memory.
       for (FormalParameterBuilder formal in formals!) {
         formal.buildOutlineExpressions(
-          libraryBuilder,
-          declarationBuilder,
+          libraryBuilder: libraryBuilder,
+          declarationBuilder: declarationBuilder,
+          memberBuilder: constructorBuilder,
           extensionScope: extensionScope,
           scope: typeParameterScope,
-          buildDefaultValue: true,
         );
       }
     }
@@ -1291,9 +1295,7 @@ class PrimaryConstructorDeclaration
     returnType.registerInferredTypeListener(this);
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
-        if (formal.isInitializingFormal ||
-            // Coverage-ignore(suite): Not run.
-            formal.isSuperInitializingFormal) {
+        if (formal.isInitializingFormal || formal.isSuperInitializingFormal) {
           formal.type.registerInferable(inferable);
         }
       }
@@ -1373,12 +1375,14 @@ class PrimaryConstructorDeclaration
   void _buildTypeParametersAndFormalsForOutlineExpressions({
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
+    required SourceConstructorBuilder constructorBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required ClassHierarchy classHierarchy,
   }) {
     _buildTypeParametersAndFormals(
       libraryBuilder: libraryBuilder,
       declarationBuilder: declarationBuilder,
+      constructorBuilder: constructorBuilder,
       bodyBuilderContext: bodyBuilderContext,
       classHierarchy: classHierarchy,
       extensionScope: _fragment.enclosingCompilationUnit.extensionScope,

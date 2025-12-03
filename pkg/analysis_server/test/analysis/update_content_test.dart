@@ -28,7 +28,7 @@ class UpdateContentTest extends PubPackageAnalysisServerTest {
 
   @override
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
+    if (notification.event == analysisNotificationErrors) {
       var decoded = AnalysisErrorsParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,
@@ -36,10 +36,10 @@ class UpdateContentTest extends PubPackageAnalysisServerTest {
       String format(AnalysisError e) => '${e.location.startLine}: ${e.message}';
       filesErrors[getFile(decoded.file)] = decoded.errors.map(format).toList();
     }
-    if (notification.event == ANALYSIS_NOTIFICATION_NAVIGATION) {
+    if (notification.event == analysisNotificationNavigation) {
       navigationCount++;
     }
-    if (notification.event == SERVER_NOTIFICATION_ERROR) {
+    if (notification.event == serverNotificationError) {
       serverErrorCount++;
     }
   }

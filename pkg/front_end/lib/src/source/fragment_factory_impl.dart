@@ -16,7 +16,12 @@ import '../base/combinator.dart' show CombinatorBuilder;
 import '../base/configuration.dart' show Configuration;
 import '../base/directives.dart';
 import '../base/export.dart' show Export;
-import '../base/identifiers.dart' show Identifier, QualifiedNameIdentifier;
+import '../base/identifiers.dart'
+    show
+        Identifier,
+        QualifiedNameIdentifier,
+        OperatorIdentifier,
+        OmittedIdentifier;
 import '../base/import.dart' show Import;
 import '../base/messages.dart';
 import '../base/modifiers.dart' show Modifiers;
@@ -1307,123 +1312,80 @@ class FragmentFactoryImpl implements FragmentFactory {
     required int nameOffset,
     required int formalsOffset,
     required Modifiers modifiers,
-    required bool inConstructor,
     required bool isStatic,
-    required bool isConstructor,
     required bool forAbstractClassOrMixin,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
     required AsyncMarker asyncModifier,
     required String? nativeMethodName,
-    required ProcedureKind? kind,
+    required ProcedureKind kind,
   }) {
-    DeclarationFragmentImpl declarationFragment = _declarationFragments.current;
-    // TODO(johnniwinther): Avoid discrepancy between [inConstructor] and
-    // [isConstructor]. The former is based on the enclosing declaration name
-    // and get/set keyword. The latter also takes initializers into account.
-
-    if (isConstructor) {
-      switch (declarationFragment) {
-        case ExtensionFragment():
-        case ExtensionTypeFragment():
-          // Discard type parameters declared on the constructor. It's not
-          // allowed, an error has already been issued and it will cause
-          // crashes later if they are kept/added to the ones from the parent.
-          // TODO(johnniwinther): This will cause us issuing errors about not
-          // knowing the names of what we discard here. Is there a way to
-          // preserve them?
-          typeParameters = null;
-        case ClassFragment():
-        case MixinFragment():
-        case EnumFragment():
-      }
-      ConstructorName constructorName = computeAndValidateConstructorName(
-        declarationFragment,
-        identifier,
-      );
-      addConstructor(
-        offsetMap: offsetMap,
-        metadata: metadata,
-        modifiers: modifiers,
-        identifier: identifier,
-        constructorName: constructorName,
-        typeParameters: typeParameters,
-        formals: formals,
-        startOffset: startOffset,
-        formalsOffset: formalsOffset,
-        endOffset: endOffset,
-        nativeMethodName: nativeMethodName,
-        beginInitializers: beginInitializers,
-        forAbstractClassOrMixin: forAbstractClassOrMixin,
-      );
-    } else {
-      switch (kind!) {
-        case ProcedureKind.Method:
-        case ProcedureKind.Operator:
-          addMethod(
-            offsetMap: offsetMap,
-            metadata: metadata,
-            modifiers: modifiers,
-            returnType: returnType,
-            identifier: identifier,
-            name: name,
-            typeParameters: typeParameters,
-            formals: formals,
-            isOperator: kind == ProcedureKind.Operator,
-            startOffset: startOffset,
-            nameOffset: nameOffset,
-            formalsOffset: formalsOffset,
-            endOffset: endOffset,
-            nativeMethodName: nativeMethodName,
-            asyncModifier: asyncModifier,
-            isInstanceMember: !isStatic,
-            isExtensionMember: isExtensionMember,
-            isExtensionTypeMember: isExtensionTypeMember,
-          );
-        case ProcedureKind.Getter:
-          addGetter(
-            offsetMap: offsetMap,
-            metadata: metadata,
-            modifiers: modifiers,
-            returnType: returnType,
-            identifier: identifier,
-            name: name,
-            typeParameters: typeParameters,
-            formals: formals,
-            startOffset: startOffset,
-            nameOffset: nameOffset,
-            formalsOffset: formalsOffset,
-            endOffset: endOffset,
-            nativeMethodName: nativeMethodName,
-            asyncModifier: asyncModifier,
-            isInstanceMember: !isStatic,
-            isExtensionMember: isExtensionMember,
-            isExtensionTypeMember: isExtensionTypeMember,
-          );
-        case ProcedureKind.Setter:
-          addSetter(
-            offsetMap: offsetMap,
-            metadata: metadata,
-            modifiers: modifiers,
-            returnType: returnType,
-            identifier: identifier,
-            name: name,
-            typeParameters: typeParameters,
-            formals: formals,
-            startOffset: startOffset,
-            nameOffset: nameOffset,
-            formalsOffset: formalsOffset,
-            endOffset: endOffset,
-            nativeMethodName: nativeMethodName,
-            asyncModifier: asyncModifier,
-            isInstanceMember: !isStatic,
-            isExtensionMember: isExtensionMember,
-            isExtensionTypeMember: isExtensionTypeMember,
-          );
-        // Coverage-ignore(suite): Not run.
-        case ProcedureKind.Factory:
-          throw new UnsupportedError("Unexpected procedure kind: $kind");
-      }
+    switch (kind) {
+      case ProcedureKind.Method:
+      case ProcedureKind.Operator:
+        addMethod(
+          offsetMap: offsetMap,
+          metadata: metadata,
+          modifiers: modifiers,
+          returnType: returnType,
+          identifier: identifier,
+          name: name,
+          typeParameters: typeParameters,
+          formals: formals,
+          isOperator: kind == ProcedureKind.Operator,
+          startOffset: startOffset,
+          nameOffset: nameOffset,
+          formalsOffset: formalsOffset,
+          endOffset: endOffset,
+          nativeMethodName: nativeMethodName,
+          asyncModifier: asyncModifier,
+          isInstanceMember: !isStatic,
+          isExtensionMember: isExtensionMember,
+          isExtensionTypeMember: isExtensionTypeMember,
+        );
+      case ProcedureKind.Getter:
+        addGetter(
+          offsetMap: offsetMap,
+          metadata: metadata,
+          modifiers: modifiers,
+          returnType: returnType,
+          identifier: identifier,
+          name: name,
+          typeParameters: typeParameters,
+          formals: formals,
+          startOffset: startOffset,
+          nameOffset: nameOffset,
+          formalsOffset: formalsOffset,
+          endOffset: endOffset,
+          nativeMethodName: nativeMethodName,
+          asyncModifier: asyncModifier,
+          isInstanceMember: !isStatic,
+          isExtensionMember: isExtensionMember,
+          isExtensionTypeMember: isExtensionTypeMember,
+        );
+      case ProcedureKind.Setter:
+        addSetter(
+          offsetMap: offsetMap,
+          metadata: metadata,
+          modifiers: modifiers,
+          returnType: returnType,
+          identifier: identifier,
+          name: name,
+          typeParameters: typeParameters,
+          formals: formals,
+          startOffset: startOffset,
+          nameOffset: nameOffset,
+          formalsOffset: formalsOffset,
+          endOffset: endOffset,
+          nativeMethodName: nativeMethodName,
+          asyncModifier: asyncModifier,
+          isInstanceMember: !isStatic,
+          isExtensionMember: isExtensionMember,
+          isExtensionTypeMember: isExtensionTypeMember,
+        );
+      // Coverage-ignore(suite): Not run.
+      case ProcedureKind.Factory:
+        throw new UnsupportedError("Unexpected procedure kind: $kind");
     }
   }
 
@@ -1528,7 +1490,6 @@ class FragmentFactoryImpl implements FragmentFactory {
     required List<MetadataBuilder>? metadata,
     required Modifiers modifiers,
     required Identifier identifier,
-    required ConstructorName constructorName,
     required List<TypeParameterFragment>? typeParameters,
     required List<FormalParameterBuilder>? formals,
     required int startOffset,
@@ -1536,10 +1497,32 @@ class FragmentFactoryImpl implements FragmentFactory {
     required int endOffset,
     required String? nativeMethodName,
     required Token? beginInitializers,
+    required bool hasNewKeyword,
     required bool forAbstractClassOrMixin,
   }) {
     DeclarationFragmentImpl enclosingDeclaration =
         _declarationFragments.current;
+
+    switch (enclosingDeclaration) {
+      case ExtensionFragment():
+      case ExtensionTypeFragment():
+        // Discard type parameters declared on the constructor. It's not
+        // allowed, an error has already been issued and it will cause
+        // crashes later if they are kept/added to the ones from the parent.
+        // TODO(johnniwinther): This will cause us issuing errors about not
+        // knowing the names of what we discard here. Is there a way to
+        // preserve them?
+        typeParameters = null;
+      case ClassFragment():
+      case MixinFragment():
+      case EnumFragment():
+    }
+    ConstructorName constructorName = computeAndValidateConstructorName(
+      enclosingDeclaration,
+      identifier,
+      hasNewKeyword: hasNewKeyword,
+    );
+
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(
       typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
@@ -1596,13 +1579,15 @@ class FragmentFactoryImpl implements FragmentFactory {
   @override
   void addPrimaryConstructorField({
     required List<MetadataBuilder>? metadata,
+    required Modifiers modifiers,
     required TypeBuilder type,
     required String name,
     required int nameOffset,
   }) {
-    _declarationFragments.current.addPrimaryConstructorField(
+    _declarationFragments.current.registerPrimaryConstructorField(
       _addPrimaryConstructorField(
         metadata: metadata,
+        modifiers: modifiers,
         type: type,
         name: name,
         nameOffset: nameOffset,
@@ -1741,29 +1726,40 @@ class FragmentFactoryImpl implements FragmentFactory {
   ConstructorName computeAndValidateConstructorName(
     DeclarationFragmentImpl enclosingDeclaration,
     Identifier identifier, {
-    isFactory = false,
+    bool hasNewKeyword = false,
+    bool isFactory = false,
   }) {
     String className = enclosingDeclaration.name;
-    String prefix;
-    String? suffix;
-    int? suffixOffset;
-    String fullName;
-    int fullNameOffset;
-    int fullNameLength;
-    int charOffset;
-    if (identifier is QualifiedNameIdentifier) {
+    if (identifier is OmittedIdentifier) {
+      return new ConstructorName(
+        name: '',
+        nameOffset: identifier.token.charOffset,
+        fullName: className,
+        fullNameOffset: identifier.token.charOffset,
+        fullNameLength: identifier.token.length,
+      );
+    } else if (identifier is OperatorIdentifier) {
+      // Erroneous case reported in the parser.
+      return new ConstructorName(
+        name: identifier.name,
+        nameOffset: identifier.charOffset,
+        fullName: '$className.${identifier.name}',
+        fullNameOffset: identifier.charOffset,
+        fullNameLength: noLength,
+      );
+    } else if (identifier is QualifiedNameIdentifier) {
       Identifier qualifier = identifier.qualifier;
-      prefix = qualifier.name;
-      suffix = identifier.name;
-      suffixOffset = identifier.nameOffset;
-      charOffset = qualifier.nameOffset;
+      String prefix = qualifier.name;
+      String suffix = identifier.name;
+      int suffixOffset = identifier.nameOffset;
       String prefixAndSuffix = '${prefix}.${suffix}';
-      fullNameOffset = qualifier.nameOffset;
+      int fullNameOffset = qualifier.nameOffset;
       // If the there is no space between the prefix and suffix we use the full
       // length as the name length. Otherwise the full name has no length.
-      fullNameLength = fullNameOffset + prefix.length + 1 == suffixOffset
+      int fullNameLength = fullNameOffset + prefix.length + 1 == suffixOffset
           ? prefixAndSuffix.length
           : noLength;
+      String fullName;
       if (suffix == "new") {
         // Normalize `Class.new` to `Class`.
         suffix = '';
@@ -1771,56 +1767,79 @@ class FragmentFactoryImpl implements FragmentFactory {
       } else {
         fullName = '$className.$suffix';
       }
-    } else {
-      prefix = identifier.name;
-      suffix = null;
-      suffixOffset = null;
-      charOffset = identifier.nameOffset;
-      fullName = prefix;
-      fullNameOffset = identifier.nameOffset;
-      fullNameLength = prefix.length;
-    }
 
-    if (prefix == className) {
+      if (hasNewKeyword) {
+        // Qualified names are not supported here. An error has been reported
+        // in the parser, we assume that the prefix is the enclosing class name
+        // and use the suffix as the constructor name.
+      } else if (prefix == className) {
+        // Old style constructor.
+      } else {
+        _problemReporting.addProblem(
+          codeConstructorWithWrongName,
+          fullNameOffset,
+          prefix.length,
+          _compilationUnit.fileUri,
+          context: [
+            codeConstructorWithWrongNameContext
+                .withArgumentsOld(enclosingDeclaration.name)
+                .withLocation2(enclosingDeclaration.uriOffset),
+          ],
+        );
+      }
       return new ConstructorName(
-        name: suffix ?? '',
+        name: suffix,
         nameOffset: suffixOffset,
         fullName: fullName,
         fullNameOffset: fullNameOffset,
         fullNameLength: fullNameLength,
       );
-    } else if (suffix == null) {
-      // Normalize `foo` in `Class` to `Class.foo`.
-      fullName = '$className.$prefix';
-    }
-    if (suffix == null && !isFactory) {
-      // This method is called because the syntax indicated that this is a
-      // constructor, either because it had qualified name or because the method
-      // had an initializer list.
-      //
-      // In either case this is reported elsewhere, and since the name is a
-      // legal name for a regular method, we don't remove an error on the name.
     } else {
-      _problemReporting.addProblem(
-        codeConstructorWithWrongName,
-        charOffset,
-        prefix.length,
-        _compilationUnit.fileUri,
-        context: [
-          codeConstructorWithWrongNameContext
-              .withArgumentsOld(enclosingDeclaration.name)
-              .withLocation2(enclosingDeclaration.uriOffset),
-        ],
+      String name = identifier.name;
+      int nameOffset = identifier.nameOffset;
+      String fullName = name;
+      int fullNameOffset = identifier.nameOffset;
+      int fullNameLength = name.length;
+
+      if (hasNewKeyword) {
+        // new named();
+        if (name == "new") {
+          // Erroneous case reported in the parser, normalize to `Class`.
+          name = '';
+          fullName = className;
+        } else {
+          fullName = '$className.$name';
+        }
+      } else if (name == className) {
+        // Old style unnamed constructor.
+        name = '';
+      } else if (isFactory && name == "new") {
+        // Erroneous case reported in the parser, normalize `Class`.
+        name = '';
+        fullName = className;
+      } else if (isFactory && libraryFeatures.primaryConstructors.isEnabled) {
+        fullName = '$className.$name';
+      } else {
+        _problemReporting.addProblem(
+          codeConstructorWithWrongName,
+          fullNameOffset,
+          fullNameLength,
+          _compilationUnit.fileUri,
+          context: [
+            codeConstructorWithWrongNameContext
+                .withArgumentsOld(enclosingDeclaration.name)
+                .withLocation2(enclosingDeclaration.uriOffset),
+          ],
+        );
+      }
+      return new ConstructorName(
+        name: name,
+        nameOffset: nameOffset,
+        fullName: fullName,
+        fullNameOffset: fullNameOffset,
+        fullNameLength: fullNameLength,
       );
     }
-
-    return new ConstructorName(
-      name: suffix ?? prefix,
-      nameOffset: suffixOffset,
-      fullName: fullName,
-      fullNameOffset: fullNameOffset,
-      fullNameLength: fullNameLength,
-    );
   }
 
   @override
@@ -2143,6 +2162,7 @@ class FragmentFactoryImpl implements FragmentFactory {
 
   PrimaryConstructorFieldFragment _addPrimaryConstructorField({
     required List<MetadataBuilder>? metadata,
+    required Modifiers modifiers,
     required TypeBuilder type,
     required String name,
     required int nameOffset,
@@ -2155,6 +2175,7 @@ class FragmentFactoryImpl implements FragmentFactory {
           fileUri: _compilationUnit.fileUri,
           nameOffset: nameOffset,
           metadata: metadata,
+          modifiers: modifiers,
           type: type,
           enclosingScope: enclosingDeclaration.bodyScope,
           enclosingDeclaration: enclosingDeclaration,
@@ -2171,6 +2192,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     Modifiers modifiers,
     TypeBuilder type,
     String name,
+    String? publicName,
     bool hasThis,
     bool hasSuper,
     int charOffset,
@@ -2201,9 +2223,11 @@ class FragmentFactoryImpl implements FragmentFactory {
       formalName,
       charOffset,
       fileUri: _compilationUnit.fileUri,
+      initializerToken: initializerToken,
       hasImmediatelyDeclaredInitializer: initializerToken != null,
       isWildcard: isWildcard,
-    )..initializerToken = initializerToken;
+      publicName: publicName,
+    );
     return formal;
   }
 

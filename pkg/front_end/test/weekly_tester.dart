@@ -6,6 +6,9 @@ import 'dart:async' show Future;
 import 'dart:convert' show LineSplitter, utf8;
 import 'dart:io' show File, Platform, Process, ProcessResult;
 
+// Temporarily disable because the weekly bot fails - maybe because of this?
+const bool doCoverage = false;
+
 Future<void> main(List<String> args) async {
   // General idea: Launch - in separate processes - whatever we want to run
   // concurrently, capturing the stdout and stderr, printing it with some
@@ -111,12 +114,14 @@ Future<void> main(List<String> args) async {
   }
 
   // Now run all coverage and print a diff.
-  WrappedProcess coverageProcess = await run([
-    Platform.script.resolve("run_all_coverage_update.dart").toString(),
-  ], "coverage update");
-  await coverageProcess.process.exitCode;
-  ProcessResult coverageDiffResult = Process.runSync("git", ["diff"]);
-  print(coverageDiffResult.stdout);
+  if (doCoverage) {
+    WrappedProcess coverageProcess = await run([
+      Platform.script.resolve("run_all_coverage_update.dart").toString(),
+    ], "coverage update");
+    await coverageProcess.process.exitCode;
+    ProcessResult coverageDiffResult = Process.runSync("git", ["diff"]);
+    print(coverageDiffResult.stdout);
+  }
 
   if (shouldThrow) throw "There were failures!";
 }

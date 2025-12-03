@@ -11,7 +11,6 @@ import 'package:dap/dap.dart';
 import 'package:dds/src/dap/adapters/dart.dart';
 import 'package:dds/src/dap/logging.dart';
 import 'package:dds/src/dap/protocol_stream.dart';
-import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
@@ -33,17 +32,6 @@ class DapTestClient {
   final Map<int, _OutgoingRequest> _pendingRequests = {};
   final _eventController = StreamController<Event>.broadcast();
   int _seq = 1;
-
-  /// Whether to advertise support for URIs and expect them in stack traces
-  /// and breakpoint updates from the debug adapter.
-  bool supportUris = false;
-
-  /// Whether to send URIs in breakpoints even for standard file paths.
-  ///
-  /// This is separate from [supportUris] so that we can test when support is
-  /// enabled that the client can still send paths. This is because VS Code will
-  /// send file paths for file:/// documents even though URIs are supported.
-  bool sendFileUris = false;
 
   /// Functions provided by tests to handle requests that may come from the
   /// server (such as `runInTerminal`).
@@ -314,7 +302,6 @@ class DapTestClient {
         adapterID: 'test',
         supportsRunInTerminalRequest: supportsRunInTerminalRequest,
         supportsProgressReporting: supportsProgressReporting,
-        supportsDartUris: supportUris,
       )),
       sendRequest(
         SetExceptionBreakpointsArguments(
@@ -607,7 +594,7 @@ class DapTestClient {
   Future<T> _logIfSlow<T>(String name, Future<T> future) {
     // Use a loop to periodically check so that we can exit earlier if
     // the test is being torn down.
-    var endTime = DateTime.now().add(_requestWarningDuration);
+    final endTime = DateTime.now().add(_requestWarningDuration);
     late Timer timer;
     timer = Timer.periodic(Duration(milliseconds: 100), (_) {
       // Shutting down, so just abort.
@@ -760,34 +747,12 @@ extension DapTestClientExtension on DapTestClient {
     return stop;
   }
 
-  /// Converts a file path to a URI to send to the debug adapter if
-  /// [sendFileUris] is `true` and otherwise returns as-is.
-  String toPathOrUri(String filePath) {
-    assert(path.isAbsolute(filePath));
-    return sendFileUris ? Uri.file(filePath).toString() : filePath;
-  }
-
-  /// Converts a string from the debug adapter back to a file path, asserting
-  /// it was a URI if [useUris] is `true`, and not if [useUris] is `false`.
-  String fromPathOrUri(String filePathOrUri) {
-    if (!supportUris) {
-      // Expect an absolute path.
-      assert(path.isAbsolute(filePathOrUri));
-      return filePathOrUri;
-    }
-
-    // Expect a URI with file:/// scheme.
-    final uri = Uri.parse(filePathOrUri);
-    assert(uri.isScheme('file'));
-    return uri.toFilePath();
-  }
-
   /// Sets a breakpoint at [line] in [file].
   Future<SetBreakpointsResponseBody> setBreakpoint(File file, int line,
       {String? condition}) async {
     final response = await sendRequest(
       SetBreakpointsArguments(
-        source: Source(path: toPathOrUri(_normalizeBreakpointPath(file.path))),
+        source: Source(path: _normalizeBreakpointPath(file.path)),
         breakpoints: [SourceBreakpoint(line: line, condition: condition)],
       ),
     );
@@ -802,7 +767,7 @@ extension DapTestClientExtension on DapTestClient {
       File file, List<int> lines) async {
     final response = await sendRequest(
       SetBreakpointsArguments(
-        source: Source(path: toPathOrUri(_normalizeBreakpointPath(file.path))),
+        source: Source(path: _normalizeBreakpointPath(file.path)),
         breakpoints: lines.map((line) => SourceBreakpoint(line: line)).toList(),
       ),
     );
@@ -866,8 +831,7 @@ extension DapTestClientExtension on DapTestClient {
       initialize(),
       sendRequest(
         SetBreakpointsArguments(
-          source:
-              Source(path: toPathOrUri(_normalizeBreakpointPath(file.path))),
+          source: Source(path: _normalizeBreakpointPath(file.path)),
           breakpoints: [
             SourceBreakpoint(
               line: line,
@@ -950,8 +914,7 @@ extension DapTestClientExtension on DapTestClient {
       final frame = result.stackFrames[0];
 
       if (file != null) {
-        expect(fromPathOrUri(frame.source!.path!),
-            equals(uppercaseDriveLetter(file.path)));
+        expect(frame.source!.path!, equals(uppercaseDriveLetter(file.path)));
       }
       if (sourceName != null) {
         expect(frame.source?.name, equals(sourceName));
@@ -1125,6 +1088,20 @@ extension DapTestClientExtension on DapTestClient {
     final topFrame = stack.stackFrames.first;
 
     final variablesScope = await getValidScope(topFrame.id, 'Locals');
+    return getChildVariable(variablesScope.variablesReference, name);
+  }
+
+  /// A helper that finds a named variable in the Globals scope for the top
+  /// frame.
+  Future<Variable> getGlobalVariable(int threadId, String name) async {
+    final stack = await getValidStack(
+      threadId,
+      startFrame: 0,
+      numFrames: 1,
+    );
+    final topFrame = stack.stackFrames.first;
+
+    final variablesScope = await getValidScope(topFrame.id, 'Globals');
     return getChildVariable(variablesScope.variablesReference, name);
   }
 

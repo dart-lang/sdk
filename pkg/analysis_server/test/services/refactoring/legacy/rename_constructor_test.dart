@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test/test.dart';
@@ -23,10 +25,10 @@ class RenameConstructorClassTest extends _RenameConstructorTest {
   Future<void> test_checkInitialConditions_inSDK() async {
     await indexTestUnit('''
 void f() {
-  new String.fromCharCodes([]);
+  new String.^fromCharCodes([]);
 }
 ''');
-    createRenameRefactoringAtString('fromCharCodes(');
+    createRenameRefactoring();
     // check status
     refactoring.newName = 'newName';
     var status = await refactoring.checkInitialConditions();
@@ -41,10 +43,10 @@ void f() {
   Future<void> test_checkNewName() async {
     await indexTestUnit('''
 class A {
-  A.test() {}
+  A.^test() {}
 }
 ''');
-    createRenameRefactoringAtString('test() {}');
+    createRenameRefactoring();
     expect(refactoring.oldName, 'test');
     // same
     refactoring.newName = 'test';
@@ -64,11 +66,11 @@ class A {
   Future<void> test_checkNewName_hasMember_constructor() async {
     await indexTestUnit('''
 class A {
-  A.test() {}
-  A.newName() {} // existing
+  A.^test() {}
+  A.[!newName!]() {}
 }
 ''');
-    _createConstructorDeclarationRefactoring('test() {}');
+    _createConstructorDeclarationRefactoring();
     // check status
     refactoring.newName = 'newName';
     var status = refactoring.checkNewName();
@@ -77,18 +79,18 @@ class A {
       RefactoringProblemSeverity.ERROR,
       expectedMessage:
           "Class 'A' already declares constructor with name 'newName'.",
-      expectedContextSearch: 'newName() {} // existing',
+      rangeIndex: 0,
     );
   }
 
   Future<void> test_checkNewName_hasMember_method() async {
     await indexTestUnit('''
 class A {
-  A.test() {}
-  newName() {} // existing
+  A.^test() {}
+  [!newName!]() {}
 }
 ''');
-    _createConstructorDeclarationRefactoring('test() {}');
+    _createConstructorDeclarationRefactoring();
     // check status
     refactoring.newName = 'newName';
     var status = refactoring.checkNewName();
@@ -96,7 +98,7 @@ class A {
       status,
       RefactoringProblemSeverity.ERROR,
       expectedMessage: "Class 'A' already declares method with name 'newName'.",
-      expectedContextSearch: 'newName() {} // existing',
+      rangeIndex: 0,
     );
   }
 
@@ -105,7 +107,7 @@ class A {
 // ignore: deprecated_new_in_comment_reference
 /// Documentation for [new A] and [A.new]
 class A {
-  A() {} // marker
+  A^() {}
   factory A._() = A;
 }
 class B extends A {
@@ -117,7 +119,7 @@ void f() {
 }
 ''');
     // configure refactoring
-    _createConstructorDeclarationRefactoring('() {} // marker');
+    _createConstructorDeclarationRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, '');
@@ -127,7 +129,7 @@ void f() {
 // ignore: deprecated_new_in_comment_reference
 /// Documentation for [new A.newName] and [A.newName]
 class A {
-  A.newName() {} // marker
+  A.newName() {}
   factory A._() = A.newName;
 }
 class B extends A {
@@ -151,12 +153,12 @@ class B extends A {
   B() : super() {}
 }
 void f() {
-  new A();
+  new ^A();
   A.new;
 }
 ''');
     // configure refactoring
-    _createConstructorInvocationRefactoring('new A();');
+    _createConstructorInvocationRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, '');
@@ -185,7 +187,7 @@ void f() {
 // ignore: deprecated_new_in_comment_reference
 /// Documentation for [A.test] and [new A.test]
 class A {
-  A.test() {} // marker
+  A.^test() {}
   factory A._() = A.test;
 }
 class B extends A {
@@ -197,7 +199,7 @@ void f() {
 }
 ''');
     // configure refactoring
-    _createConstructorDeclarationRefactoring('test() {} // marker');
+    _createConstructorDeclarationRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, 'test');
@@ -207,7 +209,7 @@ void f() {
 // ignore: deprecated_new_in_comment_reference
 /// Documentation for [A.newName] and [new A.newName]
 class A {
-  A.newName() {} // marker
+  A.newName() {}
   factory A._() = A.newName;
 }
 class B extends A {
@@ -224,7 +226,7 @@ void f() {
   test_createChange_implicitlyInvoked_hasConstructor_hasInitializers() async {
     await indexTestUnit('''
 class A {
-  A();
+  ^A();
 }
 
 class B extends A {
@@ -233,7 +235,7 @@ class B extends A {
 }
 ''');
     // configure refactoring
-    _createConstructorDeclarationRefactoring('A();');
+    _createConstructorDeclarationRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, '');
@@ -255,7 +257,7 @@ class B extends A {
   test_createChange_implicitlyInvoked_hasConstructor_noInitializers() async {
     await indexTestUnit('''
 class A {
-  A();
+  ^A();
 }
 
 class B extends A {
@@ -263,7 +265,7 @@ class B extends A {
 }
 ''');
     // configure refactoring
-    _createConstructorDeclarationRefactoring('A();');
+    _createConstructorDeclarationRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, '');
@@ -283,7 +285,7 @@ class B extends A {
   Future<void> test_createChange_implicitlyInvoked_noConstructor() async {
     await indexTestUnit('''
 class A {
-  A();
+  ^A();
 }
 
 class B extends A {
@@ -291,7 +293,7 @@ class B extends A {
 }
 ''');
     // configure refactoring
-    _createConstructorDeclarationRefactoring('A();');
+    _createConstructorDeclarationRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, '');
@@ -316,11 +318,11 @@ class A {
   int field = 0;
 }
 void f() {
-  new A();
+  n^ew A();
 }
 ''');
     // configure refactoring
-    _createConstructorInvocationRefactoring('new A();');
+    _createConstructorInvocationRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, '');
@@ -343,7 +345,7 @@ void f() {
 // ignore: deprecated_new_in_comment_reference
 /// Documentation for [A.test] and [new A.test]
 class A {
-  A.test() {} // marker
+  A.^test() {}
   factory A._() = A.test;
 }
 class B extends A {
@@ -355,7 +357,7 @@ void f() {
 }
 ''');
     // configure refactoring
-    _createConstructorDeclarationRefactoring('test() {} // marker');
+    _createConstructorDeclarationRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, 'test');
@@ -365,7 +367,7 @@ void f() {
 // ignore: deprecated_new_in_comment_reference
 /// Documentation for [A] and [new A]
 class A {
-  A() {} // marker
+  A() {}
   factory A._() = A;
 }
 class B extends A {
@@ -374,6 +376,112 @@ class B extends A {
 void f() {
   new A();
   A.new;
+}
+''');
+  }
+
+  Future<void> test_dotShorthandConstructor_tearoff() async {
+    // This is wrong, but we should handle it anyway.
+    verifyNoTestUnitErrors = false;
+    await indexTestUnit('''
+class A {
+  A^();
+}
+A a = .new;
+''');
+    createRenameRefactoring();
+    expect(refactoring.oldName, '');
+    refactoring.newName = 'newName';
+    await assertSuccessfulRefactoring('''
+class A {
+  A.newName();
+}
+A a = .newName;
+''');
+  }
+
+  Future<void> test_dotShorthandConstructor_tearoff_removeName() async {
+    // This is wrong, but we should handle it anyway.
+    verifyNoTestUnitErrors = false;
+    await indexTestUnit('''
+class A {
+  A.^name();
+}
+A a = .name;
+''');
+    createRenameRefactoring();
+    expect(refactoring.oldName, 'name');
+    refactoring.newName = '';
+    await assertSuccessfulRefactoring('''
+class A {
+  A();
+}
+A a = .new;
+''');
+  }
+
+  Future<void> test_dotShorthandConstructorInvocation() async {
+    await indexTestUnit('''
+class A {
+  A^();
+}
+A a = .new();
+''');
+    createRenameRefactoring();
+    expect(refactoring.oldName, '');
+    refactoring.newName = 'newName';
+    await assertSuccessfulRefactoring('''
+class A {
+  A.newName();
+}
+A a = .newName();
+''');
+  }
+
+  Future<void> test_dotShorthandConstructorInvocation_removeName() async {
+    await indexTestUnit('''
+class A {
+  A.^name();
+}
+A a = .name();
+''');
+    createRenameRefactoring();
+    expect(refactoring.oldName, 'name');
+    refactoring.newName = '';
+    await assertSuccessfulRefactoring('''
+class A {
+  A();
+}
+A a = .new();
+''');
+  }
+
+  Future<void> test_memberWithSameName() async {
+    await indexTestUnit('''
+class Foo {
+  Foo.^bar() {
+    bar();
+  }
+  void bar() {
+    var _ = Foo.bar();
+  }
+}
+''');
+    // configure refactoring
+    _createConstructorDeclarationRefactoring();
+    expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
+    expect(refactoring.oldName, 'bar');
+    // validate change
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+class Foo {
+  Foo.newName() {
+    bar();
+  }
+  void bar() {
+    var _ = Foo.newName();
+  }
 }
 ''');
   }
@@ -396,10 +504,10 @@ class RenameConstructorEnumTest extends _RenameConstructorTest {
     await indexTestUnit('''
 enum E {
   v.test();
-  const E.test(); // 0
+  const E.^test();
 }
 ''');
-    createRenameRefactoringAtString('test(); // 0');
+    createRenameRefactoring();
     expect(refactoring.oldName, 'test');
     // same
     refactoring.newName = 'test';
@@ -420,11 +528,11 @@ enum E {
     await indexTestUnit('''
 enum E {
   v.test();
-  const E.test(); // 0
-  const E.newName(); // existing
+  const E.test^();
+  const E.[!newName!]();
 }
 ''');
-    _createConstructorDeclarationRefactoring('test(); // 0');
+    _createConstructorDeclarationRefactoring();
     // check status
     refactoring.newName = 'newName';
     var status = refactoring.checkNewName();
@@ -433,7 +541,7 @@ enum E {
       RefactoringProblemSeverity.ERROR,
       expectedMessage:
           "Enum 'E' already declares constructor with name 'newName'.",
-      expectedContextSearch: 'newName(); // existing',
+      rangeIndex: 0,
     );
   }
 
@@ -441,11 +549,11 @@ enum E {
     await indexTestUnit('''
 enum E {
   v.test();
-  const E.test(); // 0
-  void newName() {} // existing
+  const E.^test();
+  void [!newName!]() {}
 }
 ''');
-    _createConstructorDeclarationRefactoring('test(); // 0');
+    _createConstructorDeclarationRefactoring();
     // check status
     refactoring.newName = 'newName';
     var status = refactoring.checkNewName();
@@ -453,7 +561,7 @@ enum E {
       status,
       RefactoringProblemSeverity.ERROR,
       expectedMessage: "Enum 'E' already declares method with name 'newName'.",
-      expectedContextSearch: 'newName() {} // existing',
+      rangeIndex: 0,
     );
   }
 
@@ -462,12 +570,12 @@ enum E {
 /// [E.new]
 enum E {
   v1(), v2.new(), v3, v4.other();
-  const E(); // 0
+  const E^();
   const E.other() : this();
 }
 ''');
     // configure refactoring
-    _createConstructorDeclarationRefactoring('(); // 0');
+    _createConstructorDeclarationRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, '');
@@ -477,7 +585,7 @@ enum E {
 /// [E.newName]
 enum E {
   v1.newName(), v2.newName(), v3.newName(), v4.other();
-  const E.newName(); // 0
+  const E.newName();
   const E.other() : this.newName();
 }
 ''');
@@ -487,13 +595,13 @@ enum E {
     await indexTestUnit('''
 /// [E.new]
 enum E {
-  v1(), v2.new(), v3;
+  v1^(), v2.new(), v3;
 
   factory E.other() => throw 0;
 }
 ''');
     // configure refactoring
-    _createEnumConstantRefactoring('v1()');
+    _createEnumConstantRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, '');
@@ -515,13 +623,13 @@ enum E {
     await indexTestUnit('''
 /// [E.new]
 enum E {
-  v1(), v2.new(), v3;
+  v1^(), v2.new(), v3;
 
   final int foo = 0;
 }
 ''');
     // configure refactoring
-    _createEnumConstantRefactoring('v1()');
+    _createEnumConstantRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, '');
@@ -543,13 +651,13 @@ enum E {
     await indexTestUnit('''
 /// [E.new]
 enum E {
-  v1(), v2.new(), v3;
+  v1^(), v2.new(), v3;
 
   void foo() {}
 }
 ''');
     // configure refactoring
-    _createEnumConstantRefactoring('v1()');
+    _createEnumConstantRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, '');
@@ -571,11 +679,11 @@ enum E {
     await indexTestUnit('''
 /// [E.new]
 enum E {
-  v1(), v2.new(), v3;
+  v1^(), v2.new(), v3;
 }
 ''');
     // configure refactoring
-    _createEnumConstantRefactoring('v1()');
+    _createEnumConstantRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, '');
@@ -595,11 +703,11 @@ enum E {
     await indexTestUnit('''
 /// [E.new]
 enum E {
-  v1(), v2.new(), v3
+  v1^(), v2.new(), v3
 }
 ''');
     // configure refactoring
-    _createEnumConstantRefactoring('v1()');
+    _createEnumConstantRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, '');
@@ -620,12 +728,12 @@ enum E {
 /// [E.test]
 enum E {
   v1.test(), v2.other();
-  const E.test(); // 0
+  const E.^test();
   const E.other() : this.test();
 }
 ''');
     // configure refactoring
-    _createConstructorDeclarationRefactoring('test(); // 0');
+    _createConstructorDeclarationRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, 'test');
@@ -635,7 +743,7 @@ enum E {
 /// [E.newName]
 enum E {
   v1.newName(), v2.other();
-  const E.newName(); // 0
+  const E.newName();
   const E.other() : this.newName();
 }
 ''');
@@ -646,12 +754,12 @@ enum E {
 /// [E]
 enum E {
   v1.test(), v2.other();
-  const E.test(); // 0
+  const ^E.test();
   const E.other() : this.test();
 }
 ''');
     // configure refactoring
-    _createConstructorDeclarationRefactoring('test(); // 0');
+    _createConstructorDeclarationRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, 'test');
@@ -661,15 +769,18 @@ enum E {
 /// [E]
 enum E {
   v1(), v2.other();
-  const E(); // 0
+  const E();
   const E.other() : this();
 }
 ''');
   }
 
-  void _createEnumConstantRefactoring(String search) {
-    var enumConstant = findNode.enumConstantDeclaration(search);
-    var element = enumConstant.constructorElement;
+  void _createEnumConstantRefactoring({int index = 0, bool range = false}) {
+    var node = _searchWith<EnumConstantDeclaration>(index: index, range: range);
+    if (node == null) {
+      return;
+    }
+    var element = node.constructorElement;
     createRenameRefactoringForElement2(element);
   }
 }
@@ -678,9 +789,9 @@ enum E {
 class RenameConstructorExtensionTypeTest extends _RenameConstructorTest {
   Future<void> test_checkNewName() async {
     await indexTestUnit('''
-extension type E.test(int it) {}
+extension type E.^test(int it) {}
 ''');
-    createRenameRefactoringAtString('test(int it)');
+    createRenameRefactoring();
     expect(refactoring.oldName, 'test');
     // same
     refactoring.newName = 'test';
@@ -699,11 +810,11 @@ extension type E.test(int it) {}
 
   Future<void> test_checkNewName_hasMember_constructor() async {
     await indexTestUnit('''
-extension type E.test(int it) {
-  E.newName() : this.test(0);
+extension type E.^test(int it) {
+  E.[!newName!]() : this.test(0);
 }
 ''');
-    createRenameRefactoringAtString('test(int it)');
+    createRenameRefactoring();
     // check status
     refactoring.newName = 'newName';
     var status = refactoring.checkNewName();
@@ -713,17 +824,17 @@ extension type E.test(int it) {
       expectedMessage:
           "Extension type 'E' already declares constructor with name "
           "'newName'.",
-      expectedContextSearch: 'newName() :',
+      rangeIndex: 0,
     );
   }
 
   Future<void> test_checkNewName_hasMember_method() async {
     await indexTestUnit('''
-extension type E.test(int it) {
-  void newName() {} // existing
+extension type E.^test(int it) {
+  void [!newName!]() {}
 }
 ''');
-    createRenameRefactoringAtString('test(int it)');
+    createRenameRefactoring();
     // check status
     refactoring.newName = 'newName';
     var status = refactoring.checkNewName();
@@ -732,7 +843,7 @@ extension type E.test(int it) {
       RefactoringProblemSeverity.ERROR,
       expectedMessage:
           "Extension type 'E' already declares method with name 'newName'.",
-      expectedContextSearch: 'newName() {} // existing',
+      rangeIndex: 0,
     );
   }
 
@@ -745,11 +856,11 @@ extension type E(int it) {
 
 void f() {
   E(0);
-  E.new;
+  E.n^ew;
 }
 ''');
     // configure refactoring
-    createRenameRefactoringAtString('new;');
+    createRenameRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, '');
@@ -771,7 +882,7 @@ void f() {
   Future<void> test_createChange_primary_change() async {
     await indexTestUnit('''
 /// [E.test]
-extension type E.test(int it) {
+extension type E.^test(int it) {
   E.other() : this.test(0);
 }
 
@@ -781,7 +892,7 @@ void f() {
 }
 ''');
     // configure refactoring
-    createRenameRefactoringAtString('test(int it)');
+    createRenameRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, 'test');
@@ -803,7 +914,7 @@ void f() {
   Future<void> test_createChange_primary_remove() async {
     await indexTestUnit('''
 /// [E.test]
-extension type E.test(int it) {
+extension type E.^test(int it) {
   E.other() : this.test(0);
 }
 
@@ -813,7 +924,7 @@ void f() {
 }
 ''');
     // configure refactoring
-    createRenameRefactoringAtString('test(int it)');
+    createRenameRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, 'test');
@@ -836,7 +947,7 @@ void f() {
     await indexTestUnit('''
 /// [E.new]
 extension type E.named(int it) {
-  E() : this.named(0);
+  ^E() : this.named(0);
   E.other() : this();
 }
 
@@ -846,7 +957,7 @@ void f() {
 }
 ''');
     // configure refactoring
-    createRenameRefactoringAtString('E() :');
+    createRenameRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, '');
@@ -870,7 +981,7 @@ void f() {
     await indexTestUnit('''
 /// [E.test]
 extension type E(int it) {
-  E.test() : this(0);
+  E.^test() : this(0);
   E.other() : this.test();
 }
 
@@ -880,7 +991,7 @@ void f() {
 }
 ''');
     // configure refactoring
-    createRenameRefactoringAtString('test() :');
+    createRenameRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, 'test');
@@ -904,7 +1015,7 @@ void f() {
     await indexTestUnit('''
 /// [E.test]
 extension type E.named(int it) {
-  E.test() : this.named(0);
+  ^E.test() : this.named(0);
   E.other() : this.test();
 }
 
@@ -914,7 +1025,7 @@ void f() {
 }
 ''');
     // configure refactoring
-    createRenameRefactoringAtString('E.test() :');
+    createRenameRefactoring();
     expect(refactoring.refactoringName, 'Rename Constructor');
     expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, 'test');
@@ -936,14 +1047,42 @@ void f() {
 }
 
 class _RenameConstructorTest extends RenameRefactoringTest {
-  void _createConstructorDeclarationRefactoring(String search) {
-    var element = findNode.constructor(search).declaredFragment?.element;
+  void _createConstructorDeclarationRefactoring({
+    int index = 0,
+    bool range = false,
+  }) {
+    var node = _searchWith<ConstructorDeclaration>(index: index, range: range);
+    if (node == null) {
+      return;
+    }
+    var element = node.declaredFragment?.element;
     createRenameRefactoringForElement2(element);
   }
 
-  void _createConstructorInvocationRefactoring(String search) {
-    var instanceCreation = findNode.instanceCreation(search);
-    var element = instanceCreation.constructorName.element;
+  void _createConstructorInvocationRefactoring({
+    int index = 0,
+    bool range = false,
+  }) {
+    var node = _searchWith<InstanceCreationExpression>(
+      index: index,
+      range: range,
+    );
+    if (node == null) {
+      return;
+    }
+    var element = node.constructorName.element;
     createRenameRefactoringForElement2(element);
+  }
+
+  T? _searchWith<T extends AstNode>({required int index, required bool range}) {
+    if (range) {
+      setRange(index);
+    } else {
+      setPositionOrRange(index);
+    }
+    return NodeLocator2(
+      offset,
+      offset + length,
+    ).searchWithin(testUnit)?.thisOrAncestorOfType<T>();
   }
 }

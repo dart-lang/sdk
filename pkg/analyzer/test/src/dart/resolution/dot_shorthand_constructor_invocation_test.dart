@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -19,18 +18,67 @@ main() {
 @reflectiveTest
 class DotShorthandConstructorInvocationResolutionTest
     extends PubPackageResolutionTest {
-  test_abstract_instantiation() async {
+  test_abstractClass() async {
     await assertErrorsInCode(
       r'''
-Function getFunction() {
-  return .new();
+abstract class Foo<T> {
+  Foo();
+}
+
+void main() {
+  Foo _ = .new();
 }
 ''',
-      [error(CompileTimeErrorCode.instantiateAbstractClass, 34, 6)],
+      [error(diag.instantiateAbstractClass, 60, 6)],
     );
   }
 
-  test_abstract_instantiation_factory() async {
+  test_abstractClass_const() async {
+    await assertErrorsInCode(
+      r'''
+abstract class C {
+  static C fn() => CB.named(1);
+}
+
+class CB implements C {
+  final int x;
+  CB.named(this.x);
+}
+
+void main() {
+  C c = const .fn(1);
+  print(c);
+}
+''',
+      [error(diag.constWithUndefinedConstructor, 145, 2)],
+    );
+  }
+
+  test_abstractClass_const_typeArguments() async {
+    await assertErrorsInCode(
+      r'''
+abstract class C {
+  static C fn() => CB.named(1);
+}
+
+class CB implements C {
+  final int x;
+  CB.named(this.x);
+}
+
+void main() {
+  C c = const .fn<int>(1);
+  print(c);
+}
+''',
+      [
+        error(diag.constWithUndefinedConstructor, 145, 2),
+        error(diag.wrongNumberOfTypeArgumentsDotShorthandConstructor, 147, 5),
+      ],
+    );
+  }
+
+  test_abstractClass_factory() async {
     await assertNoErrorsInCode(r'''
 void main() async {
   var iter = [1, 2];
@@ -64,6 +112,104 @@ DotShorthandConstructorInvocation
   isDotShorthand: true
   staticType: Stream<int>
 ''');
+  }
+
+  test_abstractClass_factory_const() async {
+    await assertNoErrorsInCode(r'''
+abstract class Foo<T> {
+  const factory Foo.a() = _Foo;
+
+  const Foo();
+}
+
+class _Foo<T> extends Foo<T> {
+  const _Foo();
+}
+
+Foo<T> bar<T>() => const .a();
+''');
+
+    var node = findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation
+  constKeyword: const
+  period: .
+  constructorName: SimpleIdentifier
+    token: a
+    element: ConstructorMember
+      baseElement: <testLibrary>::@class::Foo::@constructor::a
+      substitution: {T: Never}
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  staticType: Foo<Never>
+''');
+  }
+
+  test_abstractClass_factory_const_typeArguments() async {
+    await assertErrorsInCode(
+      r'''
+abstract class Foo<T> {
+  const factory Foo.a() = _Foo;
+
+  const Foo();
+}
+
+class _Foo<T> extends Foo<T> {
+  const _Foo();
+}
+
+Foo<int> bar<T>() => const .a<int>();
+''',
+      [error(diag.wrongNumberOfTypeArgumentsDotShorthandConstructor, 154, 5)],
+    );
+  }
+
+  test_abstractClass_factory_typeArguments() async {
+    await assertErrorsInCode(
+      r'''
+abstract class Foo<T> {
+  factory Foo.a() = _Foo;
+
+  Foo();
+}
+
+class _Foo<T> extends Foo<T> {
+  _Foo();
+}
+
+Foo<T> bar<T>() => .a<T>();
+''',
+      [error(diag.wrongNumberOfTypeArgumentsDotShorthandConstructor, 128, 3)],
+    );
+  }
+
+  test_abstractClass_function() async {
+    await assertErrorsInCode(
+      r'''
+Function getFunction() {
+  return .new();
+}
+''',
+      [error(diag.instantiateAbstractClass, 34, 6)],
+    );
+  }
+
+  test_abstractClass_typeArguments() async {
+    await assertErrorsInCode(
+      r'''
+abstract class Foo<T> {
+  Foo();
+}
+
+void main() {
+  Foo _ = .new<int>();
+}
+''',
+      [error(diag.instantiateAbstractClass, 60, 11)],
+    );
   }
 
   test_chain_method() async {
@@ -254,7 +400,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.constWithNonConst, 69, 5)],
+      [error(diag.constWithNonConst, 69, 5)],
     );
   }
 
@@ -272,7 +418,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.constWithUndefinedConstructor, 107, 2)],
+      [error(diag.constWithUndefinedConstructor, 107, 2)],
     );
   }
 
@@ -364,13 +510,7 @@ void f() {
   print(e);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
-          65,
-          5,
-        ),
-      ],
+      [error(diag.invalidReferenceToGenerativeEnumConstructor, 65, 5)],
     );
   }
 
@@ -479,6 +619,111 @@ DotShorthandConstructorInvocation
   isDotShorthand: true
   staticType: C
 ''');
+  }
+
+  test_factory() async {
+    await assertNoErrorsInCode(r'''
+class Foo<T> {
+  factory Foo.a() = _Foo;
+
+  Foo();
+}
+
+class _Foo<T> extends Foo<T> {
+  _Foo();
+}
+
+Foo<T> bar<T>() => .a();
+''');
+
+    var node = findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: a
+    element: ConstructorMember
+      baseElement: <testLibrary>::@class::Foo::@constructor::a
+      substitution: {T: T}
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  staticType: Foo<T>
+''');
+  }
+
+  test_factory_const() async {
+    await assertNoErrorsInCode(r'''
+class Foo<T> {
+  const factory Foo.a() = _Foo;
+
+  const Foo();
+}
+
+class _Foo<T> extends Foo<T> {
+  const _Foo();
+}
+
+Foo<T> bar<T>() => const .a();
+''');
+
+    var node = findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation
+  constKeyword: const
+  period: .
+  constructorName: SimpleIdentifier
+    token: a
+    element: ConstructorMember
+      baseElement: <testLibrary>::@class::Foo::@constructor::a
+      substitution: {T: Never}
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  staticType: Foo<Never>
+''');
+  }
+
+  test_factory_const_typeArguments() async {
+    await assertErrorsInCode(
+      r'''
+class Foo<T> {
+  const factory Foo.a() = _Foo;
+
+  const Foo();
+}
+
+class _Foo<T> extends Foo<T> {
+  const _Foo();
+}
+
+Foo<int> bar<T>() => const .a<int>();
+''',
+      [error(diag.wrongNumberOfTypeArgumentsDotShorthandConstructor, 145, 5)],
+    );
+  }
+
+  test_factory_typeArguments() async {
+    await assertErrorsInCode(
+      r'''
+class Foo<T> {
+  factory Foo.a() = _Foo;
+
+  Foo();
+}
+
+class _Foo<T> extends Foo<T> {
+  _Foo();
+}
+
+Foo<T> bar<T>() => .a<T>();
+''',
+      [error(diag.wrongNumberOfTypeArgumentsDotShorthandConstructor, 119, 3)],
+    );
   }
 
   test_nested_invocation() async {
@@ -618,8 +863,8 @@ void main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 35, 3),
-        error(ParserErrorCode.illegalAssignmentToNonAssignable, 40, 2),
+        error(diag.dotShorthandUndefinedInvocation, 35, 3),
+        error(diag.illegalAssignmentToNonAssignable, 40, 2),
       ],
     );
   }
@@ -635,8 +880,8 @@ void main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 37, 3),
-        error(ParserErrorCode.missingAssignableSelector, 41, 1),
+        error(diag.dotShorthandUndefinedInvocation, 37, 3),
+        error(diag.missingAssignableSelector, 41, 1),
       ],
     );
   }
@@ -654,7 +899,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.missingRequiredArgument, 69, 3)],
+      [error(diag.missingRequiredArgument, 69, 3)],
     );
   }
 
@@ -670,14 +915,7 @@ void main() {
   print(c);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode
-              .wrongNumberOfTypeArgumentsDotShorthandConstructor,
-          46,
-          5,
-        ),
-      ],
+      [error(diag.wrongNumberOfTypeArgumentsDotShorthandConstructor, 46, 5)],
     );
   }
 
@@ -693,14 +931,7 @@ void main() {
   print(c);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode
-              .wrongNumberOfTypeArgumentsDotShorthandConstructor,
-          58,
-          5,
-        ),
-      ],
+      [error(diag.wrongNumberOfTypeArgumentsDotShorthandConstructor, 58, 5)],
     );
   }
 
@@ -712,7 +943,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.dotShorthandMissingContext, 24, 17)],
+      [error(diag.dotShorthandMissingContext, 24, 17)],
     );
   }
 }

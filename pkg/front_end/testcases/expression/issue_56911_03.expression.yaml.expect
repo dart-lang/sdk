@@ -1,0 +1,8 @@
+Errors: {
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(lowered #lib1::ExtensionType% /* erasure=dart.core::String, declared=! */ #this) → dynamic
+  return (() → Null {
+    #this as{Unchecked} dart.core::String;
+    (#this as{Unchecked} dart.core::String).{dart.core::String::codeUnitAt}(0){(dart.core::int) → dart.core::int};
+    #lib1::ExtensionType|get#value(#this);
+  })(){() → Null};

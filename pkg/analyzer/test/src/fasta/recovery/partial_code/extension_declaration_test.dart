@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -16,11 +16,7 @@ class ExtensionDeclarationTest extends PartialCodeTest {
       TestDescriptor(
         'keyword',
         'extension',
-        [
-          ParserErrorCode.expectedToken,
-          ParserErrorCode.expectedTypeName,
-          ParserErrorCode.expectedExtensionBody,
-        ],
+        [diag.expectedToken, diag.expectedTypeName, diag.expectedExtensionBody],
         'extension on _s_ {}',
         failing: [
           'getter',
@@ -34,26 +30,19 @@ class ExtensionDeclarationTest extends PartialCodeTest {
       TestDescriptor(
         'named',
         'extension E',
-        [
-          ParserErrorCode.expectedToken,
-          ParserErrorCode.expectedTypeName,
-          ParserErrorCode.expectedExtensionBody,
-        ],
+        [diag.expectedToken, diag.expectedTypeName, diag.expectedExtensionBody],
         'extension E on _s_ {}',
         failing: ['getter', 'functionNonVoid', 'functionVoid', 'mixin'],
       ),
       TestDescriptor(
         'on',
         'extension E on',
-        [
-          ParserErrorCode.expectedTypeName,
-          ParserErrorCode.expectedExtensionBody,
-        ],
+        [diag.expectedTypeName, diag.expectedExtensionBody],
         'extension E on _s_ {}',
         failing: ['getter', 'functionNonVoid', 'functionVoid', 'mixin'],
       ),
       TestDescriptor('extendedType', 'extension E on String', [
-        ParserErrorCode.expectedExtensionBody,
+        diag.expectedExtensionBody,
       ], 'extension E on String {}'),
       // Most of the failing tests are because the following text could be
       // a member of the class, so the parser adds the closing brace _after_
@@ -63,7 +52,7 @@ class ExtensionDeclarationTest extends PartialCodeTest {
       TestDescriptor(
         'partialBody',
         'extension E on String {',
-        [ParserErrorCode.expectedToken],
+        [diag.expectedToken],
         'extension E on String {}',
         failing: [
           'class',

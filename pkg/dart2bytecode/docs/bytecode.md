@@ -524,7 +524,7 @@ type FieldDeclaration {
                 hasGetter, hasSetter,
                 hasInitializer, hasNontrivialInitializer, hasInitializerCode,
                 hasSourcePositions, hasAnnotations, hasPragma,
-                hasCustomScript);
+                hasCustomScript, isExtensionTypeMember);
   PackedObject name;
   PackedObject type;
 
@@ -557,7 +557,7 @@ type FunctionDeclaration {
                 isAsync, isAsyncStar, isSyncStar,
                 isNoSuchMethodForwarder, isExternal, isNative,
                 hasSourcePositions, hasAnnotations, hasPragma,
-                hasCustomScript);
+                hasCustomScript, isExtensionTypeMember);
 
   PackedObject name;
 
