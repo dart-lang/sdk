@@ -1193,6 +1193,7 @@ class DynamicElementImpl extends ElementImpl {
     ];
   }
 
+  @Deprecated('Use isOriginX instead')
   @override
   bool get isSynthetic => true;
 
@@ -2205,6 +2206,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
     return _firstFragment.isStatic;
   }
 
+  @Deprecated('Use isOriginX instead')
   @override
   @trackedIncludedInId
   bool get isSynthetic {
@@ -2243,12 +2245,12 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   TypeImpl get returnType {
     _ensureReadResolution();
 
-    // If a synthetic getter, we might need to infer the type.
-    if (_returnType == null && isSynthetic) {
-      if (this case GetterElementImpl thisGetter) {
-        thisGetter.variable.type;
-      } else if (this case SetterElementImpl thisSetter) {
-        thisSetter.variable.type;
+    // If an accessor for a variable, we might need to infer the type.
+    if (_returnType == null) {
+      if (this case PropertyAccessorElementImpl self) {
+        if (self.isOriginVariable) {
+          self.variable.type;
+        }
       }
     }
 
@@ -3236,6 +3238,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
   // TODO(augmentations): Implement the merge of formal parameters.
   bool get isSuperFormal => _firstFragment.isSuperFormal;
 
+  @Deprecated('Use isOriginX instead')
   @override
   bool get isSynthetic {
     return _firstFragment.isSynthetic;
@@ -3808,6 +3811,7 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   @override
   bool get isSimplyBounded => true;
 
+  @Deprecated('Use isOriginX instead')
   @override
   bool get isSynthetic => _firstFragment.isSynthetic;
 
@@ -4217,6 +4221,7 @@ abstract class InstanceElementImpl extends ElementImpl
     setModifier(Modifier.SIMPLY_BOUNDED, value);
   }
 
+  @Deprecated('Use isOriginX instead')
   @override
   @trackedIncludedInId
   bool get isSynthetic {
@@ -5534,6 +5539,7 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   /// or `default`).
   bool get isOnSwitchMember => _firstFragment.isOnSwitchMember;
 
+  @Deprecated('Use isOriginX instead')
   @override
   bool get isSynthetic => _firstFragment.isSynthetic;
 
@@ -7184,6 +7190,7 @@ class LocalVariableElementImpl extends PromotableElementImpl
   @override
   bool get isStatic => _firstFragment.isStatic;
 
+  @Deprecated('Use isOriginX instead')
   @override
   bool get isSynthetic => _firstFragment.isSynthetic;
 
@@ -8235,6 +8242,7 @@ class MultiplyDefinedElementImpl extends ElementImpl
   @override
   bool get isPublic => true;
 
+  @Deprecated('Use isOriginX instead')
   @override
   bool get isSynthetic => true;
 
@@ -8374,6 +8382,7 @@ class NeverElementImpl extends ElementImpl {
     return [_firstFragment];
   }
 
+  @Deprecated('Use isOriginX instead')
   @override
   bool get isSynthetic => true;
 
@@ -8637,6 +8646,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
         .toList();
   }
 
+  @Deprecated('Use isOriginX instead')
   @override
   bool get isSynthetic => false;
 
@@ -9865,6 +9875,7 @@ class TypeAliasElementImpl extends ElementImpl
     setModifier(Modifier.SIMPLY_BOUNDED, value);
   }
 
+  @Deprecated('Use isOriginX instead')
   @override
   @trackedIncludedInId
   bool get isSynthetic {
@@ -10162,6 +10173,7 @@ class TypeParameterElementImpl extends ElementImpl
     return _variance == null;
   }
 
+  @Deprecated('Use isOriginX instead')
   @override
   bool get isSynthetic {
     return _firstFragment.isSynthetic;
@@ -10284,8 +10296,6 @@ class TypeParameterFragmentImpl extends FragmentImpl
   /// [offset].
   TypeParameterFragmentImpl({required this.name, super.firstTokenOffset});
 
-  /// Initialize a newly created synthetic type parameter element to have the
-  /// given [name], and with [isSynthetic] set to `true`.
   TypeParameterFragmentImpl.synthetic({required this.name})
     : super(firstTokenOffset: null) {
     isSynthetic = true;
@@ -10557,6 +10567,7 @@ enum _FieldFragmentImplModifiers {
 enum _FormalParameterFragmentImplModifiers {
   /// Whether the field was explicitly marked as being covariant.
   isExplicitlyCovariant,
+  isOriginDeclaration,
 }
 
 enum _FragmentImplModifiers {

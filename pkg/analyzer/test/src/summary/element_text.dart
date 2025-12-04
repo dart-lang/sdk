@@ -445,8 +445,13 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
-      _writeFragmentCodeRange(f);
-      // _writeDisplayName(f);
+
+      if (configuration.withCodeRanges) {
+        if (f.isOriginDeclaration) {
+          _sink.writelnWithIndent('codeOffset: ${f.codeOffset}');
+          _sink.writelnWithIndent('codeLength: ${f.codeLength}');
+        }
+      }
 
       if (f.newKeywordOffset case var newKeywordOffset?) {
         _sink.writelnWithIndent('newKeywordOffset: $newKeywordOffset');
@@ -658,6 +663,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
+      // ignore: deprecated_member_use_from_same_package
       _sink.writeIf(f.isSynthetic, 'synthetic ');
       _sink.writeIf(f.hasInitializer, 'hasInitializer ');
 
@@ -842,17 +848,6 @@ class _Element2Writer extends _AbstractElementWriter {
 
     if (f is ExecutableFragmentImpl && f.invokesSuperSelf) {
       _sink.write(' invokesSuperSelf');
-    }
-  }
-
-  void _writeFragmentCodeRange(Fragment f) {
-    if (configuration.withCodeRanges) {
-      if (f is FragmentImpl) {
-        if (!f.isSynthetic) {
-          _sink.writelnWithIndent('codeOffset: ${f.codeOffset}');
-          _sink.writelnWithIndent('codeLength: ${f.codeLength}');
-        }
-      }
     }
   }
 
@@ -1365,6 +1360,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
   void _writeMethodElement(MethodElementImpl e) {
     _sink.writeIndentedLine(() {
+      // ignore: deprecated_member_use_from_same_package
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
@@ -1429,7 +1425,11 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('nextFragment', f.nextFragment);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
-      _writeFragmentCodeRange(f);
+
+      if (configuration.withCodeRanges) {
+        _sink.writelnWithIndent('codeOffset: ${f.codeOffset}');
+        _sink.writelnWithIndent('codeLength: ${f.codeLength}');
+      }
 
       _writeFragmentList(
         'typeParameters',
@@ -1806,6 +1806,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
+      // ignore: deprecated_member_use_from_same_package
       _sink.writeIf(f.isSynthetic, 'synthetic ');
       _sink.writeIf(f.hasInitializer, 'hasInitializer ');
 

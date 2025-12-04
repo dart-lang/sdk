@@ -85,11 +85,11 @@ class InformativeDataApplier {
     });
 
     _applyToAccessors(
-      unitElement.getters.notSynthetic,
+      unitElement.getters.withOriginDeclaration,
       unitInfo.topLevelGetters,
     );
     _applyToAccessors(
-      unitElement.setters.notSynthetic,
+      unitElement.setters.withOriginDeclaration,
       unitInfo.topLevelSetters,
     );
 
@@ -140,7 +140,7 @@ class InformativeDataApplier {
     );
 
     forCorrespondingPairs(
-      unitElement.topLevelVariables.notSynthetic,
+      unitElement.topLevelVariables.withOriginDeclaration,
       unitInfo.topLevelVariable,
       _applyToTopLevelVariable,
     );
@@ -168,7 +168,10 @@ class InformativeDataApplier {
     List<PropertyAccessorFragmentImpl> elementList,
     List<_InfoExecutableDeclaration> infoList,
   ) {
-    forCorrespondingPairs(elementList.notSynthetic, infoList, (element, info) {
+    forCorrespondingPairs(elementList.withOriginDeclaration, infoList, (
+      element,
+      info,
+    ) {
       element.setCodeRange(info.codeOffset, info.codeLength);
       element.firstTokenOffset = info.firstTokenOffset;
       element.nameOffset = info.nameOffset;
@@ -380,7 +383,10 @@ class InformativeDataApplier {
     List<FieldFragmentImpl> elementList,
     List<_InfoFieldDeclaration> infoList,
   ) {
-    forCorrespondingPairs(elementList.notSynthetic, infoList, (element, info) {
+    forCorrespondingPairs(elementList.withOriginDeclaration, infoList, (
+      element,
+      info,
+    ) {
       element.setCodeRange(info.codeOffset, info.codeLength);
       element.firstTokenOffset = info.firstTokenOffset;
       element.nameOffset = info.nameOffset;
@@ -397,7 +403,7 @@ class InformativeDataApplier {
     List<FormalParameterFragmentImpl> parameters,
     List<_InfoFormalParameter> infoList,
   ) {
-    parameters = parameters.where((p) => !p.isSynthetic).toList();
+    parameters = parameters.where((p) => p.isOriginDeclaration).toList();
     forCorrespondingPairs(parameters, infoList, (element, info) {
       element.setCodeRange(info.codeOffset, info.codeLength);
       element.firstTokenOffset = info.firstTokenOffset;
@@ -2517,8 +2523,20 @@ extension on DeferredResolutionReadingMixin {
   }
 }
 
-extension _ListOfElement<T extends FragmentImpl> on List<T> {
-  List<T> get notSynthetic {
-    return where((e) => !e.isSynthetic).toList();
+extension _ListOfPropertyAccessorFragment<
+  T extends PropertyAccessorFragmentImpl
+>
+    on List<T> {
+  List<T> get withOriginDeclaration {
+    return where((e) => e.isOriginDeclaration).toList();
+  }
+}
+
+extension _ListOfPropertyInducingFragment<
+  T extends PropertyInducingFragmentImpl
+>
+    on List<T> {
+  List<T> get withOriginDeclaration {
+    return where((e) => e.isOriginDeclaration).toList();
   }
 }

@@ -283,6 +283,14 @@ mixin _FormalParameterFragmentImplMixin {
     setModifier(Modifier.EXPLICITLY_COVARIANT, value);
   }
 
+  bool get isOriginDeclaration {
+    return hasModifier(Modifier.ORIGIN_DECLARATION);
+  }
+
+  set isOriginDeclaration(bool value) {
+    setModifier(Modifier.ORIGIN_DECLARATION, value);
+  }
+
   bool hasModifier(Modifier modifier);
 
   void setModifier(Modifier modifier, bool value);
@@ -297,6 +305,7 @@ mixin _FragmentImplMixin {
     setModifier(Modifier.AUGMENTATION, value);
   }
 
+  @Deprecated('Use isOriginX instead')
   /// A synthetic element is an element that is not represented in the source
   /// code explicitly, but is implied by the source code, such as the default
   /// constructor for a class that does not explicitly define any constructors.

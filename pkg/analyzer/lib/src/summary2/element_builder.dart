@@ -189,7 +189,6 @@ class ElementBuilder {
     FragmentImpl? lastFragment,
     ClassFragmentImpl fragment,
   ) {
-    assert(!fragment.isSynthetic);
     libraryFragment.addClass(fragment);
 
     if (fragment.isAugmentation && lastFragment is ClassFragmentImpl) {
@@ -222,7 +221,6 @@ class ElementBuilder {
     FragmentImpl? lastFragment,
     EnumFragmentImpl fragment,
   ) {
-    assert(!fragment.isSynthetic);
     libraryFragment.addEnum(fragment);
 
     if (fragment.isAugmentation && lastFragment is EnumFragmentImpl) {
@@ -251,7 +249,6 @@ class ElementBuilder {
     FragmentImpl? lastFragment,
     ExtensionFragmentImpl fragment,
   ) {
-    assert(!fragment.isSynthetic);
     libraryFragment.addExtension(fragment);
 
     if (fragment.isAugmentation && lastFragment is ExtensionFragmentImpl) {
@@ -279,7 +276,6 @@ class ElementBuilder {
     FragmentImpl? lastFragment,
     ExtensionTypeFragmentImpl fragment,
   ) {
-    assert(!fragment.isSynthetic);
     libraryFragment.addExtensionType(fragment);
 
     if (fragment.isAugmentation && lastFragment is ExtensionTypeFragmentImpl) {
@@ -600,7 +596,6 @@ class ElementBuilder {
     FragmentImpl? lastFragment,
     MixinFragmentImpl fragment,
   ) {
-    assert(!fragment.isSynthetic);
     libraryFragment.addMixin(fragment);
     if (fragment.isAugmentation && lastFragment is MixinFragmentImpl) {
       lastFragment.addFragment(fragment);
@@ -766,7 +761,7 @@ class ElementBuilder {
     FragmentImpl? lastFragment,
     TopLevelVariableFragmentImpl variableFragment,
   ) {
-    assert(!variableFragment.isSynthetic);
+    assert(variableFragment.isOriginDeclaration);
     libraryFragment.addTopLevelVariable(variableFragment);
 
     var lastVariableElement = _topLevelVariableElement(lastFragment);
@@ -1467,6 +1462,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     }
 
     fragment.hasImplicitType = node.type == null && node.parameters == null;
+    fragment.isOriginDeclaration = true;
     fragment.metadata = _buildMetadata(node.metadata);
 
     node.declaredFragment = fragment;
@@ -1608,6 +1604,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     fragment.isExplicitlyCovariant = node.covariantKeyword != null;
     fragment.isFinal = node.isFinal;
+    fragment.isOriginDeclaration = true;
     fragment.metadata = _buildMetadata(node.metadata);
 
     node.declaredFragment = fragment;
@@ -1913,6 +1910,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     fragment.hasImplicitType = node.type == null;
     fragment.isExplicitlyCovariant = node.covariantKeyword != null;
     fragment.isFinal = node.isFinal;
+    fragment.isOriginDeclaration = true;
     fragment.metadata = _buildMetadata(node.metadata);
 
     node.declaredFragment = fragment;
@@ -1938,6 +1936,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     }
 
     fragment.hasImplicitType = node.type == null && node.parameters == null;
+    fragment.isOriginDeclaration = true;
     fragment.metadata = _buildMetadata(node.metadata);
 
     node.declaredFragment = fragment;
@@ -2082,6 +2081,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
             privateName: null,
           )
           ..isDeclaring = true
+          ..isOriginDeclaration = true
           ..hasImplicitType = true;
     formalParameterFragment.metadata = _buildMetadata(formalParameter.metadata);
     formalParameter.declaredFragment = formalParameterFragment;
