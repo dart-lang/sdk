@@ -128,7 +128,6 @@ class FormatOnTypeHandler
         // Bodies
         EmptyClassBody(:var semicolon) ||
         EmptyFunctionBody(:var semicolon) ||
-        EnumBody(:var semicolon?) ||
         ExpressionFunctionBody(:var semicolon?) ||
         NativeFunctionBody(:var semicolon) ||
         // Declarations

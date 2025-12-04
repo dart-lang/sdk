@@ -253,6 +253,16 @@ void f  ()
     ''', isNull);
   }
 
+  /// Ensure the semicolon after enum constants does not trigger formatting
+  /// because the formatter removes it if there is nothing after it.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/61909
+  Future<void> test_formatOnType_bad_semiColon_enumBodySeparator() async {
+    await expectFormatOnTypeResult('''
+enum E { a, b[!;!] }
+    ''', isNull);
+  }
+
   Future<void> test_formatOnType_bad_semicolon_inComment() async {
     await expectFormatOnTypeResult('''
 void f  ()
@@ -315,6 +325,17 @@ void f  ()
 void f  ()
 {
 [!^}!]
+    ''', isNotNull);
+  }
+
+  Future<void> test_formatOnType_good_semiColon_enumConstructor() async {
+    await expectFormatOnTypeResult('''
+enum X {
+  a,
+  b;
+
+  const X()[!;!]
+}
     ''', isNotNull);
   }
 
