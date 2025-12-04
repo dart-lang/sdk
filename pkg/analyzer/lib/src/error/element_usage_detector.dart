@@ -53,7 +53,7 @@ class ElementUsageDetector<TagInfo extends Object> {
       return;
     }
     // Implicit getters/setters.
-    if (element.isSynthetic && element is PropertyAccessorElement) {
+    if (element is PropertyAccessorElement && element.isOriginVariable) {
       element = element.variable;
     }
     var tagInfo = elementUsageSet.getTagInfo(element);

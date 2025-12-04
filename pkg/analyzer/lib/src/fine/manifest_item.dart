@@ -1077,7 +1077,9 @@ sealed class ManifestItem<E extends ElementImpl> {
 
   @mustCallSuper
   bool match(MatchContext context, E element) {
-    return flags.isSynthetic == element.isSynthetic &&
+    return
+    // ignore: deprecated_member_use_from_same_package
+    flags.isSynthetic == element.isSynthetic &&
         metadata.match(context, element.effectiveMetadata);
   }
 
@@ -2140,6 +2142,7 @@ extension type _ManifestItemFlags._(int _bits) {
 
   factory _ManifestItemFlags.encode(ElementImpl element) {
     var bits = 0;
+    // ignore: deprecated_member_use_from_same_package
     if (element.isSynthetic) {
       bits |= _maskFor(_ManifestItemFlag.isSynthetic);
     }

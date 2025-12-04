@@ -846,9 +846,6 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         return true;
       }
     }
-    if (element.isSynthetic) {
-      return true;
-    }
     if (element is FieldElement) {
       var getter = element.getter;
       if (getter == null) {
@@ -868,9 +865,6 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   bool _isUsedElement(Element element) {
-    if (element.isSynthetic) {
-      return true;
-    }
     if (element is LocalVariableElement ||
         element is LocalFunctionElement && !element.isStatic) {
       // local variable or function
@@ -939,9 +933,6 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   bool _isUsedMember(ExecutableElement element) {
     if (_isPubliclyAccessible(element)) {
-      return true;
-    }
-    if (element.isSynthetic) {
       return true;
     }
     if (_hasPragmaVmEntryPoint(element)) {

@@ -8828,6 +8828,11 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
   @override
   PropertyAccessorElementImpl get element;
 
+  @Deprecated('Use isOriginX instead.')
+  @override
+  @trackedIncludedInId
+  bool get isSynthetic => super.isSynthetic;
+
   @override
   MetadataImpl get metadata {
     _ensureReadResolution();
@@ -8839,11 +8844,8 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
     if (nameOffset case var nameOffset?) {
       return nameOffset;
     }
-    if (isSynthetic) {
+    if (isOriginVariable) {
       var variable = element.variable;
-      if (variable.isSynthetic) {
-        return enclosingFragment.offset;
-      }
       return variable._firstFragment.offset;
     }
     return firstTokenOffset!;
@@ -8916,7 +8918,13 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   @override
   @trackedIndirectly
   Element get nonSynthetic {
-    if (isSynthetic) {
+    if (isOriginDeclaration) {
+      return this;
+    } else if (this case FieldElementImpl(
+      isOriginDeclaringFormalParameter: true,
+    )) {
+      return this;
+    } else {
       if (enclosingElement case EnumElementImpl enclosingElement) {
         // TODO(scheglov): remove 'index'?
         if (name == 'index' || name == 'values') {
@@ -8924,8 +8932,6 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
         }
       }
       return (getter ?? setter)!;
-    } else {
-      return this;
     }
   }
 

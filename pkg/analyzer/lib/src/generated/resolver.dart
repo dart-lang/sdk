@@ -1757,7 +1757,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         node is PropertyAccess ||
         node is SimpleIdentifier) {
       if (element is InternalSetterElement) {
-        if (element.isSynthetic) {
+        if (element.isOriginVariable) {
           writeType = element.variable.type;
         } else {
           var parameters = element.formalParameters;

@@ -154,22 +154,8 @@ class _InitializerInference {
   }
 
   void _addVariableNode(PropertyInducingElementImpl element) {
-    if (element.isSynthetic) {
-      var shouldInfer = false;
-      if (element is FieldElementImpl) {
-        // For enums `values` is purely synthetic.
-        if (element.isEnumValues) {
-          shouldInfer = true;
-        }
-        // For declaring formal parameters the field is synthetic.
-        // But we want to infer the type from the default value.
-        if (element.declaringFormalParameter != null) {
-          shouldInfer = true;
-        }
-      }
-      if (!shouldInfer) {
-        return;
-      }
+    if (element.isOriginGetterSetter) {
+      return;
     }
 
     if (!element.hasImplicitType) return;
