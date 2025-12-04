@@ -656,7 +656,7 @@ class BodyBuilderImpl extends StackListenerImpl
       return node.buildSimpleRead();
     } else if (node is Expression) {
       return node;
-    } else if (node is SuperInitializer) {
+    } else if (node is InternalSuperInitializer) {
       return buildProblem(
         message: cfe.codeSuperAsExpression,
         fileUri: uri,
@@ -9949,7 +9949,7 @@ class BodyBuilderImpl extends StackListenerImpl
   Initializer buildSuperInitializer(
     bool isSynthetic,
     Constructor constructor,
-    Arguments arguments, [
+    ArgumentsImpl arguments, [
     int charOffset = -1,
   ]) {
     if (_context.isConstConstructor && !constructor.isConst) {
@@ -9960,9 +9960,11 @@ class BodyBuilderImpl extends StackListenerImpl
       );
     }
     _needsImplicitSuperInitializer = false;
-    return new SuperInitializer(constructor, arguments)
-      ..fileOffset = charOffset
-      ..isSynthetic = isSynthetic;
+    return new InternalSuperInitializer(
+      constructor,
+      arguments,
+      isSynthetic: isSynthetic,
+    )..fileOffset = charOffset;
   }
 
   @override

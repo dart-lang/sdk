@@ -12652,7 +12652,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   InitializerInferenceResult visitSuperInitializer(SuperInitializer node) {
+    _unhandledInitializer(node);
+  }
+
+  InitializerInferenceResult visitInternalSuperInitializer(
+    InternalSuperInitializer node,
+  ) {
     ensureMemberType(node.target);
 
     Supertype asSuperClass = hierarchyBuilder.getClassAsInstanceOf(
@@ -12679,12 +12686,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       const UnknownType(),
       node.fileOffset,
       new InvocationTargetFunctionType(functionType),
-      node.arguments as ArgumentsImpl,
+      node.arguments,
       skipTypeArgumentInference: true,
       staticTarget: node.target,
     );
     return new InitializerInferenceResult.fromInvocationInferenceResult(
-      node,
+      new SuperInitializer(node.target, node.arguments)
+        ..fileOffset = node.fileOffset
+        ..isSynthetic = node.isSynthetic,
       inferenceResult,
     );
   }

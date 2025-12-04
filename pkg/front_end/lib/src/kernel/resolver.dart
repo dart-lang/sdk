@@ -1183,7 +1183,7 @@ class Resolver {
         );
       }
       Initializer last = initializers.last;
-      if (last is SuperInitializer) {
+      if (last is InternalSuperInitializer) {
         if (bodyBuilderContext.isEnumClass) {
           initializers[initializers.length - 1] = _buildInvalidInitializer(
             problemReporting.buildProblem(
@@ -1196,8 +1196,7 @@ class Resolver {
           )..parent = last.parent;
           needsImplicitSuperInitializer = false;
         } else if (libraryFeatures.superParameters.isEnabled) {
-          ArgumentsImpl arguments = last.arguments as ArgumentsImpl;
-
+          ArgumentsImpl arguments = last.arguments;
           if (positionalSuperParametersAsArguments != null) {
             if (arguments.positional.isNotEmpty) {
               problemReporting.addProblem(
@@ -1524,38 +1523,28 @@ class Resolver {
               fileUri,
             );
           }
-          initializer = new SuperInitializer(superTarget, arguments)
-            ..fileOffset = bodyBuilderContext.memberNameOffset
-            ..isSynthetic = true;
+          initializer = new InternalSuperInitializer(
+            superTarget,
+            arguments,
+            isSynthetic: true,
+          )..fileOffset = bodyBuilderContext.memberNameOffset;
           needsImplicitSuperInitializer = false;
         }
       }
-      if (libraryFeatures.superParameters.isEnabled) {
-        InitializerInferenceResult inferenceResult = bodyBuilderContext
-            .inferInitializer(
-              typeInferrer: context.typeInferrer,
-              fileUri: fileUri,
-              initializer: initializer,
-            );
-        if (!bodyBuilderContext.addInferredInitializer(
-          compilerContext,
-          problemReporting,
-          inferenceResult,
-          fileUri,
-        )) {
-          // Erroneous initializer, implicit super call is not needed.
-          needsImplicitSuperInitializer = false;
-        }
-      } else {
-        if (!bodyBuilderContext.addInitializer(
-          compilerContext,
-          problemReporting,
-          initializer,
-          fileUri,
-        )) {
-          // Erroneous initializer, implicit super call is not needed.
-          needsImplicitSuperInitializer = false;
-        }
+      InitializerInferenceResult inferenceResult = bodyBuilderContext
+          .inferInitializer(
+            typeInferrer: context.typeInferrer,
+            fileUri: fileUri,
+            initializer: initializer,
+          );
+      if (!bodyBuilderContext.addInferredInitializer(
+        compilerContext,
+        problemReporting,
+        inferenceResult,
+        fileUri,
+      )) {
+        // Erroneous initializer, implicit super call is not needed.
+        needsImplicitSuperInitializer = false;
       }
     }
     if (body == null && !bodyBuilderContext.isExternalConstructor) {

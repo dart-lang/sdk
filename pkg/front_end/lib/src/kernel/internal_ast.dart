@@ -4997,3 +4997,40 @@ class InternalRedirectingInitializer extends InternalInitializer {
     return "InternalRedirectingInitializer(${toStringInternal()})";
   }
 }
+
+class InternalSuperInitializer extends InternalInitializer {
+  final Constructor target;
+  ArgumentsImpl arguments;
+
+  @override
+  final bool isSynthetic;
+
+  InternalSuperInitializer(
+    this.target,
+    this.arguments, {
+    required this.isSynthetic,
+  }) {
+    arguments.parent = this;
+  }
+
+  @override
+  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitInternalSuperInitializer(this);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('super');
+    if (target.name.text.isNotEmpty) {
+      printer.write('.');
+      printer.write(target.name.text);
+    }
+    printer.writeArguments(arguments, includeTypeArguments: false);
+  }
+
+  @override
+  String toString() {
+    return "InternalSuperInitializer(${toStringInternal()})";
+  }
+}
