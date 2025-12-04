@@ -523,8 +523,8 @@ lsp.Location? fragmentToLocation(
   int? nameOffset;
   int? nameLength;
   if (fragment case PropertyAccessorFragmentImpl(
-    :var isSynthetic,
-  ) when isSynthetic) {
+    :var isOriginDeclaration,
+  ) when !isOriginDeclaration) {
     var element = fragment.element.nonSynthetic;
     nameOffset = element.firstFragment.nameOffset;
     nameLength = element.firstFragment.name?.length;

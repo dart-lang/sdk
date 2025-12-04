@@ -497,7 +497,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     if (element is! ExecutableElement) {
       return fatalStatus;
     }
-    if (element.isSynthetic) {
+    if (element is PropertyAccessorElement && !element.isOriginDeclaration) {
       return fatalStatus;
     }
     // maybe operator
@@ -578,7 +578,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     if (element is! ExecutableElement) {
       return fatalStatus;
     }
-    if (element.isSynthetic) {
+    if (element is PropertyAccessorElement && !element.isOriginDeclaration) {
       return fatalStatus;
     }
     _methodElement = element;

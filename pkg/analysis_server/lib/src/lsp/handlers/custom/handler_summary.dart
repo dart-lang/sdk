@@ -80,16 +80,20 @@ class SummaryWriter {
     // Write a summary of the declarations in the export namespace.
     var definedNames = libraryElement.exportNamespace.definedNames2;
     var needsSeparator = false;
+    var uniqueElements = <Element>{};
     for (var element in definedNames.values) {
-      if (element.isSynthetic) {
-        if (element is GetterElement) {
-          element = element.variable;
-        } else if (element is SetterElement &&
-            element.correspondingGetter == null) {
-          element = element.variable;
-        } else {
-          continue;
-        }
+      switch (element) {
+        case PropertyAccessorElement():
+          if (element.isOriginVariable) {
+            element = element.variable;
+          }
+        case PropertyInducingElement():
+          if (element.isOriginGetterSetter) {
+            continue;
+          }
+      }
+      if (!uniqueElements.add(element)) {
+        continue;
       }
       if (needsSeparator) {
         buffer.writeln();

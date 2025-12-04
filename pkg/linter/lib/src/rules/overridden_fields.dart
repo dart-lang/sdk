@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/element/element.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -50,8 +49,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         var overriddenMember = parent.getInheritedConcreteMember(
           Name(parent.library.uri, variable.name.lexeme),
         );
-        if (overriddenMember is InternalGetterElement &&
-            overriddenMember.isSynthetic) {
+        if (overriddenMember is GetterElement &&
+            overriddenMember.isOriginVariable) {
           var definingInterface = overriddenMember.enclosingElement;
           rule.reportAtToken(
             variable.name,

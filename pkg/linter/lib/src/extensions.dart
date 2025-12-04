@@ -269,8 +269,7 @@ extension DartTypeExtension on DartType? {
         definitions.any((d) => i.isSameAs(d.name, d.library));
 
     return isAnyInterface(typeToCheck) ||
-        !typeToCheck.element.isSynthetic &&
-            typeToCheck.element.allSupertypes.any(isAnyInterface);
+        typeToCheck.element.allSupertypes.any(isAnyInterface);
   }
 
   /// Whether this [DartType] implements [interface], declared in [library].
@@ -278,7 +277,6 @@ extension DartTypeExtension on DartType? {
     var self = this;
     if (self is! InterfaceType) return false;
     if (self.isSameAs(interface, library)) return true;
-    if (self.element.isSynthetic) return false;
     return self.element.allSupertypes.any(
       (i) => i.isSameAs(interface, library),
     );

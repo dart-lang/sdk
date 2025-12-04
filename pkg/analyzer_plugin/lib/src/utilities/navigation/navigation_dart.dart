@@ -150,12 +150,6 @@ class _DartNavigationCollector {
   ) {
     if (offset == null || length == null || fragment == null) return;
 
-    // If this fragment is for a synthetic element, use the first fragment for
-    // the non-synthetic element.
-    if (fragment.element.isSynthetic) {
-      fragment = fragment.element.nonSynthetic.firstFragment;
-    }
-
     if (fragment.element == DynamicElementImpl.instance) {
       return;
     }
@@ -372,7 +366,10 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       var classNameTargetElement = node.name != null
           ? namedType.element
           : element;
-      computer._addRegionForElement(namedType.name, classNameTargetElement);
+      computer._addRegionForElement(
+        namedType.name,
+        classNameTargetElement?.nonSynthetic,
+      );
     }
     // <TypeA, TypeB>
     namedType.typeArguments?.accept(this);
@@ -651,10 +648,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {
-    Element? element = node.element;
-    if (element != null && element.isSynthetic) {
-      element = element.enclosingElement;
-    }
+    var element = node.element?.nonSynthetic;
     // add region
     computer._addRegionForElement(node.thisKeyword, element);
     computer._addRegionForElement(node.constructorName, element);
@@ -694,10 +688,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    Element? element = node.element;
-    if (element != null && element.isSynthetic) {
-      element = element.enclosingElement;
-    }
+    var element = node.element?.nonSynthetic;
     // add region
     computer._addRegionForElement(node.superKeyword, element);
     computer._addRegionForElement(node.constructorName, element);

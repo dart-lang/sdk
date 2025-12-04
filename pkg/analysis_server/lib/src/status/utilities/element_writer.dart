@@ -133,11 +133,19 @@ class ElementWriter with TreeWriter {
   /// Write a representation of the given [element] to the buffer.
   void _writeElement(Element element) {
     indent();
-    if (element.isSynthetic) {
+
+    var showItalic = switch (element) {
+      ConstructorElement() => !element.isOriginDeclaration,
+      PropertyAccessorElement() => !element.isOriginDeclaration,
+      PropertyInducingElement() => !element.isOriginDeclaration,
+      _ => false,
+    };
+
+    if (showItalic) {
       buffer.write('<i>');
     }
     buffer.write(htmlEscape.convert(element.toString()));
-    if (element.isSynthetic) {
+    if (showItalic) {
       buffer.write('</i>');
     }
     buffer.write(' <span style="color:gray">(');
