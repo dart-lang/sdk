@@ -3246,6 +3246,45 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void beginAnonymousMethodInvocation(Token token) {
+    seen(token);
+    doPrint(
+      'beginAnonymousMethodInvocation('
+      '$token)',
+    );
+    indent++;
+  }
+
+  @override
+  void endAnonymousMethodInvocation(
+    Token beginToken,
+    Token? functionDefinition,
+    Token endToken, {
+    required bool isExpression,
+  }) {
+    indent--;
+    seen(beginToken);
+    seen(functionDefinition);
+    seen(endToken);
+    doPrint(
+      'endAnonymousMethodInvocation('
+      '$beginToken, '
+      '$functionDefinition, '
+      '$endToken, '
+      '$isExpression)',
+    );
+  }
+
+  @override
+  void handleImplicitFormalParameters(Token token) {
+    seen(token);
+    doPrint(
+      'handleImplicitFormalParameters('
+      '$token)',
+    );
+  }
+
+  @override
   void beginBinaryExpression(Token token) {
     seen(token);
     doPrint(

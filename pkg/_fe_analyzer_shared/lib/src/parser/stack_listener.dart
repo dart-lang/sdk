@@ -255,6 +255,27 @@ abstract class StackListener extends Listener with StackChecker {
   }
 
   @override
+  void handleImplicitFormalParameters(Token token) {
+    debugEvent("ImplicitFormalParameters");
+    push(NullValues.FormalParameters);
+  }
+
+  @override
+  void endAnonymousMethodInvocation(
+    Token beginToken,
+    Token? functionDefinition,
+    Token endToken, {
+    required bool isExpression,
+  }) {
+    debugEvent("AnonymousMethodInvocation");
+    // Pop the nodes. A concrete listener should transform
+    // the block and push a representation of the anonymous
+    // method.
+    pop(); // Function body.
+    pop(); // Formal parameter list.
+  }
+
+  @override
   void handleClassExtends(Token? extendsKeyword, int typeCount) {
     debugEvent("ClassExtends");
   }

@@ -4742,6 +4742,9 @@ extension on MemberKind {
         return false;
       case MemberKind.NonStaticMethod:
       case MemberKind.ExtensionTypeNonStaticMethod:
+      // TODO(eernst): Write a test such that this does run.
+      // Coverage-ignore(suite): Not run.
+      case MemberKind.AnonymousMethod:
       // Coverage-ignore(suite): Not run.
       // These can be inferred but cannot hold parameters so the cases are
       // dead code:

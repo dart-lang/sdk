@@ -331,6 +331,9 @@ class Parser {
   /// `true` if the 'private-named-parameters' feature is enabled.
   final bool _isPrivateNamedParametersEnabled;
 
+  /// `true` if the 'anonymous-methods' feature is enabled.
+  final bool _isAnonymousMethodsFeatureEnabled;
+
   /// Indicates whether the last pattern parsed is allowed inside unary
   /// patterns.  This is set by [parsePrimaryPattern] and [parsePattern].
   ///
@@ -357,7 +360,9 @@ class Parser {
        _isPrimaryConstructorsFeatureEnabled = experimentalFeatures
            .isExperimentEnabled(ExperimentalFlag.primaryConstructors),
        _isPrivateNamedParametersEnabled = experimentalFeatures
-           .isExperimentEnabled(ExperimentalFlag.privateNamedParameters);
+           .isExperimentEnabled(ExperimentalFlag.privateNamedParameters),
+       _isAnonymousMethodsFeatureEnabled = experimentalFeatures
+           .isExperimentEnabled(ExperimentalFlag.anonymousMethods);
 
   /// Executes [callback]; however if `this` is the `TestParser` (from
   /// `pkg/front_end/test/parser_test_parser.dart`) then no output is printed
@@ -2007,6 +2012,7 @@ class Parser {
       case MemberKind.FunctionTypedParameter:
       case MemberKind.GeneralizedFunctionType:
       case MemberKind.Local:
+      case MemberKind.AnonymousMethod:
       case MemberKind.NonStaticField:
       case MemberKind.StaticField:
       case MemberKind.TopLevelField:
@@ -2079,6 +2085,7 @@ class Parser {
             case MemberKind.FunctionTypedParameter:
             case MemberKind.GeneralizedFunctionType:
             case MemberKind.Local:
+            case MemberKind.AnonymousMethod:
             case MemberKind.NonStaticMethod:
             case MemberKind.NonStaticField:
             case MemberKind.StaticField:
@@ -7012,49 +7019,55 @@ class Parser {
       } else if (tokenLevel == SELECTOR_PRECEDENCE) {
         if (identical(type, TokenType.PERIOD) ||
             identical(type, TokenType.QUESTION_PERIOD)) {
-          // Left associative, so we recurse at the next higher precedence
-          // level. However, SELECTOR_PRECEDENCE is the highest level, so we
-          // should just call [parseUnaryExpression] directly. However, a
-          // unary expression isn't legal after a period, so we call
-          // [parsePrimary] instead.
           Token dot = token.next!;
-          token = parsePrimary(
-            dot,
-            IdentifierContext.expressionContinuation,
-            constantPatternContext,
-          );
-
-          if (isDotShorthand) {
-            listener.handleDotShorthandHead(dot);
-            isDotShorthand = false;
+          Token afterDot = dot.next!;
+          // TODO(eernst): Call reportExperimentNotEnabled to guide user when
+          // `_beginsAnonymousMethod(afterDot)`, but experiment disabled.
+          if (_isAnonymousMethodsFeatureEnabled &&
+              _beginsAnonymousMethod(afterDot)) {
+            token = _parseAnonymousMethod(dot, afterDot);
           } else {
-            listener.handleDotAccess(
-              operator,
-              token,
-              /* isNullAware = */ identical(type, TokenType.QUESTION_PERIOD),
+            // Left associative, so we recurse at the next higher precedence
+            // level. However, SELECTOR_PRECEDENCE is the highest level, so we
+            // should just call [parseUnaryExpression] directly. However, a
+            // unary expression isn't legal after a period, so we call
+            // [parsePrimary] instead.
+            token = parsePrimary(
+              dot,
+              IdentifierContext.expressionContinuation,
+              constantPatternContext,
             );
-          }
-
-          Token bangToken = token;
-          if (token.next!.isA(TokenType.BANG)) {
-            bangToken = token.next!;
-          }
-          typeArg = computeMethodTypeArguments(bangToken);
-          if (typeArg != noTypeParamOrArg) {
-            // For example e.f<T>(c), where token is before '<'.
-            if (bangToken.isA(TokenType.BANG)) {
-              listener.handleNonNullAssertExpression(bangToken);
+            if (isDotShorthand) {
+              listener.handleDotShorthandHead(dot);
+              isDotShorthand = false;
+            } else {
+              listener.handleDotAccess(
+                operator,
+                token,
+                /* isNullAware = */ identical(type, TokenType.QUESTION_PERIOD),
+              );
             }
-            token = typeArg.parseArguments(bangToken, this);
-            if (!token.next!.isA(TokenType.OPEN_PAREN)) {
-              if (constantPatternContext != ConstantPatternContext.none) {
-                reportRecoverableError(
-                  bangToken.next!,
-                  codes.codeInvalidConstantPatternGeneric,
-                );
+            Token bangToken = token;
+            if (token.next!.isA(TokenType.BANG)) {
+              bangToken = token.next!;
+            }
+            typeArg = computeMethodTypeArguments(bangToken);
+            if (typeArg != noTypeParamOrArg) {
+              // For example e.f<T>(c), where token is before '<'.
+              if (bangToken.isA(TokenType.BANG)) {
+                listener.handleNonNullAssertExpression(bangToken);
               }
-              listener.handleTypeArgumentApplication(bangToken.next!);
-              typeArg = noTypeParamOrArg;
+              token = typeArg.parseArguments(bangToken, this);
+              if (!token.next!.isA(TokenType.OPEN_PAREN)) {
+                if (constantPatternContext != ConstantPatternContext.none) {
+                  reportRecoverableError(
+                    bangToken.next!,
+                    codes.codeInvalidConstantPatternGeneric,
+                  );
+                }
+                listener.handleTypeArgumentApplication(bangToken.next!);
+                typeArg = noTypeParamOrArg;
+              }
             }
           }
         } else if (identical(type, TokenType.OPEN_PAREN) ||
@@ -7189,6 +7202,84 @@ class Parser {
     }
 
     return token;
+  }
+
+  /// Can the next input be an anonymous method?
+  ///
+  /// Used during `_parsePrecedenceExpressionLoop` and
+  /// `parseCascadeExpression`.
+  ///
+  /// Should only be invoked in a situation where the input before
+  /// [token] is a period or two periods, or a question mark followed by
+  /// one or two periods. Returns true if [token] shows that the next
+  /// construct to parse can only be an anonymous method.
+  bool _beginsAnonymousMethod(Token token) {
+    if (token.isA(TokenType.OPEN_CURLY_BRACKET) ||
+        token.isA(TokenType.FUNCTION)) {
+      return true;
+    }
+    if (token.isA(TokenType.OPEN_PAREN)) {
+      Token? matchingParenthesis = token.endGroup;
+      if (matchingParenthesis != null) {
+        Token? afterMatch = matchingParenthesis.next;
+        if (afterMatch != null &&
+            (afterMatch.isA(TokenType.OPEN_CURLY_BRACKET) ||
+                afterMatch.isA(TokenType.FUNCTION))) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Parse an anonymous method.
+  ///
+  /// Used during `_parsePrecedenceExpressionLoop` and
+  /// `parseCascadeExpression`.
+  ///
+  /// Should only be invoked in a situation where
+  /// `_beginsAnonymousMethod(afterPunctuation)` has returned true.
+  Token _parseAnonymousMethod(Token punctuation, Token afterPunctuation) {
+    Token currentToken;
+    listener.beginAnonymousMethodInvocation(punctuation);
+    if (afterPunctuation.isA(TokenType.OPEN_PAREN)) {
+      currentToken = parseFormalParameters(
+        punctuation,
+        MemberKind.AnonymousMethod,
+      );
+    } else {
+      listener.handleImplicitFormalParameters(punctuation);
+      currentToken = punctuation;
+    }
+    Token afterParameters = currentToken.next!;
+    Token? functionDefinition = null;
+    final bool isExpression;
+    if (afterParameters.isA(TokenType.OPEN_CURLY_BRACKET)) {
+      isExpression = false;
+      currentToken = parseBlock(currentToken, BlockKind.functionBody);
+    } else if (afterParameters.isA(TokenType.FUNCTION)) {
+      isExpression = true;
+      functionDefinition = afterParameters;
+      currentToken = parseExpressionWithoutCascade(afterParameters);
+    } else {
+      reportRecoverableError(
+        afterParameters,
+        codes.codeExpectedButGot2.withArgumentsOld("{", "=>"),
+      );
+      functionDefinition = rewriter.insertSyntheticToken(
+        currentToken,
+        TokenType.FUNCTION,
+      );
+      isExpression = true;
+      currentToken = parseExpressionWithoutCascade(functionDefinition);
+    }
+    listener.endAnonymousMethodInvocation(
+      punctuation,
+      functionDefinition,
+      currentToken,
+      isExpression: isExpression,
+    );
+    return currentToken;
   }
 
   /// Attempt a recovery where [token].next is replaced.
@@ -7361,13 +7452,19 @@ class Parser {
           cascadeOperator.isA(TokenType.QUESTION_PERIOD_PERIOD),
     );
     listener.beginCascade(cascadeOperator);
-    if (token.next!.isA(TokenType.OPEN_SQUARE_BRACKET)) {
+    Token afterDots = token.next!;
+    if (afterDots.isA(TokenType.OPEN_SQUARE_BRACKET)) {
       token = parseArgumentOrIndexStar(
         token,
         noTypeParamOrArg,
         /* checkedNullAware = */ false,
       );
+    } else if (_isAnonymousMethodsFeatureEnabled &&
+        _beginsAnonymousMethod(afterDots)) {
+      token = _parseAnonymousMethod(cascadeOperator, afterDots);
     } else {
+      // TODO(eernst): Call `reportExperimentNotEnabled` to guide user when
+      // `_beginsAnonymousMethod(afterDots)`.
       token = parseSend(
         token,
         IdentifierContext.expressionContinuation,
@@ -7388,13 +7485,21 @@ class Parser {
       if (next.isA(TokenType.PERIOD) || next.isA(TokenType.QUESTION_PERIOD)) {
         bool isNullAware = next.isA(TokenType.QUESTION_PERIOD);
         Token period = next;
-        token = parseSend(
-          next,
-          IdentifierContext.expressionContinuation,
-          ConstantPatternContext.none,
-        );
-        next = token.next!;
-        listener.handleDotAccess(period, token, isNullAware);
+        Token afterPeriod = period.next!;
+        // TODO(eernst): Call `reportExperimentNotEnabled` to guide user when
+        // there is a match except for the experiment being disabled.
+        if (_isAnonymousMethodsFeatureEnabled &&
+            _beginsAnonymousMethod(afterPeriod)) {
+          token = _parseAnonymousMethod(period, afterPeriod);
+        } else {
+          token = parseSend(
+            next,
+            IdentifierContext.expressionContinuation,
+            ConstantPatternContext.none,
+          );
+          next = token.next!;
+          listener.handleDotAccess(period, token, isNullAware);
+        }
       } else if (next.isA(TokenType.BANG)) {
         listener.handleNonNullAssertExpression(next);
         token = next;

@@ -394,7 +394,7 @@ package:analyzer/dart/analysis/declared_variables.dart:
     get (method: String? Function(String))
 package:analyzer/dart/analysis/features.dart:
   Feature (class extends Object):
-    anonymous_methods (static getter: ExperimentalFeature)
+    anonymous_methods (static getter: ExperimentalFeature, experimental)
     augmentations (static getter: ExperimentalFeature)
     class_modifiers (static getter: ExperimentalFeature)
     constant_update_2018 (static getter: ExperimentalFeature)

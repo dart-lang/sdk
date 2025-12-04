@@ -701,6 +701,36 @@ Message _withArgumentsOldExpectedButGot(String string) =>
     _withArgumentsExpectedButGot(string: string);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+  Message Function(String string, String string2),
+  Message Function({required String string, required String string2})
+>
+codeExpectedButGot2 = const Template(
+  "ExpectedButGot2",
+  withArgumentsOld: _withArgumentsOldExpectedButGot2,
+  withArguments: _withArgumentsExpectedButGot2,
+  pseudoSharedCode: PseudoSharedCode.expectedToken,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExpectedButGot2({
+  required String string,
+  required String string2,
+}) {
+  var string_0 = conversions.validateString(string);
+  var string2_0 = conversions.validateString(string2);
+  return new Message(
+    codeExpectedButGot2,
+    problemMessage: """Expected '${string_0}' or '${string2_0}' before this.""",
+    arguments: {'string': string, 'string2': string2},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOldExpectedButGot2(String string, String string2) =>
+    _withArgumentsExpectedButGot2(string: string, string2: string2);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExpectedCatchClauseBody = const MessageCode(
   "ExpectedCatchClauseBody",
   sharedCode: SharedCode.expectedCatchClauseBody,

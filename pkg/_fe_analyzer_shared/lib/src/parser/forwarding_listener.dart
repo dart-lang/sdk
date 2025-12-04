@@ -14,6 +14,11 @@ class ForwardingListener implements Listener {
   ForwardingListener([this.listener]);
 
   @override
+  void beginAnonymousMethodInvocation(Token token) {
+    listener?.beginAnonymousMethodInvocation(token);
+  }
+
+  @override
   void beginArguments(Token token) {
     listener?.beginArguments(token);
   }
@@ -1495,6 +1500,26 @@ class ForwardingListener implements Listener {
   @override
   void handleAssignmentExpression(Token token, Token endToken) {
     listener?.handleAssignmentExpression(token, endToken);
+  }
+
+  @override
+  void endAnonymousMethodInvocation(
+    Token beginToken,
+    Token? functionDefinition,
+    Token endToken, {
+    required bool isExpression,
+  }) {
+    listener?.endAnonymousMethodInvocation(
+      beginToken,
+      functionDefinition,
+      endToken,
+      isExpression: isExpression,
+    );
+  }
+
+  @override
+  void handleImplicitFormalParameters(Token token) {
+    listener?.handleImplicitFormalParameters(token);
   }
 
   @override
