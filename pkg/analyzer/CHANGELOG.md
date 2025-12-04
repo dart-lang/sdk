@@ -29,6 +29,7 @@
   Use `isOriginDeclaration`, `isOriginGetterSetter`, `isOriginDeclaringFormalParameter`, `isOriginEnumValues` instead.
 * Deprecate `PropertyAccessorElement.isSynthetic`.
   Use `isOriginDeclaration`, `isOriginInterface`, `isOriginVariable` instead.
+* Deprecate `Element.isSynthetic`, use `isOriginXyz` properties instead.
 
 ## 9.0.0
 * Remove deprecated field `Diagnostic.data`.

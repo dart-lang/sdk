@@ -692,6 +692,31 @@ class AstToIr extends ast.RecursiveVisitor {
     });
   }
 
+  void _generateSwitchComparison(
+    Definition value,
+    ast.Expression caseExpression,
+  ) {
+    _translateNode(caseExpression);
+    // TODO(alexmarkov): use proper devirtualization to specialize ==.
+    final interfaceTarget = (builder.stackTop.type is IntType)
+        ? coreTypes.index.getProcedure('dart:core', 'num', '==')
+        : coreTypes.objectEquals;
+    builder.push(value);
+    final matcher = recognizedMethods.instanceInvocations[interfaceTarget];
+    if (matcher != null) {
+      final snippet = matcher.match([_staticType(caseExpression), value.type]);
+      if (snippet != null) {
+        snippet(builder);
+        return;
+      }
+    }
+    builder.addInterfaceCall(
+      functionRegistry.getFunction(interfaceTarget),
+      2,
+      const BoolType(),
+    );
+  }
+
   @override
   void visitSwitchStatement(ast.SwitchStatement node) {
     _translateNode(node.expression);
@@ -717,14 +742,7 @@ class AstToIr extends ast.RecursiveVisitor {
           builder.currentSourcePosition = SourcePosition(
             switchCase.expressionOffsets[i],
           );
-          // TODO(alexmarkov): use more efficient comparison
-          _translateNode(switchCase.expressions[i]);
-          builder.push(value);
-          builder.addInterfaceCall(
-            functionRegistry.getFunction(coreTypes.objectEquals),
-            2,
-            const BoolType(),
-          );
+          _generateSwitchComparison(value, switchCase.expressions[i]);
 
           final trueBlock = builder.newTargetBlock();
           final falseBlock = builder.newTargetBlock();

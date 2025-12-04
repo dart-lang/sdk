@@ -78,7 +78,7 @@ vars = {
   "clang_version": "git_revision:f77ce52b56d025399f489a8c0aad8c18c4b06045",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
-  "gn_version": "git_revision:6e0b557db44b3c164094e57687d20ba036a80667",
+  "gn_version": "git_revision:5964f499767097d81dbe034e8b541c3988168073",
 
   "reclient_version": "re_client_version:28341fc74c68f05a5c8be35160ada940c4edb969",
   "download_reclient": True,
@@ -97,7 +97,7 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "6ec7b5f9c615d3b224c67ae221d6812c8f8e1a96",
-  "boringssl_rev": "e743669eaf598d55406345d4794927ce70f01244",
+  "boringssl_rev": "c953dcc46f15f7ed24226c0c2bd9b866954b8723",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "bac6843cce3c98d8794a7cce796faaa8860cc00f",
@@ -150,7 +150,7 @@ vars = {
   "tools_rev": "d03c394b24829f662098e590a2c812a076b01199",
   "vector_math_rev": "70a9a2cb610d040b247f3ca2cd70a94c1c6f6f23",
   "web_rev": "35fc98dd8f9da175ed0a2dcf246299e922e1e1e2",
-  "webdev_rev": "b9c39c00853dfad0e235bec3b265f86a0f4f328a",
+  "webdev_rev": "234e44c2ba0aa6cee5a36026538ca89457bf0d55",
   "webdriver_rev": "09104f459ed834d48b132f6b7734923b1fbcf2e9",
   "webkit_inspection_protocol_rev": "0f7685804d77ec02c6564d7ac1a6c8a2341c5bdf",
 

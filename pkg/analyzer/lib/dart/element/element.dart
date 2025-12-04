@@ -507,6 +507,7 @@ abstract class Element {
   /// A synthetic element is an element that is not represented in the source
   /// code explicitly, but is implied by the source code, such as the default
   /// constructor for a class that does not explicitly define any constructors.
+  @Deprecated('Use isOriginX instead')
   bool get isSynthetic;
 
   /// The kind of this element.
@@ -1155,6 +1156,7 @@ abstract class ExecutableFragment implements FunctionTypedFragment {
   /// A synthetic fragment is a fragment that is not represented in the source
   /// code explicitly, but is implied by the source code, such as the default
   /// constructor for a class that does not explicitly define any constructors.
+  @Deprecated('Use isOriginX instead')
   bool get isSynthetic;
 
   @override

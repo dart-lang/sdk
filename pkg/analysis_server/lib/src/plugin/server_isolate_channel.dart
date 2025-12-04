@@ -16,77 +16,22 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 /// The type of the function used to run a built-in plugin in an isolate.
 typedef EntryPoint = void Function(SendPort sendPort);
 
-/// A communication channel appropriate for built-in plugins.
-class BuiltInServerIsolateChannel extends ServerIsolateChannel {
-  /// The entry point
-  final EntryPoint entryPoint;
-
-  @override
-  final String pluginId;
-
-  /// Initialize a newly created channel to communicate with an isolate running
-  /// the given [entryPoint].
-  BuiltInServerIsolateChannel(
-    this.entryPoint,
-    this.pluginId,
-    InstrumentationService instrumentationService,
-    SessionLogger sessionLogger,
-  ) : super._(instrumentationService, sessionLogger);
-
-  @override
-  Future<Isolate> _spawnIsolate() {
-    return Isolate.spawn(
-      (message) => entryPoint(message as SendPort),
-      _receivePort?.sendPort,
-      onError: _errorPort?.sendPort,
-      onExit: _exitPort?.sendPort,
-    );
-  }
-}
-
-/// A communication channel appropriate for discovered plugins.
-class DiscoveredServerIsolateChannel extends ServerIsolateChannel {
-  /// The URI for the Dart file that will be run in the isolate that this
-  /// channel communicates with.
-  final Uri pluginUri;
-
-  /// The URI for the '.packages' file that will control how 'package:' URIs are
-  /// resolved.
-  final Uri packagesUri;
-
-  /// Initialize a newly created channel to communicate with an isolate running
-  /// the code at the given [uri].
-  DiscoveredServerIsolateChannel(
-    this.pluginUri,
-    this.packagesUri,
-    InstrumentationService instrumentationService,
-    SessionLogger sessionLogger,
-  ) : super._(instrumentationService, sessionLogger);
-
-  @override
-  String get pluginId => pluginUri.toString();
-
-  @override
-  Future<Isolate> _spawnIsolate() {
-    return Isolate.spawnUri(
-      pluginUri,
-      <String>[],
-      _receivePort?.sendPort,
-      onError: _errorPort?.sendPort,
-      onExit: _exitPort?.sendPort,
-      packageConfig: packagesUri,
-    );
-  }
-}
-
 /// A communication channel that allows an analysis server to send [Request]s
 /// to, and to receive both [Response]s and [Notification]s from, a plugin.
-abstract class ServerIsolateChannel implements ServerCommunicationChannel {
+final class ServerIsolateChannel implements ServerCommunicationChannel {
   /// The instrumentation service that is being used by the analysis server.
   final InstrumentationService instrumentationService;
 
+  /// The URI for the Dart file that will be run in the isolate that this
+  /// channel communicates with.
+  final Uri _pluginUri;
+
+  /// The URI for the package config file that controls how 'package:' URIs
+  /// are resolved.
+  final Uri _packageConfigUri;
+
   /// The session logger that is to be used by this channel.
-  final SessionLogger sessionLogger;
+  final SessionLogger _sessionLogger;
 
   /// The isolate in which the plugin is running, or `null` if the plugin has
   /// not yet been started by invoking [listen].
@@ -105,33 +50,16 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
   /// The port used to receive notification when the plugin isolate has exited.
   ReceivePort? _exitPort;
 
-  /// Return a communication channel appropriate for communicating with a
-  /// built-in plugin.
-  // TODO(brianwilkerson): This isn't currently referenced. We should decide
-  //  whether there's any value to supporting built-in plugins and remove this
-  //  if we decide there isn't.
-  factory ServerIsolateChannel.builtIn(
-    EntryPoint entryPoint,
-    String pluginId,
-    InstrumentationService instrumentationService,
-    SessionLogger sessionLogger,
-  ) = BuiltInServerIsolateChannel;
+  ServerIsolateChannel(
+    this._pluginUri,
+    this._packageConfigUri,
+    this.instrumentationService,
+    this._sessionLogger,
+  );
 
-  /// Return a communication channel appropriate for communicating with a
-  /// discovered plugin.
-  factory ServerIsolateChannel.discovered(
-    Uri pluginUri,
-    Uri packagesUri,
-    InstrumentationService instrumentationService,
-    SessionLogger sessionLogger,
-  ) = DiscoveredServerIsolateChannel;
-
-  /// Initialize a newly created channel.
-  ServerIsolateChannel._(this.instrumentationService, this.sessionLogger);
-
-  /// Return the id of the plugin running in the isolate, used to identify the
-  /// plugin to the instrumentation service.
-  String get pluginId;
+  /// The ID of the plugin running in the isolate, used to identify the plugin
+  /// to the instrumentation service.
+  String get _pluginId => _pluginUri.toString();
 
   @override
   void close() {
@@ -180,7 +108,7 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
       _isolate = await _spawnIsolate();
     } catch (exception, stackTrace) {
       instrumentationService.logPluginError(
-        PluginData(pluginId, null, null),
+        PluginData(_pluginId, null, null),
         RequestErrorCode.PLUGIN_ERROR.toString(),
         exception.toString(),
         stackTrace.toString(),
@@ -203,8 +131,8 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
       } else if (input is Map<String, Object?>) {
         if (input.containsKey('id')) {
           var encodedInput = json.encode(input);
-          instrumentationService.logPluginResponse(pluginId, encodedInput);
-          sessionLogger.logMessage(
+          instrumentationService.logPluginResponse(_pluginId, encodedInput);
+          _sessionLogger.logMessage(
             from: ProcessId.plugin,
             to: ProcessId.server,
             message: input,
@@ -212,8 +140,8 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
           onResponse(Response.fromJson(input));
         } else if (input.containsKey('event')) {
           var encodedInput = json.encode(input);
-          instrumentationService.logPluginNotification(pluginId, encodedInput);
-          sessionLogger.logMessage(
+          instrumentationService.logPluginNotification(_pluginId, encodedInput);
+          _sessionLogger.logMessage(
             from: ProcessId.plugin,
             to: ProcessId.server,
             message: input,
@@ -232,8 +160,8 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
     if (sendPort != null) {
       var jsonData = request.toJson();
       var encodedRequest = json.encode(jsonData);
-      instrumentationService.logPluginRequest(pluginId, encodedRequest);
-      sessionLogger.logMessage(
+      instrumentationService.logPluginRequest(_pluginId, encodedRequest);
+      _sessionLogger.logMessage(
         from: ProcessId.server,
         to: ProcessId.plugin,
         message: jsonData,
@@ -242,6 +170,15 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
     }
   }
 
-  /// Spawn the isolate in which the plugin is running.
-  Future<Isolate> _spawnIsolate();
+  /// Spawns the isolate in which the plugin is running.
+  Future<Isolate> _spawnIsolate() {
+    return Isolate.spawnUri(
+      _pluginUri,
+      [],
+      _receivePort?.sendPort,
+      onError: _errorPort?.sendPort,
+      onExit: _exitPort?.sendPort,
+      packageConfig: _packageConfigUri,
+    );
+  }
 }

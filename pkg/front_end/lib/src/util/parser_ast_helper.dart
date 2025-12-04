@@ -2843,6 +2843,41 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void beginAnonymousMethodInvocation(Token token) {
+    AnonymousMethodInvocationBegin data = new AnonymousMethodInvocationBegin(
+      ParserAstType.BEGIN,
+      token: token,
+    );
+    seen(data);
+  }
+
+  @override
+  void endAnonymousMethodInvocation(
+    Token beginToken,
+    Token? functionDefinition,
+    Token endToken, {
+    required bool isExpression,
+  }) {
+    AnonymousMethodInvocationEnd data = new AnonymousMethodInvocationEnd(
+      ParserAstType.END,
+      beginToken: beginToken,
+      functionDefinition: functionDefinition,
+      endToken: endToken,
+      isExpression: isExpression,
+    );
+    seen(data);
+  }
+
+  @override
+  void handleImplicitFormalParameters(Token token) {
+    ImplicitFormalParametersHandle data = new ImplicitFormalParametersHandle(
+      ParserAstType.HANDLE,
+      token: token,
+    );
+    seen(data);
+  }
+
+  @override
   void beginBinaryExpression(Token token) {
     BinaryExpressionBegin data = new BinaryExpressionBegin(
       ParserAstType.BEGIN,
@@ -8693,6 +8728,64 @@ class AssignmentExpressionHandle extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitAssignmentExpressionHandle(this);
 }
 
+class AnonymousMethodInvocationBegin extends ParserAstNode {
+  final Token token;
+
+  AnonymousMethodInvocationBegin(ParserAstType type, {required this.token})
+    : super("AnonymousMethodInvocation", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {"token": token};
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitAnonymousMethodInvocationBegin(this);
+}
+
+class AnonymousMethodInvocationEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
+  final Token beginToken;
+  final Token? functionDefinition;
+  @override
+  final Token endToken;
+  final bool isExpression;
+
+  AnonymousMethodInvocationEnd(
+    ParserAstType type, {
+    required this.beginToken,
+    this.functionDefinition,
+    required this.endToken,
+    required this.isExpression,
+  }) : super("AnonymousMethodInvocation", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+    "beginToken": beginToken,
+    "functionDefinition": functionDefinition,
+    "endToken": endToken,
+    "isExpression": isExpression,
+  };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitAnonymousMethodInvocationEnd(this);
+}
+
+class ImplicitFormalParametersHandle extends ParserAstNode {
+  final Token token;
+
+  ImplicitFormalParametersHandle(ParserAstType type, {required this.token})
+    : super("ImplicitFormalParameters", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {"token": token};
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitImplicitFormalParametersHandle(this);
+}
+
 class BinaryExpressionBegin extends ParserAstNode {
   final Token token;
 
@@ -10890,6 +10983,9 @@ abstract class ParserAstVisitor<R> {
   R visitAsOperatorHandle(AsOperatorHandle node);
   R visitCastPatternHandle(CastPatternHandle node);
   R visitAssignmentExpressionHandle(AssignmentExpressionHandle node);
+  R visitAnonymousMethodInvocationBegin(AnonymousMethodInvocationBegin node);
+  R visitAnonymousMethodInvocationEnd(AnonymousMethodInvocationEnd node);
+  R visitImplicitFormalParametersHandle(ImplicitFormalParametersHandle node);
   R visitBinaryExpressionBegin(BinaryExpressionBegin node);
   R visitBinaryExpressionEnd(BinaryExpressionEnd node);
   R visitBinaryPatternBegin(BinaryPatternBegin node);
@@ -11984,6 +12080,20 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
   @override
   void visitAssignmentExpressionHandle(AssignmentExpressionHandle node) =>
       node.visitChildren(this);
+
+  @override
+  void visitAnonymousMethodInvocationBegin(
+    AnonymousMethodInvocationBegin node,
+  ) => node.visitChildren(this);
+
+  @override
+  void visitAnonymousMethodInvocationEnd(AnonymousMethodInvocationEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitImplicitFormalParametersHandle(
+    ImplicitFormalParametersHandle node,
+  ) => node.visitChildren(this);
 
   @override
   void visitBinaryExpressionBegin(BinaryExpressionBegin node) =>
@@ -13441,6 +13551,21 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
   @override
   Future<void> visitAssignmentExpressionHandle(
     AssignmentExpressionHandle node,
+  ) => defaultNode(node);
+
+  @override
+  Future<void> visitAnonymousMethodInvocationBegin(
+    AnonymousMethodInvocationBegin node,
+  ) => defaultNode(node);
+
+  @override
+  Future<void> visitAnonymousMethodInvocationEnd(
+    AnonymousMethodInvocationEnd node,
+  ) => defaultNode(node);
+
+  @override
+  Future<void> visitImplicitFormalParametersHandle(
+    ImplicitFormalParametersHandle node,
   ) => defaultNode(node);
 
   @override

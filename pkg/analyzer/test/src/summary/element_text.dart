@@ -997,6 +997,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
+      // ignore: deprecated_member_use_from_same_package
       _sink.writeIf(f.isSynthetic, 'synthetic ');
 
       _assertHasExactlyOneTrue([f.isOriginDeclaration, f.isOriginVariable]);
@@ -1606,6 +1607,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
+      // ignore: deprecated_member_use_from_same_package
       _sink.writeIf(f.isSynthetic, 'synthetic ');
 
       _assertHasExactlyOneTrue([

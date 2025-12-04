@@ -434,7 +434,7 @@ class ElementBuilder {
     FragmentImpl? lastFragment,
     GetterFragmentImpl getterFragment,
   ) {
-    assert(!getterFragment.isSynthetic);
+    assert(getterFragment.isOriginDeclaration);
 
     var instanceFragment =
         getterFragment.enclosingFragment as InstanceFragmentImpl;
@@ -544,7 +544,7 @@ class ElementBuilder {
     FragmentImpl? lastFragment,
     SetterFragmentImpl setterFragment,
   ) {
-    assert(!setterFragment.isSynthetic);
+    assert(setterFragment.isOriginDeclaration);
 
     var instanceFragment =
         setterFragment.enclosingFragment as InstanceFragmentImpl;
@@ -665,7 +665,7 @@ class ElementBuilder {
     FragmentImpl? lastFragment,
     GetterFragmentImpl getterFragment,
   ) {
-    assert(!getterFragment.isSynthetic);
+    assert(getterFragment.isOriginDeclaration);
     libraryFragment.addGetter(getterFragment);
 
     var lastVariableElement = _topLevelVariableElement(lastFragment);
@@ -715,7 +715,7 @@ class ElementBuilder {
     FragmentImpl? lastFragment,
     SetterFragmentImpl setterFragment,
   ) {
-    assert(!setterFragment.isSynthetic);
+    assert(setterFragment.isOriginDeclaration);
     libraryFragment.addSetter(setterFragment);
 
     var lastVariableElement = _topLevelVariableElement(lastFragment);

@@ -445,6 +445,7 @@ extension on MemberKind {
       case MemberKind.Catch:
       case MemberKind.Factory:
       case MemberKind.Local:
+      case MemberKind.AnonymousMethod:
       case MemberKind.NonStaticMethod:
       case MemberKind.StaticMethod:
       case MemberKind.TopLevelMethod:

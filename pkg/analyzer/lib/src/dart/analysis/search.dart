@@ -342,15 +342,15 @@ class Search {
     var elements = <Element>[];
 
     void addElement(Element element) {
-      if (!element.isSynthetic && element.displayName == name) {
+      if (element.displayName == name) {
         elements.add(element);
       }
     }
 
     void addElements(InterfaceElement element) {
-      element.getters.forEach(addElement);
-      element.setters.forEach(addElement);
-      element.fields.forEach(addElement);
+      element.getters.where((e) => e.isOriginDeclaration).forEach(addElement);
+      element.setters.where((e) => e.isOriginDeclaration).forEach(addElement);
+      element.fields.where((e) => e.isOriginDeclaration).forEach(addElement);
       element.methods.forEach(addElement);
     }
 
@@ -552,7 +552,7 @@ class Search {
     var elements = <Element>[];
 
     void addElement(Element element) {
-      if (!element.isSynthetic && regExp.hasMatch(element.displayName)) {
+      if (regExp.hasMatch(element.displayName)) {
         elements.add(element);
       }
     }
@@ -562,15 +562,17 @@ class Search {
       var libraryResult = await _driver.getLibraryByUri(file.uriStr);
       if (libraryResult is LibraryElementResult) {
         var element = libraryResult.element;
-        element.getters.forEach(addElement);
+        element.getters.where((e) => e.isOriginDeclaration).forEach(addElement);
         element.classes.forEach(addElement);
         element.enums.forEach(addElement);
         element.extensions.forEach(addElement);
         element.extensionTypes.forEach(addElement);
         element.topLevelFunctions.forEach(addElement);
         element.mixins.forEach(addElement);
-        element.setters.forEach(addElement);
-        element.topLevelVariables.forEach(addElement);
+        element.setters.where((e) => e.isOriginDeclaration).forEach(addElement);
+        element.topLevelVariables
+            .where((e) => e.isOriginDeclaration)
+            .forEach(addElement);
         element.typeAliases.forEach(addElement);
       }
     }

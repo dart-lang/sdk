@@ -179,6 +179,7 @@ abstract class SubstitutedElementImpl implements Element {
   @override
   bool get isPublic => baseElement.isPublic;
 
+  @Deprecated('Use isOriginX instead')
   @override
   bool get isSynthetic => baseElement.isSynthetic;
 
@@ -788,7 +789,7 @@ class SubstitutedGetterElementImpl
 
   @override
   Element get nonSynthetic {
-    if (isSynthetic) {
+    if (isOriginVariable) {
       return variable.nonSynthetic;
     } else {
       return this;
@@ -992,7 +993,7 @@ class SubstitutedSetterElementImpl
 
   @override
   Element get nonSynthetic {
-    if (isSynthetic) {
+    if (isOriginVariable) {
       return variable.nonSynthetic;
     } else {
       return this;

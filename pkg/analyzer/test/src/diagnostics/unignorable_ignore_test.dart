@@ -9,10 +9,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/error/ignore_validator.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,16 +24,6 @@ main() {
 @reflectiveTest
 class UnignorableIgnoreTest extends PubPackageResolutionTest
     with LintRegistrationMixin {
-  @override
-  void setUp() {
-    var enableUnignorableIgnore = IgnoreValidator.enableUnignorableIgnore;
-    addTearDown(() {
-      IgnoreValidator.enableUnignorableIgnore = enableUnignorableIgnore;
-    });
-    IgnoreValidator.enableUnignorableIgnore = true;
-    super.setUp();
-  }
-
   @override
   Future<void> tearDown() {
     unregisterLintRules();

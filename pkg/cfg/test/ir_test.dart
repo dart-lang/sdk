@@ -21,6 +21,7 @@ import 'package:cfg/front_end/recognized_methods.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/ir_to_text.dart';
 import 'package:cfg/ir/ssa_computation.dart';
+import 'package:cfg/passes/constant_propagation.dart';
 import 'package:cfg/passes/pass.dart';
 import 'package:cfg/passes/simplification.dart';
 import 'package:cfg/passes/value_numbering.dart';
@@ -115,6 +116,7 @@ class CompileAndDumpIr extends RecursiveVisitor {
     final pipeline = Pipeline([
       SSAComputation(),
       ValueNumbering(simplification: Simplification()),
+      ConstantPropagation(),
     ]);
     pipeline.run(graph);
     buffer.writeln('--- ${node.name}');

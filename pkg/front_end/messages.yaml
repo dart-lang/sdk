@@ -819,7 +819,7 @@ ExpectedBody:
   script: "main();"
 
 ExpectedButGot:
-  # Also see ExpectedAfterButGot and ExpectedInstead
+  # Also see ExpectedButGot2, ExpectedAfterButGot, and ExpectedInstead
   pseudoSharedCode: EXPECTED_TOKEN
   parameters:
     String string: undocumented
@@ -832,8 +832,21 @@ ExpectedButGot:
     - "main() => true ? 1;"
     - "main() => foo(x: 1 y: 2);"
 
+ExpectedButGot2:
+  # Also see ExpectedButGot, ExpectedAfterButGot, and ExpectedInstead
+  pseudoSharedCode: EXPECTED_TOKEN
+  parameters:
+    String string: undocumented
+    String string2: undocumented
+  problemMessage: "Expected '#string' or '#string2' before this."
+  # TODO(eernst): Enable this example when the feature is enabled.
+  # exampleAllowOtherCodes: true
+  # experiments: anonymous-methods
+  # script:
+  #   - "main() => 1.(it) it;"
+
 ExpectedAfterButGot:
-  # Also see ExpectedButGot and ExpectedInstead
+  # Also see ExpectedButGot, ExpectedButGot2, and ExpectedInstead
   pseudoSharedCode: EXPECTED_TOKEN
   parameters:
     String string: undocumented

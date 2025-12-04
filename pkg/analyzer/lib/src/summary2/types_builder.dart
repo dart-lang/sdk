@@ -383,12 +383,12 @@ class TypesBuilder {
     switch (element) {
       case GetterElementImpl():
         var variable = element.variable;
-        if (variable.isSynthetic) {
+        if (variable.isOriginGetterSetter) {
           variable.type = element.returnType;
         }
       case SetterElementImpl():
         var variable = element.variable;
-        if (variable.isSynthetic && variable.getter == null) {
+        if (variable.isOriginGetterSetter && variable.getter == null) {
           var valueType = element.valueFormalParameter.type;
           variable.type = valueType;
         }

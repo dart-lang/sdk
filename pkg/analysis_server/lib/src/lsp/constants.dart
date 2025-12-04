@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analysis_server/src/lsp/handlers/handler_format_on_type.dart';
+library;
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 
@@ -43,6 +46,9 @@ const dartSignatureHelpRetriggerCharacters = <String>[','];
 const dartSignatureHelpTriggerCharacters = <String>['('];
 
 /// Characters to trigger formatting when format-on-type is enabled.
+///
+/// [FormatOnTypeHandler._shouldTriggerFormatting] contains the logic for when
+/// each of these characters will allow formatting.
 const dartTypeFormattingCharacters = ['}', ';'];
 
 /// A [TextDocumentFilterScheme] for Analysis Options files.
