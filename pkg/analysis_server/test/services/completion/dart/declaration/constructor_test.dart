@@ -20,6 +20,8 @@ class ConstructorTest extends AbstractCompletionDriverTest
 mixin ConstructorTestCases on AbstractCompletionDriverTest {
   Future<void> test_constContext_constructorTearOff() async {
     allowedIdentifiers = const {'NotAConst'};
+    // This should not suggest `null` because the constructor parameter is
+    // non-nullable.
     newFile('$testPackageLibPath/a.dart', '''
 class A {
   const A(List<Object> any);
@@ -30,17 +32,15 @@ class NotAConst {}
     await computeSuggestions('''
 import 'a.dart';
 
- @A([
-   N^
- ])
- class E {}
+@A([
+  N^
+])
+class E {}
 ''');
     assertResponse(r'''
 replacement
   left: 1
 suggestions
-  NotAConst.new
-    kind: constructor
   null
     kind: keyword
 ''');

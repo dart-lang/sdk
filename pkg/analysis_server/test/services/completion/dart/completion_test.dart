@@ -4979,10 +4979,6 @@ class q {m(Map q){var x;m(^)}n(){var x;n()}}
 suggestions
   x
     kind: localVariable
-  true
-    kind: keyword
-  false
-    kind: keyword
   this
     kind: keyword
   const
@@ -7963,10 +7959,6 @@ suggestions
     kind: constructorInvocation
   A.second
     kind: constructorInvocation
-  false
-    kind: keyword
-  true
-    kind: keyword
   const
     kind: keyword
   switch

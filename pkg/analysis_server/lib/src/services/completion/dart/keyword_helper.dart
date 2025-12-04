@@ -335,10 +335,12 @@ class KeywordHelper {
           node.inAsyncStarOrSyncStarMethodOrFunction) {
         addKeyword(Keyword.AWAIT);
       }
-      if (switchIsValid(node) && featureSet.isEnabled(Feature.patterns)) {
+      if (!mustBeConstant &&
+          switchIsValid(node) &&
+          featureSet.isEnabled(Feature.patterns)) {
         addKeyword(Keyword.SWITCH);
       }
-    } else if (featureSet.isEnabled(Feature.patterns)) {
+    } else if (!mustBeConstant && featureSet.isEnabled(Feature.patterns)) {
       addKeyword(Keyword.SWITCH);
     }
   }
