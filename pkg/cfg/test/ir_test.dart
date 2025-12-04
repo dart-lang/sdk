@@ -23,6 +23,7 @@ import 'package:cfg/ir/ir_to_text.dart';
 import 'package:cfg/ir/ssa_computation.dart';
 import 'package:cfg/passes/pass.dart';
 import 'package:cfg/passes/simplification.dart';
+import 'package:cfg/passes/value_numbering.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:test/test.dart';
 import 'package:vm/modular/target/vm.dart';
@@ -111,7 +112,10 @@ class CompileAndDumpIr extends RecursiveVisitor {
       recognizedMethods,
       enableAsserts: true,
     ).buildFlowGraph();
-    final pipeline = Pipeline([SSAComputation(), Simplification()]);
+    final pipeline = Pipeline([
+      SSAComputation(),
+      ValueNumbering(simplification: Simplification()),
+    ]);
     pipeline.run(graph);
     buffer.writeln('--- ${node.name}');
     buffer.writeln(

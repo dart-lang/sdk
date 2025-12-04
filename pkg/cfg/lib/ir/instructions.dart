@@ -233,9 +233,9 @@ abstract base class Instruction {
   /// Whether this instruction can have any visible side-effects.
   bool get hasSideEffects;
 
-  /// Returns true if this instruction is idempotent (i.e.
-  /// repeating this instruction does not have any effect),
-  /// and it is a subject to value numbering.
+  /// Returns true if this instruction is idempotent (i.e. repeating this
+  /// instruction with the same inputs does not have any effects after
+  /// executing it once), and it is a subject to value numbering.
   bool get isIdempotent => false;
 
   /// Returns true if extra instruction attributes are equal.
