@@ -27,6 +27,46 @@ class FormatTest extends AbstractLspAnalysisServerTest {
   static const codeThatWrapsAt40 =
       "var a = '        10        20        30        40';";
 
+  /// Verifies the result of a format-on-type request for the character in the
+  /// marked range in [content].
+  ///
+  /// If the marked range has a position, it will be used for the request,
+  /// otherwise the end point of the range will be used.
+  Future<List<TextEdit>?> expectFormatOnTypeResult(
+    String content,
+    Matcher matcher,
+  ) async {
+    var code = TestCode.parseNormalized(content);
+
+    // We use range to make it really explicit which character is typed and not
+    // have to worry about whether it's before or after the ^.
+    expect(code.ranges, hasLength(1));
+    expect(code.positions, hasLength(anyOf(0, 1)));
+
+    var typedCharacter = code.code.substring(
+      code.range.sourceRange.offset,
+      code.range.sourceRange.end,
+    );
+    await initialize();
+    await openFile(mainFileUri, code.code);
+
+    var result = await formatOnType(
+      mainFileUri,
+      code.positions.isNotEmpty ? code.position.position : code.range.range.end,
+      typedCharacter,
+    );
+
+    expect(
+      result,
+      matcher,
+      reason:
+          'Typing the character "$typedCharacter" at the marked location '
+          'should match the supplied matcher',
+    );
+
+    return result;
+  }
+
   Future<List<TextEdit>> expectFormattedContents(
     Uri uri,
     String original,
@@ -193,28 +233,98 @@ ErrorOr<Pair<A, List<B>>> c(String d, List<Either2<E, F>> g, {h = false}) {}
     expect(registration(Method.textDocument_rangeFormatting), isNotNull);
   }
 
-  Future<void> test_formatOnType_simple() async {
+  Future<void> test_formatOnType_bad_brace_inComment() async {
+    await expectFormatOnTypeResult('''
+void f  ()
+{
+    // hello[!}!]
+    print('test');
+}
+    ''', isNull);
+  }
+
+  Future<void> test_formatOnType_bad_brace_inString() async {
+    await expectFormatOnTypeResult('''
+void f  ()
+{
+
+    print('te[!}!]st');
+}
+    ''', isNull);
+  }
+
+  Future<void> test_formatOnType_bad_semicolon_inComment() async {
+    await expectFormatOnTypeResult('''
+void f  ()
+{
+    // hello[!;!]
+    print('test');
+}
+    ''', isNull);
+  }
+
+  Future<void> test_formatOnType_bad_semicolon_inString() async {
+    await expectFormatOnTypeResult('''
+void f  ()
+{
+
+    print('te[!;!]st');
+}
+    ''', isNull);
+  }
+
+  Future<void> test_formatOnType_good_brace_blockEnd() async {
+    await expectFormatOnTypeResult('''
+void f  ()
+{
+    print('test');
+[!}!]
+    ''', isNotNull);
+  }
+
+  Future<void> test_formatOnType_good_formatsCode() async {
     var code = TestCode.parseNormalized('''
 void f  ()
 {
 
     print('test');
-^}
+[!}!]
     ''');
     var expected = '''void f() {
   print('test');
 }
 ''';
-    await initialize();
-    await openFile(mainFileUri, code.code);
-
-    var formatEdits = (await formatOnType(
-      mainFileUri,
-      code.position.position,
-      '}',
+    var formatEdits = (await expectFormatOnTypeResult(
+      code.markedCode,
+      isNotNull,
     ))!;
     var formattedContents = applyTextEdits(code.code, formatEdits);
     expect(formattedContents, equalsNormalized(expected));
+  }
+
+  Future<void> test_formatOnType_good_positionAtEnd() async {
+    await expectFormatOnTypeResult('''
+void f  ()
+{
+[!}^!]
+    ''', isNotNull);
+  }
+
+  Future<void> test_formatOnType_good_positionAtOffset() async {
+    await expectFormatOnTypeResult('''
+void f  ()
+{
+[!^}!]
+    ''', isNotNull);
+  }
+
+  Future<void> test_formatOnType_good_semicolon_statementEnd() async {
+    await expectFormatOnTypeResult('''
+void f  ()
+{
+    print('test')[!;!]
+}
+    ''', isNotNull);
   }
 
   Future<void> test_formatRange_editsOverlapRange() async {
