@@ -1,3 +1,13 @@
+## 3.10.4
+
+This is a patch release that:
+
+- Fixes an issue with `dart run` not working and simply exiting with
+  `Process::Exec - (null)` under GitBash on Windows.
+  (issue [dart-lang/sdk#61981])
+
+[dart-lang/sdk#61981]: https://github.com/dart-lang/sdk/issues/61981
+
 ## 3.10.3
 
 **Released on:** 2025-12-02
@@ -16,9 +26,6 @@ This is a patch release that:
 - Fixes an issue with the analyzer not emitting an error when using a dot
   shorthand with type arguments on a factory constructor in an abstract class.
   (issue [dart-lang/sdk#61978])
-- Fixes an issue with `dart run` not working and simply exiting with
-  `Process::Exec - (null)` under GitBash on Windows.
-  (issue [dart-lang/sdk#61981])
 
 [Dart-Code/Dart-Code#61978]: https://github.com/Dart-Code/Dart-Code/issues/5810
 [dart-lang/sdk#61996]: https://github.com/dart-lang/sdk/issues/61996
@@ -26,7 +33,6 @@ This is a patch release that:
 [flutter/flutter#178740]: https://github.com/flutter/flutter/issues/178740
 [dart-lang/sdk#62136]: https://github.com/dart-lang/sdk/issues/62136
 [dart-lang/sdk#61978]: https://github.com/dart-lang/sdk/issues/61978
-[dart-lang/sdk#61981]: https://github.com/dart-lang/sdk/issues/61981
 
 ## 3.10.2
 
