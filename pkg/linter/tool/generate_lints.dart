@@ -40,7 +40,10 @@ abstract final class LintNames {
 ''');
 
       for (var lintName in messagesRuleInfo.keys) {
-        out.writeln("  static const String $lintName = '$lintName';");
+        var lintNameLowerCase = lintName.toLowerCase();
+        out.writeln(
+          "  static const String $lintNameLowerCase = '$lintNameLowerCase';",
+        );
         out.writeln();
       }
 
