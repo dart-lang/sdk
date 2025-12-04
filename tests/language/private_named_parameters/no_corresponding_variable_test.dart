@@ -9,9 +9,10 @@
 
 class C {
   C({this._unknown});
-  //      ^^^^^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // ^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD
+  //      ^
+  // [cfe] '_unknown' isn't an instance field of this class.
 
   // There is a public field with the name, but that isn't what the private
   // name refers to.
