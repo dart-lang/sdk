@@ -128,7 +128,7 @@ class ExtendsFoo1 extends self::Foo {
 }
 class ExtendsFoo2 extends self::Foo /*hasConstConstructor*/  {
   const constructor •() → self::ExtendsFoo2
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:131:9: Error: The implicitly called unnamed constructor from 'Foo' has required parameters.
+    : invalid-initializer "pkg/front_end/testcases/general/constants/various.dart:131:9: Error: The implicitly called unnamed constructor from 'Foo' has required parameters.
 Try adding an explicit super initializer with the required arguments.
   const ExtendsFoo2();
         ^"
@@ -173,8 +173,8 @@ const bool.fromEnvironment(\"bar\", defaultValue: null);
                                                 ^" in null as{TypeError} core::bool);
 static const field core::bool notBarFromEnvOrNull = !self::barFromEnvOrNull;
 static const field core::bool conditionalOnNull = self::barFromEnvOrNull ?{core::bool} true : false;
-static const field core::bool nullAwareOnNullTrue = let final core::bool #t2 = self::barFromEnvOrNull in #t2 == null ?{core::bool} true : #t2;
-static const field core::bool nullAwareOnNullFalse = let final core::bool #t3 = self::barFromEnvOrNull in #t3 == null ?{core::bool} false : #t3;
+static const field core::bool nullAwareOnNullTrue = let final core::bool #t1 = self::barFromEnvOrNull in #t1 == null ?{core::bool} true : #t1;
+static const field core::bool nullAwareOnNullFalse = let final core::bool #t2 = self::barFromEnvOrNull in #t2 == null ?{core::bool} false : #t2;
 static const field core::bool andOnFalse = self::nullAwareOnNullFalse && self::nullAwareOnNullTrue;
 static const field core::bool andOnFalse2 = self::nullAwareOnNullTrue && self::nullAwareOnNullFalse;
 static const field core::bool andOnNull = self::barFromEnvOrNull && true;

@@ -560,21 +560,6 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
     return _introductoryField!.fieldType;
   }
 
-  /// Creates the [Initializer] for the invalid initialization of this field.
-  ///
-  /// This is only used for instance fields.
-  Initializer buildErroneousInitializer(
-    Expression effect,
-    Expression value, {
-    required int fileOffset,
-  }) {
-    return _introductoryField!.buildErroneousInitializer(
-      effect,
-      value,
-      fileOffset: fileOffset,
-    );
-  }
-
   /// Creates the AST node for this field as the default initializer.
   ///
   /// This is only used for instance fields.

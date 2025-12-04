@@ -656,7 +656,7 @@ class BodyBuilderImpl extends StackListenerImpl
       return node.buildSimpleRead();
     } else if (node is Expression) {
       return node;
-    } else if (node is SuperInitializer) {
+    } else if (node is InternalSuperInitializer) {
       return buildProblem(
         message: cfe.codeSuperAsExpression,
         fileUri: uri,
@@ -3464,7 +3464,6 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     VariableInitialization variable;
     if (isClosureContextLoweringEnabled) {
-      // Coverage-ignore-block(suite): Not run.
       variable = new VariableInitialization(
         variable: new InternalLocalVariable(
           astVariable: new LocalVariable(
@@ -9773,17 +9772,15 @@ class BodyBuilderImpl extends StackListenerImpl
     int offset,
     int previousInitializerOffset,
   ) {
-    return fieldBuilder.buildErroneousInitializer(
+    return new InvalidInitializer(
       buildProblem(
         message: cfe.codeConstructorInitializeSameInstanceVariableSeveralTimes
             .withArgumentsOld(name),
         fileUri: uri,
         fileOffset: offset,
         length: noLength,
-      ),
-      value,
-      fileOffset: offset,
-    );
+      ).message,
+    )..fileOffset = offset;
   }
 
   /// Parameter [formalType] should only be passed in the special case of
@@ -9887,30 +9884,21 @@ class BodyBuilderImpl extends StackListenerImpl
           ),
         ];
       } else if (builder.isFinal && builder.hasInitializer) {
-        addProblem(
-          cfe.codeFieldAlreadyInitializedAtDeclaration.withArgumentsOld(name),
-          assignmentOffset,
-          noLength,
-          context: [
-            cfe.codeFieldAlreadyInitializedAtDeclarationCause
-                .withArgumentsOld(name)
-                .withLocation(uri, builder.fileOffset, name.length),
-          ],
-        );
-        MemberBuilder constructor = libraryBuilder.loader
-            .getDuplicatedFieldInitializerError();
-        Expression invocation = new ConstructorInvocation(
-          constructor.invokeTarget as Constructor,
-          new Arguments([
-            new StringLiteral(name)..fileOffset = assignmentOffset,
-          ])..fileOffset = assignmentOffset,
-        )..fileOffset = assignmentOffset;
         return <Initializer>[
-          builder.buildErroneousInitializer(
-            forest.createThrow(assignmentOffset, invocation),
-            expression,
-            fileOffset: assignmentOffset,
-          ),
+          new InvalidInitializer(
+            buildProblem(
+              message: cfe.codeFieldAlreadyInitializedAtDeclaration
+                  .withArgumentsOld(name),
+              fileUri: uri,
+              fileOffset: assignmentOffset,
+              length: noLength,
+              context: [
+                cfe.codeFieldAlreadyInitializedAtDeclarationCause
+                    .withArgumentsOld(name)
+                    .withLocation(uri, builder.fileOffset, name.length),
+              ],
+            ).message,
+          )..fileOffset = assignmentOffset,
         ];
       } else {
         if (formal != null && formal.type is! OmittedTypeBuilder) {
@@ -9961,7 +9949,7 @@ class BodyBuilderImpl extends StackListenerImpl
   Initializer buildSuperInitializer(
     bool isSynthetic,
     Constructor constructor,
-    Arguments arguments, [
+    ArgumentsImpl arguments, [
     int charOffset = -1,
   ]) {
     if (_context.isConstConstructor && !constructor.isConst) {
@@ -9972,9 +9960,11 @@ class BodyBuilderImpl extends StackListenerImpl
       );
     }
     _needsImplicitSuperInitializer = false;
-    return new SuperInitializer(constructor, arguments)
-      ..fileOffset = charOffset
-      ..isSynthetic = isSynthetic;
+    return new InternalSuperInitializer(
+      constructor,
+      arguments,
+      isSynthetic: isSynthetic,
+    )..fileOffset = charOffset;
   }
 
   @override

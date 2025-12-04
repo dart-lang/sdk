@@ -244,7 +244,7 @@ class ExtendsFoo1 extends Foo {
 }
 class ExtendsFoo2 extends self::Foo /*hasConstConstructor*/  {
   const constructor •() → self::ExtendsFoo2
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:131:9: Error: The implicitly called unnamed constructor from 'Foo' has required parameters.
+    : invalid-initializer "pkg/front_end/testcases/general/constants/various.dart:131:9: Error: The implicitly called unnamed constructor from 'Foo' has required parameters.
 Try adding an explicit super initializer with the required arguments.
   const ExtendsFoo2();
         ^"

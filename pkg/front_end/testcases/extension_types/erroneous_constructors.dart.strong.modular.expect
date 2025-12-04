@@ -62,7 +62,7 @@ static extension-type-member synthetic method E1|constructor#_#new#tearOff(dynam
   return self::E1|constructor#(it);
 static extension-type-member erroneous method E1|constructor#named(dynamic value) → self::E1% /* erasure=dynamic, declared=! */ {
   lowered final self::E1% /* erasure=dynamic, declared=! */ #this;
-  final dynamic #t1 = invalid-expression "pkg/front_end/testcases/extension_types/erroneous_constructors.dart:6:33: Error: Too many positional arguments: 1 allowed, but 2 found.
+  invalid-expression "pkg/front_end/testcases/extension_types/erroneous_constructors.dart:6:33: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
   E1.named(dynamic value) : this(value, value);
                                 ^";
@@ -90,7 +90,7 @@ static extension-type-member synthetic method E3|constructor#_#new#tearOff(core:
   return self::E3|constructor#(it);
 static extension-type-member erroneous method E3|constructor#named(core::String it1, core::String it2) → self::E3% /* erasure=core::String, declared=! */ {
   lowered final self::E3% /* erasure=core::String, declared=! */ #this;
-  final dynamic #t2 = invalid-expression "pkg/front_end/testcases/extension_types/erroneous_constructors.dart:14:38: Error: A redirecting constructor can't have other initializers.
+  invalid-expression "pkg/front_end/testcases/extension_types/erroneous_constructors.dart:14:38: Error: A redirecting constructor can't have other initializers.
   E3.named(String it1, String it2) : this(it1), this(it2);
                                      ^";
   #this = self::E3|constructor#(it2);
@@ -106,7 +106,7 @@ static extension-type-member synthetic method E4|constructor#_#new#tearOff(core:
   return self::E4|constructor#(it);
 static extension-type-member erroneous method E4|constructor#named(core::bool it) → self::E4% /* erasure=core::bool, declared=! */ {
   lowered final self::E4% /* erasure=core::bool, declared=! */ #this;
-  final dynamic #t3 = invalid-expression "pkg/front_end/testcases/extension_types/erroneous_constructors.dart:18:26: Error: A redirecting constructor can't have other initializers.
+  invalid-expression "pkg/front_end/testcases/extension_types/erroneous_constructors.dart:18:26: Error: A redirecting constructor can't have other initializers.
   E4.named(bool it) : it = false, this(it);
                          ^";
   #this = self::E4|constructor#(it);

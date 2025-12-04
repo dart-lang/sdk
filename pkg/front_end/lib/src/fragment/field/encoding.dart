@@ -57,15 +57,6 @@ sealed class FieldEncoding {
   /// This is only used for instance fields.
   Initializer buildImplicitInitializer();
 
-  /// Creates the [Initializer] for the invalid initialization of this field.
-  ///
-  /// This is only used for instance fields.
-  Initializer buildErroneousInitializer(
-    Expression effect,
-    Expression value, {
-    required int fileOffset,
-  });
-
   /// Registers that the (implicit) setter associated with this field needs to
   /// contain a runtime type check to deal with generic covariance.
   void setCovariantByClass();
@@ -256,16 +247,6 @@ mixin RegularFieldEncodingMixin implements FieldEncoding {
   @override
   Initializer buildImplicitInitializer() {
     return new FieldInitializer(_field!, new NullLiteral())..isSynthetic = true;
-  }
-
-  @override
-  Initializer buildErroneousInitializer(
-    Expression effect,
-    Expression value, {
-    required int fileOffset,
-  }) {
-    return new ShadowInvalidFieldInitializer(type, value, effect)
-      ..fileOffset = fileOffset;
   }
 
   @override
@@ -976,15 +957,6 @@ mixin LateWithoutInitializer on AbstractLateFieldEncoding {
   Initializer buildImplicitInitializer() {
     throw new UnsupportedError("$runtimeType.buildImplicitInitializer");
   }
-
-  @override
-  Initializer buildErroneousInitializer(
-    Expression effect,
-    Expression value, {
-    required int fileOffset,
-  }) {
-    throw new UnsupportedError("$runtimeType.buildDuplicatedInitializer");
-  }
 }
 
 class LateFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
@@ -1033,15 +1005,6 @@ class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
   @override
   Initializer buildImplicitInitializer() {
     throw new UnsupportedError("$runtimeType.buildImplicitInitializer");
-  }
-
-  @override
-  Initializer buildErroneousInitializer(
-    Expression effect,
-    Expression value, {
-    required int fileOffset,
-  }) {
-    throw new UnsupportedError("$runtimeType.buildDuplicatedInitializer");
   }
 }
 
@@ -1134,15 +1097,6 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
   @override
   Initializer buildImplicitInitializer() {
     throw new UnsupportedError("$runtimeType.buildImplicitInitializer");
-  }
-
-  @override
-  Initializer buildErroneousInitializer(
-    Expression effect,
-    Expression value, {
-    required int fileOffset,
-  }) {
-    throw new UnsupportedError("$runtimeType.buildDuplicatedInitializer");
   }
 }
 
@@ -1518,16 +1472,6 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   }
 
   @override
-  Initializer buildErroneousInitializer(
-    Expression effect,
-    Expression value, {
-    required int fileOffset,
-  }) {
-    return new ShadowInvalidFieldInitializer(type, value, effect)
-      ..fileOffset = fileOffset;
-  }
-
-  @override
   void registerSuperCall() {
     throw new UnsupportedError(
       "Unexpected call to ${runtimeType}.registerSuperCall().",
@@ -1690,16 +1634,6 @@ class RepresentationFieldEncoding implements FieldEncoding {
       _getter,
       new NullLiteral(),
     );
-  }
-
-  @override
-  Initializer buildErroneousInitializer(
-    Expression effect,
-    Expression value, {
-    required int fileOffset,
-  }) {
-    return new ShadowInvalidFieldInitializer(type, value, effect)
-      ..fileOffset = fileOffset;
   }
 
   @override
@@ -1997,17 +1931,6 @@ class ExtensionInstanceFieldEncoding implements FieldEncoding {
   @override
   Initializer buildImplicitInitializer() {
     throw new UnsupportedError("$runtimeType.buildImplicitInitializer");
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Initializer buildErroneousInitializer(
-    Expression effect,
-    Expression value, {
-    required int fileOffset,
-  }) {
-    return new ShadowInvalidFieldInitializer(type, value, effect)
-      ..fileOffset = fileOffset;
   }
 
   @override

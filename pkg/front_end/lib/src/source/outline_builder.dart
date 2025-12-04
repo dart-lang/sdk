@@ -3169,7 +3169,6 @@ class OutlineBuilder extends StackListenerImpl {
           }
           if (formal.name == FormalParameterBuilder.noNameSentinel) continue;
           if (seenNames.containsKey(formal.name)) {
-            // Coverage-ignore-block(suite): Not run.
             addProblem(
               codeDuplicatedParameterName.withArgumentsOld(formal.name),
               formal.fileOffset,

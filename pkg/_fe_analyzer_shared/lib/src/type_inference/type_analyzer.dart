@@ -635,7 +635,11 @@ mixin TypeAnalyzer<
     SharedTypeView type = result.type;
     if (nullShortingTargetDepth != null &&
         nullShortingDepth > nullShortingTargetDepth) {
-      type = finishNullShorting(nullShortingTargetDepth, type);
+      type = finishNullShorting(
+        nullShortingTargetDepth,
+        type,
+        wholeExpression: node,
+      );
     }
     return type;
   }

@@ -93,11 +93,7 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   /// If [constructorName] is null or the empty string, it's assumed to be an
   /// unnamed constructor. it's an error if [constructorName] starts with
   /// `"_"`, and [bypassLibraryPrivacy] is false.
-  MemberBuilder getConstructor(
-    String className, {
-    String constructorName,
-    bool bypassLibraryPrivacy = false,
-  });
+  MemberBuilder getConstructor(String className, {String constructorName});
 
   void becomeCoreLibrary();
 
@@ -192,13 +188,9 @@ abstract class LibraryBuilderImpl extends BuilderImpl
   }
 
   @override
-  MemberBuilder getConstructor(
-    String className, {
-    String? constructorName,
-    bool bypassLibraryPrivacy = false,
-  }) {
+  MemberBuilder getConstructor(String className, {String? constructorName}) {
     constructorName ??= "";
-    if (constructorName.startsWith("_") && !bypassLibraryPrivacy) {
+    if (constructorName.startsWith("_")) {
       return internalProblem(
         codeInternalProblemPrivateConstructorAccess.withArgumentsOld(
           constructorName,
@@ -207,9 +199,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
         null,
       );
     }
-    Builder? cls = (bypassLibraryPrivacy ? libraryNameSpace : exportNameSpace)
-        .lookup(className)
-        ?.getable;
+    Builder? cls = exportNameSpace.lookup(className)?.getable;
     if (cls is TypeAliasBuilder) {
       // Coverage-ignore-block(suite): Not run.
       TypeAliasBuilder aliasBuilder = cls;

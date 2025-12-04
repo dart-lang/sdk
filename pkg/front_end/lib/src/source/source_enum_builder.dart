@@ -685,15 +685,6 @@ class _EnumValuesFieldDeclaration
   }
 
   @override
-  Initializer buildErroneousInitializer(
-    Expression effect,
-    Expression value, {
-    required int fileOffset,
-  }) {
-    throw new UnsupportedError('${runtimeType}.buildErroneousInitializer');
-  }
-
-  @override
   void buildImplicitDefaultValue() {
     throw new UnsupportedError('${runtimeType}.buildImplicitDefaultValue');
   }

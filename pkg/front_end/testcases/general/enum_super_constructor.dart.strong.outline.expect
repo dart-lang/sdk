@@ -43,7 +43,7 @@ class B extends core::_Enum /*isEnum*/  {
   enum-element static const field self::B b = const self::B::•(0, "b");
   static const field core::List<self::B> values = const <self::B>[self::B::b];
   const constructor •(core::int #index, core::String #name) → self::B
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/enum_super_constructor.dart:14:15: Error: Enum constructors can't contain super-initializers.
+    : invalid-initializer "pkg/front_end/testcases/general/enum_super_constructor.dart:14:15: Error: Enum constructors can't contain super-initializers.
   const B() : super();
               ^"
     ;

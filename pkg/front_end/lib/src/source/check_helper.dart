@@ -97,7 +97,7 @@ extension CheckHelper on ProblemReporting {
     );
   }
 
-  Expression buildProblemFromLocatedMessage({
+  InvalidExpression buildProblemFromLocatedMessage({
     required CompilerContext compilerContext,
     required LocatedMessage message,
   }) {

@@ -31,17 +31,17 @@ class Super extends core::Object {
 class Sub extends self::Super {
   field dynamic field;
   erroneous constructor arg0() → self::Sub
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/rasta/super_initializer.dart:15:15: Error: Can't have initializers after 'super'.
+    : invalid-initializer "pkg/front_end/testcases/rasta/super_initializer.dart:15:15: Error: Can't have initializers after 'super'.
         field = 42;
               ^", super self::Super::arg0()
     ;
   erroneous constructor arg1(dynamic a) → self::Sub
-    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/rasta/super_initializer.dart:18:15: Error: Can't have initializers after 'super'.
+    : invalid-initializer "pkg/front_end/testcases/rasta/super_initializer.dart:18:15: Error: Can't have initializers after 'super'.
         field = 42;
               ^", super self::Super::arg1(a)
     ;
   erroneous constructor arg2(dynamic a, dynamic b) → self::Sub
-    : final dynamic #t3 = invalid-expression "pkg/front_end/testcases/rasta/super_initializer.dart:21:15: Error: Can't have initializers after 'super'.
+    : invalid-initializer "pkg/front_end/testcases/rasta/super_initializer.dart:21:15: Error: Can't have initializers after 'super'.
         field = 42;
               ^", super self::Super::arg2(a, b)
     ;

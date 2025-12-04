@@ -417,6 +417,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       DartType inferredType = finishNullShorting(
         nullShortingTargetDepth,
         new SharedTypeView(result.inferredType),
+        wholeExpression: expression,
       ).unwrapTypeView();
       return new ExpressionInferenceResult(
         inferredType,
@@ -430,7 +431,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   InitializerInferenceResult inferInitializer(Initializer initializer) {
     InitializerInferenceResult inferenceResult;
-    if (initializer is InitializerJudgment) {
+    if (initializer is InternalInitializer) {
       inferenceResult = initializer.acceptInference(this);
     } else {
       inferenceResult = initializer.accept(this);
@@ -1302,7 +1303,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       pushRewrite(replacement);
       SharedTypeView inferredType = new SharedTypeView(result.inferredType);
       // End non-nullable promotion of the null-aware variable.
-      flow.nullAwareAccess_end();
+      flow.nullAwareAccess_end(wholeExpression: node);
       handleNullShortingStep(nullAwareGuard, inferredType);
       replacement = popRewrite() as Expression;
     } else {
@@ -3881,31 +3882,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression replacement = new IntLiteral(intValue);
     DartType inferredType = coreTypes.intRawType(Nullability.nonNullable);
     return new ExpressionInferenceResult(inferredType, replacement);
-  }
-
-  InitializerInferenceResult visitShadowInvalidInitializer(
-    ShadowInvalidInitializer node,
-  ) {
-    ExpressionInferenceResult initializerResult = inferExpression(
-      node.variable.initializer!,
-      const UnknownType(),
-      isVoidAllowed: false,
-    );
-    node.variable.initializer = initializerResult.expression
-      ..parent = node.variable;
-    return new SuccessfulInitializerInferenceResult(node);
-  }
-
-  InitializerInferenceResult visitShadowInvalidFieldInitializer(
-    ShadowInvalidFieldInitializer node,
-  ) {
-    ExpressionInferenceResult initializerResult = inferExpression(
-      node.value,
-      node.fieldType,
-      isVoidAllowed: false,
-    );
-    node.value = initializerResult.expression..parent = node;
-    return new SuccessfulInitializerInferenceResult(node);
   }
 
   @override
@@ -12252,8 +12228,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   InitializerInferenceResult visitRedirectingInitializer(
     RedirectingInitializer node,
+  ) {
+    _unhandledInitializer(node);
+  }
+
+  InitializerInferenceResult visitInternalRedirectingInitializer(
+    InternalRedirectingInitializer node,
   ) {
     ensureMemberType(node.target);
     List<TypeParameter> classTypeParameters =
@@ -12264,7 +12247,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           new TypeParameterType.withDefaultNullability(classTypeParameters[i]),
       growable: false,
     );
-    ArgumentsImpl arguments = node.arguments as ArgumentsImpl;
+    ArgumentsImpl arguments = node.arguments;
     // TODO(johnniwinther): Avoid this workaround.
     // The redirecting initializer syntax doesn't include type arguments passed
     // to the target constructor but we need to add them to the arguments before
@@ -12288,7 +12271,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     arguments.resetExplicitTypeArguments();
     return new InitializerInferenceResult.fromInvocationInferenceResult(
-      node,
+      new RedirectingInitializer(node.target, arguments)
+        ..fileOffset = node.fileOffset,
       inferenceResult,
     );
   }
@@ -12668,7 +12652,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   InitializerInferenceResult visitSuperInitializer(SuperInitializer node) {
+    _unhandledInitializer(node);
+  }
+
+  InitializerInferenceResult visitInternalSuperInitializer(
+    InternalSuperInitializer node,
+  ) {
     ensureMemberType(node.target);
 
     Supertype asSuperClass = hierarchyBuilder.getClassAsInstanceOf(
@@ -12695,12 +12686,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       const UnknownType(),
       node.fileOffset,
       new InvocationTargetFunctionType(functionType),
-      node.arguments as ArgumentsImpl,
+      node.arguments,
       skipTypeArgumentInference: true,
       staticTarget: node.target,
     );
     return new InitializerInferenceResult.fromInvocationInferenceResult(
-      node,
+      new SuperInitializer(node.target, node.arguments)
+        ..fileOffset = node.fileOffset
+        ..isSynthetic = node.isSynthetic,
       inferenceResult,
     );
   }
@@ -16119,13 +16112,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   InitializerInferenceResult visitAuxiliaryInitializer(
     AuxiliaryInitializer node,
   ) {
     if (node is InternalInitializer) {
       return node.acceptInference(this);
     }
-    // Coverage-ignore(suite): Not run.
     return _unhandledInitializer(node);
   }
 
@@ -16510,7 +16503,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   StatementInferenceResult visitVariableInitialization(
     VariableInitialization node,
   ) {

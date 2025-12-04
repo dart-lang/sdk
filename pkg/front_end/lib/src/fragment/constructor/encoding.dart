@@ -152,6 +152,10 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   @override
   bool get isRedirecting {
     for (Initializer initializer in initializers) {
+      assert(
+        initializer is! AuxiliaryInitializer,
+        "Unexpected auxiliary initializer $initializer.",
+      );
       if (initializer is RedirectingInitializer) {
         return true;
       }
