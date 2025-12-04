@@ -577,7 +577,7 @@ class _SourceClassBodyBuilderDeclarationContext
     ArgumentsImpl arguments, {
     required int fileOffset,
   }) {
-    return new RedirectingInitializer(
+    return new InternalRedirectingInitializer(
       constructorBuilder.invokeTarget as Constructor,
       arguments,
     )..fileOffset = fileOffset;

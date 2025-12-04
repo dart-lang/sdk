@@ -4967,3 +4967,33 @@ class InternalSuperMethodInvocation extends InternalExpression {
     return "InternalSuperMethodInvocation(${toStringInternal()})";
   }
 }
+
+class InternalRedirectingInitializer extends InternalInitializer {
+  final Constructor target;
+  ArgumentsImpl arguments;
+
+  InternalRedirectingInitializer(this.target, this.arguments) {
+    arguments.parent = this;
+  }
+
+  @override
+  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitInternalRedirectingInitializer(this);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('this');
+    if (target.name.text.isNotEmpty) {
+      printer.write('.');
+      printer.write(target.name.text);
+    }
+    printer.writeArguments(arguments, includeTypeArguments: false);
+  }
+
+  @override
+  String toString() {
+    return "InternalRedirectingInitializer(${toStringInternal()})";
+  }
+}

@@ -1234,10 +1234,10 @@ class Resolver {
             );
           }
         }
-      } else if (last is RedirectingInitializer) {
+      } else if (last is InternalRedirectingInitializer) {
         if (bodyBuilderContext.isEnumClass &&
             libraryFeatures.enhancedEnums.isEnabled) {
-          ArgumentsImpl arguments = last.arguments as ArgumentsImpl;
+          ArgumentsImpl arguments = last.arguments;
           List<Expression> enumSyntheticArguments = [
             new VariableGet(function.positionalParameters[0])
               ..parent = last.arguments,

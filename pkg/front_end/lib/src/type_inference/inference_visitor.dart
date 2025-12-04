@@ -12228,8 +12228,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   InitializerInferenceResult visitRedirectingInitializer(
     RedirectingInitializer node,
+  ) {
+    _unhandledInitializer(node);
+  }
+
+  InitializerInferenceResult visitInternalRedirectingInitializer(
+    InternalRedirectingInitializer node,
   ) {
     ensureMemberType(node.target);
     List<TypeParameter> classTypeParameters =
@@ -12240,7 +12247,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           new TypeParameterType.withDefaultNullability(classTypeParameters[i]),
       growable: false,
     );
-    ArgumentsImpl arguments = node.arguments as ArgumentsImpl;
+    ArgumentsImpl arguments = node.arguments;
     // TODO(johnniwinther): Avoid this workaround.
     // The redirecting initializer syntax doesn't include type arguments passed
     // to the target constructor but we need to add them to the arguments before
@@ -12264,7 +12271,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     arguments.resetExplicitTypeArguments();
     return new InitializerInferenceResult.fromInvocationInferenceResult(
-      node,
+      new RedirectingInitializer(node.target, arguments)
+        ..fileOffset = node.fileOffset,
       inferenceResult,
     );
   }
