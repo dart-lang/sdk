@@ -29,113 +29,109 @@ class AstWriter extends UnifyingAstVisitor<void> with TreeWriter {
 
   /// Write a representation of the properties of the given [node] to the
   /// buffer.
-  Map<String, Object?> _computeProperties(AstNode node) {
-    var properties = <String, Object?>{};
-
-    properties['name'] = _getName(node);
-    if (node is ArgumentListImpl) {
-      properties['corresponding static parameters'] =
-          node.correspondingStaticParameters;
-    } else if (node is Annotation) {
-      properties['element'] = node.element;
-      properties['element annotation'] = node.elementAnnotation;
-    } else if (node is BinaryExpression) {
-      properties['element'] = node.element;
-      properties['static type'] = node.staticType;
-    } else if (node is ClassDeclaration) {
-      properties['declared fragment'] = node.declaredFragment;
-      properties['abstract keyword'] = node.abstractKeyword;
-    } else if (node is ClassTypeAlias) {
-      properties['declared fragment'] = node.declaredFragment;
-      properties['abstract keyword'] = node.abstractKeyword;
-    } else if (node is CompilationUnit) {
-      properties['declared fragment'] = node.declaredFragment;
-    } else if (node is Configuration) {
-      properties['uriSource'] = node.resolvedUri;
-    } else if (node is ConstructorName) {
-      properties['element'] = node.element;
-    } else if (node is DeclaredIdentifier) {
-      properties['element'] = node.declaredFragment?.element;
-      properties['keyword'] = node.keyword;
-    } else if (node is ExportDirective) {
-      properties['library export'] = node.libraryExport;
-    } else if (node is FieldDeclaration) {
-      properties['static keyword'] = node.staticKeyword;
-    } else if (node is FormalParameter) {
-      properties['declared fragment'] = node.declaredFragment;
-      if (node.isRequiredPositional) {
-        properties['kind'] = 'required-positional';
-      } else if (node.isRequiredNamed) {
-        properties['kind'] = 'required-named';
-      } else if (node.isOptionalPositional) {
-        properties['kind'] = 'optional-positional';
-      } else if (node.isOptionalNamed) {
-        properties['kind'] = 'optional-named';
-      } else {
-        properties['kind'] = 'unknown kind';
-      }
-    } else if (node is FunctionDeclaration) {
-      properties['declared fragment'] = node.declaredFragment;
-      properties['external keyword'] = node.externalKeyword;
-      properties['property keyword'] = node.propertyKeyword;
-    } else if (node is FunctionExpressionInvocation) {
-      properties['element'] = node.element;
-      properties['static invoke type'] = node.staticInvokeType;
-      properties['static type'] = node.staticType;
-    } else if (node is GenericFunctionType) {
-      properties['type'] = node.type;
-    } else if (node is ImportDirective) {
-      properties['library import'] = node.libraryImport;
-    } else if (node is IndexExpression) {
-      properties['element'] = node.element;
-      properties['static type'] = node.staticType;
-    } else if (node is InstanceCreationExpression) {
-      properties['static type'] = node.staticType;
-    } else if (node is LibraryDirective) {
-      properties['element'] = node.element;
-    } else if (node is MethodDeclaration) {
-      properties['declared fragment'] = node.declaredFragment;
-      properties['external keyword'] = node.externalKeyword;
-      properties['modifier keyword'] = node.modifierKeyword;
-      properties['operator keyword'] = node.operatorKeyword;
-      properties['property keyword'] = node.propertyKeyword;
-    } else if (node is MethodInvocation) {
-      properties['static invoke type'] = node.staticInvokeType;
-      properties['static type'] = node.staticType;
-    } else if (node is PartDirective) {
-      properties['fragment include'] = node.partInclude;
-    } else if (node is PostfixExpression) {
-      properties['element'] = node.element;
-      properties['static type'] = node.staticType;
-    } else if (node is PrefixExpression) {
-      properties['element'] = node.element;
-      properties['static type'] = node.staticType;
-    } else if (node is RedirectingConstructorInvocation) {
-      properties['element'] = node.element;
-    } else if (node is SimpleIdentifier) {
-      properties['element'] = node.element;
-      properties['static type'] = node.staticType;
-    } else if (node is SimpleStringLiteral) {
-      properties['value'] = node.value;
-    } else if (node is SuperConstructorInvocation) {
-      properties['element'] = node.element;
-    } else if (node is TypeAnnotation) {
-      properties['type'] = node.type;
-    } else if (node is VariableDeclarationList) {
-      properties['keyword'] = node.keyword;
-    } else if (node is Declaration) {
-      properties['declared fragment'] = node.declaredFragment;
-    } else if (node is Expression) {
-      properties['static type'] = node.staticType;
-    } else if (node is FunctionBody) {
-      properties['is asynchronous'] = node.isAsynchronous;
-      properties['is generator'] = node.isGenerator;
-    } else if (node is Identifier) {
-      properties['element'] = node.element;
-      properties['static type'] = node.staticType;
-    }
-
-    return properties;
+  Map<String, Object> _computeProperties(AstNode node) {
+    return {
+      'name': ?_getName(node),
+      if (node is ArgumentListImpl)
+        'corresponding static parameters': ?node.correspondingStaticParameters
+      else if (node is Annotation) ...{
+        'element': ?node.element,
+        'element annotation': ?node.elementAnnotation,
+      } else if (node is BinaryExpression) ...{
+        'element': ?node.element,
+        'static type': ?node.staticType,
+      } else if (node is ClassDeclaration) ...{
+        'declared fragment': ?node.declaredFragment,
+        'abstract keyword': ?node.abstractKeyword,
+      } else if (node is ClassTypeAlias) ...{
+        'declared fragment': ?node.declaredFragment,
+        'abstract keyword': ?node.abstractKeyword,
+      } else if (node is CompilationUnit)
+        'declared fragment': ?node.declaredFragment
+      else if (node is Configuration)
+        'uriSource': ?node.resolvedUri
+      else if (node is ConstructorName)
+        'element': ?node.element
+      else if (node is DeclaredIdentifier) ...{
+        'element': ?node.declaredFragment?.element,
+        'keyword': ?node.keyword,
+      } else if (node is ExportDirective)
+        'library export': ?node.libraryExport
+      else if (node is FieldDeclaration)
+        'static keyword': ?node.staticKeyword
+      else if (node is FormalParameter) ...{
+        'declared fragment': ?node.declaredFragment,
+        if (node.isRequiredPositional)
+          'kind': 'required-positional'
+        else if (node.isRequiredNamed)
+          'kind': 'required-named'
+        else if (node.isOptionalPositional)
+          'kind': 'optional-positional'
+        else if (node.isOptionalNamed)
+          'kind': 'optional-named'
+        else
+          'kind': 'unknown kind',
+      } else if (node is FunctionDeclaration) ...{
+        'declared fragment': ?node.declaredFragment,
+        'external keyword': ?node.externalKeyword,
+        'property keyword': ?node.propertyKeyword,
+      } else if (node is FunctionExpressionInvocation) ...{
+        'element': ?node.element,
+        'static invoke type': ?node.staticInvokeType,
+        'static type': ?node.staticType,
+      } else if (node is GenericFunctionType)
+        'type': ?node.type
+      else if (node is ImportDirective)
+        'library import': ?node.libraryImport
+      else if (node is IndexExpression) ...{
+        'element': ?node.element,
+        'static type': ?node.staticType,
+      } else if (node is InstanceCreationExpression)
+        'static type': ?node.staticType
+      else if (node is LibraryDirective)
+        'element': ?node.element
+      else if (node is MethodDeclaration) ...{
+        'declared fragment': ?node.declaredFragment,
+        'external keyword': ?node.externalKeyword,
+        'modifier keyword': ?node.modifierKeyword,
+        'operator keyword': ?node.operatorKeyword,
+        'property keyword': ?node.propertyKeyword,
+      } else if (node is MethodInvocation) ...{
+        'static invoke type': ?node.staticInvokeType,
+        'static type': ?node.staticType,
+      } else if (node is PartDirective)
+        'fragment include': ?node.partInclude
+      else if (node is PostfixExpression) ...{
+        'element': ?node.element,
+        'static type': ?node.staticType,
+      } else if (node is PrefixExpression) ...{
+        'element': ?node.element,
+        'static type': ?node.staticType,
+      } else if (node is RedirectingConstructorInvocation)
+        'element': ?node.element
+      else if (node is SimpleIdentifier) ...{
+        'element': ?node.element,
+        'static type': ?node.staticType,
+      } else if (node is SimpleStringLiteral)
+        'value': node.value
+      else if (node is SuperConstructorInvocation)
+        'element': ?node.element
+      else if (node is TypeAnnotation)
+        'type': ?node.type
+      else if (node is VariableDeclarationList)
+        'keyword': ?node.keyword
+      else if (node is Declaration)
+        'declared fragment': ?node.declaredFragment
+      else if (node is Expression)
+        'static type': ?node.staticType
+      else if (node is FunctionBody) ...{
+        'is asynchronous': node.isAsynchronous,
+        'is generator': node.isGenerator,
+      } else if (node is Identifier) ...{
+        'element': ?node.element,
+        'static type': ?node.staticType,
+      },
+    };
   }
 
   /// Return the name of the given [node], or `null` if the given node is not a

@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:analysis_server/src/status/utilities/tree_writer.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
@@ -31,103 +32,84 @@ class ElementWriter with TreeWriter {
     }
   }
 
-  /// Writes a representation of the properties of the given [element] to the
-  /// buffer.
-  Map<String, Object?> _computeProperties(Element element) {
-    var properties = <String, Object?>{};
-
-    properties['annotations'] = element.metadata.annotations;
-    if (element is InterfaceElement) {
-      properties['interfaces'] = element.interfaces;
-      properties['isEnum'] = element is EnumElement;
-      properties['mixins'] = element.mixins;
-      properties['supertype'] = element.supertype;
-      if (element is ClassElement) {
-        properties['hasNonFinalField'] = element.hasNonFinalField;
-        properties['isAbstract'] = element.isAbstract;
-        properties['isMixinApplication'] = element.isMixinApplication;
-        properties['isValidMixin'] = element.isValidMixin;
-      }
-    }
-    if (element is FieldElementImpl) {
-      properties['evaluationResult'] = element.evaluationResult;
-    }
-    if (element is LocalVariableElementImpl &&
-        element.constantInitializer != null) {
-      properties['evaluationResult'] = element.evaluationResult;
-    }
-    if (element is TopLevelVariableElementImpl) {
-      properties['evaluationResult'] = element.evaluationResult;
-    }
-    if (element is ConstructorElement) {
-      properties['isConst'] = element.isConst;
-      properties['isDefaultConstructor'] = element.isDefaultConstructor;
-      properties['isFactory'] = element.isFactory;
-      properties['redirectedConstructor'] = element.redirectedConstructor;
-    }
-    if (element is ExecutableElement) {
-      properties['hasImplicitReturnType'] = element.hasImplicitReturnType;
-      properties['isAbstract'] = element.isAbstract;
-      properties['isExternal'] = element.isExternal;
-      if (element is MethodElement) {
-        properties['isOperator'] = element.isOperator;
-      }
-      properties['isStatic'] = element.isStatic;
-      properties['returnType'] = element.returnType;
-      properties['type'] = element.type;
-    }
-    if (element is FieldElement) {
-      properties['isEnumConstant'] = element.isEnumConstant;
-    }
-    if (element is FieldFormalParameterElement) {
-      properties['field'] = element.field;
-    }
-    if (element is TopLevelFunctionElement) {
-      properties['isEntryPoint'] = element.isEntryPoint;
-    }
-    if (element is FunctionTypedElement) {
-      properties['returnType'] = element.returnType;
-      properties['type'] = element.type;
-    }
-    if (element is LibraryElement) {
-      properties['entryPoint'] = element.entryPoint;
-      properties['isDartAsync'] = element.isDartAsync;
-      properties['isDartCore'] = element.isDartCore;
-      properties['isInSdk'] = element.isInSdk;
-    }
-    if (element is FormalParameterElement) {
-      properties['defaultValueCode'] = element.defaultValueCode;
-      properties['isInitializingFormal'] = element.isInitializingFormal;
-      if (element.isRequiredPositional) {
-        properties['parameterKind'] = 'required-positional';
-      } else if (element.isRequiredNamed) {
-        properties['parameterKind'] = 'required-named';
-      } else if (element.isOptionalPositional) {
-        properties['parameterKind'] = 'optional-positional';
-      } else if (element.isOptionalNamed) {
-        properties['parameterKind'] = 'optional-named';
-      } else {
-        properties['parameterKind'] = 'unknown kind';
-      }
-    }
-    if (element is PropertyInducingElement) {
-      properties['isStatic'] = element.isStatic;
-    }
-    if (element is TypeParameterElement) {
-      properties['bound'] = element.bound;
-    }
-    if (element is TypeParameterizedElement) {
-      properties['typeParameters'] = element.typeParameters;
-    }
-    if (element is VariableElement) {
-      properties['hasImplicitType'] = element.hasImplicitType;
-      properties['isConst'] = element.isConst;
-      properties['isFinal'] = element.isFinal;
-      properties['isStatic'] = element.isStatic;
-      properties['type'] = element.type;
-    }
-
-    return properties;
+  /// Returns a representation Map of the properties of the given [element].
+  Map<String, Object> _computeProperties(Element element) {
+    return {
+      'annotations': element.metadata.annotations,
+      if (element is InterfaceElement) ...{
+        'interfaces': element.interfaces,
+        'isEnum': element is EnumElement,
+        'mixins': element.mixins,
+        'supertype': ?element.supertype,
+        if (element is ClassElement) ...{
+          'hasNonFinalField': element.hasNonFinalField,
+          'isAbstract': element.isAbstract,
+          'isMixinApplication': element.isMixinApplication,
+          'isValidMixin': element.isValidMixin,
+        },
+      },
+      'evaluationResult': ?switch (element) {
+        FieldElementImpl() => element.evaluationResult,
+        LocalVariableElementImpl(constantInitializer: Expression()) =>
+          element.evaluationResult,
+        TopLevelVariableElementImpl() => element.evaluationResult,
+        _ => null,
+      },
+      if (element is ConstructorElement) ...{
+        'isConst': element.isConst,
+        'isDefaultConstructor': element.isDefaultConstructor,
+        'isFactory': element.isFactory,
+        'redirectedConstructor': ?element.redirectedConstructor,
+      },
+      if (element is ExecutableElement) ...{
+        'hasImplicitReturnType': element.hasImplicitReturnType,
+        'isAbstract': element.isAbstract,
+        'isExternal': element.isExternal,
+        if (element is MethodElement) 'isOperator': element.isOperator,
+        'isStatic': element.isStatic,
+        'returnType': element.returnType,
+        'type': element.type,
+      },
+      if (element is FieldElement) 'isEnumConstant': element.isEnumConstant,
+      if (element is FieldFormalParameterElement) 'field': ?element.field,
+      if (element is TopLevelFunctionElement)
+        'isEntryPoint': element.isEntryPoint,
+      if (element is FunctionTypedElement) ...{
+        'returnType': element.returnType,
+        'type': element.type,
+      },
+      if (element is LibraryElement) ...{
+        'entryPoint': ?element.entryPoint,
+        'isDartAsync': element.isDartAsync,
+        'isDartCore': element.isDartCore,
+        'isInSdk': element.isInSdk,
+      },
+      if (element is FormalParameterElement) ...{
+        'defaultValueCode': ?element.defaultValueCode,
+        'isInitializingFormal': element.isInitializingFormal,
+        if (element.isRequiredPositional)
+          'parameterKind': 'required-positional'
+        else if (element.isRequiredNamed)
+          'parameterKind': 'required-named'
+        else if (element.isOptionalPositional)
+          'parameterKind': 'optional-positional'
+        else if (element.isOptionalNamed)
+          'parameterKind': 'optional-named'
+        else
+          'parameterKind': 'unknown kind',
+      },
+      if (element is PropertyInducingElement) 'isStatic': element.isStatic,
+      if (element is TypeParameterElement) 'bound': ?element.bound,
+      if (element is TypeParameterizedElement)
+        'typeParameters': element.typeParameters,
+      if (element is VariableElement) ...{
+        'hasImplicitType': element.hasImplicitType,
+        'isConst': element.isConst,
+        'isFinal': element.isFinal,
+        'isStatic': element.isStatic,
+        'type': element.type,
+      },
+    };
   }
 
   /// Write a representation of the given [element] to the buffer.
@@ -163,32 +145,31 @@ class ElementWriter with TreeWriter {
     buffer.write(fragment.runtimeType);
     buffer.write(')</span>');
     buffer.write('<br>');
-    var properties = <String, Object?>{};
-    if (fragment is LibraryFragment) {
-      properties['source'] = fragment.source;
-      properties['imports'] = {
-        for (var import in fragment.libraryImports)
-          {
-            'combinators': import.combinators,
-            if (import.prefix != null) 'prefix': import.prefix?.name,
-            'isDeferred': import.prefix?.isDeferred ?? false,
-            'library': import.importedLibrary,
-          },
-      };
-      properties['imports'] = {
-        for (var export in fragment.libraryExports)
-          {
-            'combinators': export.combinators,
-            'library': export.exportedLibrary,
-          },
-      };
-    }
-    properties['nameOffset'] = fragment.nameOffset;
-    if (fragment is ExecutableFragment) {
-      properties['isAsynchronous'] = fragment.isAsynchronous;
-      properties['isGenerator'] = fragment.isGenerator;
-      properties['isSynchronous'] = fragment.isSynchronous;
-    }
+    var properties = {
+      if (fragment is LibraryFragment) ...{
+        'source': fragment.source,
+        'imports': {
+          for (var import in fragment.libraryImports)
+            {
+              'combinators': import.combinators,
+              if (import.prefix != null) 'prefix': import.prefix?.name,
+              'isDeferred': import.prefix?.isDeferred ?? false,
+              'library': import.importedLibrary,
+            },
+          for (var export in fragment.libraryExports)
+            {
+              'combinators': export.combinators,
+              'library': export.exportedLibrary,
+            },
+        },
+      },
+      'nameOffset': ?fragment.nameOffset,
+      if (fragment is ExecutableFragment) ...{
+        'isAsynchronous': fragment.isAsynchronous,
+        'isGenerator': fragment.isGenerator,
+        'isSynchronous': fragment.isSynchronous,
+      },
+    };
     writeProperties(properties);
   }
 
