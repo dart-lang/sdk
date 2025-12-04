@@ -322,8 +322,7 @@ B30 = JoinBlock(B25) exception-handler:B2 idom:B25
 B26 = TargetBlock() exception-handler:B17 idom:B16 dominates:(B28) in-loop:B8
   Goto(B28)
 B28 = JoinBlock(B26) exception-handler:B17 idom:B26 dominates:(B37, B68, B36) in-loop:B8
-  v33 = BinaryIntOp %(v88, v22)
-  v35 = Comparison int ==(v33, v34)
+  v35 = Comparison int ==(v23, v34)
   Branch(v35, true: B36, false: B37)
 B36 = TargetBlock() exception-handler:B17 idom:B28 dominates:(B41) in-loop:B8
   Goto(B41)
@@ -333,8 +332,7 @@ B41 = JoinBlock(B36) exception-handler:B2 idom:B36 in-loop:B8
 B37 = TargetBlock() exception-handler:B17 idom:B28 dominates:(B39) in-loop:B8
   Goto(B39)
 B39 = JoinBlock(B37) exception-handler:B17 idom:B37 dominates:(B48, B47) in-loop:B8
-  v44 = BinaryIntOp %(v88, v22)
-  v46 = Comparison int ==(v44, v45)
+  v46 = Comparison int ==(v23, v45)
   Branch(v46, true: B47, false: B48)
 B47 = TargetBlock() exception-handler:B17 idom:B39 dominates:(B53)
   Goto(B53)

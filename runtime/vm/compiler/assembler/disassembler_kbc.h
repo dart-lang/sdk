@@ -88,7 +88,8 @@ class KernelBytecodeDisassembler : public AllStatic {
                                 int* out_instr_len,
                                 const Bytecode& bytecode,
                                 Object** object,
-                                uword pc);
+                                uword pc,
+                                uword base);
 
   static void Disassemble(const Function& function);
 

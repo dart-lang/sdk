@@ -729,6 +729,6 @@ LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     YamlScalar(:String value) =>
       AnalyzerDiagnosticType.fromString(value) ??
           (throw 'Unknown analyzer diagnostic type'),
-    _ => throw 'Must be a bool',
+    _ => throw 'Must be a string',
   };
 }
