@@ -51,8 +51,8 @@ class LegacyPluginsPage extends DiagnosticPageWithNav {
         ['Bootstrap package path', id],
         if (plugin.executionPath case var executionPath?)
           ['Execution path:', executionPath.wordBreakOnSlashes],
-        if (plugin.packagesPath case var packagesPath?)
-          ['Packages file path', packagesPath.wordBreakOnSlashes],
+        if (plugin.packageConfigPath case var packageConfigPath?)
+          ['Package config path', packageConfigPath.wordBreakOnSlashes],
       ]);
 
       if (data.name == null) {
