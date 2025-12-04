@@ -15,7 +15,7 @@ part of "package:analyzer/src/diagnostic/diagnostic.dart";
 /// No parameters.
 const DiagnosticWithoutArguments abiSpecificIntegerInvalid =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ABI_SPECIFIC_INTEGER_INVALID',
+      name: 'abi_specific_integer_invalid',
       problemMessage:
           "Classes extending 'AbiSpecificInteger' must have exactly one const "
           "constructor, no other members, and no type parameters.",
@@ -24,14 +24,14 @@ const DiagnosticWithoutArguments abiSpecificIntegerInvalid =
           "one const constructor.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'ABI_SPECIFIC_INTEGER_INVALID',
+      uniqueName: 'abi_specific_integer_invalid',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments abiSpecificIntegerMappingExtra =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ABI_SPECIFIC_INTEGER_MAPPING_EXTRA',
+      name: 'abi_specific_integer_mapping_extra',
       problemMessage:
           "Classes extending 'AbiSpecificInteger' must have exactly one "
           "'AbiSpecificIntegerMapping' annotation specifying the mapping from "
@@ -39,14 +39,14 @@ const DiagnosticWithoutArguments abiSpecificIntegerMappingExtra =
       correctionMessage: "Try removing the extra annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'ABI_SPECIFIC_INTEGER_MAPPING_EXTRA',
+      uniqueName: 'abi_specific_integer_mapping_extra',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments abiSpecificIntegerMappingMissing =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ABI_SPECIFIC_INTEGER_MAPPING_MISSING',
+      name: 'abi_specific_integer_mapping_missing',
       problemMessage:
           "Classes extending 'AbiSpecificInteger' must have exactly one "
           "'AbiSpecificIntegerMapping' annotation specifying the mapping from "
@@ -54,7 +54,7 @@ const DiagnosticWithoutArguments abiSpecificIntegerMappingMissing =
       correctionMessage: "Try adding an annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'ABI_SPECIFIC_INTEGER_MAPPING_MISSING',
+      uniqueName: 'abi_specific_integer_mapping_missing',
       expectedTypes: [],
     );
 
@@ -64,7 +64,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 abiSpecificIntegerMappingUnsupported = DiagnosticWithArguments(
-  name: 'ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED',
+  name: 'abi_specific_integer_mapping_unsupported',
   problemMessage:
       "Invalid mapping to '{0}'; only mappings to 'Int8', 'Int16', 'Int32', "
       "'Int64', 'Uint8', 'Uint16', 'UInt32', and 'Uint64' are supported.",
@@ -73,7 +73,7 @@ abiSpecificIntegerMappingUnsupported = DiagnosticWithArguments(
       "'Uint16', 'UInt32', or 'Uint64'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED',
+  uniqueName: 'abi_specific_integer_mapping_unsupported',
   withArguments: _withArgumentsAbiSpecificIntegerMappingUnsupported,
   expectedTypes: [ExpectedType.string],
 );
@@ -81,123 +81,123 @@ abiSpecificIntegerMappingUnsupported = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments abstractClassMember =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ABSTRACT_CLASS_MEMBER',
+      name: 'abstract_class_member',
       problemMessage: "Members of classes can't be declared to be 'abstract'.",
       correctionMessage:
           "Try removing the 'abstract' keyword. You can add the 'abstract' "
           "keyword before the class declaration.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ABSTRACT_CLASS_MEMBER',
+      uniqueName: 'abstract_class_member',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments abstractExternalField =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ABSTRACT_EXTERNAL_FIELD',
+      name: 'abstract_external_field',
       problemMessage:
           "Fields can't be declared both 'abstract' and 'external'.",
       correctionMessage: "Try removing the 'abstract' or 'external' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ABSTRACT_EXTERNAL_FIELD',
+      uniqueName: 'abstract_external_field',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 abstractFieldConstructorInitializer = DiagnosticWithoutArgumentsImpl(
-  name: 'ABSTRACT_FIELD_INITIALIZER',
+  name: 'abstract_field_initializer',
   problemMessage: "Abstract fields can't have initializers.",
   correctionMessage:
       "Try removing the field initializer or the 'abstract' keyword from the "
       "field declaration.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER',
+  uniqueName: 'abstract_field_constructor_initializer',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments abstractFieldInitializer =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ABSTRACT_FIELD_INITIALIZER',
+      name: 'abstract_field_initializer',
       problemMessage: "Abstract fields can't have initializers.",
       correctionMessage:
           "Try removing the initializer or the 'abstract' keyword.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'ABSTRACT_FIELD_INITIALIZER',
+      uniqueName: 'abstract_field_initializer',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments abstractFinalBaseClass =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ABSTRACT_FINAL_BASE_CLASS',
+      name: 'abstract_final_base_class',
       problemMessage:
           "An 'abstract' class can't be declared as both 'final' and 'base'.",
       correctionMessage: "Try removing either the 'final' or 'base' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ABSTRACT_FINAL_BASE_CLASS',
+      uniqueName: 'abstract_final_base_class',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 abstractFinalInterfaceClass = DiagnosticWithoutArgumentsImpl(
-  name: 'ABSTRACT_FINAL_INTERFACE_CLASS',
+  name: 'abstract_final_interface_class',
   problemMessage:
       "An 'abstract' class can't be declared as both 'final' and 'interface'.",
   correctionMessage: "Try removing either the 'final' or 'interface' keyword.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ABSTRACT_FINAL_INTERFACE_CLASS',
+  uniqueName: 'abstract_final_interface_class',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments abstractLateField =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ABSTRACT_LATE_FIELD',
+      name: 'abstract_late_field',
       problemMessage: "Abstract fields cannot be late.",
       correctionMessage: "Try removing the 'abstract' or 'late' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ABSTRACT_LATE_FIELD',
+      uniqueName: 'abstract_late_field',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments abstractSealedClass =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ABSTRACT_SEALED_CLASS',
+      name: 'abstract_sealed_class',
       problemMessage:
           "A 'sealed' class can't be marked 'abstract' because it's already "
           "implicitly abstract.",
       correctionMessage: "Try removing the 'abstract' keyword.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ABSTRACT_SEALED_CLASS',
+      uniqueName: 'abstract_sealed_class',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments abstractStaticField =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ABSTRACT_STATIC_FIELD',
+      name: 'abstract_static_field',
       problemMessage: "Static fields can't be declared 'abstract'.",
       correctionMessage: "Try removing the 'abstract' or 'static' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ABSTRACT_STATIC_FIELD',
+      uniqueName: 'abstract_static_field',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments abstractStaticMethod =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ABSTRACT_STATIC_METHOD',
+      name: 'abstract_static_method',
       problemMessage: "Static methods can't be declared to be 'abstract'.",
       correctionMessage: "Try removing the keyword 'abstract'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ABSTRACT_STATIC_METHOD',
+      uniqueName: 'abstract_static_method',
       expectedTypes: [],
     );
 
@@ -212,11 +212,11 @@ const DiagnosticWithArguments<
   })
 >
 abstractSuperMemberReference = DiagnosticWithArguments(
-  name: 'ABSTRACT_SUPER_MEMBER_REFERENCE',
+  name: 'abstract_super_member_reference',
   problemMessage: "The {0} '{1}' is always abstract in the supertype.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'ABSTRACT_SUPER_MEMBER_REFERENCE',
+  uniqueName: 'abstract_super_member_reference',
   withArguments: _withArgumentsAbstractSuperMemberReference,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -224,20 +224,20 @@ abstractSuperMemberReference = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 addressPosition = DiagnosticWithoutArgumentsImpl(
-  name: 'ADDRESS_POSITION',
+  name: 'address_position',
   problemMessage:
       "The '.address' expression can only be used as argument to a leaf native "
       "external call.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'ADDRESS_POSITION',
+  uniqueName: 'address_position',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 addressReceiver = DiagnosticWithoutArgumentsImpl(
-  name: 'ADDRESS_RECEIVER',
+  name: 'address_receiver',
   problemMessage:
       "The receiver of '.address' must be a concrete 'TypedData', a concrete "
       "'TypedData' '[]', an 'Array', an 'Array' '[]', a Struct field, or a "
@@ -246,7 +246,7 @@ addressReceiver = DiagnosticWithoutArgumentsImpl(
       "Change the receiver of '.address' to one of the allowed kinds.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'ADDRESS_RECEIVER',
+  uniqueName: 'address_receiver',
   expectedTypes: [],
 );
 
@@ -262,14 +262,14 @@ const DiagnosticWithArguments<
   })
 >
 ambiguousExport = DiagnosticWithArguments(
-  name: 'AMBIGUOUS_EXPORT',
+  name: 'ambiguous_export',
   problemMessage: "The name '{0}' is defined in the libraries '{1}' and '{2}'.",
   correctionMessage:
       "Try removing the export of one of the libraries, or explicitly hiding "
       "the name in one of the export directives.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'AMBIGUOUS_EXPORT',
+  uniqueName: 'ambiguous_export',
   withArguments: _withArgumentsAmbiguousExport,
   expectedTypes: [ExpectedType.string, ExpectedType.uri, ExpectedType.uri],
 );
@@ -281,7 +281,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 ambiguousExtensionMemberAccessThreeOrMore = DiagnosticWithArguments(
-  name: 'AMBIGUOUS_EXTENSION_MEMBER_ACCESS',
+  name: 'ambiguous_extension_member_access',
   problemMessage:
       "A member named '{0}' is defined in {1}, and none are more specific.",
   correctionMessage:
@@ -289,7 +289,7 @@ ambiguousExtensionMemberAccessThreeOrMore = DiagnosticWithArguments(
       "be chosen.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE',
+  uniqueName: 'ambiguous_extension_member_access_three_or_more',
   withArguments: _withArgumentsAmbiguousExtensionMemberAccessThreeOrMore,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -306,7 +306,7 @@ const DiagnosticWithArguments<
   })
 >
 ambiguousExtensionMemberAccessTwo = DiagnosticWithArguments(
-  name: 'AMBIGUOUS_EXTENSION_MEMBER_ACCESS',
+  name: 'ambiguous_extension_member_access',
   problemMessage:
       "A member named '{0}' is defined in '{1}' and '{2}', and neither is more "
       "specific.",
@@ -315,7 +315,7 @@ ambiguousExtensionMemberAccessTwo = DiagnosticWithArguments(
       "be chosen.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO',
+  uniqueName: 'ambiguous_extension_member_access_two',
   withArguments: _withArgumentsAmbiguousExtensionMemberAccessTwo,
   expectedTypes: [
     ExpectedType.string,
@@ -331,14 +331,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 ambiguousImport = DiagnosticWithArguments(
-  name: 'AMBIGUOUS_IMPORT',
+  name: 'ambiguous_import',
   problemMessage: "The name '{0}' is defined in the libraries {1}.",
   correctionMessage:
       "Try using 'as prefix' for one of the import directives, or hiding the "
       "name from all but one of the imports.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'AMBIGUOUS_IMPORT',
+  uniqueName: 'ambiguous_import',
   withArguments: _withArgumentsAmbiguousImport,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -346,7 +346,7 @@ ambiguousImport = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 ambiguousSetOrMapLiteralBoth = DiagnosticWithoutArgumentsImpl(
-  name: 'AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH',
+  name: 'ambiguous_set_or_map_literal_both',
   problemMessage:
       "The literal can't be either a map or a set because it contains at least "
       "one literal map entry or a spread operator spreading a 'Map', and at "
@@ -356,14 +356,14 @@ ambiguousSetOrMapLiteralBoth = DiagnosticWithoutArgumentsImpl(
       "elements are consistent.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH',
+  uniqueName: 'ambiguous_set_or_map_literal_both',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 ambiguousSetOrMapLiteralEither = DiagnosticWithoutArgumentsImpl(
-  name: 'AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER',
+  name: 'ambiguous_set_or_map_literal_either',
   problemMessage:
       "This literal must be either a map or a set, but the elements don't have "
       "enough information for type inference to work.",
@@ -372,7 +372,7 @@ ambiguousSetOrMapLiteralEither = DiagnosticWithoutArgumentsImpl(
       "maps).",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER',
+  uniqueName: 'ambiguous_set_or_map_literal_either',
   expectedTypes: [],
 );
 
@@ -384,11 +384,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String optionName})
 >
 analysisOptionDeprecated = DiagnosticWithArguments(
-  name: 'ANALYSIS_OPTION_DEPRECATED',
+  name: 'analysis_option_deprecated',
   problemMessage: "The option '{0}' is no longer supported.",
   correctionMessage: "Try removing the option.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'ANALYSIS_OPTION_DEPRECATED',
+  uniqueName: 'analysis_option_deprecated',
   withArguments: _withArgumentsAnalysisOptionDeprecated,
   expectedTypes: [ExpectedType.string],
 );
@@ -402,11 +402,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0, required Object p1})
 >
 analysisOptionDeprecatedWithReplacement = DiagnosticWithArguments(
-  name: 'ANALYSIS_OPTION_DEPRECATED',
+  name: 'analysis_option_deprecated',
   problemMessage: "The option '{0}' is no longer supported.",
   correctionMessage: "Try using the new '{1}' option.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT',
+  uniqueName: 'analysis_option_deprecated_with_replacement',
   withArguments: _withArgumentsAnalysisOptionDeprecatedWithReplacement,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -414,59 +414,59 @@ analysisOptionDeprecatedWithReplacement = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments annotationOnPointerField =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ANNOTATION_ON_POINTER_FIELD',
+      name: 'annotation_on_pointer_field',
       problemMessage:
           "Fields in a struct class whose type is 'Pointer' shouldn't have any "
           "annotations.",
       correctionMessage: "Try removing the annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'ANNOTATION_ON_POINTER_FIELD',
+      uniqueName: 'annotation_on_pointer_field',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 annotationOnTypeArgument = DiagnosticWithoutArgumentsImpl(
-  name: 'ANNOTATION_ON_TYPE_ARGUMENT',
+  name: 'annotation_on_type_argument',
   problemMessage:
       "Type arguments can't have annotations because they aren't declarations.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ANNOTATION_ON_TYPE_ARGUMENT',
+  uniqueName: 'annotation_on_type_argument',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments annotationSpaceBeforeParenthesis =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ANNOTATION_SPACE_BEFORE_PARENTHESIS',
+      name: 'annotation_space_before_parenthesis',
       problemMessage:
           "Annotations can't have spaces or comments before the parenthesis.",
       correctionMessage:
           "Remove any spaces or comments before the parenthesis.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ANNOTATION_SPACE_BEFORE_PARENTHESIS',
+      uniqueName: 'annotation_space_before_parenthesis',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments annotationWithTypeArguments =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ANNOTATION_WITH_TYPE_ARGUMENTS',
+      name: 'annotation_with_type_arguments',
       problemMessage: "An annotation can't use type arguments.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ANNOTATION_WITH_TYPE_ARGUMENTS',
+      uniqueName: 'annotation_with_type_arguments',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 annotationWithTypeArgumentsUninstantiated = DiagnosticWithoutArgumentsImpl(
-  name: 'ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED',
+  name: 'annotation_with_type_arguments_uninstantiated',
   problemMessage:
       "An annotation with type arguments must be followed by an argument list.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED',
+  uniqueName: 'annotation_with_type_arguments_uninstantiated',
   expectedTypes: [],
 );
 
@@ -476,12 +476,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 argumentMustBeAConstant = DiagnosticWithArguments(
-  name: 'ARGUMENT_MUST_BE_A_CONSTANT',
+  name: 'argument_must_be_a_constant',
   problemMessage: "Argument '{0}' must be a constant.",
   correctionMessage: "Try replacing the value with a literal or const.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'ARGUMENT_MUST_BE_A_CONSTANT',
+  uniqueName: 'argument_must_be_a_constant',
   withArguments: _withArgumentsArgumentMustBeAConstant,
   expectedTypes: [ExpectedType.string],
 );
@@ -489,14 +489,14 @@ argumentMustBeAConstant = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments argumentMustBeNative =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ARGUMENT_MUST_BE_NATIVE',
+      name: 'argument_must_be_native',
       problemMessage:
           "Argument to 'Native.addressOf' must be annotated with @Native",
       correctionMessage:
           "Try passing a static function or field annotated with '@Native'",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'ARGUMENT_MUST_BE_NATIVE',
+      uniqueName: 'argument_must_be_native',
       expectedTypes: [],
     );
 
@@ -513,13 +513,13 @@ const DiagnosticWithArguments<
   })
 >
 argumentTypeNotAssignable = DiagnosticWithArguments(
-  name: 'ARGUMENT_TYPE_NOT_ASSIGNABLE',
+  name: 'argument_type_not_assignable',
   problemMessage:
       "The argument type '{0}' can't be assigned to the parameter type '{1}'. "
       "{2}",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'ARGUMENT_TYPE_NOT_ASSIGNABLE',
+  uniqueName: 'argument_type_not_assignable',
   withArguments: _withArgumentsArgumentTypeNotAssignable,
   expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
 );
@@ -531,13 +531,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 argumentTypeNotAssignableToErrorHandler = DiagnosticWithArguments(
-  name: 'ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
+  name: 'argument_type_not_assignable_to_error_handler',
   problemMessage:
       "The argument type '{0}' can't be assigned to the parameter type '{1} "
       "Function(Object)' or '{1} Function(Object, StackTrace)'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
+  uniqueName: 'argument_type_not_assignable_to_error_handler',
   withArguments: _withArgumentsArgumentTypeNotAssignableToErrorHandler,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -545,12 +545,12 @@ argumentTypeNotAssignableToErrorHandler = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments assertInRedirectingConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ASSERT_IN_REDIRECTING_CONSTRUCTOR',
+      name: 'assert_in_redirecting_constructor',
       problemMessage:
           "A redirecting constructor can't have an 'assert' initializer.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'ASSERT_IN_REDIRECTING_CONSTRUCTOR',
+      uniqueName: 'assert_in_redirecting_constructor',
       expectedTypes: [],
     );
 
@@ -560,13 +560,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 assetDirectoryDoesNotExist = DiagnosticWithArguments(
-  name: 'ASSET_DIRECTORY_DOES_NOT_EXIST',
+  name: 'asset_directory_does_not_exist',
   problemMessage: "The asset directory '{0}' doesn't exist.",
   correctionMessage:
       "Try creating the directory or fixing the path to the directory.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'ASSET_DIRECTORY_DOES_NOT_EXIST',
+  uniqueName: 'asset_directory_does_not_exist',
   withArguments: _withArgumentsAssetDirectoryDoesNotExist,
   expectedTypes: [ExpectedType.string],
 );
@@ -577,12 +577,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 assetDoesNotExist = DiagnosticWithArguments(
-  name: 'ASSET_DOES_NOT_EXIST',
+  name: 'asset_does_not_exist',
   problemMessage: "The asset file '{0}' doesn't exist.",
   correctionMessage: "Try creating the file or fixing the path to the file.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'ASSET_DOES_NOT_EXIST',
+  uniqueName: 'asset_does_not_exist',
   withArguments: _withArgumentsAssetDoesNotExist,
   expectedTypes: [ExpectedType.string],
 );
@@ -590,7 +590,7 @@ assetDoesNotExist = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 assetFieldNotList = DiagnosticWithoutArgumentsImpl(
-  name: 'ASSET_FIELD_NOT_LIST',
+  name: 'asset_field_not_list',
   problemMessage:
       "The value of the 'assets' field is expected to be a list of relative file "
       "paths.",
@@ -598,19 +598,19 @@ assetFieldNotList = DiagnosticWithoutArgumentsImpl(
       "Try converting the value to be a list of relative file paths.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'ASSET_FIELD_NOT_LIST',
+  uniqueName: 'asset_field_not_list',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments assetMissingPath =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ASSET_MISSING_PATH',
+      name: 'asset_missing_path',
       problemMessage: "Asset map entry must contain a 'path' field.",
       correctionMessage: "Try adding a 'path' field.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'ASSET_MISSING_PATH',
+      uniqueName: 'asset_missing_path',
       expectedTypes: [],
     );
 
@@ -620,37 +620,37 @@ const DiagnosticWithoutArguments assetMissingPath =
 /// No parameters.
 const DiagnosticWithoutArguments assetNotString =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ASSET_NOT_STRING',
+      name: 'asset_not_string',
       problemMessage: "Assets are required to be file paths (strings).",
       correctionMessage: "Try converting the value to be a string.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'ASSET_NOT_STRING',
+      uniqueName: 'asset_not_string',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments assetNotStringOrMap =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ASSET_NOT_STRING_OR_MAP',
+      name: 'asset_not_string_or_map',
       problemMessage:
           "An asset value is required to be a file path (string) or map.",
       correctionMessage: "Try converting the value to be a string or map.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'ASSET_NOT_STRING_OR_MAP',
+      uniqueName: 'asset_not_string_or_map',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments assetPathNotString =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ASSET_PATH_NOT_STRING',
+      name: 'asset_path_not_string',
       problemMessage: "Asset paths are required to be file paths (strings).",
       correctionMessage: "Try converting the value to be a string.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'ASSET_PATH_NOT_STRING',
+      uniqueName: 'asset_path_not_string',
       expectedTypes: [],
     );
 
@@ -662,14 +662,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 assignmentOfDoNotStore = DiagnosticWithArguments(
-  name: 'ASSIGNMENT_OF_DO_NOT_STORE',
+  name: 'assignment_of_do_not_store',
   problemMessage:
       "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or "
       "top-level variable.",
   correctionMessage: "Try removing the assignment.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'ASSIGNMENT_OF_DO_NOT_STORE',
+  uniqueName: 'assignment_of_do_not_store',
   withArguments: _withArgumentsAssignmentOfDoNotStore,
   expectedTypes: [ExpectedType.string],
 );
@@ -677,7 +677,7 @@ assignmentOfDoNotStore = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 assignmentToConst = DiagnosticWithoutArgumentsImpl(
-  name: 'ASSIGNMENT_TO_CONST',
+  name: 'assignment_to_const',
   problemMessage:
       "Constant variables can't be assigned a value after initialization.",
   correctionMessage:
@@ -685,7 +685,7 @@ assignmentToConst = DiagnosticWithoutArgumentsImpl(
       "variable.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'ASSIGNMENT_TO_CONST',
+  uniqueName: 'assignment_to_const',
   expectedTypes: [],
 );
 
@@ -695,13 +695,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 assignmentToFinal = DiagnosticWithArguments(
-  name: 'ASSIGNMENT_TO_FINAL',
+  name: 'assignment_to_final',
   problemMessage: "'{0}' can't be used as a setter because it's final.",
   correctionMessage:
       "Try finding a different setter, or making '{0}' non-final.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'ASSIGNMENT_TO_FINAL',
+  uniqueName: 'assignment_to_final',
   withArguments: _withArgumentsAssignmentToFinal,
   expectedTypes: [ExpectedType.string],
 );
@@ -712,12 +712,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 assignmentToFinalLocal = DiagnosticWithArguments(
-  name: 'ASSIGNMENT_TO_FINAL_LOCAL',
+  name: 'assignment_to_final_local',
   problemMessage: "The final variable '{0}' can only be set once.",
   correctionMessage: "Try making '{0}' non-final.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'ASSIGNMENT_TO_FINAL_LOCAL',
+  uniqueName: 'assignment_to_final_local',
   withArguments: _withArgumentsAssignmentToFinalLocal,
   expectedTypes: [ExpectedType.string],
 );
@@ -729,14 +729,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 assignmentToFinalNoSetter = DiagnosticWithArguments(
-  name: 'ASSIGNMENT_TO_FINAL_NO_SETTER',
+  name: 'assignment_to_final_no_setter',
   problemMessage: "There isn't a setter named '{0}' in class '{1}'.",
   correctionMessage:
       "Try correcting the name to reference an existing setter, or declare "
       "the setter.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'ASSIGNMENT_TO_FINAL_NO_SETTER',
+  uniqueName: 'assignment_to_final_no_setter',
   withArguments: _withArgumentsAssignmentToFinalNoSetter,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -744,40 +744,40 @@ assignmentToFinalNoSetter = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments assignmentToFunction =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ASSIGNMENT_TO_FUNCTION',
+      name: 'assignment_to_function',
       problemMessage: "Functions can't be assigned a value.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'ASSIGNMENT_TO_FUNCTION',
+      uniqueName: 'assignment_to_function',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments assignmentToMethod =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ASSIGNMENT_TO_METHOD',
+      name: 'assignment_to_method',
       problemMessage: "Methods can't be assigned a value.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'ASSIGNMENT_TO_METHOD',
+      uniqueName: 'assignment_to_method',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments assignmentToType =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ASSIGNMENT_TO_TYPE',
+      name: 'assignment_to_type',
       problemMessage: "Types can't be assigned a value.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'ASSIGNMENT_TO_TYPE',
+      uniqueName: 'assignment_to_type',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments asyncForInWrongContext =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ASYNC_FOR_IN_WRONG_CONTEXT',
+      name: 'async_for_in_wrong_context',
       problemMessage:
           "The async for-in loop can only be used in an async function.",
       correctionMessage:
@@ -785,7 +785,7 @@ const DiagnosticWithoutArguments asyncForInWrongContext =
           "removing the 'await' before the for-in loop.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'ASYNC_FOR_IN_WRONG_CONTEXT',
+      uniqueName: 'async_for_in_wrong_context',
       expectedTypes: [],
     );
 
@@ -796,19 +796,19 @@ const DiagnosticWithoutArguments asyncForInWrongContext =
 /// No parameters.
 const DiagnosticWithoutArguments asyncKeywordUsedAsIdentifier =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ASYNC_KEYWORD_USED_AS_IDENTIFIER',
+      name: 'async_keyword_used_as_identifier',
       problemMessage:
           "The keywords 'await' and 'yield' can't be used as identifiers in an "
           "asynchronous or generator function.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ASYNC_KEYWORD_USED_AS_IDENTIFIER',
+      uniqueName: 'async_keyword_used_as_identifier',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 augmentationExtendsClauseAlreadyPresent = DiagnosticWithoutArgumentsImpl(
-  name: 'AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT',
+  name: 'augmentation_extends_clause_already_present',
   problemMessage:
       "The augmentation has an 'extends' clause, but an augmentation target "
       "already includes an 'extends' clause and it isn't allowed to be "
@@ -817,7 +817,7 @@ augmentationExtendsClauseAlreadyPresent = DiagnosticWithoutArgumentsImpl(
       "Try removing the 'extends' clause, either here or in the augmentation "
       "target.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT',
+  uniqueName: 'augmentation_extends_clause_already_present',
   expectedTypes: [],
 );
 
@@ -827,14 +827,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 augmentationModifierExtra = DiagnosticWithArguments(
-  name: 'AUGMENTATION_MODIFIER_EXTRA',
+  name: 'augmentation_modifier_extra',
   problemMessage:
       "The augmentation has the '{0}' modifier that the declaration doesn't "
       "have.",
   correctionMessage:
       "Try removing the '{0}' modifier, or adding it to the declaration.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'AUGMENTATION_MODIFIER_EXTRA',
+  uniqueName: 'augmentation_modifier_extra',
   withArguments: _withArgumentsAugmentationModifierExtra,
   expectedTypes: [ExpectedType.object],
 );
@@ -845,13 +845,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 augmentationModifierMissing = DiagnosticWithArguments(
-  name: 'AUGMENTATION_MODIFIER_MISSING',
+  name: 'augmentation_modifier_missing',
   problemMessage:
       "The augmentation is missing the '{0}' modifier that the declaration has.",
   correctionMessage:
       "Try adding the '{0}' modifier, or removing it from the declaration.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'AUGMENTATION_MODIFIER_MISSING',
+  uniqueName: 'augmentation_modifier_missing',
   withArguments: _withArgumentsAugmentationModifierMissing,
   expectedTypes: [ExpectedType.object],
 );
@@ -863,12 +863,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0, required Object p1})
 >
 augmentationOfDifferentDeclarationKind = DiagnosticWithArguments(
-  name: 'AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND',
+  name: 'augmentation_of_different_declaration_kind',
   problemMessage: "Can't augment a {0} with a {1}.",
   correctionMessage:
       "Try changing the augmentation to match the declaration kind.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND',
+  uniqueName: 'augmentation_of_different_declaration_kind',
   withArguments: _withArgumentsAugmentationOfDifferentDeclarationKind,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -876,7 +876,7 @@ augmentationOfDifferentDeclarationKind = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments augmentationTypeParameterBound =
     DiagnosticWithoutArgumentsImpl(
-      name: 'AUGMENTATION_TYPE_PARAMETER_BOUND',
+      name: 'augmentation_type_parameter_bound',
       problemMessage:
           "The augmentation type parameter must have the same bound as the "
           "corresponding type parameter of the declaration.",
@@ -884,14 +884,14 @@ const DiagnosticWithoutArguments augmentationTypeParameterBound =
           "Try changing the augmentation to match the declaration type "
           "parameters.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'AUGMENTATION_TYPE_PARAMETER_BOUND',
+      uniqueName: 'augmentation_type_parameter_bound',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 augmentationTypeParameterCount = DiagnosticWithoutArgumentsImpl(
-  name: 'AUGMENTATION_TYPE_PARAMETER_COUNT',
+  name: 'augmentation_type_parameter_count',
   problemMessage:
       "The augmentation must have the same number of type parameters as the "
       "declaration.",
@@ -899,14 +899,14 @@ augmentationTypeParameterCount = DiagnosticWithoutArgumentsImpl(
       "Try changing the augmentation to match the declaration type "
       "parameters.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'AUGMENTATION_TYPE_PARAMETER_COUNT',
+  uniqueName: 'augmentation_type_parameter_count',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments augmentationTypeParameterName =
     DiagnosticWithoutArgumentsImpl(
-      name: 'AUGMENTATION_TYPE_PARAMETER_NAME',
+      name: 'augmentation_type_parameter_name',
       problemMessage:
           "The augmentation type parameter must have the same name as the "
           "corresponding type parameter of the declaration.",
@@ -914,44 +914,44 @@ const DiagnosticWithoutArguments augmentationTypeParameterName =
           "Try changing the augmentation to match the declaration type "
           "parameters.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'AUGMENTATION_TYPE_PARAMETER_NAME',
+      uniqueName: 'augmentation_type_parameter_name',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments augmentationWithoutDeclaration =
     DiagnosticWithoutArgumentsImpl(
-      name: 'AUGMENTATION_WITHOUT_DECLARATION',
+      name: 'augmentation_without_declaration',
       problemMessage: "The declaration being augmented doesn't exist.",
       correctionMessage:
           "Try changing the augmentation to match an existing declaration.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'AUGMENTATION_WITHOUT_DECLARATION',
+      uniqueName: 'augmentation_without_declaration',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 augmentedExpressionIsNotSetter = DiagnosticWithoutArgumentsImpl(
-  name: 'AUGMENTED_EXPRESSION_IS_NOT_SETTER',
+  name: 'augmented_expression_is_not_setter',
   problemMessage:
       "The augmented declaration is not a setter, it can't be used to write a "
       "value.",
   correctionMessage: "Try assigning a value to a setter.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'AUGMENTED_EXPRESSION_IS_NOT_SETTER',
+  uniqueName: 'augmented_expression_is_not_setter',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 augmentedExpressionIsSetter = DiagnosticWithoutArgumentsImpl(
-  name: 'AUGMENTED_EXPRESSION_IS_SETTER',
+  name: 'augmented_expression_is_setter',
   problemMessage:
       "The augmented declaration is a setter, it can't be used to read a value.",
   correctionMessage: "Try assigning a value to the augmented setter.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'AUGMENTED_EXPRESSION_IS_SETTER',
+  uniqueName: 'augmented_expression_is_setter',
   expectedTypes: [],
 );
 
@@ -961,12 +961,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 augmentedExpressionNotOperator = DiagnosticWithArguments(
-  name: 'AUGMENTED_EXPRESSION_NOT_OPERATOR',
+  name: 'augmented_expression_not_operator',
   problemMessage:
       "The enclosing augmentation doesn't augment the operator '{0}'.",
   correctionMessage: "Try augmenting or invoking the correct operator.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'AUGMENTED_EXPRESSION_NOT_OPERATOR',
+  uniqueName: 'augmented_expression_not_operator',
   withArguments: _withArgumentsAugmentedExpressionNotOperator,
   expectedTypes: [ExpectedType.object],
 );
@@ -974,7 +974,7 @@ augmentedExpressionNotOperator = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments awaitInLateLocalVariableInitializer =
     DiagnosticWithoutArgumentsImpl(
-      name: 'AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER',
+      name: 'await_in_late_local_variable_initializer',
       problemMessage:
           "The 'await' expression can't be used in a 'late' local variable's "
           "initializer.",
@@ -983,7 +983,7 @@ const DiagnosticWithoutArguments awaitInLateLocalVariableInitializer =
           "without using the 'await' expression.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER',
+      uniqueName: 'await_in_late_local_variable_initializer',
       expectedTypes: [],
     );
 
@@ -994,20 +994,20 @@ const DiagnosticWithoutArguments awaitInLateLocalVariableInitializer =
 /// No parameters.
 const DiagnosticWithoutArguments awaitInWrongContext =
     DiagnosticWithoutArgumentsImpl(
-      name: 'AWAIT_IN_WRONG_CONTEXT',
+      name: 'await_in_wrong_context',
       problemMessage:
           "The await expression can only be used in an async function.",
       correctionMessage:
           "Try marking the function body with either 'async' or 'async*'.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'AWAIT_IN_WRONG_CONTEXT',
+      uniqueName: 'await_in_wrong_context',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 awaitOfIncompatibleType = DiagnosticWithoutArgumentsImpl(
-  name: 'AWAIT_OF_INCOMPATIBLE_TYPE',
+  name: 'await_of_incompatible_type',
   problemMessage:
       "The 'await' expression can't be used for an expression with an extension "
       "type that is not a subtype of 'Future'.",
@@ -1016,7 +1016,7 @@ awaitOfIncompatibleType = DiagnosticWithoutArgumentsImpl(
       "'Future'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'AWAIT_OF_INCOMPATIBLE_TYPE',
+  uniqueName: 'await_of_incompatible_type',
   expectedTypes: [],
 );
 
@@ -1026,24 +1026,24 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String implementedClassName})
 >
 baseClassImplementedOutsideOfLibrary = DiagnosticWithArguments(
-  name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+  name: 'invalid_use_of_type_outside_library',
   problemMessage:
       "The class '{0}' can't be implemented outside of its library because it's "
       "a base class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
+  uniqueName: 'base_class_implemented_outside_of_library',
   withArguments: _withArgumentsBaseClassImplementedOutsideOfLibrary,
   expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments baseEnum = DiagnosticWithoutArgumentsImpl(
-  name: 'BASE_ENUM',
+  name: 'base_enum',
   problemMessage: "Enums can't be declared to be 'base'.",
   correctionMessage: "Try removing the keyword 'base'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'BASE_ENUM',
+  uniqueName: 'base_enum',
   expectedTypes: [],
 );
 
@@ -1053,13 +1053,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String implementedMixinName})
 >
 baseMixinImplementedOutsideOfLibrary = DiagnosticWithArguments(
-  name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+  name: 'invalid_use_of_type_outside_library',
   problemMessage:
       "The mixin '{0}' can't be implemented outside of its library because it's "
       "a base mixin.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
+  uniqueName: 'base_mixin_implemented_outside_of_library',
   withArguments: _withArgumentsBaseMixinImplementedOutsideOfLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -1074,13 +1074,13 @@ const DiagnosticWithArguments<
   })
 >
 binaryOperatorWrittenOut = DiagnosticWithArguments(
-  name: 'BINARY_OPERATOR_WRITTEN_OUT',
+  name: 'binary_operator_written_out',
   problemMessage:
       "Binary operator '{0}' is written as '{1}' instead of the written out "
       "word.",
   correctionMessage: "Try replacing '{0}' with '{1}'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'BINARY_OPERATOR_WRITTEN_OUT',
+  uniqueName: 'binary_operator_written_out',
   withArguments: _withArgumentsBinaryOperatorWrittenOut,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -1091,7 +1091,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0})
 >
 bodyMightCompleteNormally = DiagnosticWithArguments(
-  name: 'BODY_MIGHT_COMPLETE_NORMALLY',
+  name: 'body_might_complete_normally',
   problemMessage:
       "The body might complete normally, causing 'null' to be returned, but the "
       "return type, '{0}', is a potentially non-nullable type.",
@@ -1099,7 +1099,7 @@ bodyMightCompleteNormally = DiagnosticWithArguments(
       "Try adding either a return or a throw statement at the end.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'BODY_MIGHT_COMPLETE_NORMALLY',
+  uniqueName: 'body_might_complete_normally',
   withArguments: _withArgumentsBodyMightCompleteNormally,
   expectedTypes: [ExpectedType.type],
 );
@@ -1110,14 +1110,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0})
 >
 bodyMightCompleteNormallyCatchError = DiagnosticWithArguments(
-  name: 'BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR',
+  name: 'body_might_complete_normally_catch_error',
   problemMessage:
       "This 'onError' handler must return a value assignable to '{0}', but ends "
       "without returning a value.",
   correctionMessage: "Try adding a return statement.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR',
+  uniqueName: 'body_might_complete_normally_catch_error',
   withArguments: _withArgumentsBodyMightCompleteNormallyCatchError,
   expectedTypes: [ExpectedType.type],
 );
@@ -1128,7 +1128,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0})
 >
 bodyMightCompleteNormallyNullable = DiagnosticWithArguments(
-  name: 'BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE',
+  name: 'body_might_complete_normally_nullable',
   problemMessage:
       "This function has a nullable return type of '{0}', but ends without "
       "returning a value.",
@@ -1137,7 +1137,7 @@ bodyMightCompleteNormallyNullable = DiagnosticWithArguments(
       "changing the return type to 'void'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE',
+  uniqueName: 'body_might_complete_normally_nullable',
   withArguments: _withArgumentsBodyMightCompleteNormallyNullable,
   expectedTypes: [ExpectedType.type],
 );
@@ -1145,24 +1145,24 @@ bodyMightCompleteNormallyNullable = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments breakLabelOnSwitchMember =
     DiagnosticWithoutArgumentsImpl(
-      name: 'BREAK_LABEL_ON_SWITCH_MEMBER',
+      name: 'break_label_on_switch_member',
       problemMessage:
           "A break label resolves to the 'case' or 'default' statement.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'BREAK_LABEL_ON_SWITCH_MEMBER',
+      uniqueName: 'break_label_on_switch_member',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 breakOutsideOfLoop = DiagnosticWithoutArgumentsImpl(
-  name: 'BREAK_OUTSIDE_OF_LOOP',
+  name: 'break_outside_of_loop',
   problemMessage:
       "A break statement can't be used outside of a loop or switch statement.",
   correctionMessage: "Try removing the break statement.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'BREAK_OUTSIDE_OF_LOOP',
+  uniqueName: 'break_outside_of_loop',
   expectedTypes: [],
 );
 
@@ -1172,13 +1172,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 builtInIdentifierAsExtensionName = DiagnosticWithArguments(
-  name: 'BUILT_IN_IDENTIFIER_IN_DECLARATION',
+  name: 'built_in_identifier_in_declaration',
   problemMessage:
       "The built-in identifier '{0}' can't be used as an extension name.",
   correctionMessage: "Try choosing a different name for the extension.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME',
+  uniqueName: 'built_in_identifier_as_extension_name',
   withArguments: _withArgumentsBuiltInIdentifierAsExtensionName,
   expectedTypes: [ExpectedType.string],
 );
@@ -1189,13 +1189,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 builtInIdentifierAsExtensionTypeName = DiagnosticWithArguments(
-  name: 'BUILT_IN_IDENTIFIER_IN_DECLARATION',
+  name: 'built_in_identifier_in_declaration',
   problemMessage:
       "The built-in identifier '{0}' can't be used as an extension type name.",
   correctionMessage: "Try choosing a different name for the extension type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME',
+  uniqueName: 'built_in_identifier_as_extension_type_name',
   withArguments: _withArgumentsBuiltInIdentifierAsExtensionTypeName,
   expectedTypes: [ExpectedType.string],
 );
@@ -1206,13 +1206,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 builtInIdentifierAsPrefixName = DiagnosticWithArguments(
-  name: 'BUILT_IN_IDENTIFIER_IN_DECLARATION',
+  name: 'built_in_identifier_in_declaration',
   problemMessage:
       "The built-in identifier '{0}' can't be used as a prefix name.",
   correctionMessage: "Try choosing a different name for the prefix.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'BUILT_IN_IDENTIFIER_AS_PREFIX_NAME',
+  uniqueName: 'built_in_identifier_as_prefix_name',
   withArguments: _withArgumentsBuiltInIdentifierAsPrefixName,
   expectedTypes: [ExpectedType.string],
 );
@@ -1223,12 +1223,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 builtInIdentifierAsType = DiagnosticWithArguments(
-  name: 'BUILT_IN_IDENTIFIER_AS_TYPE',
+  name: 'built_in_identifier_as_type',
   problemMessage: "The built-in identifier '{0}' can't be used as a type.",
   correctionMessage: "Try correcting the name to match an existing type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE',
+  uniqueName: 'built_in_identifier_as_type',
   withArguments: _withArgumentsBuiltInIdentifierAsType,
   expectedTypes: [ExpectedType.string],
 );
@@ -1239,13 +1239,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 builtInIdentifierAsTypedefName = DiagnosticWithArguments(
-  name: 'BUILT_IN_IDENTIFIER_IN_DECLARATION',
+  name: 'built_in_identifier_in_declaration',
   problemMessage:
       "The built-in identifier '{0}' can't be used as a typedef name.",
   correctionMessage: "Try choosing a different name for the typedef.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME',
+  uniqueName: 'built_in_identifier_as_typedef_name',
   withArguments: _withArgumentsBuiltInIdentifierAsTypedefName,
   expectedTypes: [ExpectedType.string],
 );
@@ -1256,12 +1256,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 builtInIdentifierAsTypeName = DiagnosticWithArguments(
-  name: 'BUILT_IN_IDENTIFIER_IN_DECLARATION',
+  name: 'built_in_identifier_in_declaration',
   problemMessage: "The built-in identifier '{0}' can't be used as a type name.",
   correctionMessage: "Try choosing a different name for the type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE_NAME',
+  uniqueName: 'built_in_identifier_as_type_name',
   withArguments: _withArgumentsBuiltInIdentifierAsTypeName,
   expectedTypes: [ExpectedType.string],
 );
@@ -1272,13 +1272,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 builtInIdentifierAsTypeParameterName = DiagnosticWithArguments(
-  name: 'BUILT_IN_IDENTIFIER_IN_DECLARATION',
+  name: 'built_in_identifier_in_declaration',
   problemMessage:
       "The built-in identifier '{0}' can't be used as a type parameter name.",
   correctionMessage: "Try choosing a different name for the type parameter.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME',
+  uniqueName: 'built_in_identifier_as_type_parameter_name',
   withArguments: _withArgumentsBuiltInIdentifierAsTypeParameterName,
   expectedTypes: [ExpectedType.string],
 );
@@ -1289,7 +1289,7 @@ builtInIdentifierAsTypeParameterName = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 cameraPermissionsIncompatible = DiagnosticWithoutArgumentsImpl(
-  name: 'CAMERA_PERMISSIONS_INCOMPATIBLE',
+  name: 'camera_permissions_incompatible',
   problemMessage:
       "Camera permissions make app incompatible for Chrome OS, consider adding "
       "optional features \"android.hardware.camera\" and "
@@ -1300,7 +1300,7 @@ cameraPermissionsIncompatible = DiagnosticWithoutArgumentsImpl(
       "android:name=\"android.hardware.camera.autofocus\"  "
       "android:required=\"false\">`.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'CAMERA_PERMISSIONS_INCOMPATIBLE',
+  uniqueName: 'camera_permissions_incompatible',
   expectedTypes: [],
 );
 
@@ -1310,12 +1310,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0})
 >
 caseExpressionTypeImplementsEquals = DiagnosticWithArguments(
-  name: 'CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS',
+  name: 'case_expression_type_implements_equals',
   problemMessage:
       "The switch case expression type '{0}' can't override the '==' operator.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS',
+  uniqueName: 'case_expression_type_implements_equals',
   withArguments: _withArgumentsCaseExpressionTypeImplementsEquals,
   expectedTypes: [ExpectedType.type],
 );
@@ -1327,13 +1327,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 caseExpressionTypeIsNotSwitchExpressionSubtype = DiagnosticWithArguments(
-  name: 'CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE',
+  name: 'case_expression_type_is_not_switch_expression_subtype',
   problemMessage:
       "The switch case expression type '{0}' must be a subtype of the switch "
       "expression type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE',
+  uniqueName: 'case_expression_type_is_not_switch_expression_subtype',
   withArguments: _withArgumentsCaseExpressionTypeIsNotSwitchExpressionSubtype,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -1344,7 +1344,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 castFromNullableAlwaysFails = DiagnosticWithArguments(
-  name: 'CAST_FROM_NULLABLE_ALWAYS_FAILS',
+  name: 'cast_from_nullable_always_fails',
   problemMessage:
       "This cast will always throw an exception because the nullable local "
       "variable '{0}' is not assigned.",
@@ -1353,7 +1353,7 @@ castFromNullableAlwaysFails = DiagnosticWithArguments(
       "on every execution path.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'CAST_FROM_NULLABLE_ALWAYS_FAILS',
+  uniqueName: 'cast_from_nullable_always_fails',
   withArguments: _withArgumentsCastFromNullableAlwaysFails,
   expectedTypes: [ExpectedType.string],
 );
@@ -1361,13 +1361,13 @@ castFromNullableAlwaysFails = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments castFromNullAlwaysFails =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CAST_FROM_NULL_ALWAYS_FAILS',
+      name: 'cast_from_null_always_fails',
       problemMessage:
           "This cast always throws an exception because the expression always "
           "evaluates to 'null'.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'CAST_FROM_NULL_ALWAYS_FAILS',
+      uniqueName: 'cast_from_null_always_fails',
       expectedTypes: [],
     );
 
@@ -1377,7 +1377,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 castToNonType = DiagnosticWithArguments(
-  name: 'CAST_TO_NON_TYPE',
+  name: 'cast_to_non_type',
   problemMessage:
       "The name '{0}' isn't a type, so it can't be used in an 'as' expression.",
   correctionMessage:
@@ -1385,45 +1385,45 @@ castToNonType = DiagnosticWithArguments(
       "type with the name '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CAST_TO_NON_TYPE',
+  uniqueName: 'cast_to_non_type',
   withArguments: _withArgumentsCastToNonType,
   expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments catchSyntax = DiagnosticWithoutArgumentsImpl(
-  name: 'CATCH_SYNTAX',
+  name: 'catch_syntax',
   problemMessage:
       "'catch' must be followed by '(identifier)' or '(identifier, identifier)'.",
   correctionMessage:
       "No types are needed, the first is given by 'on', the second is always "
       "'StackTrace'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'CATCH_SYNTAX',
+  uniqueName: 'catch_syntax',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 catchSyntaxExtraParameters = DiagnosticWithoutArgumentsImpl(
-  name: 'CATCH_SYNTAX_EXTRA_PARAMETERS',
+  name: 'catch_syntax_extra_parameters',
   problemMessage:
       "'catch' must be followed by '(identifier)' or '(identifier, identifier)'.",
   correctionMessage:
       "No types are needed, the first is given by 'on', the second is always "
       "'StackTrace'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'CATCH_SYNTAX_EXTRA_PARAMETERS',
+  uniqueName: 'catch_syntax_extra_parameters',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments classInClass = DiagnosticWithoutArgumentsImpl(
-  name: 'CLASS_IN_CLASS',
+  name: 'class_in_class',
   problemMessage: "Classes can't be declared inside other classes.",
   correctionMessage: "Try moving the class to the top-level.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'CLASS_IN_CLASS',
+  uniqueName: 'class_in_class',
   expectedTypes: [],
 );
 
@@ -1433,13 +1433,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 classInstantiationAccessToInstanceMember = DiagnosticWithArguments(
-  name: 'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
+  name: 'class_instantiation_access_to_member',
   problemMessage:
       "The instance member '{0}' can't be accessed on a class instantiation.",
   correctionMessage:
       "Try changing the member name to the name of a constructor.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER',
+  uniqueName: 'class_instantiation_access_to_instance_member',
   withArguments: _withArgumentsClassInstantiationAccessToInstanceMember,
   expectedTypes: [ExpectedType.string],
 );
@@ -1450,14 +1450,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 classInstantiationAccessToStaticMember = DiagnosticWithArguments(
-  name: 'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
+  name: 'class_instantiation_access_to_member',
   problemMessage:
       "The static member '{0}' can't be accessed on a class instantiation.",
   correctionMessage:
       "Try removing the type arguments from the class name, or changing the "
       "member name to the name of a constructor.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER',
+  uniqueName: 'class_instantiation_access_to_static_member',
   withArguments: _withArgumentsClassInstantiationAccessToStaticMember,
   expectedTypes: [ExpectedType.string],
 );
@@ -1469,13 +1469,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 classInstantiationAccessToUnknownMember = DiagnosticWithArguments(
-  name: 'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
+  name: 'class_instantiation_access_to_member',
   problemMessage: "The class '{0}' doesn't have a constructor named '{1}'.",
   correctionMessage:
       "Try invoking a different constructor, or defining a constructor named "
       "'{1}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER',
+  uniqueName: 'class_instantiation_access_to_unknown_member',
   withArguments: _withArgumentsClassInstantiationAccessToUnknownMember,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -1486,13 +1486,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 classUsedAsMixin = DiagnosticWithArguments(
-  name: 'CLASS_USED_AS_MIXIN',
+  name: 'class_used_as_mixin',
   problemMessage:
       "The class '{0}' can't be used as a mixin because it's neither a mixin "
       "class nor a mixin.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CLASS_USED_AS_MIXIN',
+  uniqueName: 'class_used_as_mixin',
   withArguments: _withArgumentsClassUsedAsMixin,
   expectedTypes: [ExpectedType.string],
 );
@@ -1500,11 +1500,11 @@ classUsedAsMixin = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments colonInPlaceOfIn =
     DiagnosticWithoutArgumentsImpl(
-      name: 'COLON_IN_PLACE_OF_IN',
+      name: 'colon_in_place_of_in',
       problemMessage: "For-in loops use 'in' rather than a colon.",
       correctionMessage: "Try replacing the colon with the keyword 'in'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'COLON_IN_PLACE_OF_IN',
+      uniqueName: 'colon_in_place_of_in',
       expectedTypes: [],
     );
 
@@ -1514,12 +1514,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 compoundImplementsFinalizable = DiagnosticWithArguments(
-  name: 'COMPOUND_IMPLEMENTS_FINALIZABLE',
+  name: 'compound_implements_finalizable',
   problemMessage: "The class '{0}' can't implement Finalizable.",
   correctionMessage: "Try removing the implements clause from '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'COMPOUND_IMPLEMENTS_FINALIZABLE',
+  uniqueName: 'compound_implements_finalizable',
   withArguments: _withArgumentsCompoundImplementsFinalizable,
   expectedTypes: [ExpectedType.string],
 );
@@ -1527,13 +1527,13 @@ compoundImplementsFinalizable = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments concreteClassHasEnumSuperinterface =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE',
+      name: 'concrete_class_has_enum_superinterface',
       problemMessage: "Concrete classes can't have 'Enum' as a superinterface.",
       correctionMessage:
           "Try specifying a different interface, or remove it from the list.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE',
+      uniqueName: 'concrete_class_has_enum_superinterface',
       expectedTypes: [],
     );
 
@@ -1544,12 +1544,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 concreteClassWithAbstractMember = DiagnosticWithArguments(
-  name: 'CONCRETE_CLASS_WITH_ABSTRACT_MEMBER',
+  name: 'concrete_class_with_abstract_member',
   problemMessage: "'{0}' must have a method body because '{1}' isn't abstract.",
   correctionMessage: "Try making '{1}' abstract, or adding a body to '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONCRETE_CLASS_WITH_ABSTRACT_MEMBER',
+  uniqueName: 'concrete_class_with_abstract_member',
   withArguments: _withArgumentsConcreteClassWithAbstractMember,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -1560,14 +1560,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 conflictingConstructorAndStaticField = DiagnosticWithArguments(
-  name: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
+  name: 'conflicting_constructor_and_static_member',
   problemMessage:
       "'{0}' can't be used to name both a constructor and a static field in this "
       "class.",
   correctionMessage: "Try renaming either the constructor or the field.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD',
+  uniqueName: 'conflicting_constructor_and_static_field',
   withArguments: _withArgumentsConflictingConstructorAndStaticField,
   expectedTypes: [ExpectedType.string],
 );
@@ -1578,14 +1578,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 conflictingConstructorAndStaticGetter = DiagnosticWithArguments(
-  name: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
+  name: 'conflicting_constructor_and_static_member',
   problemMessage:
       "'{0}' can't be used to name both a constructor and a static getter in "
       "this class.",
   correctionMessage: "Try renaming either the constructor or the getter.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER',
+  uniqueName: 'conflicting_constructor_and_static_getter',
   withArguments: _withArgumentsConflictingConstructorAndStaticGetter,
   expectedTypes: [ExpectedType.string],
 );
@@ -1596,14 +1596,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 conflictingConstructorAndStaticMethod = DiagnosticWithArguments(
-  name: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
+  name: 'conflicting_constructor_and_static_member',
   problemMessage:
       "'{0}' can't be used to name both a constructor and a static method in "
       "this class.",
   correctionMessage: "Try renaming either the constructor or the method.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD',
+  uniqueName: 'conflicting_constructor_and_static_method',
   withArguments: _withArgumentsConflictingConstructorAndStaticMethod,
   expectedTypes: [ExpectedType.string],
 );
@@ -1614,14 +1614,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 conflictingConstructorAndStaticSetter = DiagnosticWithArguments(
-  name: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
+  name: 'conflicting_constructor_and_static_member',
   problemMessage:
       "'{0}' can't be used to name both a constructor and a static setter in "
       "this class.",
   correctionMessage: "Try renaming either the constructor or the setter.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER',
+  uniqueName: 'conflicting_constructor_and_static_setter',
   withArguments: _withArgumentsConflictingConstructorAndStaticSetter,
   expectedTypes: [ExpectedType.string],
 );
@@ -1643,7 +1643,7 @@ const DiagnosticWithArguments<
   })
 >
 conflictingFieldAndMethod = DiagnosticWithArguments(
-  name: 'CONFLICTING_FIELD_AND_METHOD',
+  name: 'conflicting_field_and_method',
   problemMessage:
       "Class '{0}' can't define field '{1}' and have method '{2}.{1}' with the "
       "same name.",
@@ -1651,7 +1651,7 @@ conflictingFieldAndMethod = DiagnosticWithArguments(
       "Try converting the getter to a method, or renaming the field to a "
       "name that doesn't conflict.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONFLICTING_FIELD_AND_METHOD',
+  uniqueName: 'conflicting_field_and_method',
   withArguments: _withArgumentsConflictingFieldAndMethod,
   expectedTypes: [
     ExpectedType.string,
@@ -1675,13 +1675,13 @@ const DiagnosticWithArguments<
   })
 >
 conflictingGenericInterfaces = DiagnosticWithArguments(
-  name: 'CONFLICTING_GENERIC_INTERFACES',
+  name: 'conflicting_generic_interfaces',
   problemMessage:
       "The {0} '{1}' can't implement both '{2}' and '{3}' because the type "
       "arguments are different.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONFLICTING_GENERIC_INTERFACES',
+  uniqueName: 'conflicting_generic_interfaces',
   withArguments: _withArgumentsConflictingGenericInterfaces,
   expectedTypes: [
     ExpectedType.string,
@@ -1708,11 +1708,11 @@ const DiagnosticWithArguments<
   })
 >
 conflictingInheritedMethodAndSetter = DiagnosticWithArguments(
-  name: 'CONFLICTING_INHERITED_METHOD_AND_SETTER',
+  name: 'conflicting_inherited_method_and_setter',
   problemMessage:
       "The {0} '{1}' can't inherit both a method and a setter named '{2}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONFLICTING_INHERITED_METHOD_AND_SETTER',
+  uniqueName: 'conflicting_inherited_method_and_setter',
   withArguments: _withArgumentsConflictingInheritedMethodAndSetter,
   expectedTypes: [
     ExpectedType.string,
@@ -1738,7 +1738,7 @@ const DiagnosticWithArguments<
   })
 >
 conflictingMethodAndField = DiagnosticWithArguments(
-  name: 'CONFLICTING_METHOD_AND_FIELD',
+  name: 'conflicting_method_and_field',
   problemMessage:
       "Class '{0}' can't define method '{1}' and have field '{2}.{1}' with the "
       "same name.",
@@ -1746,7 +1746,7 @@ conflictingMethodAndField = DiagnosticWithArguments(
       "Try converting the method to a getter, or renaming the method to a "
       "name that doesn't conflict.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONFLICTING_METHOD_AND_FIELD',
+  uniqueName: 'conflicting_method_and_field',
   withArguments: _withArgumentsConflictingMethodAndField,
   expectedTypes: [
     ExpectedType.string,
@@ -1765,11 +1765,11 @@ const DiagnosticWithArguments<
   })
 >
 conflictingModifiers = DiagnosticWithArguments(
-  name: 'CONFLICTING_MODIFIERS',
+  name: 'conflicting_modifiers',
   problemMessage: "Members can't be declared to be both '{0}' and '{1}'.",
   correctionMessage: "Try removing one of the keywords.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'CONFLICTING_MODIFIERS',
+  uniqueName: 'conflicting_modifiers',
   withArguments: _withArgumentsConflictingModifiers,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -1791,13 +1791,13 @@ const DiagnosticWithArguments<
   })
 >
 conflictingStaticAndInstance = DiagnosticWithArguments(
-  name: 'CONFLICTING_STATIC_AND_INSTANCE',
+  name: 'conflicting_static_and_instance',
   problemMessage:
       "Class '{0}' can't define static member '{1}' and have instance member "
       "'{2}.{1}' with the same name.",
   correctionMessage: "Try renaming the member to a name that doesn't conflict.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONFLICTING_STATIC_AND_INSTANCE',
+  uniqueName: 'conflicting_static_and_instance',
   withArguments: _withArgumentsConflictingStaticAndInstance,
   expectedTypes: [
     ExpectedType.string,
@@ -1812,14 +1812,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 conflictingTypeVariableAndClass = DiagnosticWithArguments(
-  name: 'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
+  name: 'conflicting_type_variable_and_container',
   problemMessage:
       "'{0}' can't be used to name both a type parameter and the class in which "
       "the type parameter is defined.",
   correctionMessage: "Try renaming either the type parameter or the class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_CLASS',
+  uniqueName: 'conflicting_type_variable_and_class',
   withArguments: _withArgumentsConflictingTypeVariableAndClass,
   expectedTypes: [ExpectedType.string],
 );
@@ -1830,14 +1830,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 conflictingTypeVariableAndEnum = DiagnosticWithArguments(
-  name: 'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
+  name: 'conflicting_type_variable_and_container',
   problemMessage:
       "'{0}' can't be used to name both a type parameter and the enum in which "
       "the type parameter is defined.",
   correctionMessage: "Try renaming either the type parameter or the enum.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_ENUM',
+  uniqueName: 'conflicting_type_variable_and_enum',
   withArguments: _withArgumentsConflictingTypeVariableAndEnum,
   expectedTypes: [ExpectedType.string],
 );
@@ -1848,14 +1848,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 conflictingTypeVariableAndExtension = DiagnosticWithArguments(
-  name: 'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
+  name: 'conflicting_type_variable_and_container',
   problemMessage:
       "'{0}' can't be used to name both a type parameter and the extension in "
       "which the type parameter is defined.",
   correctionMessage: "Try renaming either the type parameter or the extension.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_EXTENSION',
+  uniqueName: 'conflicting_type_variable_and_extension',
   withArguments: _withArgumentsConflictingTypeVariableAndExtension,
   expectedTypes: [ExpectedType.string],
 );
@@ -1866,14 +1866,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 conflictingTypeVariableAndExtensionType = DiagnosticWithArguments(
-  name: 'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
+  name: 'conflicting_type_variable_and_container',
   problemMessage:
       "'{0}' can't be used to name both a type parameter and the extension type "
       "in which the type parameter is defined.",
   correctionMessage: "Try renaming either the type parameter or the extension.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE',
+  uniqueName: 'conflicting_type_variable_and_extension_type',
   withArguments: _withArgumentsConflictingTypeVariableAndExtensionType,
   expectedTypes: [ExpectedType.string],
 );
@@ -1884,14 +1884,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 conflictingTypeVariableAndMemberClass = DiagnosticWithArguments(
-  name: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
+  name: 'conflicting_type_variable_and_member',
   problemMessage:
       "'{0}' can't be used to name both a type parameter and a member in this "
       "class.",
   correctionMessage: "Try renaming either the type parameter or the member.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS',
+  uniqueName: 'conflicting_type_variable_and_member_class',
   withArguments: _withArgumentsConflictingTypeVariableAndMemberClass,
   expectedTypes: [ExpectedType.string],
 );
@@ -1902,14 +1902,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 conflictingTypeVariableAndMemberEnum = DiagnosticWithArguments(
-  name: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
+  name: 'conflicting_type_variable_and_member',
   problemMessage:
       "'{0}' can't be used to name both a type parameter and a member in this "
       "enum.",
   correctionMessage: "Try renaming either the type parameter or the member.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM',
+  uniqueName: 'conflicting_type_variable_and_member_enum',
   withArguments: _withArgumentsConflictingTypeVariableAndMemberEnum,
   expectedTypes: [ExpectedType.string],
 );
@@ -1920,14 +1920,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 conflictingTypeVariableAndMemberExtension = DiagnosticWithArguments(
-  name: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
+  name: 'conflicting_type_variable_and_member',
   problemMessage:
       "'{0}' can't be used to name both a type parameter and a member in this "
       "extension.",
   correctionMessage: "Try renaming either the type parameter or the member.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION',
+  uniqueName: 'conflicting_type_variable_and_member_extension',
   withArguments: _withArgumentsConflictingTypeVariableAndMemberExtension,
   expectedTypes: [ExpectedType.string],
 );
@@ -1938,14 +1938,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 conflictingTypeVariableAndMemberExtensionType = DiagnosticWithArguments(
-  name: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
+  name: 'conflicting_type_variable_and_member',
   problemMessage:
       "'{0}' can't be used to name both a type parameter and a member in this "
       "extension type.",
   correctionMessage: "Try renaming either the type parameter or the member.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE',
+  uniqueName: 'conflicting_type_variable_and_member_extension_type',
   withArguments: _withArgumentsConflictingTypeVariableAndMemberExtensionType,
   expectedTypes: [ExpectedType.string],
 );
@@ -1956,14 +1956,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 conflictingTypeVariableAndMemberMixin = DiagnosticWithArguments(
-  name: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
+  name: 'conflicting_type_variable_and_member',
   problemMessage:
       "'{0}' can't be used to name both a type parameter and a member in this "
       "mixin.",
   correctionMessage: "Try renaming either the type parameter or the member.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN',
+  uniqueName: 'conflicting_type_variable_and_member_mixin',
   withArguments: _withArgumentsConflictingTypeVariableAndMemberMixin,
   expectedTypes: [ExpectedType.string],
 );
@@ -1974,25 +1974,25 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 conflictingTypeVariableAndMixin = DiagnosticWithArguments(
-  name: 'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
+  name: 'conflicting_type_variable_and_container',
   problemMessage:
       "'{0}' can't be used to name both a type parameter and the mixin in which "
       "the type parameter is defined.",
   correctionMessage: "Try renaming either the type parameter or the mixin.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MIXIN',
+  uniqueName: 'conflicting_type_variable_and_mixin',
   withArguments: _withArgumentsConflictingTypeVariableAndMixin,
   expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments constAndFinal = DiagnosticWithoutArgumentsImpl(
-  name: 'CONST_AND_FINAL',
+  name: 'const_and_final',
   problemMessage: "Members can't be declared to be both 'const' and 'final'.",
   correctionMessage: "Try removing either the 'const' or 'final' keyword.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'CONST_AND_FINAL',
+  uniqueName: 'const_and_final',
   expectedTypes: [],
 );
 
@@ -2003,7 +2003,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 constantPatternNeverMatchesValueType = DiagnosticWithArguments(
-  name: 'CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE',
+  name: 'constant_pattern_never_matches_value_type',
   problemMessage:
       "The matched value type '{0}' can never be equal to this constant of type "
       "'{1}'.",
@@ -2011,7 +2011,7 @@ constantPatternNeverMatchesValueType = DiagnosticWithArguments(
       "Try a constant of the same type as the matched value type.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE',
+  uniqueName: 'constant_pattern_never_matches_value_type',
   withArguments: _withArgumentsConstantPatternNeverMatchesValueType,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -2019,33 +2019,33 @@ constantPatternNeverMatchesValueType = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments constantPatternWithNonConstantExpression =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION',
+      name: 'constant_pattern_with_non_constant_expression',
       problemMessage:
           "The expression of a constant pattern must be a valid constant.",
       correctionMessage: "Try making the expression a valid constant.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION',
+      uniqueName: 'constant_pattern_with_non_constant_expression',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments constClass = DiagnosticWithoutArgumentsImpl(
-  name: 'CONST_CLASS',
+  name: 'const_class',
   problemMessage: "Classes can't be declared to be 'const'.",
   correctionMessage:
       "Try removing the 'const' keyword. If you're trying to indicate that "
       "instances of the class can be constants, place the 'const' keyword on "
       " the class' constructor(s).",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'CONST_CLASS',
+  uniqueName: 'const_class',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 constConstructorConstantFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-  name: 'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
+  name: 'collection_element_from_deferred_library',
   problemMessage:
       "Constant values from a deferred library can't be used as values in a "
       "'const' constructor.",
@@ -2054,7 +2054,7 @@ constConstructorConstantFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
       "keyword 'deferred' from the import.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY',
+  uniqueName: 'const_constructor_constant_from_deferred_library',
   expectedTypes: [],
 );
 
@@ -2073,13 +2073,13 @@ const DiagnosticWithArguments<
   })
 >
 constConstructorFieldTypeMismatch = DiagnosticWithArguments(
-  name: 'CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH',
+  name: 'const_constructor_field_type_mismatch',
   problemMessage:
       "In a const constructor, a value of type '{0}' can't be assigned to the "
       "field '{1}', which has type '{2}'.",
   correctionMessage: "Try using a subtype, or removing the keyword 'const'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH',
+  uniqueName: 'const_constructor_field_type_mismatch',
   withArguments: _withArgumentsConstConstructorFieldTypeMismatch,
   expectedTypes: [
     ExpectedType.object,
@@ -2098,14 +2098,14 @@ const DiagnosticWithArguments<
   })
 >
 constConstructorParamTypeMismatch = DiagnosticWithArguments(
-  name: 'CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
+  name: 'const_constructor_param_type_mismatch',
   problemMessage:
       "A value of type '{0}' can't be assigned to a parameter of type '{1}' in a "
       "const constructor.",
   correctionMessage: "Try using a subtype, or removing the keyword 'const'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
+  uniqueName: 'const_constructor_param_type_mismatch',
   withArguments: _withArgumentsConstConstructorParamTypeMismatch,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -2116,23 +2116,23 @@ constConstructorParamTypeMismatch = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments constConstructorThrowsException =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_CONSTRUCTOR_THROWS_EXCEPTION',
+      name: 'const_constructor_throws_exception',
       problemMessage: "Const constructors can't throw exceptions.",
       correctionMessage:
           "Try removing the throw statement, or removing the keyword 'const'.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_CONSTRUCTOR_THROWS_EXCEPTION',
+      uniqueName: 'const_constructor_throws_exception',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments constConstructorWithBody =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_CONSTRUCTOR_WITH_BODY',
+      name: 'const_constructor_with_body',
       problemMessage: "Const constructors can't have a body.",
       correctionMessage: "Try removing either the 'const' keyword or the body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'CONST_CONSTRUCTOR_WITH_BODY',
+      uniqueName: 'const_constructor_with_body',
       expectedTypes: [],
     );
 
@@ -2142,7 +2142,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 constConstructorWithFieldInitializedByNonConst = DiagnosticWithArguments(
-  name: 'CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST',
+  name: 'const_constructor_with_field_initialized_by_non_const',
   problemMessage:
       "Can't define the 'const' constructor because the field '{0}' is "
       "initialized with a non-constant value.",
@@ -2151,7 +2151,7 @@ constConstructorWithFieldInitializedByNonConst = DiagnosticWithArguments(
       "keyword 'const' from the constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST',
+  uniqueName: 'const_constructor_with_field_initialized_by_non_const',
   withArguments: _withArgumentsConstConstructorWithFieldInitializedByNonConst,
   expectedTypes: [ExpectedType.string],
 );
@@ -2172,7 +2172,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 constConstructorWithMixinWithField = DiagnosticWithArguments(
-  name: 'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
+  name: 'const_constructor_with_mixin_with_field',
   problemMessage:
       "This constructor can't be declared 'const' because a mixin adds the "
       "instance field: {0}.",
@@ -2180,7 +2180,7 @@ constConstructorWithMixinWithField = DiagnosticWithArguments(
       "Try removing the 'const' keyword or removing the 'with' clause from "
       "the class declaration, or removing the field from the mixin class.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
+  uniqueName: 'const_constructor_with_mixin_with_field',
   withArguments: _withArgumentsConstConstructorWithMixinWithField,
   expectedTypes: [ExpectedType.string],
 );
@@ -2201,7 +2201,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 constConstructorWithMixinWithFields = DiagnosticWithArguments(
-  name: 'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
+  name: 'const_constructor_with_mixin_with_field',
   problemMessage:
       "This constructor can't be declared 'const' because the mixins add the "
       "instance fields: {0}.",
@@ -2209,7 +2209,7 @@ constConstructorWithMixinWithFields = DiagnosticWithArguments(
       "Try removing the 'const' keyword or removing the 'with' clause from "
       "the class declaration, or removing the fields from the mixin classes.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS',
+  uniqueName: 'const_constructor_with_mixin_with_fields',
   withArguments: _withArgumentsConstConstructorWithMixinWithFields,
   expectedTypes: [ExpectedType.string],
 );
@@ -2220,7 +2220,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 constConstructorWithNonConstSuper = DiagnosticWithArguments(
-  name: 'CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER',
+  name: 'const_constructor_with_non_const_super',
   problemMessage:
       "A constant constructor can't call a non-constant super constructor of "
       "'{0}'.",
@@ -2229,7 +2229,7 @@ constConstructorWithNonConstSuper = DiagnosticWithArguments(
       "keyword 'const' from the constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER',
+  uniqueName: 'const_constructor_with_non_const_super',
   withArguments: _withArgumentsConstConstructorWithNonConstSuper,
   expectedTypes: [ExpectedType.string],
 );
@@ -2237,7 +2237,7 @@ constConstructorWithNonConstSuper = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments constConstructorWithNonFinalField =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD',
+      name: 'const_constructor_with_non_final_field',
       problemMessage:
           "Can't define a const constructor for a class with non-final fields.",
       correctionMessage:
@@ -2245,31 +2245,31 @@ const DiagnosticWithoutArguments constConstructorWithNonFinalField =
           "from the constructor.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD',
+      uniqueName: 'const_constructor_with_non_final_field',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 constDeferredClass = DiagnosticWithoutArgumentsImpl(
-  name: 'CONST_DEFERRED_CLASS',
+  name: 'const_deferred_class',
   problemMessage: "Deferred classes can't be created with 'const'.",
   correctionMessage:
       "Try using 'new' to create the instance, or changing the import to not "
       "be deferred.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_DEFERRED_CLASS',
+  uniqueName: 'const_deferred_class',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments constEvalAssertionFailure =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_EVAL_ASSERTION_FAILURE',
+      name: 'const_eval_assertion_failure',
       problemMessage: "The assertion in this constant expression failed.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_EVAL_ASSERTION_FAILURE',
+      uniqueName: 'const_eval_assertion_failure',
       expectedTypes: [],
     );
 
@@ -2279,10 +2279,10 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object message})
 >
 constEvalAssertionFailureWithMessage = DiagnosticWithArguments(
-  name: 'CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE',
+  name: 'const_eval_assertion_failure_with_message',
   problemMessage: "An assertion failed with message '{0}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE',
+  uniqueName: 'const_eval_assertion_failure_with_message',
   withArguments: _withArgumentsConstEvalAssertionFailureWithMessage,
   expectedTypes: [ExpectedType.object],
 );
@@ -2290,44 +2290,44 @@ constEvalAssertionFailureWithMessage = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments constEvalExtensionMethod =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_EVAL_EXTENSION_METHOD',
+      name: 'const_eval_extension_method',
       problemMessage:
           "Extension methods can't be used in constant expressions.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_EVAL_EXTENSION_METHOD',
+      uniqueName: 'const_eval_extension_method',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments constEvalExtensionTypeMethod =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_EVAL_EXTENSION_TYPE_METHOD',
+      name: 'const_eval_extension_type_method',
       problemMessage:
           "Extension type methods can't be used in constant expressions.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_EVAL_EXTENSION_TYPE_METHOD',
+      uniqueName: 'const_eval_extension_type_method',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments constEvalForElement =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_EVAL_FOR_ELEMENT',
+      name: 'const_eval_for_element',
       problemMessage: "Constant expressions don't support 'for' elements.",
       correctionMessage:
           "Try replacing the 'for' element with a spread, or removing 'const'.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_EVAL_FOR_ELEMENT',
+      uniqueName: 'const_eval_for_element',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments constEvalMethodInvocation =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_EVAL_METHOD_INVOCATION',
+      name: 'const_eval_method_invocation',
       problemMessage: "Methods can't be invoked in constant expressions.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_EVAL_METHOD_INVOCATION',
+      uniqueName: 'const_eval_method_invocation',
       expectedTypes: [],
     );
 
@@ -2337,12 +2337,12 @@ const DiagnosticWithoutArguments constEvalMethodInvocation =
 /// No parameters.
 const DiagnosticWithoutArguments
 constEvalPrimitiveEquality = DiagnosticWithoutArgumentsImpl(
-  name: 'CONST_EVAL_PRIMITIVE_EQUALITY',
+  name: 'const_eval_primitive_equality',
   problemMessage:
       "In constant expressions, operands of the equality operator must have "
       "primitive equality.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_EVAL_PRIMITIVE_EQUALITY',
+  uniqueName: 'const_eval_primitive_equality',
   expectedTypes: [],
 );
 
@@ -2356,12 +2356,12 @@ const DiagnosticWithArguments<
   })
 >
 constEvalPropertyAccess = DiagnosticWithArguments(
-  name: 'CONST_EVAL_PROPERTY_ACCESS',
+  name: 'const_eval_property_access',
   problemMessage:
       "The property '{0}' can't be accessed on the type '{1}' in a constant "
       "expression.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_EVAL_PROPERTY_ACCESS',
+  uniqueName: 'const_eval_property_access',
   withArguments: _withArgumentsConstEvalPropertyAccess,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -2372,11 +2372,11 @@ constEvalPropertyAccess = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments constEvalThrowsException =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_EVAL_THROWS_EXCEPTION',
+      name: 'const_eval_throws_exception',
       problemMessage:
           "Evaluation of this constant expression throws an exception.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_EVAL_THROWS_EXCEPTION',
+      uniqueName: 'const_eval_throws_exception',
       expectedTypes: [],
     );
 
@@ -2386,12 +2386,12 @@ const DiagnosticWithoutArguments constEvalThrowsException =
 /// No parameters.
 const DiagnosticWithoutArguments constEvalThrowsIdbze =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_EVAL_THROWS_IDBZE',
+      name: 'const_eval_throws_idbze',
       problemMessage:
           "Evaluation of this constant expression throws an "
           "IntegerDivisionByZeroException.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_EVAL_THROWS_IDBZE',
+      uniqueName: 'const_eval_throws_idbze',
       expectedTypes: [],
     );
 
@@ -2402,12 +2402,12 @@ const DiagnosticWithoutArguments constEvalThrowsIdbze =
 /// No parameters.
 const DiagnosticWithoutArguments constEvalTypeBool =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_EVAL_TYPE_BOOL',
+      name: 'const_eval_type_bool',
       problemMessage:
           "In constant expressions, operands of this operator must be of type "
           "'bool'.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_EVAL_TYPE_BOOL',
+      uniqueName: 'const_eval_type_bool',
       expectedTypes: [],
     );
 
@@ -2417,12 +2417,12 @@ const DiagnosticWithoutArguments constEvalTypeBool =
 /// No parameters.
 const DiagnosticWithoutArguments
 constEvalTypeBoolInt = DiagnosticWithoutArgumentsImpl(
-  name: 'CONST_EVAL_TYPE_BOOL_INT',
+  name: 'const_eval_type_bool_int',
   problemMessage:
       "In constant expressions, operands of this operator must be of type 'bool' "
       "or 'int'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_EVAL_TYPE_BOOL_INT',
+  uniqueName: 'const_eval_type_bool_int',
   expectedTypes: [],
 );
 
@@ -2432,12 +2432,12 @@ constEvalTypeBoolInt = DiagnosticWithoutArgumentsImpl(
 /// No parameters.
 const DiagnosticWithoutArguments constEvalTypeBoolNumString =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_EVAL_TYPE_BOOL_NUM_STRING',
+      name: 'const_eval_type_bool_num_string',
       problemMessage:
           "In constant expressions, operands of this operator must be of type "
           "'bool', 'num', 'String' or 'null'.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_EVAL_TYPE_BOOL_NUM_STRING',
+      uniqueName: 'const_eval_type_bool_num_string',
       expectedTypes: [],
     );
 
@@ -2448,11 +2448,11 @@ const DiagnosticWithoutArguments constEvalTypeBoolNumString =
 /// No parameters.
 const DiagnosticWithoutArguments
 constEvalTypeInt = DiagnosticWithoutArgumentsImpl(
-  name: 'CONST_EVAL_TYPE_INT',
+  name: 'const_eval_type_int',
   problemMessage:
       "In constant expressions, operands of this operator must be of type 'int'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_EVAL_TYPE_INT',
+  uniqueName: 'const_eval_type_int',
   expectedTypes: [],
 );
 
@@ -2462,11 +2462,11 @@ constEvalTypeInt = DiagnosticWithoutArgumentsImpl(
 /// No parameters.
 const DiagnosticWithoutArguments
 constEvalTypeNum = DiagnosticWithoutArgumentsImpl(
-  name: 'CONST_EVAL_TYPE_NUM',
+  name: 'const_eval_type_num',
   problemMessage:
       "In constant expressions, operands of this operator must be of type 'num'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_EVAL_TYPE_NUM',
+  uniqueName: 'const_eval_type_num',
   expectedTypes: [],
 );
 
@@ -2476,49 +2476,49 @@ constEvalTypeNum = DiagnosticWithoutArgumentsImpl(
 /// No parameters.
 const DiagnosticWithoutArguments
 constEvalTypeNumString = DiagnosticWithoutArgumentsImpl(
-  name: 'CONST_EVAL_TYPE_NUM_STRING',
+  name: 'const_eval_type_num_string',
   problemMessage:
       "In constant expressions, operands of this operator must be of type 'num' "
       "or 'String'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_EVAL_TYPE_NUM_STRING',
+  uniqueName: 'const_eval_type_num_string',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments constEvalTypeString =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_EVAL_TYPE_STRING',
+      name: 'const_eval_type_string',
       problemMessage:
           "In constant expressions, operands of this operator must be of type "
           "'String'.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_EVAL_TYPE_STRING',
+      uniqueName: 'const_eval_type_string',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments constEvalTypeType =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_EVAL_TYPE_TYPE',
+      name: 'const_eval_type_type',
       problemMessage:
           "In constant expressions, operands of this operator must be of type "
           "'Type'.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_EVAL_TYPE_TYPE',
+      uniqueName: 'const_eval_type_type',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments constFactory = DiagnosticWithoutArgumentsImpl(
-  name: 'CONST_FACTORY',
+  name: 'const_factory',
   problemMessage:
       "Only redirecting factory constructors can be declared to be 'const'.",
   correctionMessage:
       "Try removing the 'const' keyword, or replacing the body with '=' "
       "followed by a valid target.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'CONST_FACTORY',
+  uniqueName: 'const_factory',
   expectedTypes: [],
 );
 
@@ -2529,14 +2529,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 constFieldInitializerNotAssignable = DiagnosticWithArguments(
-  name: 'FIELD_INITIALIZER_NOT_ASSIGNABLE',
+  name: 'field_initializer_not_assignable',
   problemMessage:
       "The initializer type '{0}' can't be assigned to the field type '{1}' in a "
       "const constructor.",
   correctionMessage: "Try using a subtype, or removing the 'const' keyword",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE',
+  uniqueName: 'const_field_initializer_not_assignable',
   withArguments: _withArgumentsConstFieldInitializerNotAssignable,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -2544,14 +2544,14 @@ constFieldInitializerNotAssignable = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments constInitializedWithNonConstantValue =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE',
+      name: 'const_initialized_with_non_constant_value',
       problemMessage:
           "Const variables must be initialized with a constant value.",
       correctionMessage:
           "Try changing the initializer to be a constant expression.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE',
+      uniqueName: 'const_initialized_with_non_constant_value',
       expectedTypes: [],
     );
 
@@ -2559,7 +2559,7 @@ const DiagnosticWithoutArguments constInitializedWithNonConstantValue =
 const DiagnosticWithoutArguments
 constInitializedWithNonConstantValueFromDeferredLibrary =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
+      name: 'const_initialized_with_non_constant_value_from_deferred_library',
       problemMessage:
           "Constant values from a deferred library can't be used to initialize a "
           "'const' variable.",
@@ -2569,20 +2569,20 @@ constInitializedWithNonConstantValueFromDeferredLibrary =
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
       uniqueName:
-          'CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
+          'const_initialized_with_non_constant_value_from_deferred_library',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments constInstanceField =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_INSTANCE_FIELD',
+      name: 'const_instance_field',
       problemMessage: "Only static fields can be declared as const.",
       correctionMessage:
           "Try declaring the field as final, or adding the keyword 'static'.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_INSTANCE_FIELD',
+      uniqueName: 'const_instance_field',
       expectedTypes: [],
     );
 
@@ -2592,7 +2592,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0})
 >
 constMapKeyNotPrimitiveEquality = DiagnosticWithArguments(
-  name: 'CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY',
+  name: 'const_map_key_not_primitive_equality',
   problemMessage:
       "The type of a key in a constant map can't override the '==' operator, or "
       "'hashCode', but the class '{0}' does.",
@@ -2601,19 +2601,19 @@ constMapKeyNotPrimitiveEquality = DiagnosticWithArguments(
       "'const' from the map.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY',
+  uniqueName: 'const_map_key_not_primitive_equality',
   withArguments: _withArgumentsConstMapKeyNotPrimitiveEquality,
   expectedTypes: [ExpectedType.type],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments constMethod = DiagnosticWithoutArgumentsImpl(
-  name: 'CONST_METHOD',
+  name: 'const_method',
   problemMessage:
       "Getters, setters and methods can't be declared to be 'const'.",
   correctionMessage: "Try removing the 'const' keyword.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'CONST_METHOD',
+  uniqueName: 'const_method',
   expectedTypes: [],
 );
 
@@ -2623,12 +2623,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 constNotInitialized = DiagnosticWithArguments(
-  name: 'CONST_NOT_INITIALIZED',
+  name: 'const_not_initialized',
   problemMessage: "The constant '{0}' must be initialized.",
   correctionMessage: "Try adding an initialization to the declaration.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_NOT_INITIALIZED',
+  uniqueName: 'const_not_initialized',
   withArguments: _withArgumentsConstNotInitialized,
   expectedTypes: [ExpectedType.string],
 );
@@ -2636,25 +2636,25 @@ constNotInitialized = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments constructorWithReturnType =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONSTRUCTOR_WITH_RETURN_TYPE',
+      name: 'constructor_with_return_type',
       problemMessage: "Constructors can't have a return type.",
       correctionMessage: "Try removing the return type.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'CONSTRUCTOR_WITH_RETURN_TYPE',
+      uniqueName: 'constructor_with_return_type',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 constructorWithTypeArguments = DiagnosticWithoutArgumentsImpl(
-  name: 'CONSTRUCTOR_WITH_TYPE_ARGUMENTS',
+  name: 'constructor_with_type_arguments',
   problemMessage:
       "A constructor invocation can't have type arguments after the constructor "
       "name.",
   correctionMessage:
       "Try removing the type arguments or placing them after the class name.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'CONSTRUCTOR_WITH_TYPE_ARGUMENTS',
+  uniqueName: 'constructor_with_type_arguments',
   expectedTypes: [],
 );
 
@@ -2664,7 +2664,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0})
 >
 constSetElementNotPrimitiveEquality = DiagnosticWithArguments(
-  name: 'CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY',
+  name: 'const_set_element_not_primitive_equality',
   problemMessage:
       "An element in a constant set can't override the '==' operator, or "
       "'hashCode', but the type '{0}' does.",
@@ -2673,7 +2673,7 @@ constSetElementNotPrimitiveEquality = DiagnosticWithArguments(
       "'const' from the set.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY',
+  uniqueName: 'const_set_element_not_primitive_equality',
   withArguments: _withArgumentsConstSetElementNotPrimitiveEquality,
   expectedTypes: [ExpectedType.type],
 );
@@ -2681,54 +2681,54 @@ constSetElementNotPrimitiveEquality = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments constSpreadExpectedListOrSet =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_SPREAD_EXPECTED_LIST_OR_SET',
+      name: 'const_spread_expected_list_or_set',
       problemMessage: "A list or a set is expected in this spread.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_SPREAD_EXPECTED_LIST_OR_SET',
+      uniqueName: 'const_spread_expected_list_or_set',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments constSpreadExpectedMap =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_SPREAD_EXPECTED_MAP',
+      name: 'const_spread_expected_map',
       problemMessage: "A map is expected in this spread.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_SPREAD_EXPECTED_MAP',
+      uniqueName: 'const_spread_expected_map',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments constTypeParameter =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_TYPE_PARAMETER',
+      name: 'const_type_parameter',
       problemMessage: "Type parameters can't be used in a constant expression.",
       correctionMessage:
           "Try replacing the type parameter with a different type.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_TYPE_PARAMETER',
+      uniqueName: 'const_type_parameter',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments constWithNonConst =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_WITH_NON_CONST',
+      name: 'const_with_non_const',
       problemMessage: "The constructor being called isn't a const constructor.",
       correctionMessage:
           "Try removing 'const' from the constructor invocation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_WITH_NON_CONST',
+      uniqueName: 'const_with_non_const',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments constWithNonConstantArgument =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_WITH_NON_CONSTANT_ARGUMENT',
+      name: 'const_with_non_constant_argument',
       problemMessage:
           "Arguments of a constant creation must be constant expressions.",
       correctionMessage:
@@ -2736,7 +2736,7 @@ const DiagnosticWithoutArguments constWithNonConstantArgument =
           "constructor.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_WITH_NON_CONSTANT_ARGUMENT',
+      uniqueName: 'const_with_non_constant_argument',
       expectedTypes: [],
     );
 
@@ -2746,13 +2746,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 constWithNonType = DiagnosticWithArguments(
-  name: 'CREATION_WITH_NON_TYPE',
+  name: 'creation_with_non_type',
   problemMessage: "The name '{0}' isn't a class.",
   correctionMessage: "Try correcting the name to match an existing class.",
   hasPublishedDocs: true,
   isUnresolvedIdentifier: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_WITH_NON_TYPE',
+  uniqueName: 'const_with_non_type',
   withArguments: _withArgumentsConstWithNonType,
   expectedTypes: [ExpectedType.string],
 );
@@ -2760,35 +2760,35 @@ constWithNonType = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 constWithoutPrimaryConstructor = DiagnosticWithoutArgumentsImpl(
-  name: 'CONST_WITHOUT_PRIMARY_CONSTRUCTOR',
+  name: 'const_without_primary_constructor',
   problemMessage:
       "'const' can only be used together with a primary constructor declaration.",
   correctionMessage:
       "Try removing the 'const' keyword or adding a primary constructor "
       "declaration.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'CONST_WITHOUT_PRIMARY_CONSTRUCTOR',
+  uniqueName: 'const_without_primary_constructor',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments constWithTypeParameters =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_WITH_TYPE_PARAMETERS',
+      name: 'const_with_type_parameters',
       problemMessage:
           "A constant creation can't use a type parameter as a type argument.",
       correctionMessage:
           "Try replacing the type parameter with a different type.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_WITH_TYPE_PARAMETERS',
+      uniqueName: 'const_with_type_parameters',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments constWithTypeParametersConstructorTearoff =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_WITH_TYPE_PARAMETERS',
+      name: 'const_with_type_parameters',
       problemMessage:
           "A constant constructor tearoff can't use a type parameter as a type "
           "argument.",
@@ -2796,14 +2796,14 @@ const DiagnosticWithoutArguments constWithTypeParametersConstructorTearoff =
           "Try replacing the type parameter with a different type.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF',
+      uniqueName: 'const_with_type_parameters_constructor_tearoff',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments constWithTypeParametersFunctionTearoff =
     DiagnosticWithoutArgumentsImpl(
-      name: 'CONST_WITH_TYPE_PARAMETERS',
+      name: 'const_with_type_parameters',
       problemMessage:
           "A constant function tearoff can't use a type parameter as a type "
           "argument.",
@@ -2811,7 +2811,7 @@ const DiagnosticWithoutArguments constWithTypeParametersFunctionTearoff =
           "Try replacing the type parameter with a different type.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF',
+      uniqueName: 'const_with_type_parameters_function_tearoff',
       expectedTypes: [],
     );
 
@@ -2825,11 +2825,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0, required String p1})
 >
 constWithUndefinedConstructor = DiagnosticWithArguments(
-  name: 'CONST_WITH_UNDEFINED_CONSTRUCTOR',
+  name: 'const_with_undefined_constructor',
   problemMessage: "The class '{0}' doesn't have a constant constructor '{1}'.",
   correctionMessage: "Try calling a different constructor.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_WITH_UNDEFINED_CONSTRUCTOR',
+  uniqueName: 'const_with_undefined_constructor',
   withArguments: _withArgumentsConstWithUndefinedConstructor,
   expectedTypes: [ExpectedType.object, ExpectedType.string],
 );
@@ -2843,12 +2843,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 constWithUndefinedConstructorDefault = DiagnosticWithArguments(
-  name: 'CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
+  name: 'const_with_undefined_constructor_default',
   problemMessage:
       "The class '{0}' doesn't have an unnamed constant constructor.",
   correctionMessage: "Try calling a different constructor.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
+  uniqueName: 'const_with_undefined_constructor_default',
   withArguments: _withArgumentsConstWithUndefinedConstructorDefault,
   expectedTypes: [ExpectedType.string],
 );
@@ -2856,39 +2856,39 @@ constWithUndefinedConstructorDefault = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 continueLabelInvalid = DiagnosticWithoutArgumentsImpl(
-  name: 'CONTINUE_LABEL_INVALID',
+  name: 'continue_label_invalid',
   problemMessage:
       "The label used in a 'continue' statement must be defined on either a loop "
       "or a switch member.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CONTINUE_LABEL_INVALID',
+  uniqueName: 'continue_label_invalid',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 continueOutsideOfLoop = DiagnosticWithoutArgumentsImpl(
-  name: 'CONTINUE_OUTSIDE_OF_LOOP',
+  name: 'continue_outside_of_loop',
   problemMessage:
       "A continue statement can't be used outside of a loop or switch statement.",
   correctionMessage: "Try removing the continue statement.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'CONTINUE_OUTSIDE_OF_LOOP',
+  uniqueName: 'continue_outside_of_loop',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 continueWithoutLabelInCase = DiagnosticWithoutArgumentsImpl(
-  name: 'CONTINUE_WITHOUT_LABEL_IN_CASE',
+  name: 'continue_without_label_in_case',
   problemMessage:
       "A continue statement in a switch statement must have a label as a target.",
   correctionMessage:
       "Try adding a label associated with one of the case clauses to the "
       "continue statement.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'CONTINUE_WITHOUT_LABEL_IN_CASE',
+  uniqueName: 'continue_without_label_in_case',
   expectedTypes: [],
 );
 
@@ -2899,10 +2899,10 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 couldNotInfer = DiagnosticWithArguments(
-  name: 'COULD_NOT_INFER',
+  name: 'could_not_infer',
   problemMessage: "Couldn't infer type parameter '{0}'.{1}",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'COULD_NOT_INFER',
+  uniqueName: 'could_not_infer',
   withArguments: _withArgumentsCouldNotInfer,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -2910,43 +2910,43 @@ couldNotInfer = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments covariantAndStatic =
     DiagnosticWithoutArgumentsImpl(
-      name: 'COVARIANT_AND_STATIC',
+      name: 'covariant_and_static',
       problemMessage:
           "Members can't be declared to be both 'covariant' and 'static'.",
       correctionMessage:
           "Try removing either the 'covariant' or 'static' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'COVARIANT_AND_STATIC',
+      uniqueName: 'covariant_and_static',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments covariantConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'COVARIANT_CONSTRUCTOR',
+      name: 'covariant_constructor',
       problemMessage: "A constructor can't be declared to be 'covariant'.",
       correctionMessage: "Try removing the keyword 'covariant'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'COVARIANT_CONSTRUCTOR',
+      uniqueName: 'covariant_constructor',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments covariantMember =
     DiagnosticWithoutArgumentsImpl(
-      name: 'COVARIANT_MEMBER',
+      name: 'covariant_member',
       problemMessage:
           "Getters, setters and methods can't be declared to be 'covariant'.",
       correctionMessage: "Try removing the 'covariant' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'COVARIANT_MEMBER',
+      uniqueName: 'covariant_member',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 creationOfStructOrUnion = DiagnosticWithoutArgumentsImpl(
-  name: 'CREATION_OF_STRUCT_OR_UNION',
+  name: 'creation_of_struct_or_union',
   problemMessage:
       "Subclasses of 'Struct' and 'Union' are backed by native memory, and can't "
       "be instantiated by a generative constructor.",
@@ -2954,7 +2954,7 @@ creationOfStructOrUnion = DiagnosticWithoutArgumentsImpl(
       "Try allocating it via allocation, or load from a 'Pointer'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'CREATION_OF_STRUCT_OR_UNION',
+  uniqueName: 'creation_of_struct_or_union',
   expectedTypes: [],
 );
 
@@ -2963,14 +2963,14 @@ creationOfStructOrUnion = DiagnosticWithoutArgumentsImpl(
 ///
 /// No parameters.
 const DiagnosticWithoutArguments deadCode = DiagnosticWithoutArgumentsImpl(
-  name: 'DEAD_CODE',
+  name: 'dead_code',
   problemMessage: "Dead code.",
   correctionMessage:
       "Try removing the code, or fixing the code before it so that it can be "
       "reached.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DEAD_CODE',
+  uniqueName: 'dead_code',
   expectedTypes: [],
 );
 
@@ -2980,7 +2980,7 @@ const DiagnosticWithoutArguments deadCode = DiagnosticWithoutArgumentsImpl(
 /// No parameters.
 const DiagnosticWithoutArguments
 deadCodeCatchFollowingCatch = DiagnosticWithoutArgumentsImpl(
-  name: 'DEAD_CODE_CATCH_FOLLOWING_CATCH',
+  name: 'dead_code_catch_following_catch',
   problemMessage:
       "Dead code: Catch clauses after a 'catch (e)' or an 'on Object catch (e)' "
       "are never reached.",
@@ -2989,14 +2989,14 @@ deadCodeCatchFollowingCatch = DiagnosticWithoutArgumentsImpl(
       "removing the unreachable catch clauses.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DEAD_CODE_CATCH_FOLLOWING_CATCH',
+  uniqueName: 'dead_code_catch_following_catch',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 deadCodeLateWildcardVariableInitializer = DiagnosticWithoutArgumentsImpl(
-  name: 'DEAD_CODE',
+  name: 'dead_code',
   problemMessage:
       "Dead code: The assigned-to wildcard variable is marked late and can never "
       "be referenced so this initializer will never be evaluated.",
@@ -3005,7 +3005,7 @@ deadCodeLateWildcardVariableInitializer = DiagnosticWithoutArgumentsImpl(
       "variable to a non-wildcard.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER',
+  uniqueName: 'dead_code_late_wildcard_variable_initializer',
   expectedTypes: [],
 );
 
@@ -3020,7 +3020,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 deadCodeOnCatchSubtype = DiagnosticWithArguments(
-  name: 'DEAD_CODE_ON_CATCH_SUBTYPE',
+  name: 'dead_code_on_catch_subtype',
   problemMessage:
       "Dead code: This on-catch block won't be executed because '{0}' is a "
       "subtype of '{1}' and hence will have been caught already.",
@@ -3029,7 +3029,7 @@ deadCodeOnCatchSubtype = DiagnosticWithArguments(
       "or removing the unreachable catch clause.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DEAD_CODE_ON_CATCH_SUBTYPE',
+  uniqueName: 'dead_code_on_catch_subtype',
   withArguments: _withArgumentsDeadCodeOnCatchSubtype,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -3037,13 +3037,13 @@ deadCodeOnCatchSubtype = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 deadNullAwareExpression = DiagnosticWithoutArgumentsImpl(
-  name: 'DEAD_NULL_AWARE_EXPRESSION',
+  name: 'dead_null_aware_expression',
   problemMessage:
       "The left operand can't be null, so the right operand is never executed.",
   correctionMessage: "Try removing the operator and the right operand.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DEAD_NULL_AWARE_EXPRESSION',
+  uniqueName: 'dead_null_aware_expression',
   expectedTypes: [],
 );
 
@@ -3052,78 +3052,78 @@ deadNullAwareExpression = DiagnosticWithoutArgumentsImpl(
 /// No parameters.
 const DiagnosticWithoutArguments defaultInSwitchExpression =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DEFAULT_IN_SWITCH_EXPRESSION',
+      name: 'default_in_switch_expression',
       problemMessage: "A switch expression may not use the `default` keyword.",
       correctionMessage: "Try replacing `default` with `_`.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'DEFAULT_IN_SWITCH_EXPRESSION',
+      uniqueName: 'default_in_switch_expression',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments defaultValueInFunctionType =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DEFAULT_VALUE_IN_FUNCTION_TYPE',
+      name: 'default_value_in_function_type',
       problemMessage:
           "Parameters in a function type can't have default values.",
       correctionMessage: "Try removing the default value.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'DEFAULT_VALUE_IN_FUNCTION_TYPE',
+      uniqueName: 'default_value_in_function_type',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 defaultValueInRedirectingFactoryConstructor = DiagnosticWithoutArgumentsImpl(
-  name: 'DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR',
+  name: 'default_value_in_redirecting_factory_constructor',
   problemMessage:
       "Default values aren't allowed in factory constructors that redirect to "
       "another constructor.",
   correctionMessage: "Try removing the default value.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR',
+  uniqueName: 'default_value_in_redirecting_factory_constructor',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments defaultValueOnRequiredParameter =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DEFAULT_VALUE_ON_REQUIRED_PARAMETER',
+      name: 'default_value_on_required_parameter',
       problemMessage: "Required named parameters can't have a default value.",
       correctionMessage:
           "Try removing either the default value or the 'required' modifier.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'DEFAULT_VALUE_ON_REQUIRED_PARAMETER',
+      uniqueName: 'default_value_on_required_parameter',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 deferredAfterPrefix = DiagnosticWithoutArgumentsImpl(
-  name: 'DEFERRED_AFTER_PREFIX',
+  name: 'deferred_after_prefix',
   problemMessage:
       "The deferred keyword should come immediately before the prefix ('as' "
       "clause).",
   correctionMessage: "Try moving the deferred keyword before the prefix.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'DEFERRED_AFTER_PREFIX',
+  uniqueName: 'deferred_after_prefix',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments deferredImportOfExtension =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DEFERRED_IMPORT_OF_EXTENSION',
+      name: 'deferred_import_of_extension',
       problemMessage: "Imports of deferred libraries must hide all extensions.",
       correctionMessage:
           "Try adding either a show combinator listing the names you need to "
           "reference or a hide combinator listing all of the extensions.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'DEFERRED_IMPORT_OF_EXTENSION',
+      uniqueName: 'deferred_import_of_extension',
       expectedTypes: [],
     );
 
@@ -3133,13 +3133,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 definitelyUnassignedLateLocalVariable = DiagnosticWithArguments(
-  name: 'DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE',
+  name: 'definitely_unassigned_late_local_variable',
   problemMessage:
       "The late local variable '{0}' is definitely unassigned at this point.",
   correctionMessage: "Ensure that it is assigned on necessary execution paths.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE',
+  uniqueName: 'definitely_unassigned_late_local_variable',
   withArguments: _withArgumentsDefinitelyUnassignedLateLocalVariable,
   expectedTypes: [ExpectedType.string],
 );
@@ -3150,12 +3150,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 dependenciesFieldNotMap = DiagnosticWithArguments(
-  name: 'DEPENDENCIES_FIELD_NOT_MAP',
+  name: 'dependencies_field_not_map',
   problemMessage: "The value of the '{0}' field is expected to be a map.",
   correctionMessage: "Try converting the value to be a map.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DEPENDENCIES_FIELD_NOT_MAP',
+  uniqueName: 'dependencies_field_not_map',
   withArguments: _withArgumentsDependenciesFieldNotMap,
   expectedTypes: [ExpectedType.string],
 );
@@ -3166,14 +3166,14 @@ dependenciesFieldNotMap = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 deprecatedColonForDefaultValue = DiagnosticWithoutArgumentsImpl(
-  name: 'DEPRECATED_COLON_FOR_DEFAULT_VALUE',
+  name: 'deprecated_colon_for_default_value',
   problemMessage:
       "Using a colon as the separator before a default value is deprecated and "
       "will not be supported in language version 3.0 and later.",
   correctionMessage: "Try replacing the colon with an equal sign.",
   hasPublishedDocs: true,
   type: DiagnosticType.HINT,
-  uniqueName: 'DEPRECATED_COLON_FOR_DEFAULT_VALUE',
+  uniqueName: 'deprecated_colon_for_default_value',
   expectedTypes: [],
 );
 
@@ -3183,12 +3183,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 deprecatedExportUse = DiagnosticWithArguments(
-  name: 'DEPRECATED_EXPORT_USE',
+  name: 'deprecated_export_use',
   problemMessage: "The ability to import '{0}' indirectly is deprecated.",
   correctionMessage: "Try importing '{0}' directly.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DEPRECATED_EXPORT_USE',
+  uniqueName: 'deprecated_export_use',
   withArguments: _withArgumentsDeprecatedExportUse,
   expectedTypes: [ExpectedType.string],
 );
@@ -3199,12 +3199,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object typeName})
 >
 deprecatedExtend = DiagnosticWithArguments(
-  name: 'DEPRECATED_EXTEND',
+  name: 'deprecated_extend',
   problemMessage: "Extending '{0}' is deprecated.",
   correctionMessage: "Try removing the 'extends' clause.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DEPRECATED_EXTEND',
+  uniqueName: 'deprecated_extend',
   withArguments: _withArgumentsDeprecatedExtend,
   expectedTypes: [ExpectedType.object],
 );
@@ -3212,12 +3212,12 @@ deprecatedExtend = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments deprecatedExtendsFunction =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DEPRECATED_SUBTYPE_OF_FUNCTION',
+      name: 'deprecated_subtype_of_function',
       problemMessage: "Extending 'Function' is deprecated.",
       correctionMessage: "Try removing 'Function' from the 'extends' clause.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'DEPRECATED_EXTENDS_FUNCTION',
+      uniqueName: 'deprecated_extends_function',
       expectedTypes: [],
     );
 
@@ -3227,12 +3227,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 deprecatedField = DiagnosticWithArguments(
-  name: 'DEPRECATED_FIELD',
+  name: 'deprecated_field',
   problemMessage: "The '{0}' field is no longer used and can be removed.",
   correctionMessage: "Try removing the field.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DEPRECATED_FIELD',
+  uniqueName: 'deprecated_field',
   withArguments: _withArgumentsDeprecatedField,
   expectedTypes: [ExpectedType.string],
 );
@@ -3243,12 +3243,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object typeName})
 >
 deprecatedImplement = DiagnosticWithArguments(
-  name: 'DEPRECATED_IMPLEMENT',
+  name: 'deprecated_implement',
   problemMessage: "Implementing '{0}' is deprecated.",
   correctionMessage: "Try removing '{0}' from the 'implements' clause.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DEPRECATED_IMPLEMENT',
+  uniqueName: 'deprecated_implement',
   withArguments: _withArgumentsDeprecatedImplement,
   expectedTypes: [ExpectedType.object],
 );
@@ -3256,13 +3256,13 @@ deprecatedImplement = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments deprecatedImplementsFunction =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DEPRECATED_SUBTYPE_OF_FUNCTION',
+      name: 'deprecated_subtype_of_function',
       problemMessage: "Implementing 'Function' has no effect.",
       correctionMessage:
           "Try removing 'Function' from the 'implements' clause.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'DEPRECATED_IMPLEMENTS_FUNCTION',
+      uniqueName: 'deprecated_implements_function',
       expectedTypes: [],
     );
 
@@ -3272,12 +3272,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object typeName})
 >
 deprecatedInstantiate = DiagnosticWithArguments(
-  name: 'DEPRECATED_INSTANTIATE',
+  name: 'deprecated_instantiate',
   problemMessage: "Instantiating '{0}' is deprecated.",
   correctionMessage: "Try instantiating a non-abstract class.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DEPRECATED_INSTANTIATE',
+  uniqueName: 'deprecated_instantiate',
   withArguments: _withArgumentsDeprecatedInstantiate,
   expectedTypes: [ExpectedType.object],
 );
@@ -3290,11 +3290,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String ruleName})
 >
 deprecatedLint = DiagnosticWithArguments(
-  name: 'DEPRECATED_LINT',
+  name: 'deprecated_lint',
   problemMessage: "The lint rule '{0}' is deprecated and shouldn't be enabled.",
   correctionMessage: "Try removing '{0}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DEPRECATED_LINT',
+  uniqueName: 'deprecated_lint',
   withArguments: _withArgumentsDeprecatedLint,
   expectedTypes: [ExpectedType.string],
 );
@@ -3311,11 +3311,11 @@ const DiagnosticWithArguments<
   })
 >
 deprecatedLintWithReplacement = DiagnosticWithArguments(
-  name: 'DEPRECATED_LINT_WITH_REPLACEMENT',
+  name: 'deprecated_lint_with_replacement',
   problemMessage: "The lint rule '{0}' is deprecated and replaced by '{1}'.",
   correctionMessage: "Try replacing '{0}' with '{1}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DEPRECATED_LINT_WITH_REPLACEMENT',
+  uniqueName: 'deprecated_lint_with_replacement',
   withArguments: _withArgumentsDeprecatedLintWithReplacement,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -3326,13 +3326,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 deprecatedMemberUse = DiagnosticWithArguments(
-  name: 'DEPRECATED_MEMBER_USE',
+  name: 'deprecated_member_use',
   problemMessage: "'{0}' is deprecated and shouldn't be used.",
   correctionMessage:
       "Try replacing the use of the deprecated member with the replacement.",
   hasPublishedDocs: true,
   type: DiagnosticType.HINT,
-  uniqueName: 'DEPRECATED_MEMBER_USE',
+  uniqueName: 'deprecated_member_use',
   withArguments: _withArgumentsDeprecatedMemberUse,
   expectedTypes: [ExpectedType.string],
 );
@@ -3344,13 +3344,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 deprecatedMemberUseWithMessage = DiagnosticWithArguments(
-  name: 'DEPRECATED_MEMBER_USE',
+  name: 'deprecated_member_use',
   problemMessage: "'{0}' is deprecated and shouldn't be used. {1}",
   correctionMessage:
       "Try replacing the use of the deprecated member with the replacement.",
   hasPublishedDocs: true,
   type: DiagnosticType.HINT,
-  uniqueName: 'DEPRECATED_MEMBER_USE_WITH_MESSAGE',
+  uniqueName: 'deprecated_member_use_with_message',
   withArguments: _withArgumentsDeprecatedMemberUseWithMessage,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -3361,12 +3361,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object typeName})
 >
 deprecatedMixin = DiagnosticWithArguments(
-  name: 'DEPRECATED_MIXIN',
+  name: 'deprecated_mixin',
   problemMessage: "Mixing in '{0}' is deprecated.",
   correctionMessage: "Try removing '{0}' from the 'with' clause.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DEPRECATED_MIXIN',
+  uniqueName: 'deprecated_mixin',
   withArguments: _withArgumentsDeprecatedMixin,
   expectedTypes: [ExpectedType.object],
 );
@@ -3374,25 +3374,25 @@ deprecatedMixin = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments deprecatedMixinFunction =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DEPRECATED_SUBTYPE_OF_FUNCTION',
+      name: 'deprecated_subtype_of_function',
       problemMessage: "Mixing in 'Function' is deprecated.",
       correctionMessage: "Try removing 'Function' from the 'with' clause.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'DEPRECATED_MIXIN_FUNCTION',
+      uniqueName: 'deprecated_mixin_function',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments deprecatedNewInCommentReference =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DEPRECATED_NEW_IN_COMMENT_REFERENCE',
+      name: 'deprecated_new_in_comment_reference',
       problemMessage:
           "Using the 'new' keyword in a comment reference is deprecated.",
       correctionMessage: "Try referring to a constructor by its name.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'DEPRECATED_NEW_IN_COMMENT_REFERENCE',
+      uniqueName: 'deprecated_new_in_comment_reference',
       expectedTypes: [],
     );
 
@@ -3402,12 +3402,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object parameterName})
 >
 deprecatedOptional = DiagnosticWithArguments(
-  name: 'DEPRECATED_OPTIONAL',
+  name: 'deprecated_optional',
   problemMessage: "Omitting an argument for the '{0}' parameter is deprecated.",
   correctionMessage: "Try passing an argument for '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DEPRECATED_OPTIONAL',
+  uniqueName: 'deprecated_optional',
   withArguments: _withArgumentsDeprecatedOptional,
   expectedTypes: [ExpectedType.object],
 );
@@ -3418,14 +3418,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object typeName})
 >
 deprecatedSubclass = DiagnosticWithArguments(
-  name: 'DEPRECATED_SUBCLASS',
+  name: 'deprecated_subclass',
   problemMessage: "Subclassing '{0}' is deprecated.",
   correctionMessage:
       "Try removing the 'extends' clause, or removing '{0}' from the "
       "'implements' clause.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DEPRECATED_SUBCLASS',
+  uniqueName: 'deprecated_subclass',
   withArguments: _withArgumentsDeprecatedSubclass,
   expectedTypes: [ExpectedType.object],
 );
@@ -3433,18 +3433,18 @@ deprecatedSubclass = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments directiveAfterDeclaration =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DIRECTIVE_AFTER_DECLARATION',
+      name: 'directive_after_declaration',
       problemMessage: "Directives must appear before any declarations.",
       correctionMessage: "Try moving the directive before any declarations.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'DIRECTIVE_AFTER_DECLARATION',
+      uniqueName: 'directive_after_declaration',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments disallowedTypeInstantiationExpression =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DISALLOWED_TYPE_INSTANTIATION_EXPRESSION',
+      name: 'disallowed_type_instantiation_expression',
       problemMessage:
           "Only a generic type, generic function, generic instance method, or "
           "generic constructor can have type arguments.",
@@ -3454,7 +3454,7 @@ const DiagnosticWithoutArguments disallowedTypeInstantiationExpression =
           "constructor.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'DISALLOWED_TYPE_INSTANTIATION_EXPRESSION',
+      uniqueName: 'disallowed_type_instantiation_expression',
       expectedTypes: [],
     );
 
@@ -3465,11 +3465,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 docDirectiveArgumentWrongFormat = DiagnosticWithArguments(
-  name: 'DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT',
+  name: 'doc_directive_argument_wrong_format',
   problemMessage: "The '{0}' argument must be formatted as {1}.",
   correctionMessage: "Try formatting '{0}' as {1}.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT',
+  uniqueName: 'doc_directive_argument_wrong_format',
   withArguments: _withArgumentsDocDirectiveArgumentWrongFormat,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -3486,12 +3486,12 @@ const DiagnosticWithArguments<
   })
 >
 docDirectiveHasExtraArguments = DiagnosticWithArguments(
-  name: 'DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS',
+  name: 'doc_directive_has_extra_arguments',
   problemMessage:
       "The '{0}' directive has '{1}' arguments, but only '{2}' are expected.",
   correctionMessage: "Try removing the extra arguments.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS',
+  uniqueName: 'doc_directive_has_extra_arguments',
   withArguments: _withArgumentsDocDirectiveHasExtraArguments,
   expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.int],
 );
@@ -3503,12 +3503,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 docDirectiveHasUnexpectedNamedArgument = DiagnosticWithArguments(
-  name: 'DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT',
+  name: 'doc_directive_has_unexpected_named_argument',
   problemMessage:
       "The '{0}' directive has an unexpected named argument, '{1}'.",
   correctionMessage: "Try removing the unexpected argument.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT',
+  uniqueName: 'doc_directive_has_unexpected_named_argument',
   withArguments: _withArgumentsDocDirectiveHasUnexpectedNamedArgument,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -3516,11 +3516,11 @@ docDirectiveHasUnexpectedNamedArgument = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments docDirectiveMissingClosingBrace =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DOC_DIRECTIVE_MISSING_CLOSING_BRACE',
+      name: 'doc_directive_missing_closing_brace',
       problemMessage: "Doc directive is missing a closing curly brace ('}').",
       correctionMessage: "Try closing the directive with a curly brace.",
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'DOC_DIRECTIVE_MISSING_CLOSING_BRACE',
+      uniqueName: 'doc_directive_missing_closing_brace',
       expectedTypes: [],
     );
 
@@ -3530,12 +3530,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 docDirectiveMissingClosingTag = DiagnosticWithArguments(
-  name: 'DOC_DIRECTIVE_MISSING_CLOSING_TAG',
+  name: 'doc_directive_missing_closing_tag',
   problemMessage: "Doc directive is missing a closing tag.",
   correctionMessage:
       "Try closing the directive with the appropriate closing tag, '{0}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DOC_DIRECTIVE_MISSING_CLOSING_TAG',
+  uniqueName: 'doc_directive_missing_closing_tag',
   withArguments: _withArgumentsDocDirectiveMissingClosingTag,
   expectedTypes: [ExpectedType.string],
 );
@@ -3547,11 +3547,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 docDirectiveMissingOneArgument = DiagnosticWithArguments(
-  name: 'DOC_DIRECTIVE_MISSING_ARGUMENT',
+  name: 'doc_directive_missing_argument',
   problemMessage: "The '{0}' directive is missing a '{1}' argument.",
   correctionMessage: "Try adding a '{1}' argument before the closing '}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DOC_DIRECTIVE_MISSING_ONE_ARGUMENT',
+  uniqueName: 'doc_directive_missing_one_argument',
   withArguments: _withArgumentsDocDirectiveMissingOneArgument,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -3562,12 +3562,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 docDirectiveMissingOpeningTag = DiagnosticWithArguments(
-  name: 'DOC_DIRECTIVE_MISSING_OPENING_TAG',
+  name: 'doc_directive_missing_opening_tag',
   problemMessage: "Doc directive is missing an opening tag.",
   correctionMessage:
       "Try opening the directive with the appropriate opening tag, '{0}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DOC_DIRECTIVE_MISSING_OPENING_TAG',
+  uniqueName: 'doc_directive_missing_opening_tag',
   withArguments: _withArgumentsDocDirectiveMissingOpeningTag,
   expectedTypes: [ExpectedType.string],
 );
@@ -3586,12 +3586,12 @@ const DiagnosticWithArguments<
   })
 >
 docDirectiveMissingThreeArguments = DiagnosticWithArguments(
-  name: 'DOC_DIRECTIVE_MISSING_ARGUMENT',
+  name: 'doc_directive_missing_argument',
   problemMessage:
       "The '{0}' directive is missing a '{1}', a '{2}', and a '{3}' argument.",
   correctionMessage: "Try adding the missing arguments before the closing '}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS',
+  uniqueName: 'doc_directive_missing_three_arguments',
   withArguments: _withArgumentsDocDirectiveMissingThreeArguments,
   expectedTypes: [
     ExpectedType.string,
@@ -3613,12 +3613,12 @@ const DiagnosticWithArguments<
   })
 >
 docDirectiveMissingTwoArguments = DiagnosticWithArguments(
-  name: 'DOC_DIRECTIVE_MISSING_ARGUMENT',
+  name: 'doc_directive_missing_argument',
   problemMessage:
       "The '{0}' directive is missing a '{1}' and a '{2}' argument.",
   correctionMessage: "Try adding the missing arguments before the closing '}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS',
+  uniqueName: 'doc_directive_missing_two_arguments',
   withArguments: _withArgumentsDocDirectiveMissingTwoArguments,
   expectedTypes: [
     ExpectedType.string,
@@ -3633,11 +3633,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 docDirectiveUnknown = DiagnosticWithArguments(
-  name: 'DOC_DIRECTIVE_UNKNOWN',
+  name: 'doc_directive_unknown',
   problemMessage: "Doc directive '{0}' is unknown.",
   correctionMessage: "Try using one of the supported doc directives.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DOC_DIRECTIVE_UNKNOWN',
+  uniqueName: 'doc_directive_unknown',
   withArguments: _withArgumentsDocDirectiveUnknown,
   expectedTypes: [ExpectedType.string],
 );
@@ -3645,60 +3645,60 @@ docDirectiveUnknown = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments docImportCannotBeDeferred =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DOC_IMPORT_CANNOT_BE_DEFERRED',
+      name: 'doc_import_cannot_be_deferred',
       problemMessage: "Doc imports can't be deferred.",
       correctionMessage: "Try removing the 'deferred' keyword.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'DOC_IMPORT_CANNOT_BE_DEFERRED',
+      uniqueName: 'doc_import_cannot_be_deferred',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments docImportCannotHaveCombinators =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DOC_IMPORT_CANNOT_HAVE_COMBINATORS',
+      name: 'doc_import_cannot_have_combinators',
       problemMessage: "Doc imports can't have show or hide combinators.",
       correctionMessage: "Try removing the combinator.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'DOC_IMPORT_CANNOT_HAVE_COMBINATORS',
+      uniqueName: 'doc_import_cannot_have_combinators',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments docImportCannotHaveConfigurations =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS',
+      name: 'doc_import_cannot_have_configurations',
       problemMessage: "Doc imports can't have configurations.",
       correctionMessage: "Try removing the configurations.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS',
+      uniqueName: 'doc_import_cannot_have_configurations',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments docImportCannotHavePrefix =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DOC_IMPORT_CANNOT_HAVE_PREFIX',
+      name: 'doc_import_cannot_have_prefix',
       problemMessage: "Doc imports can't have prefixes.",
       correctionMessage: "Try removing the prefix.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'DOC_IMPORT_CANNOT_HAVE_PREFIX',
+      uniqueName: 'doc_import_cannot_have_prefix',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments dotShorthandMissingContext =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DOT_SHORTHAND_MISSING_CONTEXT',
+      name: 'dot_shorthand_missing_context',
       problemMessage:
           "A dot shorthand can't be used where there is no context type.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'DOT_SHORTHAND_MISSING_CONTEXT',
+      uniqueName: 'dot_shorthand_missing_context',
       expectedTypes: [],
     );
 
@@ -3710,7 +3710,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 dotShorthandUndefinedGetter = DiagnosticWithArguments(
-  name: 'DOT_SHORTHAND_UNDEFINED_MEMBER',
+  name: 'dot_shorthand_undefined_member',
   problemMessage:
       "The static getter '{0}' isn't defined for the context type '{1}'.",
   correctionMessage:
@@ -3718,7 +3718,7 @@ dotShorthandUndefinedGetter = DiagnosticWithArguments(
       "defining a getter or field named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'DOT_SHORTHAND_UNDEFINED_GETTER',
+  uniqueName: 'dot_shorthand_undefined_getter',
   withArguments: _withArgumentsDotShorthandUndefinedGetter,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -3731,7 +3731,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 dotShorthandUndefinedInvocation = DiagnosticWithArguments(
-  name: 'DOT_SHORTHAND_UNDEFINED_MEMBER',
+  name: 'dot_shorthand_undefined_member',
   problemMessage:
       "The static method or constructor '{0}' isn't defined for the context type "
       "'{1}'.",
@@ -3740,7 +3740,7 @@ dotShorthandUndefinedInvocation = DiagnosticWithArguments(
       "constructor, or defining a static method or constructor named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'DOT_SHORTHAND_UNDEFINED_INVOCATION',
+  uniqueName: 'dot_shorthand_undefined_invocation',
   withArguments: _withArgumentsDotShorthandUndefinedInvocation,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -3748,12 +3748,12 @@ dotShorthandUndefinedInvocation = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments duplicateConstructorDefault =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DUPLICATE_CONSTRUCTOR',
+      name: 'duplicate_constructor',
       problemMessage: "The unnamed constructor is already defined.",
       correctionMessage: "Try giving one of the constructors a name.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'DUPLICATE_CONSTRUCTOR_DEFAULT',
+      uniqueName: 'duplicate_constructor_default',
       expectedTypes: [],
     );
 
@@ -3763,12 +3763,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 duplicateConstructorName = DiagnosticWithArguments(
-  name: 'DUPLICATE_CONSTRUCTOR',
+  name: 'duplicate_constructor',
   problemMessage: "The constructor with name '{0}' is already defined.",
   correctionMessage: "Try renaming one of the constructors.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'DUPLICATE_CONSTRUCTOR_NAME',
+  uniqueName: 'duplicate_constructor_name',
   withArguments: _withArgumentsDuplicateConstructorName,
   expectedTypes: [ExpectedType.string],
 );
@@ -3776,12 +3776,12 @@ duplicateConstructorName = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments duplicateDeferred =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DUPLICATE_DEFERRED',
+      name: 'duplicate_deferred',
       problemMessage:
           "An import directive can only have one 'deferred' keyword.",
       correctionMessage: "Try removing all but one 'deferred' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'DUPLICATE_DEFERRED',
+      uniqueName: 'duplicate_deferred',
       expectedTypes: [],
     );
 
@@ -3791,12 +3791,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 duplicateDefinition = DiagnosticWithArguments(
-  name: 'DUPLICATE_DEFINITION',
+  name: 'duplicate_definition',
   problemMessage: "The name '{0}' is already defined.",
   correctionMessage: "Try renaming one of the declarations.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'DUPLICATE_DEFINITION',
+  uniqueName: 'duplicate_definition',
   withArguments: _withArgumentsDuplicateDefinition,
   expectedTypes: [ExpectedType.object],
 );
@@ -3807,11 +3807,11 @@ duplicateDefinition = DiagnosticWithArguments(
 /// Parameters:
 /// Token lexeme: undocumented
 const DiagnosticCode duplicatedModifier = DiagnosticCodeWithExpectedTypes(
-  name: 'DUPLICATED_MODIFIER',
+  name: 'duplicated_modifier',
   problemMessage: "The modifier '{0}' was already specified.",
   correctionMessage: "Try removing all but one occurrence of the modifier.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'DUPLICATED_MODIFIER',
+  uniqueName: 'duplicated_modifier',
   expectedTypes: [ExpectedType.token],
 );
 
@@ -3820,12 +3820,12 @@ const DiagnosticCode duplicatedModifier = DiagnosticCodeWithExpectedTypes(
 /// No parameters.
 const DiagnosticWithoutArguments duplicateExport =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DUPLICATE_EXPORT',
+      name: 'duplicate_export',
       problemMessage: "Duplicate export.",
       correctionMessage: "Try removing all but one export of the library.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'DUPLICATE_EXPORT',
+      uniqueName: 'duplicate_export',
       expectedTypes: [],
     );
 
@@ -3835,7 +3835,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 duplicateFieldFormalParameter = DiagnosticWithArguments(
-  name: 'DUPLICATE_FIELD_FORMAL_PARAMETER',
+  name: 'duplicate_field_formal_parameter',
   problemMessage:
       "The field '{0}' can't be initialized by multiple parameters in the same "
       "constructor.",
@@ -3843,7 +3843,7 @@ duplicateFieldFormalParameter = DiagnosticWithArguments(
       "Try removing one of the parameters, or using different fields.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'DUPLICATE_FIELD_FORMAL_PARAMETER',
+  uniqueName: 'duplicate_field_formal_parameter',
   withArguments: _withArgumentsDuplicateFieldFormalParameter,
   expectedTypes: [ExpectedType.object],
 );
@@ -3854,12 +3854,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 duplicateFieldName = DiagnosticWithArguments(
-  name: 'DUPLICATE_FIELD_NAME',
+  name: 'duplicate_field_name',
   problemMessage: "The field name '{0}' is already used in this record.",
   correctionMessage: "Try renaming the field.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'DUPLICATE_FIELD_NAME',
+  uniqueName: 'duplicate_field_name',
   withArguments: _withArgumentsDuplicateFieldName,
   expectedTypes: [ExpectedType.object],
 );
@@ -3867,13 +3867,13 @@ duplicateFieldName = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments duplicateHiddenName =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DUPLICATE_HIDDEN_NAME',
+      name: 'duplicate_hidden_name',
       problemMessage: "Duplicate hidden name.",
       correctionMessage:
           "Try removing the repeated name from the list of hidden members.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'DUPLICATE_HIDDEN_NAME',
+      uniqueName: 'duplicate_hidden_name',
       expectedTypes: [],
     );
 
@@ -3883,7 +3883,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 duplicateIgnore = DiagnosticWithArguments(
-  name: 'DUPLICATE_IGNORE',
+  name: 'duplicate_ignore',
   problemMessage:
       "The diagnostic '{0}' doesn't need to be ignored here because it's already "
       "being ignored.",
@@ -3892,7 +3892,7 @@ duplicateIgnore = DiagnosticWithArguments(
       "this is the only name in the list.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DUPLICATE_IGNORE',
+  uniqueName: 'duplicate_ignore',
   withArguments: _withArgumentsDuplicateIgnore,
   expectedTypes: [ExpectedType.string],
 );
@@ -3902,12 +3902,12 @@ duplicateIgnore = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments duplicateImport =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DUPLICATE_IMPORT',
+      name: 'duplicate_import',
       problemMessage: "Duplicate import.",
       correctionMessage: "Try removing all but one import of the library.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'DUPLICATE_IMPORT',
+      uniqueName: 'duplicate_import',
       expectedTypes: [],
     );
 
@@ -3918,12 +3918,12 @@ const DiagnosticWithoutArguments duplicateImport =
 /// Name name: undocumented
 const DiagnosticCode duplicateLabelInSwitchStatement =
     DiagnosticCodeWithExpectedTypes(
-      name: 'DUPLICATE_LABEL_IN_SWITCH_STATEMENT',
+      name: 'duplicate_label_in_switch_statement',
       problemMessage:
           "The label '{0}' was already used in this switch statement.",
       correctionMessage: "Try choosing a different name for this label.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'DUPLICATE_LABEL_IN_SWITCH_STATEMENT',
+      uniqueName: 'duplicate_label_in_switch_statement',
       expectedTypes: [ExpectedType.name],
     );
 
@@ -3933,7 +3933,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 duplicateNamedArgument = DiagnosticWithArguments(
-  name: 'DUPLICATE_NAMED_ARGUMENT',
+  name: 'duplicate_named_argument',
   problemMessage:
       "The argument for the named parameter '{0}' was already specified.",
   correctionMessage:
@@ -3941,7 +3941,7 @@ duplicateNamedArgument = DiagnosticWithArguments(
       "names to reference a different named parameter.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'DUPLICATE_NAMED_ARGUMENT',
+  uniqueName: 'duplicate_named_argument',
   withArguments: _withArgumentsDuplicateNamedArgument,
   expectedTypes: [ExpectedType.string],
 );
@@ -3950,13 +3950,13 @@ duplicateNamedArgument = DiagnosticWithArguments(
 /// Uri p0: the URI of the duplicate part
 const DiagnosticWithArguments<LocatableDiagnostic Function({required Uri p0})>
 duplicatePart = DiagnosticWithArguments(
-  name: 'DUPLICATE_PART',
+  name: 'duplicate_part',
   problemMessage: "The library already contains a part with the URI '{0}'.",
   correctionMessage:
       "Try removing all except one of the duplicated part directives.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'DUPLICATE_PART',
+  uniqueName: 'duplicate_part',
   withArguments: _withArgumentsDuplicatePart,
   expectedTypes: [ExpectedType.uri],
 );
@@ -3967,12 +3967,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 duplicatePatternAssignmentVariable = DiagnosticWithArguments(
-  name: 'DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE',
+  name: 'duplicate_pattern_assignment_variable',
   problemMessage: "The variable '{0}' is already assigned in this pattern.",
   correctionMessage: "Try renaming the variable.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE',
+  uniqueName: 'duplicate_pattern_assignment_variable',
   withArguments: _withArgumentsDuplicatePatternAssignmentVariable,
   expectedTypes: [ExpectedType.object],
 );
@@ -3983,12 +3983,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 duplicatePatternField = DiagnosticWithArguments(
-  name: 'DUPLICATE_PATTERN_FIELD',
+  name: 'duplicate_pattern_field',
   problemMessage: "The field '{0}' is already matched in this pattern.",
   correctionMessage: "Try removing the duplicate field.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'DUPLICATE_PATTERN_FIELD',
+  uniqueName: 'duplicate_pattern_field',
   withArguments: _withArgumentsDuplicatePatternField,
   expectedTypes: [ExpectedType.object],
 );
@@ -3996,25 +3996,25 @@ duplicatePatternField = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments duplicatePrefix =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DUPLICATE_PREFIX',
+      name: 'duplicate_prefix',
       problemMessage:
           "An import directive can only have one prefix ('as' clause).",
       correctionMessage: "Try removing all but one prefix.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'DUPLICATE_PREFIX',
+      uniqueName: 'duplicate_prefix',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments duplicateRestElementInPattern =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DUPLICATE_REST_ELEMENT_IN_PATTERN',
+      name: 'duplicate_rest_element_in_pattern',
       problemMessage:
           "At most one rest element is allowed in a list or map pattern.",
       correctionMessage: "Try removing the duplicate rest element.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'DUPLICATE_REST_ELEMENT_IN_PATTERN',
+      uniqueName: 'duplicate_rest_element_in_pattern',
       expectedTypes: [],
     );
 
@@ -4026,12 +4026,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String ruleName})
 >
 duplicateRule = DiagnosticWithArguments(
-  name: 'DUPLICATE_RULE',
+  name: 'duplicate_rule',
   problemMessage:
       "The rule '{0}' is already enabled and doesn't need to be enabled again.",
   correctionMessage: "Try removing all but one occurrence of the rule.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'DUPLICATE_RULE',
+  uniqueName: 'duplicate_rule',
   withArguments: _withArgumentsDuplicateRule,
   expectedTypes: [ExpectedType.string],
 );
@@ -4039,13 +4039,13 @@ duplicateRule = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments duplicateShownName =
     DiagnosticWithoutArgumentsImpl(
-      name: 'DUPLICATE_SHOWN_NAME',
+      name: 'duplicate_shown_name',
       problemMessage: "Duplicate shown name.",
       correctionMessage:
           "Try removing the repeated name from the list of shown members.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'DUPLICATE_SHOWN_NAME',
+      uniqueName: 'duplicate_shown_name',
       expectedTypes: [],
     );
 
@@ -4055,74 +4055,74 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 duplicateVariablePattern = DiagnosticWithArguments(
-  name: 'DUPLICATE_VARIABLE_PATTERN',
+  name: 'duplicate_variable_pattern',
   problemMessage: "The variable '{0}' is already defined in this pattern.",
   correctionMessage: "Try renaming the variable.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'DUPLICATE_VARIABLE_PATTERN',
+  uniqueName: 'duplicate_variable_pattern',
   withArguments: _withArgumentsDuplicateVariablePattern,
   expectedTypes: [ExpectedType.object],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments emptyEnumBody = DiagnosticWithoutArgumentsImpl(
-  name: 'EMPTY_ENUM_BODY',
+  name: 'empty_enum_body',
   problemMessage: "An enum must declare at least one constant name.",
   correctionMessage: "Try declaring a constant.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'EMPTY_ENUM_BODY',
+  uniqueName: 'empty_enum_body',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments emptyMapPattern =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EMPTY_MAP_PATTERN',
+      name: 'empty_map_pattern',
       problemMessage: "A map pattern must have at least one entry.",
       correctionMessage: "Try replacing it with an object pattern 'Map()'.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'EMPTY_MAP_PATTERN',
+      uniqueName: 'empty_map_pattern',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments emptyRecordLiteralWithComma =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EMPTY_RECORD_LITERAL_WITH_COMMA',
+      name: 'empty_record_literal_with_comma',
       problemMessage:
           "A record literal without fields can't have a trailing comma.",
       correctionMessage: "Try removing the trailing comma.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EMPTY_RECORD_LITERAL_WITH_COMMA',
+      uniqueName: 'empty_record_literal_with_comma',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments emptyRecordTypeNamedFieldsList =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST',
+      name: 'empty_record_type_named_fields_list',
       problemMessage:
           "The list of named fields in a record type can't be empty.",
       correctionMessage: "Try adding a named field to the list.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST',
+      uniqueName: 'empty_record_type_named_fields_list',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments emptyRecordTypeWithComma =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EMPTY_RECORD_TYPE_WITH_COMMA',
+      name: 'empty_record_type_with_comma',
       problemMessage:
           "A record type without fields can't have a trailing comma.",
       correctionMessage: "Try removing the trailing comma.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EMPTY_RECORD_TYPE_WITH_COMMA',
+      uniqueName: 'empty_record_type_with_comma',
       expectedTypes: [],
     );
 
@@ -4133,82 +4133,82 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 emptyStruct = DiagnosticWithArguments(
-  name: 'EMPTY_STRUCT',
+  name: 'empty_struct',
   problemMessage:
       "The class '{0}' can't be empty because it's a subclass of '{1}'.",
   correctionMessage:
       "Try adding a field to '{0}' or use a different superclass.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EMPTY_STRUCT',
+  uniqueName: 'empty_struct',
   withArguments: _withArgumentsEmptyStruct,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments encoding = DiagnosticWithoutArgumentsImpl(
-  name: 'ENCODING',
+  name: 'encoding',
   problemMessage: "Unable to decode bytes as UTF-8.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ENCODING',
+  uniqueName: 'encoding',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments enumConstantInvokesFactoryConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR',
+      name: 'enum_constant_invokes_factory_constructor',
       problemMessage: "An enum value can't invoke a factory constructor.",
       correctionMessage: "Try using a generative constructor.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR',
+      uniqueName: 'enum_constant_invokes_factory_constructor',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments enumConstantSameNameAsEnclosing =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
+      name: 'enum_constant_same_name_as_enclosing',
       problemMessage:
           "The name of the enum value can't be the same as the enum's name.",
       correctionMessage: "Try renaming the constant.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
+      uniqueName: 'enum_constant_same_name_as_enclosing',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments enumInClass = DiagnosticWithoutArgumentsImpl(
-  name: 'ENUM_IN_CLASS',
+  name: 'enum_in_class',
   problemMessage: "Enums can't be declared inside classes.",
   correctionMessage: "Try moving the enum to the top-level.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ENUM_IN_CLASS',
+  uniqueName: 'enum_in_class',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments enumInstantiatedToBoundsIsNotWellBounded =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED',
+      name: 'enum_instantiated_to_bounds_is_not_well_bounded',
       problemMessage:
           "The result of instantiating the enum to bounds is not well-bounded.",
       correctionMessage: "Try using different bounds for type parameters.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED',
+      uniqueName: 'enum_instantiated_to_bounds_is_not_well_bounded',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments enumMixinWithInstanceVariable =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ENUM_MIXIN_WITH_INSTANCE_VARIABLE',
+      name: 'enum_mixin_with_instance_variable',
       problemMessage: "Mixins applied to enums can't have instance variables.",
       correctionMessage: "Try replacing the instance variables with getters.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'ENUM_MIXIN_WITH_INSTANCE_VARIABLE',
+      uniqueName: 'enum_mixin_with_instance_variable',
       expectedTypes: [],
     );
 
@@ -4219,12 +4219,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 enumWithAbstractMember = DiagnosticWithArguments(
-  name: 'ENUM_WITH_ABSTRACT_MEMBER',
+  name: 'enum_with_abstract_member',
   problemMessage: "'{0}' must have a method body because '{1}' is an enum.",
   correctionMessage: "Try adding a body to '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'ENUM_WITH_ABSTRACT_MEMBER',
+  uniqueName: 'enum_with_abstract_member',
   withArguments: _withArgumentsEnumWithAbstractMember,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -4232,199 +4232,199 @@ enumWithAbstractMember = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments enumWithNameValues =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ENUM_WITH_NAME_VALUES',
+      name: 'enum_with_name_values',
       problemMessage: "The name 'values' is not a valid name for an enum.",
       correctionMessage: "Try using a different name.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'ENUM_WITH_NAME_VALUES',
+      uniqueName: 'enum_with_name_values',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments enumWithoutConstants =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ENUM_WITHOUT_CONSTANTS',
+      name: 'enum_without_constants',
       problemMessage: "The enum must have at least one enum constant.",
       correctionMessage: "Try declaring an enum constant.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'ENUM_WITHOUT_CONSTANTS',
+      uniqueName: 'enum_without_constants',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments equalElementsInConstSet =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EQUAL_ELEMENTS_IN_CONST_SET',
+      name: 'equal_elements_in_const_set',
       problemMessage: "Two elements in a constant set literal can't be equal.",
       correctionMessage: "Change or remove the duplicate element.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'EQUAL_ELEMENTS_IN_CONST_SET',
+      uniqueName: 'equal_elements_in_const_set',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments equalElementsInSet =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EQUAL_ELEMENTS_IN_SET',
+      name: 'equal_elements_in_set',
       problemMessage: "Two elements in a set literal shouldn't be equal.",
       correctionMessage: "Change or remove the duplicate element.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'EQUAL_ELEMENTS_IN_SET',
+      uniqueName: 'equal_elements_in_set',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments equalityCannotBeEqualityOperand =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EQUALITY_CANNOT_BE_EQUALITY_OPERAND',
+      name: 'equality_cannot_be_equality_operand',
       problemMessage:
           "A comparison expression can't be an operand of another comparison "
           "expression.",
       correctionMessage:
           "Try putting parentheses around one of the comparisons.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EQUALITY_CANNOT_BE_EQUALITY_OPERAND',
+      uniqueName: 'equality_cannot_be_equality_operand',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments equalKeysInConstMap =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EQUAL_KEYS_IN_CONST_MAP',
+      name: 'equal_keys_in_const_map',
       problemMessage: "Two keys in a constant map literal can't be equal.",
       correctionMessage: "Change or remove the duplicate key.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'EQUAL_KEYS_IN_CONST_MAP',
+      uniqueName: 'equal_keys_in_const_map',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments equalKeysInMap =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EQUAL_KEYS_IN_MAP',
+      name: 'equal_keys_in_map',
       problemMessage: "Two keys in a map literal shouldn't be equal.",
       correctionMessage: "Change or remove the duplicate key.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'EQUAL_KEYS_IN_MAP',
+      uniqueName: 'equal_keys_in_map',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments equalKeysInMapPattern =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EQUAL_KEYS_IN_MAP_PATTERN',
+      name: 'equal_keys_in_map_pattern',
       problemMessage: "Two keys in a map pattern can't be equal.",
       correctionMessage: "Change or remove the duplicate key.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'EQUAL_KEYS_IN_MAP_PATTERN',
+      uniqueName: 'equal_keys_in_map_pattern',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments expectedCaseOrDefault =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPECTED_CASE_OR_DEFAULT',
+      name: 'expected_case_or_default',
       problemMessage: "Expected 'case' or 'default'.",
       correctionMessage: "Try placing this code inside a case clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_CASE_OR_DEFAULT',
+      uniqueName: 'expected_case_or_default',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments expectedCatchClauseBody =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPECTED_BODY',
+      name: 'expected_body',
       problemMessage: "A catch clause must have a body, even if it is empty.",
       correctionMessage: "Try adding an empty body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_CATCH_CLAUSE_BODY',
+      uniqueName: 'expected_catch_clause_body',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments expectedClassBody =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPECTED_BODY',
+      name: 'expected_body',
       problemMessage:
           "A class declaration must have a body, even if it is empty.",
       correctionMessage: "Try adding an empty body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_CLASS_BODY',
+      uniqueName: 'expected_class_body',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments expectedClassMember =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPECTED_CLASS_MEMBER',
+      name: 'expected_class_member',
       problemMessage: "Expected a class member.",
       correctionMessage: "Try placing this code inside a class member.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_CLASS_MEMBER',
+      uniqueName: 'expected_class_member',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments expectedElseOrComma =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPECTED_ELSE_OR_COMMA',
+      name: 'expected_else_or_comma',
       problemMessage: "Expected 'else' or comma.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_ELSE_OR_COMMA',
+      uniqueName: 'expected_else_or_comma',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 expectedExecutable = DiagnosticWithoutArgumentsImpl(
-  name: 'EXPECTED_EXECUTABLE',
+  name: 'expected_executable',
   problemMessage: "Expected a method, getter, setter or operator declaration.",
   correctionMessage:
       "This appears to be incomplete code. Try removing it or completing it.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'EXPECTED_EXECUTABLE',
+  uniqueName: 'expected_executable',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments expectedExtensionBody =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPECTED_BODY',
+      name: 'expected_body',
       problemMessage:
           "An extension declaration must have a body, even if it is empty.",
       correctionMessage: "Try adding an empty body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_EXTENSION_BODY',
+      uniqueName: 'expected_extension_body',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 expectedExtensionTypeBody = DiagnosticWithoutArgumentsImpl(
-  name: 'EXPECTED_BODY',
+  name: 'expected_body',
   problemMessage:
       "An extension type declaration must have a body, even if it is empty.",
   correctionMessage: "Try adding an empty body.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'EXPECTED_EXTENSION_TYPE_BODY',
+  uniqueName: 'expected_extension_type_body',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments expectedFinallyClauseBody =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPECTED_BODY',
+      name: 'expected_body',
       problemMessage: "A finally clause must have a body, even if it is empty.",
       correctionMessage: "Try adding an empty body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_FINALLY_CLAUSE_BODY',
+      uniqueName: 'expected_finally_clause_body',
       expectedTypes: [],
     );
 
@@ -4432,13 +4432,13 @@ const DiagnosticWithoutArguments expectedFinallyClauseBody =
 /// Token lexeme: undocumented
 const DiagnosticCode expectedIdentifierButGotKeyword =
     DiagnosticCodeWithExpectedTypes(
-      name: 'EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD',
+      name: 'expected_identifier_but_got_keyword',
       problemMessage:
           "'{0}' can't be used as an identifier because it's a keyword.",
       correctionMessage:
           "Try renaming this to be an identifier that isn't a keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD',
+      uniqueName: 'expected_identifier_but_got_keyword',
       expectedTypes: [ExpectedType.token],
     );
 
@@ -4448,10 +4448,10 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String string})
 >
 expectedInstead = DiagnosticWithArguments(
-  name: 'EXPECTED_INSTEAD',
+  name: 'expected_instead',
   problemMessage: "Expected '{0}' instead of this.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'EXPECTED_INSTEAD',
+  uniqueName: 'expected_instead',
   withArguments: _withArgumentsExpectedInstead,
   expectedTypes: [ExpectedType.string],
 );
@@ -4459,72 +4459,72 @@ expectedInstead = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments expectedListOrMapLiteral =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPECTED_LIST_OR_MAP_LITERAL',
+      name: 'expected_list_or_map_literal',
       problemMessage: "Expected a list or map literal.",
       correctionMessage:
           "Try inserting a list or map literal, or remove the type arguments.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_LIST_OR_MAP_LITERAL',
+      uniqueName: 'expected_list_or_map_literal',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments expectedMixinBody =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPECTED_BODY',
+      name: 'expected_body',
       problemMessage:
           "A mixin declaration must have a body, even if it is empty.",
       correctionMessage: "Try adding an empty body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_MIXIN_BODY',
+      uniqueName: 'expected_mixin_body',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments expectedNamedTypeExtends =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPECTED_NAMED_TYPE',
+      name: 'expected_named_type',
       problemMessage: "Expected a class name.",
       correctionMessage:
           "Try using a class name, possibly with type arguments.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_NAMED_TYPE_EXTENDS',
+      uniqueName: 'expected_named_type_extends',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments expectedNamedTypeImplements =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPECTED_NAMED_TYPE',
+      name: 'expected_named_type',
       problemMessage: "Expected the name of a class or mixin.",
       correctionMessage:
           "Try using a class or mixin name, possibly with type arguments.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_NAMED_TYPE_IMPLEMENTS',
+      uniqueName: 'expected_named_type_implements',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments expectedNamedTypeOn =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPECTED_NAMED_TYPE',
+      name: 'expected_named_type',
       problemMessage: "Expected the name of a class or mixin.",
       correctionMessage:
           "Try using a class or mixin name, possibly with type arguments.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_NAMED_TYPE_ON',
+      uniqueName: 'expected_named_type_on',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments expectedNamedTypeWith =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPECTED_NAMED_TYPE',
+      name: 'expected_named_type',
       problemMessage: "Expected a mixin name.",
       correctionMessage:
           "Try using a mixin name, possibly with type arguments.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_NAMED_TYPE_WITH',
+      uniqueName: 'expected_named_type_with',
       expectedTypes: [],
     );
 
@@ -4532,13 +4532,13 @@ const DiagnosticWithoutArguments expectedNamedTypeWith =
 /// int p0: the number of provided type arguments
 const DiagnosticWithArguments<LocatableDiagnostic Function({required int p0})>
 expectedOneListPatternTypeArguments = DiagnosticWithArguments(
-  name: 'EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS',
+  name: 'expected_one_list_pattern_type_arguments',
   problemMessage:
       "List patterns require one type argument or none, but {0} found.",
   correctionMessage: "Try adjusting the number of type arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS',
+  uniqueName: 'expected_one_list_pattern_type_arguments',
   withArguments: _withArgumentsExpectedOneListPatternTypeArguments,
   expectedTypes: [ExpectedType.int],
 );
@@ -4547,13 +4547,13 @@ expectedOneListPatternTypeArguments = DiagnosticWithArguments(
 /// int p0: the number of provided type arguments
 const DiagnosticWithArguments<LocatableDiagnostic Function({required int p0})>
 expectedOneListTypeArguments = DiagnosticWithArguments(
-  name: 'EXPECTED_ONE_LIST_TYPE_ARGUMENTS',
+  name: 'expected_one_list_type_arguments',
   problemMessage:
       "List literals require one type argument or none, but {0} found.",
   correctionMessage: "Try adjusting the number of type arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXPECTED_ONE_LIST_TYPE_ARGUMENTS',
+  uniqueName: 'expected_one_list_type_arguments',
   withArguments: _withArgumentsExpectedOneListTypeArguments,
   expectedTypes: [ExpectedType.int],
 );
@@ -4562,13 +4562,13 @@ expectedOneListTypeArguments = DiagnosticWithArguments(
 /// int p0: the number of provided type arguments
 const DiagnosticWithArguments<LocatableDiagnostic Function({required int p0})>
 expectedOneSetTypeArguments = DiagnosticWithArguments(
-  name: 'EXPECTED_ONE_SET_TYPE_ARGUMENTS',
+  name: 'expected_one_set_type_arguments',
   problemMessage:
       "Set literals require one type argument or none, but {0} were found.",
   correctionMessage: "Try adjusting the number of type arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXPECTED_ONE_SET_TYPE_ARGUMENTS',
+  uniqueName: 'expected_one_set_type_arguments',
   withArguments: _withArgumentsExpectedOneSetTypeArguments,
   expectedTypes: [ExpectedType.int],
 );
@@ -4576,58 +4576,58 @@ expectedOneSetTypeArguments = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments expectedRepresentationField =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPECTED_REPRESENTATION_FIELD',
+      name: 'expected_representation_field',
       problemMessage: "Expected a representation field.",
       correctionMessage:
           "Try providing the representation field for this extension type.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_REPRESENTATION_FIELD',
+      uniqueName: 'expected_representation_field',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments expectedRepresentationType =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPECTED_REPRESENTATION_TYPE',
+      name: 'expected_representation_type',
       problemMessage: "Expected a representation type.",
       correctionMessage:
           "Try providing the representation type for this extension type.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_REPRESENTATION_TYPE',
+      uniqueName: 'expected_representation_type',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments expectedStringLiteral =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPECTED_STRING_LITERAL',
+      name: 'expected_string_literal',
       problemMessage: "Expected a string literal.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_STRING_LITERAL',
+      uniqueName: 'expected_string_literal',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments expectedSwitchExpressionBody =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPECTED_BODY',
+      name: 'expected_body',
       problemMessage:
           "A switch expression must have a body, even if it is empty.",
       correctionMessage: "Try adding an empty body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_SWITCH_EXPRESSION_BODY',
+      uniqueName: 'expected_switch_expression_body',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments expectedSwitchStatementBody =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPECTED_BODY',
+      name: 'expected_body',
       problemMessage:
           "A switch statement must have a body, even if it is empty.",
       correctionMessage: "Try adding an empty body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_SWITCH_STATEMENT_BODY',
+      uniqueName: 'expected_switch_statement_body',
       expectedTypes: [],
     );
 
@@ -4637,10 +4637,10 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 expectedToken = DiagnosticWithArguments(
-  name: 'EXPECTED_TOKEN',
+  name: 'expected_token',
   problemMessage: "Expected to find '{0}'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'EXPECTED_TOKEN',
+  uniqueName: 'expected_token',
   withArguments: _withArgumentsExpectedToken,
   expectedTypes: [ExpectedType.string],
 );
@@ -4648,11 +4648,11 @@ expectedToken = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments expectedTryStatementBody =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPECTED_BODY',
+      name: 'expected_body',
       problemMessage: "A try statement must have a body, even if it is empty.",
       correctionMessage: "Try adding an empty body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_TRY_STATEMENT_BODY',
+      uniqueName: 'expected_try_statement_body',
       expectedTypes: [],
     );
 
@@ -4660,13 +4660,13 @@ const DiagnosticWithoutArguments expectedTryStatementBody =
 /// int p0: the number of provided type arguments
 const DiagnosticWithArguments<LocatableDiagnostic Function({required int p0})>
 expectedTwoMapPatternTypeArguments = DiagnosticWithArguments(
-  name: 'EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS',
+  name: 'expected_two_map_pattern_type_arguments',
   problemMessage:
       "Map patterns require two type arguments or none, but {0} found.",
   correctionMessage: "Try adjusting the number of type arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS',
+  uniqueName: 'expected_two_map_pattern_type_arguments',
   withArguments: _withArgumentsExpectedTwoMapPatternTypeArguments,
   expectedTypes: [ExpectedType.int],
 );
@@ -4675,13 +4675,13 @@ expectedTwoMapPatternTypeArguments = DiagnosticWithArguments(
 /// int p0: the number of provided type arguments
 const DiagnosticWithArguments<LocatableDiagnostic Function({required int p0})>
 expectedTwoMapTypeArguments = DiagnosticWithArguments(
-  name: 'EXPECTED_TWO_MAP_TYPE_ARGUMENTS',
+  name: 'expected_two_map_type_arguments',
   problemMessage:
       "Map literals require two type arguments or none, but {0} found.",
   correctionMessage: "Try adjusting the number of type arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXPECTED_TWO_MAP_TYPE_ARGUMENTS',
+  uniqueName: 'expected_two_map_type_arguments',
   withArguments: _withArgumentsExpectedTwoMapTypeArguments,
   expectedTypes: [ExpectedType.int],
 );
@@ -4689,10 +4689,10 @@ expectedTwoMapTypeArguments = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments expectedTypeName =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPECTED_TYPE_NAME',
+      name: 'expected_type_name',
       problemMessage: "Expected a type name.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPECTED_TYPE_NAME',
+      uniqueName: 'expected_type_name',
       expectedTypes: [],
     );
 
@@ -4702,11 +4702,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String member})
 >
 experimentalMemberUse = DiagnosticWithArguments(
-  name: 'EXPERIMENTAL_MEMBER_USE',
+  name: 'experimental_member_use',
   problemMessage:
       "'{0}' is experimental and could be removed or changed at any time.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'EXPERIMENTAL_MEMBER_USE',
+  uniqueName: 'experimental_member_use',
   withArguments: _withArgumentsExperimentalMemberUse,
   expectedTypes: [ExpectedType.string],
 );
@@ -4721,13 +4721,13 @@ const DiagnosticWithArguments<
   })
 >
 experimentNotEnabled = DiagnosticWithArguments(
-  name: 'EXPERIMENT_NOT_ENABLED',
+  name: 'experiment_not_enabled',
   problemMessage: "This requires the '{0}' language feature to be enabled.",
   correctionMessage:
       "Try updating your pubspec.yaml to set the minimum SDK constraint to "
       "{1} or higher, and running 'pub get'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'EXPERIMENT_NOT_ENABLED',
+  uniqueName: 'experiment_not_enabled',
   withArguments: _withArgumentsExperimentNotEnabled,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -4738,13 +4738,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String string})
 >
 experimentNotEnabledOffByDefault = DiagnosticWithArguments(
-  name: 'EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT',
+  name: 'experiment_not_enabled_off_by_default',
   problemMessage:
       "This requires the experimental '{0}' language feature to be enabled.",
   correctionMessage:
       "Try passing the '--enable-experiment={0}' command line option.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT',
+  uniqueName: 'experiment_not_enabled_off_by_default',
   withArguments: _withArgumentsExperimentNotEnabledOffByDefault,
   expectedTypes: [ExpectedType.string],
 );
@@ -4752,12 +4752,12 @@ experimentNotEnabledOffByDefault = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments exportDirectiveAfterPartDirective =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
+      name: 'export_directive_after_part_directive',
       problemMessage: "Export directives must precede part directives.",
       correctionMessage:
           "Try moving the export directives before the part directives.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
+      uniqueName: 'export_directive_after_part_directive',
       expectedTypes: [],
     );
 
@@ -4767,11 +4767,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 exportInternalLibrary = DiagnosticWithArguments(
-  name: 'EXPORT_INTERNAL_LIBRARY',
+  name: 'export_internal_library',
   problemMessage: "The library '{0}' is internal and can't be exported.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXPORT_INTERNAL_LIBRARY',
+  uniqueName: 'export_internal_library',
   withArguments: _withArgumentsExportInternalLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -4782,12 +4782,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 exportOfNonLibrary = DiagnosticWithArguments(
-  name: 'EXPORT_OF_NON_LIBRARY',
+  name: 'export_of_non_library',
   problemMessage: "The exported library '{0}' can't have a part-of directive.",
   correctionMessage: "Try exporting the library that the part is a part of.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXPORT_OF_NON_LIBRARY',
+  uniqueName: 'export_of_non_library',
   withArguments: _withArgumentsExportOfNonLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -4795,27 +4795,27 @@ exportOfNonLibrary = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments expressionInMap =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXPRESSION_IN_MAP',
+      name: 'expression_in_map',
       problemMessage: "Expressions can't be used in a map literal.",
       correctionMessage:
           "Try removing the expression or converting it to be a map entry.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'EXPRESSION_IN_MAP',
+      uniqueName: 'expression_in_map',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments extendsDeferredClass =
     DiagnosticWithoutArgumentsImpl(
-      name: 'SUBTYPE_OF_DEFERRED_CLASS',
+      name: 'subtype_of_deferred_class',
       problemMessage: "Classes can't extend deferred classes.",
       correctionMessage:
           "Try specifying a different superclass, or removing the extends "
           "clause.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'EXTENDS_DEFERRED_CLASS',
+      uniqueName: 'extends_deferred_class',
       expectedTypes: [],
     );
 
@@ -4825,14 +4825,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0})
 >
 extendsDisallowedClass = DiagnosticWithArguments(
-  name: 'SUBTYPE_OF_DISALLOWED_TYPE',
+  name: 'subtype_of_disallowed_type',
   problemMessage: "Classes can't extend '{0}'.",
   correctionMessage:
       "Try specifying a different superclass, or removing the extends "
       "clause.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXTENDS_DISALLOWED_CLASS',
+  uniqueName: 'extends_disallowed_class',
   withArguments: _withArgumentsExtendsDisallowedClass,
   expectedTypes: [ExpectedType.type],
 );
@@ -4840,7 +4840,7 @@ extendsDisallowedClass = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments extendsNonClass =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTENDS_NON_CLASS',
+      name: 'extends_non_class',
       problemMessage: "Classes can only extend other classes.",
       correctionMessage:
           "Try specifying a different superclass, or removing the extends "
@@ -4848,14 +4848,14 @@ const DiagnosticWithoutArguments extendsNonClass =
       hasPublishedDocs: true,
       isUnresolvedIdentifier: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'EXTENDS_NON_CLASS',
+      uniqueName: 'extends_non_class',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments extendsTypeAliasExpandsToTypeParameter =
     DiagnosticWithoutArgumentsImpl(
-      name: 'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
+      name: 'supertype_expands_to_type_parameter',
       problemMessage:
           "A type alias that expands to a type parameter can't be used as a "
           "superclass.",
@@ -4864,7 +4864,7 @@ const DiagnosticWithoutArguments extendsTypeAliasExpandsToTypeParameter =
           "clause.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+      uniqueName: 'extends_type_alias_expands_to_type_parameter',
       expectedTypes: [],
     );
 
@@ -4874,12 +4874,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 extensionAsExpression = DiagnosticWithArguments(
-  name: 'EXTENSION_AS_EXPRESSION',
+  name: 'extension_as_expression',
   problemMessage: "Extension '{0}' can't be used as an expression.",
   correctionMessage: "Try replacing it with a valid expression.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXTENSION_AS_EXPRESSION',
+  uniqueName: 'extension_as_expression',
   withArguments: _withArgumentsExtensionAsExpression,
   expectedTypes: [ExpectedType.string],
 );
@@ -4889,11 +4889,11 @@ extensionAsExpression = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments extensionAugmentationHasOnClause =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTENSION_AUGMENTATION_HAS_ON_CLAUSE',
+      name: 'extension_augmentation_has_on_clause',
       problemMessage: "Extension augmentations can't have 'on' clauses.",
       correctionMessage: "Try removing the 'on' clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXTENSION_AUGMENTATION_HAS_ON_CLAUSE',
+      uniqueName: 'extension_augmentation_has_on_clause',
       expectedTypes: [],
     );
 
@@ -4903,14 +4903,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 extensionConflictingStaticAndInstance = DiagnosticWithArguments(
-  name: 'EXTENSION_CONFLICTING_STATIC_AND_INSTANCE',
+  name: 'extension_conflicting_static_and_instance',
   problemMessage:
       "An extension can't define static member '{0}' and an instance member with "
       "the same name.",
   correctionMessage: "Try renaming the member to a name that doesn't conflict.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXTENSION_CONFLICTING_STATIC_AND_INSTANCE',
+  uniqueName: 'extension_conflicting_static_and_instance',
   withArguments: _withArgumentsExtensionConflictingStaticAndInstance,
   expectedTypes: [ExpectedType.string],
 );
@@ -4920,12 +4920,12 @@ extensionConflictingStaticAndInstance = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments extensionDeclaresAbstractMember =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTENSION_DECLARES_ABSTRACT_MEMBER',
+      name: 'extension_declares_abstract_member',
       problemMessage: "Extensions can't declare abstract members.",
       correctionMessage: "Try providing an implementation for the member.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXTENSION_DECLARES_ABSTRACT_MEMBER',
+      uniqueName: 'extension_declares_abstract_member',
       expectedTypes: [],
     );
 
@@ -4934,52 +4934,52 @@ const DiagnosticWithoutArguments extensionDeclaresAbstractMember =
 /// No parameters.
 const DiagnosticWithoutArguments extensionDeclaresConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTENSION_DECLARES_CONSTRUCTOR',
+      name: 'extension_declares_constructor',
       problemMessage: "Extensions can't declare constructors.",
       correctionMessage: "Try removing the constructor declaration.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXTENSION_DECLARES_CONSTRUCTOR',
+      uniqueName: 'extension_declares_constructor',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments extensionDeclaresInstanceField =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTENSION_DECLARES_INSTANCE_FIELD',
+      name: 'extension_declares_instance_field',
       problemMessage: "Extensions can't declare instance fields.",
       correctionMessage: "Try replacing the field with a getter.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'EXTENSION_DECLARES_INSTANCE_FIELD',
+      uniqueName: 'extension_declares_instance_field',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 extensionDeclaresMemberOfObject = DiagnosticWithoutArgumentsImpl(
-  name: 'EXTENSION_DECLARES_MEMBER_OF_OBJECT',
+  name: 'extension_declares_member_of_object',
   problemMessage:
       "Extensions can't declare members with the same name as a member declared "
       "by 'Object'.",
   correctionMessage: "Try specifying a different name for the member.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXTENSION_DECLARES_MEMBER_OF_OBJECT',
+  uniqueName: 'extension_declares_member_of_object',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 extensionOverrideAccessToStaticMember = DiagnosticWithoutArgumentsImpl(
-  name: 'EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER',
+  name: 'extension_override_access_to_static_member',
   problemMessage:
       "An extension override can't be used to access a static member from an "
       "extension.",
   correctionMessage: "Try using just the name of the extension.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER',
+  uniqueName: 'extension_override_access_to_static_member',
   expectedTypes: [],
 );
 
@@ -4990,13 +4990,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 extensionOverrideArgumentNotAssignable = DiagnosticWithArguments(
-  name: 'EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE',
+  name: 'extension_override_argument_not_assignable',
   problemMessage:
       "The type of the argument to the extension override '{0}' isn't assignable "
       "to the extended type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE',
+  uniqueName: 'extension_override_argument_not_assignable',
   withArguments: _withArgumentsExtensionOverrideArgumentNotAssignable,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -5004,27 +5004,27 @@ extensionOverrideArgumentNotAssignable = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 extensionOverrideWithCascade = DiagnosticWithoutArgumentsImpl(
-  name: 'EXTENSION_OVERRIDE_WITH_CASCADE',
+  name: 'extension_override_with_cascade',
   problemMessage:
       "Extension overrides have no value so they can't be used as the receiver "
       "of a cascade expression.",
   correctionMessage: "Try using '.' instead of '..'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXTENSION_OVERRIDE_WITH_CASCADE',
+  uniqueName: 'extension_override_with_cascade',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments extensionOverrideWithoutAccess =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTENSION_OVERRIDE_WITHOUT_ACCESS',
+      name: 'extension_override_without_access',
       problemMessage:
           "An extension override can only be used to access instance members.",
       correctionMessage: "Consider adding an access to an instance member.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'EXTENSION_OVERRIDE_WITHOUT_ACCESS',
+      uniqueName: 'extension_override_without_access',
       expectedTypes: [],
     );
 
@@ -5032,66 +5032,66 @@ const DiagnosticWithoutArguments extensionOverrideWithoutAccess =
 const DiagnosticWithoutArguments
 extensionTypeConstructorWithSuperFormalParameter =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER',
+      name: 'extension_type_constructor_with_super_formal_parameter',
       problemMessage:
           "Extension type constructors can't declare super formal parameters.",
       correctionMessage: "Try removing the super formal parameter declaration.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER',
+      uniqueName: 'extension_type_constructor_with_super_formal_parameter',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments extensionTypeConstructorWithSuperInvocation =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
+      name: 'extension_type_constructor_with_super_invocation',
       problemMessage:
           "Extension type constructors can't include super initializers.",
       correctionMessage: "Try removing the super constructor invocation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
+      uniqueName: 'extension_type_constructor_with_super_invocation',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments extensionTypeDeclaresInstanceField =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTENSION_TYPE_DECLARES_INSTANCE_FIELD',
+      name: 'extension_type_declares_instance_field',
       problemMessage: "Extension types can't declare instance fields.",
       correctionMessage: "Try replacing the field with a getter.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'EXTENSION_TYPE_DECLARES_INSTANCE_FIELD',
+      uniqueName: 'extension_type_declares_instance_field',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 extensionTypeDeclaresMemberOfObject = DiagnosticWithoutArgumentsImpl(
-  name: 'EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT',
+  name: 'extension_type_declares_member_of_object',
   problemMessage:
       "Extension types can't declare members with the same name as a member "
       "declared by 'Object'.",
   correctionMessage: "Try specifying a different name for the member.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT',
+  uniqueName: 'extension_type_declares_member_of_object',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments extensionTypeExtends =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTENSION_TYPE_EXTENDS',
+      name: 'extension_type_extends',
       problemMessage:
           "An extension type declaration can't have an 'extends' clause.",
       correctionMessage:
           "Try removing the 'extends' clause or replacing the 'extends' with "
           "'implements'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXTENSION_TYPE_EXTENDS',
+      uniqueName: 'extension_type_extends',
       expectedTypes: [],
     );
 
@@ -5101,13 +5101,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0})
 >
 extensionTypeImplementsDisallowedType = DiagnosticWithArguments(
-  name: 'EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE',
+  name: 'extension_type_implements_disallowed_type',
   problemMessage: "Extension types can't implement '{0}'.",
   correctionMessage:
       "Try specifying a different type, or remove the type from the list.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE',
+  uniqueName: 'extension_type_implements_disallowed_type',
   withArguments: _withArgumentsExtensionTypeImplementsDisallowedType,
   expectedTypes: [ExpectedType.type],
 );
@@ -5115,13 +5115,13 @@ extensionTypeImplementsDisallowedType = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 extensionTypeImplementsItself = DiagnosticWithoutArgumentsImpl(
-  name: 'EXTENSION_TYPE_IMPLEMENTS_ITSELF',
+  name: 'extension_type_implements_itself',
   problemMessage: "The extension type can't implement itself.",
   correctionMessage:
       "Try removing the superinterface that references this extension type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXTENSION_TYPE_IMPLEMENTS_ITSELF',
+  uniqueName: 'extension_type_implements_itself',
   expectedTypes: [],
 );
 
@@ -5132,13 +5132,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 extensionTypeImplementsNotSupertype = DiagnosticWithArguments(
-  name: 'EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE',
+  name: 'extension_type_implements_not_supertype',
   problemMessage: "'{0}' is not a supertype of '{1}', the representation type.",
   correctionMessage:
       "Try specifying a different type, or remove the type from the list.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE',
+  uniqueName: 'extension_type_implements_not_supertype',
   withArguments: _withArgumentsExtensionTypeImplementsNotSupertype,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -5157,7 +5157,7 @@ const DiagnosticWithArguments<
   })
 >
 extensionTypeImplementsRepresentationNotSupertype = DiagnosticWithArguments(
-  name: 'EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE',
+  name: 'extension_type_implements_representation_not_supertype',
   problemMessage:
       "'{0}', the representation type of '{1}', is not a supertype of '{2}', the "
       "representation type of '{3}'.",
@@ -5165,7 +5165,7 @@ extensionTypeImplementsRepresentationNotSupertype = DiagnosticWithArguments(
       "Try specifying a different type, or remove the type from the list.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE',
+  uniqueName: 'extension_type_implements_representation_not_supertype',
   withArguments:
       _withArgumentsExtensionTypeImplementsRepresentationNotSupertype,
   expectedTypes: [
@@ -5183,7 +5183,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 extensionTypeInheritedMemberConflict = DiagnosticWithArguments(
-  name: 'EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT',
+  name: 'extension_type_inherited_member_conflict',
   problemMessage:
       "The extension type '{0}' has more than one distinct member named '{1}' "
       "from implemented types.",
@@ -5191,7 +5191,7 @@ extensionTypeInheritedMemberConflict = DiagnosticWithArguments(
       "Try redeclaring the corresponding member in this extension type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT',
+  uniqueName: 'extension_type_inherited_member_conflict',
   withArguments: _withArgumentsExtensionTypeInheritedMemberConflict,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -5199,39 +5199,39 @@ extensionTypeInheritedMemberConflict = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments extensionTypeRepresentationDependsOnItself =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF',
+      name: 'extension_type_representation_depends_on_itself',
       problemMessage:
           "The extension type representation can't depend on itself.",
       correctionMessage: "Try specifying a different type.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF',
+      uniqueName: 'extension_type_representation_depends_on_itself',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments extensionTypeRepresentationTypeBottom =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM',
+      name: 'extension_type_representation_type_bottom',
       problemMessage: "The representation type can't be a bottom type.",
       correctionMessage: "Try specifying a different type.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM',
+      uniqueName: 'extension_type_representation_type_bottom',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments extensionTypeWith =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTENSION_TYPE_WITH',
+      name: 'extension_type_with',
       problemMessage:
           "An extension type declaration can't have a 'with' clause.",
       correctionMessage:
           "Try removing the 'with' clause or replacing the 'with' with "
           "'implements'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXTENSION_TYPE_WITH',
+      uniqueName: 'extension_type_with',
       expectedTypes: [],
     );
 
@@ -5242,217 +5242,217 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 extensionTypeWithAbstractMember = DiagnosticWithArguments(
-  name: 'EXTENSION_TYPE_WITH_ABSTRACT_MEMBER',
+  name: 'extension_type_with_abstract_member',
   problemMessage:
       "'{0}' must have a method body because '{1}' is an extension type.",
   correctionMessage: "Try adding a body to '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXTENSION_TYPE_WITH_ABSTRACT_MEMBER',
+  uniqueName: 'extension_type_with_abstract_member',
   withArguments: _withArgumentsExtensionTypeWithAbstractMember,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments externalClass = DiagnosticWithoutArgumentsImpl(
-  name: 'EXTERNAL_CLASS',
+  name: 'external_class',
   problemMessage: "Classes can't be declared to be 'external'.",
   correctionMessage: "Try removing the keyword 'external'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'EXTERNAL_CLASS',
+  uniqueName: 'external_class',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments externalConstructorWithFieldInitializers =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS',
+      name: 'external_constructor_with_field_initializers',
       problemMessage: "An external constructor can't initialize fields.",
       correctionMessage:
           "Try removing the field initializers, or removing the keyword "
           "'external'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS',
+      uniqueName: 'external_constructor_with_field_initializers',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments externalConstructorWithInitializer =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER',
+      name: 'external_constructor_with_initializer',
       problemMessage: "An external constructor can't have any initializers.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER',
+      uniqueName: 'external_constructor_with_initializer',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments externalEnum = DiagnosticWithoutArgumentsImpl(
-  name: 'EXTERNAL_ENUM',
+  name: 'external_enum',
   problemMessage: "Enums can't be declared to be 'external'.",
   correctionMessage: "Try removing the keyword 'external'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'EXTERNAL_ENUM',
+  uniqueName: 'external_enum',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments externalFactoryRedirection =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTERNAL_FACTORY_REDIRECTION',
+      name: 'external_factory_redirection',
       problemMessage: "A redirecting factory can't be external.",
       correctionMessage: "Try removing the 'external' modifier.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXTERNAL_FACTORY_REDIRECTION',
+      uniqueName: 'external_factory_redirection',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments externalFactoryWithBody =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTERNAL_FACTORY_WITH_BODY',
+      name: 'external_factory_with_body',
       problemMessage: "External factories can't have a body.",
       correctionMessage:
           "Try removing the body of the factory, or removing the keyword "
           "'external'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXTERNAL_FACTORY_WITH_BODY',
+      uniqueName: 'external_factory_with_body',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 externalFieldConstructorInitializer = DiagnosticWithoutArgumentsImpl(
-  name: 'EXTERNAL_WITH_INITIALIZER',
+  name: 'external_with_initializer',
   problemMessage: "External fields can't have initializers.",
   correctionMessage:
       "Try removing the field initializer or the 'external' keyword from the "
       "field declaration.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER',
+  uniqueName: 'external_field_constructor_initializer',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments externalFieldInitializer =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTERNAL_WITH_INITIALIZER',
+      name: 'external_with_initializer',
       problemMessage: "External fields can't have initializers.",
       correctionMessage:
           "Try removing the initializer or the 'external' keyword.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'EXTERNAL_FIELD_INITIALIZER',
+      uniqueName: 'external_field_initializer',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments externalGetterWithBody =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTERNAL_GETTER_WITH_BODY',
+      name: 'external_getter_with_body',
       problemMessage: "External getters can't have a body.",
       correctionMessage:
           "Try removing the body of the getter, or removing the keyword "
           "'external'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXTERNAL_GETTER_WITH_BODY',
+      uniqueName: 'external_getter_with_body',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments externalLateField =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTERNAL_LATE_FIELD',
+      name: 'external_late_field',
       problemMessage: "External fields cannot be late.",
       correctionMessage: "Try removing the 'external' or 'late' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXTERNAL_LATE_FIELD',
+      uniqueName: 'external_late_field',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments externalMethodWithBody =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTERNAL_METHOD_WITH_BODY',
+      name: 'external_method_with_body',
       problemMessage: "An external or native method can't have a body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXTERNAL_METHOD_WITH_BODY',
+      uniqueName: 'external_method_with_body',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments externalOperatorWithBody =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTERNAL_OPERATOR_WITH_BODY',
+      name: 'external_operator_with_body',
       problemMessage: "External operators can't have a body.",
       correctionMessage:
           "Try removing the body of the operator, or removing the keyword "
           "'external'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXTERNAL_OPERATOR_WITH_BODY',
+      uniqueName: 'external_operator_with_body',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments externalSetterWithBody =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTERNAL_SETTER_WITH_BODY',
+      name: 'external_setter_with_body',
       problemMessage: "External setters can't have a body.",
       correctionMessage:
           "Try removing the body of the setter, or removing the keyword "
           "'external'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXTERNAL_SETTER_WITH_BODY',
+      uniqueName: 'external_setter_with_body',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments externalTypedef =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTERNAL_TYPEDEF',
+      name: 'external_typedef',
       problemMessage: "Typedefs can't be declared to be 'external'.",
       correctionMessage: "Try removing the keyword 'external'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXTERNAL_TYPEDEF',
+      uniqueName: 'external_typedef',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments externalVariableInitializer =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTERNAL_WITH_INITIALIZER',
+      name: 'external_with_initializer',
       problemMessage: "External variables can't have initializers.",
       correctionMessage:
           "Try removing the initializer or the 'external' keyword.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'EXTERNAL_VARIABLE_INITIALIZER',
+      uniqueName: 'external_variable_initializer',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 extraAnnotationOnStructField = DiagnosticWithoutArgumentsImpl(
-  name: 'EXTRA_ANNOTATION_ON_STRUCT_FIELD',
+  name: 'extra_annotation_on_struct_field',
   problemMessage:
       "Fields in a struct class must have exactly one annotation indicating the "
       "native type.",
   correctionMessage: "Try removing the extra annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXTRA_ANNOTATION_ON_STRUCT_FIELD',
+  uniqueName: 'extra_annotation_on_struct_field',
   expectedTypes: [],
 );
 
 /// Parameters:
 /// Token lexeme: undocumented
 const DiagnosticCode extraneousModifier = DiagnosticCodeWithExpectedTypes(
-  name: 'EXTRANEOUS_MODIFIER',
+  name: 'extraneous_modifier',
   problemMessage: "Can't have modifier '{0}' here.",
   correctionMessage: "Try removing '{0}'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'EXTRANEOUS_MODIFIER',
+  uniqueName: 'extraneous_modifier',
   expectedTypes: [ExpectedType.token],
 );
 
@@ -5460,11 +5460,11 @@ const DiagnosticCode extraneousModifier = DiagnosticCodeWithExpectedTypes(
 /// Token lexeme: undocumented
 const DiagnosticCode extraneousModifierInExtensionType =
     DiagnosticCodeWithExpectedTypes(
-      name: 'EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE',
+      name: 'extraneous_modifier_in_extension_type',
       problemMessage: "Can't have modifier '{0}' in an extension type.",
       correctionMessage: "Try removing '{0}'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE',
+      uniqueName: 'extraneous_modifier_in_extension_type',
       expectedTypes: [ExpectedType.token],
     );
 
@@ -5472,11 +5472,11 @@ const DiagnosticCode extraneousModifierInExtensionType =
 /// Token lexeme: undocumented
 const DiagnosticCode extraneousModifierInPrimaryConstructor =
     DiagnosticCodeWithExpectedTypes(
-      name: 'EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR',
+      name: 'extraneous_modifier_in_primary_constructor',
       problemMessage: "Can't have modifier '{0}' in a primary constructor.",
       correctionMessage: "Try removing '{0}'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR',
+      uniqueName: 'extraneous_modifier_in_primary_constructor',
       expectedTypes: [ExpectedType.token],
     );
 
@@ -5487,12 +5487,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required int p0, required int p1})
 >
 extraPositionalArguments = DiagnosticWithArguments(
-  name: 'EXTRA_POSITIONAL_ARGUMENTS',
+  name: 'extra_positional_arguments',
   problemMessage: "Too many positional arguments: {0} expected, but {1} found.",
   correctionMessage: "Try removing the extra arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXTRA_POSITIONAL_ARGUMENTS',
+  uniqueName: 'extra_positional_arguments',
   withArguments: _withArgumentsExtraPositionalArguments,
   expectedTypes: [ExpectedType.int, ExpectedType.int],
 );
@@ -5504,14 +5504,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required int p0, required int p1})
 >
 extraPositionalArgumentsCouldBeNamed = DiagnosticWithArguments(
-  name: 'EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED',
+  name: 'extra_positional_arguments_could_be_named',
   problemMessage: "Too many positional arguments: {0} expected, but {1} found.",
   correctionMessage:
       "Try removing the extra positional arguments, or specifying the name "
       "for named arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED',
+  uniqueName: 'extra_positional_arguments_could_be_named',
   withArguments: _withArgumentsExtraPositionalArgumentsCouldBeNamed,
   expectedTypes: [ExpectedType.int, ExpectedType.int],
 );
@@ -5519,99 +5519,99 @@ extraPositionalArgumentsCouldBeNamed = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments extraSizeAnnotationCarray =
     DiagnosticWithoutArgumentsImpl(
-      name: 'EXTRA_SIZE_ANNOTATION_CARRAY',
+      name: 'extra_size_annotation_carray',
       problemMessage: "'Array's must have exactly one 'Array' annotation.",
       correctionMessage: "Try removing the extra annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'EXTRA_SIZE_ANNOTATION_CARRAY',
+      uniqueName: 'extra_size_annotation_carray',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments factoryConstructorNewName =
     DiagnosticWithoutArgumentsImpl(
-      name: 'FACTORY_CONSTRUCTOR_NEW_NAME',
+      name: 'factory_constructor_new_name',
       problemMessage: "Factory constructors can't be named 'new'.",
       correctionMessage:
           "Try removing the 'new' keyword or changing it to a different name.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'FACTORY_CONSTRUCTOR_NEW_NAME',
+      uniqueName: 'factory_constructor_new_name',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments factoryTopLevelDeclaration =
     DiagnosticWithoutArgumentsImpl(
-      name: 'FACTORY_TOP_LEVEL_DECLARATION',
+      name: 'factory_top_level_declaration',
       problemMessage:
           "Top-level declarations can't be declared to be 'factory'.",
       correctionMessage: "Try removing the keyword 'factory'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'FACTORY_TOP_LEVEL_DECLARATION',
+      uniqueName: 'factory_top_level_declaration',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments factoryWithInitializers =
     DiagnosticWithoutArgumentsImpl(
-      name: 'FACTORY_WITH_INITIALIZERS',
+      name: 'factory_with_initializers',
       problemMessage: "A 'factory' constructor can't have initializers.",
       correctionMessage:
           "Try removing the 'factory' keyword to make this a generative "
           "constructor, or removing the initializers.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'FACTORY_WITH_INITIALIZERS',
+      uniqueName: 'factory_with_initializers',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments factoryWithoutBody =
     DiagnosticWithoutArgumentsImpl(
-      name: 'FACTORY_WITHOUT_BODY',
+      name: 'factory_without_body',
       problemMessage:
           "A non-redirecting 'factory' constructor must have a body.",
       correctionMessage: "Try adding a body to the constructor.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'FACTORY_WITHOUT_BODY',
+      uniqueName: 'factory_without_body',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments ffiNativeInvalidDuplicateDefaultAsset =
     DiagnosticWithoutArgumentsImpl(
-      name: 'FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET',
+      name: 'ffi_native_invalid_duplicate_default_asset',
       problemMessage:
           "There may be at most one @DefaultAsset annotation on a library.",
       correctionMessage: "Try removing the extra annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET',
+      uniqueName: 'ffi_native_invalid_duplicate_default_asset',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 ffiNativeInvalidMultipleAnnotations = DiagnosticWithoutArgumentsImpl(
-  name: 'FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS',
+  name: 'ffi_native_invalid_multiple_annotations',
   problemMessage:
       "Native functions and fields must have exactly one `@Native` annotation.",
   correctionMessage: "Try removing the extra annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS',
+  uniqueName: 'ffi_native_invalid_multiple_annotations',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments ffiNativeMustBeExternal =
     DiagnosticWithoutArgumentsImpl(
-      name: 'FFI_NATIVE_MUST_BE_EXTERNAL',
+      name: 'ffi_native_must_be_external',
       problemMessage: "Native functions must be declared external.",
       correctionMessage: "Add the `external` keyword to the function.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FFI_NATIVE_MUST_BE_EXTERNAL',
+      uniqueName: 'ffi_native_must_be_external',
       expectedTypes: [],
     );
 
@@ -5620,14 +5620,14 @@ const DiagnosticWithoutArguments
 ffiNativeOnlyClassesExtendingNativefieldwrapperclass1CanBePointer =
     DiagnosticWithoutArgumentsImpl(
       name:
-          'FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER',
+          'ffi_native_only_classes_extending_nativefieldwrapperclass1_can_be_pointer',
       problemMessage:
           "Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.",
       correctionMessage: "Pass as Handle instead.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
       uniqueName:
-          'FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER',
+          'ffi_native_only_classes_extending_nativefieldwrapperclass1_can_be_pointer',
       expectedTypes: [],
     );
 
@@ -5638,14 +5638,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required int p0, required int p1})
 >
 ffiNativeUnexpectedNumberOfParameters = DiagnosticWithArguments(
-  name: 'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS',
+  name: 'ffi_native_unexpected_number_of_parameters',
   problemMessage:
       "Unexpected number of Native annotation parameters. Expected {0} but has "
       "{1}.",
   correctionMessage: "Make sure parameters match the function annotated.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS',
+  uniqueName: 'ffi_native_unexpected_number_of_parameters',
   withArguments: _withArgumentsFfiNativeUnexpectedNumberOfParameters,
   expectedTypes: [ExpectedType.int, ExpectedType.int],
 );
@@ -5657,7 +5657,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required int p0, required int p1})
 >
 ffiNativeUnexpectedNumberOfParametersWithReceiver = DiagnosticWithArguments(
-  name: 'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER',
+  name: 'ffi_native_unexpected_number_of_parameters_with_receiver',
   problemMessage:
       "Unexpected number of Native annotation parameters. Expected {0} but has "
       "{1}. Native instance method annotation must have receiver as first "
@@ -5667,7 +5667,7 @@ ffiNativeUnexpectedNumberOfParametersWithReceiver = DiagnosticWithArguments(
       "first parameter for the receiver.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER',
+  uniqueName: 'ffi_native_unexpected_number_of_parameters_with_receiver',
   withArguments:
       _withArgumentsFfiNativeUnexpectedNumberOfParametersWithReceiver,
   expectedTypes: [ExpectedType.int, ExpectedType.int],
@@ -5679,13 +5679,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 fieldInitializedByMultipleInitializers = DiagnosticWithArguments(
-  name: 'FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS',
+  name: 'field_initialized_by_multiple_initializers',
   problemMessage:
       "The field '{0}' can't be initialized twice in the same constructor.",
   correctionMessage: "Try removing one of the initializations.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS',
+  uniqueName: 'field_initialized_by_multiple_initializers',
   withArguments: _withArgumentsFieldInitializedByMultipleInitializers,
   expectedTypes: [ExpectedType.string],
 );
@@ -5693,54 +5693,54 @@ fieldInitializedByMultipleInitializers = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 fieldInitializedInInitializerAndDeclaration = DiagnosticWithoutArgumentsImpl(
-  name: 'FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION',
+  name: 'field_initialized_in_initializer_and_declaration',
   problemMessage:
       "Fields can't be initialized in the constructor if they are final and were "
       "already initialized at their declaration.",
   correctionMessage: "Try removing one of the initializations.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION',
+  uniqueName: 'field_initialized_in_initializer_and_declaration',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments fieldInitializedInParameterAndInitializer =
     DiagnosticWithoutArgumentsImpl(
-      name: 'FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER',
+      name: 'field_initialized_in_parameter_and_initializer',
       problemMessage:
           "Fields can't be initialized in both the parameter list and the "
           "initializers.",
       correctionMessage: "Try removing one of the initializations.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER',
+      uniqueName: 'field_initialized_in_parameter_and_initializer',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments fieldInitializedOutsideDeclaringClass =
     DiagnosticWithoutArgumentsImpl(
-      name: 'FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS',
+      name: 'field_initialized_outside_declaring_class',
       problemMessage: "A field can only be initialized in its declaring class",
       correctionMessage:
           "Try passing a value into the superclass constructor, or moving the "
           "initialization into the constructor body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS',
+      uniqueName: 'field_initialized_outside_declaring_class',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 fieldInitializerFactoryConstructor = DiagnosticWithoutArgumentsImpl(
-  name: 'FIELD_INITIALIZER_FACTORY_CONSTRUCTOR',
+  name: 'field_initializer_factory_constructor',
   problemMessage:
       "Initializing formal parameters can't be used in factory constructors.",
   correctionMessage: "Try using a normal parameter.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FIELD_INITIALIZER_FACTORY_CONSTRUCTOR',
+  uniqueName: 'field_initializer_factory_constructor',
   expectedTypes: [],
 );
 
@@ -5751,12 +5751,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 fieldInitializerNotAssignable = DiagnosticWithArguments(
-  name: 'FIELD_INITIALIZER_NOT_ASSIGNABLE',
+  name: 'field_initializer_not_assignable',
   problemMessage:
       "The initializer type '{0}' can't be assigned to the field type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FIELD_INITIALIZER_NOT_ASSIGNABLE',
+  uniqueName: 'field_initializer_not_assignable',
   withArguments: _withArgumentsFieldInitializerNotAssignable,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -5764,27 +5764,27 @@ fieldInitializerNotAssignable = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments fieldInitializerOutsideConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
+      name: 'field_initializer_outside_constructor',
       problemMessage:
           "Field formal parameters can only be used in a constructor.",
       correctionMessage: "Try removing 'this.'.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
+      uniqueName: 'field_initializer_outside_constructor',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments fieldInitializerRedirectingConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR',
+      name: 'field_initializer_redirecting_constructor',
       problemMessage:
           "The redirecting constructor can't have a field initializer.",
       correctionMessage:
           "Try initializing the field in the constructor being redirected to.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR',
+      uniqueName: 'field_initializer_redirecting_constructor',
       expectedTypes: [],
     );
 
@@ -5795,7 +5795,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 fieldInitializingFormalNotAssignable = DiagnosticWithArguments(
-  name: 'FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE',
+  name: 'field_initializing_formal_not_assignable',
   problemMessage:
       "The parameter type '{0}' is incompatible with the field type '{1}'.",
   correctionMessage:
@@ -5803,7 +5803,7 @@ fieldInitializingFormalNotAssignable = DiagnosticWithArguments(
       "field's type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE',
+  uniqueName: 'field_initializing_formal_not_assignable',
   withArguments: _withArgumentsFieldInitializingFormalNotAssignable,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -5811,33 +5811,33 @@ fieldInitializingFormalNotAssignable = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments fieldMustBeExternalInStruct =
     DiagnosticWithoutArgumentsImpl(
-      name: 'FIELD_MUST_BE_EXTERNAL_IN_STRUCT',
+      name: 'field_must_be_external_in_struct',
       problemMessage:
           "Fields of 'Struct' and 'Union' subclasses must be marked external.",
       correctionMessage: "Try adding the 'external' modifier.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FIELD_MUST_BE_EXTERNAL_IN_STRUCT',
+      uniqueName: 'field_must_be_external_in_struct',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments finalAndCovariant =
     DiagnosticWithoutArgumentsImpl(
-      name: 'FINAL_AND_COVARIANT',
+      name: 'final_and_covariant',
       problemMessage:
           "Members can't be declared to be both 'final' and 'covariant'.",
       correctionMessage:
           "Try removing either the 'final' or 'covariant' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'FINAL_AND_COVARIANT',
+      uniqueName: 'final_and_covariant',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 finalAndCovariantLateWithInitializer = DiagnosticWithoutArgumentsImpl(
-  name: 'FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER',
+  name: 'final_and_covariant_late_with_initializer',
   problemMessage:
       "Members marked 'late' with an initializer can't be declared to be both "
       "'final' and 'covariant'.",
@@ -5845,17 +5845,17 @@ finalAndCovariantLateWithInitializer = DiagnosticWithoutArgumentsImpl(
       "Try removing either the 'final' or 'covariant' keyword, or removing "
       "the initializer.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER',
+  uniqueName: 'final_and_covariant_late_with_initializer',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments finalAndVar = DiagnosticWithoutArgumentsImpl(
-  name: 'FINAL_AND_VAR',
+  name: 'final_and_var',
   problemMessage: "Members can't be declared to be both 'final' and 'var'.",
   correctionMessage: "Try removing the keyword 'var'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'FINAL_AND_VAR',
+  uniqueName: 'final_and_var',
   expectedTypes: [],
 );
 
@@ -5865,13 +5865,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 finalClassExtendedOutsideOfLibrary = DiagnosticWithArguments(
-  name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+  name: 'invalid_use_of_type_outside_library',
   problemMessage:
       "The class '{0}' can't be extended outside of its library because it's a "
       "final class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
+  uniqueName: 'final_class_extended_outside_of_library',
   withArguments: _withArgumentsFinalClassExtendedOutsideOfLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -5882,13 +5882,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 finalClassImplementedOutsideOfLibrary = DiagnosticWithArguments(
-  name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+  name: 'invalid_use_of_type_outside_library',
   problemMessage:
       "The class '{0}' can't be implemented outside of its library because it's "
       "a final class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
+  uniqueName: 'final_class_implemented_outside_of_library',
   withArguments: _withArgumentsFinalClassImplementedOutsideOfLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -5900,13 +5900,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 finalClassUsedAsMixinConstraintOutsideOfLibrary = DiagnosticWithArguments(
-  name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+  name: 'invalid_use_of_type_outside_library',
   problemMessage:
       "The class '{0}' can't be used as a mixin superclass constraint outside of "
       "its library because it's a final class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY',
+  uniqueName: 'final_class_used_as_mixin_constraint_outside_of_library',
   withArguments: _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -5914,21 +5914,21 @@ finalClassUsedAsMixinConstraintOutsideOfLibrary = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments finalConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'FINAL_CONSTRUCTOR',
+      name: 'final_constructor',
       problemMessage: "A constructor can't be declared to be 'final'.",
       correctionMessage: "Try removing the keyword 'final'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'FINAL_CONSTRUCTOR',
+      uniqueName: 'final_constructor',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments finalEnum = DiagnosticWithoutArgumentsImpl(
-  name: 'FINAL_ENUM',
+  name: 'final_enum',
   problemMessage: "Enums can't be declared to be 'final'.",
   correctionMessage: "Try removing the keyword 'final'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'FINAL_ENUM',
+  uniqueName: 'final_enum',
   expectedTypes: [],
 );
 
@@ -5938,47 +5938,47 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 finalInitializedInDeclarationAndConstructor = DiagnosticWithArguments(
-  name: 'FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR',
+  name: 'final_initialized_in_declaration_and_constructor',
   problemMessage:
       "'{0}' is final and was given a value when it was declared, so it can't be "
       "set to a new value.",
   correctionMessage: "Try removing one of the initializations.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR',
+  uniqueName: 'final_initialized_in_declaration_and_constructor',
   withArguments: _withArgumentsFinalInitializedInDeclarationAndConstructor,
   expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments finalMethod = DiagnosticWithoutArgumentsImpl(
-  name: 'FINAL_METHOD',
+  name: 'final_method',
   problemMessage:
       "Getters, setters and methods can't be declared to be 'final'.",
   correctionMessage: "Try removing the keyword 'final'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'FINAL_METHOD',
+  uniqueName: 'final_method',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments finalMixin = DiagnosticWithoutArgumentsImpl(
-  name: 'FINAL_MIXIN',
+  name: 'final_mixin',
   problemMessage: "A mixin can't be declared 'final'.",
   correctionMessage: "Try removing the 'final' keyword.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'FINAL_MIXIN',
+  uniqueName: 'final_mixin',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments finalMixinClass =
     DiagnosticWithoutArgumentsImpl(
-      name: 'FINAL_MIXIN_CLASS',
+      name: 'final_mixin_class',
       problemMessage: "A mixin class can't be declared 'final'.",
       correctionMessage: "Try removing the 'final' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'FINAL_MIXIN_CLASS',
+      uniqueName: 'final_mixin_class',
       expectedTypes: [],
     );
 
@@ -5988,12 +5988,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 finalNotInitialized = DiagnosticWithArguments(
-  name: 'FINAL_NOT_INITIALIZED',
+  name: 'final_not_initialized',
   problemMessage: "The final variable '{0}' must be initialized.",
   correctionMessage: "Try initializing the variable.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FINAL_NOT_INITIALIZED',
+  uniqueName: 'final_not_initialized',
   withArguments: _withArgumentsFinalNotInitialized,
   expectedTypes: [ExpectedType.string],
 );
@@ -6004,12 +6004,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 finalNotInitializedConstructor1 = DiagnosticWithArguments(
-  name: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
+  name: 'final_not_initialized_constructor',
   problemMessage: "All final variables must be initialized, but '{0}' isn't.",
   correctionMessage: "Try adding an initializer for the field.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
+  uniqueName: 'final_not_initialized_constructor_1',
   withArguments: _withArgumentsFinalNotInitializedConstructor1,
   expectedTypes: [ExpectedType.string],
 );
@@ -6021,13 +6021,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 finalNotInitializedConstructor2 = DiagnosticWithArguments(
-  name: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
+  name: 'final_not_initialized_constructor',
   problemMessage:
       "All final variables must be initialized, but '{0}' and '{1}' aren't.",
   correctionMessage: "Try adding initializers for the fields.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
+  uniqueName: 'final_not_initialized_constructor_2',
   withArguments: _withArgumentsFinalNotInitializedConstructor2,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -6045,14 +6045,14 @@ const DiagnosticWithArguments<
   })
 >
 finalNotInitializedConstructor3Plus = DiagnosticWithArguments(
-  name: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
+  name: 'final_not_initialized_constructor',
   problemMessage:
       "All final variables must be initialized, but '{0}', '{1}', and {2} others "
       "aren't.",
   correctionMessage: "Try adding initializers for the fields.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS',
+  uniqueName: 'final_not_initialized_constructor_3_plus',
   withArguments: _withArgumentsFinalNotInitializedConstructor3Plus,
   expectedTypes: [ExpectedType.string, ExpectedType.string, ExpectedType.int],
 );
@@ -6065,10 +6065,10 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String message})
 >
 fixme = DiagnosticWithArguments(
-  name: 'FIXME',
+  name: 'fixme',
   problemMessage: "{0}",
   type: DiagnosticType.TODO,
-  uniqueName: 'FIXME',
+  uniqueName: 'fixme',
   withArguments: _withArgumentsFixme,
   expectedTypes: [ExpectedType.string],
 );
@@ -6076,13 +6076,13 @@ fixme = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments flutterFieldNotMap =
     DiagnosticWithoutArgumentsImpl(
-      name: 'FLUTTER_FIELD_NOT_MAP',
+      name: 'flutter_field_not_map',
       problemMessage:
           "The value of the 'flutter' field is expected to be a map.",
       correctionMessage: "Try converting the value to be a map.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'FLUTTER_FIELD_NOT_MAP',
+      uniqueName: 'flutter_field_not_map',
       expectedTypes: [],
     );
 
@@ -6099,13 +6099,13 @@ const DiagnosticWithArguments<
   })
 >
 forInOfInvalidElementType = DiagnosticWithArguments(
-  name: 'FOR_IN_OF_INVALID_ELEMENT_TYPE',
+  name: 'for_in_of_invalid_element_type',
   problemMessage:
       "The type '{0}' used in the 'for' loop must implement '{1}' with a type "
       "argument that can be assigned to '{2}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FOR_IN_OF_INVALID_ELEMENT_TYPE',
+  uniqueName: 'for_in_of_invalid_element_type',
   withArguments: _withArgumentsForInOfInvalidElementType,
   expectedTypes: [ExpectedType.type, ExpectedType.string, ExpectedType.type],
 );
@@ -6118,11 +6118,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required String p1})
 >
 forInOfInvalidType = DiagnosticWithArguments(
-  name: 'FOR_IN_OF_INVALID_TYPE',
+  name: 'for_in_of_invalid_type',
   problemMessage: "The type '{0}' used in the 'for' loop must implement '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'FOR_IN_OF_INVALID_TYPE',
+  uniqueName: 'for_in_of_invalid_type',
   withArguments: _withArgumentsForInOfInvalidType,
   expectedTypes: [ExpectedType.type, ExpectedType.string],
 );
@@ -6130,27 +6130,27 @@ forInOfInvalidType = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments forInWithConstVariable =
     DiagnosticWithoutArgumentsImpl(
-      name: 'FOR_IN_WITH_CONST_VARIABLE',
+      name: 'for_in_with_const_variable',
       problemMessage: "A for-in loop variable can't be a 'const'.",
       correctionMessage:
           "Try removing the 'const' modifier from the variable, or use a "
           "different variable.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'FOR_IN_WITH_CONST_VARIABLE',
+      uniqueName: 'for_in_with_const_variable',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 functionTypedParameterVar = DiagnosticWithoutArgumentsImpl(
-  name: 'FUNCTION_TYPED_PARAMETER_VAR',
+  name: 'function_typed_parameter_var',
   problemMessage:
       "Function-typed parameters can't specify 'const', 'final' or 'var' in "
       "place of a return type.",
   correctionMessage: "Try replacing the keyword with a return type.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'FUNCTION_TYPED_PARAMETER_VAR',
+  uniqueName: 'function_typed_parameter_var',
   expectedTypes: [],
 );
 
@@ -6160,14 +6160,14 @@ functionTypedParameterVar = DiagnosticWithoutArgumentsImpl(
 /// No parameters.
 const DiagnosticWithoutArguments
 genericFunctionTypeCannotBeBound = DiagnosticWithoutArgumentsImpl(
-  name: 'GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
+  name: 'generic_function_type_cannot_be_bound',
   problemMessage:
       "Generic function types can't be used as type parameter bounds.",
   correctionMessage:
       "Try making the free variable in the function type part of the larger "
       "declaration signature.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
+  uniqueName: 'generic_function_type_cannot_be_bound',
   expectedTypes: [],
 );
 
@@ -6177,20 +6177,20 @@ genericFunctionTypeCannotBeBound = DiagnosticWithoutArgumentsImpl(
 /// No parameters.
 const DiagnosticWithoutArguments
 genericFunctionTypeCannotBeTypeArgument = DiagnosticWithoutArgumentsImpl(
-  name: 'GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT',
+  name: 'generic_function_type_cannot_be_type_argument',
   problemMessage: "A generic function type can't be a type argument.",
   correctionMessage:
       "Try removing type parameters from the generic function type, or using "
       "'dynamic' as the type argument here.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT',
+  uniqueName: 'generic_function_type_cannot_be_type_argument',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 genericMethodTypeInstantiationOnDynamic = DiagnosticWithoutArgumentsImpl(
-  name: 'GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC',
+  name: 'generic_method_type_instantiation_on_dynamic',
   problemMessage:
       "A method tear-off on a receiver whose type is 'dynamic' can't have type "
       "arguments.",
@@ -6199,7 +6199,7 @@ genericMethodTypeInstantiationOnDynamic = DiagnosticWithoutArgumentsImpl(
       "the method tear-off.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC',
+  uniqueName: 'generic_method_type_instantiation_on_dynamic',
   expectedTypes: [],
 );
 
@@ -6209,14 +6209,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 genericStructSubclass = DiagnosticWithArguments(
-  name: 'GENERIC_STRUCT_SUBCLASS',
+  name: 'generic_struct_subclass',
   problemMessage:
       "The class '{0}' can't extend 'Struct' or 'Union' because '{0}' is "
       "generic.",
   correctionMessage: "Try removing the type parameters from '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'GENERIC_STRUCT_SUBCLASS',
+  uniqueName: 'generic_struct_subclass',
   withArguments: _withArgumentsGenericStructSubclass,
   expectedTypes: [ExpectedType.string],
 );
@@ -6224,24 +6224,24 @@ genericStructSubclass = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments getterConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'GETTER_CONSTRUCTOR',
+      name: 'getter_constructor',
       problemMessage: "Constructors can't be a getter.",
       correctionMessage: "Try removing 'get'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'GETTER_CONSTRUCTOR',
+      uniqueName: 'getter_constructor',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments getterInFunction =
     DiagnosticWithoutArgumentsImpl(
-      name: 'GETTER_IN_FUNCTION',
+      name: 'getter_in_function',
       problemMessage: "Getters can't be defined within methods or functions.",
       correctionMessage:
           "Try moving the getter outside the method or function, or converting "
           "the getter to a function.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'GETTER_IN_FUNCTION',
+      uniqueName: 'getter_in_function',
       expectedTypes: [],
     );
 
@@ -6259,13 +6259,13 @@ const DiagnosticWithArguments<
   })
 >
 getterNotAssignableSetterTypes = DiagnosticWithArguments(
-  name: 'GETTER_NOT_ASSIGNABLE_SETTER_TYPES',
+  name: 'getter_not_assignable_setter_types',
   problemMessage:
       "The return type of getter '{0}' is '{1}' which isn't assignable to the "
       "type '{2}' of its setter '{3}'.",
   correctionMessage: "Try changing the types so that they are compatible.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'GETTER_NOT_ASSIGNABLE_SETTER_TYPES',
+  uniqueName: 'getter_not_assignable_setter_types',
   withArguments: _withArgumentsGetterNotAssignableSetterTypes,
   expectedTypes: [
     ExpectedType.object,
@@ -6289,14 +6289,14 @@ const DiagnosticWithArguments<
   })
 >
 getterNotSubtypeSetterTypes = DiagnosticWithArguments(
-  name: 'GETTER_NOT_SUBTYPE_SETTER_TYPES',
+  name: 'getter_not_subtype_setter_types',
   problemMessage:
       "The return type of getter '{0}' is '{1}' which isn't a subtype of the "
       "type '{2}' of its setter '{3}'.",
   correctionMessage: "Try changing the types so that they are compatible.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'GETTER_NOT_SUBTYPE_SETTER_TYPES',
+  uniqueName: 'getter_not_subtype_setter_types',
   withArguments: _withArgumentsGetterNotSubtypeSetterTypes,
   expectedTypes: [
     ExpectedType.object,
@@ -6309,13 +6309,13 @@ getterNotSubtypeSetterTypes = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments getterWithParameters =
     DiagnosticWithoutArgumentsImpl(
-      name: 'GETTER_WITH_PARAMETERS',
+      name: 'getter_with_parameters',
       problemMessage: "Getters must be declared without a parameter list.",
       correctionMessage:
           "Try removing the parameter list, or removing the keyword 'get' to "
           "define a method rather than a getter.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'GETTER_WITH_PARAMETERS',
+      uniqueName: 'getter_with_parameters',
       expectedTypes: [],
     );
 
@@ -6327,10 +6327,10 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String message})
 >
 hack = DiagnosticWithArguments(
-  name: 'HACK',
+  name: 'hack',
   problemMessage: "{0}",
   type: DiagnosticType.TODO,
-  uniqueName: 'HACK',
+  uniqueName: 'hack',
   withArguments: _withArgumentsHack,
   expectedTypes: [ExpectedType.string],
 );
@@ -6338,30 +6338,30 @@ hack = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 ifElementConditionFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-  name: 'IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY',
+  name: 'if_element_condition_from_deferred_library',
   problemMessage:
       "Constant values from a deferred library can't be used as values in an if "
       "condition inside a const collection literal.",
   correctionMessage: "Try making the deferred import non-deferred.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY',
+  uniqueName: 'if_element_condition_from_deferred_library',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments illegalAssignmentToNonAssignable =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE',
+      name: 'illegal_assignment_to_non_assignable',
       problemMessage: "Illegal assignment to non-assignable expression.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE',
+      uniqueName: 'illegal_assignment_to_non_assignable',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 illegalAsyncGeneratorReturnType = DiagnosticWithoutArgumentsImpl(
-  name: 'ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE',
+  name: 'illegal_async_generator_return_type',
   problemMessage:
       "Functions marked 'async*' must have a return type that is a supertype of "
       "'Stream<T>' for some type 'T'.",
@@ -6370,14 +6370,14 @@ illegalAsyncGeneratorReturnType = DiagnosticWithoutArgumentsImpl(
       "'async*' from the function body.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE',
+  uniqueName: 'illegal_async_generator_return_type',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 illegalAsyncReturnType = DiagnosticWithoutArgumentsImpl(
-  name: 'ILLEGAL_ASYNC_RETURN_TYPE',
+  name: 'illegal_async_return_type',
   problemMessage:
       "Functions marked 'async' must have a return type which is a supertype of "
       "'Future'.",
@@ -6386,7 +6386,7 @@ illegalAsyncReturnType = DiagnosticWithoutArgumentsImpl(
       "'async' from the function body.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'ILLEGAL_ASYNC_RETURN_TYPE',
+  uniqueName: 'illegal_async_return_type',
   expectedTypes: [],
 );
 
@@ -6396,10 +6396,10 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 illegalCharacter = DiagnosticWithArguments(
-  name: 'ILLEGAL_CHARACTER',
+  name: 'illegal_character',
   problemMessage: "Illegal character '{0}'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'ILLEGAL_CHARACTER',
+  uniqueName: 'illegal_character',
   withArguments: _withArgumentsIllegalCharacter,
   expectedTypes: [ExpectedType.object],
 );
@@ -6410,14 +6410,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 illegalConcreteEnumMemberDeclaration = DiagnosticWithArguments(
-  name: 'ILLEGAL_CONCRETE_ENUM_MEMBER',
+  name: 'illegal_concrete_enum_member',
   problemMessage:
       "A concrete instance member named '{0}' can't be declared in a class that "
       "implements 'Enum'.",
   correctionMessage: "Try using a different name.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION',
+  uniqueName: 'illegal_concrete_enum_member_declaration',
   withArguments: _withArgumentsIllegalConcreteEnumMemberDeclaration,
   expectedTypes: [ExpectedType.string],
 );
@@ -6429,14 +6429,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 illegalConcreteEnumMemberInheritance = DiagnosticWithArguments(
-  name: 'ILLEGAL_CONCRETE_ENUM_MEMBER',
+  name: 'illegal_concrete_enum_member',
   problemMessage:
       "A concrete instance member named '{0}' can't be inherited from '{1}' in a "
       "class that implements 'Enum'.",
   correctionMessage: "Try using a different name.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE',
+  uniqueName: 'illegal_concrete_enum_member_inheritance',
   withArguments: _withArgumentsIllegalConcreteEnumMemberInheritance,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -6444,14 +6444,14 @@ illegalConcreteEnumMemberInheritance = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments illegalEnumValuesDeclaration =
     DiagnosticWithoutArgumentsImpl(
-      name: 'ILLEGAL_ENUM_VALUES',
+      name: 'illegal_enum_values',
       problemMessage:
           "An instance member named 'values' can't be declared in a class that "
           "implements 'Enum'.",
       correctionMessage: "Try using a different name.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'ILLEGAL_ENUM_VALUES_DECLARATION',
+      uniqueName: 'illegal_enum_values_declaration',
       expectedTypes: [],
     );
 
@@ -6461,14 +6461,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 illegalEnumValuesInheritance = DiagnosticWithArguments(
-  name: 'ILLEGAL_ENUM_VALUES',
+  name: 'illegal_enum_values',
   problemMessage:
       "An instance member named 'values' can't be inherited from '{0}' in a "
       "class that implements 'Enum'.",
   correctionMessage: "Try using a different name.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'ILLEGAL_ENUM_VALUES_INHERITANCE',
+  uniqueName: 'illegal_enum_values_inheritance',
   withArguments: _withArgumentsIllegalEnumValuesInheritance,
   expectedTypes: [ExpectedType.string],
 );
@@ -6479,12 +6479,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 illegalLanguageVersionOverride = DiagnosticWithArguments(
-  name: 'ILLEGAL_LANGUAGE_VERSION_OVERRIDE',
+  name: 'illegal_language_version_override',
   problemMessage: "The language version must be {0}.",
   correctionMessage:
       "Try removing the language version override and migrating the code.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'ILLEGAL_LANGUAGE_VERSION_OVERRIDE',
+  uniqueName: 'illegal_language_version_override',
   withArguments: _withArgumentsIllegalLanguageVersionOverride,
   expectedTypes: [ExpectedType.string],
 );
@@ -6496,12 +6496,12 @@ illegalLanguageVersionOverride = DiagnosticWithArguments(
 /// Token lexeme: undocumented
 const DiagnosticCode illegalPatternAssignmentVariableName =
     DiagnosticCodeWithExpectedTypes(
-      name: 'ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME',
+      name: 'illegal_pattern_assignment_variable_name',
       problemMessage:
           "A variable assigned by a pattern assignment can't be named '{0}'.",
       correctionMessage: "Choose a different name.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME',
+      uniqueName: 'illegal_pattern_assignment_variable_name',
       expectedTypes: [ExpectedType.token],
     );
 
@@ -6512,11 +6512,11 @@ const DiagnosticCode illegalPatternAssignmentVariableName =
 /// Token lexeme: undocumented
 const DiagnosticCode illegalPatternIdentifierName =
     DiagnosticCodeWithExpectedTypes(
-      name: 'ILLEGAL_PATTERN_IDENTIFIER_NAME',
+      name: 'illegal_pattern_identifier_name',
       problemMessage: "A pattern can't refer to an identifier named '{0}'.",
       correctionMessage: "Match the identifier using '==",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ILLEGAL_PATTERN_IDENTIFIER_NAME',
+      uniqueName: 'illegal_pattern_identifier_name',
       expectedTypes: [ExpectedType.token],
     );
 
@@ -6527,19 +6527,19 @@ const DiagnosticCode illegalPatternIdentifierName =
 /// Token lexeme: undocumented
 const DiagnosticCode illegalPatternVariableName =
     DiagnosticCodeWithExpectedTypes(
-      name: 'ILLEGAL_PATTERN_VARIABLE_NAME',
+      name: 'illegal_pattern_variable_name',
       problemMessage:
           "The variable declared by a variable pattern can't be named '{0}'.",
       correctionMessage: "Choose a different name.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'ILLEGAL_PATTERN_VARIABLE_NAME',
+      uniqueName: 'illegal_pattern_variable_name',
       expectedTypes: [ExpectedType.token],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 illegalSyncGeneratorReturnType = DiagnosticWithoutArgumentsImpl(
-  name: 'ILLEGAL_SYNC_GENERATOR_RETURN_TYPE',
+  name: 'illegal_sync_generator_return_type',
   problemMessage:
       "Functions marked 'sync*' must have a return type that is a supertype of "
       "'Iterable<T>' for some type 'T'.",
@@ -6548,58 +6548,58 @@ illegalSyncGeneratorReturnType = DiagnosticWithoutArgumentsImpl(
       "'sync*' from the function body.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'ILLEGAL_SYNC_GENERATOR_RETURN_TYPE',
+  uniqueName: 'illegal_sync_generator_return_type',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments implementsBeforeExtends =
     DiagnosticWithoutArgumentsImpl(
-      name: 'IMPLEMENTS_BEFORE_EXTENDS',
+      name: 'implements_before_extends',
       problemMessage:
           "The extends clause must be before the implements clause.",
       correctionMessage:
           "Try moving the extends clause before the implements clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'IMPLEMENTS_BEFORE_EXTENDS',
+      uniqueName: 'implements_before_extends',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments implementsBeforeOn =
     DiagnosticWithoutArgumentsImpl(
-      name: 'IMPLEMENTS_BEFORE_ON',
+      name: 'implements_before_on',
       problemMessage: "The on clause must be before the implements clause.",
       correctionMessage:
           "Try moving the on clause before the implements clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'IMPLEMENTS_BEFORE_ON',
+      uniqueName: 'implements_before_on',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments implementsBeforeWith =
     DiagnosticWithoutArgumentsImpl(
-      name: 'IMPLEMENTS_BEFORE_WITH',
+      name: 'implements_before_with',
       problemMessage: "The with clause must be before the implements clause.",
       correctionMessage:
           "Try moving the with clause before the implements clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'IMPLEMENTS_BEFORE_WITH',
+      uniqueName: 'implements_before_with',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments implementsDeferredClass =
     DiagnosticWithoutArgumentsImpl(
-      name: 'SUBTYPE_OF_DEFERRED_CLASS',
+      name: 'subtype_of_deferred_class',
       problemMessage: "Classes and mixins can't implement deferred classes.",
       correctionMessage:
           "Try specifying a different interface, removing the class from the "
           "list, or changing the import to not be deferred.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'IMPLEMENTS_DEFERRED_CLASS',
+      uniqueName: 'implements_deferred_class',
       expectedTypes: [],
     );
 
@@ -6609,14 +6609,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0})
 >
 implementsDisallowedClass = DiagnosticWithArguments(
-  name: 'SUBTYPE_OF_DISALLOWED_TYPE',
+  name: 'subtype_of_disallowed_type',
   problemMessage: "Classes and mixins can't implement '{0}'.",
   correctionMessage:
       "Try specifying a different interface, or remove the class from the "
       "list.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'IMPLEMENTS_DISALLOWED_CLASS',
+  uniqueName: 'implements_disallowed_class',
   withArguments: _withArgumentsImplementsDisallowedClass,
   expectedTypes: [ExpectedType.type],
 );
@@ -6624,14 +6624,14 @@ implementsDisallowedClass = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments implementsNonClass =
     DiagnosticWithoutArgumentsImpl(
-      name: 'IMPLEMENTS_NON_CLASS',
+      name: 'implements_non_class',
       problemMessage:
           "Classes and mixins can only implement other classes and mixins.",
       correctionMessage:
           "Try specifying a class or mixin, or remove the name from the list.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'IMPLEMENTS_NON_CLASS',
+      uniqueName: 'implements_non_class',
       expectedTypes: [],
     );
 
@@ -6641,12 +6641,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 implementsRepeated = DiagnosticWithArguments(
-  name: 'IMPLEMENTS_REPEATED',
+  name: 'implements_repeated',
   problemMessage: "'{0}' can only be implemented once.",
   correctionMessage: "Try removing all but one occurrence of the class name.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'IMPLEMENTS_REPEATED',
+  uniqueName: 'implements_repeated',
   withArguments: _withArgumentsImplementsRepeated,
   expectedTypes: [ExpectedType.string],
 );
@@ -6658,13 +6658,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Element p0})
 >
 implementsSuperClass = DiagnosticWithArguments(
-  name: 'IMPLEMENTS_SUPER_CLASS',
+  name: 'implements_super_class',
   problemMessage:
       "'{0}' can't be used in both the 'extends' and 'implements' clauses.",
   correctionMessage: "Try removing one of the occurrences.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'IMPLEMENTS_SUPER_CLASS',
+  uniqueName: 'implements_super_class',
   withArguments: _withArgumentsImplementsSuperClass,
   expectedTypes: [ExpectedType.element],
 );
@@ -6672,14 +6672,14 @@ implementsSuperClass = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments implementsTypeAliasExpandsToTypeParameter =
     DiagnosticWithoutArgumentsImpl(
-      name: 'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
+      name: 'supertype_expands_to_type_parameter',
       problemMessage:
           "A type alias that expands to a type parameter can't be implemented.",
       correctionMessage:
           "Try specifying a class or mixin, or removing the list.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+      uniqueName: 'implements_type_alias_expands_to_type_parameter',
       expectedTypes: [],
     );
 
@@ -6689,7 +6689,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0})
 >
 implicitSuperInitializerMissingArguments = DiagnosticWithArguments(
-  name: 'IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS',
+  name: 'implicit_super_initializer_missing_arguments',
   problemMessage:
       "The implicitly invoked unnamed constructor from '{0}' has required "
       "parameters.",
@@ -6697,7 +6697,7 @@ implicitSuperInitializerMissingArguments = DiagnosticWithArguments(
       "Try adding an explicit super parameter with the required arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS',
+  uniqueName: 'implicit_super_initializer_missing_arguments',
   withArguments: _withArgumentsImplicitSuperInitializerMissingArguments,
   expectedTypes: [ExpectedType.type],
 );
@@ -6708,7 +6708,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 implicitThisReferenceInInitializer = DiagnosticWithArguments(
-  name: 'IMPLICIT_THIS_REFERENCE_IN_INITIALIZER',
+  name: 'implicit_this_reference_in_initializer',
   problemMessage:
       "The instance member '{0}' can't be accessed in an initializer.",
   correctionMessage:
@@ -6716,7 +6716,7 @@ implicitThisReferenceInInitializer = DiagnosticWithArguments(
       "expression",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'IMPLICIT_THIS_REFERENCE_IN_INITIALIZER',
+  uniqueName: 'implicit_this_reference_in_initializer',
   withArguments: _withArgumentsImplicitThisReferenceInInitializer,
   expectedTypes: [ExpectedType.string],
 );
@@ -6724,7 +6724,7 @@ implicitThisReferenceInInitializer = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 importDeferredLibraryWithLoadFunction = DiagnosticWithoutArgumentsImpl(
-  name: 'IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
+  name: 'import_deferred_library_with_load_function',
   problemMessage:
       "The imported library defines a top-level function named 'loadLibrary' "
       "that is hidden by deferring this library.",
@@ -6733,19 +6733,19 @@ importDeferredLibraryWithLoadFunction = DiagnosticWithoutArgumentsImpl(
       "the imported library.",
   hasPublishedDocs: true,
   type: DiagnosticType.HINT,
-  uniqueName: 'IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
+  uniqueName: 'import_deferred_library_with_load_function',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments importDirectiveAfterPartDirective =
     DiagnosticWithoutArgumentsImpl(
-      name: 'IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
+      name: 'import_directive_after_part_directive',
       problemMessage: "Import directives must precede part directives.",
       correctionMessage:
           "Try moving the import directives before the part directives.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
+      uniqueName: 'import_directive_after_part_directive',
       expectedTypes: [],
     );
 
@@ -6755,11 +6755,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 importInternalLibrary = DiagnosticWithArguments(
-  name: 'IMPORT_INTERNAL_LIBRARY',
+  name: 'import_internal_library',
   problemMessage: "The library '{0}' is internal and can't be imported.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'IMPORT_INTERNAL_LIBRARY',
+  uniqueName: 'import_internal_library',
   withArguments: _withArgumentsImportInternalLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -6770,12 +6770,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 importOfNonLibrary = DiagnosticWithArguments(
-  name: 'IMPORT_OF_NON_LIBRARY',
+  name: 'import_of_non_library',
   problemMessage: "The imported library '{0}' can't have a part-of directive.",
   correctionMessage: "Try importing the library that the part is a part of.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'IMPORT_OF_NON_LIBRARY',
+  uniqueName: 'import_of_non_library',
   withArguments: _withArgumentsImportOfNonLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -6799,10 +6799,10 @@ const DiagnosticWithArguments<
   })
 >
 includedFileParseError = DiagnosticWithArguments(
-  name: 'INCLUDED_FILE_PARSE_ERROR',
+  name: 'included_file_parse_error',
   problemMessage: "{3} in {0}({1}..{2})",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INCLUDED_FILE_PARSE_ERROR',
+  uniqueName: 'included_file_parse_error',
   withArguments: _withArgumentsIncludedFileParseError,
   expectedTypes: [
     ExpectedType.string,
@@ -6830,10 +6830,10 @@ const DiagnosticWithArguments<
   })
 >
 includedFileWarning = DiagnosticWithArguments(
-  name: 'INCLUDED_FILE_WARNING',
+  name: 'included_file_warning',
   problemMessage: "Warning in the included options file {0}({1}..{2}): {3}",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INCLUDED_FILE_WARNING',
+  uniqueName: 'included_file_warning',
   withArguments: _withArgumentsIncludedFileWarning,
   expectedTypes: [
     ExpectedType.object,
@@ -6858,11 +6858,11 @@ const DiagnosticWithArguments<
   })
 >
 includeFileNotFound = DiagnosticWithArguments(
-  name: 'INCLUDE_FILE_NOT_FOUND',
+  name: 'include_file_not_found',
   problemMessage:
       "The URI '{0}' included in '{1}' can't be found when analyzing '{2}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INCLUDE_FILE_NOT_FOUND',
+  uniqueName: 'include_file_not_found',
   withArguments: _withArgumentsIncludeFileNotFound,
   expectedTypes: [
     ExpectedType.string,
@@ -6885,11 +6885,11 @@ const DiagnosticWithArguments<
   })
 >
 incompatibleLint = DiagnosticWithArguments(
-  name: 'INCOMPATIBLE_LINT',
+  name: 'incompatible_lint',
   problemMessage: "The rule '{0}' is incompatible with '{1}'.",
   correctionMessage: "Try removing all but one of the incompatible rules.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INCOMPATIBLE_LINT',
+  uniqueName: 'incompatible_lint',
   withArguments: _withArgumentsIncompatibleLint,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -6905,13 +6905,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 incompatibleLintFiles = DiagnosticWithArguments(
-  name: 'INCOMPATIBLE_LINT',
+  name: 'incompatible_lint',
   problemMessage: "The rule '{0}' is incompatible with {1}.",
   correctionMessage:
       "Try locally disabling all but one of the conflicting rules or "
       "removing one of the incompatible files.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INCOMPATIBLE_LINT_FILES',
+  uniqueName: 'incompatible_lint_files',
   withArguments: _withArgumentsIncompatibleLintFiles,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -6932,7 +6932,7 @@ const DiagnosticWithArguments<
   })
 >
 incompatibleLintIncluded = DiagnosticWithArguments(
-  name: 'INCOMPATIBLE_LINT',
+  name: 'incompatible_lint',
   problemMessage:
       "The rule '{0}' is incompatible with {1}, which is included from {2} "
       "file{3}.",
@@ -6940,7 +6940,7 @@ incompatibleLintIncluded = DiagnosticWithArguments(
       "Try locally disabling all but one of the conflicting rules or "
       "removing one of the incompatible files.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INCOMPATIBLE_LINT_INCLUDED',
+  uniqueName: 'incompatible_lint_included',
   withArguments: _withArgumentsIncompatibleLintIncluded,
   expectedTypes: [
     ExpectedType.string,
@@ -6961,11 +6961,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0, required Object p1})
 >
 inconsistentCaseExpressionTypes = DiagnosticWithArguments(
-  name: 'INCONSISTENT_CASE_EXPRESSION_TYPES',
+  name: 'inconsistent_case_expression_types',
   problemMessage:
       "Case expressions must have the same types, '{0}' isn't a '{1}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INCONSISTENT_CASE_EXPRESSION_TYPES',
+  uniqueName: 'inconsistent_case_expression_types',
   withArguments: _withArgumentsInconsistentCaseExpressionTypes,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -6977,14 +6977,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 inconsistentInheritance = DiagnosticWithArguments(
-  name: 'INCONSISTENT_INHERITANCE',
+  name: 'inconsistent_inheritance',
   problemMessage: "Superinterfaces don't have a valid override for '{0}': {1}.",
   correctionMessage:
       "Try adding an explicit override that is consistent with all of the "
       "inherited members.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INCONSISTENT_INHERITANCE',
+  uniqueName: 'inconsistent_inheritance',
   withArguments: _withArgumentsInconsistentInheritance,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -7009,7 +7009,7 @@ const DiagnosticWithArguments<
   })
 >
 inconsistentInheritanceGetterAndMethod = DiagnosticWithArguments(
-  name: 'INCONSISTENT_INHERITANCE_GETTER_AND_METHOD',
+  name: 'inconsistent_inheritance_getter_and_method',
   problemMessage:
       "'{0}' is inherited as a getter (from '{1}') and also a method (from "
       "'{2}').",
@@ -7017,7 +7017,7 @@ inconsistentInheritanceGetterAndMethod = DiagnosticWithArguments(
       "Try adjusting the supertypes of this class to remove the "
       "inconsistency.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INCONSISTENT_INHERITANCE_GETTER_AND_METHOD',
+  uniqueName: 'inconsistent_inheritance_getter_and_method',
   withArguments: _withArgumentsInconsistentInheritanceGetterAndMethod,
   expectedTypes: [
     ExpectedType.string,
@@ -7029,13 +7029,13 @@ inconsistentInheritanceGetterAndMethod = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments inconsistentLanguageVersionOverride =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INCONSISTENT_LANGUAGE_VERSION_OVERRIDE',
+      name: 'inconsistent_language_version_override',
       problemMessage:
           "Parts must have exactly the same language version override as the "
           "library.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'INCONSISTENT_LANGUAGE_VERSION_OVERRIDE',
+      uniqueName: 'inconsistent_language_version_override',
       expectedTypes: [],
     );
 
@@ -7045,7 +7045,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 inconsistentPatternVariableLogicalOr = DiagnosticWithArguments(
-  name: 'INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR',
+  name: 'inconsistent_pattern_variable_logical_or',
   problemMessage:
       "The variable '{0}' has a different type and/or finality in this branch of "
       "the logical-or pattern.",
@@ -7054,7 +7054,7 @@ inconsistentPatternVariableLogicalOr = DiagnosticWithArguments(
       "both branches.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR',
+  uniqueName: 'inconsistent_pattern_variable_logical_or',
   withArguments: _withArgumentsInconsistentPatternVariableLogicalOr,
   expectedTypes: [ExpectedType.string],
 );
@@ -7068,12 +7068,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 inferenceFailureOnCollectionLiteral = DiagnosticWithArguments(
-  name: 'INFERENCE_FAILURE_ON_COLLECTION_LITERAL',
+  name: 'inference_failure_on_collection_literal',
   problemMessage: "The type argument(s) of '{0}' can't be inferred.",
   correctionMessage: "Use explicit type argument(s) for '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INFERENCE_FAILURE_ON_COLLECTION_LITERAL',
+  uniqueName: 'inference_failure_on_collection_literal',
   withArguments: _withArgumentsInferenceFailureOnCollectionLiteral,
   expectedTypes: [ExpectedType.string],
 );
@@ -7087,13 +7087,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 inferenceFailureOnFunctionInvocation = DiagnosticWithArguments(
-  name: 'INFERENCE_FAILURE_ON_FUNCTION_INVOCATION',
+  name: 'inference_failure_on_function_invocation',
   problemMessage:
       "The type argument(s) of the function '{0}' can't be inferred.",
   correctionMessage: "Use explicit type argument(s) for '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INFERENCE_FAILURE_ON_FUNCTION_INVOCATION',
+  uniqueName: 'inference_failure_on_function_invocation',
   withArguments: _withArgumentsInferenceFailureOnFunctionInvocation,
   expectedTypes: [ExpectedType.string],
 );
@@ -7111,12 +7111,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 inferenceFailureOnFunctionReturnType = DiagnosticWithArguments(
-  name: 'INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
+  name: 'inference_failure_on_function_return_type',
   problemMessage: "The return type of '{0}' can't be inferred.",
   correctionMessage: "Declare the return type of '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
+  uniqueName: 'inference_failure_on_function_return_type',
   withArguments: _withArgumentsInferenceFailureOnFunctionReturnType,
   expectedTypes: [ExpectedType.string],
 );
@@ -7130,14 +7130,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 inferenceFailureOnGenericInvocation = DiagnosticWithArguments(
-  name: 'INFERENCE_FAILURE_ON_GENERIC_INVOCATION',
+  name: 'inference_failure_on_generic_invocation',
   problemMessage:
       "The type argument(s) of the generic function type '{0}' can't be "
       "inferred.",
   correctionMessage: "Use explicit type argument(s) for '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INFERENCE_FAILURE_ON_GENERIC_INVOCATION',
+  uniqueName: 'inference_failure_on_generic_invocation',
   withArguments: _withArgumentsInferenceFailureOnGenericInvocation,
   expectedTypes: [ExpectedType.string],
 );
@@ -7152,13 +7152,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 inferenceFailureOnInstanceCreation = DiagnosticWithArguments(
-  name: 'INFERENCE_FAILURE_ON_INSTANCE_CREATION',
+  name: 'inference_failure_on_instance_creation',
   problemMessage:
       "The type argument(s) of the constructor '{0}' can't be inferred.",
   correctionMessage: "Use explicit type argument(s) for '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INFERENCE_FAILURE_ON_INSTANCE_CREATION',
+  uniqueName: 'inference_failure_on_instance_creation',
   withArguments: _withArgumentsInferenceFailureOnInstanceCreation,
   expectedTypes: [ExpectedType.string],
 );
@@ -7172,13 +7172,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 inferenceFailureOnUninitializedVariable = DiagnosticWithArguments(
-  name: 'INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE',
+  name: 'inference_failure_on_uninitialized_variable',
   problemMessage:
       "The type of {0} can't be inferred without either a type or initializer.",
   correctionMessage: "Try specifying the type of the variable.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE',
+  uniqueName: 'inference_failure_on_uninitialized_variable',
   withArguments: _withArgumentsInferenceFailureOnUninitializedVariable,
   expectedTypes: [ExpectedType.string],
 );
@@ -7192,12 +7192,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 inferenceFailureOnUntypedParameter = DiagnosticWithArguments(
-  name: 'INFERENCE_FAILURE_ON_UNTYPED_PARAMETER',
+  name: 'inference_failure_on_untyped_parameter',
   problemMessage:
       "The type of {0} can't be inferred; a type must be explicitly provided.",
   correctionMessage: "Try specifying the type of the parameter.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INFERENCE_FAILURE_ON_UNTYPED_PARAMETER',
+  uniqueName: 'inference_failure_on_untyped_parameter',
   withArguments: _withArgumentsInferenceFailureOnUntypedParameter,
   expectedTypes: [ExpectedType.string],
 );
@@ -7205,13 +7205,13 @@ inferenceFailureOnUntypedParameter = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments initializedVariableInForEach =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INITIALIZED_VARIABLE_IN_FOR_EACH',
+      name: 'initialized_variable_in_for_each',
       problemMessage:
           "The loop variable in a for-each loop can't be initialized.",
       correctionMessage:
           "Try removing the initializer, or using a different kind of loop.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'INITIALIZED_VARIABLE_IN_FOR_EACH',
+      uniqueName: 'initialized_variable_in_for_each',
       expectedTypes: [],
     );
 
@@ -7222,14 +7222,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 initializerForNonExistentField = DiagnosticWithArguments(
-  name: 'INITIALIZER_FOR_NON_EXISTENT_FIELD',
+  name: 'initializer_for_non_existent_field',
   problemMessage: "'{0}' isn't a field in the enclosing class.",
   correctionMessage:
       "Try correcting the name to match an existing field, or defining a "
       "field named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INITIALIZER_FOR_NON_EXISTENT_FIELD',
+  uniqueName: 'initializer_for_non_existent_field',
   withArguments: _withArgumentsInitializerForNonExistentField,
   expectedTypes: [ExpectedType.string],
 );
@@ -7241,14 +7241,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 initializerForStaticField = DiagnosticWithArguments(
-  name: 'INITIALIZER_FOR_STATIC_FIELD',
+  name: 'initializer_for_static_field',
   problemMessage:
       "'{0}' is a static field in the enclosing class. Fields initialized in a "
       "constructor can't be static.",
   correctionMessage: "Try removing the initialization.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INITIALIZER_FOR_STATIC_FIELD',
+  uniqueName: 'initializer_for_static_field',
   withArguments: _withArgumentsInitializerForStaticField,
   expectedTypes: [ExpectedType.string],
 );
@@ -7260,14 +7260,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 initializingFormalForNonExistentField = DiagnosticWithArguments(
-  name: 'INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD',
+  name: 'initializing_formal_for_non_existent_field',
   problemMessage: "'{0}' isn't a field in the enclosing class.",
   correctionMessage:
       "Try correcting the name to match an existing field, or defining a "
       "field named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD',
+  uniqueName: 'initializing_formal_for_non_existent_field',
   withArguments: _withArgumentsInitializingFormalForNonExistentField,
   expectedTypes: [ExpectedType.string],
 );
@@ -7288,12 +7288,12 @@ const DiagnosticWithArguments<
   })
 >
 instanceAccessToStaticMember = DiagnosticWithArguments(
-  name: 'INSTANCE_ACCESS_TO_STATIC_MEMBER',
+  name: 'instance_access_to_static_member',
   problemMessage: "The static {1} '{0}' can't be accessed through an instance.",
   correctionMessage: "Try using the {3} '{2}' to access the {1}.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INSTANCE_ACCESS_TO_STATIC_MEMBER',
+  uniqueName: 'instance_access_to_static_member',
   withArguments: _withArgumentsInstanceAccessToStaticMember,
   expectedTypes: [
     ExpectedType.string,
@@ -7311,11 +7311,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0, required Object p1})
 >
 instanceAccessToStaticMemberOfUnnamedExtension = DiagnosticWithArguments(
-  name: 'INSTANCE_ACCESS_TO_STATIC_MEMBER',
+  name: 'instance_access_to_static_member',
   problemMessage: "The static {1} '{0}' can't be accessed through an instance.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION',
+  uniqueName: 'instance_access_to_static_member_of_unnamed_extension',
   withArguments: _withArgumentsInstanceAccessToStaticMemberOfUnnamedExtension,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -7323,20 +7323,20 @@ instanceAccessToStaticMemberOfUnnamedExtension = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments instanceMemberAccessFromFactory =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INSTANCE_MEMBER_ACCESS_FROM_FACTORY',
+      name: 'instance_member_access_from_factory',
       problemMessage:
           "Instance members can't be accessed from a factory constructor.",
       correctionMessage: "Try removing the reference to the instance member.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'INSTANCE_MEMBER_ACCESS_FROM_FACTORY',
+      uniqueName: 'instance_member_access_from_factory',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments instanceMemberAccessFromStatic =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INSTANCE_MEMBER_ACCESS_FROM_STATIC',
+      name: 'instance_member_access_from_static',
       problemMessage:
           "Instance members can't be accessed from a static method.",
       correctionMessage:
@@ -7344,44 +7344,44 @@ const DiagnosticWithoutArguments instanceMemberAccessFromStatic =
           "keyword 'static' from the method.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'INSTANCE_MEMBER_ACCESS_FROM_STATIC',
+      uniqueName: 'instance_member_access_from_static',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments instantiateAbstractClass =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INSTANTIATE_ABSTRACT_CLASS',
+      name: 'instantiate_abstract_class',
       problemMessage: "Abstract classes can't be instantiated.",
       correctionMessage: "Try creating an instance of a concrete subtype.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'INSTANTIATE_ABSTRACT_CLASS',
+      uniqueName: 'instantiate_abstract_class',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments instantiateEnum =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INSTANTIATE_ENUM',
+      name: 'instantiate_enum',
       problemMessage: "Enums can't be instantiated.",
       correctionMessage: "Try using one of the defined constants.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'INSTANTIATE_ENUM',
+      uniqueName: 'instantiate_enum',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments instantiateTypeAliasExpandsToTypeParameter =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+      name: 'instantiate_type_alias_expands_to_type_parameter',
       problemMessage:
           "Type aliases that expand to a type parameter can't be instantiated.",
       correctionMessage: "Try replacing it with a class.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+      uniqueName: 'instantiate_type_alias_expands_to_type_parameter',
       expectedTypes: [],
     );
 
@@ -7392,7 +7392,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 integerLiteralImpreciseAsDouble = DiagnosticWithArguments(
-  name: 'INTEGER_LITERAL_IMPRECISE_AS_DOUBLE',
+  name: 'integer_literal_imprecise_as_double',
   problemMessage:
       "The integer literal is being used as a double, but can't be represented "
       "as a 64-bit double without overflow or loss of precision: '{0}'.",
@@ -7401,7 +7401,7 @@ integerLiteralImpreciseAsDouble = DiagnosticWithArguments(
       "'{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INTEGER_LITERAL_IMPRECISE_AS_DOUBLE',
+  uniqueName: 'integer_literal_imprecise_as_double',
   withArguments: _withArgumentsIntegerLiteralImpreciseAsDouble,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -7412,14 +7412,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 integerLiteralOutOfRange = DiagnosticWithArguments(
-  name: 'INTEGER_LITERAL_OUT_OF_RANGE',
+  name: 'integer_literal_out_of_range',
   problemMessage: "The integer literal {0} can't be represented in 64 bits.",
   correctionMessage:
       "Try using the 'BigInt' class if you need an integer larger than "
       "9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INTEGER_LITERAL_OUT_OF_RANGE',
+  uniqueName: 'integer_literal_out_of_range',
   withArguments: _withArgumentsIntegerLiteralOutOfRange,
   expectedTypes: [ExpectedType.string],
 );
@@ -7430,59 +7430,59 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 interfaceClassExtendedOutsideOfLibrary = DiagnosticWithArguments(
-  name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+  name: 'invalid_use_of_type_outside_library',
   problemMessage:
       "The class '{0}' can't be extended outside of its library because it's an "
       "interface class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
+  uniqueName: 'interface_class_extended_outside_of_library',
   withArguments: _withArgumentsInterfaceClassExtendedOutsideOfLibrary,
   expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments interfaceEnum = DiagnosticWithoutArgumentsImpl(
-  name: 'INTERFACE_ENUM',
+  name: 'interface_enum',
   problemMessage: "Enums can't be declared to be 'interface'.",
   correctionMessage: "Try removing the keyword 'interface'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'INTERFACE_ENUM',
+  uniqueName: 'interface_enum',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments interfaceMixin =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INTERFACE_MIXIN',
+      name: 'interface_mixin',
       problemMessage: "A mixin can't be declared 'interface'.",
       correctionMessage: "Try removing the 'interface' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'INTERFACE_MIXIN',
+      uniqueName: 'interface_mixin',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments interfaceMixinClass =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INTERFACE_MIXIN_CLASS',
+      name: 'interface_mixin_class',
       problemMessage: "A mixin class can't be declared 'interface'.",
       correctionMessage: "Try removing the 'interface' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'INTERFACE_MIXIN_CLASS',
+      uniqueName: 'interface_mixin_class',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidAnnotation = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_ANNOTATION',
+  name: 'invalid_annotation',
   problemMessage:
       "Annotation must be either a const variable reference or const constructor "
       "invocation.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_ANNOTATION',
+  uniqueName: 'invalid_annotation',
   expectedTypes: [],
 );
 
@@ -7490,7 +7490,7 @@ invalidAnnotation = DiagnosticWithoutArgumentsImpl(
 const DiagnosticWithoutArguments
 invalidAnnotationConstantValueFromDeferredLibrary =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
+      name: 'invalid_annotation_constant_value_from_deferred_library',
       problemMessage:
           "Constant values from a deferred library can't be used in annotations.",
       correctionMessage:
@@ -7498,14 +7498,14 @@ invalidAnnotationConstantValueFromDeferredLibrary =
           "'deferred' from the import.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
+      uniqueName: 'invalid_annotation_constant_value_from_deferred_library',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidAnnotationFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY',
+  name: 'invalid_annotation_from_deferred_library',
   problemMessage:
       "Constant values from a deferred library can't be used as annotations.",
   correctionMessage:
@@ -7513,7 +7513,7 @@ invalidAnnotationFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
       "deferred.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY',
+  uniqueName: 'invalid_annotation_from_deferred_library',
   expectedTypes: [],
 );
 
@@ -7524,11 +7524,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 invalidAnnotationTarget = DiagnosticWithArguments(
-  name: 'INVALID_ANNOTATION_TARGET',
+  name: 'invalid_annotation_target',
   problemMessage: "The annotation '{0}' can only be used on {1}.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_ANNOTATION_TARGET',
+  uniqueName: 'invalid_annotation_target',
   withArguments: _withArgumentsInvalidAnnotationTarget,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -7540,7 +7540,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 invalidAssignment = DiagnosticWithArguments(
-  name: 'INVALID_ASSIGNMENT',
+  name: 'invalid_assignment',
   problemMessage:
       "A value of type '{0}' can't be assigned to a variable of type '{1}'.",
   correctionMessage:
@@ -7548,7 +7548,7 @@ invalidAssignment = DiagnosticWithArguments(
       "to '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_ASSIGNMENT',
+  uniqueName: 'invalid_assignment',
   withArguments: _withArgumentsInvalidAssignment,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -7556,26 +7556,26 @@ invalidAssignment = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments invalidAwaitInFor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_AWAIT_IN_FOR',
+      name: 'invalid_await_in_for',
       problemMessage:
           "The keyword 'await' isn't allowed for a normal 'for' statement.",
       correctionMessage:
           "Try removing the keyword, or use a for-each statement.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'INVALID_AWAIT_IN_FOR',
+      uniqueName: 'invalid_await_in_for',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidAwaitNotRequiredAnnotation =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_AWAIT_NOT_REQUIRED_ANNOTATION',
+      name: 'invalid_await_not_required_annotation',
       problemMessage:
           "The annotation 'awaitNotRequired' can only be applied to a "
           "Future-returning function, or a Future-typed field.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'INVALID_AWAIT_NOT_REQUIRED_ANNOTATION',
+      uniqueName: 'invalid_await_not_required_annotation',
       expectedTypes: [],
     );
 
@@ -7593,12 +7593,12 @@ const DiagnosticWithArguments<
   })
 >
 invalidCastFunction = DiagnosticWithArguments(
-  name: 'INVALID_CAST_FUNCTION',
+  name: 'invalid_cast_function',
   problemMessage:
       "The function '{0}' has type '{1}' that isn't of expected type '{2}'. This "
       "means its parameter or return type doesn't match what is expected.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_CAST_FUNCTION',
+  uniqueName: 'invalid_cast_function',
   withArguments: _withArgumentsInvalidCastFunction,
   expectedTypes: [
     ExpectedType.object,
@@ -7616,13 +7616,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0, required Object p1})
 >
 invalidCastFunctionExpr = DiagnosticWithArguments(
-  name: 'INVALID_CAST_FUNCTION_EXPR',
+  name: 'invalid_cast_function_expr',
   problemMessage:
       "The function expression type '{0}' isn't of type '{1}'. This means its "
       "parameter or return type doesn't match what is expected. Consider "
       "changing parameter type(s) or the returned type(s).",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_CAST_FUNCTION_EXPR',
+  uniqueName: 'invalid_cast_function_expr',
   withArguments: _withArgumentsInvalidCastFunctionExpr,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -7641,11 +7641,11 @@ const DiagnosticWithArguments<
   })
 >
 invalidCastLiteral = DiagnosticWithArguments(
-  name: 'INVALID_CAST_LITERAL',
+  name: 'invalid_cast_literal',
   problemMessage:
       "The literal '{0}' with type '{1}' isn't of expected type '{2}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_CAST_LITERAL',
+  uniqueName: 'invalid_cast_literal',
   withArguments: _withArgumentsInvalidCastLiteral,
   expectedTypes: [
     ExpectedType.object,
@@ -7663,13 +7663,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0, required Object p1})
 >
 invalidCastLiteralList = DiagnosticWithArguments(
-  name: 'INVALID_CAST_LITERAL_LIST',
+  name: 'invalid_cast_literal_list',
   problemMessage:
       "The list literal type '{0}' isn't of expected type '{1}'. The list's type "
       "can be changed with an explicit generic type argument or by changing "
       "the element types.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_CAST_LITERAL_LIST',
+  uniqueName: 'invalid_cast_literal_list',
   withArguments: _withArgumentsInvalidCastLiteralList,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -7683,13 +7683,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0, required Object p1})
 >
 invalidCastLiteralMap = DiagnosticWithArguments(
-  name: 'INVALID_CAST_LITERAL_MAP',
+  name: 'invalid_cast_literal_map',
   problemMessage:
       "The map literal type '{0}' isn't of expected type '{1}'. The map's type "
       "can be changed with an explicit generic type arguments or by changing "
       "the key and value types.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_CAST_LITERAL_MAP',
+  uniqueName: 'invalid_cast_literal_map',
   withArguments: _withArgumentsInvalidCastLiteralMap,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -7703,13 +7703,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0, required Object p1})
 >
 invalidCastLiteralSet = DiagnosticWithArguments(
-  name: 'INVALID_CAST_LITERAL_SET',
+  name: 'invalid_cast_literal_set',
   problemMessage:
       "The set literal type '{0}' isn't of expected type '{1}'. The set's type "
       "can be changed with an explicit generic type argument or by changing "
       "the element types.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_CAST_LITERAL_SET',
+  uniqueName: 'invalid_cast_literal_set',
   withArguments: _withArgumentsInvalidCastLiteralSet,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -7728,13 +7728,13 @@ const DiagnosticWithArguments<
   })
 >
 invalidCastMethod = DiagnosticWithArguments(
-  name: 'INVALID_CAST_METHOD',
+  name: 'invalid_cast_method',
   problemMessage:
       "The method tear-off '{0}' has type '{1}' that isn't of expected type "
       "'{2}'. This means its parameter or return type doesn't match what is "
       "expected.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_CAST_METHOD',
+  uniqueName: 'invalid_cast_method',
   withArguments: _withArgumentsInvalidCastMethod,
   expectedTypes: [
     ExpectedType.object,
@@ -7752,11 +7752,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0, required Object p1})
 >
 invalidCastNewExpr = DiagnosticWithArguments(
-  name: 'INVALID_CAST_NEW_EXPR',
+  name: 'invalid_cast_new_expr',
   problemMessage:
       "The constructor returns type '{0}' that isn't of expected type '{1}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_CAST_NEW_EXPR',
+  uniqueName: 'invalid_cast_new_expr',
   withArguments: _withArgumentsInvalidCastNewExpr,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -7767,10 +7767,10 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 invalidCodePoint = DiagnosticWithArguments(
-  name: 'INVALID_CODE_POINT',
+  name: 'invalid_code_point',
   problemMessage: "The escape sequence '{0}' isn't a valid code point.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'INVALID_CODE_POINT',
+  uniqueName: 'invalid_code_point',
   withArguments: _withArgumentsInvalidCodePoint,
   expectedTypes: [ExpectedType.string],
 );
@@ -7778,12 +7778,12 @@ invalidCodePoint = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidCommentReference = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_COMMENT_REFERENCE',
+  name: 'invalid_comment_reference',
   problemMessage:
       "Comment references should contain a possibly prefixed identifier and can "
       "start with 'new', but shouldn't contain anything else.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'INVALID_COMMENT_REFERENCE',
+  uniqueName: 'invalid_comment_reference',
   expectedTypes: [],
 );
 
@@ -7796,22 +7796,22 @@ invalidCommentReference = DiagnosticWithoutArgumentsImpl(
 /// No parameters.
 const DiagnosticWithoutArguments invalidConstant =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_CONSTANT',
+      name: 'invalid_constant',
       problemMessage: "Invalid constant value.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'INVALID_CONSTANT',
+      uniqueName: 'invalid_constant',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidConstantConstPrefix = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_CONSTANT_CONST_PREFIX',
+  name: 'invalid_constant_const_prefix',
   problemMessage:
       "The expression can't be prefixed by 'const' to form a constant pattern.",
   correctionMessage: "Try wrapping the expression in 'const ( ... )' instead.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'INVALID_CONSTANT_CONST_PREFIX',
+  uniqueName: 'invalid_constant_const_prefix',
   expectedTypes: [],
 );
 
@@ -7819,57 +7819,57 @@ invalidConstantConstPrefix = DiagnosticWithoutArgumentsImpl(
 /// Name name: undocumented
 const DiagnosticCode invalidConstantPatternBinary =
     DiagnosticCodeWithExpectedTypes(
-      name: 'INVALID_CONSTANT_PATTERN_BINARY',
+      name: 'invalid_constant_pattern_binary',
       problemMessage:
           "The binary operator {0} is not supported as a constant pattern.",
       correctionMessage: "Try wrapping the expression in 'const ( ... )'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'INVALID_CONSTANT_PATTERN_BINARY',
+      uniqueName: 'invalid_constant_pattern_binary',
       expectedTypes: [ExpectedType.name],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidConstantPatternDuplicateConst =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_CONSTANT_PATTERN_DUPLICATE_CONST',
+      name: 'invalid_constant_pattern_duplicate_const',
       problemMessage: "Duplicate 'const' keyword in constant expression.",
       correctionMessage: "Try removing one of the 'const' keywords.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'INVALID_CONSTANT_PATTERN_DUPLICATE_CONST',
+      uniqueName: 'invalid_constant_pattern_duplicate_const',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidConstantPatternEmptyRecordLiteral =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL',
+      name: 'invalid_constant_pattern_empty_record_literal',
       problemMessage:
           "The empty record literal is not supported as a constant pattern.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL',
+      uniqueName: 'invalid_constant_pattern_empty_record_literal',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidConstantPatternGeneric =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_CONSTANT_PATTERN_GENERIC',
+      name: 'invalid_constant_pattern_generic',
       problemMessage: "This expression is not supported as a constant pattern.",
       correctionMessage: "Try wrapping the expression in 'const ( ... )'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'INVALID_CONSTANT_PATTERN_GENERIC',
+      uniqueName: 'invalid_constant_pattern_generic',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidConstantPatternNegation = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_CONSTANT_PATTERN_NEGATION',
+  name: 'invalid_constant_pattern_negation',
   problemMessage:
       "Only negation of a numeric literal is supported as a constant pattern.",
   correctionMessage: "Try wrapping the expression in 'const ( ... )'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'INVALID_CONSTANT_PATTERN_NEGATION',
+  uniqueName: 'invalid_constant_pattern_negation',
   expectedTypes: [],
 );
 
@@ -7877,23 +7877,23 @@ invalidConstantPatternNegation = DiagnosticWithoutArgumentsImpl(
 /// Name name: undocumented
 const DiagnosticCode invalidConstantPatternUnary =
     DiagnosticCodeWithExpectedTypes(
-      name: 'INVALID_CONSTANT_PATTERN_UNARY',
+      name: 'invalid_constant_pattern_unary',
       problemMessage:
           "The unary operator {0} is not supported as a constant pattern.",
       correctionMessage: "Try wrapping the expression in 'const ( ... )'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'INVALID_CONSTANT_PATTERN_UNARY',
+      uniqueName: 'invalid_constant_pattern_unary',
       expectedTypes: [ExpectedType.name],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidConstructorName = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_CONSTRUCTOR_NAME',
+  name: 'invalid_constructor_name',
   problemMessage:
       "The name of a constructor must match the name of the enclosing class.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'INVALID_CONSTRUCTOR_NAME',
+  uniqueName: 'invalid_constructor_name',
   expectedTypes: [],
 );
 
@@ -7903,14 +7903,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 invalidDependency = DiagnosticWithArguments(
-  name: 'INVALID_DEPENDENCY',
+  name: 'invalid_dependency',
   problemMessage: "Publishable packages can't have '{0}' dependencies.",
   correctionMessage:
       "Try adding a 'publish_to: none' entry to mark the package as not for "
       "publishing or remove the {0} dependency.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_DEPENDENCY',
+  uniqueName: 'invalid_dependency',
   withArguments: _withArgumentsInvalidDependency,
   expectedTypes: [ExpectedType.string],
 );
@@ -7918,41 +7918,41 @@ invalidDependency = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidDeprecatedExtendAnnotation = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_DEPRECATED_EXTEND_ANNOTATION',
+  name: 'invalid_deprecated_extend_annotation',
   problemMessage:
       "The annotation '@Deprecated.extend' can only be applied to extendable "
       "classes.",
   correctionMessage: "Try removing the '@Deprecated.extend' annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_DEPRECATED_EXTEND_ANNOTATION',
+  uniqueName: 'invalid_deprecated_extend_annotation',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidDeprecatedImplementAnnotation =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_DEPRECATED_IMPLEMENT_ANNOTATION',
+      name: 'invalid_deprecated_implement_annotation',
       problemMessage:
           "The annotation '@Deprecated.implement' can only be applied to "
           "implementable classes.",
       correctionMessage: "Try removing the '@Deprecated.implement' annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'INVALID_DEPRECATED_IMPLEMENT_ANNOTATION',
+      uniqueName: 'invalid_deprecated_implement_annotation',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidDeprecatedInstantiateAnnotation = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_DEPRECATED_INSTANTIATE_ANNOTATION',
+  name: 'invalid_deprecated_instantiate_annotation',
   problemMessage:
       "The annotation '@Deprecated.instantiate' can only be applied to classes.",
   correctionMessage: "Try removing the '@Deprecated.instantiate' annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_DEPRECATED_INSTANTIATE_ANNOTATION',
+  uniqueName: 'invalid_deprecated_instantiate_annotation',
   expectedTypes: [],
 );
 
@@ -7962,13 +7962,13 @@ invalidDeprecatedInstantiateAnnotation = DiagnosticWithoutArgumentsImpl(
 /// No parameters.
 const DiagnosticWithoutArguments invalidDeprecatedMixinAnnotation =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_DEPRECATED_MIXIN_ANNOTATION',
+      name: 'invalid_deprecated_mixin_annotation',
       problemMessage:
           "The annotation '@Deprecated.mixin' can only be applied to classes.",
       correctionMessage: "Try removing the '@Deprecated.mixin' annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'INVALID_DEPRECATED_MIXIN_ANNOTATION',
+      uniqueName: 'invalid_deprecated_mixin_annotation',
       expectedTypes: [],
     );
 
@@ -7978,28 +7978,28 @@ const DiagnosticWithoutArguments invalidDeprecatedMixinAnnotation =
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidDeprecatedOptionalAnnotation = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_DEPRECATED_OPTIONAL_ANNOTATION',
+  name: 'invalid_deprecated_optional_annotation',
   problemMessage:
       "The annotation '@Deprecated.optional' can only be applied to optional "
       "parameters.",
   correctionMessage: "Try removing the '@Deprecated.optional' annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_DEPRECATED_OPTIONAL_ANNOTATION',
+  uniqueName: 'invalid_deprecated_optional_annotation',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidDeprecatedSubclassAnnotation = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_DEPRECATED_SUBCLASS_ANNOTATION',
+  name: 'invalid_deprecated_subclass_annotation',
   problemMessage:
       "The annotation '@Deprecated.subclass' can only be applied to subclassable "
       "classes and mixins.",
   correctionMessage: "Try removing the '@Deprecated.subclass' annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_DEPRECATED_SUBCLASS_ANNOTATION',
+  uniqueName: 'invalid_deprecated_subclass_annotation',
   expectedTypes: [],
 );
 
@@ -8009,7 +8009,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 invalidExceptionValue = DiagnosticWithArguments(
-  name: 'INVALID_EXCEPTION_VALUE',
+  name: 'invalid_exception_value',
   problemMessage:
       "The method {0} can't have an exceptional return value (the second "
       "argument) when the return type of the function is either 'void', "
@@ -8017,7 +8017,7 @@ invalidExceptionValue = DiagnosticWithArguments(
   correctionMessage: "Try removing the exceptional return value.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_EXCEPTION_VALUE',
+  uniqueName: 'invalid_exception_value',
   withArguments: _withArgumentsInvalidExceptionValue,
   expectedTypes: [ExpectedType.string],
 );
@@ -8028,13 +8028,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 invalidExportOfInternalElement = DiagnosticWithArguments(
-  name: 'INVALID_EXPORT_OF_INTERNAL_ELEMENT',
+  name: 'invalid_export_of_internal_element',
   problemMessage:
       "The member '{0}' can't be exported as a part of a package's public API.",
   correctionMessage: "Try using a hide clause to hide '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_EXPORT_OF_INTERNAL_ELEMENT',
+  uniqueName: 'invalid_export_of_internal_element',
   withArguments: _withArgumentsInvalidExportOfInternalElement,
   expectedTypes: [ExpectedType.string],
 );
@@ -8047,14 +8047,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 invalidExportOfInternalElementIndirectly = DiagnosticWithArguments(
-  name: 'INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY',
+  name: 'invalid_export_of_internal_element_indirectly',
   problemMessage:
       "The member '{0}' can't be exported as a part of a package's public API, "
       "but is indirectly exported as part of the signature of '{1}'.",
   correctionMessage: "Try using a hide clause to hide '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY',
+  uniqueName: 'invalid_export_of_internal_element_indirectly',
   withArguments: _withArgumentsInvalidExportOfInternalElementIndirectly,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -8062,14 +8062,14 @@ invalidExportOfInternalElementIndirectly = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidExtensionArgumentCount = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_EXTENSION_ARGUMENT_COUNT',
+  name: 'invalid_extension_argument_count',
   problemMessage:
       "Extension overrides must have exactly one argument: the value of 'this' "
       "in the extension method.",
   correctionMessage: "Try specifying exactly one argument.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_EXTENSION_ARGUMENT_COUNT',
+  uniqueName: 'invalid_extension_argument_count',
   expectedTypes: [],
 );
 
@@ -8079,11 +8079,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 invalidFactoryMethodDecl = DiagnosticWithArguments(
-  name: 'INVALID_FACTORY_METHOD_DECL',
+  name: 'invalid_factory_method_decl',
   problemMessage: "Factory method '{0}' must have a return type.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_FACTORY_METHOD_DECL',
+  uniqueName: 'invalid_factory_method_decl',
   withArguments: _withArgumentsInvalidFactoryMethodDecl,
   expectedTypes: [ExpectedType.string],
 );
@@ -8094,12 +8094,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 invalidFactoryMethodImpl = DiagnosticWithArguments(
-  name: 'INVALID_FACTORY_METHOD_IMPL',
+  name: 'invalid_factory_method_impl',
   problemMessage:
       "Factory method '{0}' doesn't return a newly allocated object.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_FACTORY_METHOD_IMPL',
+  uniqueName: 'invalid_factory_method_impl',
   withArguments: _withArgumentsInvalidFactoryMethodImpl,
   expectedTypes: [ExpectedType.string],
 );
@@ -8107,52 +8107,52 @@ invalidFactoryMethodImpl = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidFactoryNameNotAClass = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_FACTORY_NAME_NOT_A_CLASS',
+  name: 'invalid_factory_name_not_a_class',
   problemMessage:
       "The name of a factory constructor must be the same as the name of the "
       "immediately enclosing class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_FACTORY_NAME_NOT_A_CLASS',
+  uniqueName: 'invalid_factory_name_not_a_class',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidFieldNameFromObject =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_FIELD_NAME',
+      name: 'invalid_field_name',
       problemMessage:
           "Record field names can't be the same as a member from 'Object'.",
       correctionMessage: "Try using a different name for the field.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'INVALID_FIELD_NAME_FROM_OBJECT',
+      uniqueName: 'invalid_field_name_from_object',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidFieldNamePositional = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_FIELD_NAME',
+  name: 'invalid_field_name',
   problemMessage:
       "Record field names can't be a dollar sign followed by an integer when the "
       "integer is the index of a positional field.",
   correctionMessage: "Try using a different name for the field.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_FIELD_NAME_POSITIONAL',
+  uniqueName: 'invalid_field_name_positional',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidFieldNamePrivate =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_FIELD_NAME',
+      name: 'invalid_field_name',
       problemMessage: "Record field names can't be private.",
       correctionMessage: "Try removing the leading underscore.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'INVALID_FIELD_NAME_PRIVATE',
+      uniqueName: 'invalid_field_name_private',
       expectedTypes: [],
     );
 
@@ -8162,7 +8162,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 invalidFieldTypeInStruct = DiagnosticWithArguments(
-  name: 'INVALID_FIELD_TYPE_IN_STRUCT',
+  name: 'invalid_field_type_in_struct',
   problemMessage:
       "Fields in struct classes can't have the type '{0}'. They can only be "
       "declared as 'int', 'double', 'Array', 'Pointer', or subtype of "
@@ -8172,7 +8172,7 @@ invalidFieldTypeInStruct = DiagnosticWithArguments(
       "or 'Union'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_FIELD_TYPE_IN_STRUCT',
+  uniqueName: 'invalid_field_type_in_struct',
   withArguments: _withArgumentsInvalidFieldTypeInStruct,
   expectedTypes: [ExpectedType.string],
 );
@@ -8180,25 +8180,25 @@ invalidFieldTypeInStruct = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidGenericFunctionType = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_GENERIC_FUNCTION_TYPE',
+  name: 'invalid_generic_function_type',
   problemMessage: "Invalid generic function type.",
   correctionMessage:
       "Try using a generic function type (returnType 'Function(' parameters "
       "')').",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'INVALID_GENERIC_FUNCTION_TYPE',
+  uniqueName: 'invalid_generic_function_type',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidHexEscape = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_HEX_ESCAPE',
+  name: 'invalid_hex_escape',
   problemMessage:
       "An escape sequence starting with '\\x' must be followed by 2 hexadecimal "
       "digits.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'INVALID_HEX_ESCAPE',
+  uniqueName: 'invalid_hex_escape',
   expectedTypes: [],
 );
 
@@ -8221,13 +8221,13 @@ const DiagnosticWithArguments<
   })
 >
 invalidImplementationOverride = DiagnosticWithArguments(
-  name: 'INVALID_IMPLEMENTATION_OVERRIDE',
+  name: 'invalid_implementation_override',
   problemMessage:
       "'{1}.{0}' ('{2}') isn't a valid concrete implementation of '{3}.{0}' "
       "('{4}').",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_IMPLEMENTATION_OVERRIDE',
+  uniqueName: 'invalid_implementation_override',
   withArguments: _withArgumentsInvalidImplementationOverride,
   expectedTypes: [
     ExpectedType.object,
@@ -8257,13 +8257,13 @@ const DiagnosticWithArguments<
   })
 >
 invalidImplementationOverrideSetter = DiagnosticWithArguments(
-  name: 'INVALID_IMPLEMENTATION_OVERRIDE',
+  name: 'invalid_implementation_override',
   problemMessage:
       "The setter '{1}.{0}' ('{2}') isn't a valid concrete implementation of "
       "'{3}.{0}' ('{4}').",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_IMPLEMENTATION_OVERRIDE_SETTER',
+  uniqueName: 'invalid_implementation_override_setter',
   withArguments: _withArgumentsInvalidImplementationOverrideSetter,
   expectedTypes: [
     ExpectedType.object,
@@ -8277,19 +8277,19 @@ invalidImplementationOverrideSetter = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments invalidInitializer =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_INITIALIZER',
+      name: 'invalid_initializer',
       problemMessage: "Not a valid initializer.",
       correctionMessage:
           "To initialize a field, use the syntax 'name = value'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'INVALID_INITIALIZER',
+      uniqueName: 'invalid_initializer',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidInlineFunctionType = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_INLINE_FUNCTION_TYPE',
+  name: 'invalid_inline_function_type',
   problemMessage:
       "Inline function types can't be used for parameters in a generic function "
       "type.",
@@ -8298,7 +8298,7 @@ invalidInlineFunctionType = DiagnosticWithoutArgumentsImpl(
       "')').",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_INLINE_FUNCTION_TYPE',
+  uniqueName: 'invalid_inline_function_type',
   expectedTypes: [],
 );
 
@@ -8307,7 +8307,7 @@ invalidInlineFunctionType = DiagnosticWithoutArgumentsImpl(
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidInsideUnaryPattern = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_INSIDE_UNARY_PATTERN',
+  name: 'invalid_inside_unary_pattern',
   problemMessage:
       "This pattern cannot appear inside a unary pattern (cast pattern, null "
       "check pattern, or null assert pattern) without parentheses.",
@@ -8315,27 +8315,27 @@ invalidInsideUnaryPattern = DiagnosticWithoutArgumentsImpl(
       "Try combining into a single pattern if possible, or enclose the inner "
       "pattern in parentheses.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'INVALID_INSIDE_UNARY_PATTERN',
+  uniqueName: 'invalid_inside_unary_pattern',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidInternalAnnotation = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_INTERNAL_ANNOTATION',
+  name: 'invalid_internal_annotation',
   problemMessage:
       "Only public elements in a package's private API can be annotated as being "
       "internal.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_INTERNAL_ANNOTATION',
+  uniqueName: 'invalid_internal_annotation',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidLanguageVersionOverrideAtSign =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
+      name: 'invalid_language_version_override',
       problemMessage:
           "The Dart language version override number must begin with '@dart'.",
       correctionMessage:
@@ -8343,14 +8343,14 @@ const DiagnosticWithoutArguments invalidLanguageVersionOverrideAtSign =
           "@dart = 2.0'.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN',
+      uniqueName: 'invalid_language_version_override_at_sign',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidLanguageVersionOverrideEquals = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
+  name: 'invalid_language_version_override',
   problemMessage:
       "The Dart language version override comment must be specified with an '=' "
       "character.",
@@ -8359,7 +8359,7 @@ invalidLanguageVersionOverrideEquals = DiagnosticWithoutArgumentsImpl(
       "@dart = 2.0'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS',
+  uniqueName: 'invalid_language_version_override_equals',
   expectedTypes: [],
 );
 
@@ -8370,14 +8370,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0, required Object p1})
 >
 invalidLanguageVersionOverrideGreater = DiagnosticWithArguments(
-  name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
+  name: 'invalid_language_version_override',
   problemMessage:
       "The language version override can't specify a version greater than the "
       "latest known language version: {0}.{1}.",
   correctionMessage: "Try removing the language version override.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER',
+  uniqueName: 'invalid_language_version_override_greater',
   withArguments: _withArgumentsInvalidLanguageVersionOverrideGreater,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -8385,7 +8385,7 @@ invalidLanguageVersionOverrideGreater = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidLanguageVersionOverrideLocation = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
+  name: 'invalid_language_version_override',
   problemMessage:
       "The language version override must be specified before any declaration or "
       "directive.",
@@ -8393,14 +8393,14 @@ invalidLanguageVersionOverrideLocation = DiagnosticWithoutArgumentsImpl(
       "Try moving the language version override to the top of the file.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION',
+  uniqueName: 'invalid_language_version_override_location',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidLanguageVersionOverrideLowerCase = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
+  name: 'invalid_language_version_override',
   problemMessage:
       "The Dart language version override comment must be specified with the "
       "word 'dart' in all lower case.",
@@ -8409,14 +8409,14 @@ invalidLanguageVersionOverrideLowerCase = DiagnosticWithoutArgumentsImpl(
       "@dart = 2.0'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE',
+  uniqueName: 'invalid_language_version_override_lower_case',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidLanguageVersionOverrideNumber =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
+      name: 'invalid_language_version_override',
       problemMessage:
           "The Dart language version override comment must be specified with a "
           "version number, like '2.0', after the '=' character.",
@@ -8425,14 +8425,14 @@ const DiagnosticWithoutArguments invalidLanguageVersionOverrideNumber =
           "@dart = 2.0'.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER',
+      uniqueName: 'invalid_language_version_override_number',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidLanguageVersionOverridePrefix =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
+      name: 'invalid_language_version_override',
       problemMessage:
           "The Dart language version override number can't be prefixed with a "
           "letter.",
@@ -8441,7 +8441,7 @@ const DiagnosticWithoutArguments invalidLanguageVersionOverridePrefix =
           "@dart = 2.0'.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX',
+      uniqueName: 'invalid_language_version_override_prefix',
       expectedTypes: [],
     );
 
@@ -8449,7 +8449,7 @@ const DiagnosticWithoutArguments invalidLanguageVersionOverridePrefix =
 const DiagnosticWithoutArguments
 invalidLanguageVersionOverrideTrailingCharacters =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
+      name: 'invalid_language_version_override',
       problemMessage:
           "The Dart language version override comment can't be followed by any "
           "non-whitespace characters.",
@@ -8458,14 +8458,14 @@ invalidLanguageVersionOverrideTrailingCharacters =
           "@dart = 2.0'.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS',
+      uniqueName: 'invalid_language_version_override_trailing_characters',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidLanguageVersionOverrideTwoSlashes = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
+  name: 'invalid_language_version_override',
   problemMessage:
       "The Dart language version override comment must be specified with exactly "
       "two slashes.",
@@ -8474,31 +8474,31 @@ invalidLanguageVersionOverrideTwoSlashes = DiagnosticWithoutArgumentsImpl(
       "@dart = 2.0'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES',
+  uniqueName: 'invalid_language_version_override_two_slashes',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidLiteralAnnotation =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_LITERAL_ANNOTATION',
+      name: 'invalid_literal_annotation',
       problemMessage:
           "Only const constructors can have the `@literal` annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'INVALID_LITERAL_ANNOTATION',
+      uniqueName: 'invalid_literal_annotation',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidLiteralInConfiguration =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_LITERAL_IN_CONFIGURATION',
+      name: 'invalid_literal_in_configuration',
       problemMessage:
           "The literal in a configuration can't contain interpolation.",
       correctionMessage: "Try removing the interpolation expressions.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'INVALID_LITERAL_IN_CONFIGURATION',
+      uniqueName: 'invalid_literal_in_configuration',
       expectedTypes: [],
     );
 
@@ -8508,13 +8508,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 invalidModifierOnConstructor = DiagnosticWithArguments(
-  name: 'INVALID_MODIFIER_ON_CONSTRUCTOR',
+  name: 'invalid_modifier_on_constructor',
   problemMessage:
       "The modifier '{0}' can't be applied to the body of a constructor.",
   correctionMessage: "Try removing the modifier.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_MODIFIER_ON_CONSTRUCTOR',
+  uniqueName: 'invalid_modifier_on_constructor',
   withArguments: _withArgumentsInvalidModifierOnConstructor,
   expectedTypes: [ExpectedType.string],
 );
@@ -8522,12 +8522,12 @@ invalidModifierOnConstructor = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments invalidModifierOnSetter =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_MODIFIER_ON_SETTER',
+      name: 'invalid_modifier_on_setter',
       problemMessage: "Setters can't use 'async', 'async*', or 'sync*'.",
       correctionMessage: "Try removing the modifier.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'INVALID_MODIFIER_ON_SETTER',
+      uniqueName: 'invalid_modifier_on_setter',
       expectedTypes: [],
     );
 
@@ -8537,55 +8537,55 @@ const DiagnosticWithoutArguments invalidModifierOnSetter =
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidNonVirtualAnnotation = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_NON_VIRTUAL_ANNOTATION',
+  name: 'invalid_non_virtual_annotation',
   problemMessage:
       "The annotation '@nonVirtual' can only be applied to a concrete instance "
       "member.",
   correctionMessage: "Try removing '@nonVirtual'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_NON_VIRTUAL_ANNOTATION',
+  uniqueName: 'invalid_non_virtual_annotation',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidNullAwareElement = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_NULL_AWARE_OPERATOR',
+  name: 'invalid_null_aware_operator',
   problemMessage:
       "The element can't be null, so the null-aware operator '?' is unnecessary.",
   correctionMessage: "Try removing the operator '?'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_NULL_AWARE_ELEMENT',
+  uniqueName: 'invalid_null_aware_element',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidNullAwareMapEntryKey =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_NULL_AWARE_OPERATOR',
+      name: 'invalid_null_aware_operator',
       problemMessage:
           "The map entry key can't be null, so the null-aware operator '?' is "
           "unnecessary.",
       correctionMessage: "Try removing the operator '?'.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'INVALID_NULL_AWARE_MAP_ENTRY_KEY',
+      uniqueName: 'invalid_null_aware_map_entry_key',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidNullAwareMapEntryValue = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_NULL_AWARE_OPERATOR',
+  name: 'invalid_null_aware_operator',
   problemMessage:
       "The map entry value can't be null, so the null-aware operator '?' is "
       "unnecessary.",
   correctionMessage: "Try removing the operator '?'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_NULL_AWARE_MAP_ENTRY_VALUE',
+  uniqueName: 'invalid_null_aware_map_entry_value',
   expectedTypes: [],
 );
 
@@ -8597,14 +8597,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 invalidNullAwareOperator = DiagnosticWithArguments(
-  name: 'INVALID_NULL_AWARE_OPERATOR',
+  name: 'invalid_null_aware_operator',
   problemMessage:
       "The receiver can't be null, so the null-aware operator '{0}' is "
       "unnecessary.",
   correctionMessage: "Try replacing the operator '{0}' with '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_NULL_AWARE_OPERATOR',
+  uniqueName: 'invalid_null_aware_operator',
   withArguments: _withArgumentsInvalidNullAwareOperator,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -8617,14 +8617,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0, required Object p1})
 >
 invalidNullAwareOperatorAfterShortCircuit = DiagnosticWithArguments(
-  name: 'INVALID_NULL_AWARE_OPERATOR',
+  name: 'invalid_null_aware_operator',
   problemMessage:
       "The receiver can't be 'null' because of short-circuiting, so the "
       "null-aware operator '{0}' can't be used.",
   correctionMessage: "Try replacing the operator '{0}' with '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT',
+  uniqueName: 'invalid_null_aware_operator_after_short_circuit',
   withArguments: _withArgumentsInvalidNullAwareOperatorAfterShortCircuit,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -8635,10 +8635,10 @@ invalidNullAwareOperatorAfterShortCircuit = DiagnosticWithArguments(
 /// Parameters:
 /// Token lexeme: undocumented
 const DiagnosticCode invalidOperator = DiagnosticCodeWithExpectedTypes(
-  name: 'INVALID_OPERATOR',
+  name: 'invalid_operator',
   problemMessage: "The string '{0}' isn't a user-definable operator.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'INVALID_OPERATOR',
+  uniqueName: 'invalid_operator',
   expectedTypes: [ExpectedType.token],
 );
 
@@ -8651,10 +8651,10 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 invalidOperatorForSuper = DiagnosticWithArguments(
-  name: 'INVALID_OPERATOR_FOR_SUPER',
+  name: 'invalid_operator_for_super',
   problemMessage: "The operator '{0}' can't be used with 'super'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'INVALID_OPERATOR_FOR_SUPER',
+  uniqueName: 'invalid_operator_for_super',
   withArguments: _withArgumentsInvalidOperatorForSuper,
   expectedTypes: [ExpectedType.object],
 );
@@ -8662,13 +8662,13 @@ invalidOperatorForSuper = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidOperatorQuestionmarkPeriodForSuper = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER',
+  name: 'invalid_operator_questionmark_period_for_super',
   problemMessage:
       "The operator '?.' cannot be used with 'super' because 'super' cannot be "
       "null.",
   correctionMessage: "Try replacing '?.' with '.'",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER',
+  uniqueName: 'invalid_operator_questionmark_period_for_super',
   expectedTypes: [],
 );
 
@@ -8685,10 +8685,10 @@ const DiagnosticWithArguments<
   })
 >
 invalidOption = DiagnosticWithArguments(
-  name: 'INVALID_OPTION',
+  name: 'invalid_option',
   problemMessage: "Invalid option specified for '{0}': {1}",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_OPTION',
+  uniqueName: 'invalid_option',
   withArguments: _withArgumentsInvalidOption,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -8709,12 +8709,12 @@ const DiagnosticWithArguments<
   })
 >
 invalidOverride = DiagnosticWithArguments(
-  name: 'INVALID_OVERRIDE',
+  name: 'invalid_override',
   problemMessage:
       "'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_OVERRIDE',
+  uniqueName: 'invalid_override',
   withArguments: _withArgumentsInvalidOverride,
   expectedTypes: [
     ExpectedType.string,
@@ -8735,13 +8735,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 invalidOverrideOfNonVirtualMember = DiagnosticWithArguments(
-  name: 'INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER',
+  name: 'invalid_override_of_non_virtual_member',
   problemMessage:
       "The member '{0}' is declared non-virtual in '{1}' and can't be overridden "
       "in subclasses.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER',
+  uniqueName: 'invalid_override_of_non_virtual_member',
   withArguments: _withArgumentsInvalidOverrideOfNonVirtualMember,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -8762,12 +8762,12 @@ const DiagnosticWithArguments<
   })
 >
 invalidOverrideSetter = DiagnosticWithArguments(
-  name: 'INVALID_OVERRIDE',
+  name: 'invalid_override',
   problemMessage:
       "The setter '{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_OVERRIDE_SETTER',
+  uniqueName: 'invalid_override_setter',
   withArguments: _withArgumentsInvalidOverrideSetter,
   expectedTypes: [
     ExpectedType.object,
@@ -8781,27 +8781,27 @@ invalidOverrideSetter = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments invalidPlatformsField =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_PLATFORMS_FIELD',
+      name: 'invalid_platforms_field',
       problemMessage:
           "The 'platforms' field must be a map with platforms as keys.",
       correctionMessage:
           "Try changing the 'platforms' field to a map with platforms as keys.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'INVALID_PLATFORMS_FIELD',
+      uniqueName: 'invalid_platforms_field',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidReferenceToGenerativeEnumConstructor = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
+  name: 'invalid_reference_to_generative_enum_constructor',
   problemMessage:
       "Generative enum constructors can only be used to create an enum constant.",
   correctionMessage: "Try using an enum value, or a factory constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
+  uniqueName: 'invalid_reference_to_generative_enum_constructor',
   expectedTypes: [],
 );
 
@@ -8809,23 +8809,23 @@ invalidReferenceToGenerativeEnumConstructor = DiagnosticWithoutArgumentsImpl(
 const DiagnosticWithoutArguments
 invalidReferenceToGenerativeEnumConstructorTearoff =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
+      name: 'invalid_reference_to_generative_enum_constructor',
       problemMessage: "Generative enum constructors can't be torn off.",
       correctionMessage: "Try using an enum value, or a factory constructor.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR_TEAROFF',
+      uniqueName: 'invalid_reference_to_generative_enum_constructor_tearoff',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidReferenceToThis =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_REFERENCE_TO_THIS',
+      name: 'invalid_reference_to_this',
       problemMessage: "Invalid reference to 'this' expression.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'INVALID_REFERENCE_TO_THIS',
+      uniqueName: 'invalid_reference_to_this',
       expectedTypes: [],
     );
 
@@ -8835,14 +8835,14 @@ const DiagnosticWithoutArguments invalidReferenceToThis =
 /// No parameters.
 const DiagnosticWithoutArguments invalidReopenAnnotation =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_REOPEN_ANNOTATION',
+      name: 'invalid_reopen_annotation',
       problemMessage:
           "The annotation '@reopen' can only be applied to a class that opens "
           "capabilities that the supertype intentionally disallows.",
       correctionMessage: "Try removing the '@reopen' annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'INVALID_REOPEN_ANNOTATION',
+      uniqueName: 'invalid_reopen_annotation',
       expectedTypes: [],
     );
 
@@ -8854,10 +8854,10 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String sectionName})
 >
 invalidSectionFormat = DiagnosticWithArguments(
-  name: 'INVALID_SECTION_FORMAT',
+  name: 'invalid_section_format',
   problemMessage: "Invalid format for the '{0}' section.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_SECTION_FORMAT',
+  uniqueName: 'invalid_section_format',
   withArguments: _withArgumentsInvalidSectionFormat,
   expectedTypes: [ExpectedType.string],
 );
@@ -8865,19 +8865,19 @@ invalidSectionFormat = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidStarAfterAsync = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_STAR_AFTER_ASYNC',
+  name: 'invalid_star_after_async',
   problemMessage:
       "The modifier 'async*' isn't allowed for an expression function body.",
   correctionMessage: "Try converting the body to a block.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'INVALID_STAR_AFTER_ASYNC',
+  uniqueName: 'invalid_star_after_async',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidSuperFormalParameterLocation = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_SUPER_FORMAL_PARAMETER_LOCATION',
+  name: 'invalid_super_formal_parameter_location',
   problemMessage:
       "Super parameters can only be used in non-redirecting generative "
       "constructors.",
@@ -8886,43 +8886,43 @@ invalidSuperFormalParameterLocation = DiagnosticWithoutArgumentsImpl(
       "non-redirecting and generative.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_SUPER_FORMAL_PARAMETER_LOCATION',
+  uniqueName: 'invalid_super_formal_parameter_location',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidSuperInInitializer =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_SUPER_IN_INITIALIZER',
+      name: 'invalid_super_in_initializer',
       problemMessage:
           "Can only use 'super' in an initializer for calling the superclass "
           "constructor (e.g. 'super()' or 'super.namedConstructor()')",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'INVALID_SUPER_IN_INITIALIZER',
+      uniqueName: 'invalid_super_in_initializer',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidSync = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_SYNC',
+  name: 'invalid_sync',
   problemMessage:
       "The modifier 'sync' isn't allowed for an expression function body.",
   correctionMessage: "Try converting the body to a block.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'INVALID_SYNC',
+  uniqueName: 'invalid_sync',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidThisInInitializer = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_THIS_IN_INITIALIZER',
+  name: 'invalid_this_in_initializer',
   problemMessage:
       "Can only use 'this' in an initializer for field initialization (e.g. "
       "'this.x = something') and constructor redirection (e.g. 'this()' or "
       "'this.namedConstructor())",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'INVALID_THIS_IN_INITIALIZER',
+  uniqueName: 'invalid_this_in_initializer',
   expectedTypes: [],
 );
 
@@ -8932,14 +8932,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 invalidTypeArgumentInConstList = DiagnosticWithArguments(
-  name: 'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
+  name: 'invalid_type_argument_in_const_literal',
   problemMessage:
       "Constant list literals can't use a type parameter in a type argument, "
       "such as '{0}'.",
   correctionMessage: "Try replacing the type parameter with a different type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_TYPE_ARGUMENT_IN_CONST_LIST',
+  uniqueName: 'invalid_type_argument_in_const_list',
   withArguments: _withArgumentsInvalidTypeArgumentInConstList,
   expectedTypes: [ExpectedType.object],
 );
@@ -8950,14 +8950,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 invalidTypeArgumentInConstMap = DiagnosticWithArguments(
-  name: 'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
+  name: 'invalid_type_argument_in_const_literal',
   problemMessage:
       "Constant map literals can't use a type parameter in a type argument, such "
       "as '{0}'.",
   correctionMessage: "Try replacing the type parameter with a different type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_TYPE_ARGUMENT_IN_CONST_MAP',
+  uniqueName: 'invalid_type_argument_in_const_map',
   withArguments: _withArgumentsInvalidTypeArgumentInConstMap,
   expectedTypes: [ExpectedType.object],
 );
@@ -8968,14 +8968,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 invalidTypeArgumentInConstSet = DiagnosticWithArguments(
-  name: 'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
+  name: 'invalid_type_argument_in_const_literal',
   problemMessage:
       "Constant set literals can't use a type parameter in a type argument, such "
       "as '{0}'.",
   correctionMessage: "Try replacing the type parameter with a different type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_TYPE_ARGUMENT_IN_CONST_SET',
+  uniqueName: 'invalid_type_argument_in_const_set',
   withArguments: _withArgumentsInvalidTypeArgumentInConstSet,
   expectedTypes: [ExpectedType.string],
 );
@@ -8983,48 +8983,48 @@ invalidTypeArgumentInConstSet = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments invalidUnicodeEscapeStarted =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_UNICODE_ESCAPE_STARTED',
+      name: 'invalid_unicode_escape_started',
       problemMessage: "The string '\\' can't stand alone.",
       correctionMessage:
           "Try adding another backslash (\\) to escape the '\\'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'INVALID_UNICODE_ESCAPE_STARTED',
+      uniqueName: 'invalid_unicode_escape_started',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidUnicodeEscapeUBracket =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_UNICODE_ESCAPE_U_BRACKET',
+      name: 'invalid_unicode_escape_u_bracket',
       problemMessage:
           "An escape sequence starting with '\\u{' must be followed by 1 to 6 "
           "hexadecimal digits followed by a '}'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'INVALID_UNICODE_ESCAPE_U_BRACKET',
+      uniqueName: 'invalid_unicode_escape_u_bracket',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidUnicodeEscapeUNoBracket = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_UNICODE_ESCAPE_U_NO_BRACKET',
+  name: 'invalid_unicode_escape_u_no_bracket',
   problemMessage:
       "An escape sequence starting with '\\u' must be followed by 4 hexadecimal "
       "digits.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'INVALID_UNICODE_ESCAPE_U_NO_BRACKET',
+  uniqueName: 'invalid_unicode_escape_u_no_bracket',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidUnicodeEscapeUStarted = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_UNICODE_ESCAPE_U_STARTED',
+  name: 'invalid_unicode_escape_u_started',
   problemMessage:
       "An escape sequence starting with '\\u' must be followed by 4 hexadecimal "
       "digits or from 1 to 6 digits between '{' and '}'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'INVALID_UNICODE_ESCAPE_U_STARTED',
+  uniqueName: 'invalid_unicode_escape_u_started',
   expectedTypes: [],
 );
 
@@ -9034,11 +9034,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 invalidUri = DiagnosticWithArguments(
-  name: 'INVALID_URI',
+  name: 'invalid_uri',
   problemMessage: "Invalid URI syntax: '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVALID_URI',
+  uniqueName: 'invalid_uri',
   withArguments: _withArgumentsInvalidUri,
   expectedTypes: [ExpectedType.string],
 );
@@ -9048,13 +9048,13 @@ invalidUri = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments invalidUseOfCovariant =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_USE_OF_COVARIANT',
+      name: 'invalid_use_of_covariant',
       problemMessage:
           "The 'covariant' keyword can only be used for parameters in instance "
           "methods or before non-final instance fields.",
       correctionMessage: "Try removing the 'covariant' keyword.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'INVALID_USE_OF_COVARIANT',
+      uniqueName: 'invalid_use_of_covariant',
       expectedTypes: [],
     );
 
@@ -9064,12 +9064,12 @@ const DiagnosticWithoutArguments invalidUseOfCovariant =
 /// Token lexeme: undocumented
 const DiagnosticCode invalidUseOfCovariantInExtension =
     DiagnosticCodeWithExpectedTypes(
-      name: 'INVALID_USE_OF_COVARIANT_IN_EXTENSION',
+      name: 'invalid_use_of_covariant_in_extension',
       problemMessage: "Can't have modifier '{0}' in an extension.",
       correctionMessage: "Try removing '{0}'.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'INVALID_USE_OF_COVARIANT_IN_EXTENSION',
+      uniqueName: 'invalid_use_of_covariant_in_extension',
       expectedTypes: [ExpectedType.token],
     );
 
@@ -9079,12 +9079,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 invalidUseOfDoNotSubmitMember = DiagnosticWithArguments(
-  name: 'INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER',
+  name: 'invalid_use_of_do_not_submit_member',
   problemMessage: "Uses of '{0}' should not be submitted to source control.",
   correctionMessage: "Try removing the reference to '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER',
+  uniqueName: 'invalid_use_of_do_not_submit_member',
   withArguments: _withArgumentsInvalidUseOfDoNotSubmitMember,
   expectedTypes: [ExpectedType.string],
 );
@@ -9092,13 +9092,13 @@ invalidUseOfDoNotSubmitMember = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidUseOfIdentifierAugmented = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_USE_OF_IDENTIFIER_AUGMENTED',
+  name: 'invalid_use_of_identifier_augmented',
   problemMessage:
       "The identifier 'augmented' can only be used to reference the augmented "
       "declaration inside an augmentation.",
   correctionMessage: "Try using a different identifier.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'INVALID_USE_OF_IDENTIFIER_AUGMENTED',
+  uniqueName: 'invalid_use_of_identifier_augmented',
   expectedTypes: [],
 );
 
@@ -9108,11 +9108,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 invalidUseOfInternalMember = DiagnosticWithArguments(
-  name: 'INVALID_USE_OF_INTERNAL_MEMBER',
+  name: 'invalid_use_of_internal_member',
   problemMessage: "The member '{0}' can only be used within its package.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_USE_OF_INTERNAL_MEMBER',
+  uniqueName: 'invalid_use_of_internal_member',
   withArguments: _withArgumentsInvalidUseOfInternalMember,
   expectedTypes: [ExpectedType.string],
 );
@@ -9120,13 +9120,13 @@ invalidUseOfInternalMember = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments invalidUseOfNullValue =
     DiagnosticWithoutArgumentsImpl(
-      name: 'INVALID_USE_OF_NULL_VALUE',
+      name: 'invalid_use_of_null_value',
       problemMessage:
           "An expression whose value is always 'null' can't be dereferenced.",
       correctionMessage: "Try changing the type of the expression.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'INVALID_USE_OF_NULL_VALUE',
+      uniqueName: 'invalid_use_of_null_value',
       expectedTypes: [],
     );
 
@@ -9140,13 +9140,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 invalidUseOfProtectedMember = DiagnosticWithArguments(
-  name: 'INVALID_USE_OF_PROTECTED_MEMBER',
+  name: 'invalid_use_of_protected_member',
   problemMessage:
       "The member '{0}' can only be used within instance members of subclasses "
       "of '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_USE_OF_PROTECTED_MEMBER',
+  uniqueName: 'invalid_use_of_protected_member',
   withArguments: _withArgumentsInvalidUseOfProtectedMember,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -9157,11 +9157,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 invalidUseOfVisibleForOverridingMember = DiagnosticWithArguments(
-  name: 'INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER',
+  name: 'invalid_use_of_visible_for_overriding_member',
   problemMessage: "The member '{0}' can only be used for overriding.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER',
+  uniqueName: 'invalid_use_of_visible_for_overriding_member',
   withArguments: _withArgumentsInvalidUseOfVisibleForOverridingMember,
   expectedTypes: [ExpectedType.string],
 );
@@ -9176,11 +9176,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required Uri p1})
 >
 invalidUseOfVisibleForTemplateMember = DiagnosticWithArguments(
-  name: 'INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER',
+  name: 'invalid_use_of_visible_for_template_member',
   problemMessage:
       "The member '{0}' can only be used within '{1}' or a template library.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER',
+  uniqueName: 'invalid_use_of_visible_for_template_member',
   withArguments: _withArgumentsInvalidUseOfVisibleForTemplateMember,
   expectedTypes: [ExpectedType.string, ExpectedType.uri],
 );
@@ -9195,11 +9195,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required Uri p1})
 >
 invalidUseOfVisibleForTestingMember = DiagnosticWithArguments(
-  name: 'INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER',
+  name: 'invalid_use_of_visible_for_testing_member',
   problemMessage: "The member '{0}' can only be used within '{1}' or a test.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER',
+  uniqueName: 'invalid_use_of_visible_for_testing_member',
   withArguments: _withArgumentsInvalidUseOfVisibleForTestingMember,
   expectedTypes: [ExpectedType.string, ExpectedType.uri],
 );
@@ -9214,13 +9214,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 invalidVisibilityAnnotation = DiagnosticWithArguments(
-  name: 'INVALID_VISIBILITY_ANNOTATION',
+  name: 'invalid_visibility_annotation',
   problemMessage:
       "The member '{0}' is annotated with '{1}', but this annotation is only "
       "meaningful on declarations of public members.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_VISIBILITY_ANNOTATION',
+  uniqueName: 'invalid_visibility_annotation',
   withArguments: _withArgumentsInvalidVisibilityAnnotation,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -9228,40 +9228,40 @@ invalidVisibilityAnnotation = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidVisibleForOverridingAnnotation = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION',
+  name: 'invalid_visible_for_overriding_annotation',
   problemMessage:
       "The annotation 'visibleForOverriding' can only be applied to a public "
       "instance member that can be overridden.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION',
+  uniqueName: 'invalid_visible_for_overriding_annotation',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidVisibleOutsideTemplateAnnotation = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION',
+  name: 'invalid_visible_outside_template_annotation',
   problemMessage:
       "The annotation 'visibleOutsideTemplate' can only be applied to a member "
       "of a class, enum, or mixin that is annotated with "
       "'visibleForTemplate'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION',
+  uniqueName: 'invalid_visible_outside_template_annotation',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidWidgetPreviewApplication = DiagnosticWithoutArgumentsImpl(
-  name: 'INVALID_WIDGET_PREVIEW_APPLICATION',
+  name: 'invalid_widget_preview_application',
   problemMessage:
       "The '@Preview(...)' annotation can only be applied to public, statically "
       "accessible constructors and functions.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_WIDGET_PREVIEW_APPLICATION',
+  uniqueName: 'invalid_widget_preview_application',
   expectedTypes: [],
 );
 
@@ -9272,14 +9272,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 invalidWidgetPreviewPrivateArgument = DiagnosticWithArguments(
-  name: 'INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT',
+  name: 'invalid_widget_preview_private_argument',
   problemMessage:
       "'@Preview(...)' can only accept arguments that consist of literals and "
       "public symbols.",
   correctionMessage: "Rename private symbol '{0}' to '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT',
+  uniqueName: 'invalid_widget_preview_private_argument',
   withArguments: _withArgumentsInvalidWidgetPreviewPrivateArgument,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -9290,13 +9290,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 invocationOfExtensionWithoutCall = DiagnosticWithArguments(
-  name: 'INVOCATION_OF_EXTENSION_WITHOUT_CALL',
+  name: 'invocation_of_extension_without_call',
   problemMessage:
       "The extension '{0}' doesn't define a 'call' method so the override can't "
       "be used in an invocation.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVOCATION_OF_EXTENSION_WITHOUT_CALL',
+  uniqueName: 'invocation_of_extension_without_call',
   withArguments: _withArgumentsInvocationOfExtensionWithoutCall,
   expectedTypes: [ExpectedType.string],
 );
@@ -9307,14 +9307,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 invocationOfNonFunction = DiagnosticWithArguments(
-  name: 'INVOCATION_OF_NON_FUNCTION',
+  name: 'invocation_of_non_function',
   problemMessage: "'{0}' isn't a function.",
   correctionMessage:
       "Try correcting the name to match an existing function, or define a "
       "method or function named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVOCATION_OF_NON_FUNCTION',
+  uniqueName: 'invocation_of_non_function',
   withArguments: _withArgumentsInvocationOfNonFunction,
   expectedTypes: [ExpectedType.string],
 );
@@ -9322,12 +9322,12 @@ invocationOfNonFunction = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 invocationOfNonFunctionExpression = DiagnosticWithoutArgumentsImpl(
-  name: 'INVOCATION_OF_NON_FUNCTION_EXPRESSION',
+  name: 'invocation_of_non_function_expression',
   problemMessage:
       "The expression doesn't evaluate to a function, so it can't be invoked.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'INVOCATION_OF_NON_FUNCTION_EXPRESSION',
+  uniqueName: 'invocation_of_non_function_expression',
   expectedTypes: [],
 );
 
@@ -9337,11 +9337,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 labelInOuterScope = DiagnosticWithArguments(
-  name: 'LABEL_IN_OUTER_SCOPE',
+  name: 'label_in_outer_scope',
   problemMessage: "Can't reference label '{0}' declared in an outer method.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'LABEL_IN_OUTER_SCOPE',
+  uniqueName: 'label_in_outer_scope',
   withArguments: _withArgumentsLabelInOuterScope,
   expectedTypes: [ExpectedType.string],
 );
@@ -9352,14 +9352,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 labelUndefined = DiagnosticWithArguments(
-  name: 'LABEL_UNDEFINED',
+  name: 'label_undefined',
   problemMessage: "Can't reference an undefined label '{0}'.",
   correctionMessage:
       "Try defining the label, or correcting the name to match an existing "
       "label.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'LABEL_UNDEFINED',
+  uniqueName: 'label_undefined',
   withArguments: _withArgumentsLabelUndefined,
   expectedTypes: [ExpectedType.string],
 );
@@ -9367,7 +9367,7 @@ labelUndefined = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments lateFinalFieldWithConstConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR',
+      name: 'late_final_field_with_const_constructor',
       problemMessage:
           "Can't have a late final field in a class with a generative const "
           "constructor.",
@@ -9376,20 +9376,20 @@ const DiagnosticWithoutArguments lateFinalFieldWithConstConstructor =
           "constructors.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR',
+      uniqueName: 'late_final_field_with_const_constructor',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments lateFinalLocalAlreadyAssigned =
     DiagnosticWithoutArgumentsImpl(
-      name: 'LATE_FINAL_LOCAL_ALREADY_ASSIGNED',
+      name: 'late_final_local_already_assigned',
       problemMessage: "The late final local variable is already assigned.",
       correctionMessage:
           "Try removing the 'final' modifier, or don't reassign the value.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'LATE_FINAL_LOCAL_ALREADY_ASSIGNED',
+      uniqueName: 'late_final_local_already_assigned',
       expectedTypes: [],
     );
 
@@ -9398,50 +9398,50 @@ const DiagnosticWithoutArguments lateFinalLocalAlreadyAssigned =
 /// No parameters.
 const DiagnosticWithoutArguments latePatternVariableDeclaration =
     DiagnosticWithoutArgumentsImpl(
-      name: 'LATE_PATTERN_VARIABLE_DECLARATION',
+      name: 'late_pattern_variable_declaration',
       problemMessage:
           "A pattern variable declaration may not use the `late` keyword.",
       correctionMessage: "Try removing the keyword `late`.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'LATE_PATTERN_VARIABLE_DECLARATION',
+      uniqueName: 'late_pattern_variable_declaration',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments leafCallMustNotReturnHandle =
     DiagnosticWithoutArgumentsImpl(
-      name: 'LEAF_CALL_MUST_NOT_RETURN_HANDLE',
+      name: 'leaf_call_must_not_return_handle',
       problemMessage: "FFI leaf call can't return a 'Handle'.",
       correctionMessage: "Try changing the return type to primitive or struct.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'LEAF_CALL_MUST_NOT_RETURN_HANDLE',
+      uniqueName: 'leaf_call_must_not_return_handle',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments leafCallMustNotTakeHandle =
     DiagnosticWithoutArgumentsImpl(
-      name: 'LEAF_CALL_MUST_NOT_TAKE_HANDLE',
+      name: 'leaf_call_must_not_take_handle',
       problemMessage: "FFI leaf call can't take arguments of type 'Handle'.",
       correctionMessage:
           "Try changing the argument type to primitive or struct.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'LEAF_CALL_MUST_NOT_TAKE_HANDLE',
+      uniqueName: 'leaf_call_must_not_take_handle',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments libraryDirectiveNotFirst =
     DiagnosticWithoutArgumentsImpl(
-      name: 'LIBRARY_DIRECTIVE_NOT_FIRST',
+      name: 'library_directive_not_first',
       problemMessage:
           "The library directive must appear before all other directives.",
       correctionMessage:
           "Try moving the library directive before any other directives.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'LIBRARY_DIRECTIVE_NOT_FIRST',
+      uniqueName: 'library_directive_not_first',
       expectedTypes: [],
     );
 
@@ -9452,12 +9452,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 listElementTypeNotAssignable = DiagnosticWithArguments(
-  name: 'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
+  name: 'list_element_type_not_assignable',
   problemMessage:
       "The element type '{0}' can't be assigned to the list type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
+  uniqueName: 'list_element_type_not_assignable',
   withArguments: _withArgumentsListElementTypeNotAssignable,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -9469,12 +9469,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 listElementTypeNotAssignableNullability = DiagnosticWithArguments(
-  name: 'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
+  name: 'list_element_type_not_assignable',
   problemMessage:
       "The element type '{0}' can't be assigned to the list type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY',
+  uniqueName: 'list_element_type_not_assignable_nullability',
   withArguments: _withArgumentsListElementTypeNotAssignableNullability,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -9483,11 +9483,11 @@ listElementTypeNotAssignableNullability = DiagnosticWithArguments(
 /// String string: undocumented
 /// Token lexeme: undocumented
 const DiagnosticCode literalWithClass = DiagnosticCodeWithExpectedTypes(
-  name: 'LITERAL_WITH_CLASS',
+  name: 'literal_with_class',
   problemMessage: "A {0} literal can't be prefixed by '{1}'.",
   correctionMessage: "Try removing '{1}'",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'LITERAL_WITH_CLASS',
+  uniqueName: 'literal_with_class',
   expectedTypes: [ExpectedType.string, ExpectedType.token],
 );
 
@@ -9495,55 +9495,55 @@ const DiagnosticCode literalWithClass = DiagnosticCodeWithExpectedTypes(
 /// String string: undocumented
 /// Token lexeme: undocumented
 const DiagnosticCode literalWithClassAndNew = DiagnosticCodeWithExpectedTypes(
-  name: 'LITERAL_WITH_CLASS_AND_NEW',
+  name: 'literal_with_class_and_new',
   problemMessage: "A {0} literal can't be prefixed by 'new {1}'.",
   correctionMessage: "Try removing 'new' and '{1}'",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'LITERAL_WITH_CLASS_AND_NEW',
+  uniqueName: 'literal_with_class_and_new',
   expectedTypes: [ExpectedType.string, ExpectedType.token],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments literalWithNew =
     DiagnosticWithoutArgumentsImpl(
-      name: 'LITERAL_WITH_NEW',
+      name: 'literal_with_new',
       problemMessage: "A literal can't be prefixed by 'new'.",
       correctionMessage: "Try removing 'new'",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'LITERAL_WITH_NEW',
+      uniqueName: 'literal_with_new',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments localFunctionDeclarationModifier =
     DiagnosticWithoutArgumentsImpl(
-      name: 'LOCAL_FUNCTION_DECLARATION_MODIFIER',
+      name: 'local_function_declaration_modifier',
       problemMessage:
           "Local function declarations can't specify any modifiers.",
       correctionMessage: "Try removing the modifier.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'LOCAL_FUNCTION_DECLARATION_MODIFIER',
+      uniqueName: 'local_function_declaration_modifier',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 mainFirstPositionalParameterType = DiagnosticWithoutArgumentsImpl(
-  name: 'MAIN_FIRST_POSITIONAL_PARAMETER_TYPE',
+  name: 'main_first_positional_parameter_type',
   problemMessage:
       "The type of the first positional parameter of the 'main' function must be "
       "a supertype of 'List<String>'.",
   correctionMessage: "Try changing the type of the parameter.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MAIN_FIRST_POSITIONAL_PARAMETER_TYPE',
+  uniqueName: 'main_first_positional_parameter_type',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments mainHasRequiredNamedParameters =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MAIN_HAS_REQUIRED_NAMED_PARAMETERS',
+      name: 'main_has_required_named_parameters',
       problemMessage:
           "The function 'main' can't have any required named parameters.",
       correctionMessage:
@@ -9551,14 +9551,14 @@ const DiagnosticWithoutArguments mainHasRequiredNamedParameters =
           "'required' modifier.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'MAIN_HAS_REQUIRED_NAMED_PARAMETERS',
+      uniqueName: 'main_has_required_named_parameters',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments mainHasTooManyRequiredPositionalParameters =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS',
+      name: 'main_has_too_many_required_positional_parameters',
       problemMessage:
           "The function 'main' can't have more than two required positional "
           "parameters.",
@@ -9567,32 +9567,32 @@ const DiagnosticWithoutArguments mainHasTooManyRequiredPositionalParameters =
           "parameters.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS',
+      uniqueName: 'main_has_too_many_required_positional_parameters',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments mainIsNotFunction =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MAIN_IS_NOT_FUNCTION',
+      name: 'main_is_not_function',
       problemMessage: "The declaration named 'main' must be a function.",
       correctionMessage: "Try using a different name for this declaration.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'MAIN_IS_NOT_FUNCTION',
+      uniqueName: 'main_is_not_function',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments mapEntryNotInMap =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MAP_ENTRY_NOT_IN_MAP',
+      name: 'map_entry_not_in_map',
       problemMessage: "Map entries can only be used in a map literal.",
       correctionMessage:
           "Try converting the collection to a map or removing the map entry.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'MAP_ENTRY_NOT_IN_MAP',
+      uniqueName: 'map_entry_not_in_map',
       expectedTypes: [],
     );
 
@@ -9603,12 +9603,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 mapKeyTypeNotAssignable = DiagnosticWithArguments(
-  name: 'MAP_KEY_TYPE_NOT_ASSIGNABLE',
+  name: 'map_key_type_not_assignable',
   problemMessage:
       "The element type '{0}' can't be assigned to the map key type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MAP_KEY_TYPE_NOT_ASSIGNABLE',
+  uniqueName: 'map_key_type_not_assignable',
   withArguments: _withArgumentsMapKeyTypeNotAssignable,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -9620,12 +9620,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 mapKeyTypeNotAssignableNullability = DiagnosticWithArguments(
-  name: 'MAP_KEY_TYPE_NOT_ASSIGNABLE',
+  name: 'map_key_type_not_assignable',
   problemMessage:
       "The element type '{0}' can't be assigned to the map key type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY',
+  uniqueName: 'map_key_type_not_assignable_nullability',
   withArguments: _withArgumentsMapKeyTypeNotAssignableNullability,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -9637,12 +9637,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 mapValueTypeNotAssignable = DiagnosticWithArguments(
-  name: 'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
+  name: 'map_value_type_not_assignable',
   problemMessage:
       "The element type '{0}' can't be assigned to the map value type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
+  uniqueName: 'map_value_type_not_assignable',
   withArguments: _withArgumentsMapValueTypeNotAssignable,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -9654,12 +9654,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 mapValueTypeNotAssignableNullability = DiagnosticWithArguments(
-  name: 'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
+  name: 'map_value_type_not_assignable',
   problemMessage:
       "The element type '{0}' can't be assigned to the map value type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY',
+  uniqueName: 'map_value_type_not_assignable_nullability',
   withArguments: _withArgumentsMapValueTypeNotAssignableNullability,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -9667,19 +9667,19 @@ mapValueTypeNotAssignableNullability = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments memberWithClassName =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MEMBER_WITH_CLASS_NAME',
+      name: 'member_with_class_name',
       problemMessage:
           "A class member can't have the same name as the enclosing class.",
       correctionMessage: "Try renaming the member.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MEMBER_WITH_CLASS_NAME',
+      uniqueName: 'member_with_class_name',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments mismatchedAnnotationOnStructField =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISMATCHED_ANNOTATION_ON_STRUCT_FIELD',
+      name: 'mismatched_annotation_on_struct_field',
       problemMessage:
           "The annotation doesn't match the declared type of the field.",
       correctionMessage:
@@ -9687,7 +9687,7 @@ const DiagnosticWithoutArguments mismatchedAnnotationOnStructField =
           "match.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'MISMATCHED_ANNOTATION_ON_STRUCT_FIELD',
+      uniqueName: 'mismatched_annotation_on_struct_field',
       expectedTypes: [],
     );
 
@@ -9698,14 +9698,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required String p1})
 >
 missingAnnotationOnStructField = DiagnosticWithArguments(
-  name: 'MISSING_ANNOTATION_ON_STRUCT_FIELD',
+  name: 'missing_annotation_on_struct_field',
   problemMessage:
       "Fields of type '{0}' in a subclass of '{1}' must have an annotation "
       "indicating the native type.",
   correctionMessage: "Try adding an annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MISSING_ANNOTATION_ON_STRUCT_FIELD',
+  uniqueName: 'missing_annotation_on_struct_field',
   withArguments: _withArgumentsMissingAnnotationOnStructField,
   expectedTypes: [ExpectedType.type, ExpectedType.string],
 );
@@ -9713,62 +9713,62 @@ missingAnnotationOnStructField = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments missingAssignableSelector =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_ASSIGNABLE_SELECTOR',
+      name: 'missing_assignable_selector',
       problemMessage: "Missing selector such as '.identifier' or '[0]'.",
       correctionMessage: "Try adding a selector.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MISSING_ASSIGNABLE_SELECTOR',
+      uniqueName: 'missing_assignable_selector',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments missingAssignmentInInitializer =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_ASSIGNMENT_IN_INITIALIZER',
+      name: 'missing_assignment_in_initializer',
       problemMessage: "Expected an assignment after the field name.",
       correctionMessage:
           "To initialize a field, use the syntax 'name = value'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MISSING_ASSIGNMENT_IN_INITIALIZER',
+      uniqueName: 'missing_assignment_in_initializer',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 missingCatchOrFinally = DiagnosticWithoutArgumentsImpl(
-  name: 'MISSING_CATCH_OR_FINALLY',
+  name: 'missing_catch_or_finally',
   problemMessage:
       "A try block must be followed by an 'on', 'catch', or 'finally' clause.",
   correctionMessage:
       "Try adding either a catch or finally clause, or remove the try "
       "statement.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'MISSING_CATCH_OR_FINALLY',
+  uniqueName: 'missing_catch_or_finally',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments missingClosingParenthesis =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_CLOSING_PARENTHESIS',
+      name: 'missing_closing_parenthesis',
       problemMessage: "The closing parenthesis is missing.",
       correctionMessage: "Try adding the closing parenthesis.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MISSING_CLOSING_PARENTHESIS',
+      uniqueName: 'missing_closing_parenthesis',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 missingConstFinalVarOrType = DiagnosticWithoutArgumentsImpl(
-  name: 'MISSING_CONST_FINAL_VAR_OR_TYPE',
+  name: 'missing_const_final_var_or_type',
   problemMessage:
       "Variables must be declared using the keywords 'const', 'final', 'var' or "
       "a type name.",
   correctionMessage:
       "Try adding the name of the type of the variable or the keyword 'var'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'MISSING_CONST_FINAL_VAR_OR_TYPE',
+  uniqueName: 'missing_const_final_var_or_type',
   expectedTypes: [],
 );
 
@@ -9780,11 +9780,11 @@ missingConstFinalVarOrType = DiagnosticWithoutArgumentsImpl(
 /// No parameters.
 const DiagnosticWithoutArguments missingConstInListLiteral =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_CONST_IN_LIST_LITERAL',
+      name: 'missing_const_in_list_literal',
       problemMessage:
           "Seeing this message constitutes a bug. Please report it.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'MISSING_CONST_IN_LIST_LITERAL',
+      uniqueName: 'missing_const_in_list_literal',
       expectedTypes: [],
     );
 
@@ -9796,11 +9796,11 @@ const DiagnosticWithoutArguments missingConstInListLiteral =
 /// No parameters.
 const DiagnosticWithoutArguments missingConstInMapLiteral =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_CONST_IN_MAP_LITERAL',
+      name: 'missing_const_in_map_literal',
       problemMessage:
           "Seeing this message constitutes a bug. Please report it.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'MISSING_CONST_IN_MAP_LITERAL',
+      uniqueName: 'missing_const_in_map_literal',
       expectedTypes: [],
     );
 
@@ -9812,11 +9812,11 @@ const DiagnosticWithoutArguments missingConstInMapLiteral =
 /// No parameters.
 const DiagnosticWithoutArguments missingConstInSetLiteral =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_CONST_IN_SET_LITERAL',
+      name: 'missing_const_in_set_literal',
       problemMessage:
           "Seeing this message constitutes a bug. Please report it.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'MISSING_CONST_IN_SET_LITERAL',
+      uniqueName: 'missing_const_in_set_literal',
       expectedTypes: [],
     );
 
@@ -9826,12 +9826,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 missingDartLibrary = DiagnosticWithArguments(
-  name: 'MISSING_DART_LIBRARY',
+  name: 'missing_dart_library',
   problemMessage: "Required library '{0}' is missing.",
   correctionMessage: "Re-install the Dart or Flutter SDK.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MISSING_DART_LIBRARY',
+  uniqueName: 'missing_dart_library',
   withArguments: _withArgumentsMissingDartLibrary,
   expectedTypes: [ExpectedType.object],
 );
@@ -9842,7 +9842,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 missingDefaultValueForParameter = DiagnosticWithArguments(
-  name: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
+  name: 'missing_default_value_for_parameter',
   problemMessage:
       "The parameter '{0}' can't have a value of 'null' because of its type, but "
       "the implicit default value is 'null'.",
@@ -9851,7 +9851,7 @@ missingDefaultValueForParameter = DiagnosticWithArguments(
       "'required' modifier.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
+  uniqueName: 'missing_default_value_for_parameter',
   withArguments: _withArgumentsMissingDefaultValueForParameter,
   expectedTypes: [ExpectedType.string],
 );
@@ -9862,14 +9862,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 missingDefaultValueForParameterPositional = DiagnosticWithArguments(
-  name: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
+  name: 'missing_default_value_for_parameter',
   problemMessage:
       "The parameter '{0}' can't have a value of 'null' because of its type, but "
       "the implicit default value is 'null'.",
   correctionMessage: "Try adding an explicit non-'null' default value.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL',
+  uniqueName: 'missing_default_value_for_parameter_positional',
   withArguments: _withArgumentsMissingDefaultValueForParameterPositional,
   expectedTypes: [ExpectedType.string],
 );
@@ -9877,14 +9877,14 @@ missingDefaultValueForParameterPositional = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments missingDefaultValueForParameterWithAnnotation =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
+      name: 'missing_default_value_for_parameter',
       problemMessage:
           "With null safety, use the 'required' keyword, not the '@required' "
           "annotation.",
       correctionMessage: "Try removing the '@'.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION',
+      uniqueName: 'missing_default_value_for_parameter_with_annotation',
       expectedTypes: [],
     );
 
@@ -9896,34 +9896,34 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 missingDependency = DiagnosticWithArguments(
-  name: 'MISSING_DEPENDENCY',
+  name: 'missing_dependency',
   problemMessage: "Missing a dependency on imported package '{0}'.",
   correctionMessage: "Try adding {0}.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'MISSING_DEPENDENCY',
+  uniqueName: 'missing_dependency',
   withArguments: _withArgumentsMissingDependency,
   expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments missingDigit = DiagnosticWithoutArgumentsImpl(
-  name: 'MISSING_DIGIT',
+  name: 'missing_digit',
   problemMessage: "Decimal digit expected.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'MISSING_DIGIT',
+  uniqueName: 'missing_digit',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 missingEnumBody = DiagnosticWithoutArgumentsImpl(
-  name: 'MISSING_ENUM_BODY',
+  name: 'missing_enum_body',
   problemMessage:
       "An enum definition must have a body with at least one constant name.",
   correctionMessage: "Try adding a body and defining at least one constant.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'MISSING_ENUM_BODY',
+  uniqueName: 'missing_enum_body',
   expectedTypes: [],
 );
 
@@ -9933,14 +9933,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 missingEnumConstantInSwitch = DiagnosticWithArguments(
-  name: 'MISSING_ENUM_CONSTANT_IN_SWITCH',
+  name: 'missing_enum_constant_in_switch',
   problemMessage: "Missing case clause for '{0}'.",
   correctionMessage:
       "Try adding a case clause for the missing constant, or adding a "
       "default clause.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'MISSING_ENUM_CONSTANT_IN_SWITCH',
+  uniqueName: 'missing_enum_constant_in_switch',
   withArguments: _withArgumentsMissingEnumConstantInSwitch,
   expectedTypes: [ExpectedType.string],
 );
@@ -9951,7 +9951,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 missingExceptionValue = DiagnosticWithArguments(
-  name: 'MISSING_EXCEPTION_VALUE',
+  name: 'missing_exception_value',
   problemMessage:
       "The method {0} must have an exceptional return value (the second "
       "argument) when the return type of the function is neither 'void', "
@@ -9959,7 +9959,7 @@ missingExceptionValue = DiagnosticWithArguments(
   correctionMessage: "Try adding an exceptional return value.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MISSING_EXCEPTION_VALUE',
+  uniqueName: 'missing_exception_value',
   withArguments: _withArgumentsMissingExceptionValue,
   expectedTypes: [ExpectedType.string],
 );
@@ -9967,156 +9967,156 @@ missingExceptionValue = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments missingExpressionInInitializer =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_EXPRESSION_IN_INITIALIZER',
+      name: 'missing_expression_in_initializer',
       problemMessage: "Expected an expression after the assignment operator.",
       correctionMessage:
           "Try adding the value to be assigned, or remove the assignment "
           "operator.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MISSING_EXPRESSION_IN_INITIALIZER',
+      uniqueName: 'missing_expression_in_initializer',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments missingExpressionInThrow =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_EXPRESSION_IN_THROW',
+      name: 'missing_expression_in_throw',
       problemMessage: "Missing expression after 'throw'.",
       correctionMessage:
           "Add an expression after 'throw' or use 'rethrow' to throw a caught "
           "exception",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MISSING_EXPRESSION_IN_THROW',
+      uniqueName: 'missing_expression_in_throw',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 missingFieldTypeInStruct = DiagnosticWithoutArgumentsImpl(
-  name: 'MISSING_FIELD_TYPE_IN_STRUCT',
+  name: 'missing_field_type_in_struct',
   problemMessage:
       "Fields in struct classes must have an explicitly declared type of 'int', "
       "'double' or 'Pointer'.",
   correctionMessage: "Try using 'int', 'double' or 'Pointer'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MISSING_FIELD_TYPE_IN_STRUCT',
+  uniqueName: 'missing_field_type_in_struct',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments missingFunctionBody =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_FUNCTION_BODY',
+      name: 'missing_function_body',
       problemMessage: "A function body must be provided.",
       correctionMessage: "Try adding a function body.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MISSING_FUNCTION_BODY',
+      uniqueName: 'missing_function_body',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 missingFunctionKeyword = DiagnosticWithoutArgumentsImpl(
-  name: 'MISSING_FUNCTION_KEYWORD',
+  name: 'missing_function_keyword',
   problemMessage:
       "Function types must have the keyword 'Function' before the parameter "
       "list.",
   correctionMessage: "Try adding the keyword 'Function'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'MISSING_FUNCTION_KEYWORD',
+  uniqueName: 'missing_function_keyword',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments missingFunctionParameters =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_FUNCTION_PARAMETERS',
+      name: 'missing_function_parameters',
       problemMessage: "Functions must have an explicit list of parameters.",
       correctionMessage: "Try adding a parameter list.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MISSING_FUNCTION_PARAMETERS',
+      uniqueName: 'missing_function_parameters',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments missingGet = DiagnosticWithoutArgumentsImpl(
-  name: 'MISSING_GET',
+  name: 'missing_get',
   problemMessage: "Getters must have the keyword 'get' before the getter name.",
   correctionMessage: "Try adding the keyword 'get'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'MISSING_GET',
+  uniqueName: 'missing_get',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments missingHexDigit =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_HEX_DIGIT',
+      name: 'missing_hex_digit',
       problemMessage: "Hexadecimal digit expected.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MISSING_HEX_DIGIT',
+      uniqueName: 'missing_hex_digit',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments missingIdentifier =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_IDENTIFIER',
+      name: 'missing_identifier',
       problemMessage: "Expected an identifier.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MISSING_IDENTIFIER',
+      uniqueName: 'missing_identifier',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments missingInitializer =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_INITIALIZER',
+      name: 'missing_initializer',
       problemMessage: "Expected an initializer.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MISSING_INITIALIZER',
+      uniqueName: 'missing_initializer',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments missingKeywordOperator =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_KEYWORD_OPERATOR',
+      name: 'missing_keyword_operator',
       problemMessage:
           "Operator declarations must be preceded by the keyword 'operator'.",
       correctionMessage: "Try adding the keyword 'operator'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MISSING_KEYWORD_OPERATOR',
+      uniqueName: 'missing_keyword_operator',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments missingMethodParameters =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_METHOD_PARAMETERS',
+      name: 'missing_method_parameters',
       problemMessage: "Methods must have an explicit list of parameters.",
       correctionMessage: "Try adding a parameter list.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MISSING_METHOD_PARAMETERS',
+      uniqueName: 'missing_method_parameters',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments missingName = DiagnosticWithoutArgumentsImpl(
-  name: 'MISSING_NAME',
+  name: 'missing_name',
   problemMessage: "The 'name' field is required but missing.",
   correctionMessage: "Try adding a field named 'name'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'MISSING_NAME',
+  uniqueName: 'missing_name',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 missingNamedPatternFieldName = DiagnosticWithoutArgumentsImpl(
-  name: 'MISSING_NAMED_PATTERN_FIELD_NAME',
+  name: 'missing_named_pattern_field_name',
   problemMessage:
       "The getter name is not specified explicitly, and the pattern is not a "
       "variable.",
@@ -10125,43 +10125,43 @@ missingNamedPatternFieldName = DiagnosticWithoutArgumentsImpl(
       "pattern.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MISSING_NAMED_PATTERN_FIELD_NAME',
+  uniqueName: 'missing_named_pattern_field_name',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 missingNameForNamedParameter = DiagnosticWithoutArgumentsImpl(
-  name: 'MISSING_NAME_FOR_NAMED_PARAMETER',
+  name: 'missing_name_for_named_parameter',
   problemMessage: "Named parameters in a function type must have a name",
   correctionMessage:
       "Try providing a name for the parameter or removing the curly braces.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'MISSING_NAME_FOR_NAMED_PARAMETER',
+  uniqueName: 'missing_name_for_named_parameter',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 missingNameInLibraryDirective = DiagnosticWithoutArgumentsImpl(
-  name: 'MISSING_NAME_IN_LIBRARY_DIRECTIVE',
+  name: 'missing_name_in_library_directive',
   problemMessage: "Library directives must include a library name.",
   correctionMessage:
       "Try adding a library name after the keyword 'library', or remove the "
       "library directive if the library doesn't have any parts.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'MISSING_NAME_IN_LIBRARY_DIRECTIVE',
+  uniqueName: 'missing_name_in_library_directive',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments missingNameInPartOfDirective =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_NAME_IN_PART_OF_DIRECTIVE',
+      name: 'missing_name_in_part_of_directive',
       problemMessage: "Part-of directives must include a library name.",
       correctionMessage: "Try adding a library name after the 'of'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MISSING_NAME_IN_PART_OF_DIRECTIVE',
+      uniqueName: 'missing_name_in_part_of_directive',
       expectedTypes: [],
     );
 
@@ -10171,12 +10171,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String member})
 >
 missingOverrideOfMustBeOverriddenOne = DiagnosticWithArguments(
-  name: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
+  name: 'missing_override_of_must_be_overridden',
   problemMessage: "Missing a required override of '{0}'.",
   correctionMessage: "Try overriding the missing member.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE',
+  uniqueName: 'missing_override_of_must_be_overridden_one',
   withArguments: _withArgumentsMissingOverrideOfMustBeOverriddenOne,
   expectedTypes: [ExpectedType.string],
 );
@@ -10194,12 +10194,12 @@ const DiagnosticWithArguments<
   })
 >
 missingOverrideOfMustBeOverriddenThreePlus = DiagnosticWithArguments(
-  name: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
+  name: 'missing_override_of_must_be_overridden',
   problemMessage: "Missing a required override of '{0}', '{1}', and {2} more.",
   correctionMessage: "Try overriding the missing members.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS',
+  uniqueName: 'missing_override_of_must_be_overridden_three_plus',
   withArguments: _withArgumentsMissingOverrideOfMustBeOverriddenThreePlus,
   expectedTypes: [
     ExpectedType.string,
@@ -10218,12 +10218,12 @@ const DiagnosticWithArguments<
   })
 >
 missingOverrideOfMustBeOverriddenTwo = DiagnosticWithArguments(
-  name: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
+  name: 'missing_override_of_must_be_overridden',
   problemMessage: "Missing a required override of '{0}' and '{1}'.",
   correctionMessage: "Try overriding the missing members.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO',
+  uniqueName: 'missing_override_of_must_be_overridden_two',
   withArguments: _withArgumentsMissingOverrideOfMustBeOverriddenTwo,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -10231,48 +10231,48 @@ missingOverrideOfMustBeOverriddenTwo = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments missingPrefixInDeferredImport =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_PREFIX_IN_DEFERRED_IMPORT',
+      name: 'missing_prefix_in_deferred_import',
       problemMessage: "Deferred imports should have a prefix.",
       correctionMessage:
           "Try adding a prefix to the import by adding an 'as' clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MISSING_PREFIX_IN_DEFERRED_IMPORT',
+      uniqueName: 'missing_prefix_in_deferred_import',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments missingPrimaryConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_PRIMARY_CONSTRUCTOR',
+      name: 'missing_primary_constructor',
       problemMessage:
           "An extension type declaration must have a primary constructor "
           "declaration.",
       correctionMessage:
           "Try adding a primary constructor to the extension type declaration.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MISSING_PRIMARY_CONSTRUCTOR',
+      uniqueName: 'missing_primary_constructor',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments missingPrimaryConstructorParameters =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS',
+      name: 'missing_primary_constructor_parameters',
       problemMessage:
           "A primary constructor declaration must have formal parameters.",
       correctionMessage:
           "Try adding formal parameters after the primary constructor name.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS',
+      uniqueName: 'missing_primary_constructor_parameters',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments missingQuote = DiagnosticWithoutArgumentsImpl(
-  name: 'MISSING_QUOTE',
+  name: 'missing_quote',
   problemMessage: "Expected quote (' or \").",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'MISSING_QUOTE',
+  uniqueName: 'missing_quote',
   expectedTypes: [],
 );
 
@@ -10282,14 +10282,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 missingRequiredArgument = DiagnosticWithArguments(
-  name: 'MISSING_REQUIRED_ARGUMENT',
+  name: 'missing_required_argument',
   problemMessage:
       "The named parameter '{0}' is required, but there's no corresponding "
       "argument.",
   correctionMessage: "Try adding the required argument.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MISSING_REQUIRED_ARGUMENT',
+  uniqueName: 'missing_required_argument',
   withArguments: _withArgumentsMissingRequiredArgument,
   expectedTypes: [ExpectedType.string],
 );
@@ -10303,11 +10303,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 missingRequiredParam = DiagnosticWithArguments(
-  name: 'MISSING_REQUIRED_PARAM',
+  name: 'missing_required_param',
   problemMessage: "The parameter '{0}' is required.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'MISSING_REQUIRED_PARAM',
+  uniqueName: 'missing_required_param',
   withArguments: _withArgumentsMissingRequiredParam,
   expectedTypes: [ExpectedType.string],
 );
@@ -10322,11 +10322,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 missingRequiredParamWithDetails = DiagnosticWithArguments(
-  name: 'MISSING_REQUIRED_PARAM',
+  name: 'missing_required_param',
   problemMessage: "The parameter '{0}' is required. {1}.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'MISSING_REQUIRED_PARAM_WITH_DETAILS',
+  uniqueName: 'missing_required_param_with_details',
   withArguments: _withArgumentsMissingRequiredParamWithDetails,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -10334,7 +10334,7 @@ missingRequiredParamWithDetails = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments missingSizeAnnotationCarray =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_SIZE_ANNOTATION_CARRAY',
+      name: 'missing_size_annotation_carray',
       problemMessage:
           "Fields of type 'Array' must have exactly one 'Array' annotation.",
       correctionMessage:
@@ -10342,28 +10342,28 @@ const DiagnosticWithoutArguments missingSizeAnnotationCarray =
           "annotations.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'MISSING_SIZE_ANNOTATION_CARRAY',
+      uniqueName: 'missing_size_annotation_carray',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments missingStarAfterSync =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_STAR_AFTER_SYNC',
+      name: 'missing_star_after_sync',
       problemMessage: "The modifier 'sync' must be followed by a star ('*').",
       correctionMessage: "Try removing the modifier, or add a star.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MISSING_STAR_AFTER_SYNC',
+      uniqueName: 'missing_star_after_sync',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments missingStatement =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_STATEMENT',
+      name: 'missing_statement',
       problemMessage: "Expected a statement.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MISSING_STATEMENT',
+      uniqueName: 'missing_statement',
       expectedTypes: [],
     );
 
@@ -10373,11 +10373,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 missingTerminatorForParameterGroup = DiagnosticWithArguments(
-  name: 'MISSING_TERMINATOR_FOR_PARAMETER_GROUP',
+  name: 'missing_terminator_for_parameter_group',
   problemMessage: "There is no '{0}' to close the parameter group.",
   correctionMessage: "Try inserting a '{0}' at the end of the group.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'MISSING_TERMINATOR_FOR_PARAMETER_GROUP',
+  uniqueName: 'missing_terminator_for_parameter_group',
   withArguments: _withArgumentsMissingTerminatorForParameterGroup,
   expectedTypes: [ExpectedType.object],
 );
@@ -10385,24 +10385,24 @@ missingTerminatorForParameterGroup = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments missingTypedefParameters =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MISSING_TYPEDEF_PARAMETERS',
+      name: 'missing_typedef_parameters',
       problemMessage: "Typedefs must have an explicit list of parameters.",
       correctionMessage: "Try adding a parameter list.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MISSING_TYPEDEF_PARAMETERS',
+      uniqueName: 'missing_typedef_parameters',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 missingVariableInForEach = DiagnosticWithoutArgumentsImpl(
-  name: 'MISSING_VARIABLE_IN_FOR_EACH',
+  name: 'missing_variable_in_for_each',
   problemMessage:
       "A loop variable must be declared in a for-each loop before the 'in', but "
       "none was found.",
   correctionMessage: "Try declaring a loop variable.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'MISSING_VARIABLE_IN_FOR_EACH',
+  uniqueName: 'missing_variable_in_for_each',
   expectedTypes: [],
 );
 
@@ -10412,14 +10412,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 missingVariablePattern = DiagnosticWithArguments(
-  name: 'MISSING_VARIABLE_PATTERN',
+  name: 'missing_variable_pattern',
   problemMessage:
       "Variable pattern '{0}' is missing in this branch of the logical-or "
       "pattern.",
   correctionMessage: "Try declaring this variable pattern in the branch.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MISSING_VARIABLE_PATTERN',
+  uniqueName: 'missing_variable_pattern',
   withArguments: _withArgumentsMissingVariablePattern,
   expectedTypes: [ExpectedType.string],
 );
@@ -10427,13 +10427,13 @@ missingVariablePattern = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 mixedParameterGroups = DiagnosticWithoutArgumentsImpl(
-  name: 'MIXED_PARAMETER_GROUPS',
+  name: 'mixed_parameter_groups',
   problemMessage:
       "Can't have both positional and named parameters in a single parameter "
       "list.",
   correctionMessage: "Try choosing a single style of optional parameters.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'MIXED_PARAMETER_GROUPS',
+  uniqueName: 'mixed_parameter_groups',
   expectedTypes: [],
 );
 
@@ -10450,13 +10450,13 @@ const DiagnosticWithArguments<
   })
 >
 mixinApplicationConcreteSuperInvokedMemberType = DiagnosticWithArguments(
-  name: 'MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE',
+  name: 'mixin_application_concrete_super_invoked_member_type',
   problemMessage:
       "The super-invoked member '{0}' has the type '{1}', and the concrete "
       "member in the class has the type '{2}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE',
+  uniqueName: 'mixin_application_concrete_super_invoked_member_type',
   withArguments: _withArgumentsMixinApplicationConcreteSuperInvokedMemberType,
   expectedTypes: [ExpectedType.string, ExpectedType.type, ExpectedType.type],
 );
@@ -10468,13 +10468,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 mixinApplicationNoConcreteSuperInvokedMember = DiagnosticWithArguments(
-  name: 'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
+  name: 'mixin_application_no_concrete_super_invoked_member',
   problemMessage:
       "The class doesn't have a concrete implementation of the super-invoked "
       "member '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
+  uniqueName: 'mixin_application_no_concrete_super_invoked_member',
   withArguments: _withArgumentsMixinApplicationNoConcreteSuperInvokedMember,
   expectedTypes: [ExpectedType.string],
 );
@@ -10486,13 +10486,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 mixinApplicationNoConcreteSuperInvokedSetter = DiagnosticWithArguments(
-  name: 'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
+  name: 'mixin_application_no_concrete_super_invoked_member',
   problemMessage:
       "The class doesn't have a concrete implementation of the super-invoked "
       "setter '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER',
+  uniqueName: 'mixin_application_no_concrete_super_invoked_setter',
   withArguments: _withArgumentsMixinApplicationNoConcreteSuperInvokedSetter,
   expectedTypes: [ExpectedType.string],
 );
@@ -10509,13 +10509,13 @@ const DiagnosticWithArguments<
   })
 >
 mixinApplicationNotImplementedInterface = DiagnosticWithArguments(
-  name: 'MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
+  name: 'mixin_application_not_implemented_interface',
   problemMessage:
       "'{0}' can't be mixed onto '{1}' because '{1}' doesn't implement '{2}'.",
   correctionMessage: "Try extending the class '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
+  uniqueName: 'mixin_application_not_implemented_interface',
   withArguments: _withArgumentsMixinApplicationNotImplementedInterface,
   expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.type],
 );
@@ -10526,7 +10526,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 mixinClassDeclarationExtendsNotObject = DiagnosticWithArguments(
-  name: 'MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT',
+  name: 'mixin_class_declaration_extends_not_object',
   problemMessage:
       "The class '{0}' can't be declared a mixin because it extends a class "
       "other than 'Object'.",
@@ -10535,7 +10535,7 @@ mixinClassDeclarationExtendsNotObject = DiagnosticWithArguments(
       "'Object'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT',
+  uniqueName: 'mixin_class_declaration_extends_not_object',
   withArguments: _withArgumentsMixinClassDeclarationExtendsNotObject,
   expectedTypes: [ExpectedType.string],
 );
@@ -10546,13 +10546,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 mixinClassDeclaresConstructor = DiagnosticWithArguments(
-  name: 'MIXIN_CLASS_DECLARES_CONSTRUCTOR',
+  name: 'mixin_class_declares_constructor',
   problemMessage:
       "The class '{0}' can't be used as a mixin because it declares a "
       "constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MIXIN_CLASS_DECLARES_CONSTRUCTOR',
+  uniqueName: 'mixin_class_declares_constructor',
   withArguments: _withArgumentsMixinClassDeclaresConstructor,
   expectedTypes: [ExpectedType.string],
 );
@@ -10560,22 +10560,22 @@ mixinClassDeclaresConstructor = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments mixinDeclaresConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MIXIN_DECLARES_CONSTRUCTOR',
+      name: 'mixin_declares_constructor',
       problemMessage: "Mixins can't declare constructors.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MIXIN_DECLARES_CONSTRUCTOR',
+      uniqueName: 'mixin_declares_constructor',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments mixinDeferredClass =
     DiagnosticWithoutArgumentsImpl(
-      name: 'SUBTYPE_OF_DEFERRED_CLASS',
+      name: 'subtype_of_deferred_class',
       problemMessage: "Classes can't mixin deferred classes.",
       correctionMessage: "Try changing the import to not be deferred.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'MIXIN_DEFERRED_CLASS',
+      uniqueName: 'mixin_deferred_class',
       expectedTypes: [],
     );
 
@@ -10585,13 +10585,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 mixinInheritsFromNotObject = DiagnosticWithArguments(
-  name: 'MIXIN_INHERITS_FROM_NOT_OBJECT',
+  name: 'mixin_inherits_from_not_object',
   problemMessage:
       "The class '{0}' can't be used as a mixin because it extends a class other "
       "than 'Object'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MIXIN_INHERITS_FROM_NOT_OBJECT',
+  uniqueName: 'mixin_inherits_from_not_object',
   withArguments: _withArgumentsMixinInheritsFromNotObject,
   expectedTypes: [ExpectedType.string],
 );
@@ -10599,11 +10599,11 @@ mixinInheritsFromNotObject = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments mixinInstantiate =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MIXIN_INSTANTIATE',
+      name: 'mixin_instantiate',
       problemMessage: "Mixins can't be instantiated.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'MIXIN_INSTANTIATE',
+      uniqueName: 'mixin_instantiate',
       expectedTypes: [],
     );
 
@@ -10613,14 +10613,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0})
 >
 mixinOfDisallowedClass = DiagnosticWithArguments(
-  name: 'SUBTYPE_OF_DISALLOWED_TYPE',
+  name: 'subtype_of_disallowed_type',
   problemMessage: "Classes can't mixin '{0}'.",
   correctionMessage:
       "Try specifying a different class or mixin, or remove the class or "
       "mixin from the list.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MIXIN_OF_DISALLOWED_CLASS',
+  uniqueName: 'mixin_of_disallowed_class',
   withArguments: _withArgumentsMixinOfDisallowedClass,
   expectedTypes: [ExpectedType.type],
 );
@@ -10628,23 +10628,23 @@ mixinOfDisallowedClass = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments mixinOfNonClass =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MIXIN_OF_NON_CLASS',
+      name: 'mixin_of_non_class',
       problemMessage: "Classes can only mix in mixins and classes.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'MIXIN_OF_NON_CLASS',
+      uniqueName: 'mixin_of_non_class',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments mixinOfTypeAliasExpandsToTypeParameter =
     DiagnosticWithoutArgumentsImpl(
-      name: 'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
+      name: 'supertype_expands_to_type_parameter',
       problemMessage:
           "A type alias that expands to a type parameter can't be mixed in.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+      uniqueName: 'mixin_of_type_alias_expands_to_type_parameter',
       expectedTypes: [],
     );
 
@@ -10657,7 +10657,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 mixinOnSealedClass = DiagnosticWithArguments(
-  name: 'MIXIN_ON_SEALED_CLASS',
+  name: 'mixin_on_sealed_class',
   problemMessage:
       "The class '{0}' shouldn't be used as a mixin constraint because it is "
       "sealed, and any class mixing in this mixin must have '{0}' as a "
@@ -10667,7 +10667,7 @@ mixinOnSealedClass = DiagnosticWithArguments(
       "information.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'MIXIN_ON_SEALED_CLASS',
+  uniqueName: 'mixin_on_sealed_class',
   withArguments: _withArgumentsMixinOnSealedClass,
   expectedTypes: [ExpectedType.string],
 );
@@ -10675,13 +10675,13 @@ mixinOnSealedClass = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments mixinOnTypeAliasExpandsToTypeParameter =
     DiagnosticWithoutArgumentsImpl(
-      name: 'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
+      name: 'supertype_expands_to_type_parameter',
       problemMessage:
           "A type alias that expands to a type parameter can't be used as a "
           "superclass constraint.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+      uniqueName: 'mixin_on_type_alias_expands_to_type_parameter',
       expectedTypes: [],
     );
 
@@ -10692,13 +10692,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Element p0})
 >
 mixinsSuperClass = DiagnosticWithArguments(
-  name: 'IMPLEMENTS_SUPER_CLASS',
+  name: 'implements_super_class',
   problemMessage:
       "'{0}' can't be used in both the 'extends' and 'with' clauses.",
   correctionMessage: "Try removing one of the occurrences.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MIXINS_SUPER_CLASS',
+  uniqueName: 'mixins_super_class',
   withArguments: _withArgumentsMixinsSuperClass,
   expectedTypes: [ExpectedType.element],
 );
@@ -10710,12 +10710,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 mixinSubtypeOfBaseIsNotBase = DiagnosticWithArguments(
-  name: 'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
+  name: 'subtype_of_base_or_final_is_not_base_final_or_sealed',
   problemMessage:
       "The mixin '{0}' must be 'base' because the supertype '{1}' is 'base'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE',
+  uniqueName: 'mixin_subtype_of_base_is_not_base',
   withArguments: _withArgumentsMixinSubtypeOfBaseIsNotBase,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -10727,12 +10727,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 mixinSubtypeOfFinalIsNotBase = DiagnosticWithArguments(
-  name: 'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
+  name: 'subtype_of_base_or_final_is_not_base_final_or_sealed',
   problemMessage:
       "The mixin '{0}' must be 'base' because the supertype '{1}' is 'final'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE',
+  uniqueName: 'mixin_subtype_of_final_is_not_base',
   withArguments: _withArgumentsMixinSubtypeOfFinalIsNotBase,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -10740,13 +10740,13 @@ mixinSubtypeOfFinalIsNotBase = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments mixinSuperClassConstraintDeferredClass =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS',
+      name: 'mixin_super_class_constraint_deferred_class',
       problemMessage:
           "Deferred classes can't be used as superclass constraints.",
       correctionMessage: "Try changing the import to not be deferred.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS',
+      uniqueName: 'mixin_super_class_constraint_deferred_class',
       expectedTypes: [],
     );
 
@@ -10756,14 +10756,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0})
 >
 mixinSuperClassConstraintDisallowedClass = DiagnosticWithArguments(
-  name: 'SUBTYPE_OF_DISALLOWED_TYPE',
+  name: 'subtype_of_disallowed_type',
   problemMessage: "'{0}' can't be used as a superclass constraint.",
   correctionMessage:
       "Try specifying a different super-class constraint, or remove the 'on' "
       "clause.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS',
+  uniqueName: 'mixin_super_class_constraint_disallowed_class',
   withArguments: _withArgumentsMixinSuperClassConstraintDisallowedClass,
   expectedTypes: [ExpectedType.type],
 );
@@ -10771,22 +10771,22 @@ mixinSuperClassConstraintDisallowedClass = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments mixinSuperClassConstraintNonInterface =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE',
+      name: 'mixin_super_class_constraint_non_interface',
       problemMessage:
           "Only classes and mixins can be used as superclass constraints.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE',
+      uniqueName: 'mixin_super_class_constraint_non_interface',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments mixinWithClause =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MIXIN_WITH_CLAUSE',
+      name: 'mixin_with_clause',
       problemMessage: "A mixin can't have a with clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MIXIN_WITH_CLAUSE',
+      uniqueName: 'mixin_with_clause',
       expectedTypes: [],
     );
 
@@ -10796,10 +10796,10 @@ const DiagnosticWithoutArguments mixinWithClause =
 /// No parameters.
 const DiagnosticWithoutArguments mixinWithNonClassSuperclass =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MIXIN_WITH_NON_CLASS_SUPERCLASS',
+      name: 'mixin_with_non_class_superclass',
       problemMessage: "Mixin can only be applied to class.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'MIXIN_WITH_NON_CLASS_SUPERCLASS',
+      uniqueName: 'mixin_with_non_class_superclass',
       expectedTypes: [],
     );
 
@@ -10813,11 +10813,11 @@ const DiagnosticWithArguments<
   })
 >
 modifierOutOfOrder = DiagnosticWithArguments(
-  name: 'MODIFIER_OUT_OF_ORDER',
+  name: 'modifier_out_of_order',
   problemMessage: "The modifier '{0}' should be before the modifier '{1}'.",
   correctionMessage: "Try re-ordering the modifiers.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'MODIFIER_OUT_OF_ORDER',
+  uniqueName: 'modifier_out_of_order',
   withArguments: _withArgumentsModifierOutOfOrder,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -10832,12 +10832,12 @@ const DiagnosticWithArguments<
   })
 >
 multipleClauses = DiagnosticWithArguments(
-  name: 'MULTIPLE_CLAUSES',
+  name: 'multiple_clauses',
   problemMessage: "Each '{0}' definition can have at most one '{1}' clause.",
   correctionMessage:
       "Try combining all of the '{1}' clauses into a single clause.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'MULTIPLE_CLAUSES',
+  uniqueName: 'multiple_clauses',
   withArguments: _withArgumentsMultipleClauses,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -10845,88 +10845,88 @@ multipleClauses = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 multipleCombinators = DiagnosticWithoutArgumentsImpl(
-  name: 'MULTIPLE_COMBINATORS',
+  name: 'multiple_combinators',
   problemMessage:
       "Using multiple 'hide' or 'show' combinators is never necessary and often "
       "produces surprising results.",
   correctionMessage: "Try using a single combinator.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'MULTIPLE_COMBINATORS',
+  uniqueName: 'multiple_combinators',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments multipleExtendsClauses =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MULTIPLE_EXTENDS_CLAUSES',
+      name: 'multiple_extends_clauses',
       problemMessage:
           "Each class definition can have at most one extends clause.",
       correctionMessage:
           "Try choosing one superclass and define your class to implement (or "
           "mix in) the others.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MULTIPLE_EXTENDS_CLAUSES',
+      uniqueName: 'multiple_extends_clauses',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 multipleImplementsClauses = DiagnosticWithoutArgumentsImpl(
-  name: 'MULTIPLE_IMPLEMENTS_CLAUSES',
+  name: 'multiple_implements_clauses',
   problemMessage:
       "Each class or mixin definition can have at most one implements clause.",
   correctionMessage:
       "Try combining all of the implements clauses into a single clause.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'MULTIPLE_IMPLEMENTS_CLAUSES',
+  uniqueName: 'multiple_implements_clauses',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments multipleLibraryDirectives =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MULTIPLE_LIBRARY_DIRECTIVES',
+      name: 'multiple_library_directives',
       problemMessage: "Only one library directive may be declared in a file.",
       correctionMessage: "Try removing all but one of the library directives.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MULTIPLE_LIBRARY_DIRECTIVES',
+      uniqueName: 'multiple_library_directives',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 multipleNamedParameterGroups = DiagnosticWithoutArgumentsImpl(
-  name: 'MULTIPLE_NAMED_PARAMETER_GROUPS',
+  name: 'multiple_named_parameter_groups',
   problemMessage:
       "Can't have multiple groups of named parameters in a single parameter "
       "list.",
   correctionMessage: "Try combining all of the groups into a single group.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'MULTIPLE_NAMED_PARAMETER_GROUPS',
+  uniqueName: 'multiple_named_parameter_groups',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments multipleOnClauses =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MULTIPLE_ON_CLAUSES',
+      name: 'multiple_on_clauses',
       problemMessage: "Each mixin definition can have at most one on clause.",
       correctionMessage:
           "Try combining all of the on clauses into a single clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MULTIPLE_ON_CLAUSES',
+      uniqueName: 'multiple_on_clauses',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments multiplePartOfDirectives =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MULTIPLE_PART_OF_DIRECTIVES',
+      name: 'multiple_part_of_directives',
       problemMessage: "Only one part-of directive may be declared in a file.",
       correctionMessage: "Try removing all but one of the part-of directives.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MULTIPLE_PART_OF_DIRECTIVES',
+      uniqueName: 'multiple_part_of_directives',
       expectedTypes: [],
     );
 
@@ -10938,11 +10938,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 multiplePlugins = DiagnosticWithArguments(
-  name: 'MULTIPLE_PLUGINS',
+  name: 'multiple_plugins',
   problemMessage: "Multiple plugins can't be enabled.",
   correctionMessage: "Remove all plugins following the first, '{0}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'MULTIPLE_PLUGINS',
+  uniqueName: 'multiple_plugins',
   withArguments: _withArgumentsMultiplePlugins,
   expectedTypes: [ExpectedType.string],
 );
@@ -10950,52 +10950,52 @@ multiplePlugins = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 multiplePositionalParameterGroups = DiagnosticWithoutArgumentsImpl(
-  name: 'MULTIPLE_POSITIONAL_PARAMETER_GROUPS',
+  name: 'multiple_positional_parameter_groups',
   problemMessage:
       "Can't have multiple groups of positional parameters in a single parameter "
       "list.",
   correctionMessage: "Try combining all of the groups into a single group.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'MULTIPLE_POSITIONAL_PARAMETER_GROUPS',
+  uniqueName: 'multiple_positional_parameter_groups',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments multipleRedirectingConstructorInvocations =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS',
+      name: 'multiple_redirecting_constructor_invocations',
       problemMessage:
           "Constructors can have only one 'this' redirection, at most.",
       correctionMessage: "Try removing all but one of the redirections.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS',
+      uniqueName: 'multiple_redirecting_constructor_invocations',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments multipleRepresentationFields =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MULTIPLE_REPRESENTATION_FIELDS',
+      name: 'multiple_representation_fields',
       problemMessage:
           "Each extension type should have exactly one representation field.",
       correctionMessage:
           "Try combining fields into a record, or removing extra fields.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MULTIPLE_REPRESENTATION_FIELDS',
+      uniqueName: 'multiple_representation_fields',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments multipleSuperInitializers =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MULTIPLE_SUPER_INITIALIZERS',
+      name: 'multiple_super_initializers',
       problemMessage: "A constructor can have at most one 'super' initializer.",
       correctionMessage:
           "Try removing all but one of the 'super' initializers.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'MULTIPLE_SUPER_INITIALIZERS',
+      uniqueName: 'multiple_super_initializers',
       expectedTypes: [],
     );
 
@@ -11005,14 +11005,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 multipleVariablesInForEach = DiagnosticWithArguments(
-  name: 'MULTIPLE_VARIABLES_IN_FOR_EACH',
+  name: 'multiple_variables_in_for_each',
   problemMessage:
       "A single loop variable must be declared in a for-each loop before the "
       "'in', but {0} were found.",
   correctionMessage:
       "Try moving all but one of the declarations inside the loop body.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'MULTIPLE_VARIABLES_IN_FOR_EACH',
+  uniqueName: 'multiple_variables_in_for_each',
   withArguments: _withArgumentsMultipleVariablesInForEach,
   expectedTypes: [ExpectedType.object],
 );
@@ -11020,25 +11020,25 @@ multipleVariablesInForEach = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments multipleVarianceModifiers =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MULTIPLE_VARIANCE_MODIFIERS',
+      name: 'multiple_variance_modifiers',
       problemMessage:
           "Each type parameter can have at most one variance modifier.",
       correctionMessage:
           "Use at most one of the 'in', 'out', or 'inout' modifiers.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MULTIPLE_VARIANCE_MODIFIERS',
+      uniqueName: 'multiple_variance_modifiers',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments multipleWithClauses =
     DiagnosticWithoutArgumentsImpl(
-      name: 'MULTIPLE_WITH_CLAUSES',
+      name: 'multiple_with_clauses',
       problemMessage: "Each class definition can have at most one with clause.",
       correctionMessage:
           "Try combining all of the with clauses into a single clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'MULTIPLE_WITH_CLAUSES',
+      uniqueName: 'multiple_with_clauses',
       expectedTypes: [],
     );
 
@@ -11050,7 +11050,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0, required String p1})
 >
 mustBeANativeFunctionType = DiagnosticWithArguments(
-  name: 'MUST_BE_A_NATIVE_FUNCTION_TYPE',
+  name: 'must_be_a_native_function_type',
   problemMessage:
       "The type '{0}' given to '{1}' must be a valid 'dart:ffi' native function "
       "type.",
@@ -11058,7 +11058,7 @@ mustBeANativeFunctionType = DiagnosticWithArguments(
       "Try changing the type to only use members for 'dart:ffi'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MUST_BE_A_NATIVE_FUNCTION_TYPE',
+  uniqueName: 'must_be_a_native_function_type',
   withArguments: _withArgumentsMustBeANativeFunctionType,
   expectedTypes: [ExpectedType.object, ExpectedType.string],
 );
@@ -11076,12 +11076,12 @@ const DiagnosticWithArguments<
   })
 >
 mustBeASubtype = DiagnosticWithArguments(
-  name: 'MUST_BE_A_SUBTYPE',
+  name: 'must_be_a_subtype',
   problemMessage: "The type '{0}' must be a subtype of '{1}' for '{2}'.",
   correctionMessage: "Try changing one or both of the type arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MUST_BE_A_SUBTYPE',
+  uniqueName: 'must_be_a_subtype',
   withArguments: _withArgumentsMustBeASubtype,
   expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
 );
@@ -11095,14 +11095,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 mustBeImmutable = DiagnosticWithArguments(
-  name: 'MUST_BE_IMMUTABLE',
+  name: 'must_be_immutable',
   problemMessage:
       "This class (or a class that this class inherits from) is marked as "
       "'@immutable', but one or more of its instance fields aren't final: "
       "{0}",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'MUST_BE_IMMUTABLE',
+  uniqueName: 'must_be_immutable',
   withArguments: _withArgumentsMustBeImmutable,
   expectedTypes: [ExpectedType.string],
 );
@@ -11113,13 +11113,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 mustCallSuper = DiagnosticWithArguments(
-  name: 'MUST_CALL_SUPER',
+  name: 'must_call_super',
   problemMessage:
       "This method overrides a method annotated as '@mustCallSuper' in '{0}', "
       "but doesn't invoke the overridden method.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'MUST_CALL_SUPER',
+  uniqueName: 'must_call_super',
   withArguments: _withArgumentsMustCallSuper,
   expectedTypes: [ExpectedType.string],
 );
@@ -11130,14 +11130,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0})
 >
 mustReturnVoid = DiagnosticWithArguments(
-  name: 'MUST_RETURN_VOID',
+  name: 'must_return_void',
   problemMessage:
       "The return type of the function passed to 'NativeCallable.listener' must "
       "be 'void' rather than '{0}'.",
   correctionMessage: "Try changing the return type to 'void'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'MUST_RETURN_VOID',
+  uniqueName: 'must_return_void',
   withArguments: _withArgumentsMustReturnVoid,
   expectedTypes: [ExpectedType.type],
 );
@@ -11145,74 +11145,74 @@ mustReturnVoid = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments namedFunctionExpression =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NAMED_FUNCTION_EXPRESSION',
+      name: 'named_function_expression',
       problemMessage: "Function expressions can't be named.",
       correctionMessage:
           "Try removing the name, or moving the function expression to a "
           "function declaration statement.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'NAMED_FUNCTION_EXPRESSION',
+      uniqueName: 'named_function_expression',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments namedFunctionType =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NAMED_FUNCTION_TYPE',
+      name: 'named_function_type',
       problemMessage: "Function types can't be named.",
       correctionMessage: "Try replacing the name with the keyword 'Function'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'NAMED_FUNCTION_TYPE',
+      uniqueName: 'named_function_type',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments namedParameterOutsideGroup =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NAMED_PARAMETER_OUTSIDE_GROUP',
+      name: 'named_parameter_outside_group',
       problemMessage:
           "Named parameters must be enclosed in curly braces ('{' and '}').",
       correctionMessage:
           "Try surrounding the named parameters in curly braces.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'NAMED_PARAMETER_OUTSIDE_GROUP',
+      uniqueName: 'named_parameter_outside_group',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments nameNotString = DiagnosticWithoutArgumentsImpl(
-  name: 'NAME_NOT_STRING',
+  name: 'name_not_string',
   problemMessage: "The value of the 'name' field is required to be a string.",
   correctionMessage: "Try converting the value to be a string.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'NAME_NOT_STRING',
+  uniqueName: 'name_not_string',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 nativeClauseInNonSdkCode = DiagnosticWithoutArgumentsImpl(
-  name: 'NATIVE_CLAUSE_IN_NON_SDK_CODE',
+  name: 'native_clause_in_non_sdk_code',
   problemMessage:
       "Native clause can only be used in the SDK and code that is loaded through "
       "native extensions.",
   correctionMessage: "Try removing the native clause.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'NATIVE_CLAUSE_IN_NON_SDK_CODE',
+  uniqueName: 'native_clause_in_non_sdk_code',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments nativeClauseShouldBeAnnotation =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NATIVE_CLAUSE_SHOULD_BE_ANNOTATION',
+      name: 'native_clause_should_be_annotation',
       problemMessage: "Native clause in this form is deprecated.",
       correctionMessage:
           "Try removing this native clause and adding @native() or "
           "@native('native-name') before the declaration.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'NATIVE_CLAUSE_SHOULD_BE_ANNOTATION',
+      uniqueName: 'native_clause_should_be_annotation',
       expectedTypes: [],
     );
 
@@ -11222,7 +11222,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0})
 >
 nativeFieldInvalidType = DiagnosticWithArguments(
-  name: 'NATIVE_FIELD_INVALID_TYPE',
+  name: 'native_field_invalid_type',
   problemMessage:
       "'{0}' is an unsupported type for native fields. Native fields only "
       "support pointers, arrays or numeric and compound types.",
@@ -11231,7 +11231,7 @@ nativeFieldInvalidType = DiagnosticWithArguments(
       "type, a pointer, array, or a compound class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NATIVE_FIELD_INVALID_TYPE',
+  uniqueName: 'native_field_invalid_type',
   withArguments: _withArgumentsNativeFieldInvalidType,
   expectedTypes: [ExpectedType.type],
 );
@@ -11239,7 +11239,7 @@ nativeFieldInvalidType = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 nativeFieldMissingType = DiagnosticWithoutArgumentsImpl(
-  name: 'NATIVE_FIELD_MISSING_TYPE',
+  name: 'native_field_missing_type',
   problemMessage:
       "The native type of this field could not be inferred and must be specified "
       "in the annotation.",
@@ -11248,39 +11248,39 @@ nativeFieldMissingType = DiagnosticWithoutArgumentsImpl(
       "annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NATIVE_FIELD_MISSING_TYPE',
+  uniqueName: 'native_field_missing_type',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments nativeFieldNotStatic =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NATIVE_FIELD_NOT_STATIC',
+      name: 'native_field_not_static',
       problemMessage: "Native fields must be static.",
       correctionMessage: "Try adding the modifier 'static' to this field.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NATIVE_FIELD_NOT_STATIC',
+      uniqueName: 'native_field_not_static',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 nativeFunctionBodyInNonSdkCode = DiagnosticWithoutArgumentsImpl(
-  name: 'NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE',
+  name: 'native_function_body_in_non_sdk_code',
   problemMessage:
       "Native functions can only be declared in the SDK and code that is loaded "
       "through native extensions.",
   correctionMessage: "Try removing the word 'native'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE',
+  uniqueName: 'native_function_body_in_non_sdk_code',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments nativeFunctionMissingType =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NATIVE_FUNCTION_MISSING_TYPE',
+      name: 'native_function_missing_type',
       problemMessage:
           "The native type of this function couldn't be inferred so it must be "
           "specified in the annotation.",
@@ -11289,47 +11289,47 @@ const DiagnosticWithoutArguments nativeFunctionMissingType =
           "annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NATIVE_FUNCTION_MISSING_TYPE',
+      uniqueName: 'native_function_missing_type',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 negativeVariableDimension = DiagnosticWithoutArgumentsImpl(
-  name: 'NEGATIVE_VARIABLE_DIMENSION',
+  name: 'negative_variable_dimension',
   problemMessage:
       "The variable dimension of a variable-length array must be non-negative.",
   correctionMessage: "Try using a value that is zero or greater.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NEGATIVE_VARIABLE_DIMENSION',
+  uniqueName: 'negative_variable_dimension',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments newConstructorNewName =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NEW_CONSTRUCTOR_NEW_NAME',
+      name: 'new_constructor_new_name',
       problemMessage:
           "Constructors declared with the 'new' keyword can't be named 'new'.",
       correctionMessage:
           "Try removing the second 'new' or changing it to a different name.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'NEW_CONSTRUCTOR_NEW_NAME',
+      uniqueName: 'new_constructor_new_name',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 newConstructorQualifiedName = DiagnosticWithoutArgumentsImpl(
-  name: 'NEW_CONSTRUCTOR_QUALIFIED_NAME',
+  name: 'new_constructor_qualified_name',
   problemMessage:
       "Constructors declared with the 'new' keyword can't have qualified names.",
   correctionMessage:
       "Try removing the class name prefix from the qualified name or "
       "removing the 'new' keyword.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'NEW_CONSTRUCTOR_QUALIFIED_NAME',
+  uniqueName: 'new_constructor_qualified_name',
   expectedTypes: [],
 );
 
@@ -11339,13 +11339,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 newWithNonType = DiagnosticWithArguments(
-  name: 'CREATION_WITH_NON_TYPE',
+  name: 'creation_with_non_type',
   problemMessage: "The name '{0}' isn't a class.",
   correctionMessage: "Try correcting the name to match an existing class.",
   hasPublishedDocs: true,
   isUnresolvedIdentifier: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NEW_WITH_NON_TYPE',
+  uniqueName: 'new_with_non_type',
   withArguments: _withArgumentsNewWithNonType,
   expectedTypes: [ExpectedType.string],
 );
@@ -11369,13 +11369,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 newWithUndefinedConstructor = DiagnosticWithArguments(
-  name: 'NEW_WITH_UNDEFINED_CONSTRUCTOR',
+  name: 'new_with_undefined_constructor',
   problemMessage: "The class '{0}' doesn't have a constructor named '{1}'.",
   correctionMessage:
       "Try invoking a different constructor, or define a constructor named "
       "'{1}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NEW_WITH_UNDEFINED_CONSTRUCTOR',
+  uniqueName: 'new_with_undefined_constructor',
   withArguments: _withArgumentsNewWithUndefinedConstructor,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -11386,13 +11386,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 newWithUndefinedConstructorDefault = DiagnosticWithArguments(
-  name: 'NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
+  name: 'new_with_undefined_constructor_default',
   problemMessage: "The class '{0}' doesn't have an unnamed constructor.",
   correctionMessage:
       "Try using one of the named constructors defined in '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
+  uniqueName: 'new_with_undefined_constructor_default',
   withArguments: _withArgumentsNewWithUndefinedConstructorDefault,
   expectedTypes: [ExpectedType.string],
 );
@@ -11400,12 +11400,12 @@ newWithUndefinedConstructorDefault = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments noAnnotationConstructorArguments =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS',
+      name: 'no_annotation_constructor_arguments',
       problemMessage: "Annotation creation must have arguments.",
       correctionMessage: "Try adding an empty argument list.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS',
+      uniqueName: 'no_annotation_constructor_arguments',
       expectedTypes: [],
     );
 
@@ -11416,7 +11416,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 noCombinedSuperSignature = DiagnosticWithArguments(
-  name: 'NO_COMBINED_SUPER_SIGNATURE',
+  name: 'no_combined_super_signature',
   problemMessage:
       "Can't infer missing types in '{0}' from overridden methods: {1}.",
   correctionMessage:
@@ -11424,7 +11424,7 @@ noCombinedSuperSignature = DiagnosticWithArguments(
       "type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NO_COMBINED_SUPER_SIGNATURE',
+  uniqueName: 'no_combined_super_signature',
   withArguments: _withArgumentsNoCombinedSuperSignature,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -11436,14 +11436,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 noDefaultSuperConstructorExplicit = DiagnosticWithArguments(
-  name: 'NO_DEFAULT_SUPER_CONSTRUCTOR',
+  name: 'no_default_super_constructor',
   problemMessage:
       "The superclass '{0}' doesn't have a zero argument constructor.",
   correctionMessage:
       "Try declaring a zero argument constructor in '{0}', or explicitly "
       "invoking a different constructor in '{0}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT',
+  uniqueName: 'no_default_super_constructor_explicit',
   withArguments: _withArgumentsNoDefaultSuperConstructorExplicit,
   expectedTypes: [ExpectedType.object],
 );
@@ -11457,14 +11457,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required String p1})
 >
 noDefaultSuperConstructorImplicit = DiagnosticWithArguments(
-  name: 'NO_DEFAULT_SUPER_CONSTRUCTOR',
+  name: 'no_default_super_constructor',
   problemMessage:
       "The superclass '{0}' doesn't have a zero argument constructor.",
   correctionMessage:
       "Try declaring a zero argument constructor in '{0}', or declaring a "
       "constructor in {1} that explicitly invokes a constructor in '{0}'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT',
+  uniqueName: 'no_default_super_constructor_implicit',
   withArguments: _withArgumentsNoDefaultSuperConstructorImplicit,
   expectedTypes: [ExpectedType.type, ExpectedType.string],
 );
@@ -11476,7 +11476,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 noGenerativeConstructorsInSuperclass = DiagnosticWithArguments(
-  name: 'NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS',
+  name: 'no_generative_constructors_in_superclass',
   problemMessage:
       "The class '{0}' can't extend '{1}' because '{1}' only has factory "
       "constructors (no generative constructors), and '{0}' has at least one "
@@ -11487,7 +11487,7 @@ noGenerativeConstructorsInSuperclass = DiagnosticWithArguments(
       "subclass.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS',
+  uniqueName: 'no_generative_constructors_in_superclass',
   withArguments: _withArgumentsNoGenerativeConstructorsInSuperclass,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -11508,7 +11508,7 @@ const DiagnosticWithArguments<
   })
 >
 nonAbstractClassInheritsAbstractMemberFivePlus = DiagnosticWithArguments(
-  name: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
+  name: 'non_abstract_class_inherits_abstract_member',
   problemMessage:
       "Missing concrete implementations of '{0}', '{1}', '{2}', '{3}', and {4} "
       "more.",
@@ -11516,7 +11516,7 @@ nonAbstractClassInheritsAbstractMemberFivePlus = DiagnosticWithArguments(
       "Try implementing the missing methods, or make the class abstract.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS',
+  uniqueName: 'non_abstract_class_inherits_abstract_member_five_plus',
   withArguments: _withArgumentsNonAbstractClassInheritsAbstractMemberFivePlus,
   expectedTypes: [
     ExpectedType.string,
@@ -11541,14 +11541,14 @@ const DiagnosticWithArguments<
   })
 >
 nonAbstractClassInheritsAbstractMemberFour = DiagnosticWithArguments(
-  name: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
+  name: 'non_abstract_class_inherits_abstract_member',
   problemMessage:
       "Missing concrete implementations of '{0}', '{1}', '{2}', and '{3}'.",
   correctionMessage:
       "Try implementing the missing methods, or make the class abstract.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR',
+  uniqueName: 'non_abstract_class_inherits_abstract_member_four',
   withArguments: _withArgumentsNonAbstractClassInheritsAbstractMemberFour,
   expectedTypes: [
     ExpectedType.string,
@@ -11564,13 +11564,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 nonAbstractClassInheritsAbstractMemberOne = DiagnosticWithArguments(
-  name: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
+  name: 'non_abstract_class_inherits_abstract_member',
   problemMessage: "Missing concrete implementation of '{0}'.",
   correctionMessage:
       "Try implementing the missing method, or make the class abstract.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE',
+  uniqueName: 'non_abstract_class_inherits_abstract_member_one',
   withArguments: _withArgumentsNonAbstractClassInheritsAbstractMemberOne,
   expectedTypes: [ExpectedType.string],
 );
@@ -11587,14 +11587,14 @@ const DiagnosticWithArguments<
   })
 >
 nonAbstractClassInheritsAbstractMemberThree = DiagnosticWithArguments(
-  name: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
+  name: 'non_abstract_class_inherits_abstract_member',
   problemMessage:
       "Missing concrete implementations of '{0}', '{1}', and '{2}'.",
   correctionMessage:
       "Try implementing the missing methods, or make the class abstract.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE',
+  uniqueName: 'non_abstract_class_inherits_abstract_member_three',
   withArguments: _withArgumentsNonAbstractClassInheritsAbstractMemberThree,
   expectedTypes: [
     ExpectedType.string,
@@ -11610,13 +11610,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 nonAbstractClassInheritsAbstractMemberTwo = DiagnosticWithArguments(
-  name: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
+  name: 'non_abstract_class_inherits_abstract_member',
   problemMessage: "Missing concrete implementations of '{0}' and '{1}'.",
   correctionMessage:
       "Try implementing the missing methods, or make the class abstract.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO',
+  uniqueName: 'non_abstract_class_inherits_abstract_member_two',
   withArguments: _withArgumentsNonAbstractClassInheritsAbstractMemberTwo,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -11624,36 +11624,36 @@ nonAbstractClassInheritsAbstractMemberTwo = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments nonBoolCondition =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_BOOL_CONDITION',
+      name: 'non_bool_condition',
       problemMessage: "Conditions must have a static type of 'bool'.",
       correctionMessage: "Try changing the condition.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_BOOL_CONDITION',
+      uniqueName: 'non_bool_condition',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonBoolExpression =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_BOOL_EXPRESSION',
+      name: 'non_bool_expression',
       problemMessage: "The expression in an assert must be of type 'bool'.",
       correctionMessage: "Try changing the expression.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_BOOL_EXPRESSION',
+      uniqueName: 'non_bool_expression',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonBoolNegationExpression =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_BOOL_NEGATION_EXPRESSION',
+      name: 'non_bool_negation_expression',
       problemMessage: "A negation operand must have a static type of 'bool'.",
       correctionMessage: "Try changing the operand to the '!' operator.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_BOOL_NEGATION_EXPRESSION',
+      uniqueName: 'non_bool_negation_expression',
       expectedTypes: [],
     );
 
@@ -11663,12 +11663,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 nonBoolOperand = DiagnosticWithArguments(
-  name: 'NON_BOOL_OPERAND',
+  name: 'non_bool_operand',
   problemMessage:
       "The operands of the operator '{0}' must be assignable to 'bool'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_BOOL_OPERAND',
+  uniqueName: 'non_bool_operand',
   withArguments: _withArgumentsNonBoolOperand,
   expectedTypes: [ExpectedType.string],
 );
@@ -11676,29 +11676,29 @@ nonBoolOperand = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments nonConstantAnnotationConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_CONSTANT_ANNOTATION_CONSTRUCTOR',
+      name: 'non_constant_annotation_constructor',
       problemMessage: "Annotation creation can only call a const constructor.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_CONSTANT_ANNOTATION_CONSTRUCTOR',
+      uniqueName: 'non_constant_annotation_constructor',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonConstantCaseExpression =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_CONSTANT_CASE_EXPRESSION',
+      name: 'non_constant_case_expression',
       problemMessage: "Case expressions must be constant.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_CONSTANT_CASE_EXPRESSION',
+      uniqueName: 'non_constant_case_expression',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonConstantCaseExpressionFromDeferredLibrary =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY',
+      name: 'non_constant_case_expression_from_deferred_library',
       problemMessage:
           "Constant values from a deferred library can't be used as a case "
           "expression.",
@@ -11707,26 +11707,26 @@ const DiagnosticWithoutArguments nonConstantCaseExpressionFromDeferredLibrary =
           "the import to not be deferred.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY',
+      uniqueName: 'non_constant_case_expression_from_deferred_library',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonConstantDefaultValue =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_CONSTANT_DEFAULT_VALUE',
+      name: 'non_constant_default_value',
       problemMessage:
           "The default value of an optional parameter must be constant.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_CONSTANT_DEFAULT_VALUE',
+      uniqueName: 'non_constant_default_value',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonConstantDefaultValueFromDeferredLibrary =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY',
+      name: 'non_constant_default_value_from_deferred_library',
       problemMessage:
           "Constant values from a deferred library can't be used as a default "
           "parameter value.",
@@ -11735,27 +11735,27 @@ const DiagnosticWithoutArguments nonConstantDefaultValueFromDeferredLibrary =
           "inside the function body.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY',
+      uniqueName: 'non_constant_default_value_from_deferred_library',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonConstantListElement =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_CONSTANT_LIST_ELEMENT',
+      name: 'non_constant_list_element',
       problemMessage: "The values in a const list literal must be constants.",
       correctionMessage:
           "Try removing the keyword 'const' from the list literal.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_CONSTANT_LIST_ELEMENT',
+      uniqueName: 'non_constant_list_element',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 nonConstantListElementFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-  name: 'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
+  name: 'collection_element_from_deferred_library',
   problemMessage:
       "Constant values from a deferred library can't be used as values in a "
       "'const' list literal.",
@@ -11764,40 +11764,40 @@ nonConstantListElementFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
       "the keyword 'deferred' from the import.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY',
+  uniqueName: 'non_constant_list_element_from_deferred_library',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonConstantMapElement =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_CONSTANT_MAP_ELEMENT',
+      name: 'non_constant_map_element',
       problemMessage: "The elements in a const map literal must be constant.",
       correctionMessage:
           "Try removing the keyword 'const' from the map literal.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_CONSTANT_MAP_ELEMENT',
+      uniqueName: 'non_constant_map_element',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonConstantMapKey =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_CONSTANT_MAP_KEY',
+      name: 'non_constant_map_key',
       problemMessage: "The keys in a const map literal must be constant.",
       correctionMessage:
           "Try removing the keyword 'const' from the map literal.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_CONSTANT_MAP_KEY',
+      uniqueName: 'non_constant_map_key',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 nonConstantMapKeyFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-  name: 'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
+  name: 'collection_element_from_deferred_library',
   problemMessage:
       "Constant values from a deferred library can't be used as keys in a "
       "'const' map literal.",
@@ -11806,39 +11806,39 @@ nonConstantMapKeyFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
       "keyword 'deferred' from the import.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY',
+  uniqueName: 'non_constant_map_key_from_deferred_library',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonConstantMapPatternKey =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_CONSTANT_MAP_PATTERN_KEY',
+      name: 'non_constant_map_pattern_key',
       problemMessage: "Key expressions in map patterns must be constants.",
       correctionMessage: "Try using constants instead.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_CONSTANT_MAP_PATTERN_KEY',
+      uniqueName: 'non_constant_map_pattern_key',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonConstantMapValue =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_CONSTANT_MAP_VALUE',
+      name: 'non_constant_map_value',
       problemMessage: "The values in a const map literal must be constant.",
       correctionMessage:
           "Try removing the keyword 'const' from the map literal.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_CONSTANT_MAP_VALUE',
+      uniqueName: 'non_constant_map_value',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 nonConstantMapValueFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-  name: 'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
+  name: 'collection_element_from_deferred_library',
   problemMessage:
       "Constant values from a deferred library can't be used as values in a "
       "'const' map literal.",
@@ -11847,26 +11847,26 @@ nonConstantMapValueFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
       "keyword 'deferred' from the import.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY',
+  uniqueName: 'non_constant_map_value_from_deferred_library',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonConstantRecordField =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_CONSTANT_RECORD_FIELD',
+      name: 'non_constant_record_field',
       problemMessage: "The fields in a const record literal must be constants.",
       correctionMessage:
           "Try removing the keyword 'const' from the record literal.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_CONSTANT_RECORD_FIELD',
+      uniqueName: 'non_constant_record_field',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 nonConstantRecordFieldFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-  name: 'NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY',
+  name: 'non_constant_record_field_from_deferred_library',
   problemMessage:
       "Constant values from a deferred library can't be used as fields in a "
       "'const' record literal.",
@@ -11874,32 +11874,32 @@ nonConstantRecordFieldFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
       "Try removing the keyword 'const' from the record literal or removing "
       "the keyword 'deferred' from the import.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY',
+  uniqueName: 'non_constant_record_field_from_deferred_library',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonConstantRelationalPatternExpression =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION',
+      name: 'non_constant_relational_pattern_expression',
       problemMessage: "The relational pattern expression must be a constant.",
       correctionMessage: "Try using a constant instead.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION',
+      uniqueName: 'non_constant_relational_pattern_expression',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonConstantSetElement =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_CONSTANT_SET_ELEMENT',
+      name: 'non_constant_set_element',
       problemMessage: "The values in a const set literal must be constants.",
       correctionMessage:
           "Try removing the keyword 'const' from the set literal.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_CONSTANT_SET_ELEMENT',
+      uniqueName: 'non_constant_set_element',
       expectedTypes: [],
     );
 
@@ -11910,14 +11910,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 nonConstantTypeArgument = DiagnosticWithArguments(
-  name: 'NON_CONSTANT_TYPE_ARGUMENT',
+  name: 'non_constant_type_argument',
   problemMessage:
       "The type arguments to '{0}' must be known at compile time, so they can't "
       "be type parameters.",
   correctionMessage: "Try changing the type argument to be a constant type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_CONSTANT_TYPE_ARGUMENT',
+  uniqueName: 'non_constant_type_argument',
   withArguments: _withArgumentsNonConstantTypeArgument,
   expectedTypes: [ExpectedType.string],
 );
@@ -11928,12 +11928,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 nonConstArgumentForConstParameter = DiagnosticWithArguments(
-  name: 'NON_CONST_ARGUMENT_FOR_CONST_PARAMETER',
+  name: 'non_const_argument_for_const_parameter',
   problemMessage: "Argument '{0}' must be a constant.",
   correctionMessage: "Try replacing the argument with a constant.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'NON_CONST_ARGUMENT_FOR_CONST_PARAMETER',
+  uniqueName: 'non_const_argument_for_const_parameter',
   withArguments: _withArgumentsNonConstArgumentForConstParameter,
   expectedTypes: [ExpectedType.string],
 );
@@ -11947,14 +11947,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 nonConstCallToLiteralConstructor = DiagnosticWithArguments(
-  name: 'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
+  name: 'non_const_call_to_literal_constructor',
   problemMessage:
       "This instance creation must be 'const', because the {0} constructor is "
       "marked as '@literal'.",
   correctionMessage: "Try adding a 'const' keyword.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
+  uniqueName: 'non_const_call_to_literal_constructor',
   withArguments: _withArgumentsNonConstCallToLiteralConstructor,
   expectedTypes: [ExpectedType.string],
 );
@@ -11968,14 +11968,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 nonConstCallToLiteralConstructorUsingNew = DiagnosticWithArguments(
-  name: 'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
+  name: 'non_const_call_to_literal_constructor',
   problemMessage:
       "This instance creation must be 'const', because the {0} constructor is "
       "marked as '@literal'.",
   correctionMessage: "Try replacing the 'new' keyword with 'const'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
+  uniqueName: 'non_const_call_to_literal_constructor_using_new',
   withArguments: _withArgumentsNonConstCallToLiteralConstructorUsingNew,
   expectedTypes: [ExpectedType.string],
 );
@@ -11983,12 +11983,12 @@ nonConstCallToLiteralConstructorUsingNew = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments nonConstGenerativeEnumConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR',
+      name: 'non_const_generative_enum_constructor',
       problemMessage: "Generative enum constructors must be 'const'.",
       correctionMessage: "Try adding the keyword 'const'.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR',
+      uniqueName: 'non_const_generative_enum_constructor',
       expectedTypes: [],
     );
 
@@ -11999,23 +11999,23 @@ const DiagnosticWithoutArguments nonConstGenerativeEnumConstructor =
 /// No parameters.
 const DiagnosticWithoutArguments
 nonConstMapAsExpressionStatement = DiagnosticWithoutArgumentsImpl(
-  name: 'NON_CONST_MAP_AS_EXPRESSION_STATEMENT',
+  name: 'non_const_map_as_expression_statement',
   problemMessage:
       "A non-constant map or set literal without type arguments can't be used as "
       "an expression statement.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_CONST_MAP_AS_EXPRESSION_STATEMENT',
+  uniqueName: 'non_const_map_as_expression_statement',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonConstructorFactory =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_CONSTRUCTOR_FACTORY',
+      name: 'non_constructor_factory',
       problemMessage: "Only a constructor can be declared to be a factory.",
       correctionMessage: "Try removing the keyword 'factory'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'NON_CONSTRUCTOR_FACTORY',
+      uniqueName: 'non_constructor_factory',
       expectedTypes: [],
     );
 
@@ -12023,7 +12023,7 @@ const DiagnosticWithoutArguments nonConstructorFactory =
 const DiagnosticWithoutArguments
 nonCovariantTypeParameterPositionInRepresentationType =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE',
+      name: 'non_covariant_type_parameter_position_in_representation_type',
       problemMessage:
           "An extension type parameter can't be used in a non-covariant position of "
           "its representation type.",
@@ -12033,7 +12033,7 @@ nonCovariantTypeParameterPositionInRepresentationType =
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
       uniqueName:
-          'NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE',
+          'non_covariant_type_parameter_position_in_representation_type',
       expectedTypes: [],
     );
 
@@ -12049,14 +12049,14 @@ const DiagnosticWithArguments<
   })
 >
 nonExhaustiveSwitchExpression = DiagnosticWithArguments(
-  name: 'NON_EXHAUSTIVE_SWITCH_EXPRESSION',
+  name: 'non_exhaustive_switch_expression',
   problemMessage:
       "The type '{0}' isn't exhaustively matched by the switch cases since it "
       "doesn't match the pattern '{1}'.",
   correctionMessage: "Try adding a wildcard pattern or cases that match '{2}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_EXHAUSTIVE_SWITCH_EXPRESSION',
+  uniqueName: 'non_exhaustive_switch_expression',
   withArguments: _withArgumentsNonExhaustiveSwitchExpression,
   expectedTypes: [ExpectedType.type, ExpectedType.string, ExpectedType.string],
 );
@@ -12067,14 +12067,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType type})
 >
 nonExhaustiveSwitchExpressionPrivate = DiagnosticWithArguments(
-  name: 'NON_EXHAUSTIVE_SWITCH_EXPRESSION',
+  name: 'non_exhaustive_switch_expression',
   problemMessage:
       "The enum '{0}' isn't exhaustively matched by the switch cases because "
       "some of the enum constants are private.",
   correctionMessage: "Try adding a wildcard pattern.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_EXHAUSTIVE_SWITCH_EXPRESSION_PRIVATE',
+  uniqueName: 'non_exhaustive_switch_expression_private',
   withArguments: _withArgumentsNonExhaustiveSwitchExpressionPrivate,
   expectedTypes: [ExpectedType.type],
 );
@@ -12091,14 +12091,14 @@ const DiagnosticWithArguments<
   })
 >
 nonExhaustiveSwitchStatement = DiagnosticWithArguments(
-  name: 'NON_EXHAUSTIVE_SWITCH_STATEMENT',
+  name: 'non_exhaustive_switch_statement',
   problemMessage:
       "The type '{0}' isn't exhaustively matched by the switch cases since it "
       "doesn't match the pattern '{1}'.",
   correctionMessage: "Try adding a default case or cases that match '{2}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_EXHAUSTIVE_SWITCH_STATEMENT',
+  uniqueName: 'non_exhaustive_switch_statement',
   withArguments: _withArgumentsNonExhaustiveSwitchStatement,
   expectedTypes: [ExpectedType.type, ExpectedType.string, ExpectedType.string],
 );
@@ -12109,14 +12109,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType type})
 >
 nonExhaustiveSwitchStatementPrivate = DiagnosticWithArguments(
-  name: 'NON_EXHAUSTIVE_SWITCH_STATEMENT',
+  name: 'non_exhaustive_switch_statement',
   problemMessage:
       "The enum '{0}' isn't exhaustively matched by the switch cases because "
       "some of the enum constants are private.",
   correctionMessage: "Try adding a default case.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_EXHAUSTIVE_SWITCH_STATEMENT_PRIVATE',
+  uniqueName: 'non_exhaustive_switch_statement_private',
   withArguments: _withArgumentsNonExhaustiveSwitchStatementPrivate,
   expectedTypes: [ExpectedType.type],
 );
@@ -12124,12 +12124,12 @@ nonExhaustiveSwitchStatementPrivate = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments nonFinalFieldInEnum =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_FINAL_FIELD_IN_ENUM',
+      name: 'non_final_field_in_enum',
       problemMessage: "Enums can only declare final fields.",
       correctionMessage: "Try making the field final.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_FINAL_FIELD_IN_ENUM',
+      uniqueName: 'non_final_field_in_enum',
       expectedTypes: [],
     );
 
@@ -12139,7 +12139,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Element p0})
 >
 nonGenerativeConstructor = DiagnosticWithArguments(
-  name: 'NON_GENERATIVE_CONSTRUCTOR',
+  name: 'non_generative_constructor',
   problemMessage:
       "The generative constructor '{0}' is expected, but a factory was found.",
   correctionMessage:
@@ -12147,7 +12147,7 @@ nonGenerativeConstructor = DiagnosticWithArguments(
       "called constructor not be a factory constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_GENERATIVE_CONSTRUCTOR',
+  uniqueName: 'non_generative_constructor',
   withArguments: _withArgumentsNonGenerativeConstructor,
   expectedTypes: [ExpectedType.element],
 );
@@ -12164,7 +12164,7 @@ const DiagnosticWithArguments<
   })
 >
 nonGenerativeImplicitConstructor = DiagnosticWithArguments(
-  name: 'NON_GENERATIVE_IMPLICIT_CONSTRUCTOR',
+  name: 'non_generative_implicit_constructor',
   problemMessage:
       "The unnamed constructor of superclass '{0}' (called by the default "
       "constructor of '{1}') must be a generative constructor, but factory "
@@ -12175,7 +12175,7 @@ nonGenerativeImplicitConstructor = DiagnosticWithArguments(
       "be a factory constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_GENERATIVE_IMPLICIT_CONSTRUCTOR',
+  uniqueName: 'non_generative_implicit_constructor',
   withArguments: _withArgumentsNonGenerativeImplicitConstructor,
   expectedTypes: [
     ExpectedType.string,
@@ -12187,11 +12187,11 @@ nonGenerativeImplicitConstructor = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments nonIdentifierLibraryName =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_IDENTIFIER_LIBRARY_NAME',
+      name: 'non_identifier_library_name',
       problemMessage: "The name of a library must be an identifier.",
       correctionMessage: "Try using an identifier as the name of the library.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'NON_IDENTIFIER_LIBRARY_NAME',
+      uniqueName: 'non_identifier_library_name',
       expectedTypes: [],
     );
 
@@ -12201,7 +12201,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0})
 >
 nonNativeFunctionTypeArgumentToPointer = DiagnosticWithArguments(
-  name: 'NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER',
+  name: 'non_native_function_type_argument_to_pointer',
   problemMessage:
       "Can't invoke 'asFunction' because the function signature '{0}' for the "
       "pointer isn't a valid C function signature.",
@@ -12210,7 +12210,7 @@ nonNativeFunctionTypeArgumentToPointer = DiagnosticWithArguments(
       "NativeTypes.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER',
+  uniqueName: 'non_native_function_type_argument_to_pointer',
   withArguments: _withArgumentsNonNativeFunctionTypeArgumentToPointer,
   expectedTypes: [ExpectedType.type],
 );
@@ -12218,45 +12218,45 @@ nonNativeFunctionTypeArgumentToPointer = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments nonNullableEqualsParameter =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_NULLABLE_EQUALS_PARAMETER',
+      name: 'non_nullable_equals_parameter',
       problemMessage:
           "The parameter type of '==' operators should be non-nullable.",
       correctionMessage: "Try using a non-nullable type.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'NON_NULLABLE_EQUALS_PARAMETER',
+      uniqueName: 'non_nullable_equals_parameter',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 nonPartOfDirectiveInPart = DiagnosticWithoutArgumentsImpl(
-  name: 'NON_PART_OF_DIRECTIVE_IN_PART',
+  name: 'non_part_of_directive_in_part',
   problemMessage: "The part-of directive must be the only directive in a part.",
   correctionMessage:
       "Try removing the other directives, or moving them to the library for "
       "which this is a part.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'NON_PART_OF_DIRECTIVE_IN_PART',
+  uniqueName: 'non_part_of_directive_in_part',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonPositiveArrayDimension =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_POSITIVE_ARRAY_DIMENSION',
+      name: 'non_positive_array_dimension',
       problemMessage: "Array dimensions must be positive numbers.",
       correctionMessage: "Try changing the input to a positive number.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_POSITIVE_ARRAY_DIMENSION',
+      uniqueName: 'non_positive_array_dimension',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 nonRedirectingGenerativeConstructorWithPrimary = DiagnosticWithoutArgumentsImpl(
-  name: 'NON_REDIRECTING_GENERATIVE_CONSTRUCTOR_WITH_PRIMARY',
+  name: 'non_redirecting_generative_constructor_with_primary',
   problemMessage:
       "Classes with primary constructors can't have non-redirecting generative "
       "constructors.",
@@ -12264,7 +12264,7 @@ nonRedirectingGenerativeConstructorWithPrimary = DiagnosticWithoutArgumentsImpl(
       "Try making the constructor redirect to the primary constructor, or "
       "remove the primary constructor.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_REDIRECTING_GENERATIVE_CONSTRUCTOR_WITH_PRIMARY',
+  uniqueName: 'non_redirecting_generative_constructor_with_primary',
   expectedTypes: [],
 );
 
@@ -12273,7 +12273,7 @@ nonRedirectingGenerativeConstructorWithPrimary = DiagnosticWithoutArgumentsImpl(
 /// No parameters.
 const DiagnosticWithoutArguments
 nonResizableActivity = DiagnosticWithoutArgumentsImpl(
-  name: 'NON_RESIZABLE_ACTIVITY',
+  name: 'non_resizable_activity',
   problemMessage:
       "The `<activity>` element should be allowed to be resized to allow users "
       "to take advantage of the multi-window environment on Chrome OS",
@@ -12281,7 +12281,7 @@ nonResizableActivity = DiagnosticWithoutArgumentsImpl(
       "Consider declaring the corresponding activity element with "
       "`resizableActivity=\"true\"` attribute.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'NON_RESIZABLE_ACTIVITY',
+  uniqueName: 'non_resizable_activity',
   expectedTypes: [],
 );
 
@@ -12292,7 +12292,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required DartType p1})
 >
 nonSizedTypeArgument = DiagnosticWithArguments(
-  name: 'NON_SIZED_TYPE_ARGUMENT',
+  name: 'non_sized_type_argument',
   problemMessage:
       "The type '{1}' isn't a valid type argument for '{0}'. The type argument "
       "must be a native integer, 'Float', 'Double', 'Pointer', or subtype of "
@@ -12302,7 +12302,7 @@ nonSizedTypeArgument = DiagnosticWithArguments(
       "of 'Struct', 'Union', or 'AbiSpecificInteger'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_SIZED_TYPE_ARGUMENT',
+  uniqueName: 'non_sized_type_argument',
   withArguments: _withArgumentsNonSizedTypeArgument,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
@@ -12310,23 +12310,23 @@ nonSizedTypeArgument = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments nonStringLiteralAsUri =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_STRING_LITERAL_AS_URI',
+      name: 'non_string_literal_as_uri',
       problemMessage: "The URI must be a string literal.",
       correctionMessage:
           "Try enclosing the URI in either single or double quotes.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'NON_STRING_LITERAL_AS_URI',
+      uniqueName: 'non_string_literal_as_uri',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonSyncFactory =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_SYNC_FACTORY',
+      name: 'non_sync_factory',
       problemMessage: "Factory bodies can't use 'async', 'async*', or 'sync*'.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_SYNC_FACTORY',
+      uniqueName: 'non_sync_factory',
       expectedTypes: [],
     );
 
@@ -12336,7 +12336,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 nonTypeAsTypeArgument = DiagnosticWithArguments(
-  name: 'NON_TYPE_AS_TYPE_ARGUMENT',
+  name: 'non_type_as_type_argument',
   problemMessage:
       "The name '{0}' isn't a type, so it can't be used as a type argument.",
   correctionMessage:
@@ -12345,7 +12345,7 @@ nonTypeAsTypeArgument = DiagnosticWithArguments(
   hasPublishedDocs: true,
   isUnresolvedIdentifier: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_TYPE_AS_TYPE_ARGUMENT',
+  uniqueName: 'non_type_as_type_argument',
   withArguments: _withArgumentsNonTypeAsTypeArgument,
   expectedTypes: [ExpectedType.string],
 );
@@ -12356,13 +12356,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 nonTypeInCatchClause = DiagnosticWithArguments(
-  name: 'NON_TYPE_IN_CATCH_CLAUSE',
+  name: 'non_type_in_catch_clause',
   problemMessage:
       "The name '{0}' isn't a type and can't be used in an on-catch clause.",
   correctionMessage: "Try correcting the name to match an existing class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NON_TYPE_IN_CATCH_CLAUSE',
+  uniqueName: 'non_type_in_catch_clause',
   withArguments: _withArgumentsNonTypeInCatchClause,
   expectedTypes: [ExpectedType.string],
 );
@@ -12373,10 +12373,10 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 nonUserDefinableOperator = DiagnosticWithArguments(
-  name: 'NON_USER_DEFINABLE_OPERATOR',
+  name: 'non_user_definable_operator',
   problemMessage: "The operator '{0}' isn't user definable.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'NON_USER_DEFINABLE_OPERATOR',
+  uniqueName: 'non_user_definable_operator',
   withArguments: _withArgumentsNonUserDefinableOperator,
   expectedTypes: [ExpectedType.object],
 );
@@ -12384,40 +12384,40 @@ nonUserDefinableOperator = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments nonVoidReturnForOperator =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_VOID_RETURN_FOR_OPERATOR',
+      name: 'non_void_return_for_operator',
       problemMessage: "The return type of the operator []= must be 'void'.",
       correctionMessage: "Try changing the return type to 'void'.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_VOID_RETURN_FOR_OPERATOR',
+      uniqueName: 'non_void_return_for_operator',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonVoidReturnForSetter =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NON_VOID_RETURN_FOR_SETTER',
+      name: 'non_void_return_for_setter',
       problemMessage: "The return type of the setter must be 'void' or absent.",
       correctionMessage:
           "Try removing the return type, or define a method rather than a "
           "setter.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NON_VOID_RETURN_FOR_SETTER',
+      uniqueName: 'non_void_return_for_setter',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments normalBeforeOptionalParameters =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NORMAL_BEFORE_OPTIONAL_PARAMETERS',
+      name: 'normal_before_optional_parameters',
       problemMessage:
           "Normal parameters must occur before optional parameters.",
       correctionMessage:
           "Try moving all of the normal parameters before the optional "
           "parameters.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'NORMAL_BEFORE_OPTIONAL_PARAMETERS',
+      uniqueName: 'normal_before_optional_parameters',
       expectedTypes: [],
     );
 
@@ -12427,7 +12427,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 notAssignedPotentiallyNonNullableLocalVariable = DiagnosticWithArguments(
-  name: 'NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE',
+  name: 'not_assigned_potentially_non_nullable_local_variable',
   problemMessage:
       "The non-nullable local variable '{0}' must be assigned before it can be "
       "used.",
@@ -12436,7 +12436,7 @@ notAssignedPotentiallyNonNullableLocalVariable = DiagnosticWithArguments(
       "on every execution path.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE',
+  uniqueName: 'not_assigned_potentially_non_nullable_local_variable',
   withArguments: _withArgumentsNotAssignedPotentiallyNonNullableLocalVariable,
   expectedTypes: [ExpectedType.string],
 );
@@ -12447,12 +12447,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 notAType = DiagnosticWithArguments(
-  name: 'NOT_A_TYPE',
+  name: 'not_a_type',
   problemMessage: "{0} isn't a type.",
   correctionMessage: "Try correcting the name to match an existing type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NOT_A_TYPE',
+  uniqueName: 'not_a_type',
   withArguments: _withArgumentsNotAType,
   expectedTypes: [ExpectedType.string],
 );
@@ -12463,11 +12463,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 notBinaryOperator = DiagnosticWithArguments(
-  name: 'NOT_BINARY_OPERATOR',
+  name: 'not_binary_operator',
   problemMessage: "'{0}' isn't a binary operator.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NOT_BINARY_OPERATOR',
+  uniqueName: 'not_binary_operator',
   withArguments: _withArgumentsNotBinaryOperator,
   expectedTypes: [ExpectedType.string],
 );
@@ -12484,12 +12484,12 @@ const DiagnosticWithArguments<
   })
 >
 notEnoughPositionalArgumentsNamePlural = DiagnosticWithArguments(
-  name: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+  name: 'not_enough_positional_arguments',
   problemMessage: "{0} positional arguments expected by '{2}', but {1} found.",
   correctionMessage: "Try adding the missing arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL',
+  uniqueName: 'not_enough_positional_arguments_name_plural',
   withArguments: _withArgumentsNotEnoughPositionalArgumentsNamePlural,
   expectedTypes: [ExpectedType.int, ExpectedType.int, ExpectedType.string],
 );
@@ -12500,12 +12500,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 notEnoughPositionalArgumentsNameSingular = DiagnosticWithArguments(
-  name: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+  name: 'not_enough_positional_arguments',
   problemMessage: "1 positional argument expected by '{0}', but 0 found.",
   correctionMessage: "Try adding the missing argument.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR',
+  uniqueName: 'not_enough_positional_arguments_name_singular',
   withArguments: _withArgumentsNotEnoughPositionalArgumentsNameSingular,
   expectedTypes: [ExpectedType.string],
 );
@@ -12517,12 +12517,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required int p0, required int p1})
 >
 notEnoughPositionalArgumentsPlural = DiagnosticWithArguments(
-  name: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+  name: 'not_enough_positional_arguments',
   problemMessage: "{0} positional arguments expected, but {1} found.",
   correctionMessage: "Try adding the missing arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL',
+  uniqueName: 'not_enough_positional_arguments_plural',
   withArguments: _withArgumentsNotEnoughPositionalArgumentsPlural,
   expectedTypes: [ExpectedType.int, ExpectedType.int],
 );
@@ -12530,12 +12530,12 @@ notEnoughPositionalArgumentsPlural = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments notEnoughPositionalArgumentsSingular =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+      name: 'not_enough_positional_arguments',
       problemMessage: "1 positional argument expected, but 0 found.",
       correctionMessage: "Try adding the missing argument.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR',
+      uniqueName: 'not_enough_positional_arguments_singular',
       expectedTypes: [],
     );
 
@@ -12545,14 +12545,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 notInitializedNonNullableInstanceField = DiagnosticWithArguments(
-  name: 'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
+  name: 'not_initialized_non_nullable_instance_field',
   problemMessage: "Non-nullable instance field '{0}' must be initialized.",
   correctionMessage:
       "Try adding an initializer expression, or a generative constructor "
       "that initializes it, or mark it 'late'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
+  uniqueName: 'not_initialized_non_nullable_instance_field',
   withArguments: _withArgumentsNotInitializedNonNullableInstanceField,
   expectedTypes: [ExpectedType.string],
 );
@@ -12563,14 +12563,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 notInitializedNonNullableInstanceFieldConstructor = DiagnosticWithArguments(
-  name: 'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
+  name: 'not_initialized_non_nullable_instance_field',
   problemMessage: "Non-nullable instance field '{0}' must be initialized.",
   correctionMessage:
       "Try adding an initializer expression, or add a field initializer in "
       "this constructor, or mark it 'late'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR',
+  uniqueName: 'not_initialized_non_nullable_instance_field_constructor',
   withArguments:
       _withArgumentsNotInitializedNonNullableInstanceFieldConstructor,
   expectedTypes: [ExpectedType.string],
@@ -12582,12 +12582,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 notInitializedNonNullableVariable = DiagnosticWithArguments(
-  name: 'NOT_INITIALIZED_NON_NULLABLE_VARIABLE',
+  name: 'not_initialized_non_nullable_variable',
   problemMessage: "The non-nullable variable '{0}' must be initialized.",
   correctionMessage: "Try adding an initializer expression.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NOT_INITIALIZED_NON_NULLABLE_VARIABLE',
+  uniqueName: 'not_initialized_non_nullable_variable',
   withArguments: _withArgumentsNotInitializedNonNullableVariable,
   expectedTypes: [ExpectedType.string],
 );
@@ -12595,45 +12595,45 @@ notInitializedNonNullableVariable = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments notInstantiatedBound =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NOT_INSTANTIATED_BOUND',
+      name: 'not_instantiated_bound',
       problemMessage: "Type parameter bound types must be instantiated.",
       correctionMessage:
           "Try adding type arguments to the type parameter bound.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NOT_INSTANTIATED_BOUND',
+      uniqueName: 'not_instantiated_bound',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments notIterableSpread =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NOT_ITERABLE_SPREAD',
+      name: 'not_iterable_spread',
       problemMessage:
           "Spread elements in list or set literals must implement 'Iterable'.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NOT_ITERABLE_SPREAD',
+      uniqueName: 'not_iterable_spread',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments notMapSpread = DiagnosticWithoutArgumentsImpl(
-  name: 'NOT_MAP_SPREAD',
+  name: 'not_map_spread',
   problemMessage: "Spread elements in map literals must implement 'Map'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NOT_MAP_SPREAD',
+  uniqueName: 'not_map_spread',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 notNullAwareNullSpread = DiagnosticWithoutArgumentsImpl(
-  name: 'NOT_NULL_AWARE_NULL_SPREAD',
+  name: 'not_null_aware_null_spread',
   problemMessage:
       "The Null-typed expression can't be used with a non-null-aware spread.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'NOT_NULL_AWARE_NULL_SPREAD',
+  uniqueName: 'not_null_aware_null_spread',
   expectedTypes: [],
 );
 
@@ -12643,7 +12643,7 @@ notNullAwareNullSpread = DiagnosticWithoutArgumentsImpl(
 /// No parameters.
 const DiagnosticWithoutArguments
 noTouchscreenFeature = DiagnosticWithoutArgumentsImpl(
-  name: 'NO_TOUCHSCREEN_FEATURE',
+  name: 'no_touchscreen_feature',
   problemMessage:
       "The default \"android.hardware.touchscreen\" needs to be optional for "
       "Chrome OS.",
@@ -12652,71 +12652,71 @@ noTouchscreenFeature = DiagnosticWithoutArgumentsImpl(
       "android:name=\"android.hardware.touchscreen\" android:required=\"false\" "
       "/> to the manifest.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'NO_TOUCHSCREEN_FEATURE',
+  uniqueName: 'no_touchscreen_feature',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 nullableTypeInCatchClause = DiagnosticWithoutArgumentsImpl(
-  name: 'NULLABLE_TYPE_IN_CATCH_CLAUSE',
+  name: 'nullable_type_in_catch_clause',
   problemMessage:
       "A potentially nullable type can't be used in an 'on' clause because it "
       "isn't valid to throw a nullable expression.",
   correctionMessage: "Try using a non-nullable type.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'NULLABLE_TYPE_IN_CATCH_CLAUSE',
+  uniqueName: 'nullable_type_in_catch_clause',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments nullableTypeInExtendsClause =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NULLABLE_TYPE_IN_EXTENDS_CLAUSE',
+      name: 'nullable_type_in_extends_clause',
       problemMessage: "A class can't extend a nullable type.",
       correctionMessage: "Try removing the question mark.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NULLABLE_TYPE_IN_EXTENDS_CLAUSE',
+      uniqueName: 'nullable_type_in_extends_clause',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments nullableTypeInImplementsClause =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE',
+      name: 'nullable_type_in_implements_clause',
       problemMessage:
           "A class, mixin, or extension type can't implement a nullable type.",
       correctionMessage: "Try removing the question mark.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE',
+      uniqueName: 'nullable_type_in_implements_clause',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments nullableTypeInOnClause =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NULLABLE_TYPE_IN_ON_CLAUSE',
+      name: 'nullable_type_in_on_clause',
       problemMessage:
           "A mixin can't have a nullable type as a superclass constraint.",
       correctionMessage: "Try removing the question mark.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NULLABLE_TYPE_IN_ON_CLAUSE',
+      uniqueName: 'nullable_type_in_on_clause',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments nullableTypeInWithClause =
     DiagnosticWithoutArgumentsImpl(
-      name: 'NULLABLE_TYPE_IN_WITH_CLAUSE',
+      name: 'nullable_type_in_with_clause',
       problemMessage: "A class or mixin can't mix in a nullable type.",
       correctionMessage: "Try removing the question mark.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'NULLABLE_TYPE_IN_WITH_CLAUSE',
+      uniqueName: 'nullable_type_in_with_clause',
       expectedTypes: [],
     );
 
@@ -12727,14 +12727,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 nullArgumentToNonNullType = DiagnosticWithArguments(
-  name: 'NULL_ARGUMENT_TO_NON_NULL_TYPE',
+  name: 'null_argument_to_non_null_type',
   problemMessage:
       "'{0}' shouldn't be called with a 'null' argument for the non-nullable "
       "type argument '{1}'.",
   correctionMessage: "Try adding a non-null argument.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'NULL_ARGUMENT_TO_NON_NULL_TYPE',
+  uniqueName: 'null_argument_to_non_null_type',
   withArguments: _withArgumentsNullArgumentToNonNullType,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -12742,27 +12742,27 @@ nullArgumentToNonNullType = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 nullAwareCascadeOutOfOrder = DiagnosticWithoutArgumentsImpl(
-  name: 'NULL_AWARE_CASCADE_OUT_OF_ORDER',
+  name: 'null_aware_cascade_out_of_order',
   problemMessage:
       "The '?..' cascade operator must be first in the cascade sequence.",
   correctionMessage:
       "Try moving the '?..' operator to be the first cascade operator in the "
       "sequence.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'NULL_AWARE_CASCADE_OUT_OF_ORDER',
+  uniqueName: 'null_aware_cascade_out_of_order',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 nullCheckAlwaysFails = DiagnosticWithoutArgumentsImpl(
-  name: 'NULL_CHECK_ALWAYS_FAILS',
+  name: 'null_check_always_fails',
   problemMessage:
       "This null-check will always throw an exception because the expression "
       "will always evaluate to 'null'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'NULL_CHECK_ALWAYS_FAILS',
+  uniqueName: 'null_check_always_fails',
   expectedTypes: [],
 );
 
@@ -12772,24 +12772,24 @@ nullCheckAlwaysFails = DiagnosticWithoutArgumentsImpl(
 /// No parameters.
 const DiagnosticWithoutArguments objectCannotExtendAnotherClass =
     DiagnosticWithoutArgumentsImpl(
-      name: 'OBJECT_CANNOT_EXTEND_ANOTHER_CLASS',
+      name: 'object_cannot_extend_another_class',
       problemMessage: "The class 'Object' can't extend any other class.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'OBJECT_CANNOT_EXTEND_ANOTHER_CLASS',
+      uniqueName: 'object_cannot_extend_another_class',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments obsoleteColonForDefaultValue =
     DiagnosticWithoutArgumentsImpl(
-      name: 'OBSOLETE_COLON_FOR_DEFAULT_VALUE',
+      name: 'obsolete_colon_for_default_value',
       problemMessage:
           "Using a colon as the separator before a default value is no longer "
           "supported.",
       correctionMessage: "Try replacing the colon with an equal sign.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'OBSOLETE_COLON_FOR_DEFAULT_VALUE',
+      uniqueName: 'obsolete_colon_for_default_value',
       expectedTypes: [],
     );
 
@@ -12799,13 +12799,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 onRepeated = DiagnosticWithArguments(
-  name: 'ON_REPEATED',
+  name: 'on_repeated',
   problemMessage:
       "The type '{0}' can be included in the superclass constraints only once.",
   correctionMessage: "Try removing all except one occurrence of the type name.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'ON_REPEATED',
+  uniqueName: 'on_repeated',
   withArguments: _withArgumentsOnRepeated,
   expectedTypes: [ExpectedType.string],
 );
@@ -12813,13 +12813,13 @@ onRepeated = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments optionalParameterInOperator =
     DiagnosticWithoutArgumentsImpl(
-      name: 'OPTIONAL_PARAMETER_IN_OPERATOR',
+      name: 'optional_parameter_in_operator',
       problemMessage:
           "Optional parameters aren't allowed when defining an operator.",
       correctionMessage: "Try removing the optional parameters.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'OPTIONAL_PARAMETER_IN_OPERATOR',
+      uniqueName: 'optional_parameter_in_operator',
       expectedTypes: [],
     );
 
@@ -12833,11 +12833,11 @@ const DiagnosticWithArguments<
   })
 >
 outOfOrderClauses = DiagnosticWithArguments(
-  name: 'OUT_OF_ORDER_CLAUSES',
+  name: 'out_of_order_clauses',
   problemMessage: "The '{0}' clause must come before the '{1}' clause.",
   correctionMessage: "Try moving the '{0}' clause before the '{1}' clause.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'OUT_OF_ORDER_CLAUSES',
+  uniqueName: 'out_of_order_clauses',
   withArguments: _withArgumentsOutOfOrderClauses,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -12847,7 +12847,7 @@ outOfOrderClauses = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments overrideOnNonOverridingField =
     DiagnosticWithoutArgumentsImpl(
-      name: 'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+      name: 'override_on_non_overriding_member',
       problemMessage:
           "The field doesn't override an inherited getter or setter.",
       correctionMessage:
@@ -12855,7 +12855,7 @@ const DiagnosticWithoutArguments overrideOnNonOverridingField =
           "override annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_FIELD',
+      uniqueName: 'override_on_non_overriding_field',
       expectedTypes: [],
     );
 
@@ -12864,14 +12864,14 @@ const DiagnosticWithoutArguments overrideOnNonOverridingField =
 /// No parameters.
 const DiagnosticWithoutArguments overrideOnNonOverridingGetter =
     DiagnosticWithoutArgumentsImpl(
-      name: 'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+      name: 'override_on_non_overriding_member',
       problemMessage: "The getter doesn't override an inherited getter.",
       correctionMessage:
           "Try updating this class to match the superclass, or removing the "
           "override annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_GETTER',
+      uniqueName: 'override_on_non_overriding_getter',
       expectedTypes: [],
     );
 
@@ -12880,14 +12880,14 @@ const DiagnosticWithoutArguments overrideOnNonOverridingGetter =
 /// No parameters.
 const DiagnosticWithoutArguments overrideOnNonOverridingMethod =
     DiagnosticWithoutArgumentsImpl(
-      name: 'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+      name: 'override_on_non_overriding_member',
       problemMessage: "The method doesn't override an inherited method.",
       correctionMessage:
           "Try updating this class to match the superclass, or removing the "
           "override annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_METHOD',
+      uniqueName: 'override_on_non_overriding_method',
       expectedTypes: [],
     );
 
@@ -12896,39 +12896,39 @@ const DiagnosticWithoutArguments overrideOnNonOverridingMethod =
 /// No parameters.
 const DiagnosticWithoutArguments overrideOnNonOverridingSetter =
     DiagnosticWithoutArgumentsImpl(
-      name: 'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+      name: 'override_on_non_overriding_member',
       problemMessage: "The setter doesn't override an inherited setter.",
       correctionMessage:
           "Try updating this class to match the superclass, or removing the "
           "override annotation.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_SETTER',
+      uniqueName: 'override_on_non_overriding_setter',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments packedAnnotation =
     DiagnosticWithoutArgumentsImpl(
-      name: 'PACKED_ANNOTATION',
+      name: 'packed_annotation',
       problemMessage: "Structs must have at most one 'Packed' annotation.",
       correctionMessage: "Try removing extra 'Packed' annotations.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'PACKED_ANNOTATION',
+      uniqueName: 'packed_annotation',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 packedAnnotationAlignment = DiagnosticWithoutArgumentsImpl(
-  name: 'PACKED_ANNOTATION_ALIGNMENT',
+  name: 'packed_annotation_alignment',
   problemMessage: "Only packing to 1, 2, 4, 8, and 16 bytes is supported.",
   correctionMessage:
       "Try changing the 'Packed' annotation alignment to 1, 2, 4, 8, or 16.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'PACKED_ANNOTATION_ALIGNMENT',
+  uniqueName: 'packed_annotation_alignment',
   expectedTypes: [],
 );
 
@@ -12940,10 +12940,10 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String errorMessage})
 >
 parseError = DiagnosticWithArguments(
-  name: 'PARSE_ERROR',
+  name: 'parse_error',
   problemMessage: "{0}",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'PARSE_ERROR',
+  uniqueName: 'parse_error',
   withArguments: _withArgumentsParseError,
   expectedTypes: [ExpectedType.string],
 );
@@ -12956,26 +12956,26 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 partOfDifferentLibrary = DiagnosticWithArguments(
-  name: 'PART_OF_DIFFERENT_LIBRARY',
+  name: 'part_of_different_library',
   problemMessage: "Expected this library to be part of '{0}', not '{1}'.",
   correctionMessage:
       "Try including a different part, or changing the name of the library "
       "in the part's part-of directive.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'PART_OF_DIFFERENT_LIBRARY',
+  uniqueName: 'part_of_different_library',
   withArguments: _withArgumentsPartOfDifferentLibrary,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments partOfName = DiagnosticWithoutArgumentsImpl(
-  name: 'PART_OF_NAME',
+  name: 'part_of_name',
   problemMessage:
       "The 'part of' directive can't use a name with the enhanced-parts feature.",
   correctionMessage: "Try using 'part of' with a URI instead.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'PART_OF_NAME',
+  uniqueName: 'part_of_name',
   expectedTypes: [],
 );
 
@@ -12985,12 +12985,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 partOfNonPart = DiagnosticWithArguments(
-  name: 'PART_OF_NON_PART',
+  name: 'part_of_non_part',
   problemMessage: "The included part '{0}' must have a part-of directive.",
   correctionMessage: "Try adding a part-of directive to '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'PART_OF_NON_PART',
+  uniqueName: 'part_of_non_part',
   withArguments: _withArgumentsPartOfNonPart,
   expectedTypes: [ExpectedType.string],
 );
@@ -13002,7 +13002,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 partOfUnnamedLibrary = DiagnosticWithArguments(
-  name: 'PART_OF_UNNAMED_LIBRARY',
+  name: 'part_of_unnamed_library',
   problemMessage:
       "The library is unnamed. A URI is expected, not a library name '{0}', in "
       "the part-of directive.",
@@ -13011,7 +13011,7 @@ partOfUnnamedLibrary = DiagnosticWithArguments(
       "different part.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'PART_OF_UNNAMED_LIBRARY',
+  uniqueName: 'part_of_unnamed_library',
   withArguments: _withArgumentsPartOfUnnamedLibrary,
   expectedTypes: [ExpectedType.string],
 );
@@ -13022,13 +13022,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 pathDoesNotExist = DiagnosticWithArguments(
-  name: 'PATH_DOES_NOT_EXIST',
+  name: 'path_does_not_exist',
   problemMessage: "The path '{0}' doesn't exist.",
   correctionMessage:
       "Try creating the referenced path or using a path that exists.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PATH_DOES_NOT_EXIST',
+  uniqueName: 'path_does_not_exist',
   withArguments: _withArgumentsPathDoesNotExist,
   expectedTypes: [ExpectedType.string],
 );
@@ -13039,12 +13039,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 pathNotPosix = DiagnosticWithArguments(
-  name: 'PATH_NOT_POSIX',
+  name: 'path_not_posix',
   problemMessage: "The path '{0}' isn't a POSIX-style path.",
   correctionMessage: "Try converting the value to a POSIX-style path.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PATH_NOT_POSIX',
+  uniqueName: 'path_not_posix',
   withArguments: _withArgumentsPathNotPosix,
   expectedTypes: [ExpectedType.string],
 );
@@ -13055,14 +13055,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 pathPubspecDoesNotExist = DiagnosticWithArguments(
-  name: 'PATH_PUBSPEC_DOES_NOT_EXIST',
+  name: 'path_pubspec_does_not_exist',
   problemMessage: "The directory '{0}' doesn't contain a pubspec.",
   correctionMessage:
       "Try creating a pubspec in the referenced directory or using a path "
       "that has a pubspec.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PATH_PUBSPEC_DOES_NOT_EXIST',
+  uniqueName: 'path_pubspec_does_not_exist',
   withArguments: _withArgumentsPathPubspecDoesNotExist,
   expectedTypes: [ExpectedType.string],
 );
@@ -13071,40 +13071,40 @@ pathPubspecDoesNotExist = DiagnosticWithArguments(
 /// Name name: undocumented
 const DiagnosticCode patternAssignmentDeclaresVariable =
     DiagnosticCodeWithExpectedTypes(
-      name: 'PATTERN_ASSIGNMENT_DECLARES_VARIABLE',
+      name: 'pattern_assignment_declares_variable',
       problemMessage:
           "Variable '{0}' can't be declared in a pattern assignment.",
       correctionMessage:
           "Try using a preexisting variable or changing the assignment to a "
           "pattern variable declaration.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'PATTERN_ASSIGNMENT_DECLARES_VARIABLE',
+      uniqueName: 'pattern_assignment_declares_variable',
       expectedTypes: [ExpectedType.name],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments patternAssignmentNotLocalVariable =
     DiagnosticWithoutArgumentsImpl(
-      name: 'PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE',
+      name: 'pattern_assignment_not_local_variable',
       problemMessage:
           "Only local variables can be assigned in pattern assignments.",
       correctionMessage: "Try assigning to a local variable.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE',
+      uniqueName: 'pattern_assignment_not_local_variable',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments patternConstantFromDeferredLibrary =
     DiagnosticWithoutArgumentsImpl(
-      name: 'PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY',
+      name: 'pattern_constant_from_deferred_library',
       problemMessage:
           "Constant values from a deferred library can't be used in patterns.",
       correctionMessage: "Try removing the keyword 'deferred' from the import.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY',
+      uniqueName: 'pattern_constant_from_deferred_library',
       expectedTypes: [],
     );
 
@@ -13115,13 +13115,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 patternNeverMatchesValueType = DiagnosticWithArguments(
-  name: 'PATTERN_NEVER_MATCHES_VALUE_TYPE',
+  name: 'pattern_never_matches_value_type',
   problemMessage:
       "The matched value type '{0}' can never match the required type '{1}'.",
   correctionMessage: "Try using a different pattern.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PATTERN_NEVER_MATCHES_VALUE_TYPE',
+  uniqueName: 'pattern_never_matches_value_type',
   withArguments: _withArgumentsPatternNeverMatchesValueType,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -13133,7 +13133,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 patternTypeMismatchInIrrefutableContext = DiagnosticWithArguments(
-  name: 'PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT',
+  name: 'pattern_type_mismatch_in_irrefutable_context',
   problemMessage:
       "The matched value of type '{0}' isn't assignable to the required type "
       "'{1}'.",
@@ -13142,7 +13142,7 @@ patternTypeMismatchInIrrefutableContext = DiagnosticWithArguments(
       "type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT',
+  uniqueName: 'pattern_type_mismatch_in_irrefutable_context',
   withArguments: _withArgumentsPatternTypeMismatchInIrrefutableContext,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -13150,14 +13150,14 @@ patternTypeMismatchInIrrefutableContext = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 patternVariableAssignmentInsideGuard = DiagnosticWithoutArgumentsImpl(
-  name: 'PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD',
+  name: 'pattern_variable_assignment_inside_guard',
   problemMessage:
       "Pattern variables can't be assigned inside the guard of the enclosing "
       "guarded pattern.",
   correctionMessage: "Try assigning to a different variable.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD',
+  uniqueName: 'pattern_variable_assignment_inside_guard',
   expectedTypes: [],
 );
 
@@ -13167,7 +13167,7 @@ patternVariableAssignmentInsideGuard = DiagnosticWithoutArgumentsImpl(
 const DiagnosticWithoutArguments
 patternVariableDeclarationOutsideFunctionOrMethod =
     DiagnosticWithoutArgumentsImpl(
-      name: 'PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD',
+      name: 'pattern_variable_declaration_outside_function_or_method',
       problemMessage:
           "A pattern variable declaration may not appear outside a function or "
           "method.",
@@ -13175,7 +13175,7 @@ patternVariableDeclarationOutsideFunctionOrMethod =
           "Try declaring ordinary variables and assigning from within a function "
           "or method.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD',
+      uniqueName: 'pattern_variable_declaration_outside_function_or_method',
       expectedTypes: [],
     );
 
@@ -13185,7 +13185,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 patternVariableSharedCaseScopeDifferentFinalityOrType = DiagnosticWithArguments(
-  name: 'INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE',
+  name: 'invalid_pattern_variable_in_shared_case_scope',
   problemMessage:
       "The variable '{0}' doesn't have the same type and/or finality in all "
       "cases that share this body.",
@@ -13194,7 +13194,7 @@ patternVariableSharedCaseScopeDifferentFinalityOrType = DiagnosticWithArguments(
       "all cases.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE',
+  uniqueName: 'pattern_variable_shared_case_scope_different_finality_or_type',
   withArguments:
       _withArgumentsPatternVariableSharedCaseScopeDifferentFinalityOrType,
   expectedTypes: [ExpectedType.string],
@@ -13206,7 +13206,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 patternVariableSharedCaseScopeHasLabel = DiagnosticWithArguments(
-  name: 'INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE',
+  name: 'invalid_pattern_variable_in_shared_case_scope',
   problemMessage:
       "The variable '{0}' is not available because there is a label or 'default' "
       "case.",
@@ -13215,7 +13215,7 @@ patternVariableSharedCaseScopeHasLabel = DiagnosticWithArguments(
       "body.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL',
+  uniqueName: 'pattern_variable_shared_case_scope_has_label',
   withArguments: _withArgumentsPatternVariableSharedCaseScopeHasLabel,
   expectedTypes: [ExpectedType.string],
 );
@@ -13226,7 +13226,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 patternVariableSharedCaseScopeNotAllCases = DiagnosticWithArguments(
-  name: 'INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE',
+  name: 'invalid_pattern_variable_in_shared_case_scope',
   problemMessage:
       "The variable '{0}' is available in some, but not all cases that share "
       "this body.",
@@ -13235,7 +13235,7 @@ patternVariableSharedCaseScopeNotAllCases = DiagnosticWithArguments(
       "all cases.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES',
+  uniqueName: 'pattern_variable_shared_case_scope_not_all_cases',
   withArguments: _withArgumentsPatternVariableSharedCaseScopeNotAllCases,
   expectedTypes: [ExpectedType.string],
 );
@@ -13249,7 +13249,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 permissionImpliesUnsupportedHardware = DiagnosticWithArguments(
-  name: 'PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
+  name: 'permission_implies_unsupported_hardware',
   problemMessage:
       "Permission makes app incompatible for Chrome OS, consider adding optional "
       "{0} feature tag,",
@@ -13257,7 +13257,7 @@ permissionImpliesUnsupportedHardware = DiagnosticWithArguments(
       " Try adding `<uses-feature android:name=\"{0}\"  "
       "android:required=\"false\">`.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
+  uniqueName: 'permission_implies_unsupported_hardware',
   withArguments: _withArgumentsPermissionImpliesUnsupportedHardware,
   expectedTypes: [ExpectedType.object],
 );
@@ -13265,12 +13265,12 @@ permissionImpliesUnsupportedHardware = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments platformValueDisallowed =
     DiagnosticWithoutArgumentsImpl(
-      name: 'PLATFORM_VALUE_DISALLOWED',
+      name: 'platform_value_disallowed',
       problemMessage: "Keys in the `platforms` field can't have values.",
       correctionMessage: "Try removing the value, while keeping the key.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'PLATFORM_VALUE_DISALLOWED',
+      uniqueName: 'platform_value_disallowed',
       expectedTypes: [],
     );
 
@@ -13283,14 +13283,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String contextRoot})
 >
 pluginsInInnerOptions = DiagnosticWithArguments(
-  name: 'PLUGINS_IN_INNER_OPTIONS',
+  name: 'plugins_in_inner_options',
   problemMessage:
       "Plugins can only be specified in the root of a pub workspace or the root "
       "of a package that isn't in a workspace.",
   correctionMessage:
       "Try specifying plugins in an analysis options file at '{0}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'PLUGINS_IN_INNER_OPTIONS',
+  uniqueName: 'plugins_in_inner_options',
   withArguments: _withArgumentsPluginsInInnerOptions,
   expectedTypes: [ExpectedType.string],
 );
@@ -13298,38 +13298,38 @@ pluginsInInnerOptions = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments positionalAfterNamedArgument =
     DiagnosticWithoutArgumentsImpl(
-      name: 'POSITIONAL_AFTER_NAMED_ARGUMENT',
+      name: 'positional_after_named_argument',
       problemMessage: "Positional arguments must occur before named arguments.",
       correctionMessage:
           "Try moving all of the positional arguments before the named "
           "arguments.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'POSITIONAL_AFTER_NAMED_ARGUMENT',
+      uniqueName: 'positional_after_named_argument',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments positionalFieldInObjectPattern =
     DiagnosticWithoutArgumentsImpl(
-      name: 'POSITIONAL_FIELD_IN_OBJECT_PATTERN',
+      name: 'positional_field_in_object_pattern',
       problemMessage: "Object patterns can only use named fields.",
       correctionMessage: "Try specifying the field name.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'POSITIONAL_FIELD_IN_OBJECT_PATTERN',
+      uniqueName: 'positional_field_in_object_pattern',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 positionalParameterOutsideGroup = DiagnosticWithoutArgumentsImpl(
-  name: 'POSITIONAL_PARAMETER_OUTSIDE_GROUP',
+  name: 'positional_parameter_outside_group',
   problemMessage:
       "Positional parameters must be enclosed in square brackets ('[' and ']').",
   correctionMessage:
       "Try surrounding the positional parameters in square brackets.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'POSITIONAL_PARAMETER_OUTSIDE_GROUP',
+  uniqueName: 'positional_parameter_outside_group',
   expectedTypes: [],
 );
 
@@ -13337,7 +13337,7 @@ positionalParameterOutsideGroup = DiagnosticWithoutArgumentsImpl(
 const DiagnosticWithoutArguments
 positionalSuperFormalParameterWithPositionalArgument =
     DiagnosticWithoutArgumentsImpl(
-      name: 'POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT',
+      name: 'positional_super_formal_parameter_with_positional_argument',
       problemMessage:
           "Positional super parameters can't be used when the super constructor "
           "invocation has a positional argument.",
@@ -13346,19 +13346,19 @@ positionalSuperFormalParameterWithPositionalArgument =
           "constructor be either all super parameters or all normal parameters.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT',
+      uniqueName: 'positional_super_formal_parameter_with_positional_argument',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 prefixAfterCombinator = DiagnosticWithoutArgumentsImpl(
-  name: 'PREFIX_AFTER_COMBINATOR',
+  name: 'prefix_after_combinator',
   problemMessage:
       "The prefix ('as' clause) should come before any show/hide combinators.",
   correctionMessage: "Try moving the prefix before the combinators.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'PREFIX_AFTER_COMBINATOR',
+  uniqueName: 'prefix_after_combinator',
   expectedTypes: [],
 );
 
@@ -13368,14 +13368,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 prefixCollidesWithTopLevelMember = DiagnosticWithArguments(
-  name: 'PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER',
+  name: 'prefix_collides_with_top_level_member',
   problemMessage:
       "The name '{0}' is already used as an import prefix and can't be used to "
       "name a top-level element.",
   correctionMessage: "Try renaming either the top-level element or the prefix.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER',
+  uniqueName: 'prefix_collides_with_top_level_member',
   withArguments: _withArgumentsPrefixCollidesWithTopLevelMember,
   expectedTypes: [ExpectedType.object],
 );
@@ -13386,7 +13386,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 prefixIdentifierNotFollowedByDot = DiagnosticWithArguments(
-  name: 'PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT',
+  name: 'prefix_identifier_not_followed_by_dot',
   problemMessage:
       "The name '{0}' refers to an import prefix, so it must be followed by '.'.",
   correctionMessage:
@@ -13394,7 +13394,7 @@ prefixIdentifierNotFollowedByDot = DiagnosticWithArguments(
       "renaming the prefix.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT',
+  uniqueName: 'prefix_identifier_not_followed_by_dot',
   withArguments: _withArgumentsPrefixIdentifierNotFollowedByDot,
   expectedTypes: [ExpectedType.string],
 );
@@ -13405,14 +13405,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 prefixShadowedByLocalDeclaration = DiagnosticWithArguments(
-  name: 'PREFIX_SHADOWED_BY_LOCAL_DECLARATION',
+  name: 'prefix_shadowed_by_local_declaration',
   problemMessage:
       "The prefix '{0}' can't be used here because it's shadowed by a local "
       "declaration.",
   correctionMessage: "Try renaming either the prefix or the local declaration.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'PREFIX_SHADOWED_BY_LOCAL_DECLARATION',
+  uniqueName: 'prefix_shadowed_by_local_declaration',
   withArguments: _withArgumentsPrefixShadowedByLocalDeclaration,
   expectedTypes: [ExpectedType.string],
 );
@@ -13429,14 +13429,14 @@ const DiagnosticWithArguments<
   })
 >
 privateCollisionInMixinApplication = DiagnosticWithArguments(
-  name: 'PRIVATE_COLLISION_IN_MIXIN_APPLICATION',
+  name: 'private_collision_in_mixin_application',
   problemMessage:
       "The private name '{0}', defined by '{1}', conflicts with the same name "
       "defined by '{2}'.",
   correctionMessage: "Try removing '{1}' from the 'with' clause.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'PRIVATE_COLLISION_IN_MIXIN_APPLICATION',
+  uniqueName: 'private_collision_in_mixin_application',
   withArguments: _withArgumentsPrivateCollisionInMixinApplication,
   expectedTypes: [
     ExpectedType.string,
@@ -13448,13 +13448,13 @@ privateCollisionInMixinApplication = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 privateNamedNonFieldParameter = DiagnosticWithoutArgumentsImpl(
-  name: 'PRIVATE_NAMED_NON_FIELD_PARAMETER',
+  name: 'private_named_non_field_parameter',
   problemMessage:
       "Named parameters that don't refer to instance variables can't start with "
       "underscore.",
   hasPublishedDocs: true,
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'PRIVATE_NAMED_NON_FIELD_PARAMETER',
+  uniqueName: 'private_named_non_field_parameter',
   expectedTypes: [],
 );
 
@@ -13465,13 +13465,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String publicName})
 >
 privateNamedParameterDuplicatePublicName = DiagnosticWithArguments(
-  name: 'PRIVATE_NAMED_PARAMETER_DUPLICATE_PUBLIC_NAME',
+  name: 'private_named_parameter_duplicate_public_name',
   problemMessage:
       "The corresponding public name '{0}' is already the name of another "
       "parameter.",
   correctionMessage: "Try renaming one of the parameters.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'PRIVATE_NAMED_PARAMETER_DUPLICATE_PUBLIC_NAME',
+  uniqueName: 'private_named_parameter_duplicate_public_name',
   withArguments: _withArgumentsPrivateNamedParameterDuplicatePublicName,
   expectedTypes: [ExpectedType.string],
 );
@@ -13479,23 +13479,23 @@ privateNamedParameterDuplicatePublicName = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 privateNamedParameterWithoutPublicName = DiagnosticWithoutArgumentsImpl(
-  name: 'PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME',
+  name: 'private_named_parameter_without_public_name',
   problemMessage:
       "A private named parameter must be a public identifier after removing the "
       "leading underscore.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME',
+  uniqueName: 'private_named_parameter_without_public_name',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments privateOptionalParameter =
     DiagnosticWithoutArgumentsImpl(
-      name: 'PRIVATE_OPTIONAL_PARAMETER',
+      name: 'private_optional_parameter',
       problemMessage: "Named parameters can't start with an underscore.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'PRIVATE_OPTIONAL_PARAMETER',
+      uniqueName: 'private_optional_parameter',
       expectedTypes: [],
     );
 
@@ -13505,14 +13505,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 privateSetter = DiagnosticWithArguments(
-  name: 'PRIVATE_SETTER',
+  name: 'private_setter',
   problemMessage:
       "The setter '{0}' is private and can't be accessed outside the library "
       "that declares it.",
   correctionMessage: "Try making it public.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'PRIVATE_SETTER',
+  uniqueName: 'private_setter',
   withArguments: _withArgumentsPrivateSetter,
   expectedTypes: [ExpectedType.string],
 );
@@ -13523,14 +13523,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 readPotentiallyUnassignedFinal = DiagnosticWithArguments(
-  name: 'READ_POTENTIALLY_UNASSIGNED_FINAL',
+  name: 'read_potentially_unassigned_final',
   problemMessage:
       "The final variable '{0}' can't be read because it's potentially "
       "unassigned at this point.",
   correctionMessage: "Ensure that it is assigned on necessary execution paths.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'READ_POTENTIALLY_UNASSIGNED_FINAL',
+  uniqueName: 'read_potentially_unassigned_final',
   withArguments: _withArgumentsReadPotentiallyUnassignedFinal,
   expectedTypes: [ExpectedType.string],
 );
@@ -13549,27 +13549,27 @@ readPotentiallyUnassignedFinal = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 receiverOfTypeNever = DiagnosticWithoutArgumentsImpl(
-  name: 'RECEIVER_OF_TYPE_NEVER',
+  name: 'receiver_of_type_never',
   problemMessage:
       "The receiver is of type 'Never', and will never complete with a value.",
   correctionMessage:
       "Try checking for throw expressions or type errors in the receiver",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'RECEIVER_OF_TYPE_NEVER',
+  uniqueName: 'receiver_of_type_never',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 recordLiteralOnePositionalNoTrailingComma = DiagnosticWithoutArgumentsImpl(
-  name: 'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
+  name: 'record_literal_one_positional_no_trailing_comma',
   problemMessage:
       "A record literal with exactly one positional field requires a trailing "
       "comma.",
   correctionMessage: "Try adding a trailing comma.",
   hasPublishedDocs: true,
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
+  uniqueName: 'record_literal_one_positional_no_trailing_comma',
   expectedTypes: [],
 );
 
@@ -13581,49 +13581,49 @@ recordLiteralOnePositionalNoTrailingComma = DiagnosticWithoutArgumentsImpl(
 /// No parameters.
 const DiagnosticWithoutArguments
 recordLiteralOnePositionalNoTrailingCommaByType = DiagnosticWithoutArgumentsImpl(
-  name: 'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
+  name: 'record_literal_one_positional_no_trailing_comma',
   problemMessage:
       "A record literal with exactly one positional field requires a trailing "
       "comma.",
   correctionMessage: "Try adding a trailing comma.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA_BY_TYPE',
+  uniqueName: 'record_literal_one_positional_no_trailing_comma_by_type',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments recordTypeOnePositionalNoTrailingComma =
     DiagnosticWithoutArgumentsImpl(
-      name: 'RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA',
+      name: 'record_type_one_positional_no_trailing_comma',
       problemMessage:
           "A record type with exactly one positional field requires a trailing "
           "comma.",
       correctionMessage: "Try adding a trailing comma.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA',
+      uniqueName: 'record_type_one_positional_no_trailing_comma',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments recursiveCompileTimeConstant =
     DiagnosticWithoutArgumentsImpl(
-      name: 'RECURSIVE_COMPILE_TIME_CONSTANT',
+      name: 'recursive_compile_time_constant',
       problemMessage: "The compile-time constant expression depends on itself.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'RECURSIVE_COMPILE_TIME_CONSTANT',
+      uniqueName: 'recursive_compile_time_constant',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments recursiveConstantConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'RECURSIVE_CONSTANT_CONSTRUCTOR',
+      name: 'recursive_constant_constructor',
       problemMessage: "The constant constructor depends on itself.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'RECURSIVE_CONSTANT_CONSTRUCTOR',
+      uniqueName: 'recursive_constant_constructor',
       expectedTypes: [],
     );
 
@@ -13636,28 +13636,28 @@ const DiagnosticWithoutArguments recursiveConstantConstructor =
 /// No parameters.
 const DiagnosticWithoutArguments
 recursiveConstructorRedirect = DiagnosticWithoutArgumentsImpl(
-  name: 'RECURSIVE_CONSTRUCTOR_REDIRECT',
+  name: 'recursive_constructor_redirect',
   problemMessage:
       "Constructors can't redirect to themselves either directly or indirectly.",
   correctionMessage:
       "Try changing one of the constructors in the loop to not redirect.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'RECURSIVE_CONSTRUCTOR_REDIRECT',
+  uniqueName: 'recursive_constructor_redirect',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 recursiveFactoryRedirect = DiagnosticWithoutArgumentsImpl(
-  name: 'RECURSIVE_CONSTRUCTOR_REDIRECT',
+  name: 'recursive_constructor_redirect',
   problemMessage:
       "Constructors can't redirect to themselves either directly or indirectly.",
   correctionMessage:
       "Try changing one of the constructors in the loop to not redirect.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'RECURSIVE_FACTORY_REDIRECT',
+  uniqueName: 'recursive_factory_redirect',
   expectedTypes: [],
 );
 
@@ -13674,14 +13674,14 @@ const DiagnosticWithArguments<
   })
 >
 recursiveIncludeFile = DiagnosticWithArguments(
-  name: 'RECURSIVE_INCLUDE_FILE',
+  name: 'recursive_include_file',
   problemMessage:
       "The URI '{0}' included in '{1}' includes '{1}', creating a circular "
       "reference.",
   correctionMessage:
       "Try changing the chain of 'include's to break the circularity.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'RECURSIVE_INCLUDE_FILE',
+  uniqueName: 'recursive_include_file',
   withArguments: _withArgumentsRecursiveIncludeFile,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -13693,11 +13693,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 recursiveInterfaceInheritance = DiagnosticWithArguments(
-  name: 'RECURSIVE_INTERFACE_INHERITANCE',
+  name: 'recursive_interface_inheritance',
   problemMessage: "'{0}' can't be a superinterface of itself: {1}.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE',
+  uniqueName: 'recursive_interface_inheritance',
   withArguments: _withArgumentsRecursiveInterfaceInheritance,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -13717,11 +13717,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 recursiveInterfaceInheritanceExtends = DiagnosticWithArguments(
-  name: 'RECURSIVE_INTERFACE_INHERITANCE',
+  name: 'recursive_interface_inheritance',
   problemMessage: "'{0}' can't extend itself.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_EXTENDS',
+  uniqueName: 'recursive_interface_inheritance_extends',
   withArguments: _withArgumentsRecursiveInterfaceInheritanceExtends,
   expectedTypes: [ExpectedType.string],
 );
@@ -13741,11 +13741,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 recursiveInterfaceInheritanceImplements = DiagnosticWithArguments(
-  name: 'RECURSIVE_INTERFACE_INHERITANCE',
+  name: 'recursive_interface_inheritance',
   problemMessage: "'{0}' can't implement itself.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS',
+  uniqueName: 'recursive_interface_inheritance_implements',
   withArguments: _withArgumentsRecursiveInterfaceInheritanceImplements,
   expectedTypes: [ExpectedType.string],
 );
@@ -13756,11 +13756,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 recursiveInterfaceInheritanceOn = DiagnosticWithArguments(
-  name: 'RECURSIVE_INTERFACE_INHERITANCE',
+  name: 'recursive_interface_inheritance',
   problemMessage: "'{0}' can't use itself as a superclass constraint.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_ON',
+  uniqueName: 'recursive_interface_inheritance_on',
   withArguments: _withArgumentsRecursiveInterfaceInheritanceOn,
   expectedTypes: [ExpectedType.string],
 );
@@ -13780,11 +13780,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 recursiveInterfaceInheritanceWith = DiagnosticWithArguments(
-  name: 'RECURSIVE_INTERFACE_INHERITANCE',
+  name: 'recursive_interface_inheritance',
   problemMessage: "'{0}' can't use itself as a mixin.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_WITH',
+  uniqueName: 'recursive_interface_inheritance_with',
   withArguments: _withArgumentsRecursiveInterfaceInheritanceWith,
   expectedTypes: [ExpectedType.string],
 );
@@ -13797,7 +13797,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 redeclareOnNonRedeclaringMember = DiagnosticWithArguments(
-  name: 'REDECLARE_ON_NON_REDECLARING_MEMBER',
+  name: 'redeclare_on_non_redeclaring_member',
   problemMessage:
       "The {0} doesn't redeclare a {0} declared in a superinterface.",
   correctionMessage:
@@ -13805,7 +13805,7 @@ redeclareOnNonRedeclaringMember = DiagnosticWithArguments(
       "or removing the redeclare annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'REDECLARE_ON_NON_REDECLARING_MEMBER',
+  uniqueName: 'redeclare_on_non_redeclaring_member',
   withArguments: _withArgumentsRedeclareOnNonRedeclaringMember,
   expectedTypes: [ExpectedType.string],
 );
@@ -13817,14 +13817,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 redirectGenerativeToMissingConstructor = DiagnosticWithArguments(
-  name: 'REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR',
+  name: 'redirect_generative_to_missing_constructor',
   problemMessage: "The constructor '{0}' couldn't be found in '{1}'.",
   correctionMessage:
       "Try redirecting to a different constructor, or defining the "
       "constructor named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR',
+  uniqueName: 'redirect_generative_to_missing_constructor',
   withArguments: _withArgumentsRedirectGenerativeToMissingConstructor,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -13832,37 +13832,37 @@ redirectGenerativeToMissingConstructor = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments redirectGenerativeToNonGenerativeConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR',
+      name: 'redirect_generative_to_non_generative_constructor',
       problemMessage:
           "Generative constructors can't redirect to a factory constructor.",
       correctionMessage: "Try redirecting to a different constructor.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR',
+      uniqueName: 'redirect_generative_to_non_generative_constructor',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 redirectingConstructorWithBody = DiagnosticWithoutArgumentsImpl(
-  name: 'REDIRECTING_CONSTRUCTOR_WITH_BODY',
+  name: 'redirecting_constructor_with_body',
   problemMessage: "Redirecting constructors can't have a body.",
   correctionMessage:
       "Try removing the body, or not making this a redirecting constructor.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'REDIRECTING_CONSTRUCTOR_WITH_BODY',
+  uniqueName: 'redirecting_constructor_with_body',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments redirectionInNonFactoryConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR',
+      name: 'redirection_in_non_factory_constructor',
       problemMessage: "Only factory constructor can specify '=' redirection.",
       correctionMessage:
           "Try making this a factory constructor, or remove the redirection.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR',
+      uniqueName: 'redirection_in_non_factory_constructor',
       expectedTypes: [],
     );
 
@@ -13874,14 +13874,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 redirectToAbstractClassConstructor = DiagnosticWithArguments(
-  name: 'REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR',
+  name: 'redirect_to_abstract_class_constructor',
   problemMessage:
       "The redirecting constructor '{0}' can't redirect to a constructor of the "
       "abstract class '{1}'.",
   correctionMessage: "Try redirecting to a constructor of a different class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR',
+  uniqueName: 'redirect_to_abstract_class_constructor',
   withArguments: _withArgumentsRedirectToAbstractClassConstructor,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -13893,13 +13893,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 redirectToInvalidFunctionType = DiagnosticWithArguments(
-  name: 'REDIRECT_TO_INVALID_FUNCTION_TYPE',
+  name: 'redirect_to_invalid_function_type',
   problemMessage:
       "The redirected constructor '{0}' has incompatible parameters with '{1}'.",
   correctionMessage: "Try redirecting to a different constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'REDIRECT_TO_INVALID_FUNCTION_TYPE',
+  uniqueName: 'redirect_to_invalid_function_type',
   withArguments: _withArgumentsRedirectToInvalidFunctionType,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -13911,14 +13911,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 redirectToInvalidReturnType = DiagnosticWithArguments(
-  name: 'REDIRECT_TO_INVALID_RETURN_TYPE',
+  name: 'redirect_to_invalid_return_type',
   problemMessage:
       "The return type '{0}' of the redirected constructor isn't a subtype of "
       "'{1}'.",
   correctionMessage: "Try redirecting to a different constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'REDIRECT_TO_INVALID_RETURN_TYPE',
+  uniqueName: 'redirect_to_invalid_return_type',
   withArguments: _withArgumentsRedirectToInvalidReturnType,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -13930,14 +13930,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required DartType p1})
 >
 redirectToMissingConstructor = DiagnosticWithArguments(
-  name: 'REDIRECT_TO_MISSING_CONSTRUCTOR',
+  name: 'redirect_to_missing_constructor',
   problemMessage: "The constructor '{0}' couldn't be found in '{1}'.",
   correctionMessage:
       "Try redirecting to a different constructor, or define the constructor "
       "named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'REDIRECT_TO_MISSING_CONSTRUCTOR',
+  uniqueName: 'redirect_to_missing_constructor',
   withArguments: _withArgumentsRedirectToMissingConstructor,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
@@ -13948,14 +13948,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 redirectToNonClass = DiagnosticWithArguments(
-  name: 'REDIRECT_TO_NON_CLASS',
+  name: 'redirect_to_non_class',
   problemMessage:
       "The name '{0}' isn't a type and can't be used in a redirected "
       "constructor.",
   correctionMessage: "Try redirecting to a different constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'REDIRECT_TO_NON_CLASS',
+  uniqueName: 'redirect_to_non_class',
   withArguments: _withArgumentsRedirectToNonClass,
   expectedTypes: [ExpectedType.string],
 );
@@ -13963,28 +13963,28 @@ redirectToNonClass = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments redirectToNonConstConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'REDIRECT_TO_NON_CONST_CONSTRUCTOR',
+      name: 'redirect_to_non_const_constructor',
       problemMessage:
           "A constant redirecting constructor can't redirect to a non-constant "
           "constructor.",
       correctionMessage: "Try redirecting to a different constructor.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'REDIRECT_TO_NON_CONST_CONSTRUCTOR',
+      uniqueName: 'redirect_to_non_const_constructor',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 redirectToTypeAliasExpandsToTypeParameter = DiagnosticWithoutArgumentsImpl(
-  name: 'REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+  name: 'redirect_to_type_alias_expands_to_type_parameter',
   problemMessage:
       "A redirecting constructor can't redirect to a type alias that expands to "
       "a type parameter.",
   correctionMessage: "Try replacing it with a class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+  uniqueName: 'redirect_to_type_alias_expands_to_type_parameter',
   expectedTypes: [],
 );
 
@@ -13994,7 +13994,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 referencedBeforeDeclaration = DiagnosticWithArguments(
-  name: 'REFERENCED_BEFORE_DECLARATION',
+  name: 'referenced_before_declaration',
   problemMessage:
       "Local variable '{0}' can't be referenced before it is declared.",
   correctionMessage:
@@ -14003,7 +14003,7 @@ referencedBeforeDeclaration = DiagnosticWithArguments(
       "scope.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'REFERENCED_BEFORE_DECLARATION',
+  uniqueName: 'referenced_before_declaration',
   withArguments: _withArgumentsReferencedBeforeDeclaration,
   expectedTypes: [ExpectedType.object],
 );
@@ -14011,14 +14011,14 @@ referencedBeforeDeclaration = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 refutablePatternInIrrefutableContext = DiagnosticWithoutArgumentsImpl(
-  name: 'REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT',
+  name: 'refutable_pattern_in_irrefutable_context',
   problemMessage: "Refutable patterns can't be used in an irrefutable context.",
   correctionMessage:
       "Try using an if-case, a 'switch' statement, or a 'switch' expression "
       "instead.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT',
+  uniqueName: 'refutable_pattern_in_irrefutable_context',
   expectedTypes: [],
 );
 
@@ -14034,13 +14034,13 @@ const DiagnosticWithArguments<
   })
 >
 relationalPatternOperandTypeNotAssignable = DiagnosticWithArguments(
-  name: 'RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE',
+  name: 'relational_pattern_operand_type_not_assignable',
   problemMessage:
       "The constant expression type '{0}' is not assignable to the parameter "
       "type '{1}' of the '{2}' operator.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE',
+  uniqueName: 'relational_pattern_operand_type_not_assignable',
   withArguments: _withArgumentsRelationalPatternOperandTypeNotAssignable,
   expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
 );
@@ -14049,7 +14049,7 @@ relationalPatternOperandTypeNotAssignable = DiagnosticWithArguments(
 const DiagnosticWithoutArguments
 relationalPatternOperatorReturnTypeNotAssignableToBool =
     DiagnosticWithoutArgumentsImpl(
-      name: 'RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL',
+      name: 'relational_pattern_operator_return_type_not_assignable_to_bool',
       problemMessage:
           "The return type of operators used in relational patterns must be "
           "assignable to 'bool'.",
@@ -14058,7 +14058,7 @@ relationalPatternOperatorReturnTypeNotAssignableToBool =
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
       uniqueName:
-          'RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL',
+          'relational_pattern_operator_return_type_not_assignable_to_bool',
       expectedTypes: [],
     );
 
@@ -14074,11 +14074,11 @@ const DiagnosticWithArguments<
   })
 >
 removedLint = DiagnosticWithArguments(
-  name: 'REMOVED_LINT',
+  name: 'removed_lint',
   problemMessage: "'{0}' was removed in Dart '{1}'",
   correctionMessage: "Try removing the reference to '{0}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'REMOVED_LINT',
+  uniqueName: 'removed_lint',
   withArguments: _withArgumentsRemovedLint,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -14092,12 +14092,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0, required Object p1})
 >
 removedLintUse = DiagnosticWithArguments(
-  name: 'REMOVED_LINT_USE',
+  name: 'removed_lint_use',
   problemMessage: "'{0}' was removed in Dart '{1}'",
   correctionMessage: "Remove the reference to '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'REMOVED_LINT_USE',
+  uniqueName: 'removed_lint_use',
   withArguments: _withArgumentsRemovedLintUse,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -14116,11 +14116,11 @@ const DiagnosticWithArguments<
   })
 >
 replacedLint = DiagnosticWithArguments(
-  name: 'REPLACED_LINT',
+  name: 'replaced_lint',
   problemMessage: "'{0}' was replaced by '{2}' in Dart '{1}'.",
   correctionMessage: "Replace '{0}' with '{1}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'REPLACED_LINT',
+  uniqueName: 'replaced_lint',
   withArguments: _withArgumentsReplacedLint,
   expectedTypes: [
     ExpectedType.string,
@@ -14143,11 +14143,11 @@ const DiagnosticWithArguments<
   })
 >
 replacedLintUse = DiagnosticWithArguments(
-  name: 'REPLACED_LINT_USE',
+  name: 'replaced_lint_use',
   problemMessage: "'{0}' was replaced by '{2}' in Dart '{1}'.",
   correctionMessage: "Replace '{0}' with '{1}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'REPLACED_LINT_USE',
+  uniqueName: 'replaced_lint_use',
   withArguments: _withArgumentsReplacedLintUse,
   expectedTypes: [
     ExpectedType.object,
@@ -14159,68 +14159,68 @@ replacedLintUse = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments representationFieldModifier =
     DiagnosticWithoutArgumentsImpl(
-      name: 'REPRESENTATION_FIELD_MODIFIER',
+      name: 'representation_field_modifier',
       problemMessage: "Representation fields can't have modifiers.",
       correctionMessage: "Try removing the modifier.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'REPRESENTATION_FIELD_MODIFIER',
+      uniqueName: 'representation_field_modifier',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments representationFieldTrailingComma =
     DiagnosticWithoutArgumentsImpl(
-      name: 'REPRESENTATION_FIELD_TRAILING_COMMA',
+      name: 'representation_field_trailing_comma',
       problemMessage: "The representation field can't have a trailing comma.",
       correctionMessage: "Try removing the trailing comma.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'REPRESENTATION_FIELD_TRAILING_COMMA',
+      uniqueName: 'representation_field_trailing_comma',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments restElementInMapPattern =
     DiagnosticWithoutArgumentsImpl(
-      name: 'REST_ELEMENT_IN_MAP_PATTERN',
+      name: 'rest_element_in_map_pattern',
       problemMessage: "A map pattern can't contain a rest pattern.",
       correctionMessage: "Try removing the rest pattern.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'REST_ELEMENT_IN_MAP_PATTERN',
+      uniqueName: 'rest_element_in_map_pattern',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments rethrowOutsideCatch =
     DiagnosticWithoutArgumentsImpl(
-      name: 'RETHROW_OUTSIDE_CATCH',
+      name: 'rethrow_outside_catch',
       problemMessage: "A rethrow must be inside of a catch clause.",
       correctionMessage:
           "Try moving the expression into a catch clause, or using a 'throw' "
           "expression.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'RETHROW_OUTSIDE_CATCH',
+      uniqueName: 'rethrow_outside_catch',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments returnInGenerativeConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'RETURN_IN_GENERATIVE_CONSTRUCTOR',
+      name: 'return_in_generative_constructor',
       problemMessage: "Constructors can't return values.",
       correctionMessage:
           "Try removing the return statement or using a factory constructor.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'RETURN_IN_GENERATIVE_CONSTRUCTOR',
+      uniqueName: 'return_in_generative_constructor',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 returnInGenerator = DiagnosticWithoutArgumentsImpl(
-  name: 'RETURN_IN_GENERATOR',
+  name: 'return_in_generator',
   problemMessage:
       "Can't return a value from a generator function that uses the 'async*' or "
       "'sync*' modifier.",
@@ -14229,7 +14229,7 @@ returnInGenerator = DiagnosticWithoutArgumentsImpl(
       "changing the method body modifier.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'RETURN_IN_GENERATOR',
+  uniqueName: 'return_in_generator',
   expectedTypes: [],
 );
 
@@ -14240,14 +14240,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 returnOfDoNotStore = DiagnosticWithArguments(
-  name: 'RETURN_OF_DO_NOT_STORE',
+  name: 'return_of_do_not_store',
   problemMessage:
       "'{0}' is annotated with 'doNotStore' and shouldn't be returned unless "
       "'{1}' is also annotated.",
   correctionMessage: "Annotate '{1}' with 'doNotStore'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'RETURN_OF_DO_NOT_STORE',
+  uniqueName: 'return_of_do_not_store',
   withArguments: _withArgumentsReturnOfDoNotStore,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -14259,13 +14259,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 returnOfInvalidTypeFromCatchError = DiagnosticWithArguments(
-  name: 'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
+  name: 'invalid_return_type_for_catch_error',
   problemMessage:
       "A value of type '{0}' can't be returned by the 'onError' handler because "
       "it must be assignable to '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR',
+  uniqueName: 'return_of_invalid_type_from_catch_error',
   withArguments: _withArgumentsReturnOfInvalidTypeFromCatchError,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -14277,13 +14277,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 returnOfInvalidTypeFromClosure = DiagnosticWithArguments(
-  name: 'RETURN_OF_INVALID_TYPE_FROM_CLOSURE',
+  name: 'return_of_invalid_type_from_closure',
   problemMessage:
       "The returned type '{0}' isn't returnable from a '{1}' function, as "
       "required by the closure's context.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_CLOSURE',
+  uniqueName: 'return_of_invalid_type_from_closure',
   withArguments: _withArgumentsReturnOfInvalidTypeFromClosure,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -14300,13 +14300,13 @@ const DiagnosticWithArguments<
   })
 >
 returnOfInvalidTypeFromConstructor = DiagnosticWithArguments(
-  name: 'RETURN_OF_INVALID_TYPE',
+  name: 'return_of_invalid_type',
   problemMessage:
       "A value of type '{0}' can't be returned from the constructor '{2}' "
       "because it has a return type of '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR',
+  uniqueName: 'return_of_invalid_type_from_constructor',
   withArguments: _withArgumentsReturnOfInvalidTypeFromConstructor,
   expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
 );
@@ -14323,13 +14323,13 @@ const DiagnosticWithArguments<
   })
 >
 returnOfInvalidTypeFromFunction = DiagnosticWithArguments(
-  name: 'RETURN_OF_INVALID_TYPE',
+  name: 'return_of_invalid_type',
   problemMessage:
       "A value of type '{0}' can't be returned from the function '{2}' because "
       "it has a return type of '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_FUNCTION',
+  uniqueName: 'return_of_invalid_type_from_function',
   withArguments: _withArgumentsReturnOfInvalidTypeFromFunction,
   expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
 );
@@ -14346,13 +14346,13 @@ const DiagnosticWithArguments<
   })
 >
 returnOfInvalidTypeFromMethod = DiagnosticWithArguments(
-  name: 'RETURN_OF_INVALID_TYPE',
+  name: 'return_of_invalid_type',
   problemMessage:
       "A value of type '{0}' can't be returned from the method '{2}' because it "
       "has a return type of '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_METHOD',
+  uniqueName: 'return_of_invalid_type_from_method',
   withArguments: _withArgumentsReturnOfInvalidTypeFromMethod,
   expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
 );
@@ -14364,13 +14364,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 returnTypeInvalidForCatchError = DiagnosticWithArguments(
-  name: 'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
+  name: 'invalid_return_type_for_catch_error',
   problemMessage:
       "The return type '{0}' isn't assignable to '{1}', as required by "
       "'Future.catchError'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'RETURN_TYPE_INVALID_FOR_CATCH_ERROR',
+  uniqueName: 'return_type_invalid_for_catch_error',
   withArguments: _withArgumentsReturnTypeInvalidForCatchError,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -14378,11 +14378,11 @@ returnTypeInvalidForCatchError = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments returnWithoutValue =
     DiagnosticWithoutArgumentsImpl(
-      name: 'RETURN_WITHOUT_VALUE',
+      name: 'return_without_value',
       problemMessage: "The return value is missing after 'return'.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'RETURN_WITHOUT_VALUE',
+      uniqueName: 'return_without_value',
       expectedTypes: [],
     );
 
@@ -14394,7 +14394,7 @@ const DiagnosticWithoutArguments returnWithoutValue =
 /// No parameters.
 const DiagnosticWithoutArguments
 sdkVersionConstructorTearoffs = DiagnosticWithoutArgumentsImpl(
-  name: 'SDK_VERSION_CONSTRUCTOR_TEAROFFS',
+  name: 'sdk_version_constructor_tearoffs',
   problemMessage:
       "Tearing off a constructor requires the 'constructor-tearoffs' language "
       "feature.",
@@ -14403,21 +14403,21 @@ sdkVersionConstructorTearoffs = DiagnosticWithoutArgumentsImpl(
       "2.15 or higher, and running 'pub get'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'SDK_VERSION_CONSTRUCTOR_TEAROFFS',
+  uniqueName: 'sdk_version_constructor_tearoffs',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 sdkVersionGtGtGtOperator = DiagnosticWithoutArgumentsImpl(
-  name: 'SDK_VERSION_GT_GT_GT_OPERATOR',
+  name: 'sdk_version_gt_gt_gt_operator',
   problemMessage:
       "The operator '>>>' wasn't supported until version 2.14.0, but this code "
       "is required to be able to run on earlier versions.",
   correctionMessage: "Try updating the SDK constraints.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'SDK_VERSION_GT_GT_GT_OPERATOR',
+  uniqueName: 'sdk_version_gt_gt_gt_operator',
   expectedTypes: [],
 );
 
@@ -14428,13 +14428,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 sdkVersionSince = DiagnosticWithArguments(
-  name: 'SDK_VERSION_SINCE',
+  name: 'sdk_version_since',
   problemMessage:
       "This API is available since SDK {0}, but constraints '{1}' don't "
       "guarantee it.",
   correctionMessage: "Try updating the SDK constraints.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'SDK_VERSION_SINCE',
+  uniqueName: 'sdk_version_since',
   withArguments: _withArgumentsSdkVersionSince,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -14446,52 +14446,52 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 sealedClassSubtypeOutsideOfLibrary = DiagnosticWithArguments(
-  name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
+  name: 'invalid_use_of_type_outside_library',
   problemMessage:
       "The class '{0}' can't be extended, implemented, or mixed in outside of "
       "its library because it's a sealed class.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY',
+  uniqueName: 'sealed_class_subtype_outside_of_library',
   withArguments: _withArgumentsSealedClassSubtypeOutsideOfLibrary,
   expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments sealedEnum = DiagnosticWithoutArgumentsImpl(
-  name: 'SEALED_ENUM',
+  name: 'sealed_enum',
   problemMessage: "Enums can't be declared to be 'sealed'.",
   correctionMessage: "Try removing the keyword 'sealed'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'SEALED_ENUM',
+  uniqueName: 'sealed_enum',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments sealedMixin = DiagnosticWithoutArgumentsImpl(
-  name: 'SEALED_MIXIN',
+  name: 'sealed_mixin',
   problemMessage: "A mixin can't be declared 'sealed'.",
   correctionMessage: "Try removing the 'sealed' keyword.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'SEALED_MIXIN',
+  uniqueName: 'sealed_mixin',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments sealedMixinClass =
     DiagnosticWithoutArgumentsImpl(
-      name: 'SEALED_MIXIN_CLASS',
+      name: 'sealed_mixin_class',
       problemMessage: "A mixin class can't be declared 'sealed'.",
       correctionMessage: "Try removing the 'sealed' keyword.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'SEALED_MIXIN_CLASS',
+      uniqueName: 'sealed_mixin_class',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 setElementFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-  name: 'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
+  name: 'collection_element_from_deferred_library',
   problemMessage:
       "Constant values from a deferred library can't be used as values in a "
       "'const' set literal.",
@@ -14500,7 +14500,7 @@ setElementFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
       "keyword 'deferred' from the import.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'SET_ELEMENT_FROM_DEFERRED_LIBRARY',
+  uniqueName: 'set_element_from_deferred_library',
   expectedTypes: [],
 );
 
@@ -14511,12 +14511,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 setElementTypeNotAssignable = DiagnosticWithArguments(
-  name: 'SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
+  name: 'set_element_type_not_assignable',
   problemMessage:
       "The element type '{0}' can't be assigned to the set type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
+  uniqueName: 'set_element_type_not_assignable',
   withArguments: _withArgumentsSetElementTypeNotAssignable,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -14528,12 +14528,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 setElementTypeNotAssignableNullability = DiagnosticWithArguments(
-  name: 'SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
+  name: 'set_element_type_not_assignable',
   problemMessage:
       "The element type '{0}' can't be assigned to the set type '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY',
+  uniqueName: 'set_element_type_not_assignable_nullability',
   withArguments: _withArgumentsSetElementTypeNotAssignableNullability,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -14541,23 +14541,23 @@ setElementTypeNotAssignableNullability = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments setterConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'SETTER_CONSTRUCTOR',
+      name: 'setter_constructor',
       problemMessage: "Constructors can't be a setter.",
       correctionMessage: "Try removing 'set'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'SETTER_CONSTRUCTOR',
+      uniqueName: 'setter_constructor',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments setterInFunction =
     DiagnosticWithoutArgumentsImpl(
-      name: 'SETTER_IN_FUNCTION',
+      name: 'setter_in_function',
       problemMessage: "Setters can't be defined within methods or functions.",
       correctionMessage:
           "Try moving the setter outside the method or function.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'SETTER_IN_FUNCTION',
+      uniqueName: 'setter_in_function',
       expectedTypes: [],
     );
 
@@ -14566,7 +14566,7 @@ const DiagnosticWithoutArguments setterInFunction =
 /// No parameters.
 const DiagnosticWithoutArguments
 settingOrientationOnActivity = DiagnosticWithoutArgumentsImpl(
-  name: 'SETTING_ORIENTATION_ON_ACTIVITY',
+  name: 'setting_orientation_on_activity',
   problemMessage:
       "The `<activity>` element should not be locked to any orientation so that "
       "users can take advantage of the multi-window environments and larger "
@@ -14575,56 +14575,56 @@ settingOrientationOnActivity = DiagnosticWithoutArgumentsImpl(
       "Consider declaring the corresponding activity element with "
       "`screenOrientation=\"unspecified\"` or `\"fullSensor\"` attribute.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'SETTING_ORIENTATION_ON_ACTIVITY',
+  uniqueName: 'setting_orientation_on_activity',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 sharedDeferredPrefix = DiagnosticWithoutArgumentsImpl(
-  name: 'SHARED_DEFERRED_PREFIX',
+  name: 'shared_deferred_prefix',
   problemMessage:
       "The prefix of a deferred import can't be used in other import directives.",
   correctionMessage: "Try renaming one of the prefixes.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'SHARED_DEFERRED_PREFIX',
+  uniqueName: 'shared_deferred_prefix',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 sizeAnnotationDimensions = DiagnosticWithoutArgumentsImpl(
-  name: 'SIZE_ANNOTATION_DIMENSIONS',
+  name: 'size_annotation_dimensions',
   problemMessage:
       "'Array's must have an 'Array' annotation that matches the dimensions.",
   correctionMessage: "Try adjusting the arguments in the 'Array' annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'SIZE_ANNOTATION_DIMENSIONS',
+  uniqueName: 'size_annotation_dimensions',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 spreadExpressionFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-  name: 'SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY',
+  name: 'spread_expression_from_deferred_library',
   problemMessage:
       "Constant values from a deferred library can't be spread into a const "
       "literal.",
   correctionMessage: "Try making the deferred import non-deferred.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY',
+  uniqueName: 'spread_expression_from_deferred_library',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments stackOverflow = DiagnosticWithoutArgumentsImpl(
-  name: 'STACK_OVERFLOW',
+  name: 'stack_overflow',
   problemMessage: "The file has too many nested expressions or statements.",
   correctionMessage: "Try simplifying the code.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'STACK_OVERFLOW',
+  uniqueName: 'stack_overflow',
   expectedTypes: [],
 );
 
@@ -14634,12 +14634,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 staticAccessToInstanceMember = DiagnosticWithArguments(
-  name: 'STATIC_ACCESS_TO_INSTANCE_MEMBER',
+  name: 'static_access_to_instance_member',
   problemMessage:
       "Instance member '{0}' can't be accessed using static access.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'STATIC_ACCESS_TO_INSTANCE_MEMBER',
+  uniqueName: 'static_access_to_instance_member',
   withArguments: _withArgumentsStaticAccessToInstanceMember,
   expectedTypes: [ExpectedType.string],
 );
@@ -14647,46 +14647,46 @@ staticAccessToInstanceMember = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments staticConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'STATIC_CONSTRUCTOR',
+      name: 'static_constructor',
       problemMessage: "Constructors can't be static.",
       correctionMessage: "Try removing the keyword 'static'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'STATIC_CONSTRUCTOR',
+      uniqueName: 'static_constructor',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments staticGetterWithoutBody =
     DiagnosticWithoutArgumentsImpl(
-      name: 'STATIC_GETTER_WITHOUT_BODY',
+      name: 'static_getter_without_body',
       problemMessage: "A 'static' getter must have a body.",
       correctionMessage:
           "Try adding a body to the getter, or removing the keyword 'static'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'STATIC_GETTER_WITHOUT_BODY',
+      uniqueName: 'static_getter_without_body',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments staticOperator =
     DiagnosticWithoutArgumentsImpl(
-      name: 'STATIC_OPERATOR',
+      name: 'static_operator',
       problemMessage: "Operators can't be static.",
       correctionMessage: "Try removing the keyword 'static'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'STATIC_OPERATOR',
+      uniqueName: 'static_operator',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments staticSetterWithoutBody =
     DiagnosticWithoutArgumentsImpl(
-      name: 'STATIC_SETTER_WITHOUT_BODY',
+      name: 'static_setter_without_body',
       problemMessage: "A 'static' setter must have a body.",
       correctionMessage:
           "Try adding a body to the setter, or removing the keyword 'static'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'STATIC_SETTER_WITHOUT_BODY',
+      uniqueName: 'static_setter_without_body',
       expectedTypes: [],
     );
 
@@ -14701,12 +14701,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0})
 >
 strictRawType = DiagnosticWithArguments(
-  name: 'STRICT_RAW_TYPE',
+  name: 'strict_raw_type',
   problemMessage:
       "The generic type '{0}' should have explicit type arguments but doesn't.",
   correctionMessage: "Use explicit type arguments for '{0}'.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'STRICT_RAW_TYPE',
+  uniqueName: 'strict_raw_type',
   withArguments: _withArgumentsStrictRawType,
   expectedTypes: [ExpectedType.type],
 );
@@ -14719,13 +14719,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 subtypeOfBaseIsNotBaseFinalOrSealed = DiagnosticWithArguments(
-  name: 'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
+  name: 'subtype_of_base_or_final_is_not_base_final_or_sealed',
   problemMessage:
       "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype "
       "'{1}' is 'base'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED',
+  uniqueName: 'subtype_of_base_is_not_base_final_or_sealed',
   withArguments: _withArgumentsSubtypeOfBaseIsNotBaseFinalOrSealed,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -14738,13 +14738,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 subtypeOfFinalIsNotBaseFinalOrSealed = DiagnosticWithArguments(
-  name: 'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
+  name: 'subtype_of_base_or_final_is_not_base_final_or_sealed',
   problemMessage:
       "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype "
       "'{1}' is 'final'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
+  uniqueName: 'subtype_of_final_is_not_base_final_or_sealed',
   withArguments: _withArgumentsSubtypeOfFinalIsNotBaseFinalOrSealed,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -14755,7 +14755,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 subtypeOfSealedClass = DiagnosticWithArguments(
-  name: 'SUBTYPE_OF_SEALED_CLASS',
+  name: 'subtype_of_sealed_class',
   problemMessage:
       "The class '{0}' shouldn't be extended, mixed in, or implemented because "
       "it's sealed.",
@@ -14764,7 +14764,7 @@ subtypeOfSealedClass = DiagnosticWithArguments(
       "'{0}' for more information.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'SUBTYPE_OF_SEALED_CLASS',
+  uniqueName: 'subtype_of_sealed_class',
   withArguments: _withArgumentsSubtypeOfSealedClass,
   expectedTypes: [ExpectedType.string],
 );
@@ -14776,7 +14776,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 subtypeOfStructClassInExtends = DiagnosticWithArguments(
-  name: 'SUBTYPE_OF_STRUCT_CLASS',
+  name: 'subtype_of_struct_class',
   problemMessage:
       "The class '{0}' can't extend '{1}' because '{1}' is a subtype of "
       "'Struct', 'Union', or 'AbiSpecificInteger'.",
@@ -14784,7 +14784,7 @@ subtypeOfStructClassInExtends = DiagnosticWithArguments(
       "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS',
+  uniqueName: 'subtype_of_struct_class_in_extends',
   withArguments: _withArgumentsSubtypeOfStructClassInExtends,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -14796,7 +14796,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 subtypeOfStructClassInImplements = DiagnosticWithArguments(
-  name: 'SUBTYPE_OF_STRUCT_CLASS',
+  name: 'subtype_of_struct_class',
   problemMessage:
       "The class '{0}' can't implement '{1}' because '{1}' is a subtype of "
       "'Struct', 'Union', or 'AbiSpecificInteger'.",
@@ -14804,7 +14804,7 @@ subtypeOfStructClassInImplements = DiagnosticWithArguments(
       "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS',
+  uniqueName: 'subtype_of_struct_class_in_implements',
   withArguments: _withArgumentsSubtypeOfStructClassInImplements,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -14816,7 +14816,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 subtypeOfStructClassInWith = DiagnosticWithArguments(
-  name: 'SUBTYPE_OF_STRUCT_CLASS',
+  name: 'subtype_of_struct_class',
   problemMessage:
       "The class '{0}' can't mix in '{1}' because '{1}' is a subtype of "
       "'Struct', 'Union', or 'AbiSpecificInteger'.",
@@ -14824,7 +14824,7 @@ subtypeOfStructClassInWith = DiagnosticWithArguments(
       "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_WITH',
+  uniqueName: 'subtype_of_struct_class_in_with',
   withArguments: _withArgumentsSubtypeOfStructClassInWith,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -14836,7 +14836,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 superFormalParameterTypeIsNotSubtypeOfAssociated = DiagnosticWithArguments(
-  name: 'SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED',
+  name: 'super_formal_parameter_type_is_not_subtype_of_associated',
   problemMessage:
       "The type '{0}' of this parameter isn't a subtype of the type '{1}' of the "
       "associated super constructor parameter.",
@@ -14844,7 +14844,7 @@ superFormalParameterTypeIsNotSubtypeOfAssociated = DiagnosticWithArguments(
       "Try removing the explicit type annotation from the parameter.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED',
+  uniqueName: 'super_formal_parameter_type_is_not_subtype_of_associated',
   withArguments: _withArgumentsSuperFormalParameterTypeIsNotSubtypeOfAssociated,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -14852,77 +14852,77 @@ superFormalParameterTypeIsNotSubtypeOfAssociated = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments superFormalParameterWithoutAssociatedNamed =
     DiagnosticWithoutArgumentsImpl(
-      name: 'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED',
+      name: 'super_formal_parameter_without_associated_named',
       problemMessage: "No associated named super constructor parameter.",
       correctionMessage:
           "Try changing the name to the name of an existing named super "
           "constructor parameter, or creating such named parameter.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED',
+      uniqueName: 'super_formal_parameter_without_associated_named',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 superFormalParameterWithoutAssociatedPositional = DiagnosticWithoutArgumentsImpl(
-  name: 'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL',
+  name: 'super_formal_parameter_without_associated_positional',
   problemMessage: "No associated positional super constructor parameter.",
   correctionMessage:
       "Try using a normal parameter, or adding more positional parameters to "
       "the super constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL',
+  uniqueName: 'super_formal_parameter_without_associated_positional',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments superInEnumConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'SUPER_IN_ENUM_CONSTRUCTOR',
+      name: 'super_in_enum_constructor',
       problemMessage: "The enum constructor can't have a 'super' initializer.",
       correctionMessage: "Try removing the 'super' invocation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'SUPER_IN_ENUM_CONSTRUCTOR',
+      uniqueName: 'super_in_enum_constructor',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 superInExtension = DiagnosticWithoutArgumentsImpl(
-  name: 'SUPER_IN_EXTENSION',
+  name: 'super_in_extension',
   problemMessage:
       "The 'super' keyword can't be used in an extension because an extension "
       "doesn't have a superclass.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'SUPER_IN_EXTENSION',
+  uniqueName: 'super_in_extension',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments superInExtensionType =
     DiagnosticWithoutArgumentsImpl(
-      name: 'SUPER_IN_EXTENSION_TYPE',
+      name: 'super_in_extension_type',
       problemMessage:
           "The 'super' keyword can't be used in an extension type because an "
           "extension type doesn't have a superclass.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'SUPER_IN_EXTENSION_TYPE',
+      uniqueName: 'super_in_extension_type',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments superInInvalidContext =
     DiagnosticWithoutArgumentsImpl(
-      name: 'SUPER_IN_INVALID_CONTEXT',
+      name: 'super_in_invalid_context',
       problemMessage: "Invalid context for 'super' invocation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'SUPER_IN_INVALID_CONTEXT',
+      uniqueName: 'super_in_invalid_context',
       expectedTypes: [],
     );
 
@@ -14933,23 +14933,23 @@ const DiagnosticWithoutArguments superInInvalidContext =
 /// No parameters.
 const DiagnosticWithoutArguments superInitializerInObject =
     DiagnosticWithoutArgumentsImpl(
-      name: 'SUPER_INITIALIZER_IN_OBJECT',
+      name: 'super_initializer_in_object',
       problemMessage:
           "The class 'Object' can't invoke a constructor from a superclass.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'SUPER_INITIALIZER_IN_OBJECT',
+      uniqueName: 'super_initializer_in_object',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments superInRedirectingConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'SUPER_IN_REDIRECTING_CONSTRUCTOR',
+      name: 'super_in_redirecting_constructor',
       problemMessage:
           "The redirecting constructor can't have a 'super' initializer.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'SUPER_IN_REDIRECTING_CONSTRUCTOR',
+      uniqueName: 'super_in_redirecting_constructor',
       expectedTypes: [],
     );
 
@@ -14959,12 +14959,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 superInvocationNotLast = DiagnosticWithArguments(
-  name: 'SUPER_INVOCATION_NOT_LAST',
+  name: 'super_invocation_not_last',
   problemMessage:
       "The superconstructor call must be last in an initializer list: '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'SUPER_INVOCATION_NOT_LAST',
+  uniqueName: 'super_invocation_not_last',
   withArguments: _withArgumentsSuperInvocationNotLast,
   expectedTypes: [ExpectedType.string],
 );
@@ -14972,43 +14972,43 @@ superInvocationNotLast = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments switchCaseCompletesNormally =
     DiagnosticWithoutArgumentsImpl(
-      name: 'SWITCH_CASE_COMPLETES_NORMALLY',
+      name: 'switch_case_completes_normally',
       problemMessage: "The 'case' shouldn't complete normally.",
       correctionMessage: "Try adding 'break', 'return', or 'throw'.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'SWITCH_CASE_COMPLETES_NORMALLY',
+      uniqueName: 'switch_case_completes_normally',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments switchHasCaseAfterDefaultCase =
     DiagnosticWithoutArgumentsImpl(
-      name: 'SWITCH_HAS_CASE_AFTER_DEFAULT_CASE',
+      name: 'switch_has_case_after_default_case',
       problemMessage:
           "The default case should be the last case in a switch statement.",
       correctionMessage:
           "Try moving the default case after the other case clauses.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'SWITCH_HAS_CASE_AFTER_DEFAULT_CASE',
+      uniqueName: 'switch_has_case_after_default_case',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments switchHasMultipleDefaultCases =
     DiagnosticWithoutArgumentsImpl(
-      name: 'SWITCH_HAS_MULTIPLE_DEFAULT_CASES',
+      name: 'switch_has_multiple_default_cases',
       problemMessage: "The 'default' case can only be declared once.",
       correctionMessage: "Try removing all but one default case.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'SWITCH_HAS_MULTIPLE_DEFAULT_CASES',
+      uniqueName: 'switch_has_multiple_default_cases',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments tearoffOfGenerativeConstructorOfAbstractClass =
     DiagnosticWithoutArgumentsImpl(
-      name: 'TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS',
+      name: 'tearoff_of_generative_constructor_of_abstract_class',
       problemMessage:
           "A generative constructor of an abstract class can't be torn off.",
       correctionMessage:
@@ -15016,7 +15016,7 @@ const DiagnosticWithoutArguments tearoffOfGenerativeConstructorOfAbstractClass =
           "non-generative constructor.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS',
+      uniqueName: 'tearoff_of_generative_constructor_of_abstract_class',
       expectedTypes: [],
     );
 
@@ -15026,7 +15026,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 textDirectionCodePointInComment = DiagnosticWithArguments(
-  name: 'TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
+  name: 'text_direction_code_point_in_comment',
   problemMessage:
       "The Unicode code point 'U+{0}' changes the appearance of text from how "
       "it's interpreted by the compiler.",
@@ -15035,7 +15035,7 @@ textDirectionCodePointInComment = DiagnosticWithArguments(
       "'\\u{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
+  uniqueName: 'text_direction_code_point_in_comment',
   withArguments: _withArgumentsTextDirectionCodePointInComment,
   expectedTypes: [ExpectedType.string],
 );
@@ -15046,7 +15046,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 textDirectionCodePointInLiteral = DiagnosticWithArguments(
-  name: 'TEXT_DIRECTION_CODE_POINT_IN_LITERAL',
+  name: 'text_direction_code_point_in_literal',
   problemMessage:
       "The Unicode code point 'U+{0}' changes the appearance of text from how "
       "it's interpreted by the compiler.",
@@ -15055,7 +15055,7 @@ textDirectionCodePointInLiteral = DiagnosticWithArguments(
       "'\\u{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'TEXT_DIRECTION_CODE_POINT_IN_LITERAL',
+  uniqueName: 'text_direction_code_point_in_literal',
   withArguments: _withArgumentsTextDirectionCodePointInLiteral,
   expectedTypes: [ExpectedType.string],
 );
@@ -15066,12 +15066,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0})
 >
 throwOfInvalidType = DiagnosticWithArguments(
-  name: 'THROW_OF_INVALID_TYPE',
+  name: 'throw_of_invalid_type',
   problemMessage:
       "The type '{0}' of the thrown expression must be assignable to 'Object'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'THROW_OF_INVALID_TYPE',
+  uniqueName: 'throw_of_invalid_type',
   withArguments: _withArgumentsThrowOfInvalidType,
   expectedTypes: [ExpectedType.type],
 );
@@ -15084,10 +15084,10 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String message})
 >
 todo = DiagnosticWithArguments(
-  name: 'TODO',
+  name: 'todo',
   problemMessage: "{0}",
   type: DiagnosticType.TODO,
-  uniqueName: 'TODO',
+  uniqueName: 'todo',
   withArguments: _withArgumentsTodo,
   expectedTypes: [ExpectedType.string],
 );
@@ -15099,7 +15099,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 topLevelCycle = DiagnosticWithArguments(
-  name: 'TOP_LEVEL_CYCLE',
+  name: 'top_level_cycle',
   problemMessage:
       "The type of '{0}' can't be inferred because it depends on itself through "
       "the cycle: {1}.",
@@ -15108,7 +15108,7 @@ topLevelCycle = DiagnosticWithArguments(
       "cycle in order to break the cycle.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TOP_LEVEL_CYCLE',
+  uniqueName: 'top_level_cycle',
   withArguments: _withArgumentsTopLevelCycle,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15116,26 +15116,26 @@ topLevelCycle = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 topLevelOperator = DiagnosticWithoutArgumentsImpl(
-  name: 'TOP_LEVEL_OPERATOR',
+  name: 'top_level_operator',
   problemMessage: "Operators must be declared within a class.",
   correctionMessage:
       "Try removing the operator, moving it to a class, or converting it to "
       "be a function.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'TOP_LEVEL_OPERATOR',
+  uniqueName: 'top_level_operator',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 typeAliasCannotReferenceItself = DiagnosticWithoutArgumentsImpl(
-  name: 'TYPE_ALIAS_CANNOT_REFERENCE_ITSELF',
+  name: 'type_alias_cannot_reference_itself',
   problemMessage:
       "Typedefs can't reference themselves directly or recursively via another "
       "typedef.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TYPE_ALIAS_CANNOT_REFERENCE_ITSELF',
+  uniqueName: 'type_alias_cannot_reference_itself',
   expectedTypes: [],
 );
 
@@ -15146,7 +15146,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 typeAnnotationDeferredClass = DiagnosticWithArguments(
-  name: 'TYPE_ANNOTATION_DEFERRED_CLASS',
+  name: 'type_annotation_deferred_class',
   problemMessage:
       "The deferred type '{0}' can't be used in a declaration, cast, or type "
       "test.",
@@ -15155,7 +15155,7 @@ typeAnnotationDeferredClass = DiagnosticWithArguments(
       "deferred.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TYPE_ANNOTATION_DEFERRED_CLASS',
+  uniqueName: 'type_annotation_deferred_class',
   withArguments: _withArgumentsTypeAnnotationDeferredClass,
   expectedTypes: [ExpectedType.string],
 );
@@ -15173,13 +15173,13 @@ const DiagnosticWithArguments<
   })
 >
 typeArgumentNotMatchingBounds = DiagnosticWithArguments(
-  name: 'TYPE_ARGUMENT_NOT_MATCHING_BOUNDS',
+  name: 'type_argument_not_matching_bounds',
   problemMessage:
       "'{0}' doesn't conform to the bound '{2}' of the type parameter '{1}'.",
   correctionMessage: "Try using a type that is or is a subclass of '{2}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TYPE_ARGUMENT_NOT_MATCHING_BOUNDS',
+  uniqueName: 'type_argument_not_matching_bounds',
   withArguments: _withArgumentsTypeArgumentNotMatchingBounds,
   expectedTypes: [ExpectedType.type, ExpectedType.string, ExpectedType.type],
 );
@@ -15188,68 +15188,68 @@ typeArgumentNotMatchingBounds = DiagnosticWithArguments(
 /// Name name: undocumented
 const DiagnosticCode typeArgumentsOnTypeVariable =
     DiagnosticCodeWithExpectedTypes(
-      name: 'TYPE_ARGUMENTS_ON_TYPE_VARIABLE',
+      name: 'type_arguments_on_type_variable',
       problemMessage: "Can't use type arguments with type variable '{0}'.",
       correctionMessage: "Try removing the type arguments.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'TYPE_ARGUMENTS_ON_TYPE_VARIABLE',
+      uniqueName: 'type_arguments_on_type_variable',
       expectedTypes: [ExpectedType.name],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments typeBeforeFactory =
     DiagnosticWithoutArgumentsImpl(
-      name: 'TYPE_BEFORE_FACTORY',
+      name: 'type_before_factory',
       problemMessage: "Factory constructors cannot have a return type.",
       correctionMessage: "Try removing the type appearing before 'factory'.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'TYPE_BEFORE_FACTORY',
+      uniqueName: 'type_before_factory',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments typeCheckIsNotNull =
     DiagnosticWithoutArgumentsImpl(
-      name: 'TYPE_CHECK_WITH_NULL',
+      name: 'type_check_with_null',
       problemMessage: "Tests for non-null should be done with '!= null'.",
       correctionMessage: "Try replacing the 'is! Null' check with '!= null'.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'TYPE_CHECK_IS_NOT_NULL',
+      uniqueName: 'type_check_is_not_null',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments typeCheckIsNull =
     DiagnosticWithoutArgumentsImpl(
-      name: 'TYPE_CHECK_WITH_NULL',
+      name: 'type_check_with_null',
       problemMessage: "Tests for null should be done with '== null'.",
       correctionMessage: "Try replacing the 'is Null' check with '== null'.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'TYPE_CHECK_IS_NULL',
+      uniqueName: 'type_check_is_null',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments typedefInClass =
     DiagnosticWithoutArgumentsImpl(
-      name: 'TYPEDEF_IN_CLASS',
+      name: 'typedef_in_class',
       problemMessage: "Typedefs can't be declared inside classes.",
       correctionMessage: "Try moving the typedef to the top-level.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'TYPEDEF_IN_CLASS',
+      uniqueName: 'typedef_in_class',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments typeParameterOnConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name: 'TYPE_PARAMETER_ON_CONSTRUCTOR',
+      name: 'type_parameter_on_constructor',
       problemMessage: "Constructors can't have type parameters.",
       correctionMessage: "Try removing the type parameters.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'TYPE_PARAMETER_ON_CONSTRUCTOR',
+      uniqueName: 'type_parameter_on_constructor',
       expectedTypes: [],
     );
 
@@ -15259,19 +15259,19 @@ const DiagnosticWithoutArguments typeParameterOnConstructor =
 /// No parameters.
 const DiagnosticWithoutArguments typeParameterOnOperator =
     DiagnosticWithoutArgumentsImpl(
-      name: 'TYPE_PARAMETER_ON_OPERATOR',
+      name: 'type_parameter_on_operator',
       problemMessage:
           "Types parameters aren't allowed when defining an operator.",
       correctionMessage: "Try removing the type parameters.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'TYPE_PARAMETER_ON_OPERATOR',
+      uniqueName: 'type_parameter_on_operator',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments typeParameterReferencedByStatic =
     DiagnosticWithoutArgumentsImpl(
-      name: 'TYPE_PARAMETER_REFERENCED_BY_STATIC',
+      name: 'type_parameter_referenced_by_static',
       problemMessage:
           "Static members can't reference type parameters of the class.",
       correctionMessage:
@@ -15279,7 +15279,7 @@ const DiagnosticWithoutArguments typeParameterReferencedByStatic =
           "member an instance member.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'TYPE_PARAMETER_REFERENCED_BY_STATIC',
+      uniqueName: 'type_parameter_referenced_by_static',
       expectedTypes: [],
     );
 
@@ -15292,13 +15292,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required DartType p1})
 >
 typeParameterSupertypeOfItsBound = DiagnosticWithArguments(
-  name: 'TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',
+  name: 'type_parameter_supertype_of_its_bound',
   problemMessage: "'{0}' can't be a supertype of its upper bound.",
   correctionMessage:
       "Try using a type that is the same as or a subclass of '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',
+  uniqueName: 'type_parameter_supertype_of_its_bound',
   withArguments: _withArgumentsTypeParameterSupertypeOfItsBound,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
@@ -15309,13 +15309,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 typeTestWithNonType = DiagnosticWithArguments(
-  name: 'TYPE_TEST_WITH_NON_TYPE',
+  name: 'type_test_with_non_type',
   problemMessage:
       "The name '{0}' isn't a type and can't be used in an 'is' expression.",
   correctionMessage: "Try correcting the name to match an existing type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TYPE_TEST_WITH_NON_TYPE',
+  uniqueName: 'type_test_with_non_type',
   withArguments: _withArgumentsTypeTestWithNonType,
   expectedTypes: [ExpectedType.string],
 );
@@ -15326,7 +15326,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 typeTestWithUndefinedName = DiagnosticWithArguments(
-  name: 'TYPE_TEST_WITH_UNDEFINED_NAME',
+  name: 'type_test_with_undefined_name',
   problemMessage:
       "The name '{0}' isn't defined, so it can't be used in an 'is' expression.",
   correctionMessage:
@@ -15334,7 +15334,7 @@ typeTestWithUndefinedName = DiagnosticWithArguments(
       "type with the name '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'TYPE_TEST_WITH_UNDEFINED_NAME',
+  uniqueName: 'type_test_with_undefined_name',
   withArguments: _withArgumentsTypeTestWithUndefinedName,
   expectedTypes: [ExpectedType.string],
 );
@@ -15345,10 +15345,10 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 unableGetContent = DiagnosticWithArguments(
-  name: 'UNABLE_GET_CONTENT',
+  name: 'unable_get_content',
   problemMessage: "Unable to get content of '{0}'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'UNABLE_GET_CONTENT',
+  uniqueName: 'unable_get_content',
   withArguments: _withArgumentsUnableGetContent,
   expectedTypes: [ExpectedType.object],
 );
@@ -15356,13 +15356,13 @@ unableGetContent = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 uncheckedInvocationOfNullableValue = DiagnosticWithoutArgumentsImpl(
-  name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
+  name: 'unchecked_use_of_nullable_value',
   problemMessage:
       "The function can't be unconditionally invoked because it can be 'null'.",
   correctionMessage: "Try adding a null check ('!').",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNCHECKED_INVOCATION_OF_NULLABLE_VALUE',
+  uniqueName: 'unchecked_invocation_of_nullable_value',
   expectedTypes: [],
 );
 
@@ -15372,7 +15372,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 uncheckedMethodInvocationOfNullableValue = DiagnosticWithArguments(
-  name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
+  name: 'unchecked_use_of_nullable_value',
   problemMessage:
       "The method '{0}' can't be unconditionally invoked because the receiver "
       "can be 'null'.",
@@ -15381,7 +15381,7 @@ uncheckedMethodInvocationOfNullableValue = DiagnosticWithArguments(
       "to the target ('!').",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE',
+  uniqueName: 'unchecked_method_invocation_of_nullable_value',
   withArguments: _withArgumentsUncheckedMethodInvocationOfNullableValue,
   expectedTypes: [ExpectedType.string],
 );
@@ -15392,14 +15392,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 uncheckedOperatorInvocationOfNullableValue = DiagnosticWithArguments(
-  name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
+  name: 'unchecked_use_of_nullable_value',
   problemMessage:
       "The operator '{0}' can't be unconditionally invoked because the receiver "
       "can be 'null'.",
   correctionMessage: "Try adding a null check to the target ('!').",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE',
+  uniqueName: 'unchecked_operator_invocation_of_nullable_value',
   withArguments: _withArgumentsUncheckedOperatorInvocationOfNullableValue,
   expectedTypes: [ExpectedType.string],
 );
@@ -15410,7 +15410,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 uncheckedPropertyAccessOfNullableValue = DiagnosticWithArguments(
-  name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
+  name: 'unchecked_use_of_nullable_value',
   problemMessage:
       "The property '{0}' can't be unconditionally accessed because the receiver "
       "can be 'null'.",
@@ -15419,7 +15419,7 @@ uncheckedPropertyAccessOfNullableValue = DiagnosticWithArguments(
       "to the target ('!').",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE',
+  uniqueName: 'unchecked_property_access_of_nullable_value',
   withArguments: _withArgumentsUncheckedPropertyAccessOfNullableValue,
   expectedTypes: [ExpectedType.string],
 );
@@ -15427,21 +15427,21 @@ uncheckedPropertyAccessOfNullableValue = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments uncheckedUseOfNullableValueAsCondition =
     DiagnosticWithoutArgumentsImpl(
-      name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
+      name: 'unchecked_use_of_nullable_value',
       problemMessage: "A nullable expression can't be used as a condition.",
       correctionMessage:
           "Try checking that the value isn't 'null' before using it as a "
           "condition.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION',
+      uniqueName: 'unchecked_use_of_nullable_value_as_condition',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 uncheckedUseOfNullableValueAsIterator = DiagnosticWithoutArgumentsImpl(
-  name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
+  name: 'unchecked_use_of_nullable_value',
   problemMessage:
       "A nullable expression can't be used as an iterator in a for-in loop.",
   correctionMessage:
@@ -15449,28 +15449,28 @@ uncheckedUseOfNullableValueAsIterator = DiagnosticWithoutArgumentsImpl(
       "iterator.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR',
+  uniqueName: 'unchecked_use_of_nullable_value_as_iterator',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 uncheckedUseOfNullableValueInSpread = DiagnosticWithoutArgumentsImpl(
-  name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
+  name: 'unchecked_use_of_nullable_value',
   problemMessage: "A nullable expression can't be used in a spread.",
   correctionMessage:
       "Try checking that the value isn't 'null' before using it in a spread, "
       "or use a null-aware spread.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD',
+  uniqueName: 'unchecked_use_of_nullable_value_in_spread',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments uncheckedUseOfNullableValueInYieldEach =
     DiagnosticWithoutArgumentsImpl(
-      name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
+      name: 'unchecked_use_of_nullable_value',
       problemMessage:
           "A nullable expression can't be used in a yield-each statement.",
       correctionMessage:
@@ -15478,7 +15478,7 @@ const DiagnosticWithoutArguments uncheckedUseOfNullableValueInYieldEach =
           "yield-each statement.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH',
+      uniqueName: 'unchecked_use_of_nullable_value_in_yield_each',
       expectedTypes: [],
     );
 
@@ -15488,14 +15488,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 undefinedAnnotation = DiagnosticWithArguments(
-  name: 'UNDEFINED_ANNOTATION',
+  name: 'undefined_annotation',
   problemMessage: "Undefined name '{0}' used as an annotation.",
   correctionMessage:
       "Try defining the name or importing it from another library.",
   hasPublishedDocs: true,
   isUnresolvedIdentifier: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_ANNOTATION',
+  uniqueName: 'undefined_annotation',
   withArguments: _withArgumentsUndefinedAnnotation,
   expectedTypes: [ExpectedType.string],
 );
@@ -15506,7 +15506,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 undefinedClass = DiagnosticWithArguments(
-  name: 'UNDEFINED_CLASS',
+  name: 'undefined_class',
   problemMessage: "Undefined class '{0}'.",
   correctionMessage:
       "Try changing the name to the name of an existing class, or creating a "
@@ -15514,7 +15514,7 @@ undefinedClass = DiagnosticWithArguments(
   hasPublishedDocs: true,
   isUnresolvedIdentifier: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_CLASS',
+  uniqueName: 'undefined_class',
   withArguments: _withArgumentsUndefinedClass,
   expectedTypes: [ExpectedType.string],
 );
@@ -15528,13 +15528,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 undefinedClassBoolean = DiagnosticWithArguments(
-  name: 'UNDEFINED_CLASS',
+  name: 'undefined_class',
   problemMessage: "Undefined class '{0}'.",
   correctionMessage: "Try using the type 'bool'.",
   hasPublishedDocs: true,
   isUnresolvedIdentifier: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_CLASS_BOOLEAN',
+  uniqueName: 'undefined_class_boolean',
   withArguments: _withArgumentsUndefinedClassBoolean,
   expectedTypes: [ExpectedType.string],
 );
@@ -15547,14 +15547,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required String p1})
 >
 undefinedConstructorInInitializer = DiagnosticWithArguments(
-  name: 'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER',
+  name: 'undefined_constructor_in_initializer',
   problemMessage: "The class '{0}' doesn't have a constructor named '{1}'.",
   correctionMessage:
       "Try defining a constructor named '{1}' in '{0}', or invoking a "
       "different constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER',
+  uniqueName: 'undefined_constructor_in_initializer',
   withArguments: _withArgumentsUndefinedConstructorInInitializer,
   expectedTypes: [ExpectedType.type, ExpectedType.string],
 );
@@ -15566,14 +15566,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 undefinedConstructorInInitializerDefault = DiagnosticWithArguments(
-  name: 'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER',
+  name: 'undefined_constructor_in_initializer',
   problemMessage: "The class '{0}' doesn't have an unnamed constructor.",
   correctionMessage:
       "Try defining an unnamed constructor in '{0}', or invoking a different "
       "constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT',
+  uniqueName: 'undefined_constructor_in_initializer_default',
   withArguments: _withArgumentsUndefinedConstructorInInitializerDefault,
   expectedTypes: [ExpectedType.object],
 );
@@ -15585,14 +15585,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 undefinedEnumConstant = DiagnosticWithArguments(
-  name: 'UNDEFINED_ENUM_CONSTANT',
+  name: 'undefined_enum_constant',
   problemMessage: "There's no constant named '{0}' in '{1}'.",
   correctionMessage:
       "Try correcting the name to the name of an existing constant, or "
       "defining a constant named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_ENUM_CONSTANT',
+  uniqueName: 'undefined_enum_constant',
   withArguments: _withArgumentsUndefinedEnumConstant,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15603,14 +15603,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 undefinedEnumConstructorNamed = DiagnosticWithArguments(
-  name: 'UNDEFINED_ENUM_CONSTRUCTOR',
+  name: 'undefined_enum_constructor',
   problemMessage: "The enum doesn't have a constructor named '{0}'.",
   correctionMessage:
       "Try correcting the name to the name of an existing constructor, or "
       "defining constructor with the name '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_ENUM_CONSTRUCTOR_NAMED',
+  uniqueName: 'undefined_enum_constructor_named',
   withArguments: _withArgumentsUndefinedEnumConstructorNamed,
   expectedTypes: [ExpectedType.string],
 );
@@ -15618,14 +15618,14 @@ undefinedEnumConstructorNamed = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments undefinedEnumConstructorUnnamed =
     DiagnosticWithoutArgumentsImpl(
-      name: 'UNDEFINED_ENUM_CONSTRUCTOR',
+      name: 'undefined_enum_constructor',
       problemMessage: "The enum doesn't have an unnamed constructor.",
       correctionMessage:
           "Try adding the name of an existing constructor, or defining an "
           "unnamed constructor.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED',
+      uniqueName: 'undefined_enum_constructor_unnamed',
       expectedTypes: [],
     );
 
@@ -15636,14 +15636,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 undefinedExtensionGetter = DiagnosticWithArguments(
-  name: 'UNDEFINED_EXTENSION_GETTER',
+  name: 'undefined_extension_getter',
   problemMessage: "The getter '{0}' isn't defined for the extension '{1}'.",
   correctionMessage:
       "Try correcting the name to the name of an existing getter, or "
       "defining a getter named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_EXTENSION_GETTER',
+  uniqueName: 'undefined_extension_getter',
   withArguments: _withArgumentsUndefinedExtensionGetter,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15655,14 +15655,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 undefinedExtensionMethod = DiagnosticWithArguments(
-  name: 'UNDEFINED_EXTENSION_METHOD',
+  name: 'undefined_extension_method',
   problemMessage: "The method '{0}' isn't defined for the extension '{1}'.",
   correctionMessage:
       "Try correcting the name to the name of an existing method, or "
       "defining a method named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_EXTENSION_METHOD',
+  uniqueName: 'undefined_extension_method',
   withArguments: _withArgumentsUndefinedExtensionMethod,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15674,12 +15674,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 undefinedExtensionOperator = DiagnosticWithArguments(
-  name: 'UNDEFINED_EXTENSION_OPERATOR',
+  name: 'undefined_extension_operator',
   problemMessage: "The operator '{0}' isn't defined for the extension '{1}'.",
   correctionMessage: "Try defining the operator '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_EXTENSION_OPERATOR',
+  uniqueName: 'undefined_extension_operator',
   withArguments: _withArgumentsUndefinedExtensionOperator,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15691,14 +15691,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 undefinedExtensionSetter = DiagnosticWithArguments(
-  name: 'UNDEFINED_EXTENSION_SETTER',
+  name: 'undefined_extension_setter',
   problemMessage: "The setter '{0}' isn't defined for the extension '{1}'.",
   correctionMessage:
       "Try correcting the name to the name of an existing setter, or "
       "defining a setter named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_EXTENSION_SETTER',
+  uniqueName: 'undefined_extension_setter',
   withArguments: _withArgumentsUndefinedExtensionSetter,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15709,7 +15709,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 undefinedFunction = DiagnosticWithArguments(
-  name: 'UNDEFINED_FUNCTION',
+  name: 'undefined_function',
   problemMessage: "The function '{0}' isn't defined.",
   correctionMessage:
       "Try importing the library that defines '{0}', correcting the name to "
@@ -15717,7 +15717,7 @@ undefinedFunction = DiagnosticWithArguments(
   hasPublishedDocs: true,
   isUnresolvedIdentifier: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_FUNCTION',
+  uniqueName: 'undefined_function',
   withArguments: _withArgumentsUndefinedFunction,
   expectedTypes: [ExpectedType.string],
 );
@@ -15730,7 +15730,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required Object p1})
 >
 undefinedGetter = DiagnosticWithArguments(
-  name: 'UNDEFINED_GETTER',
+  name: 'undefined_getter',
   problemMessage: "The getter '{0}' isn't defined for the type '{1}'.",
   correctionMessage:
       "Try importing the library that defines '{0}', correcting the name to "
@@ -15738,7 +15738,7 @@ undefinedGetter = DiagnosticWithArguments(
       "'{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_GETTER',
+  uniqueName: 'undefined_getter',
   withArguments: _withArgumentsUndefinedGetter,
   expectedTypes: [ExpectedType.string, ExpectedType.object],
 );
@@ -15750,14 +15750,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 undefinedGetterOnFunctionType = DiagnosticWithArguments(
-  name: 'UNDEFINED_GETTER',
+  name: 'undefined_getter',
   problemMessage: "The getter '{0}' isn't defined for the '{1}' function type.",
   correctionMessage:
       "Try wrapping the function type alias in parentheses in order to "
       "access '{0}' as an extension getter on 'Type'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_GETTER_ON_FUNCTION_TYPE',
+  uniqueName: 'undefined_getter_on_function_type',
   withArguments: _withArgumentsUndefinedGetterOnFunctionType,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15769,13 +15769,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 undefinedHiddenName = DiagnosticWithArguments(
-  name: 'UNDEFINED_HIDDEN_NAME',
+  name: 'undefined_hidden_name',
   problemMessage:
       "The library '{0}' doesn't export a member with the hidden name '{1}'.",
   correctionMessage: "Try removing the name from the list of hidden members.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNDEFINED_HIDDEN_NAME',
+  uniqueName: 'undefined_hidden_name',
   withArguments: _withArgumentsUndefinedHiddenName,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15786,14 +15786,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 undefinedIdentifier = DiagnosticWithArguments(
-  name: 'UNDEFINED_IDENTIFIER',
+  name: 'undefined_identifier',
   problemMessage: "Undefined name '{0}'.",
   correctionMessage:
       "Try correcting the name to one that is defined, or defining the name.",
   hasPublishedDocs: true,
   isUnresolvedIdentifier: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_IDENTIFIER',
+  uniqueName: 'undefined_identifier',
   withArguments: _withArgumentsUndefinedIdentifier,
   expectedTypes: [ExpectedType.string],
 );
@@ -15801,7 +15801,7 @@ undefinedIdentifier = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 undefinedIdentifierAwait = DiagnosticWithoutArgumentsImpl(
-  name: 'UNDEFINED_IDENTIFIER_AWAIT',
+  name: 'undefined_identifier_await',
   problemMessage:
       "Undefined name 'await' in function body not marked with 'async'.",
   correctionMessage:
@@ -15809,7 +15809,7 @@ undefinedIdentifierAwait = DiagnosticWithoutArgumentsImpl(
       "adding 'async' to the enclosing function body.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_IDENTIFIER_AWAIT',
+  uniqueName: 'undefined_identifier_await',
   expectedTypes: [],
 );
 
@@ -15821,11 +15821,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String ruleName})
 >
 undefinedLint = DiagnosticWithArguments(
-  name: 'UNDEFINED_LINT',
+  name: 'undefined_lint',
   problemMessage: "'{0}' isn't a recognized lint rule.",
   correctionMessage: "Try using the name of a recognized lint rule.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNDEFINED_LINT',
+  uniqueName: 'undefined_lint',
   withArguments: _withArgumentsUndefinedLint,
   expectedTypes: [ExpectedType.string],
 );
@@ -15837,14 +15837,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required Object p1})
 >
 undefinedMethod = DiagnosticWithArguments(
-  name: 'UNDEFINED_METHOD',
+  name: 'undefined_method',
   problemMessage: "The method '{0}' isn't defined for the type '{1}'.",
   correctionMessage:
       "Try correcting the name to the name of an existing method, or "
       "defining a method named '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_METHOD',
+  uniqueName: 'undefined_method',
   withArguments: _withArgumentsUndefinedMethod,
   expectedTypes: [ExpectedType.string, ExpectedType.object],
 );
@@ -15856,14 +15856,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 undefinedMethodOnFunctionType = DiagnosticWithArguments(
-  name: 'UNDEFINED_METHOD',
+  name: 'undefined_method',
   problemMessage: "The method '{0}' isn't defined for the '{1}' function type.",
   correctionMessage:
       "Try wrapping the function type alias in parentheses in order to "
       "access '{0}' as an extension method on 'Type'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_METHOD_ON_FUNCTION_TYPE',
+  uniqueName: 'undefined_method_on_function_type',
   withArguments: _withArgumentsUndefinedMethodOnFunctionType,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15874,14 +15874,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 undefinedNamedParameter = DiagnosticWithArguments(
-  name: 'UNDEFINED_NAMED_PARAMETER',
+  name: 'undefined_named_parameter',
   problemMessage: "The named parameter '{0}' isn't defined.",
   correctionMessage:
       "Try correcting the name to an existing named parameter's name, or "
       "defining a named parameter with the name '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_NAMED_PARAMETER',
+  uniqueName: 'undefined_named_parameter',
   withArguments: _withArgumentsUndefinedNamedParameter,
   expectedTypes: [ExpectedType.string],
 );
@@ -15894,12 +15894,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required DartType p1})
 >
 undefinedOperator = DiagnosticWithArguments(
-  name: 'UNDEFINED_OPERATOR',
+  name: 'undefined_operator',
   problemMessage: "The operator '{0}' isn't defined for the type '{1}'.",
   correctionMessage: "Try defining the operator '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_OPERATOR',
+  uniqueName: 'undefined_operator',
   withArguments: _withArgumentsUndefinedOperator,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
@@ -15911,7 +15911,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 undefinedPrefixedName = DiagnosticWithArguments(
-  name: 'UNDEFINED_PREFIXED_NAME',
+  name: 'undefined_prefixed_name',
   problemMessage:
       "The name '{0}' is being referenced through the prefix '{1}', but it isn't "
       "defined in any of the libraries imported using that prefix.",
@@ -15920,7 +15920,7 @@ undefinedPrefixedName = DiagnosticWithArguments(
       "'{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_PREFIXED_NAME',
+  uniqueName: 'undefined_prefixed_name',
   withArguments: _withArgumentsUndefinedPrefixedName,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15932,11 +15932,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 undefinedReferencedParameter = DiagnosticWithArguments(
-  name: 'UNDEFINED_REFERENCED_PARAMETER',
+  name: 'undefined_referenced_parameter',
   problemMessage: "The parameter '{0}' isn't defined by '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNDEFINED_REFERENCED_PARAMETER',
+  uniqueName: 'undefined_referenced_parameter',
   withArguments: _withArgumentsUndefinedReferencedParameter,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15949,7 +15949,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required DartType p1})
 >
 undefinedSetter = DiagnosticWithArguments(
-  name: 'UNDEFINED_SETTER',
+  name: 'undefined_setter',
   problemMessage: "The setter '{0}' isn't defined for the type '{1}'.",
   correctionMessage:
       "Try importing the library that defines '{0}', correcting the name to "
@@ -15957,7 +15957,7 @@ undefinedSetter = DiagnosticWithArguments(
       "'{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_SETTER',
+  uniqueName: 'undefined_setter',
   withArguments: _withArgumentsUndefinedSetter,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
@@ -15969,14 +15969,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 undefinedSetterOnFunctionType = DiagnosticWithArguments(
-  name: 'UNDEFINED_SETTER',
+  name: 'undefined_setter',
   problemMessage: "The setter '{0}' isn't defined for the '{1}' function type.",
   correctionMessage:
       "Try wrapping the function type alias in parentheses in order to "
       "access '{0}' as an extension getter on 'Type'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_SETTER_ON_FUNCTION_TYPE',
+  uniqueName: 'undefined_setter_on_function_type',
   withArguments: _withArgumentsUndefinedSetterOnFunctionType,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -15988,13 +15988,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 undefinedShownName = DiagnosticWithArguments(
-  name: 'UNDEFINED_SHOWN_NAME',
+  name: 'undefined_shown_name',
   problemMessage:
       "The library '{0}' doesn't export a member with the shown name '{1}'.",
   correctionMessage: "Try removing the name from the list of shown members.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNDEFINED_SHOWN_NAME',
+  uniqueName: 'undefined_shown_name',
   withArguments: _withArgumentsUndefinedShownName,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -16007,14 +16007,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required DartType p1})
 >
 undefinedSuperGetter = DiagnosticWithArguments(
-  name: 'UNDEFINED_SUPER_MEMBER',
+  name: 'undefined_super_member',
   problemMessage: "The getter '{0}' isn't defined in a superclass of '{1}'.",
   correctionMessage:
       "Try correcting the name to the name of an existing getter, or "
       "defining a getter or field named '{0}' in a superclass.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_SUPER_GETTER',
+  uniqueName: 'undefined_super_getter',
   withArguments: _withArgumentsUndefinedSuperGetter,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
@@ -16026,14 +16026,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 undefinedSuperMethod = DiagnosticWithArguments(
-  name: 'UNDEFINED_SUPER_MEMBER',
+  name: 'undefined_super_member',
   problemMessage: "The method '{0}' isn't defined in a superclass of '{1}'.",
   correctionMessage:
       "Try correcting the name to the name of an existing method, or "
       "defining a method named '{0}' in a superclass.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_SUPER_METHOD',
+  uniqueName: 'undefined_super_method',
   withArguments: _withArgumentsUndefinedSuperMethod,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -16046,12 +16046,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required DartType p1})
 >
 undefinedSuperOperator = DiagnosticWithArguments(
-  name: 'UNDEFINED_SUPER_MEMBER',
+  name: 'undefined_super_member',
   problemMessage: "The operator '{0}' isn't defined in a superclass of '{1}'.",
   correctionMessage: "Try defining the operator '{0}' in a superclass.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_SUPER_OPERATOR',
+  uniqueName: 'undefined_super_operator',
   withArguments: _withArgumentsUndefinedSuperOperator,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
@@ -16064,14 +16064,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required DartType p1})
 >
 undefinedSuperSetter = DiagnosticWithArguments(
-  name: 'UNDEFINED_SUPER_MEMBER',
+  name: 'undefined_super_member',
   problemMessage: "The setter '{0}' isn't defined in a superclass of '{1}'.",
   correctionMessage:
       "Try correcting the name to the name of an existing setter, or "
       "defining a setter or field named '{0}' in a superclass.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNDEFINED_SUPER_SETTER',
+  uniqueName: 'undefined_super_setter',
   withArguments: _withArgumentsUndefinedSuperSetter,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
@@ -16084,10 +16084,10 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String message})
 >
 undone = DiagnosticWithArguments(
-  name: 'UNDONE',
+  name: 'undone',
   problemMessage: "{0}",
   type: DiagnosticType.TODO,
-  uniqueName: 'UNDONE',
+  uniqueName: 'undone',
   withArguments: _withArgumentsUndone,
   expectedTypes: [ExpectedType.string],
 );
@@ -16095,26 +16095,26 @@ undone = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 unexpectedDollarInString = DiagnosticWithoutArgumentsImpl(
-  name: 'UNEXPECTED_DOLLAR_IN_STRING',
+  name: 'unexpected_dollar_in_string',
   problemMessage:
       "A '\$' has special meaning inside a string, and must be followed by an "
       "identifier or an expression in curly braces ({}).",
   correctionMessage: "Try adding a backslash (\\) to escape the '\$'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'UNEXPECTED_DOLLAR_IN_STRING',
+  uniqueName: 'unexpected_dollar_in_string',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 unexpectedSeparatorInNumber = DiagnosticWithoutArgumentsImpl(
-  name: 'UNEXPECTED_SEPARATOR_IN_NUMBER',
+  name: 'unexpected_separator_in_number',
   problemMessage:
       "Digit separators ('_') in a number literal can only be placed between two "
       "digits.",
   correctionMessage: "Try removing the '_'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'UNEXPECTED_SEPARATOR_IN_NUMBER',
+  uniqueName: 'unexpected_separator_in_number',
   expectedTypes: [],
 );
 
@@ -16124,11 +16124,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 unexpectedTerminatorForParameterGroup = DiagnosticWithArguments(
-  name: 'UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP',
+  name: 'unexpected_terminator_for_parameter_group',
   problemMessage: "There is no '{0}' to open a parameter group.",
   correctionMessage: "Try inserting the '{0}' at the appropriate location.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP',
+  uniqueName: 'unexpected_terminator_for_parameter_group',
   withArguments: _withArgumentsUnexpectedTerminatorForParameterGroup,
   expectedTypes: [ExpectedType.object],
 );
@@ -16139,11 +16139,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 unexpectedToken = DiagnosticWithArguments(
-  name: 'UNEXPECTED_TOKEN',
+  name: 'unexpected_token',
   problemMessage: "Unexpected text '{0}'.",
   correctionMessage: "Try removing the text.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'UNEXPECTED_TOKEN',
+  uniqueName: 'unexpected_token',
   withArguments: _withArgumentsUnexpectedToken,
   expectedTypes: [ExpectedType.string],
 );
@@ -16151,10 +16151,10 @@ unexpectedToken = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments unexpectedTokens =
     DiagnosticWithoutArgumentsImpl(
-      name: 'UNEXPECTED_TOKENS',
+      name: 'unexpected_tokens',
       problemMessage: "Unexpected tokens.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'UNEXPECTED_TOKENS',
+      uniqueName: 'unexpected_tokens',
       expectedTypes: [],
     );
 
@@ -16164,13 +16164,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 unignorableIgnore = DiagnosticWithArguments(
-  name: 'UNIGNORABLE_IGNORE',
+  name: 'unignorable_ignore',
   problemMessage: "The diagnostic '{0}' can't be ignored.",
   correctionMessage:
       "Try removing the name from the list, or removing the whole comment if "
       "this is the only name in the list.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNIGNORABLE_IGNORE',
+  uniqueName: 'unignorable_ignore',
   withArguments: _withArgumentsUnignorableIgnore,
   expectedTypes: [ExpectedType.object],
 );
@@ -16181,12 +16181,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 unknownPlatform = DiagnosticWithArguments(
-  name: 'UNKNOWN_PLATFORM',
+  name: 'unknown_platform',
   problemMessage: "The platform '{0}' is not a recognized platform.",
   correctionMessage: "Try correcting the platform name or removing it.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNKNOWN_PLATFORM',
+  uniqueName: 'unknown_platform',
   withArguments: _withArgumentsUnknownPlatform,
   expectedTypes: [ExpectedType.object],
 );
@@ -16194,24 +16194,24 @@ unknownPlatform = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments unnecessaryCast =
     DiagnosticWithoutArgumentsImpl(
-      name: 'UNNECESSARY_CAST',
+      name: 'unnecessary_cast',
       problemMessage: "Unnecessary cast.",
       correctionMessage: "Try removing the cast.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'UNNECESSARY_CAST',
+      uniqueName: 'unnecessary_cast',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments unnecessaryCastPattern =
     DiagnosticWithoutArgumentsImpl(
-      name: 'UNNECESSARY_CAST_PATTERN',
+      name: 'unnecessary_cast_pattern',
       problemMessage: "Unnecessary cast pattern.",
       correctionMessage: "Try removing the cast pattern.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'UNNECESSARY_CAST_PATTERN',
+      uniqueName: 'unnecessary_cast_pattern',
       expectedTypes: [],
     );
 
@@ -16221,14 +16221,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 unnecessaryDevDependency = DiagnosticWithArguments(
-  name: 'UNNECESSARY_DEV_DEPENDENCY',
+  name: 'unnecessary_dev_dependency',
   problemMessage:
       "The dev dependency on {0} is unnecessary because there is also a normal "
       "dependency on that package.",
   correctionMessage: "Try removing the dev dependency.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNNECESSARY_DEV_DEPENDENCY',
+  uniqueName: 'unnecessary_dev_dependency',
   withArguments: _withArgumentsUnnecessaryDevDependency,
   expectedTypes: [ExpectedType.string],
 );
@@ -16236,14 +16236,14 @@ unnecessaryDevDependency = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 unnecessaryFinal = DiagnosticWithoutArgumentsImpl(
-  name: 'UNNECESSARY_FINAL',
+  name: 'unnecessary_final',
   problemMessage:
       "The keyword 'final' isn't necessary because the parameter is implicitly "
       "'final'.",
   correctionMessage: "Try removing the 'final'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNNECESSARY_FINAL',
+  uniqueName: 'unnecessary_final',
   expectedTypes: [],
 );
 
@@ -16254,14 +16254,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 unnecessaryImport = DiagnosticWithArguments(
-  name: 'UNNECESSARY_IMPORT',
+  name: 'unnecessary_import',
   problemMessage:
       "The import of '{0}' is unnecessary because all of the used elements are "
       "also provided by the import of '{1}'.",
   correctionMessage: "Try removing the import directive.",
   hasPublishedDocs: true,
   type: DiagnosticType.HINT,
-  uniqueName: 'UNNECESSARY_IMPORT',
+  uniqueName: 'unnecessary_import',
   withArguments: _withArgumentsUnnecessaryImport,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -16269,58 +16269,58 @@ unnecessaryImport = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 unnecessaryNanComparisonFalse = DiagnosticWithoutArgumentsImpl(
-  name: 'UNNECESSARY_NAN_COMPARISON',
+  name: 'unnecessary_nan_comparison',
   problemMessage:
       "A double can't equal 'double.nan', so the condition is always 'false'.",
   correctionMessage: "Try using 'double.isNan', or removing the condition.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNNECESSARY_NAN_COMPARISON_FALSE',
+  uniqueName: 'unnecessary_nan_comparison_false',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 unnecessaryNanComparisonTrue = DiagnosticWithoutArgumentsImpl(
-  name: 'UNNECESSARY_NAN_COMPARISON',
+  name: 'unnecessary_nan_comparison',
   problemMessage:
       "A double can't equal 'double.nan', so the condition is always 'true'.",
   correctionMessage: "Try using 'double.isNan', or removing the condition.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNNECESSARY_NAN_COMPARISON_TRUE',
+  uniqueName: 'unnecessary_nan_comparison_true',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments unnecessaryNonNullAssertion =
     DiagnosticWithoutArgumentsImpl(
-      name: 'UNNECESSARY_NON_NULL_ASSERTION',
+      name: 'unnecessary_non_null_assertion',
       problemMessage:
           "The '!' will have no effect because the receiver can't be null.",
       correctionMessage: "Try removing the '!' operator.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'UNNECESSARY_NON_NULL_ASSERTION',
+      uniqueName: 'unnecessary_non_null_assertion',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments unnecessaryNoSuchMethod =
     DiagnosticWithoutArgumentsImpl(
-      name: 'UNNECESSARY_NO_SUCH_METHOD',
+      name: 'unnecessary_no_such_method',
       problemMessage: "Unnecessary 'noSuchMethod' declaration.",
       correctionMessage: "Try removing the declaration of 'noSuchMethod'.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'UNNECESSARY_NO_SUCH_METHOD',
+      uniqueName: 'unnecessary_no_such_method',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 unnecessaryNullAssertPattern = DiagnosticWithoutArgumentsImpl(
-  name: 'UNNECESSARY_NULL_ASSERT_PATTERN',
+  name: 'unnecessary_null_assert_pattern',
   problemMessage:
       "The null-assert pattern will have no effect because the matched type "
       "isn't nullable.",
@@ -16328,14 +16328,14 @@ unnecessaryNullAssertPattern = DiagnosticWithoutArgumentsImpl(
       "Try replacing the null-assert pattern with its nested pattern.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNNECESSARY_NULL_ASSERT_PATTERN',
+  uniqueName: 'unnecessary_null_assert_pattern',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 unnecessaryNullCheckPattern = DiagnosticWithoutArgumentsImpl(
-  name: 'UNNECESSARY_NULL_CHECK_PATTERN',
+  name: 'unnecessary_null_check_pattern',
   problemMessage:
       "The null-check pattern will have no effect because the matched type isn't "
       "nullable.",
@@ -16343,40 +16343,40 @@ unnecessaryNullCheckPattern = DiagnosticWithoutArgumentsImpl(
       "Try replacing the null-check pattern with its nested pattern.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNNECESSARY_NULL_CHECK_PATTERN',
+  uniqueName: 'unnecessary_null_check_pattern',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments unnecessaryNullComparisonAlwaysNullFalse =
     DiagnosticWithoutArgumentsImpl(
-      name: 'UNNECESSARY_NULL_COMPARISON',
+      name: 'unnecessary_null_comparison',
       problemMessage:
           "The operand must be 'null', so the condition is always 'false'.",
       correctionMessage: "Remove the condition.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE',
+      uniqueName: 'unnecessary_null_comparison_always_null_false',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments unnecessaryNullComparisonAlwaysNullTrue =
     DiagnosticWithoutArgumentsImpl(
-      name: 'UNNECESSARY_NULL_COMPARISON',
+      name: 'unnecessary_null_comparison',
       problemMessage:
           "The operand must be 'null', so the condition is always 'true'.",
       correctionMessage: "Remove the condition.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE',
+      uniqueName: 'unnecessary_null_comparison_always_null_true',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments unnecessaryNullComparisonNeverNullFalse =
     DiagnosticWithoutArgumentsImpl(
-      name: 'UNNECESSARY_NULL_COMPARISON',
+      name: 'unnecessary_null_comparison',
       problemMessage:
           "The operand can't be 'null', so the condition is always 'false'.",
       correctionMessage:
@@ -16384,20 +16384,20 @@ const DiagnosticWithoutArguments unnecessaryNullComparisonNeverNullFalse =
           "conditional statement.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE',
+      uniqueName: 'unnecessary_null_comparison_never_null_false',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments unnecessaryNullComparisonNeverNullTrue =
     DiagnosticWithoutArgumentsImpl(
-      name: 'UNNECESSARY_NULL_COMPARISON',
+      name: 'unnecessary_null_comparison',
       problemMessage:
           "The operand can't be 'null', so the condition is always 'true'.",
       correctionMessage: "Remove the condition.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE',
+      uniqueName: 'unnecessary_null_comparison_never_null_true',
       expectedTypes: [],
     );
 
@@ -16407,12 +16407,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 unnecessaryQuestionMark = DiagnosticWithArguments(
-  name: 'UNNECESSARY_QUESTION_MARK',
+  name: 'unnecessary_question_mark',
   problemMessage:
       "The '?' is unnecessary because '{0}' is nullable without it.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNNECESSARY_QUESTION_MARK',
+  uniqueName: 'unnecessary_question_mark',
   withArguments: _withArgumentsUnnecessaryQuestionMark,
   expectedTypes: [ExpectedType.string],
 );
@@ -16420,51 +16420,51 @@ unnecessaryQuestionMark = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments unnecessarySetLiteral =
     DiagnosticWithoutArgumentsImpl(
-      name: 'UNNECESSARY_SET_LITERAL',
+      name: 'unnecessary_set_literal',
       problemMessage:
           "Braces unnecessarily wrap this expression in a set literal.",
       correctionMessage: "Try removing the set literal around the expression.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'UNNECESSARY_SET_LITERAL',
+      uniqueName: 'unnecessary_set_literal',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments unnecessaryTypeCheckFalse =
     DiagnosticWithoutArgumentsImpl(
-      name: 'UNNECESSARY_TYPE_CHECK',
+      name: 'unnecessary_type_check',
       problemMessage: "Unnecessary type check; the result is always 'false'.",
       correctionMessage:
           "Try correcting the type check, or removing the type check.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'UNNECESSARY_TYPE_CHECK_FALSE',
+      uniqueName: 'unnecessary_type_check_false',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments unnecessaryTypeCheckTrue =
     DiagnosticWithoutArgumentsImpl(
-      name: 'UNNECESSARY_TYPE_CHECK',
+      name: 'unnecessary_type_check',
       problemMessage: "Unnecessary type check; the result is always 'true'.",
       correctionMessage:
           "Try correcting the type check, or removing the type check.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'UNNECESSARY_TYPE_CHECK_TRUE',
+      uniqueName: 'unnecessary_type_check_true',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments unnecessaryWildcardPattern =
     DiagnosticWithoutArgumentsImpl(
-      name: 'UNNECESSARY_WILDCARD_PATTERN',
+      name: 'unnecessary_wildcard_pattern',
       problemMessage: "Unnecessary wildcard pattern.",
       correctionMessage: "Try removing the wildcard pattern.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'UNNECESSARY_WILDCARD_PATTERN',
+      uniqueName: 'unnecessary_wildcard_pattern',
       expectedTypes: [],
     );
 
@@ -16478,14 +16478,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 unqualifiedReferenceToNonLocalStaticMember = DiagnosticWithArguments(
-  name: 'UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER',
+  name: 'unqualified_reference_to_non_local_static_member',
   problemMessage:
       "Static members from supertypes must be qualified by the name of the "
       "defining type.",
   correctionMessage: "Try adding '{0}.' before the name.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER',
+  uniqueName: 'unqualified_reference_to_non_local_static_member',
   withArguments: _withArgumentsUnqualifiedReferenceToNonLocalStaticMember,
   expectedTypes: [ExpectedType.string],
 );
@@ -16496,14 +16496,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 unqualifiedReferenceToStaticMemberOfExtendedType = DiagnosticWithArguments(
-  name: 'UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE',
+  name: 'unqualified_reference_to_static_member_of_extended_type',
   problemMessage:
       "Static members from the extended type or one of its superclasses must be "
       "qualified by the name of the defining type.",
   correctionMessage: "Try adding '{0}.' before the name.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE',
+  uniqueName: 'unqualified_reference_to_static_member_of_extended_type',
   withArguments: _withArgumentsUnqualifiedReferenceToStaticMemberOfExtendedType,
   expectedTypes: [ExpectedType.string],
 );
@@ -16511,28 +16511,28 @@ unqualifiedReferenceToStaticMemberOfExtendedType = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments unreachableSwitchCase =
     DiagnosticWithoutArgumentsImpl(
-      name: 'UNREACHABLE_SWITCH_CASE',
+      name: 'unreachable_switch_case',
       problemMessage: "This case is covered by the previous cases.",
       correctionMessage:
           "Try removing the case clause, or restructuring the preceding "
           "patterns.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'UNREACHABLE_SWITCH_CASE',
+      uniqueName: 'unreachable_switch_case',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments unreachableSwitchDefault =
     DiagnosticWithoutArgumentsImpl(
-      name: 'UNREACHABLE_SWITCH_DEFAULT',
+      name: 'unreachable_switch_default',
       problemMessage: "This default clause is covered by the previous cases.",
       correctionMessage:
           "Try removing the default clause, or restructuring the preceding "
           "patterns.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'UNREACHABLE_SWITCH_DEFAULT',
+      uniqueName: 'unreachable_switch_default',
       expectedTypes: [],
     );
 
@@ -16545,10 +16545,10 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String codeName})
 >
 unrecognizedErrorCode = DiagnosticWithArguments(
-  name: 'UNRECOGNIZED_ERROR_CODE',
+  name: 'unrecognized_error_code',
   problemMessage: "'{0}' isn't a recognized diagnostic code.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNRECOGNIZED_ERROR_CODE',
+  uniqueName: 'unrecognized_error_code',
   withArguments: _withArgumentsUnrecognizedErrorCode,
   expectedTypes: [ExpectedType.string],
 );
@@ -16561,14 +16561,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 unsupportedChromeOsFeature = DiagnosticWithArguments(
-  name: 'UNSUPPORTED_CHROME_OS_FEATURE',
+  name: 'unsupported_chrome_os_feature',
   problemMessage:
       "The feature {0} isn't supported on Chrome OS, consider making it "
       "optional.",
   correctionMessage:
       "Try changing to `android:required=\"false\"` for this feature.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNSUPPORTED_CHROME_OS_FEATURE',
+  uniqueName: 'unsupported_chrome_os_feature',
   withArguments: _withArgumentsUnsupportedChromeOsFeature,
   expectedTypes: [ExpectedType.string],
 );
@@ -16582,14 +16582,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 unsupportedChromeOsHardware = DiagnosticWithArguments(
-  name: 'UNSUPPORTED_CHROME_OS_HARDWARE',
+  name: 'unsupported_chrome_os_hardware',
   problemMessage:
       "The feature {0} isn't supported on Chrome OS, consider making it "
       "optional.",
   correctionMessage:
       "Try adding `android:required=\"false\"` for this feature.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNSUPPORTED_CHROME_OS_HARDWARE',
+  uniqueName: 'unsupported_chrome_os_hardware',
   withArguments: _withArgumentsUnsupportedChromeOsHardware,
   expectedTypes: [ExpectedType.string],
 );
@@ -16600,10 +16600,10 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 unsupportedOperator = DiagnosticWithArguments(
-  name: 'UNSUPPORTED_OPERATOR',
+  name: 'unsupported_operator',
   problemMessage: "The '{0}' operator is not supported.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'UNSUPPORTED_OPERATOR',
+  uniqueName: 'unsupported_operator',
   withArguments: _withArgumentsUnsupportedOperator,
   expectedTypes: [ExpectedType.string],
 );
@@ -16623,12 +16623,12 @@ const DiagnosticWithArguments<
   })
 >
 unsupportedOptionWithLegalValue = DiagnosticWithArguments(
-  name: 'UNSUPPORTED_OPTION',
+  name: 'unsupported_option',
   problemMessage: "The option '{1}' isn't supported by '{0}'.",
   correctionMessage:
       "Try using the only supported option: '{2}', or removing the option.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNSUPPORTED_OPTION_WITH_LEGAL_VALUE',
+  uniqueName: 'unsupported_option_with_legal_value',
   withArguments: _withArgumentsUnsupportedOptionWithLegalValue,
   expectedTypes: [
     ExpectedType.string,
@@ -16652,11 +16652,11 @@ const DiagnosticWithArguments<
   })
 >
 unsupportedOptionWithLegalValues = DiagnosticWithArguments(
-  name: 'UNSUPPORTED_OPTION',
+  name: 'unsupported_option',
   problemMessage: "The option '{1}' isn't supported by '{0}'.",
   correctionMessage: "Try using one of the supported options: {2}.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
+  uniqueName: 'unsupported_option_with_legal_values',
   withArguments: _withArgumentsUnsupportedOptionWithLegalValues,
   expectedTypes: [
     ExpectedType.string,
@@ -16678,11 +16678,11 @@ const DiagnosticWithArguments<
   })
 >
 unsupportedOptionWithoutValues = DiagnosticWithArguments(
-  name: 'UNSUPPORTED_OPTION',
+  name: 'unsupported_option',
   problemMessage: "The option '{1}' isn't supported by '{0}'.",
   correctionMessage: "Try removing the option.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNSUPPORTED_OPTION_WITHOUT_VALUES',
+  uniqueName: 'unsupported_option_without_values',
   withArguments: _withArgumentsUnsupportedOptionWithoutValues,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -16702,11 +16702,11 @@ const DiagnosticWithArguments<
   })
 >
 unsupportedValue = DiagnosticWithArguments(
-  name: 'UNSUPPORTED_VALUE',
+  name: 'unsupported_value',
   problemMessage: "The value '{1}' isn't supported by '{0}'.",
   correctionMessage: "Try using one of the supported values: {2}.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNSUPPORTED_VALUE',
+  uniqueName: 'unsupported_value',
   withArguments: _withArgumentsUnsupportedValue,
   expectedTypes: [
     ExpectedType.string,
@@ -16718,23 +16718,23 @@ unsupportedValue = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments unterminatedMultiLineComment =
     DiagnosticWithoutArgumentsImpl(
-      name: 'UNTERMINATED_MULTI_LINE_COMMENT',
+      name: 'unterminated_multi_line_comment',
       problemMessage: "Unterminated multi-line comment.",
       correctionMessage:
           "Try terminating the comment with '*/', or removing any unbalanced "
           "occurrences of '/*' (because comments nest in Dart).",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'UNTERMINATED_MULTI_LINE_COMMENT',
+      uniqueName: 'unterminated_multi_line_comment',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments unterminatedStringLiteral =
     DiagnosticWithoutArgumentsImpl(
-      name: 'UNTERMINATED_STRING_LITERAL',
+      name: 'unterminated_string_literal',
       problemMessage: "Unterminated string literal.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'UNTERMINATED_STRING_LITERAL',
+      uniqueName: 'unterminated_string_literal',
       expectedTypes: [],
     );
 
@@ -16744,14 +16744,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 unusedCatchClause = DiagnosticWithArguments(
-  name: 'UNUSED_CATCH_CLAUSE',
+  name: 'unused_catch_clause',
   problemMessage:
       "The exception variable '{0}' isn't used, so the 'catch' clause can be "
       "removed.",
   correctionMessage: "Try removing the catch clause.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNUSED_CATCH_CLAUSE',
+  uniqueName: 'unused_catch_clause',
   withArguments: _withArgumentsUnusedCatchClause,
   expectedTypes: [ExpectedType.object],
 );
@@ -16762,13 +16762,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 unusedCatchStack = DiagnosticWithArguments(
-  name: 'UNUSED_CATCH_STACK',
+  name: 'unused_catch_stack',
   problemMessage:
       "The stack trace variable '{0}' isn't used and can be removed.",
   correctionMessage: "Try removing the stack trace variable, or using it.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNUSED_CATCH_STACK',
+  uniqueName: 'unused_catch_stack',
   withArguments: _withArgumentsUnusedCatchStack,
   expectedTypes: [ExpectedType.object],
 );
@@ -16779,12 +16779,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 unusedElement = DiagnosticWithArguments(
-  name: 'UNUSED_ELEMENT',
+  name: 'unused_element',
   problemMessage: "The declaration '{0}' isn't referenced.",
   correctionMessage: "Try removing the declaration of '{0}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNUSED_ELEMENT',
+  uniqueName: 'unused_element',
   withArguments: _withArgumentsUnusedElement,
   expectedTypes: [ExpectedType.object],
 );
@@ -16795,12 +16795,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 unusedElementParameter = DiagnosticWithArguments(
-  name: 'UNUSED_ELEMENT_PARAMETER',
+  name: 'unused_element_parameter',
   problemMessage: "A value for optional parameter '{0}' isn't ever given.",
   correctionMessage: "Try removing the unused parameter.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNUSED_ELEMENT_PARAMETER',
+  uniqueName: 'unused_element_parameter',
   withArguments: _withArgumentsUnusedElementParameter,
   expectedTypes: [ExpectedType.object],
 );
@@ -16811,12 +16811,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 unusedField = DiagnosticWithArguments(
-  name: 'UNUSED_FIELD',
+  name: 'unused_field',
   problemMessage: "The value of the field '{0}' isn't used.",
   correctionMessage: "Try removing the field, or using it.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNUSED_FIELD',
+  uniqueName: 'unused_field',
   withArguments: _withArgumentsUnusedField,
   expectedTypes: [ExpectedType.object],
 );
@@ -16827,12 +16827,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 unusedImport = DiagnosticWithArguments(
-  name: 'UNUSED_IMPORT',
+  name: 'unused_import',
   problemMessage: "Unused import: '{0}'.",
   correctionMessage: "Try removing the import directive.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNUSED_IMPORT',
+  uniqueName: 'unused_import',
   withArguments: _withArgumentsUnusedImport,
   expectedTypes: [ExpectedType.string],
 );
@@ -16843,14 +16843,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 unusedLabel = DiagnosticWithArguments(
-  name: 'UNUSED_LABEL',
+  name: 'unused_label',
   problemMessage: "The label '{0}' isn't used.",
   correctionMessage:
       "Try removing the label, or using it in either a 'break' or 'continue' "
       "statement.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNUSED_LABEL',
+  uniqueName: 'unused_label',
   withArguments: _withArgumentsUnusedLabel,
   expectedTypes: [ExpectedType.string],
 );
@@ -16861,12 +16861,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0})
 >
 unusedLocalVariable = DiagnosticWithArguments(
-  name: 'UNUSED_LOCAL_VARIABLE',
+  name: 'unused_local_variable',
   problemMessage: "The value of the local variable '{0}' isn't used.",
   correctionMessage: "Try removing the variable or using it.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNUSED_LOCAL_VARIABLE',
+  uniqueName: 'unused_local_variable',
   withArguments: _withArgumentsUnusedLocalVariable,
   expectedTypes: [ExpectedType.object],
 );
@@ -16877,14 +16877,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 unusedResult = DiagnosticWithArguments(
-  name: 'UNUSED_RESULT',
+  name: 'unused_result',
   problemMessage: "The value of '{0}' should be used.",
   correctionMessage:
       "Try using the result by invoking a member, passing it to a function, "
       "or returning it from this function.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNUSED_RESULT',
+  uniqueName: 'unused_result',
   withArguments: _withArgumentsUnusedResult,
   expectedTypes: [ExpectedType.string],
 );
@@ -16900,14 +16900,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0, required Object p1})
 >
 unusedResultWithMessage = DiagnosticWithArguments(
-  name: 'UNUSED_RESULT',
+  name: 'unused_result',
   problemMessage: "'{0}' should be used. {1}.",
   correctionMessage:
       "Try using the result by invoking a member, passing it to a function, "
       "or returning it from this function.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNUSED_RESULT_WITH_MESSAGE',
+  uniqueName: 'unused_result_with_message',
   withArguments: _withArgumentsUnusedResultWithMessage,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -16918,12 +16918,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 unusedShownName = DiagnosticWithArguments(
-  name: 'UNUSED_SHOWN_NAME',
+  name: 'unused_shown_name',
   problemMessage: "The name {0} is shown, but isn't used.",
   correctionMessage: "Try removing the name from the list of shown members.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'UNUSED_SHOWN_NAME',
+  uniqueName: 'unused_shown_name',
   withArguments: _withArgumentsUnusedShownName,
   expectedTypes: [ExpectedType.string],
 );
@@ -16934,14 +16934,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 uriDoesNotExist = DiagnosticWithArguments(
-  name: 'URI_DOES_NOT_EXIST',
+  name: 'uri_does_not_exist',
   problemMessage: "Target of URI doesn't exist: '{0}'.",
   correctionMessage:
       "Try creating the file referenced by the URI, or try using a URI for a "
       "file that does exist.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'URI_DOES_NOT_EXIST',
+  uniqueName: 'uri_does_not_exist',
   withArguments: _withArgumentsUriDoesNotExist,
   expectedTypes: [ExpectedType.string],
 );
@@ -16952,14 +16952,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 uriDoesNotExistInDocImport = DiagnosticWithArguments(
-  name: 'URI_DOES_NOT_EXIST_IN_DOC_IMPORT',
+  name: 'uri_does_not_exist_in_doc_import',
   problemMessage: "Target of URI doesn't exist: '{0}'.",
   correctionMessage:
       "Try creating the file referenced by the URI, or try using a URI for a "
       "file that does exist.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'URI_DOES_NOT_EXIST_IN_DOC_IMPORT',
+  uniqueName: 'uri_does_not_exist_in_doc_import',
   withArguments: _withArgumentsUriDoesNotExistInDocImport,
   expectedTypes: [ExpectedType.string],
 );
@@ -16970,14 +16970,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 uriHasNotBeenGenerated = DiagnosticWithArguments(
-  name: 'URI_HAS_NOT_BEEN_GENERATED',
+  name: 'uri_has_not_been_generated',
   problemMessage: "Target of URI hasn't been generated: '{0}'.",
   correctionMessage:
       "Try running the generator that will generate the file referenced by "
       "the URI.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'URI_HAS_NOT_BEEN_GENERATED',
+  uniqueName: 'uri_has_not_been_generated',
   withArguments: _withArgumentsUriHasNotBeenGenerated,
   expectedTypes: [ExpectedType.string],
 );
@@ -16985,31 +16985,31 @@ uriHasNotBeenGenerated = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments uriWithInterpolation =
     DiagnosticWithoutArgumentsImpl(
-      name: 'URI_WITH_INTERPOLATION',
+      name: 'uri_with_interpolation',
       problemMessage: "URIs can't use string interpolation.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'URI_WITH_INTERPOLATION',
+      uniqueName: 'uri_with_interpolation',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 useOfNativeExtension = DiagnosticWithoutArgumentsImpl(
-  name: 'USE_OF_NATIVE_EXTENSION',
+  name: 'use_of_native_extension',
   problemMessage:
       "Dart native extensions are deprecated and aren't available in Dart 2.15.",
   correctionMessage: "Try using dart:ffi for C interop.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'USE_OF_NATIVE_EXTENSION',
+  uniqueName: 'use_of_native_extension',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 useOfVoidResult = DiagnosticWithoutArgumentsImpl(
-  name: 'USE_OF_VOID_RESULT',
+  name: 'use_of_void_result',
   problemMessage:
       "This expression has a type of 'void' so its value can't be used.",
   correctionMessage:
@@ -17018,72 +17018,72 @@ useOfVoidResult = DiagnosticWithoutArgumentsImpl(
       "parameters and variables which might also be void.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'USE_OF_VOID_RESULT',
+  uniqueName: 'use_of_void_result',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments valuesDeclarationInEnum =
     DiagnosticWithoutArgumentsImpl(
-      name: 'VALUES_DECLARATION_IN_ENUM',
+      name: 'values_declaration_in_enum',
       problemMessage: "A member named 'values' can't be declared in an enum.",
       correctionMessage: "Try using a different name.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'VALUES_DECLARATION_IN_ENUM',
+      uniqueName: 'values_declaration_in_enum',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments varAndType = DiagnosticWithoutArgumentsImpl(
-  name: 'VAR_AND_TYPE',
+  name: 'var_and_type',
   problemMessage:
       "Variables can't be declared using both 'var' and a type name.",
   correctionMessage: "Try removing 'var.'",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'VAR_AND_TYPE',
+  uniqueName: 'var_and_type',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments varAsTypeName = DiagnosticWithoutArgumentsImpl(
-  name: 'VAR_AS_TYPE_NAME',
+  name: 'var_as_type_name',
   problemMessage: "The keyword 'var' can't be used as a type name.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'VAR_AS_TYPE_NAME',
+  uniqueName: 'var_as_type_name',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments varClass = DiagnosticWithoutArgumentsImpl(
-  name: 'VAR_CLASS',
+  name: 'var_class',
   problemMessage: "Classes can't be declared to be 'var'.",
   correctionMessage: "Try removing the keyword 'var'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'VAR_CLASS',
+  uniqueName: 'var_class',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments varEnum = DiagnosticWithoutArgumentsImpl(
-  name: 'VAR_ENUM',
+  name: 'var_enum',
   problemMessage: "Enums can't be declared to be 'var'.",
   correctionMessage: "Try removing the keyword 'var'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'VAR_ENUM',
+  uniqueName: 'var_enum',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 variableLengthArrayNotLast = DiagnosticWithoutArgumentsImpl(
-  name: 'VARIABLE_LENGTH_ARRAY_NOT_LAST',
+  name: 'variable_length_array_not_last',
   problemMessage:
       "Variable length 'Array's must only occur as the last field of Structs.",
   correctionMessage: "Try adjusting the arguments in the 'Array' annotation.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'VARIABLE_LENGTH_ARRAY_NOT_LAST',
+  uniqueName: 'variable_length_array_not_last',
   expectedTypes: [],
 );
 
@@ -17092,14 +17092,14 @@ variableLengthArrayNotLast = DiagnosticWithoutArgumentsImpl(
 /// No parameters.
 const DiagnosticWithoutArguments
 variablePatternKeywordInDeclarationContext = DiagnosticWithoutArgumentsImpl(
-  name: 'VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT',
+  name: 'variable_pattern_keyword_in_declaration_context',
   problemMessage:
       "Variable patterns in declaration context can't specify 'var' or 'final' "
       "keyword.",
   correctionMessage: "Try removing the keyword.",
   hasPublishedDocs: true,
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT',
+  uniqueName: 'variable_pattern_keyword_in_declaration_context',
   expectedTypes: [],
 );
 
@@ -17113,69 +17113,69 @@ const DiagnosticWithArguments<
   })
 >
 variableTypeMismatch = DiagnosticWithArguments(
-  name: 'VARIABLE_TYPE_MISMATCH',
+  name: 'variable_type_mismatch',
   problemMessage:
       "A value of type '{0}' can't be assigned to a const variable of type "
       "'{1}'.",
   correctionMessage: "Try using a subtype, or removing the 'const' keyword",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'VARIABLE_TYPE_MISMATCH',
+  uniqueName: 'variable_type_mismatch',
   withArguments: _withArgumentsVariableTypeMismatch,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments varReturnType = DiagnosticWithoutArgumentsImpl(
-  name: 'VAR_RETURN_TYPE',
+  name: 'var_return_type',
   problemMessage: "The return type can't be 'var'.",
   correctionMessage:
       "Try removing the keyword 'var', or replacing it with the name of the "
       "return type.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'VAR_RETURN_TYPE',
+  uniqueName: 'var_return_type',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments varTypedef = DiagnosticWithoutArgumentsImpl(
-  name: 'VAR_TYPEDEF',
+  name: 'var_typedef',
   problemMessage: "Typedefs can't be declared to be 'var'.",
   correctionMessage:
       "Try removing the keyword 'var', or replacing it with the name of the "
       "return type.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'VAR_TYPEDEF',
+  uniqueName: 'var_typedef',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments voidWithTypeArguments =
     DiagnosticWithoutArgumentsImpl(
-      name: 'VOID_WITH_TYPE_ARGUMENTS',
+      name: 'void_with_type_arguments',
       problemMessage: "Type 'void' can't have type arguments.",
       correctionMessage: "Try removing the type arguments.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'VOID_WITH_TYPE_ARGUMENTS',
+      uniqueName: 'void_with_type_arguments',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments withBeforeExtends =
     DiagnosticWithoutArgumentsImpl(
-      name: 'WITH_BEFORE_EXTENDS',
+      name: 'with_before_extends',
       problemMessage: "The extends clause must be before the with clause.",
       correctionMessage:
           "Try moving the extends clause before the with clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'WITH_BEFORE_EXTENDS',
+      uniqueName: 'with_before_extends',
       expectedTypes: [],
     );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 workspaceFieldNotList = DiagnosticWithoutArgumentsImpl(
-  name: 'WORKSPACE_FIELD_NOT_LIST',
+  name: 'workspace_field_not_list',
   problemMessage:
       "The value of the 'workspace' field is required to be a list of relative "
       "file paths.",
@@ -17183,20 +17183,20 @@ workspaceFieldNotList = DiagnosticWithoutArgumentsImpl(
       "Try converting the value to be a list of relative file paths.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WORKSPACE_FIELD_NOT_LIST',
+  uniqueName: 'workspace_field_not_list',
   expectedTypes: [],
 );
 
 /// No parameters.
 const DiagnosticWithoutArguments workspaceValueNotString =
     DiagnosticWithoutArgumentsImpl(
-      name: 'WORKSPACE_VALUE_NOT_STRING',
+      name: 'workspace_value_not_string',
       problemMessage:
           "Workspace entries are required to be directory paths (strings).",
       correctionMessage: "Try converting the value to be a string.",
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'WORKSPACE_VALUE_NOT_STRING',
+      uniqueName: 'workspace_value_not_string',
       expectedTypes: [],
     );
 
@@ -17206,14 +17206,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0})
 >
 workspaceValueNotSubdirectory = DiagnosticWithArguments(
-  name: 'WORKSPACE_VALUE_NOT_SUBDIRECTORY',
+  name: 'workspace_value_not_subdirectory',
   problemMessage:
       "Workspace values must be a relative path of a subdirectory of '{0}'.",
   correctionMessage:
       "Try using a subdirectory of the directory containing the "
       "'pubspec.yaml' file.",
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'WORKSPACE_VALUE_NOT_SUBDIRECTORY',
+  uniqueName: 'workspace_value_not_subdirectory',
   withArguments: _withArgumentsWorkspaceValueNotSubdirectory,
   expectedTypes: [ExpectedType.string],
 );
@@ -17242,7 +17242,7 @@ const DiagnosticWithArguments<
   })
 >
 wrongExplicitTypeParameterVarianceInSuperinterface = DiagnosticWithArguments(
-  name: 'WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
+  name: 'wrong_explicit_type_parameter_variance_in_superinterface',
   problemMessage:
       "'{0}' is an '{1}' type parameter and can't be used in an '{2}' position "
       "in '{3}'.",
@@ -17250,7 +17250,7 @@ wrongExplicitTypeParameterVarianceInSuperinterface = DiagnosticWithArguments(
       "Try using 'in' type parameters in 'in' positions and 'out' type "
       "parameters in 'out' positions in the superinterface.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
+  uniqueName: 'wrong_explicit_type_parameter_variance_in_superinterface',
   withArguments:
       _withArgumentsWrongExplicitTypeParameterVarianceInSuperinterface,
   expectedTypes: [
@@ -17273,12 +17273,12 @@ const DiagnosticWithArguments<
   })
 >
 wrongNumberOfParametersForOperator = DiagnosticWithArguments(
-  name: 'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR',
+  name: 'wrong_number_of_parameters_for_operator',
   problemMessage:
       "Operator '{0}' should declare exactly {1} parameters, but {2} found.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR',
+  uniqueName: 'wrong_number_of_parameters_for_operator',
   withArguments: _withArgumentsWrongNumberOfParametersForOperator,
   expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.int],
 );
@@ -17290,12 +17290,12 @@ wrongNumberOfParametersForOperator = DiagnosticWithArguments(
 /// int p0: the number of parameters found in the operator declaration
 const DiagnosticWithArguments<LocatableDiagnostic Function({required int p0})>
 wrongNumberOfParametersForOperatorMinus = DiagnosticWithArguments(
-  name: 'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR',
+  name: 'wrong_number_of_parameters_for_operator',
   problemMessage:
       "Operator '-' should declare 0 or 1 parameter, but {0} found.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS',
+  uniqueName: 'wrong_number_of_parameters_for_operator_minus',
   withArguments: _withArgumentsWrongNumberOfParametersForOperatorMinus,
   expectedTypes: [ExpectedType.int],
 );
@@ -17303,12 +17303,12 @@ wrongNumberOfParametersForOperatorMinus = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments wrongNumberOfParametersForSetter =
     DiagnosticWithoutArgumentsImpl(
-      name: 'WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER',
+      name: 'wrong_number_of_parameters_for_setter',
       problemMessage:
           "Setters must declare exactly one required positional parameter.",
       hasPublishedDocs: true,
       type: DiagnosticType.SYNTACTIC_ERROR,
-      uniqueName: 'WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER',
+      uniqueName: 'wrong_number_of_parameters_for_setter',
       expectedTypes: [],
     );
 
@@ -17324,7 +17324,7 @@ const DiagnosticWithArguments<
   })
 >
 wrongNumberOfTypeArguments = DiagnosticWithArguments(
-  name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS',
+  name: 'wrong_number_of_type_arguments',
   problemMessage:
       "The type '{0}' is declared with {1} type parameters, but {2} type "
       "arguments were given.",
@@ -17333,7 +17333,7 @@ wrongNumberOfTypeArguments = DiagnosticWithArguments(
       "type parameters.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS',
+  uniqueName: 'wrong_number_of_type_arguments',
   withArguments: _withArgumentsWrongNumberOfTypeArguments,
   expectedTypes: [ExpectedType.object, ExpectedType.int, ExpectedType.int],
 );
@@ -17348,7 +17348,7 @@ const DiagnosticWithArguments<
   })
 >
 wrongNumberOfTypeArgumentsAnonymousFunction = DiagnosticWithArguments(
-  name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION',
+  name: 'wrong_number_of_type_arguments_function',
   problemMessage:
       "This function is declared with {0} type parameters, but {1} type "
       "arguments were given.",
@@ -17356,7 +17356,7 @@ wrongNumberOfTypeArgumentsAnonymousFunction = DiagnosticWithArguments(
       "Try adjusting the number of type arguments to match the number of "
       "type parameters.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION',
+  uniqueName: 'wrong_number_of_type_arguments_anonymous_function',
   withArguments: _withArgumentsWrongNumberOfTypeArgumentsAnonymousFunction,
   expectedTypes: [ExpectedType.int, ExpectedType.int],
 );
@@ -17368,12 +17368,12 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 wrongNumberOfTypeArgumentsConstructor = DiagnosticWithArguments(
-  name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
+  name: 'wrong_number_of_type_arguments_constructor',
   problemMessage: "The constructor '{0}.{1}' doesn't have type parameters.",
   correctionMessage: "Try moving type arguments to after the type name.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
+  uniqueName: 'wrong_number_of_type_arguments_constructor',
   withArguments: _withArgumentsWrongNumberOfTypeArgumentsConstructor,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
@@ -17385,14 +17385,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required String p1})
 >
 wrongNumberOfTypeArgumentsDotShorthandConstructor = DiagnosticWithArguments(
-  name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
+  name: 'wrong_number_of_type_arguments_constructor',
   problemMessage: "The constructor '{0}.{1}` doesn't have type parameters.",
   correctionMessage:
       "Try removing the type arguments, or adding a class name, followed by "
       "the type arguments, then the constructor name.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR',
+  uniqueName: 'wrong_number_of_type_arguments_dot_shorthand_constructor',
   withArguments:
       _withArgumentsWrongNumberOfTypeArgumentsDotShorthandConstructor,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
@@ -17405,14 +17405,14 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required int p0, required int p1})
 >
 wrongNumberOfTypeArgumentsEnum = DiagnosticWithArguments(
-  name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM',
+  name: 'wrong_number_of_type_arguments_enum',
   problemMessage:
       "The enum is declared with {0} type parameters, but {1} type arguments "
       "were given.",
   correctionMessage: "Try adjusting the number of type arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM',
+  uniqueName: 'wrong_number_of_type_arguments_enum',
   withArguments: _withArgumentsWrongNumberOfTypeArgumentsEnum,
   expectedTypes: [ExpectedType.int, ExpectedType.int],
 );
@@ -17429,14 +17429,14 @@ const DiagnosticWithArguments<
   })
 >
 wrongNumberOfTypeArgumentsExtension = DiagnosticWithArguments(
-  name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION',
+  name: 'wrong_number_of_type_arguments_extension',
   problemMessage:
       "The extension '{0}' is declared with {1} type parameters, but {2} type "
       "arguments were given.",
   correctionMessage: "Try adjusting the number of type arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION',
+  uniqueName: 'wrong_number_of_type_arguments_extension',
   withArguments: _withArgumentsWrongNumberOfTypeArgumentsExtension,
   expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.int],
 );
@@ -17453,7 +17453,7 @@ const DiagnosticWithArguments<
   })
 >
 wrongNumberOfTypeArgumentsFunction = DiagnosticWithArguments(
-  name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION',
+  name: 'wrong_number_of_type_arguments_function',
   problemMessage:
       "The function '{0}' is declared with {1} type parameters, but {2} type "
       "arguments were given.",
@@ -17461,7 +17461,7 @@ wrongNumberOfTypeArgumentsFunction = DiagnosticWithArguments(
       "Try adjusting the number of type arguments to match the number of "
       "type parameters.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION',
+  uniqueName: 'wrong_number_of_type_arguments_function',
   withArguments: _withArgumentsWrongNumberOfTypeArgumentsFunction,
   expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.int],
 );
@@ -17478,14 +17478,14 @@ const DiagnosticWithArguments<
   })
 >
 wrongNumberOfTypeArgumentsMethod = DiagnosticWithArguments(
-  name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD',
+  name: 'wrong_number_of_type_arguments_method',
   problemMessage:
       "The method '{0}' is declared with {1} type parameters, but {2} type "
       "arguments are given.",
   correctionMessage: "Try adjusting the number of type arguments.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD',
+  uniqueName: 'wrong_number_of_type_arguments_method',
   withArguments: _withArgumentsWrongNumberOfTypeArgumentsMethod,
   expectedTypes: [ExpectedType.type, ExpectedType.int, ExpectedType.int],
 );
@@ -17493,12 +17493,12 @@ wrongNumberOfTypeArgumentsMethod = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 wrongSeparatorForPositionalParameter = DiagnosticWithoutArgumentsImpl(
-  name: 'WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER',
+  name: 'wrong_separator_for_positional_parameter',
   problemMessage:
       "The default value of a positional parameter should be preceded by '='.",
   correctionMessage: "Try replacing the ':' with '='.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER',
+  uniqueName: 'wrong_separator_for_positional_parameter',
   expectedTypes: [],
 );
 
@@ -17509,11 +17509,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0, required Object p1})
 >
 wrongTerminatorForParameterGroup = DiagnosticWithArguments(
-  name: 'WRONG_TERMINATOR_FOR_PARAMETER_GROUP',
+  name: 'wrong_terminator_for_parameter_group',
   problemMessage: "Expected '{0}' to close parameter group.",
   correctionMessage: "Try replacing '{0}' with '{1}'.",
   type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'WRONG_TERMINATOR_FOR_PARAMETER_GROUP',
+  uniqueName: 'wrong_terminator_for_parameter_group',
   withArguments: _withArgumentsWrongTerminatorForParameterGroup,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -17529,7 +17529,7 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String p0, required DartType p1})
 >
 wrongTypeParameterVarianceInSuperinterface = DiagnosticWithArguments(
-  name: 'WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
+  name: 'wrong_type_parameter_variance_in_superinterface',
   problemMessage:
       "'{0}' can't be used contravariantly or invariantly in '{1}'.",
   correctionMessage:
@@ -17537,7 +17537,7 @@ wrongTypeParameterVarianceInSuperinterface = DiagnosticWithArguments(
       "function types, nor in explicitly contravariant or invariant "
       "superinterfaces.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
+  uniqueName: 'wrong_type_parameter_variance_in_superinterface',
   withArguments: _withArgumentsWrongTypeParameterVarianceInSuperinterface,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
@@ -17566,7 +17566,7 @@ const DiagnosticWithArguments<
   })
 >
 wrongTypeParameterVariancePosition = DiagnosticWithArguments(
-  name: 'WRONG_TYPE_PARAMETER_VARIANCE_POSITION',
+  name: 'wrong_type_parameter_variance_position',
   problemMessage:
       "The '{0}' type parameter '{1}' can't be used in an '{2}' position.",
   correctionMessage:
@@ -17574,7 +17574,7 @@ wrongTypeParameterVariancePosition = DiagnosticWithArguments(
       "modifier declaration for the type parameter to another one of 'in', "
       "'out', or 'inout'.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'WRONG_TYPE_PARAMETER_VARIANCE_POSITION',
+  uniqueName: 'wrong_type_parameter_variance_position',
   withArguments: _withArgumentsWrongTypeParameterVariancePosition,
   expectedTypes: [
     ExpectedType.object,
@@ -17586,7 +17586,7 @@ wrongTypeParameterVariancePosition = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 yieldEachInNonGenerator = DiagnosticWithoutArgumentsImpl(
-  name: 'YIELD_IN_NON_GENERATOR',
+  name: 'yield_in_non_generator',
   problemMessage:
       "Yield-each statements must be in a generator function (one marked with "
       "either 'async*' or 'sync*').",
@@ -17594,7 +17594,7 @@ yieldEachInNonGenerator = DiagnosticWithoutArgumentsImpl(
       "Try adding 'async*' or 'sync*' to the enclosing function.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'YIELD_EACH_IN_NON_GENERATOR',
+  uniqueName: 'yield_each_in_non_generator',
   expectedTypes: [],
 );
 
@@ -17605,13 +17605,13 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 yieldEachOfInvalidType = DiagnosticWithArguments(
-  name: 'YIELD_OF_INVALID_TYPE',
+  name: 'yield_of_invalid_type',
   problemMessage:
       "The type '{0}' implied by the 'yield*' expression must be assignable to "
       "'{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'YIELD_EACH_OF_INVALID_TYPE',
+  uniqueName: 'yield_each_of_invalid_type',
   withArguments: _withArgumentsYieldEachOfInvalidType,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );
@@ -17622,7 +17622,7 @@ yieldEachOfInvalidType = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments
 yieldInNonGenerator = DiagnosticWithoutArgumentsImpl(
-  name: 'YIELD_IN_NON_GENERATOR',
+  name: 'yield_in_non_generator',
   problemMessage:
       "Yield statements must be in a generator function (one marked with either "
       "'async*' or 'sync*').",
@@ -17630,7 +17630,7 @@ yieldInNonGenerator = DiagnosticWithoutArgumentsImpl(
       "Try adding 'async*' or 'sync*' to the enclosing function.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'YIELD_IN_NON_GENERATOR',
+  uniqueName: 'yield_in_non_generator',
   expectedTypes: [],
 );
 
@@ -17641,11 +17641,11 @@ const DiagnosticWithArguments<
   LocatableDiagnostic Function({required DartType p0, required DartType p1})
 >
 yieldOfInvalidType = DiagnosticWithArguments(
-  name: 'YIELD_OF_INVALID_TYPE',
+  name: 'yield_of_invalid_type',
   problemMessage: "A yielded value of type '{0}' must be assignable to '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'YIELD_OF_INVALID_TYPE',
+  uniqueName: 'yield_of_invalid_type',
   withArguments: _withArgumentsYieldOfInvalidType,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
 );

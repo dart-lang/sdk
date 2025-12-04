@@ -633,7 +633,7 @@ LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     outputConstantHeader(constant);
     constant.writeln('const $staticType $constantName =');
     constant.writeln('$concreteClassName(');
-    var name = sharedName?.snakeCaseName ?? diagnosticCode;
+    var name = (sharedName?.snakeCaseName ?? diagnosticCode).toLowerCase();
     constant.writeln("name: '$name',");
     var maxWidth = 80 - 8 /* indentation */ - 2 /* quotes */ - 1 /* comma */;
     var messageAsCode = convertTemplate(problemMessage);
@@ -660,7 +660,7 @@ LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     if (baseClasses.requiresTypeArgument) {
       constant.writeln('type: ${type.code},');
     }
-    String uniqueName = analyzerCode.snakeCaseName;
+    String uniqueName = analyzerCode.snakeCaseName.toLowerCase();
     constant.writeln("uniqueName: '$uniqueName',");
     if (withArgumentsName != null) {
       constant.writeln('withArguments: $withArgumentsName,');
