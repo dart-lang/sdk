@@ -10,13 +10,14 @@ import 'characters.dart';
 
 import 'token.dart'
     show
-        DocumentationCommentToken,
-        SimpleToken,
-        TokenType,
         CommentToken,
-        StringToken,
+        DocumentationCommentToken,
+        Keyword,
+        KeywordStyle,
         LanguageVersionToken,
-        Keyword;
+        SimpleToken,
+        StringToken,
+        TokenType;
 
 import 'token_constants.dart' show IDENTIFIER_TOKEN;
 
@@ -375,9 +376,13 @@ String? correspondingPublicName(String identifier) {
   // digit.
   if (isDigit(firstCharacter)) return null;
 
-  // The resulting name must not be a reserved word.
+  // The resulting name must not be a reserved word (but other kinds of special
+  // identifiers are allowed).
   String publicName = identifier.substring(1);
-  if (Keyword.keywords.containsKey(publicName)) return null;
+  if (Keyword.keywords[publicName] case var keyword?
+      when keyword.keywordStyle == KeywordStyle.reserved) {
+    return null;
+  }
 
   return publicName;
 }
