@@ -134,15 +134,12 @@ class ElementWriter with TreeWriter {
   void _writeElement(Element element) {
     indent();
 
-    var showItalic = false;
-    switch (element) {
-      case ConstructorElement():
-        showItalic = !element.isOriginDeclaration;
-      case PropertyAccessorElement():
-        showItalic = !element.isOriginDeclaration;
-      case PropertyInducingElement():
-        showItalic = !element.isOriginDeclaration;
-    }
+    var showItalic = switch (element) {
+      ConstructorElement() => !element.isOriginDeclaration,
+      PropertyAccessorElement() => !element.isOriginDeclaration,
+      PropertyInducingElement() => !element.isOriginDeclaration,
+      _ => false,
+    };
 
     if (showItalic) {
       buffer.write('<i>');

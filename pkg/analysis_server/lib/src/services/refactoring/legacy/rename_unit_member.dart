@@ -127,25 +127,13 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<void> fillChange() async {
-    // prepare elements
-    var elements = <Element>[];
-    switch (element) {
-      case PropertyInducingElement element:
-        if (element.isOriginGetterSetter) {
-          var getter = element.getter;
-          var setter = element.setter;
-          if (getter != null) {
-            elements.add(getter);
-          }
-          if (setter != null) {
-            elements.add(setter);
-          }
-        } else {
-          elements.add(element);
-        }
-      default:
-        elements.add(element);
-    }
+    var elements = switch (element) {
+      PropertyInducingElement element when element.isOriginGetterSetter => [
+        ?element.getter,
+        ?element.setter,
+      ],
+      _ => [element],
+    };
 
     // Rename each element and references to it.
     var processor = RenameProcessor(workspace, sessionHelper, change, newName);
