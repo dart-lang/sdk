@@ -78,8 +78,8 @@ include: "package:pedantic/analysis_options.yaml"
           74,
           40,
           text:
-              "The include file 'package:pedantic/analysis_options.yaml'"
-              " in '${convertPath('/analysis_options.yaml')}' can't be found "
+              "The URI 'package:pedantic/analysis_options.yaml' included in "
+              "'${convertPath('/analysis_options.yaml')}' can't be found "
               "when analyzing '/'.",
         ),
       ],
@@ -101,8 +101,8 @@ include:
           78,
           38,
           text:
-              "The include file 'package:pedantic/analysis_options.yaml'"
-              " in '${convertPath('/analysis_options.yaml')}' can't be found "
+              "The URI 'package:pedantic/analysis_options.yaml' included in "
+              "'${convertPath('/analysis_options.yaml')}' can't be found "
               "when analyzing '/'.",
         ),
       ],
@@ -124,8 +124,8 @@ include:
           97,
           38,
           text:
-              "The include file 'package:pedantic/analysis_options.yaml'"
-              " in '${convertPath('/analysis_options.yaml')}' can't be found "
+              "The URI 'package:pedantic/analysis_options.yaml' included in "
+              "'${convertPath('/analysis_options.yaml')}' can't be found "
               "when analyzing '/'.",
         ),
       ],
@@ -144,8 +144,8 @@ include: package:pedantic/analysis_options.yaml
           74,
           38,
           text:
-              "The include file 'package:pedantic/analysis_options.yaml'"
-              " in '${convertPath('/analysis_options.yaml')}' can't be found "
+              "The URI 'package:pedantic/analysis_options.yaml' included in "
+              "'${convertPath('/analysis_options.yaml')}' can't be found "
               "when analyzing '/'.",
         ),
       ],
@@ -164,8 +164,8 @@ include: 'package:pedantic/analysis_options.yaml'
           74,
           40,
           text:
-              "The include file 'package:pedantic/analysis_options.yaml'"
-              " in '${convertPath('/analysis_options.yaml')}' can't be found "
+              "The URI 'package:pedantic/analysis_options.yaml' included in "
+              "'${convertPath('/analysis_options.yaml')}' can't be found "
               "when analyzing '/'.",
         ),
       ],

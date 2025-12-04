@@ -32,6 +32,28 @@ class DocumentationValidator {
   /// ony include docs that cannot be verified because of missing support in the
   /// verifier.
   static const List<String> unverifiedDocs = [
+    //
+    // The following can't currently be verified because the examples aren't
+    // Dart code.
+    //
+    'included_file_parse_error',
+    'parse_error',
+    'analysis_option_deprecated',
+    'deprecated_lint',
+    'duplicate_rule',
+    'included_file_warning',
+    'include_file_not_found',
+    'incompatible_lint',
+    'invalid_option',
+    'invalid_section_format',
+    'plugins_in_inner_options',
+    'recursive_include_file',
+    'removed_lint',
+    'undefined_lint',
+    'unrecognized_error_code',
+    'unsupported_option_with_legal_value',
+    'unsupported_value',
+
     // Needs to be able to specify two expected diagnostics.
     'ambiguous_import',
     // Produces two diagnostics when it should only produce one.

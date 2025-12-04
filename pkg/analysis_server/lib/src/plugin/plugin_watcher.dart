@@ -122,13 +122,26 @@ class PluginWatcher implements DriverWatcher {
       "context root: '${contextRoot.root.path}'",
     );
     sharedPluginFolder.create();
-    sharedPluginFolder
-        .getChildAssumingFile(file_paths.pubspecYaml)
-        .writeAsStringSync(packageGenerator.generatePubspec());
+    var pubspecFile = sharedPluginFolder.getChildAssumingFile(
+      file_paths.pubspecYaml,
+    );
+    var newPubspecContent = packageGenerator.generatePubspec();
+    // Only update the file if the content is different, to avoid changing the
+    // modification timestamp.
+    if (!pubspecFile.exists ||
+        newPubspecContent != pubspecFile.readAsStringSync()) {
+      pubspecFile.writeAsStringSync(newPubspecContent);
+    }
+
     var binFolder = sharedPluginFolder.getChildAssumingFolder('bin')..create();
-    binFolder
-        .getChildAssumingFile('plugin.dart')
-        .writeAsStringSync(packageGenerator.generateEntrypoint());
+    var entrypointFile = binFolder.getChildAssumingFile('plugin.dart');
+    var newEntrypointContent = packageGenerator.generateEntrypoint();
+    // Only update the file if the content is different, to avoid changing the
+    // modification timestamp.
+    if (!entrypointFile.exists ||
+        newEntrypointContent != entrypointFile.readAsStringSync()) {
+      entrypointFile.writeAsStringSync(newEntrypointContent);
+    }
     manager.instrumentationService.logInfo(
       'Adding ${pluginConfigurations.length} analyzer plugins for '
       "context root: '${contextRoot.root.path}'",

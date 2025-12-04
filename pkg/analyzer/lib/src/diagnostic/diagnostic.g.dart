@@ -379,17 +379,18 @@ ambiguousSetOrMapLiteralEither = DiagnosticWithoutArgumentsImpl(
 /// An error code indicating that the given option is deprecated.
 ///
 /// Parameters:
-/// Object p0: the option name
+/// String optionName: the option name
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String optionName})
 >
 analysisOptionDeprecated = DiagnosticWithArguments(
   name: 'ANALYSIS_OPTION_DEPRECATED',
   problemMessage: "The option '{0}' is no longer supported.",
+  correctionMessage: "Try removing the option.",
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'ANALYSIS_OPTION_DEPRECATED',
   withArguments: _withArgumentsAnalysisOptionDeprecated,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// An error code indicating that the given option is deprecated.
@@ -3284,13 +3285,13 @@ deprecatedInstantiate = DiagnosticWithArguments(
 /// A hint code indicating reference to a deprecated lint.
 ///
 /// Parameters:
-/// String p0: the rule name
+/// String ruleName: the rule name
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String ruleName})
 >
 deprecatedLint = DiagnosticWithArguments(
   name: 'DEPRECATED_LINT',
-  problemMessage: "'{0}' is a deprecated lint rule and should not be used.",
+  problemMessage: "The lint rule '{0}' is deprecated and shouldn't be enabled.",
   correctionMessage: "Try removing '{0}'.",
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'DEPRECATED_LINT',
@@ -3301,14 +3302,17 @@ deprecatedLint = DiagnosticWithArguments(
 /// A hint code indicating reference to a deprecated lint.
 ///
 /// Parameters:
-/// String p0: the deprecated lint name
-/// String p1: the replacing rule name
+/// String deprecatedRuleName: the deprecated lint name
+/// String replacementRuleName: the replacing rule name
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String deprecatedRuleName,
+    required String replacementRuleName,
+  })
 >
 deprecatedLintWithReplacement = DiagnosticWithArguments(
   name: 'DEPRECATED_LINT_WITH_REPLACEMENT',
-  problemMessage: "'{0}' is deprecated and should be replaced by '{1}'.",
+  problemMessage: "The lint rule '{0}' is deprecated and replaced by '{1}'.",
   correctionMessage: "Try replacing '{0}' with '{1}'.",
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'DEPRECATED_LINT_WITH_REPLACEMENT',
@@ -4017,15 +4021,15 @@ const DiagnosticWithoutArguments duplicateRestElementInPattern =
 /// Duplicate rules.
 ///
 /// Parameters:
-/// String p0: the rule name
+/// String ruleName: the rule name
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String ruleName})
 >
 duplicateRule = DiagnosticWithArguments(
   name: 'DUPLICATE_RULE',
   problemMessage:
-      "The rule {0} is already specified and doesn't need to be specified again.",
-  correctionMessage: "Try removing all but one specification of the rule.",
+      "The rule '{0}' is already enabled and doesn't need to be enabled again.",
+  correctionMessage: "Try removing all but one occurrence of the rule.",
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'DUPLICATE_RULE',
   withArguments: _withArgumentsDuplicateRule,
@@ -6780,18 +6784,18 @@ importOfNonLibrary = DiagnosticWithArguments(
 /// file.
 ///
 /// Parameters:
-/// Object p0: the path of the file containing the error
-/// Object p1: the starting offset of the text in the file that contains the
-///            error
-/// Object p2: the ending offset of the text in the file that contains the
-///            error
-/// Object p3: the error message
+/// String includingFilePath: the path of the file containing the error
+/// int startOffset: the starting offset of the text in the file that contains
+///                  the error
+/// int endOffset: the ending offset of the text in the file that contains the
+///                error
+/// String errorMessage: the error message
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-    required Object p3,
+    required String includingFilePath,
+    required int startOffset,
+    required int endOffset,
+    required String errorMessage,
   })
 >
 includedFileParseError = DiagnosticWithArguments(
@@ -6801,28 +6805,28 @@ includedFileParseError = DiagnosticWithArguments(
   uniqueName: 'INCLUDED_FILE_PARSE_ERROR',
   withArguments: _withArgumentsIncludedFileParseError,
   expectedTypes: [
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
+    ExpectedType.string,
+    ExpectedType.int,
+    ExpectedType.int,
+    ExpectedType.string,
   ],
 );
 
 /// An error code indicating a specified include file has a warning.
 ///
 /// Parameters:
-/// Object p0: the path of the file containing the warnings
-/// Object p1: the starting offset of the text in the file that contains the
-///            warning
-/// Object p2: the ending offset of the text in the file that contains the
-///            warning
-/// Object p3: the warning message
+/// Object includingFilePath: the path of the file containing the warnings
+/// int startOffset: the starting offset of the text in the file that contains
+///                  the warning
+/// int endOffset: the ending offset of the text in the file that contains the
+///                warning
+/// String warningMessage: the warning message
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-    required Object p3,
+    required Object includingFilePath,
+    required int startOffset,
+    required int endOffset,
+    required String warningMessage,
   })
 >
 includedFileWarning = DiagnosticWithArguments(
@@ -6833,36 +6837,37 @@ includedFileWarning = DiagnosticWithArguments(
   withArguments: _withArgumentsIncludedFileWarning,
   expectedTypes: [
     ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
+    ExpectedType.int,
+    ExpectedType.int,
+    ExpectedType.string,
   ],
 );
 
 /// An error code indicating a specified include file could not be found.
 ///
 /// Parameters:
-/// Object p0: the URI of the file to be included
-/// Object p1: the path of the file containing the include directive
-/// Object p2: the path of the context being analyzed
+/// String includedUri: the URI of the file to be included
+/// String includingFilePath: the path of the file containing the include
+///                           directive
+/// String contextRootPath: the path of the context being analyzed
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object p0,
-    required Object p1,
-    required Object p2,
+    required String includedUri,
+    required String includingFilePath,
+    required String contextRootPath,
   })
 >
 includeFileNotFound = DiagnosticWithArguments(
   name: 'INCLUDE_FILE_NOT_FOUND',
   problemMessage:
-      "The include file '{0}' in '{1}' can't be found when analyzing '{2}'.",
+      "The URI '{0}' included in '{1}' can't be found when analyzing '{2}'.",
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'INCLUDE_FILE_NOT_FOUND',
   withArguments: _withArgumentsIncludeFileNotFound,
   expectedTypes: [
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
   ],
 );
 
@@ -6871,14 +6876,17 @@ includeFileNotFound = DiagnosticWithArguments(
 /// The incompatible rules must be included by context messages.
 ///
 /// Parameters:
-/// String p0: the rule name
-/// String p1: the incompatible rules
+/// String ruleName: the rule name
+/// String incompatibleRules: the incompatible rules
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String ruleName,
+    required String incompatibleRules,
+  })
 >
 incompatibleLint = DiagnosticWithArguments(
   name: 'INCOMPATIBLE_LINT',
-  problemMessage: "The rule '{0}' is incompatible with {1}.",
+  problemMessage: "The rule '{0}' is incompatible with '{1}'.",
   correctionMessage: "Try removing all but one of the incompatible rules.",
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'INCOMPATIBLE_LINT',
@@ -8668,10 +8676,13 @@ invalidOperatorQuestionmarkPeriodForSuper = DiagnosticWithoutArgumentsImpl(
 /// value for an option and a detail message is provided.
 ///
 /// Parameters:
-/// String p0: the option name
-/// String p1: the detail message
+/// String optionName: the option name
+/// String detailMessage: the detail message
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String optionName,
+    required String detailMessage,
+  })
 >
 invalidOption = DiagnosticWithArguments(
   name: 'INVALID_OPTION',
@@ -8838,9 +8849,9 @@ const DiagnosticWithoutArguments invalidReopenAnnotation =
 /// An error code indicating an invalid format for an options file section.
 ///
 /// Parameters:
-/// String p0: the section name
+/// String sectionName: the section name
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String sectionName})
 >
 invalidSectionFormat = DiagnosticWithArguments(
   name: 'INVALID_SECTION_FORMAT',
@@ -12924,9 +12935,9 @@ packedAnnotationAlignment = DiagnosticWithoutArgumentsImpl(
 /// An error code indicating that there is a syntactic error in the file.
 ///
 /// Parameters:
-/// Object p0: the error message from the parse error
+/// String errorMessage: the error message from the parse error
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String errorMessage})
 >
 parseError = DiagnosticWithArguments(
   name: 'PARSE_ERROR',
@@ -12934,7 +12945,7 @@ parseError = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'PARSE_ERROR',
   withArguments: _withArgumentsParseError,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
@@ -13653,17 +13664,22 @@ recursiveFactoryRedirect = DiagnosticWithoutArgumentsImpl(
 /// An error code indicating a specified include file includes itself recursively.
 ///
 /// Parameters:
-/// Object p0: the URI of the file to be included
-/// Object p1: the path of the file containing the include directive
+/// Object includedUri: the URI of the file to be included
+/// Object includingFilePath: the path of the file containing the include
+///                           directive
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0, required Object p1})
+  LocatableDiagnostic Function({
+    required Object includedUri,
+    required Object includingFilePath,
+  })
 >
 recursiveIncludeFile = DiagnosticWithArguments(
   name: 'RECURSIVE_INCLUDE_FILE',
   problemMessage:
-      "The include file '{0}' in '{1}' includes itself recursively.",
+      "The URI '{0}' included in '{1}' includes '{1}', creating a circular "
+      "reference.",
   correctionMessage:
-      "Try changing the chain of 'include's to not re-include this file.",
+      "Try changing the chain of 'include's to break the circularity.",
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'RECURSIVE_INCLUDE_FILE',
   withArguments: _withArgumentsRecursiveIncludeFile,
@@ -14049,15 +14065,18 @@ relationalPatternOperatorReturnTypeNotAssignableToBool =
 /// An error code indicating a removed lint rule.
 ///
 /// Parameters:
-/// String p0: the rule name
-/// String p1: the SDK version in which the lint was removed
+/// String ruleName: the rule name
+/// String sdkVersion: the SDK version in which the lint was removed
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String ruleName,
+    required String sdkVersion,
+  })
 >
 removedLint = DiagnosticWithArguments(
   name: 'REMOVED_LINT',
   problemMessage: "'{0}' was removed in Dart '{1}'",
-  correctionMessage: "Remove the reference to '{0}'.",
+  correctionMessage: "Try removing the reference to '{0}'.",
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'REMOVED_LINT',
   withArguments: _withArgumentsRemovedLint,
@@ -15797,13 +15816,13 @@ undefinedIdentifierAwait = DiagnosticWithoutArgumentsImpl(
 /// An error code indicating an undefined lint rule.
 ///
 /// Parameters:
-/// String p0: the rule name
+/// String ruleName: the rule name
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String ruleName})
 >
 undefinedLint = DiagnosticWithArguments(
   name: 'UNDEFINED_LINT',
-  problemMessage: "'{0}' is not a recognized lint rule.",
+  problemMessage: "'{0}' isn't a recognized lint rule.",
   correctionMessage: "Try using the name of a recognized lint rule.",
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'UNDEFINED_LINT',
@@ -16521,13 +16540,13 @@ const DiagnosticWithoutArguments unreachableSwitchDefault =
 /// specify an error filter.
 ///
 /// Parameters:
-/// String p0: the unrecognized error code
+/// String codeName: the unrecognized error code
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String codeName})
 >
 unrecognizedErrorCode = DiagnosticWithArguments(
   name: 'UNRECOGNIZED_ERROR_CODE',
-  problemMessage: "'{0}' isn't a recognized error code.",
+  problemMessage: "'{0}' isn't a recognized diagnostic code.",
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'UNRECOGNIZED_ERROR_CODE',
   withArguments: _withArgumentsUnrecognizedErrorCode,
@@ -16593,21 +16612,21 @@ unsupportedOperator = DiagnosticWithArguments(
 /// unsupported option where there is just one legal value.
 ///
 /// Parameters:
-/// String p0: the section name
-/// String p1: the unsupported option key
-/// String p2: the legal value
+/// String sectionName: the section name
+/// String optionKey: the unsupported option key
+/// String legalValue: the legal value
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required String p2,
+    required String sectionName,
+    required String optionKey,
+    required String legalValue,
   })
 >
 unsupportedOptionWithLegalValue = DiagnosticWithArguments(
-  name: 'UNSUPPORTED_OPTION_WITH_LEGAL_VALUE',
-  problemMessage:
-      "The option '{1}' isn't supported by '{0}'. Try using the only supported "
-      "option: '{2}'.",
+  name: 'UNSUPPORTED_OPTION',
+  problemMessage: "The option '{1}' isn't supported by '{0}'.",
+  correctionMessage:
+      "Try using the only supported option: '{2}', or removing the option.",
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'UNSUPPORTED_OPTION_WITH_LEGAL_VALUE',
   withArguments: _withArgumentsUnsupportedOptionWithLegalValue,
@@ -16622,18 +16641,18 @@ unsupportedOptionWithLegalValue = DiagnosticWithArguments(
 /// unsupported option and legal options are provided.
 ///
 /// Parameters:
-/// String p0: the section name
-/// String p1: the unsupported option key
-/// String p2: legal values
+/// String sectionName: the section name
+/// String optionKey: the unsupported option key
+/// String legalValues: legal values
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required String p2,
+    required String sectionName,
+    required String optionKey,
+    required String legalValues,
   })
 >
 unsupportedOptionWithLegalValues = DiagnosticWithArguments(
-  name: 'UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
+  name: 'UNSUPPORTED_OPTION',
   problemMessage: "The option '{1}' isn't supported by '{0}'.",
   correctionMessage: "Try using one of the supported options: {2}.",
   type: DiagnosticType.STATIC_WARNING,
@@ -16650,14 +16669,18 @@ unsupportedOptionWithLegalValues = DiagnosticWithArguments(
 /// unsupported option and legal options are provided.
 ///
 /// Parameters:
-/// String p0: the plugin name
-/// String p1: the unsupported option key
+/// String sectionName: the section name
+/// String optionKey: the unsupported option key
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String sectionName,
+    required String optionKey,
+  })
 >
 unsupportedOptionWithoutValues = DiagnosticWithArguments(
-  name: 'UNSUPPORTED_OPTION_WITHOUT_VALUES',
+  name: 'UNSUPPORTED_OPTION',
   problemMessage: "The option '{1}' isn't supported by '{0}'.",
+  correctionMessage: "Try removing the option.",
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'UNSUPPORTED_OPTION_WITHOUT_VALUES',
   withArguments: _withArgumentsUnsupportedOptionWithoutValues,
@@ -16668,20 +16691,20 @@ unsupportedOptionWithoutValues = DiagnosticWithArguments(
 /// unsupported value.
 ///
 /// Parameters:
-/// String p0: the option name
-/// Object p1: the unsupported value
-/// String p2: legal values
+/// String optionName: the option name
+/// Object invalidValue: the unsupported value
+/// String legalValues: legal values
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required Object p1,
-    required String p2,
+    required String optionName,
+    required Object invalidValue,
+    required String legalValues,
   })
 >
 unsupportedValue = DiagnosticWithArguments(
   name: 'UNSUPPORTED_VALUE',
   problemMessage: "The value '{1}' isn't supported by '{0}'.",
-  correctionMessage: "Try using one of the supported options: {2}.",
+  correctionMessage: "Try using one of the supported values: {2}.",
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'UNSUPPORTED_VALUE',
   withArguments: _withArgumentsUnsupportedValue,
@@ -17683,9 +17706,9 @@ LocatableDiagnostic _withArgumentsAmbiguousImport({
 }
 
 LocatableDiagnostic _withArgumentsAnalysisOptionDeprecated({
-  required Object p0,
+  required String optionName,
 }) {
-  return LocatableDiagnosticImpl(diag.analysisOptionDeprecated, [p0]);
+  return LocatableDiagnosticImpl(diag.analysisOptionDeprecated, [optionName]);
 }
 
 LocatableDiagnostic _withArgumentsAnalysisOptionDeprecatedWithReplacement({
@@ -18294,15 +18317,18 @@ LocatableDiagnostic _withArgumentsDeprecatedInstantiate({
   return LocatableDiagnosticImpl(diag.deprecatedInstantiate, [typeName]);
 }
 
-LocatableDiagnostic _withArgumentsDeprecatedLint({required String p0}) {
-  return LocatableDiagnosticImpl(diag.deprecatedLint, [p0]);
+LocatableDiagnostic _withArgumentsDeprecatedLint({required String ruleName}) {
+  return LocatableDiagnosticImpl(diag.deprecatedLint, [ruleName]);
 }
 
 LocatableDiagnostic _withArgumentsDeprecatedLintWithReplacement({
-  required String p0,
-  required String p1,
+  required String deprecatedRuleName,
+  required String replacementRuleName,
 }) {
-  return LocatableDiagnosticImpl(diag.deprecatedLintWithReplacement, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.deprecatedLintWithReplacement, [
+    deprecatedRuleName,
+    replacementRuleName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsDeprecatedMemberUse({required String p0}) {
@@ -18472,8 +18498,8 @@ LocatableDiagnostic _withArgumentsDuplicatePatternField({required Object p0}) {
   return LocatableDiagnosticImpl(diag.duplicatePatternField, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsDuplicateRule({required String p0}) {
-  return LocatableDiagnosticImpl(diag.duplicateRule, [p0]);
+LocatableDiagnostic _withArgumentsDuplicateRule({required String ruleName}) {
+  return LocatableDiagnosticImpl(diag.duplicateRule, [ruleName]);
 }
 
 LocatableDiagnostic _withArgumentsDuplicateVariablePattern({
@@ -18899,36 +18925,53 @@ LocatableDiagnostic _withArgumentsImportOfNonLibrary({required String p0}) {
 }
 
 LocatableDiagnostic _withArgumentsIncludedFileParseError({
-  required Object p0,
-  required Object p1,
-  required Object p2,
-  required Object p3,
+  required String includingFilePath,
+  required int startOffset,
+  required int endOffset,
+  required String errorMessage,
 }) {
-  return LocatableDiagnosticImpl(diag.includedFileParseError, [p0, p1, p2, p3]);
+  return LocatableDiagnosticImpl(diag.includedFileParseError, [
+    includingFilePath,
+    startOffset,
+    endOffset,
+    errorMessage,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsIncludedFileWarning({
-  required Object p0,
-  required Object p1,
-  required Object p2,
-  required Object p3,
+  required Object includingFilePath,
+  required int startOffset,
+  required int endOffset,
+  required String warningMessage,
 }) {
-  return LocatableDiagnosticImpl(diag.includedFileWarning, [p0, p1, p2, p3]);
+  return LocatableDiagnosticImpl(diag.includedFileWarning, [
+    includingFilePath,
+    startOffset,
+    endOffset,
+    warningMessage,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsIncludeFileNotFound({
-  required Object p0,
-  required Object p1,
-  required Object p2,
+  required String includedUri,
+  required String includingFilePath,
+  required String contextRootPath,
 }) {
-  return LocatableDiagnosticImpl(diag.includeFileNotFound, [p0, p1, p2]);
+  return LocatableDiagnosticImpl(diag.includeFileNotFound, [
+    includedUri,
+    includingFilePath,
+    contextRootPath,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsIncompatibleLint({
-  required String p0,
-  required String p1,
+  required String ruleName,
+  required String incompatibleRules,
 }) {
-  return LocatableDiagnosticImpl(diag.incompatibleLint, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.incompatibleLint, [
+    ruleName,
+    incompatibleRules,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsIncompatibleLintFiles({
@@ -19301,10 +19344,13 @@ LocatableDiagnostic _withArgumentsInvalidOperatorForSuper({
 }
 
 LocatableDiagnostic _withArgumentsInvalidOption({
-  required String p0,
-  required String p1,
+  required String optionName,
+  required String detailMessage,
 }) {
-  return LocatableDiagnosticImpl(diag.invalidOption, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.invalidOption, [
+    optionName,
+    detailMessage,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidOverride({
@@ -19343,8 +19389,10 @@ LocatableDiagnostic _withArgumentsInvalidOverrideSetter({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsInvalidSectionFormat({required String p0}) {
-  return LocatableDiagnosticImpl(diag.invalidSectionFormat, [p0]);
+LocatableDiagnostic _withArgumentsInvalidSectionFormat({
+  required String sectionName,
+}) {
+  return LocatableDiagnosticImpl(diag.invalidSectionFormat, [sectionName]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidTypeArgumentInConstList({
@@ -20074,8 +20122,8 @@ LocatableDiagnostic _withArgumentsOutOfOrderClauses({
   return LocatableDiagnosticImpl(diag.outOfOrderClauses, [string, string2]);
 }
 
-LocatableDiagnostic _withArgumentsParseError({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.parseError, [p0]);
+LocatableDiagnostic _withArgumentsParseError({required String errorMessage}) {
+  return LocatableDiagnosticImpl(diag.parseError, [errorMessage]);
 }
 
 LocatableDiagnostic _withArgumentsPartOfDifferentLibrary({
@@ -20215,10 +20263,13 @@ LocatableDiagnostic _withArgumentsReadPotentiallyUnassignedFinal({
 }
 
 LocatableDiagnostic _withArgumentsRecursiveIncludeFile({
-  required Object p0,
-  required Object p1,
+  required Object includedUri,
+  required Object includingFilePath,
 }) {
-  return LocatableDiagnosticImpl(diag.recursiveIncludeFile, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.recursiveIncludeFile, [
+    includedUri,
+    includingFilePath,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsRecursiveInterfaceInheritance({
@@ -20325,10 +20376,10 @@ LocatableDiagnostic _withArgumentsRelationalPatternOperandTypeNotAssignable({
 }
 
 LocatableDiagnostic _withArgumentsRemovedLint({
-  required String p0,
-  required String p1,
+  required String ruleName,
+  required String sdkVersion,
 }) {
-  return LocatableDiagnosticImpl(diag.removedLint, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.removedLint, [ruleName, sdkVersion]);
 }
 
 LocatableDiagnostic _withArgumentsRemovedLintUse({
@@ -20720,8 +20771,8 @@ LocatableDiagnostic _withArgumentsUndefinedIdentifier({required String p0}) {
   return LocatableDiagnosticImpl(diag.undefinedIdentifier, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedLint({required String p0}) {
-  return LocatableDiagnosticImpl(diag.undefinedLint, [p0]);
+LocatableDiagnostic _withArgumentsUndefinedLint({required String ruleName}) {
+  return LocatableDiagnosticImpl(diag.undefinedLint, [ruleName]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedMethod({
@@ -20876,8 +20927,10 @@ _withArgumentsUnqualifiedReferenceToStaticMemberOfExtendedType({
   );
 }
 
-LocatableDiagnostic _withArgumentsUnrecognizedErrorCode({required String p0}) {
-  return LocatableDiagnosticImpl(diag.unrecognizedErrorCode, [p0]);
+LocatableDiagnostic _withArgumentsUnrecognizedErrorCode({
+  required String codeName,
+}) {
+  return LocatableDiagnosticImpl(diag.unrecognizedErrorCode, [codeName]);
 }
 
 LocatableDiagnostic _withArgumentsUnsupportedChromeOsFeature({
@@ -20897,42 +20950,49 @@ LocatableDiagnostic _withArgumentsUnsupportedOperator({required String p0}) {
 }
 
 LocatableDiagnostic _withArgumentsUnsupportedOptionWithLegalValue({
-  required String p0,
-  required String p1,
-  required String p2,
+  required String sectionName,
+  required String optionKey,
+  required String legalValue,
 }) {
   return LocatableDiagnosticImpl(diag.unsupportedOptionWithLegalValue, [
-    p0,
-    p1,
-    p2,
+    sectionName,
+    optionKey,
+    legalValue,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsUnsupportedOptionWithLegalValues({
-  required String p0,
-  required String p1,
-  required String p2,
+  required String sectionName,
+  required String optionKey,
+  required String legalValues,
 }) {
   return LocatableDiagnosticImpl(diag.unsupportedOptionWithLegalValues, [
-    p0,
-    p1,
-    p2,
+    sectionName,
+    optionKey,
+    legalValues,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsUnsupportedOptionWithoutValues({
-  required String p0,
-  required String p1,
+  required String sectionName,
+  required String optionKey,
 }) {
-  return LocatableDiagnosticImpl(diag.unsupportedOptionWithoutValues, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.unsupportedOptionWithoutValues, [
+    sectionName,
+    optionKey,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsUnsupportedValue({
-  required String p0,
-  required Object p1,
-  required String p2,
+  required String optionName,
+  required Object invalidValue,
+  required String legalValues,
 }) {
-  return LocatableDiagnosticImpl(diag.unsupportedValue, [p0, p1, p2]);
+  return LocatableDiagnosticImpl(diag.unsupportedValue, [
+    optionName,
+    invalidValue,
+    legalValues,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsUnusedCatchClause({required Object p0}) {

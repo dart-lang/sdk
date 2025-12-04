@@ -70,7 +70,11 @@ Map<String, RuleConfig>? parseLinterSection(YamlMap optionsMap) {
   // Quick check of basic contract.
   if (options is YamlMap) {
     var rulesNode = options.valueAt(AnalysisOptionsFile.rules);
-    return {if (rulesNode != null) ...parseDiagnosticsSection(rulesNode)};
+    return {
+      if (rulesNode != null)
+        for (var entry in parseDiagnosticsSection(rulesNode).entries)
+          entry.key.toLowerCase(): entry.value,
+    };
   }
 
   return null;

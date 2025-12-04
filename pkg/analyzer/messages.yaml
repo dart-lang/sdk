@@ -64,30 +64,143 @@ AnalysisOptionsErrorCode:
   INCLUDED_FILE_PARSE_ERROR:
     type: compileTimeError
     parameters:
-      Object p0: the path of the file containing the error
-      Object p1: the starting offset of the text in the file that contains the error
-      Object p2: the ending offset of the text in the file that contains the error
-      Object p3: the error message
-    problemMessage: "#p3 in #p0(#p1..#p2)"
+      String includingFilePath: the path of the file containing the error
+      int startOffset: the starting offset of the text in the file that contains the error
+      int endOffset: the ending offset of the text in the file that contains the error
+      String errorMessage: the error message
+    problemMessage: "#errorMessage in #includingFilePath(#startOffset..#endOffset)"
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the content of a file that is
+      included into an analysis options file isn't valid YAML.
+
+      #### Example
+
+      Given a file named `shared.yaml` that contains:
+
+      ```yaml
+      // %uri="shared.yaml"
+      analyzer:
+        enable-experiment:
+          - augmentations
+        enable-experiment:
+          - dot-shorthands
+      ```
+
+      The following code produces this diagnostic because the included file
+      isn't valid YAML: the analyzer map contains duplicate `enable-experiment`
+      keys.
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      include: [!shared.yaml!]
+      analyzer:
+        enable-experiment:
+          - enhanced-parts
+      ```
+
+      #### Common fixes
+
+      If the file is intended to be included, then correct the included file to
+      be valid YAML::
+
+      ```yaml
+      // %uri="shared.yaml"
+      analyzer:
+        enable-experiment:
+          - augmentations
+          - dot-shorthands
+      ```
+
+      If the file isn't intended to be included, then remove the `include` key:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      analyzer:
+        enable-experiment:
+          - enhanced-parts
+      ```
     comment: |-
       An error code indicating that there is a syntactic error in the included
       file.
   PARSE_ERROR:
     type: compileTimeError
     parameters:
-      Object p0: the error message from the parse error
-    problemMessage: "#p0"
+      String errorMessage: the error message from the parse error
+    problemMessage: "#errorMessage"
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the contents of an analysis
+      options file isn't valid YAML.
+
+      #### Example
+
+      The following code produces this diagnostic because the `analyzer` section
+      has two `enable-experiment` keys:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      analyzer:
+        enable-experiment:
+          - augmentations
+        [!enable-experiment!]:
+          - dot-shorthands
+      ```
+
+      #### Common fixes
+
+      Correct the file to be valid YAML:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      analyzer:
+        enable-experiment:
+          - augmentations
+          - dot-shorthands
+      ```
     comment: |-
       An error code indicating that there is a syntactic error in the file.
 AnalysisOptionsWarningCode:
   ANALYSIS_OPTION_DEPRECATED:
     type: staticWarning
     parameters:
-      Object p0: the option name
-    problemMessage: "The option '#p0' is no longer supported."
+      String optionName: the option name
+    problemMessage: "The option '#optionName' is no longer supported."
+    correctionMessage: Try removing the option.
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an option in an analysis
+      options file is deprecated.
+
+      #### Example
+
+      The following code produces this diagnostic because the top-level key
+      `errors` is deprecated:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      [!errors!]:
+        dead_code: ignore
+      ```
+
+      #### Common fixes
+
+      If a replacement option or format exists, update the file to use it:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      analyzer:
+        errors:
+          dead_code: ignore
+      ```
+
+      If no replacement is available, remove the deprecated option.
     comment: |-
       An error code indicating that the given option is deprecated.
   ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT:
@@ -104,60 +217,218 @@ AnalysisOptionsWarningCode:
   DEPRECATED_LINT:
     type: staticWarning
     parameters:
-      String p0: the rule name
-    problemMessage: "'#p0' is a deprecated lint rule and should not be used."
-    correctionMessage: Try removing '#p0'.
+      String ruleName: the rule name
+    problemMessage: The lint rule '#ruleName' is deprecated and shouldn't be enabled.
+    correctionMessage: Try removing '#ruleName'.
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an enabled lint rule is
+      deprecated.
+
+      #### Example
+
+      The following code produces this diagnostic because the rule
+      `always_specify_types` is deprecated:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      linter:
+        rules:
+          - [!always_specify_types!]
+          - annotate_overrides
+      ```
+
+      #### Common fixes
+
+      If a replacement rule exists, enable it:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      linter:
+        rules:
+          - annotate_overrides
+          - specify_nonobvious_property_types
+      ```
+
+      If no replacement rule exists, remove the deprecated lint rule from the
+      list:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      linter:
+        rules:
+          - annotate_overrides
+      ```
     comment: |-
       A hint code indicating reference to a deprecated lint.
   DEPRECATED_LINT_WITH_REPLACEMENT:
     type: staticWarning
     parameters:
-      String p0: the deprecated lint name
-      String p1: the replacing rule name
-    problemMessage: "'#p0' is deprecated and should be replaced by '#p1'."
-    correctionMessage: "Try replacing '#p0' with '#p1'."
+      String deprecatedRuleName: the deprecated lint name
+      String replacementRuleName: the replacing rule name
+    problemMessage: "The lint rule '#deprecatedRuleName' is deprecated and replaced by '#replacementRuleName'."
+    correctionMessage: "Try replacing '#deprecatedRuleName' with '#replacementRuleName'."
     hasPublishedDocs: false
     comment: |-
       A hint code indicating reference to a deprecated lint.
   DUPLICATE_RULE:
     type: staticWarning
     parameters:
-      String p0: the rule name
-    problemMessage: "The rule #p0 is already specified and doesn't need to be specified again."
-    correctionMessage: "Try removing all but one specification of the rule."
+      String ruleName: the rule name
+    problemMessage: "The rule '#ruleName' is already enabled and doesn't need to be enabled again."
+    correctionMessage: "Try removing all but one occurrence of the rule."
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the same lint rule is listed
+      more than once in the linter/rules section.
+
+      #### Example
+
+      The following code produces this diagnostic because the lint rule
+      `avoid_print` appears twice in the list of enabled rules:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      linter:
+        rules:
+          - avoid_print
+          - [!avoid_print!]
+      ```
+
+      #### Common fixes
+
+      Remove the duplicates:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      linter:
+        rules:
+          - avoid_print
+      ```
     comment: |-
       Duplicate rules.
   INCLUDED_FILE_WARNING:
     type: staticWarning
     parameters:
-      Object p0: the path of the file containing the warnings
-      Object p1: the starting offset of the text in the file that contains the warning
-      Object p2: the ending offset of the text in the file that contains the warning
-      Object p3: the warning message
-    problemMessage: "Warning in the included options file #p0(#p1..#p2): #p3"
+      Object includingFilePath: the path of the file containing the warnings
+      int startOffset: the starting offset of the text in the file that contains the warning
+      int endOffset: the ending offset of the text in the file that contains the warning
+      String warningMessage: the warning message
+    problemMessage: "Warning in the included options file #includingFilePath(#startOffset..#endOffset): #warningMessage"
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an analysis options file
+      contains an `include` key, and the included file contains a warning.
+
+      #### Example
+
+      Given a file named `shared.yaml` that contains:
+
+      ```yaml
+      // %uri="shared.yaml"
+      linter:
+        rules:
+          - undefined_lint_rule
+      ```
+
+      The following code produces this diagnostic because the file `shared.yaml`
+      has a warning that the rule `undefined_lint_rule` doesn't exist:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      include: [!shared.yaml!]
+      ```
+
+      #### Common fixes
+
+      If the included file can be fixed, then fix the warning in it.
+
+      If the included file can't be fixed, then don't include it.
     comment: |-
       An error code indicating a specified include file has a warning.
   INCLUDE_FILE_NOT_FOUND:
     type: staticWarning
     parameters:
-      Object p0: the URI of the file to be included
-      Object p1: the path of the file containing the include directive
-      Object p2: the path of the context being analyzed
-    problemMessage: "The include file '#p0' in '#p1' can't be found when analyzing '#p2'."
+      String includedUri: the URI of the file to be included
+      String includingFilePath: the path of the file containing the include directive
+      String contextRootPath: the path of the context being analyzed
+    problemMessage: "The URI '#includedUri' included in '#includingFilePath' can't be found when analyzing '#contextRootPath'."
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an `include` key in an analysis
+      options file specifies a URI that either can't be resolved or doesn't
+      exist.
+
+      #### Example
+
+      The following code produces this diagnostic because the URI refers to a
+      package that doesn't exist:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      include: package:lint/recommended.yaml
+      ```
+
+      #### Common fixes
+
+      If the URI is incorrect, replace it with a correct URI:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      include: package:lints/recommended.yaml
+      ```
+
+      If the URI is correct but the package isn't a dependency, add a
+      `dev_dependency` for the package to the `pubspec.yaml` file and run
+      `dart pub get` or `flutter pub get`.
     comment: |-
       An error code indicating a specified include file could not be found.
   INCOMPATIBLE_LINT:
     type: staticWarning
     parameters:
-      String p0: the rule name
-      String p1: the incompatible rules
-    problemMessage: "The rule '#p0' is incompatible with #p1."
+      String ruleName: the rule name
+      String incompatibleRules: the incompatible rules
+    problemMessage: "The rule '#ruleName' is incompatible with '#incompatibleRules'."
     correctionMessage: "Try removing all but one of the incompatible rules."
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when two specified lint rules are
+      incompatible, such as when they enforce opposite styles.
+
+      #### Example
+
+      The following code produces this diagnostic because the rules
+      `prefer_single_quotes` and `prefer_double_quotes` are incompatible with
+      each other:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      linter:
+        rules:
+          - prefer_single_quotes
+          - [!prefer_double_quotes!]
+      ```
+
+      #### Common fixes
+
+      Remove all but one of the incompatible rules:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      linter:
+        rules:
+          - prefer_single_quotes
+      ```
     comment: |-
       An error code indicating an incompatible rule.
 
@@ -192,19 +463,88 @@ AnalysisOptionsWarningCode:
   INVALID_OPTION:
     type: staticWarning
     parameters:
-      String p0: the option name
-      String p1: the detail message
-    problemMessage: "Invalid option specified for '#p0': #p1"
+      String optionName: the option name
+      String detailMessage: the detail message
+    problemMessage: "Invalid option specified for '#optionName': #detailMessage"
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an option is specified and the
+      value of the option is invalid.
+
+      #### Example
+
+      The following code produces this diagnostic because `fail` isn't a valid
+      severity for a diagnostic:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      analyzer:
+        errors:
+          dead_code: [!fail!]
+          prefer_single_quotes: warning
+      ```
+
+      #### Common fixes
+
+      If you specify the option, provide a valid value for it:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      analyzer:
+        errors:
+          dead_code: error
+          prefer_single_quotes: warning
+      ```
+
+      If you don't need the option, remove it:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      analyzer:
+        errors:
+          prefer_single_quotes: warning
+      ```
     comment: |-
       An error code indicating that a plugin is being configured with an invalid
       value for an option and a detail message is provided.
   INVALID_SECTION_FORMAT:
     type: staticWarning
     parameters:
-      String p0: the section name
-    problemMessage: "Invalid format for the '#p0' section."
+      String sectionName: the section name
+    problemMessage: "Invalid format for the '#sectionName' section."
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an analysis options file
+      contains a configuration section (key) whose content is not in the
+      expected data structure or format. For example, this occurs when the
+      configuration requires a map but is provided a list.
+
+      #### Example
+
+      The following code produces this diagnostic because the `errors` section
+      expects to have a map as its value:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      analyzer:
+        errors:
+          - dead_code
+      ```
+
+      #### Common fixes
+
+      Change the value to be of the appropriate format:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      analyzer:
+        errors:
+          dead_code: error
+      ```
     comment: |-
       An error code indicating an invalid format for an options file section.
   MULTIPLE_PLUGINS:
@@ -223,27 +563,112 @@ AnalysisOptionsWarningCode:
     problemMessage: "Plugins can only be specified in the root of a pub workspace or the root of a package that isn't in a workspace."
     correctionMessage: "Try specifying plugins in an analysis options file at '#contextRoot'."
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when analyzer plugins are defined in
+      an analysis options file other than the `analysis_options.yaml` at the
+      root of the package.
+
+      #### Example
+
+      Given an `analysis_options.yaml` file located in a subdirectory of the
+      package root, the following code produces this diagnostic because it
+      attempts to define plugins there:
+
+      ```yaml
+      // %uri="inner/analysis_options.yaml"
+      [!plugins!]:
+        one: ^1.0.0
+      ```
+
+      #### Common fixes
+
+      Remove the list of plugins from the file.
     comment: |-
       An error code indicating plugins have been specified in an "inner"
       analysis options file.
   RECURSIVE_INCLUDE_FILE:
     type: staticWarning
     parameters:
-      Object p0: the URI of the file to be included
-      Object p1: the path of the file containing the include directive
-    problemMessage: "The include file '#p0' in '#p1' includes itself recursively."
-    correctionMessage: "Try changing the chain of 'include's to not re-include this file."
+      Object includedUri: the URI of the file to be included
+      Object includingFilePath: the path of the file containing the include directive
+    problemMessage: "The URI '#includedUri' included in '#includingFilePath' includes '#includingFilePath', creating a circular reference."
+    correctionMessage: "Try changing the chain of 'include's to break the circularity."
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an analysis options file,
+      directly or indirectly, includes itself.
+
+      #### Examples
+
+      The following code produces this diagnostic because the file directly
+      includes itself:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      include: [!analysis_options.yaml!]
+      ```
+
+      Given a file named `shared_options.yaml` that contains:
+
+      ```yaml
+      // %uri="shared_options.yaml"
+      include: analysis_options.yaml
+      ```
+
+      The following code produces this diagnostic because the file indirectly
+      includes itself:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      include: [!shared_options.yaml!]
+      ```
+
+      #### Common fixes
+
+      Change at least one of the files in order to break the circularity.
     comment: |-
       An error code indicating a specified include file includes itself recursively.
   REMOVED_LINT:
     type: staticWarning
     parameters:
-      String p0: the rule name
-      String p1: the SDK version in which the lint was removed
-    problemMessage: "'#p0' was removed in Dart '#p1'"
-    correctionMessage: "Remove the reference to '#p0'."
+      String ruleName: the rule name
+      String sdkVersion: the SDK version in which the lint was removed
+    problemMessage: "'#ruleName' was removed in Dart '#sdkVersion'"
+    correctionMessage: "Try removing the reference to '#ruleName'."
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an analysis options file
+      enables a lint that is no longer supported.
+
+      #### Example
+
+      The following code produces this diagnostic because the lint
+      `always_declare_return_types` is no longer supported:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      linter:
+        rules:
+          - [!always_declare_return_types!]
+          - annotate_overrides
+      ```
+
+      #### Common fixes
+
+      Remove the reference to the removed lint rule:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      linter:
+        rules:
+          - annotate_overrides
+      ```
     comment: |-
       An error code indicating a removed lint rule.
   REPLACED_LINT:
@@ -260,27 +685,109 @@ AnalysisOptionsWarningCode:
   UNDEFINED_LINT:
     type: staticWarning
     parameters:
-      String p0: the rule name
-    problemMessage: "'#p0' is not a recognized lint rule."
+      String ruleName: the rule name
+    problemMessage: "'#ruleName' isn't a recognized lint rule."
     correctionMessage: "Try using the name of a recognized lint rule."
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an analysis options file
+      attempts to enable a lint rule that is not defined.
+
+      #### Example
+
+      The following code produces this diagnostic because the lint
+      `this_is_not_a_real_lint` isn't a known lint:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      linter:
+        rules:
+          - annotate_overrides
+          - [!implementation_import!]
+      ```
+
+      #### Common fixes
+
+      If the name of the lint was mistyped, then correct the name.
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      linter:
+        rules:
+          - annotate_overrides
+          - implementation_imports
+      ```
+
+      If there is no lint corresponding to the flagged entry, then remove the
+      undefined lint:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      linter:
+        rules:
+          - annotate_overrides
+      ```
     comment: |-
       An error code indicating an undefined lint rule.
   UNRECOGNIZED_ERROR_CODE:
     type: staticWarning
     parameters:
-      String p0: the unrecognized error code
-    problemMessage: "'#p0' isn't a recognized error code."
+      String codeName: the unrecognized error code
+    problemMessage: "'#codeName' isn't a recognized diagnostic code."
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the analyzer/errors section in
+      an analysis options file contains a diagnostic code that is not valid.
+
+      #### Example
+
+      The following code produces this diagnostic because the diagnostic
+      `implementation_import` isn't defined:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      analyzer:
+        errors:
+          annotate_overrides: error
+          [!implementation_import!]: warning
+      ```
+
+      #### Common fixes
+
+      If the diagnostic being specified has a different name, then replace the
+      name:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      analyzer:
+        errors:
+          annotate_overrides: error
+          implementation_imports: warning
+      ```
+
+      If there is no diagnostic, then remove the name:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      analyzer:
+        errors:
+          annotate_overrides: error
+      ```
     comment: |-
       An error code indicating that an unrecognized error code is being used to
       specify an error filter.
   UNSUPPORTED_OPTION_WITHOUT_VALUES:
     type: staticWarning
     parameters:
-      String p0: the plugin name
-      String p1: the unsupported option key
-    problemMessage: "The option '#p1' isn't supported by '#p0'."
+      String sectionName: the section name
+      String optionKey: the unsupported option key
+    sharedName: UNSUPPORTED_OPTION
+    problemMessage: "The option '#optionKey' isn't supported by '#sectionName'."
+    correctionMessage: Try removing the option.
     hasPublishedDocs: false
     comment: |-
       An error code indicating that a plugin is being configured with an
@@ -288,22 +795,62 @@ AnalysisOptionsWarningCode:
   UNSUPPORTED_OPTION_WITH_LEGAL_VALUE:
     type: staticWarning
     parameters:
-      String p0: the section name
-      String p1: the unsupported option key
-      String p2: the legal value
-    problemMessage: "The option '#p1' isn't supported by '#p0'. Try using the only supported option: '#p2'."
+      String sectionName: the section name
+      String optionKey: the unsupported option key
+      String legalValue: the legal value
+    sharedName: UNSUPPORTED_OPTION
+    problemMessage: "The option '#optionKey' isn't supported by '#sectionName'."
+    correctionMessage: "Try using the only supported option: '#legalValue', or removing the option."
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an unsupported option is
+      specified.
+
+      #### Example
+
+      The following code produces this diagnostic because `experiments` isn't a
+      supported option:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      analyzer:
+        [!experiments!]:
+          - augmentations
+      ```
+
+      #### Common fixes
+
+      If you intended to use a supported option, then replace the unsupported
+      option with the supported one:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      analyzer:
+        enable-experiment:
+          - augmentations
+      ```
+
+      If no option exists for your intended purpose, then remove the unsupported
+      option:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      analyzer:
+      ```
     comment: |-
       An error code indicating that a YAML section is being configured with an
       unsupported option where there is just one legal value.
   UNSUPPORTED_OPTION_WITH_LEGAL_VALUES:
     type: staticWarning
     parameters:
-      String p0: the section name
-      String p1: the unsupported option key
-      String p2: legal values
-    problemMessage: "The option '#p1' isn't supported by '#p0'."
-    correctionMessage: "Try using one of the supported options: #p2."
+      String sectionName: the section name
+      String optionKey: the unsupported option key
+      String legalValues: legal values
+    sharedName: UNSUPPORTED_OPTION
+    problemMessage: "The option '#optionKey' isn't supported by '#sectionName'."
+    correctionMessage: "Try using one of the supported options: #legalValues."
     hasPublishedDocs: false
     comment: |-
       An error code indicating that a YAML section is being configured with an
@@ -311,12 +858,49 @@ AnalysisOptionsWarningCode:
   UNSUPPORTED_VALUE:
     type: staticWarning
     parameters:
-      String p0: the option name
-      Object p1: the unsupported value
-      String p2: legal values
-    problemMessage: "The value '#p1' isn't supported by '#p0'."
-    correctionMessage: "Try using one of the supported options: #p2."
+      String optionName: the option name
+      Object invalidValue: the unsupported value
+      String legalValues: legal values
+    problemMessage: "The value '#invalidValue' isn't supported by '#optionName'."
+    correctionMessage: "Try using one of the supported values: #legalValues."
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an analysis options file
+      contains a valid option and the value of that option is not a valid value.
+
+      #### Example
+
+      The following code produces this diagnostic because `fatal` isn't a valid
+      severity:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      analyzer:
+        errors:
+          dead_code: [!fatal!]
+      ```
+
+      #### Common fixes
+
+      If a valid value specifies the intended behavior, then replace the
+      unsupported value with it:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      analyzer:
+        errors:
+          dead_code: error
+      ```
+
+      If there is no valid value to use, then remove the option:
+
+      ```yaml
+      // %uri="analysis_options.yaml"
+      analyzer:
+        errors:
+      ```
     comment: |-
       An error code indicating that an option entry is being configured with an
       unsupported value.

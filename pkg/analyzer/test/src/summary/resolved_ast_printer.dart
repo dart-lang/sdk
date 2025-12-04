@@ -2125,7 +2125,6 @@ Expected parent: (${parent.runtimeType}) $parent
     _sink.writeIf(element.isPrivate, ' isPrivate');
     _sink.writeIf(element.isPublic, ' isPublic');
     _sink.writeIf(element.isStatic, ' isStatic');
-    _sink.writeIf(element.isSynthetic, ' isSynthetic');
   }
 
   static void _assertHasIdenticalElement<T>(List<T> elements, T expected) {

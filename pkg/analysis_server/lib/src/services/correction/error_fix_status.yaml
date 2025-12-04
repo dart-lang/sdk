@@ -49,30 +49,30 @@
 # - 500 "hasFix"
 # - 498 "noFix"
 
-INCLUDED_FILE_PARSE_ERROR:
+included_file_parse_error:
   status: noFix
   notes: |-
     The fix needs to be made in the included file.
-PARSE_ERROR:
+parse_error:
   status: noFix
   notes: |-
     Because of the way the YAML parser works, there isn't enough information to
     be able to provide a fix.
-ANALYSIS_OPTION_DEPRECATED:
+analysis_option_deprecated:
   status: needsFix
   notes: |-
     The fix is to remove the deprecated option.
-ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT:
+analysis_option_deprecated_with_replacement:
   status: hasFix
-DEPRECATED_LINT:
+deprecated_lint:
   status: hasFix
-DEPRECATED_LINT_WITH_REPLACEMENT:
+deprecated_lint_with_replacement:
   status: needsFix
   notes: |-
     We should be able to replace the deprecated lint rule with its replacement.
-DUPLICATE_RULE:
+duplicate_rule:
   status: hasFix
-INCLUDE_FILE_NOT_FOUND:
+include_file_not_found:
   status: noFix
   notes: |-
     It would not be performant to search the disk for analysis options files
@@ -81,244 +81,244 @@ INCLUDE_FILE_NOT_FOUND:
     We could potentially have a fix to create the referenced file that currently
     doesn't exist, but that would only be useful if the missing file is in the
     same repository as the including file.
-INCLUDED_FILE_WARNING:
+included_file_warning:
   status: noFix
   notes: |-
     The fix needs to be made in the included file.
-INCOMPATIBLE_LINT:
+incompatible_lint:
   status: needsFix
   notes: |-
     Allowing the user to select which rule they would prefer to use so we can
     remove the incompatible ones.
-INCOMPATIBLE_LINT_FILES:
+incompatible_lint_files:
   status: needsFix
   notes: |-
     Allowing the user to select which rule they would prefer to use so we can
     disable the incompatible ones.
-INCOMPATIBLE_LINT_INCLUDED:
+incompatible_lint_included:
   status: needsFix
   notes: |-
     Allowing the user to select which rule they would prefer to use so we can
     disable the incompatible ones.
-INVALID_OPTION:
+invalid_option:
   status: needsFix
   notes: |-
     We could look for valid options that are similar in spelling to the invalid
     option and replace the invalid option with the selected replacement.
-INVALID_SECTION_FORMAT:
+invalid_section_format:
   status: noFix
   notes: |-
     It isn't worth the cost to try to figure out how to convert
     a list, map, or string to a different format.
-MULTIPLE_PLUGINS:
+multiple_plugins:
   status: needsFix
   notes: |-
     The fix is to remove the plugin name. Might not be worth the cost if we
     can address the question of if/how we're supporting plugins.
-PLUGINS_IN_INNER_OPTIONS:
+plugins_in_inner_options:
   status: needsFix
   notes: |-
     The fix is to delete the 'plugins' section.
-RECURSIVE_INCLUDE_FILE:
+recursive_include_file:
   status: noFix
   notes: |-
     It isn't possible to know the right place to break the recursion. The best
     we could do is to remove the include in the file that the diagnostic is
     reported on.
-REMOVED_LINT:
+removed_lint:
   status: hasFix
-REPLACED_LINT:
+replaced_lint:
   status: needsFix
   notes: |-
     We should be able to replace the deprecated lint rule with its replacement.
-UNDEFINED_LINT:
+undefined_lint:
   status: hasFix
-UNRECOGNIZED_ERROR_CODE:
+unrecognized_error_code:
   status: needsFix
   notes: |-
     The fix would be to replace the code with a valid code whose name is similar
     to the unrecognized code.
-UNSUPPORTED_OPTION_WITH_LEGAL_VALUE:
+unsupported_option_with_legal_value:
   status: needsFix
   notes: |-
     The fix is to replace the unsupported option with the one legal value.
-UNSUPPORTED_OPTION_WITH_LEGAL_VALUES:
+unsupported_option_with_legal_values:
   status: needsFix
   notes: |-
     The fix is to replace the unsupported option with one of the legal values.
-UNSUPPORTED_OPTION_WITHOUT_VALUES:
+unsupported_option_without_values:
   status: hasFix
-UNSUPPORTED_VALUE:
+unsupported_value:
   status: needsFix
   notes: |-
     The fix is to replace the unsupported option with one of the legal values.
-ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER:
+abstract_field_constructor_initializer:
   status: hasFix
-ABSTRACT_FIELD_INITIALIZER:
+abstract_field_initializer:
   status: hasFix
-ABSTRACT_SUPER_MEMBER_REFERENCE:
+abstract_super_member_reference:
   status: noFix
   notes: |-
     The only fix we could automate is to remove the call to super, which is
     unlikely to be the right solution.
-AMBIGUOUS_EXPORT:
+ambiguous_export:
   status: needsFix
   notes: |-
     For each exported name, add a fix to hide the name.
-AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE:
+ambiguous_extension_member_access_three_or_more:
   status: hasFix
-AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO:
+ambiguous_extension_member_access_two:
   status: hasFix
-AMBIGUOUS_IMPORT:
+ambiguous_import:
   status: hasFix
   notes: |-
     For each imported name, add a fix to add a prefix. We wouldn't be able to
     add the prefix everywhere, but could add it wherever the name was already
     unambiguous.
-AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH:
+ambiguous_set_or_map_literal_both:
   status: noFix
   notes: |-
     We could potentially have a pair of fixes: one to remove the elements that
     force it to be a set and one to remove the map related elements. I doubt
     that either is the right solution.
-AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER:
+ambiguous_set_or_map_literal_either:
   status: noFix
   notes: |-
     We don't have enough information to add type arguments for the user.
-ARGUMENT_TYPE_NOT_ASSIGNABLE:
+argument_type_not_assignable:
   status: hasFix
-ASSERT_IN_REDIRECTING_CONSTRUCTOR:
+assert_in_redirecting_constructor:
   status: hasFix
-ASSIGNMENT_TO_CONST:
+assignment_to_const:
   status: noFix
   notes: |-
     Making the field non-const doesn't seem to be a good choice, but it is a
     possibility.
-ASSIGNMENT_TO_FINAL:
+assignment_to_final:
   status: hasFix
-ASSIGNMENT_TO_FINAL_LOCAL:
+assignment_to_final_local:
   status: hasFix
-ASSIGNMENT_TO_FINAL_NO_SETTER:
+assignment_to_final_no_setter:
   status: needsFix
   notes: |-
     The fix is to create the missing setter.
-ASSIGNMENT_TO_FUNCTION:
+assignment_to_function:
   status: noFix
   notes: |-
     Theoretically we could replace the function with a function valued variable
     if the value being assigned is a function with the same signature, but that
     case is likely rare enough to not be worth supporting.
-ASSIGNMENT_TO_METHOD:
+assignment_to_method:
   status: noFix
   notes: |-
     Theoretically we could replace the method with a function valued variable
     if the value being assigned is a function with the same signature, but that
     case is likely rare enough to not be worth supporting.
-ASSIGNMENT_TO_TYPE:
+assignment_to_type:
   status: noFix
-ASYNC_FOR_IN_WRONG_CONTEXT:
+async_for_in_wrong_context:
   status: hasFix
-AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT:
+augmentation_extends_clause_already_present:
   status: needsEvaluation
-AUGMENTATION_MODIFIER_EXTRA:
+augmentation_modifier_extra:
   status: hasFix
-AUGMENTATION_MODIFIER_MISSING:
+augmentation_modifier_missing:
   status: needsFix
-AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND:
+augmentation_of_different_declaration_kind:
   status: noFix
-AUGMENTATION_TYPE_PARAMETER_BOUND:
+augmentation_type_parameter_bound:
   status: noFix
-AUGMENTATION_TYPE_PARAMETER_COUNT:
+augmentation_type_parameter_count:
   status: noFix
-AUGMENTATION_TYPE_PARAMETER_NAME:
+augmentation_type_parameter_name:
   status: needsFix
   notes: |-
     We could rename the type parameter, this is purely local operation.
-AUGMENTATION_WITHOUT_DECLARATION:
+augmentation_without_declaration:
   status: noFix
-AUGMENTED_EXPRESSION_IS_NOT_SETTER:
+augmented_expression_is_not_setter:
   status: noFix
-AUGMENTED_EXPRESSION_IS_SETTER:
+augmented_expression_is_setter:
   status: noFix
-AUGMENTED_EXPRESSION_NOT_OPERATOR:
+augmented_expression_not_operator:
   status: noFix
-AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER:
+await_in_late_local_variable_initializer:
   status: hasFix
-AWAIT_IN_WRONG_CONTEXT:
+await_in_wrong_context:
   status: hasFix
-AWAIT_OF_INCOMPATIBLE_TYPE:
+await_of_incompatible_type:
   status: noFix
-BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
+base_class_implemented_outside_of_library:
   status: noFix
   notes: |-
     Theoretically we could remove the `base` modifier, but that's unlikely to be
     the right fix most of the time.
-BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
+base_mixin_implemented_outside_of_library:
   status: noFix
   notes: |-
     Theoretically we could remove the `base` modifier, but that's unlikely to be
     the right fix most of the time.
-BODY_MIGHT_COMPLETE_NORMALLY:
+body_might_complete_normally:
   status: hasFix
-BREAK_LABEL_ON_SWITCH_MEMBER:
+break_label_on_switch_member:
   status: noFix
   notes: |-
     Theoretically we could replace the `break` with a `continue`, but this
     probably occurs rarely enough to not be worth the cost.
-BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME:
+built_in_identifier_as_extension_name:
   status: noFix
   notes: |-
     The correction is to change the name.
-BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME:
+built_in_identifier_as_extension_type_name:
   status: noFix
   notes: |-
     The correction is to change the name.
-BUILT_IN_IDENTIFIER_AS_PREFIX_NAME:
+built_in_identifier_as_prefix_name:
   status: noFix
   notes: |-
     The correction is to change the name.
-BUILT_IN_IDENTIFIER_AS_TYPE:
+built_in_identifier_as_type:
   status: noFix
   notes: |-
     The correction is to change the name.
-BUILT_IN_IDENTIFIER_AS_TYPE_NAME:
+built_in_identifier_as_type_name:
   status: noFix
   notes: |-
     The correction is to change the name.
-BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME:
+built_in_identifier_as_type_parameter_name:
   status: noFix
   notes: |-
     The correction is to change the name.
-BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME:
+built_in_identifier_as_typedef_name:
   status: noFix
   notes: |-
     The correction is to change the name.
-CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS:
+case_expression_type_implements_equals:
   status: needsFix
   notes: |-
     The fix could be to change the switch expression to an if statement.
-CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE:
+case_expression_type_is_not_switch_expression_subtype:
   status: noFix
-CAST_TO_NON_TYPE:
+cast_to_non_type:
   status: hasFix
-CLASS_USED_AS_MIXIN:
+class_used_as_mixin:
   status: noFix
   notes: |-
     Theoretically we could add the mixin modifier to the class if the class if
     doing so would be valid.
-CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER:
+class_instantiation_access_to_instance_member:
   status: noFix
   since: 2.15
-CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER:
+class_instantiation_access_to_static_member:
   status: hasFix
-CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER:
+class_instantiation_access_to_unknown_member:
   status: noFix
   notes: |-
     Theoretically we could look for static members whose name is similar in
     spelling and suggest them (and remove the type arguments), but it's probably
     not valuable often enough to warrant the cost.
   since: in 2.15
-CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE:
+concrete_class_has_enum_superinterface:
   status: noFix
   since: 2.17
   notes: |-
@@ -326,1540 +326,1540 @@ CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE:
     class header that are or implement `Enum`, but I think it would be more
     likely that the user needed to restructure the super interfaces so that
     `Enum` wasn't included but the rest of the interfaces could be.
-CONCRETE_CLASS_WITH_ABSTRACT_MEMBER:
+concrete_class_with_abstract_member:
   status: hasFix
-CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD:
+conflicting_constructor_and_static_field:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER:
+conflicting_constructor_and_static_getter:
   status: noFix
   since: 2.15
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD:
+conflicting_constructor_and_static_method:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER:
+conflicting_constructor_and_static_setter:
   status: noFix
   since: 2.15
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CONFLICTING_FIELD_AND_METHOD:
+conflicting_field_and_method:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CONFLICTING_GENERIC_INTERFACES:
+conflicting_generic_interfaces:
   status: noFix
-CONFLICTING_INHERITED_METHOD_AND_SETTER:
+conflicting_inherited_method_and_setter:
   status: needsEvaluation
-CONFLICTING_METHOD_AND_FIELD:
+conflicting_method_and_field:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CONFLICTING_STATIC_AND_INSTANCE:
+conflicting_static_and_instance:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CONFLICTING_TYPE_VARIABLE_AND_CLASS:
+conflicting_type_variable_and_class:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CONFLICTING_TYPE_VARIABLE_AND_ENUM:
+conflicting_type_variable_and_enum:
   status: noFix
   since: 2.17
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CONFLICTING_TYPE_VARIABLE_AND_EXTENSION:
+conflicting_type_variable_and_extension:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE:
+conflicting_type_variable_and_extension_type:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS:
+conflicting_type_variable_and_member_class:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM:
+conflicting_type_variable_and_member_enum:
   status: noFix
   since: 2.17
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION:
+conflicting_type_variable_and_member_extension:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE:
+conflicting_type_variable_and_member_extension_type:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN:
+conflicting_type_variable_and_member_mixin:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CONFLICTING_TYPE_VARIABLE_AND_MIXIN:
+conflicting_type_variable_and_mixin:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY:
+const_constructor_constant_from_deferred_library:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH:
+const_constructor_field_type_mismatch:
   status: noFix
-CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH:
+const_constructor_param_type_mismatch:
   status: noFix
-CONST_CONSTRUCTOR_THROWS_EXCEPTION:
+const_constructor_throws_exception:
   status: noFix
-CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
+const_constructor_with_field_initialized_by_non_const:
   status: noFix
-CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD:
+const_constructor_with_mixin_with_field:
   status: noFix
-CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS:
+const_constructor_with_mixin_with_fields:
   status: noFix
-CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER:
+const_constructor_with_non_const_super:
   status: noFix
-CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD:
+const_constructor_with_non_final_field:
   status: noFix
-CONST_DEFERRED_CLASS:
+const_deferred_class:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CONST_EVAL_ASSERTION_FAILURE:
+const_eval_assertion_failure:
   status: needsEvaluation
-CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE:
+const_eval_assertion_failure_with_message:
   status: needsEvaluation
-CONST_EVAL_EXTENSION_METHOD:
+const_eval_extension_method:
   status: needsEvaluation
-CONST_EVAL_EXTENSION_TYPE_METHOD:
+const_eval_extension_type_method:
   status: needsEvaluation
-CONST_EVAL_FOR_ELEMENT:
+const_eval_for_element:
   status: needsEvaluation
-CONST_EVAL_METHOD_INVOCATION:
+const_eval_method_invocation:
   status: hasFix
-CONST_EVAL_PRIMITIVE_EQUALITY:
+const_eval_primitive_equality:
   status: needsEvaluation
-CONST_EVAL_PROPERTY_ACCESS:
+const_eval_property_access:
   status: needsEvaluation
-CONST_EVAL_THROWS_EXCEPTION:
+const_eval_throws_exception:
   status: noFix
-CONST_EVAL_THROWS_IDBZE:
+const_eval_throws_idbze:
   status: noFix
-CONST_EVAL_TYPE_BOOL:
+const_eval_type_bool:
   status: noFix
-CONST_EVAL_TYPE_BOOL_INT:
+const_eval_type_bool_int:
   status: noFix
-CONST_EVAL_TYPE_BOOL_NUM_STRING:
+const_eval_type_bool_num_string:
   status: noFix
-CONST_EVAL_TYPE_INT:
+const_eval_type_int:
   status: noFix
-CONST_EVAL_TYPE_NUM:
+const_eval_type_num:
   status: noFix
-CONST_EVAL_TYPE_NUM_STRING:
+const_eval_type_num_string:
   status: noFix
-CONST_EVAL_TYPE_STRING:
+const_eval_type_string:
   status: noFix
-CONST_EVAL_TYPE_TYPE:
+const_eval_type_type:
   status: noFix
-CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE:
+const_field_initializer_not_assignable:
   status: noFix
-CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE:
+const_initialized_with_non_constant_value:
   status: hasFix
-CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY:
+const_initialized_with_non_constant_value_from_deferred_library:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CONST_INSTANCE_FIELD:
+const_instance_field:
   status: hasFix
-CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY:
+const_map_key_not_primitive_equality:
   status: noFix
-CONST_NOT_INITIALIZED:
+const_not_initialized:
   status: noFix
-CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY:
+const_set_element_not_primitive_equality:
   status: noFix
-CONST_SPREAD_EXPECTED_LIST_OR_SET:
+const_spread_expected_list_or_set:
   status: noFix
-CONST_SPREAD_EXPECTED_MAP:
+const_spread_expected_map:
   status: noFix
-CONST_TYPE_PARAMETER:
+const_type_parameter:
   status: needsEvaluation
-CONST_WITH_NON_CONST:
+const_with_non_const:
   status: hasFix
-CONST_WITH_NON_CONSTANT_ARGUMENT:
+const_with_non_constant_argument:
   status: noFix
-CONST_WITH_NON_TYPE:
+const_with_non_type:
   status: hasFix
-CONST_WITH_TYPE_PARAMETERS:
+const_with_type_parameters:
   status: noFix
-CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF:
+const_with_type_parameters_constructor_tearoff:
   status: noFix
   since: 2.15
-CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF:
+const_with_type_parameters_function_tearoff:
   status: noFix
   since: 2.15
-CONST_WITH_UNDEFINED_CONSTRUCTOR:
+const_with_undefined_constructor:
   status: noFix
-CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT:
+const_with_undefined_constructor_default:
   status: noFix
-CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION:
+constant_pattern_with_non_constant_expression:
   status: hasFix
   notes: |-
     Has fix for expression that can be made constant. More cases to be
     implemented as per the tests.
-CONTINUE_LABEL_INVALID:
+continue_label_invalid:
   status: noFix
-COULD_NOT_INFER:
+could_not_infer:
   status: noFix
-DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR:
+default_value_in_redirecting_factory_constructor:
   status: needsFix
   notes: |-
     Remove the default value.
-DEFAULT_VALUE_ON_REQUIRED_PARAMETER:
+default_value_on_required_parameter:
   status: hasFix
-DEFERRED_IMPORT_OF_EXTENSION:
+deferred_import_of_extension:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE:
+definitely_unassigned_late_local_variable:
   status: noFix
-DISALLOWED_TYPE_INSTANTIATION_EXPRESSION:
+disallowed_type_instantiation_expression:
   status: needsFix
   since: 2.15
-DOT_SHORTHAND_MISSING_CONTEXT:
+dot_shorthand_missing_context:
   status: needsEvaluation
-DOT_SHORTHAND_UNDEFINED_GETTER:
+dot_shorthand_undefined_getter:
   status: hasFix
-DOT_SHORTHAND_UNDEFINED_INVOCATION:
+dot_shorthand_undefined_invocation:
   status: hasFix
-DUPLICATE_CONSTRUCTOR_DEFAULT:
+duplicate_constructor_default:
   status: noFix
   notes: |-
     Theoretically we could remove all but one of the constructors, but we have
     no way of knowing which should not be removed.
-DUPLICATE_CONSTRUCTOR_NAME:
+duplicate_constructor_name:
   status: noFix
   notes: |-
     Theoretically we could remove all but one of the constructors, but we have
     no way of knowing which should not be removed.
-DUPLICATE_DEFINITION:
+duplicate_definition:
   status: noFix
   notes: |-
     Theoretically we could remove all but one of the constructors, but we have
     no way of knowing which should not be removed.
-DUPLICATE_FIELD_NAME:
+duplicate_field_name:
   status: noFix
   notes: |-
     Theoretically we could remove all but one of the constructors, but we have
     no way of knowing which should not be removed.
-DUPLICATE_FIELD_FORMAL_PARAMETER:
+duplicate_field_formal_parameter:
   status: noFix
   notes: |-
     Theoretically we could remove all but one of the constructors, but we have
     no way of knowing which should not be removed.
-DUPLICATE_NAMED_ARGUMENT:
+duplicate_named_argument:
   status: needsFix
   notes: |-
     Look for other named parameters with similar name and suggest renaming the
     argument. If there are none that are similar enough, then we could just
     suggest all of the names that aren't already being used.
-DUPLICATE_PART:
+duplicate_part:
   status: needsFix
   notes: |-
     Remove the duplicated import.
-DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE:
+duplicate_pattern_assignment_variable:
   status: needsFix
   notes: |-
     We can suggest names from the context, as in did you mean this?
-DUPLICATE_PATTERN_FIELD:
+duplicate_pattern_field:
   status: needsFix
   notes: |-
     Look for other named parameters with similar name and suggest renaming the
     argument. If there are none that are similar enough, then we could just
     suggest all of the names that aren't already being used.
-DUPLICATE_REST_ELEMENT_IN_PATTERN:
+duplicate_rest_element_in_pattern:
   status: noFix
   notes: |-
     We do not know which one of the rest elements is to be removed.
-DUPLICATE_VARIABLE_PATTERN:
+duplicate_variable_pattern:
   status: noFix
   notes: |-
     We cannot figure out the intent of the user to suggest the right fix.
-EMPTY_MAP_PATTERN:
+empty_map_pattern:
   status: hasFix
-ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR:
+enum_constant_invokes_factory_constructor:
   status: noFix
   since: 3.3
-ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
+enum_constant_same_name_as_enclosing:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED:
+enum_instantiated_to_bounds_is_not_well_bounded:
   status: noFix
   since: 2.17
-ENUM_MIXIN_WITH_INSTANCE_VARIABLE:
+enum_mixin_with_instance_variable:
   status: noFix
   since: 2.17
   notes: |-
     We could potentially offer a fix that would remove the mixin, but I think it
     would be more likely that the user needed to restructure the mixin so that
     part of it could be included here.
-ENUM_WITH_ABSTRACT_MEMBER:
+enum_with_abstract_member:
   status: hasFix
   since: 2.17
-ENUM_WITH_NAME_VALUES:
+enum_with_name_values:
   status: noFix
   since: 2.17
   notes: |-
     Requires a rename.
-ENUM_WITHOUT_CONSTANTS:
+enum_without_constants:
   status: noFix
-EQUAL_ELEMENTS_IN_CONST_SET:
+equal_elements_in_const_set:
   status: needsFix
   notes: |-
     Remove the duplicates.
-EQUAL_KEYS_IN_CONST_MAP:
+equal_keys_in_const_map:
   status: needsFix
   notes: |-
     Remove the duplicates.
-EQUAL_KEYS_IN_MAP_PATTERN:
+equal_keys_in_map_pattern:
   status: needsFix
   notes: |-
     Remove the duplicates.
-EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS:
+expected_one_list_pattern_type_arguments:
   status: noFix
-EXPECTED_ONE_LIST_TYPE_ARGUMENTS:
+expected_one_list_type_arguments:
   status: noFix
-EXPECTED_ONE_SET_TYPE_ARGUMENTS:
+expected_one_set_type_arguments:
   status: noFix
-EXPECTED_TWO_MAP_TYPE_ARGUMENTS:
+expected_two_map_type_arguments:
   status: noFix
-EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS:
+expected_two_map_pattern_type_arguments:
   status: noFix
   notes: |-
     We do not know the user's intent here and so cannot figure out what to
     add or delete.
-EXPORT_INTERNAL_LIBRARY:
+export_internal_library:
   status: needsFix
   notes: |-
     Remove the export.
-EXPORT_OF_NON_LIBRARY:
+export_of_non_library:
   status: needsFix
   notes: |-
     Find the library containing the part being export, update the export to the
     library, and add a show combinator (if there isn't one already) that limits
     the export to the names defined in the part.
-EXPRESSION_IN_MAP:
+expression_in_map:
   status: needsFix
   notes: |-
     Based on the type, add the separator either before or after the expression.
-EXTENDS_DEFERRED_CLASS:
+extends_deferred_class:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-EXTENDS_DISALLOWED_CLASS:
+extends_disallowed_class:
   status: hasFix
-EXTENDS_NON_CLASS:
+extends_non_class:
   status: hasFix
-EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
+extends_type_alias_expands_to_type_parameter:
   status: hasFix
-EXTENSION_AS_EXPRESSION:
+extension_as_expression:
   status: noFix
-EXTENSION_CONFLICTING_STATIC_AND_INSTANCE:
+extension_conflicting_static_and_instance:
   status: noFix
-EXTENSION_DECLARES_MEMBER_OF_OBJECT:
+extension_declares_member_of_object:
   status: hasFix
-EXTENSION_DECLARES_INSTANCE_FIELD:
+extension_declares_instance_field:
   status: hasFix
   notes: |-
     Remove the field, or add `static`.
-EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER:
+extension_override_access_to_static_member:
   status: hasFix
-EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE:
+extension_override_argument_not_assignable:
   status: noFix
-EXTENSION_OVERRIDE_WITH_CASCADE:
+extension_override_with_cascade:
   status: hasFix
-EXTENSION_OVERRIDE_WITHOUT_ACCESS:
+extension_override_without_access:
   status: noFix
-EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER:
+extension_type_constructor_with_super_formal_parameter:
   status: needsFix
   notes: |-
     Remove it.
-EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION:
+extension_type_constructor_with_super_invocation:
   status: needsFix
-EXTENSION_TYPE_DECLARES_INSTANCE_FIELD:
+extension_type_declares_instance_field:
   status: hasFix
   notes: |-
     Remove the field, or add `static`.
-EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT:
+extension_type_declares_member_of_object:
   status: hasFix
-EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE:
+extension_type_implements_disallowed_type:
   status: noFix
-EXTENSION_TYPE_IMPLEMENTS_ITSELF:
+extension_type_implements_itself:
   status: noFix
-EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE:
+extension_type_implements_not_supertype:
   status: noFix
-EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE:
+extension_type_implements_representation_not_supertype:
   status: noFix
-EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT:
+extension_type_inherited_member_conflict:
   status: noFix
-EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF:
+extension_type_representation_depends_on_itself:
   status: noFix
-EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM:
+extension_type_representation_type_bottom:
   status: noFix
-EXTENSION_TYPE_WITH_ABSTRACT_MEMBER:
+extension_type_with_abstract_member:
   status: hasFix
-EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER:
+external_field_constructor_initializer:
   status: needsFix
   notes: |-
     Remove the `external` keyword. Remove the initializer.
-EXTERNAL_FIELD_INITIALIZER:
+external_field_initializer:
   status: needsFix
   notes: |-
     Remove the `external` keyword. Remove the initializer.
-EXTERNAL_VARIABLE_INITIALIZER:
+external_variable_initializer:
   status: needsFix
   notes: |-
     Remove the `external` keyword. Remove the initializer.
-EXTRA_POSITIONAL_ARGUMENTS:
+extra_positional_arguments:
   status: hasFix
-EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED:
+extra_positional_arguments_could_be_named:
   status: hasFix
-FACTORY_CONSTRUCTOR_NEW_NAME:
+factory_constructor_new_name:
   status: needsEvaluation
-FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS:
+field_initialized_by_multiple_initializers:
   status: needsFix
   notes: |-
     Remove all but one of the initializers.
     Replace the field name with the name of a different field (from the
     enclosing class).
-FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION:
+field_initialized_in_initializer_and_declaration:
   status: needsFix
   notes: |-
     Remove all but one of the initializers.
-FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER:
+field_initialized_in_parameter_and_initializer:
   status: needsFix
   notes: |-
     Remove all but one of the initializers.
-FIELD_INITIALIZER_FACTORY_CONSTRUCTOR:
+field_initializer_factory_constructor:
   status: needsFix
   notes: |-
     Replace the initializing formal parameter with a normal parameter.
-FIELD_INITIALIZER_NOT_ASSIGNABLE:
+field_initializer_not_assignable:
   status: noFix
-FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR:
+field_initializer_outside_constructor:
   status: needsFix
   notes: |-
     Replace the initializing formal parameter with a normal parameter and
     add an assignment to the field in the method.
-FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR:
+field_initializer_redirecting_constructor:
   status: needsFix
   notes: |-
     Replace the initializing formal parameter with a normal parameter.
-FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE:
+field_initializing_formal_not_assignable:
   status: noFix
-FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
+final_class_extended_outside_of_library:
   status: hasFix
-FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
+final_class_implemented_outside_of_library:
   status: hasFix
-FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY:
+final_class_used_as_mixin_constraint_outside_of_library:
   status: noFix
-FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR:
+final_initialized_in_declaration_and_constructor:
   status: needsFix
   notes: |-
     Remove all but one of the initializers.
-FINAL_NOT_INITIALIZED:
+final_not_initialized:
   status: hasFix
-FINAL_NOT_INITIALIZED_CONSTRUCTOR_1:
+final_not_initialized_constructor_1:
   status: hasFix
-FINAL_NOT_INITIALIZED_CONSTRUCTOR_2:
+final_not_initialized_constructor_2:
   status: hasFix
-FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS:
+final_not_initialized_constructor_3_plus:
   status: hasFix
-FOR_IN_OF_INVALID_ELEMENT_TYPE:
+for_in_of_invalid_element_type:
   status: noFix
-FOR_IN_OF_INVALID_TYPE:
+for_in_of_invalid_type:
   status: hasFix
-FOR_IN_WITH_CONST_VARIABLE:
+for_in_with_const_variable:
   status: noFix
-GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND:
+generic_function_type_cannot_be_bound:
   status: noFix
-GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT:
+generic_function_type_cannot_be_type_argument:
   status: noFix
-GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC:
+generic_method_type_instantiation_on_dynamic:
   status: needsFix
   since: 2.15
-GETTER_NOT_ASSIGNABLE_SETTER_TYPES:
+getter_not_assignable_setter_types:
   status: noFix
-GETTER_NOT_SUBTYPE_SETTER_TYPES:
+getter_not_subtype_setter_types:
   status: noFix
-IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY:
+if_element_condition_from_deferred_library:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE:
+illegal_async_generator_return_type:
   status: hasFix
-ILLEGAL_ASYNC_RETURN_TYPE:
+illegal_async_return_type:
   status: hasFix
-ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION:
+illegal_concrete_enum_member_declaration:
   status: noFix
   since: 2.17
   notes: |-
     We could potentially offer to remove the member, but the user probably needs
     to think about what they were trying to do and it seems more likely that the
     right fix is to rename the member.
-ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE:
+illegal_concrete_enum_member_inheritance:
   status: noFix
   since: 2.17
   notes: |-
     We could potentially offer to remove the member, but the user probably needs
     to think about what they were trying to do and it seems more likely that the
     right fix is to rename the member.
-ILLEGAL_ENUM_VALUES_DECLARATION:
+illegal_enum_values_declaration:
   status: noFix
   since: 2.17
   notes: |-
     While we could have a fix to remove the declaration, it seems more likely
     that the user would want to rename it.
-ILLEGAL_ENUM_VALUES_INHERITANCE:
+illegal_enum_values_inheritance:
   status: noFix
   since: 2.17
-ILLEGAL_LANGUAGE_VERSION_OVERRIDE:
+illegal_language_version_override:
   status: noFix
   since: 2.17
   notes: |-
     We could potentially offer to remove the override, or to update it to the
     lowest legal value, but it isn't clear that either of these is the right
     fix without knowing why the language override was added.
-ILLEGAL_SYNC_GENERATOR_RETURN_TYPE:
+illegal_sync_generator_return_type:
   status: hasFix
-IMPLEMENTS_DEFERRED_CLASS:
+implements_deferred_class:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-IMPLEMENTS_DISALLOWED_CLASS:
+implements_disallowed_class:
   status: hasFix
-IMPLEMENTS_NON_CLASS:
+implements_non_class:
   status: hasFix
-IMPLEMENTS_REPEATED:
+implements_repeated:
   status: hasFix
-IMPLEMENTS_SUPER_CLASS:
+implements_super_class:
   status: hasFix
-IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
+implements_type_alias_expands_to_type_parameter:
   status: hasFix
-IMPLICIT_THIS_REFERENCE_IN_INITIALIZER:
+implicit_this_reference_in_initializer:
   status: hasFix
-IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS:
+implicit_super_initializer_missing_arguments:
   status: hasFix
-IMPORT_INTERNAL_LIBRARY:
+import_internal_library:
   status: hasFix
-IMPORT_OF_NON_LIBRARY:
+import_of_non_library:
   status: hasFix
-INCONSISTENT_CASE_EXPRESSION_TYPES:
+inconsistent_case_expression_types:
   status: noFix
-INCONSISTENT_INHERITANCE:
+inconsistent_inheritance:
   status: needsFix
   notes: |-
     Add a stub of the method that needs to be implemented.
-INCONSISTENT_INHERITANCE_GETTER_AND_METHOD:
+inconsistent_inheritance_getter_and_method:
   status: noFix
-INCONSISTENT_LANGUAGE_VERSION_OVERRIDE:
+inconsistent_language_version_override:
   status: needsFix
   notes: |-
     Replace (or add) the language override in the parts to match the library.
-INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR:
+inconsistent_pattern_variable_logical_or:
   status: noFix
   notes: |-
     We cannot figure out the user's intent here, and so cannot generate a
     fix that would be right.
-INITIALIZER_FOR_NON_EXISTENT_FIELD:
+initializer_for_non_existent_field:
   status: needsFix
   notes: |-
     Suggest a different field whose name is similar.
-INITIALIZER_FOR_STATIC_FIELD:
+initializer_for_static_field:
   status: needsFix
   notes: |-
     Suggest a different field whose name is similar.
-INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD:
+initializing_formal_for_non_existent_field:
   status: hasFix
-INSTANCE_ACCESS_TO_STATIC_MEMBER:
+instance_access_to_static_member:
   status: hasFix
-INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION:
+instance_access_to_static_member_of_unnamed_extension:
   status: noFix
   notes: |-
     Theoretically, we could give the extension a name and then use the name to
     access the static member.
-INSTANCE_MEMBER_ACCESS_FROM_FACTORY:
+instance_member_access_from_factory:
   status: noFix
-INSTANCE_MEMBER_ACCESS_FROM_STATIC:
+instance_member_access_from_static:
   status: noFix
-INSTANTIATE_ABSTRACT_CLASS:
+instantiate_abstract_class:
   status: noFix
   notes: |-
     Theoretically we could remove the `abstract` modifier.
-INSTANTIATE_ENUM:
+instantiate_enum:
   status: noFix
-INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
+instantiate_type_alias_expands_to_type_parameter:
   status: noFix
-INTEGER_LITERAL_IMPRECISE_AS_DOUBLE:
+integer_literal_imprecise_as_double:
   status: hasFix
-INTEGER_LITERAL_OUT_OF_RANGE:
+integer_literal_out_of_range:
   status: needsFix
   notes: |-
     Replace the literal with a constructor for `BigInt`.
-INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
+interface_class_extended_outside_of_library:
   status: noFix
   notes: |-
     Theoretically we could remove the `interface` modifier from the superclass.
-INVALID_ANNOTATION:
+invalid_annotation:
   status: hasFix
-INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY:
+invalid_annotation_constant_value_from_deferred_library:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY:
+invalid_annotation_from_deferred_library:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-INVALID_ASSIGNMENT:
+invalid_assignment:
   status: hasFix
-INVALID_CAST_FUNCTION:
+invalid_cast_function:
   status: noFix
   notes: |-
     Removed in Dart 3.0
-INVALID_CAST_FUNCTION_EXPR:
+invalid_cast_function_expr:
   status: noFix
   notes: |-
     Removed in Dart 3.0
-INVALID_CAST_LITERAL:
+invalid_cast_literal:
   status: noFix
   notes: |-
     Removed in Dart 3.0
-INVALID_CAST_LITERAL_LIST:
+invalid_cast_literal_list:
   status: noFix
   notes: |-
     Removed in Dart 3.0
-INVALID_CAST_LITERAL_MAP:
+invalid_cast_literal_map:
   status: noFix
   notes: |-
     Removed in Dart 3.0
-INVALID_CAST_LITERAL_SET:
+invalid_cast_literal_set:
   status: noFix
   notes: |-
     Removed in Dart 3.0
-INVALID_CAST_METHOD:
+invalid_cast_method:
   status: noFix
   notes: |-
     Removed in Dart 3.0
-INVALID_CAST_NEW_EXPR:
+invalid_cast_new_expr:
   status: noFix
   notes: |-
     Removed in Dart 3.0
-INVALID_CONSTANT:
+invalid_constant:
   status: hasFix
   notes: |-
     The diagnostic is too general. It needs to be replaced with multiple more
     specific diagnostics.
-INVALID_EXTENSION_ARGUMENT_COUNT:
+invalid_extension_argument_count:
   status: needsFix
   notes: |-
     Remove all but one of the arguments. Not clear how much value that adds.
-INVALID_FACTORY_NAME_NOT_A_CLASS:
+invalid_factory_name_not_a_class:
   status: needsFix
   notes: |-
     Replace the name of the factory with the name of the class (or prefix it
     with the name of the class if it's lowercase?).
-INVALID_FIELD_NAME_FROM_OBJECT:
+invalid_field_name_from_object:
   status: noFix
-INVALID_FIELD_NAME_PRIVATE:
+invalid_field_name_private:
   status: needsFix
   notes: |-
     Make the name public.
-INVALID_FIELD_NAME_POSITIONAL:
+invalid_field_name_positional:
   status: noFix
-INVALID_IMPLEMENTATION_OVERRIDE:
+invalid_implementation_override:
   status: needsFix
   notes: |-
     Replace the signature with the valid signature.
-INVALID_IMPLEMENTATION_OVERRIDE_SETTER:
+invalid_implementation_override_setter:
   status: needsFix
   notes: |-
     Replace the signature with the valid signature.
-INVALID_INLINE_FUNCTION_TYPE:
+invalid_inline_function_type:
   status: needsFix
   notes: |-
     Replace with the equivalent generic function type.
-INVALID_MODIFIER_ON_CONSTRUCTOR:
+invalid_modifier_on_constructor:
   status: hasFix
-INVALID_MODIFIER_ON_SETTER:
+invalid_modifier_on_setter:
   status: hasFix
-INVALID_OVERRIDE:
+invalid_override:
   status: hasFix
-INVALID_OVERRIDE_SETTER:
+invalid_override_setter:
   status: hasFix
-INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR:
+invalid_reference_to_generative_enum_constructor:
   status: noFix
   since: 2.17
-INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR_TEAROFF:
+invalid_reference_to_generative_enum_constructor_tearoff:
   status: noFix
   since: 2.17
-INVALID_REFERENCE_TO_THIS:
+invalid_reference_to_this:
   status: noFix
-INVALID_SUPER_FORMAL_PARAMETER_LOCATION:
+invalid_super_formal_parameter_location:
   status: needsFix
   since: 2.17
-INVALID_TYPE_ARGUMENT_IN_CONST_LIST:
+invalid_type_argument_in_const_list:
   status: noFix
-INVALID_TYPE_ARGUMENT_IN_CONST_MAP:
+invalid_type_argument_in_const_map:
   status: noFix
-INVALID_TYPE_ARGUMENT_IN_CONST_SET:
+invalid_type_argument_in_const_set:
   status: noFix
-INVALID_URI:
+invalid_uri:
   status: noFix
-INVALID_USE_OF_COVARIANT:
+invalid_use_of_covariant:
   status: hasFix
-INVALID_USE_OF_NULL_VALUE:
+invalid_use_of_null_value:
   status: noFix
-INVOCATION_OF_EXTENSION_WITHOUT_CALL:
+invocation_of_extension_without_call:
   status: needsFix
   notes: |-
     Add a call method to the extension.
-INVOCATION_OF_NON_FUNCTION:
+invocation_of_non_function:
   status: needsFix
   notes: |-
     Suggest similarly named functions.
-INVOCATION_OF_NON_FUNCTION_EXPRESSION:
+invocation_of_non_function_expression:
   status: hasFix
-LABEL_IN_OUTER_SCOPE:
+label_in_outer_scope:
   status: noFix
-LABEL_UNDEFINED:
+label_undefined:
   status: needsFix
   notes: |-
     Suggest similarly named label.
-LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR:
+late_final_field_with_const_constructor:
   status: needsFix
   notes: |-
     Remove `late`.
     Remove `const`.
-LATE_FINAL_LOCAL_ALREADY_ASSIGNED:
+late_final_local_already_assigned:
   status: hasFix
-LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+list_element_type_not_assignable_nullability:
   status: hasFix
-LIST_ELEMENT_TYPE_NOT_ASSIGNABLE:
+list_element_type_not_assignable:
   status: needsEvaluation
-MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
+main_first_positional_parameter_type:
   status: needsFix
   notes: |-
     Replace the type of the first parameter.
-MAIN_HAS_REQUIRED_NAMED_PARAMETERS:
+main_has_required_named_parameters:
   status: needsFix
   notes: |-
     Remove the named parameters.
-MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS:
+main_has_too_many_required_positional_parameters:
   status: needsFix
   notes: |-
     Remove the invalid parameters.
-MAIN_IS_NOT_FUNCTION:
+main_is_not_function:
   status: noFix
-MAP_ENTRY_NOT_IN_MAP:
+map_entry_not_in_map:
   status: noFix
-MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+map_key_type_not_assignable_nullability:
   status: hasFix
-MAP_KEY_TYPE_NOT_ASSIGNABLE:
+map_key_type_not_assignable:
   status: noFix
-MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+map_value_type_not_assignable_nullability:
   status: hasFix
-MAP_VALUE_TYPE_NOT_ASSIGNABLE:
+map_value_type_not_assignable:
   status: noFix
-MISSING_CONST_IN_LIST_LITERAL:
+missing_const_in_list_literal:
   status: noFix
   notes: |-
     Not displayed to users.
-MISSING_CONST_IN_MAP_LITERAL:
+missing_const_in_map_literal:
   status: noFix
   notes: |-
     Not displayed to users.
-MISSING_CONST_IN_SET_LITERAL:
+missing_const_in_set_literal:
   status: noFix
   notes: |-
     Not displayed to users.
-MISSING_DART_LIBRARY:
+missing_dart_library:
   status: noFix
-MISSING_DEFAULT_VALUE_FOR_PARAMETER:
+missing_default_value_for_parameter:
   status: hasFix
-MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL:
+missing_default_value_for_parameter_positional:
   status: hasFix
-MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION:
+missing_default_value_for_parameter_with_annotation:
   status: hasFix
-MISSING_NAMED_PATTERN_FIELD_NAME:
+missing_named_pattern_field_name:
   status: noFix
-MISSING_REQUIRED_ARGUMENT:
+missing_required_argument:
   status: hasFix
-MISSING_VARIABLE_PATTERN:
+missing_variable_pattern:
   status: noFix
-MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE:
+mixin_application_concrete_super_invoked_member_type:
   status: needsFix
   notes: |-
     Update the type in the mixin.
-MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER:
+mixin_application_no_concrete_super_invoked_member:
   status: noFix
-MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER:
+mixin_application_no_concrete_super_invoked_setter:
   status: noFix
-MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE:
+mixin_application_not_implemented_interface:
   status: hasFix
-MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT:
+mixin_class_declaration_extends_not_object:
   status: hasFix
-MIXIN_CLASS_DECLARES_CONSTRUCTOR:
+mixin_class_declares_constructor:
   status: needsFix
   notes: |-
     Remove the constructor.
-MIXIN_DEFERRED_CLASS:
+mixin_deferred_class:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-MIXIN_INHERITS_FROM_NOT_OBJECT:
+mixin_inherits_from_not_object:
   status: needsFix
   notes: |-
     Remove the extends clause.
-MIXIN_INSTANTIATE:
+mixin_instantiate:
   status: noFix
-MIXIN_OF_DISALLOWED_CLASS:
+mixin_of_disallowed_class:
   status: hasFix
-MIXIN_OF_NON_CLASS:
+mixin_of_non_class:
   status: hasFix
-MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
+mixin_of_type_alias_expands_to_type_parameter:
   status: noFix
-MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
+mixin_on_type_alias_expands_to_type_parameter:
   status: noFix
-MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE:
+mixin_subtype_of_base_is_not_base:
   status: hasFix
-MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE:
+mixin_subtype_of_final_is_not_base:
   status: hasFix
-MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS:
+mixin_super_class_constraint_deferred_class:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS:
+mixin_super_class_constraint_disallowed_class:
   status: hasFix
-MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE:
+mixin_super_class_constraint_non_interface:
   status: hasFix
-MIXIN_WITH_NON_CLASS_SUPERCLASS:
+mixin_with_non_class_superclass:
   status: hasFix
-MIXINS_SUPER_CLASS:
+mixins_super_class:
   status: needsFix
   notes: |-
     Remove one of the uses of the class.
-MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS:
+multiple_redirecting_constructor_invocations:
   status: needsFix
   notes: |-
     Remove all but one of the redirecting constructor invocations.
-MULTIPLE_SUPER_INITIALIZERS:
+multiple_super_initializers:
   status: needsFix
   notes: |-
     Remove all but one of the redirecting constructor invocations.
-NEW_CONSTRUCTOR_NEW_NAME:
+new_constructor_new_name:
   status: needsEvaluation
-NEW_CONSTRUCTOR_QUALIFIED_NAME:
+new_constructor_qualified_name:
   status: needsEvaluation
-NEW_WITH_NON_TYPE:
+new_with_non_type:
   status: hasFix
-NEW_WITH_UNDEFINED_CONSTRUCTOR:
+new_with_undefined_constructor:
   status: hasFix
-NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT:
+new_with_undefined_constructor_default:
   status: hasFix
-NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS:
+no_annotation_constructor_arguments:
   status: hasFix
-NO_COMBINED_SUPER_SIGNATURE:
+no_combined_super_signature:
   status: noFix
-NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT:
+no_default_super_constructor_explicit:
   status: hasFix
-NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT:
+no_default_super_constructor_implicit:
   status: hasFix
-NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS:
+no_generative_constructors_in_superclass:
   status: noFix
-NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS:
+non_abstract_class_inherits_abstract_member_five_plus:
   status: hasFix
-NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR:
+non_abstract_class_inherits_abstract_member_four:
   status: hasFix
-NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE:
+non_abstract_class_inherits_abstract_member_one:
   status: hasFix
-NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE:
+non_abstract_class_inherits_abstract_member_three:
   status: hasFix
-NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO:
+non_abstract_class_inherits_abstract_member_two:
   status: hasFix
-NON_BOOL_CONDITION:
+non_bool_condition:
   status: hasFix
-NON_BOOL_EXPRESSION:
+non_bool_expression:
   status: noFix
-NON_BOOL_NEGATION_EXPRESSION:
+non_bool_negation_expression:
   status: noFix
-NON_BOOL_OPERAND:
+non_bool_operand:
   status: noFix
-NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR:
+non_const_generative_enum_constructor:
   status: hasFix
   since: 2.17
-NON_CONST_MAP_AS_EXPRESSION_STATEMENT:
+non_const_map_as_expression_statement:
   status: needsFix
   notes: |-
     Add `const` keyword.
-NON_CONSTANT_ANNOTATION_CONSTRUCTOR:
+non_constant_annotation_constructor:
   status: needsFix
   notes: |-
     Add `const` to the constructor (if doing so would be valid).
-NON_CONSTANT_CASE_EXPRESSION:
+non_constant_case_expression:
   status: noFix
   notes: |-
     I think this is a pre-3.0 only issue, so might not be worth supporting. If
     it is worth supporting, then we could potentially add `const` to make it a
     constant expression.
-NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY:
+non_constant_case_expression_from_deferred_library:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-NON_CONSTANT_DEFAULT_VALUE:
+non_constant_default_value:
   status: needsFix
   notes: |-
     Add `const` if the expression can be a constant expression.
-NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY:
+non_constant_default_value_from_deferred_library:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-NON_CONSTANT_LIST_ELEMENT:
+non_constant_list_element:
   status: hasFix
-NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY:
-  status: hasFix
-  notes: |-
-    Remove the `deferred` keyword from the import.
-NON_CONSTANT_MAP_ELEMENT:
-  status: hasFix
-NON_CONSTANT_MAP_KEY:
-  status: hasFix
-NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY:
+non_constant_list_element_from_deferred_library:
   status: hasFix
   notes: |-
     Remove the `deferred` keyword from the import.
-NON_CONSTANT_MAP_PATTERN_KEY:
+non_constant_map_element:
   status: hasFix
-NON_CONSTANT_MAP_VALUE:
+non_constant_map_key:
   status: hasFix
-NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY:
+non_constant_map_key_from_deferred_library:
   status: hasFix
   notes: |-
     Remove the `deferred` keyword from the import.
-NON_CONSTANT_RECORD_FIELD:
+non_constant_map_pattern_key:
+  status: hasFix
+non_constant_map_value:
+  status: hasFix
+non_constant_map_value_from_deferred_library:
+  status: hasFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+non_constant_record_field:
   status: noFix
-NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY:
+non_constant_record_field_from_deferred_library:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
+non_constant_relational_pattern_expression:
   status: hasFix
   notes: |-
     Make the pattern expression a constant.
-NON_CONSTANT_SET_ELEMENT:
+non_constant_set_element:
   status: hasFix
-NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE:
+non_covariant_type_parameter_position_in_representation_type:
   status: noFix
-NON_EXHAUSTIVE_SWITCH_EXPRESSION:
+non_exhaustive_switch_expression:
   status: hasFix
-NON_EXHAUSTIVE_SWITCH_EXPRESSION_PRIVATE:
+non_exhaustive_switch_expression_private:
   status: hasFix
-NON_EXHAUSTIVE_SWITCH_STATEMENT:
+non_exhaustive_switch_statement:
   status: hasFix
-NON_EXHAUSTIVE_SWITCH_STATEMENT_PRIVATE:
+non_exhaustive_switch_statement_private:
   status: hasFix
-NON_FINAL_FIELD_IN_ENUM:
+non_final_field_in_enum:
   status: hasFix
   since: 2.17
-NON_GENERATIVE_CONSTRUCTOR:
+non_generative_constructor:
   status: needsFix
   notes: |-
     Suggest generative constructors that could be invoked.
-NON_GENERATIVE_IMPLICIT_CONSTRUCTOR:
+non_generative_implicit_constructor:
   status: needsFix
   notes: |-
     Suggest generative constructors that could be invoked.
-NON_REDIRECTING_GENERATIVE_CONSTRUCTOR_WITH_PRIMARY:
+non_redirecting_generative_constructor_with_primary:
   status: needsEvaluation
-NON_SYNC_FACTORY:
+non_sync_factory:
   status: needsFix
   notes: |-
     Remove the modifier on the body.
-NON_TYPE_AS_TYPE_ARGUMENT:
+non_type_as_type_argument:
   status: hasFix
-NON_TYPE_IN_CATCH_CLAUSE:
+non_type_in_catch_clause:
   status: hasFix
-NON_VOID_RETURN_FOR_OPERATOR:
+non_void_return_for_operator:
   status: needsFix
   notes: |-
     Change the return type to `void`.
-NON_VOID_RETURN_FOR_SETTER:
+non_void_return_for_setter:
   status: needsFix
   notes: |-
     Remove the return type.
     Change the return type to `void`.
-NOT_A_TYPE:
+not_a_type:
   status: hasFix
-NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE:
+not_assigned_potentially_non_nullable_local_variable:
   status: noFix
-NOT_BINARY_OPERATOR:
+not_binary_operator:
   status: noFix
-NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL:
+not_enough_positional_arguments_name_plural:
   status: hasFix
-NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR:
+not_enough_positional_arguments_name_singular:
   status: hasFix
-NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL:
+not_enough_positional_arguments_plural:
   status: hasFix
-NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR:
+not_enough_positional_arguments_singular:
   status: hasFix
-NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD:
+not_initialized_non_nullable_instance_field:
   status: hasFix
-NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR:
+not_initialized_non_nullable_instance_field_constructor:
   status: noFix
-NOT_INITIALIZED_NON_NULLABLE_VARIABLE:
+not_initialized_non_nullable_variable:
   status: noFix
-NOT_INSTANTIATED_BOUND:
+not_instantiated_bound:
   status: noFix
-NOT_ITERABLE_SPREAD:
+not_iterable_spread:
   status: noFix
-NOT_MAP_SPREAD:
+not_map_spread:
   status: noFix
-NOT_NULL_AWARE_NULL_SPREAD:
+not_null_aware_null_spread:
   status: needsFix
   notes: |-
     Convert to a null-aware spread operator.
-NULLABLE_TYPE_IN_EXTENDS_CLAUSE:
+nullable_type_in_extends_clause:
   status: hasFix
-NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE:
+nullable_type_in_implements_clause:
   status: hasFix
-NULLABLE_TYPE_IN_ON_CLAUSE:
+nullable_type_in_on_clause:
   status: hasFix
-NULLABLE_TYPE_IN_WITH_CLAUSE:
+nullable_type_in_with_clause:
   status: hasFix
-OBJECT_CANNOT_EXTEND_ANOTHER_CLASS:
+object_cannot_extend_another_class:
   status: noFix
-OBSOLETE_COLON_FOR_DEFAULT_VALUE:
+obsolete_colon_for_default_value:
   status: hasFix
-ON_REPEATED:
+on_repeated:
   status: needsFix
   notes: |-
     Remove the repeated type.
-OPTIONAL_PARAMETER_IN_OPERATOR:
+optional_parameter_in_operator:
   status: noFix
-PART_OF_DIFFERENT_LIBRARY:
+part_of_different_library:
   status: noFix
-PART_OF_NON_PART:
+part_of_non_part:
   status: noFix
-PART_OF_UNNAMED_LIBRARY:
+part_of_unnamed_library:
   status: needsFix
   notes: |-
     Replace the library name with a URI.
-PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE:
+pattern_assignment_not_local_variable:
   status: noFix
-PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY:
+pattern_constant_from_deferred_library:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT:
+pattern_type_mismatch_in_irrefutable_context:
   status: noFix
-PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD:
+pattern_variable_assignment_inside_guard:
   status: noFix
   notes: |-
     We do not have enough information to figure out the user's intent with the
     use of the variable in the pattern.
-PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE:
+pattern_variable_shared_case_scope_different_finality_or_type:
   status: needsFix
   notes: |-
     Make all of the types / finalities the same.
-PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL:
+pattern_variable_shared_case_scope_has_label:
   status: needsFix
   notes: |-
     If the problem is a default, split the case group into two pieces.
-PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES:
+pattern_variable_shared_case_scope_not_all_cases:
   status: noFix
-POSITIONAL_FIELD_IN_OBJECT_PATTERN:
+positional_field_in_object_pattern:
   status: noFix
-POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
+positional_super_formal_parameter_with_positional_argument:
   status: hasFix
   since: 2.17
-PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER:
+prefix_collides_with_top_level_member:
   status: noFix
-PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT:
+prefix_identifier_not_followed_by_dot:
   status: noFix
-PREFIX_SHADOWED_BY_LOCAL_DECLARATION:
+prefix_shadowed_by_local_declaration:
   status: noFix
-PRIVATE_COLLISION_IN_MIXIN_APPLICATION:
+private_collision_in_mixin_application:
   status: noFix
-PRIVATE_NAMED_PARAMETER_DUPLICATE_PUBLIC_NAME:
+private_named_parameter_duplicate_public_name:
   status: noFix
-PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME:
+private_named_parameter_without_public_name:
   status: noFix
-PRIVATE_SETTER:
+private_setter:
   status: noFix
-READ_POTENTIALLY_UNASSIGNED_FINAL:
+read_potentially_unassigned_final:
   status: noFix
-RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA_BY_TYPE:
+record_literal_one_positional_no_trailing_comma_by_type:
   status: hasFix
-RECURSIVE_CONSTANT_CONSTRUCTOR:
+recursive_constant_constructor:
   status: noFix
-RECURSIVE_COMPILE_TIME_CONSTANT:
+recursive_compile_time_constant:
   status: noFix
-RECURSIVE_CONSTRUCTOR_REDIRECT:
+recursive_constructor_redirect:
   status: noFix
-RECURSIVE_FACTORY_REDIRECT:
+recursive_factory_redirect:
   status: noFix
-RECURSIVE_INTERFACE_INHERITANCE:
+recursive_interface_inheritance:
   status: noFix
-RECURSIVE_INTERFACE_INHERITANCE_EXTENDS:
+recursive_interface_inheritance_extends:
   status: noFix
-RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS:
+recursive_interface_inheritance_implements:
   status: noFix
-RECURSIVE_INTERFACE_INHERITANCE_ON:
+recursive_interface_inheritance_on:
   status: noFix
-RECURSIVE_INTERFACE_INHERITANCE_WITH:
+recursive_interface_inheritance_with:
   status: noFix
-REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR:
+redirect_generative_to_missing_constructor:
   status: noFix
-REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR:
+redirect_generative_to_non_generative_constructor:
   status: noFix
-REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR:
+redirect_to_abstract_class_constructor:
   status: noFix
-REDIRECT_TO_INVALID_FUNCTION_TYPE:
+redirect_to_invalid_function_type:
   status: noFix
-REDIRECT_TO_INVALID_RETURN_TYPE:
+redirect_to_invalid_return_type:
   status: noFix
-REDIRECT_TO_MISSING_CONSTRUCTOR:
+redirect_to_missing_constructor:
   status: noFix
-REDIRECT_TO_NON_CLASS:
+redirect_to_non_class:
   status: noFix
-REDIRECT_TO_NON_CONST_CONSTRUCTOR:
+redirect_to_non_const_constructor:
   status: noFix
-REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
+redirect_to_type_alias_expands_to_type_parameter:
   status: noFix
-REFERENCED_BEFORE_DECLARATION:
+referenced_before_declaration:
   status: noFix
-REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT:
+refutable_pattern_in_irrefutable_context:
   status: noFix
-RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE:
+relational_pattern_operand_type_not_assignable:
   status: noFix
-RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL:
+relational_pattern_operator_return_type_not_assignable_to_bool:
   status: noFix
-REST_ELEMENT_IN_MAP_PATTERN:
+rest_element_in_map_pattern:
   status: needsFix
   issue: https://github.com/dart-lang/sdk/issues/51892
-RETHROW_OUTSIDE_CATCH:
+rethrow_outside_catch:
   status: noFix
-RETURN_IN_GENERATIVE_CONSTRUCTOR:
+return_in_generative_constructor:
   status: needsFix
   notes: |-
     Remove the return.
     Convert to a factory constructor.
-RETURN_IN_GENERATOR:
+return_in_generator:
   status: needsFix
   notes: |-
     Replace with a yield.
-RETURN_OF_INVALID_TYPE_FROM_CLOSURE:
+return_of_invalid_type_from_closure:
   status: hasFix
-RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR:
+return_of_invalid_type_from_constructor:
   status: noFix
-RETURN_OF_INVALID_TYPE_FROM_FUNCTION:
+return_of_invalid_type_from_function:
   status: hasFix
-RETURN_OF_INVALID_TYPE_FROM_METHOD:
+return_of_invalid_type_from_method:
   status: hasFix
-RETURN_WITHOUT_VALUE:
+return_without_value:
   status: noFix
-SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY:
+sealed_class_subtype_outside_of_library:
   status: noFix
-SET_ELEMENT_FROM_DEFERRED_LIBRARY:
+set_element_from_deferred_library:
   status: hasFix
   notes: |-
     Remove the `deferred` keyword from the import.
-SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+set_element_type_not_assignable_nullability:
   status: hasFix
-SET_ELEMENT_TYPE_NOT_ASSIGNABLE:
+set_element_type_not_assignable:
   status: noFix
-SHARED_DEFERRED_PREFIX:
+shared_deferred_prefix:
   status: noFix
-SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY:
+spread_expression_from_deferred_library:
   status: hasFix
   notes: |-
     Remove the `deferred` keyword from the import.
-STATIC_ACCESS_TO_INSTANCE_MEMBER:
+static_access_to_instance_member:
   status: noFix
-SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED:
+subtype_of_base_is_not_base_final_or_sealed:
   status: hasFix
-SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED:
+subtype_of_final_is_not_base_final_or_sealed:
   status: hasFix
-SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
+super_formal_parameter_type_is_not_subtype_of_associated:
   status: hasFix
   since: 2.17
-SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED:
+super_formal_parameter_without_associated_named:
   status: hasFix
-SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL:
+super_formal_parameter_without_associated_positional:
   status: hasFix
-SUPER_IN_ENUM_CONSTRUCTOR:
+super_in_enum_constructor:
   status: noFix
   since: 2.17
   notes: |-
     We could potentially offer a fix to remove the super invocation, but the
     user really needs to think about what constructor they were trying to invoke
     and why in order to really fix the issue.
-SUPER_IN_EXTENSION:
+super_in_extension:
   status: noFix
   notes: |-
     We could potentially offer a fix to remove the super invocation, but the
     user really needs to think about what function they were trying to invoke
     and why in order to really fix the issue.
-SUPER_IN_EXTENSION_TYPE:
+super_in_extension_type:
   status: noFix
   notes: |-
     We could potentially offer a fix to remove the super invocation, but the
     user really needs to think about what function they were trying to invoke
     and why in order to really fix the issue.
-SUPER_IN_INVALID_CONTEXT:
+super_in_invalid_context:
   status: noFix
   notes: |-
     We could potentially offer a fix to remove the super invocation, but the
     user really needs to think about what member they were trying to invoke
     and why in order to really fix the issue.
-SUPER_IN_REDIRECTING_CONSTRUCTOR:
+super_in_redirecting_constructor:
   status: needsFix
   notes: |-
     Remove the super initialize.
     Remove the redirection.
-SUPER_INITIALIZER_IN_OBJECT:
+super_initializer_in_object:
   status: noFix
   notes: |-
     Object is only declared in SDK code; those developers do OK without fixes.
-SUPER_INVOCATION_NOT_LAST:
+super_invocation_not_last:
   status: hasFix
-SWITCH_CASE_COMPLETES_NORMALLY:
+switch_case_completes_normally:
   status: hasFix
-TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS:
+tearoff_of_generative_constructor_of_abstract_class:
   status: noFix
   since: 2.15
-THROW_OF_INVALID_TYPE:
+throw_of_invalid_type:
   status: noFix
-TOP_LEVEL_CYCLE:
+top_level_cycle:
   status: noFix
-TYPE_ALIAS_CANNOT_REFERENCE_ITSELF:
+type_alias_cannot_reference_itself:
   status: noFix
-TYPE_ANNOTATION_DEFERRED_CLASS:
+type_annotation_deferred_class:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-TYPE_ARGUMENT_NOT_MATCHING_BOUNDS:
+type_argument_not_matching_bounds:
   status: noFix
-TYPE_PARAMETER_REFERENCED_BY_STATIC:
+type_parameter_referenced_by_static:
   status: needsFix
   notes: |-
     Fixes could include (1) removing the 'static' keyword, (2) changing the type
     variable to its bound, (3) looking for similarly spelled types.
-TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND:
+type_parameter_supertype_of_its_bound:
   status: noFix
-TYPE_TEST_WITH_NON_TYPE:
+type_test_with_non_type:
   status: needsFix
   notes: |-
     Fixes could include: (1) changing ` is ` to ` == ` and (2) changing the
     right operand to the static type of the left.
-TYPE_TEST_WITH_UNDEFINED_NAME:
+type_test_with_undefined_name:
   status: hasFix
-UNCHECKED_INVOCATION_OF_NULLABLE_VALUE:
+unchecked_invocation_of_nullable_value:
   status: hasFix
-UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE:
+unchecked_method_invocation_of_nullable_value:
   status: hasFix
-UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE:
+unchecked_operator_invocation_of_nullable_value:
   status: hasFix
-UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE:
+unchecked_property_access_of_nullable_value:
   status: hasFix
-UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION:
+unchecked_use_of_nullable_value_as_condition:
   status: hasFix
-UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR:
+unchecked_use_of_nullable_value_as_iterator:
   status: hasFix
-UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD:
+unchecked_use_of_nullable_value_in_spread:
   status: hasFix
-UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH:
+unchecked_use_of_nullable_value_in_yield_each:
   status: hasFix
-UNDEFINED_ANNOTATION:
+undefined_annotation:
   status: hasFix
-UNDEFINED_CLASS:
+undefined_class:
   status: hasFix
-UNDEFINED_CLASS_BOOLEAN:
+undefined_class_boolean:
   status: hasFix
-UNDEFINED_CONSTRUCTOR_IN_INITIALIZER:
+undefined_constructor_in_initializer:
   status: needsFix
   notes: |-
     Fixes could include (1) adding a declaration for such constructor, (2) look
     for closely named constructors.
-UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT:
+undefined_constructor_in_initializer_default:
   status: hasFix
-UNDEFINED_ENUM_CONSTANT:
+undefined_enum_constant:
   status: hasFix
-UNDEFINED_ENUM_CONSTRUCTOR_NAMED:
-  status: hasFix
-  since: 2.17
-UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED:
+undefined_enum_constructor_named:
   status: hasFix
   since: 2.17
-UNDEFINED_EXTENSION_GETTER:
+undefined_enum_constructor_unnamed:
   status: hasFix
-UNDEFINED_EXTENSION_METHOD:
+  since: 2.17
+undefined_extension_getter:
   status: hasFix
-UNDEFINED_EXTENSION_OPERATOR:
+undefined_extension_method:
   status: hasFix
-UNDEFINED_EXTENSION_SETTER:
+undefined_extension_operator:
   status: hasFix
-UNDEFINED_FUNCTION:
+undefined_extension_setter:
   status: hasFix
-UNDEFINED_GETTER:
+undefined_function:
   status: hasFix
-UNDEFINED_GETTER_ON_FUNCTION_TYPE:
+undefined_getter:
+  status: hasFix
+undefined_getter_on_function_type:
   status: needsFix
   since: 2.15
-UNDEFINED_IDENTIFIER:
+undefined_identifier:
   status: hasFix
-UNDEFINED_IDENTIFIER_AWAIT:
+undefined_identifier_await:
   status: hasFix
-UNDEFINED_METHOD:
+undefined_method:
   status: hasFix
-UNDEFINED_METHOD_ON_FUNCTION_TYPE:
+undefined_method_on_function_type:
   status: needsFix
   since: 2.15
-UNDEFINED_NAMED_PARAMETER:
+undefined_named_parameter:
   status: hasFix
-UNDEFINED_OPERATOR:
+undefined_operator:
   status: hasFix
-UNDEFINED_PREFIXED_NAME:
+undefined_prefixed_name:
   status: hasFix
-UNDEFINED_SETTER:
+undefined_setter:
   status: hasFix
-UNDEFINED_SETTER_ON_FUNCTION_TYPE:
+undefined_setter_on_function_type:
   status: needsFix
   since: 2.15
-UNDEFINED_SUPER_GETTER:
+undefined_super_getter:
   status: needsFix
   notes: |-
     The fix is to create the getter, assuming the superclass is editable.
-UNDEFINED_SUPER_METHOD:
+undefined_super_method:
   status: needsFix
   notes: |-
     The fix is to create the method, assuming the superclass is editable.
-UNDEFINED_SUPER_OPERATOR:
+undefined_super_operator:
   status: needsFix
   notes: |-
     The fix is to create the operator, assuming the superclass is editable.
-UNDEFINED_SUPER_SETTER:
+undefined_super_setter:
   status: needsFix
   notes: |-
     The fix is to create the setter, assuming the superclass is editable.
-UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER:
+unqualified_reference_to_non_local_static_member:
   status: hasFix
-UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE:
+unqualified_reference_to_static_member_of_extended_type:
   status: hasFix
-URI_DOES_NOT_EXIST:
+uri_does_not_exist:
   status: hasFix
-URI_HAS_NOT_BEEN_GENERATED:
+uri_has_not_been_generated:
   status: noFix
-URI_WITH_INTERPOLATION:
+uri_with_interpolation:
   status: noFix
-USE_OF_NATIVE_EXTENSION:
+use_of_native_extension:
   status: noFix
   since: ~2.15
-USE_OF_VOID_RESULT:
+use_of_void_result:
   status: noFix
-VALUES_DECLARATION_IN_ENUM:
+values_declaration_in_enum:
   status: noFix
   since: 2.17
   notes: |-
     We could potentially offer to remove the member, but the user probably needs
     to think about what they were trying to do and it seems more likely that the
     right fix is to rename the member.
-VARIABLE_TYPE_MISMATCH:
+variable_type_mismatch:
   status: noFix
-WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE:
+wrong_explicit_type_parameter_variance_in_superinterface:
   status: noFix
-WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR:
+wrong_number_of_parameters_for_operator:
   status: needsFix
   notes: |-
     Fixes could include (1) removing all past the first parameter, and (2)
     removing all but a singular used parameter, if only one is used.
-WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS:
+wrong_number_of_parameters_for_operator_minus:
   status: needsFix
   notes: |-
     Fixes could include (1) removing all past the first parameter, and (2)
     removing all but a singular used parameter, if only one is used.
-WRONG_NUMBER_OF_TYPE_ARGUMENTS:
+wrong_number_of_type_arguments:
   status: hasFix
-WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION:
+wrong_number_of_type_arguments_anonymous_function:
   status: needsFix
   since: 2.15
-WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR:
+wrong_number_of_type_arguments_constructor:
   status: hasFix
-WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR:
+wrong_number_of_type_arguments_dot_shorthand_constructor:
   status: needsEvaluation
-WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM:
+wrong_number_of_type_arguments_enum:
   status: noFix
   since: 2.17
   notes: |-
     We can't know which type arguments to add or remove. (We do have a fix to
     remove all type arguments that would work here, it just isn't a very good
     fix to suggest.)
-WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION:
+wrong_number_of_type_arguments_extension:
   status: hasFix
-WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION:
+wrong_number_of_type_arguments_function:
   status: needsFix
   since: ~2.15
-WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD:
+wrong_number_of_type_arguments_method:
   status: hasFix
-WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE:
+wrong_type_parameter_variance_in_superinterface:
   status: noFix
-WRONG_TYPE_PARAMETER_VARIANCE_POSITION:
+wrong_type_parameter_variance_position:
   status: noFix
-YIELD_EACH_IN_NON_GENERATOR:
+yield_each_in_non_generator:
   status: needsFix
   notes: |-
     Fixes could include: (1) change `yield` to `return` (maybe only if it
     matches the return type) and (2) change function signature from implicit
     sync to `sync*` or `async` to `async*`.
-YIELD_IN_NON_GENERATOR:
+yield_in_non_generator:
   status: needsFix
   notes: |-
     Fixes could include: (1) change `yield` to `return` (maybe only if it
     matches the return type)  and (2) change function signature from implicit
     sync to `sync*` or `async` to `async*`.
-YIELD_EACH_OF_INVALID_TYPE:
+yield_each_of_invalid_type:
   status: noFix
-YIELD_OF_INVALID_TYPE:
+yield_of_invalid_type:
   status: hasFix
-ABI_SPECIFIC_INTEGER_INVALID:
+abi_specific_integer_invalid:
   status: noFix
   since: ~2.16
-ABI_SPECIFIC_INTEGER_MAPPING_EXTRA:
+abi_specific_integer_mapping_extra:
   status: needsFix
   since: ~2.16
-ABI_SPECIFIC_INTEGER_MAPPING_MISSING:
+abi_specific_integer_mapping_missing:
   status: noFix
   since: ~2.16
-ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED:
+abi_specific_integer_mapping_unsupported:
   status: noFix
   since: ~2.16
-ADDRESS_POSITION:
+address_position:
   status: needsEvaluation
   since: ~3.5
-ADDRESS_RECEIVER:
+address_receiver:
   status: needsEvaluation
   since: ~3.5
-ANNOTATION_ON_POINTER_FIELD:
+annotation_on_pointer_field:
   status: needsFix
-ARGUMENT_MUST_BE_A_CONSTANT:
+argument_must_be_a_constant:
   status: noFix
-ARGUMENT_MUST_BE_NATIVE:
+argument_must_be_native:
   status: needsEvaluation
-COMPOUND_IMPLEMENTS_FINALIZABLE:
+compound_implements_finalizable:
   status: noFix
-CREATION_OF_STRUCT_OR_UNION:
+creation_of_struct_or_union:
   status: noFix
   since: ~2.15
-EMPTY_STRUCT:
+empty_struct:
   status: noFix
-EXTRA_ANNOTATION_ON_STRUCT_FIELD:
+extra_annotation_on_struct_field:
   status: needsFix
-EXTRA_SIZE_ANNOTATION_CARRAY:
+extra_size_annotation_carray:
   status: needsFix
-FFI_NATIVE_MUST_BE_EXTERNAL:
+ffi_native_must_be_external:
   status: needsFix
   since: ~2.15
   notes: |-
     The fix is to add the `external` keyword.
-FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER:
+ffi_native_only_classes_extending_nativefieldwrapperclass1_can_be_pointer:
   status: noFix
   since: ~2.15
-FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS:
+ffi_native_unexpected_number_of_parameters:
   status: noFix
   since: ~2.15
-FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER:
+ffi_native_unexpected_number_of_parameters_with_receiver:
   status: noFix
   since: ~2.15
-FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET:
+ffi_native_invalid_duplicate_default_asset:
   status: needsEvaluation
-FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS:
+ffi_native_invalid_multiple_annotations:
   status: needsEvaluation
-FIELD_MUST_BE_EXTERNAL_IN_STRUCT:
+field_must_be_external_in_struct:
   status: needsFix
   since: ~2.15
   notes: |-
     The fix is to add the `external` keyword.
-GENERIC_STRUCT_SUBCLASS:
+generic_struct_subclass:
   status: noFix
-INVALID_EXCEPTION_VALUE:
+invalid_exception_value:
   status: noFix
-INVALID_FIELD_TYPE_IN_STRUCT:
+invalid_field_type_in_struct:
   status: noFix
-LEAF_CALL_MUST_NOT_RETURN_HANDLE:
+leaf_call_must_not_return_handle:
   status: noFix
-LEAF_CALL_MUST_NOT_TAKE_HANDLE:
+leaf_call_must_not_take_handle:
   status: noFix
-MISMATCHED_ANNOTATION_ON_STRUCT_FIELD:
+mismatched_annotation_on_struct_field:
   status: noFix
-MISSING_ANNOTATION_ON_STRUCT_FIELD:
+missing_annotation_on_struct_field:
   status: noFix
-MISSING_EXCEPTION_VALUE:
+missing_exception_value:
   status: noFix
-MISSING_FIELD_TYPE_IN_STRUCT:
+missing_field_type_in_struct:
   status: noFix
-MISSING_SIZE_ANNOTATION_CARRAY:
+missing_size_annotation_carray:
   status: noFix
-MUST_BE_A_NATIVE_FUNCTION_TYPE:
+must_be_a_native_function_type:
   status: noFix
-MUST_BE_A_SUBTYPE:
+must_be_a_subtype:
   status: noFix
-MUST_RETURN_VOID:
+must_return_void:
   status: noFix
-NATIVE_FIELD_INVALID_TYPE:
+native_field_invalid_type:
   status: needsEvaluation
-NATIVE_FIELD_MISSING_TYPE:
+native_field_missing_type:
   status: needsEvaluation
-NATIVE_FIELD_NOT_STATIC:
+native_field_not_static:
   status: needsEvaluation
-NATIVE_FUNCTION_MISSING_TYPE:
+native_function_missing_type:
   status: needsEvaluation
-NEGATIVE_VARIABLE_DIMENSION:
+negative_variable_dimension:
   status: noFix
-NON_CONSTANT_TYPE_ARGUMENT:
+non_constant_type_argument:
   status: noFix
-NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER:
+non_native_function_type_argument_to_pointer:
   status: noFix
-NON_POSITIVE_ARRAY_DIMENSION:
+non_positive_array_dimension:
   status: noFix
-NON_SIZED_TYPE_ARGUMENT:
+non_sized_type_argument:
   status: noFix
-PACKED_ANNOTATION:
+packed_annotation:
   status: needsFix
   notes: |-
     The fix is to remove the extra annotation.
-PACKED_ANNOTATION_ALIGNMENT:
+packed_annotation_alignment:
   status: noFix
-SIZE_ANNOTATION_DIMENSIONS:
+size_annotation_dimensions:
   status: noFix
-VARIABLE_LENGTH_ARRAY_NOT_LAST:
+variable_length_array_not_last:
   status: noFix
-SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS:
+subtype_of_struct_class_in_extends:
   status: hasFix
-SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS:
+subtype_of_struct_class_in_implements:
   status: hasFix
-SUBTYPE_OF_STRUCT_CLASS_IN_WITH:
+subtype_of_struct_class_in_with:
   status: hasFix
-DEPRECATED_COLON_FOR_DEFAULT_VALUE:
+deprecated_colon_for_default_value:
   status: hasFix
-DEPRECATED_MEMBER_USE:
+deprecated_member_use:
   status: hasFix
-DEPRECATED_MEMBER_USE_WITH_MESSAGE:
+deprecated_member_use_with_message:
   status: hasFix
-IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
+import_deferred_library_with_load_function:
   status: noFix
-UNNECESSARY_IMPORT:
+unnecessary_import:
   status: hasFix
 always_declare_return_types_of_functions:
   status: hasFix
@@ -2214,7 +2214,7 @@ no_literal_bool_comparisons:
   status: hasFix
 no_logic_in_create_state:
   status: noFix
-no_runtimeType_toString:
+no_runtimetype_tostring:
   status: noFix
 no_self_assignments:
   status: needsEvaluation
@@ -2309,7 +2309,7 @@ prefer_final_locals:
   status: hasFix
 prefer_final_parameters:
   status: hasFix
-prefer_for_elements_to_map_fromIterable:
+prefer_for_elements_to_map_fromiterable:
   status: hasFix
 prefer_foreach:
   status: hasFix
@@ -2343,7 +2343,7 @@ prefer_is_not_empty:
   status: hasFix
 prefer_is_not_operator:
   status: hasFix
-prefer_iterable_whereType:
+prefer_iterable_wheretype:
   status: hasFix
 prefer_mixin:
   status: needsFix
@@ -2580,1048 +2580,1048 @@ valid_regexps:
   status: noFix
 void_checks:
   status: noFix
-CAMERA_PERMISSIONS_INCOMPATIBLE:
+camera_permissions_incompatible:
   status: noFix
-NO_TOUCHSCREEN_FEATURE:
+no_touchscreen_feature:
   status: noFix
-NON_RESIZABLE_ACTIVITY:
+non_resizable_activity:
   status: noFix
-PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE:
+permission_implies_unsupported_hardware:
   status: noFix
-SETTING_ORIENTATION_ON_ACTIVITY:
+setting_orientation_on_activity:
   status: noFix
-UNSUPPORTED_CHROME_OS_FEATURE:
+unsupported_chrome_os_feature:
   status: noFix
-UNSUPPORTED_CHROME_OS_HARDWARE:
+unsupported_chrome_os_hardware:
   status: noFix
-ABSTRACT_CLASS_MEMBER:
+abstract_class_member:
   status: hasFix
-ABSTRACT_EXTERNAL_FIELD:
+abstract_external_field:
   status: needsFix
   notes: |-
     Remove either the `abstract` or the `external` keyword.
-ABSTRACT_FINAL_BASE_CLASS:
+abstract_final_base_class:
   status: needsFix
   notes: |-
     Remove either the `final` or `base` keyword.
-ABSTRACT_FINAL_INTERFACE_CLASS:
+abstract_final_interface_class:
   status: needsFix
   notes: |-
     Remove either the `final` or `interface` keyword.
-ABSTRACT_LATE_FIELD:
+abstract_late_field:
   status: needsFix
   notes: |-
     Remove either the `abstract` or the `late` keyword.
-ABSTRACT_SEALED_CLASS:
+abstract_sealed_class:
   status: needsFix
   notes: |-
     Remove either the `abstract` or the `sealed` keyword.
-ABSTRACT_STATIC_FIELD:
+abstract_static_field:
   status: hasFix
-ABSTRACT_STATIC_METHOD:
+abstract_static_method:
   status: hasFix
-ANNOTATION_ON_TYPE_ARGUMENT:
+annotation_on_type_argument:
   status: needsFix
   notes: |-
     Remove the annotation.
-ANNOTATION_SPACE_BEFORE_PARENTHESIS:
+annotation_space_before_parenthesis:
   status: needsFix
   notes: |-
     Remove the extra spaces
-ANNOTATION_WITH_TYPE_ARGUMENTS:
+annotation_with_type_arguments:
   status: needsFix
   notes: |-
     Remove the type arguments.
-ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED:
+annotation_with_type_arguments_uninstantiated:
   status: needsFix
   notes: |-
     Add the parens.
-ASYNC_KEYWORD_USED_AS_IDENTIFIER:
+async_keyword_used_as_identifier:
   status: noFix
-BASE_ENUM:
+base_enum:
   status: needsEvaluation
-BINARY_OPERATOR_WRITTEN_OUT:
+binary_operator_written_out:
   status: needsFix
   notes: |-
     Replace with the real operand.
-BREAK_OUTSIDE_OF_LOOP:
+break_outside_of_loop:
   status: noFix
-CATCH_SYNTAX:
+catch_syntax:
   status: needsFix
   notes: |-
     Add `(exception)`. (The longer form is suggested as a learning aid.)
-CATCH_SYNTAX_EXTRA_PARAMETERS:
+catch_syntax_extra_parameters:
   status: noFix
-CLASS_IN_CLASS:
+class_in_class:
   status: needsFix
   notes: |-
     Move the inner class to the top-level.
-COLON_IN_PLACE_OF_IN:
+colon_in_place_of_in:
   status: hasFix
-CONFLICTING_MODIFIERS:
+conflicting_modifiers:
   status: needsFix
   notes: |-
     Remove either the left or right modifier.
-CONST_AND_FINAL:
+const_and_final:
   status: needsFix
   notes: |-
     Remove either `const` or `final`.
-CONST_CLASS:
+const_class:
   status: hasFix
-CONST_CONSTRUCTOR_WITH_BODY:
+const_constructor_with_body:
   status: noFix
-CONST_FACTORY:
+const_factory:
   status: hasFix
-CONST_METHOD:
+const_method:
   status: hasFix
-CONST_WITHOUT_PRIMARY_CONSTRUCTOR:
+const_without_primary_constructor:
   status: needsFix
   notes: |-
     Remove the keyword.
     Add a primary constructor.
-CONSTRUCTOR_WITH_RETURN_TYPE:
+constructor_with_return_type:
   status: needsFix
   notes: |-
     Remove the return type
-CONSTRUCTOR_WITH_TYPE_ARGUMENTS:
+constructor_with_type_arguments:
   status: needsFix
   notes: |-
     Move the type arguments to after the class name.
   since: ~2.15
-CONTINUE_OUTSIDE_OF_LOOP:
+continue_outside_of_loop:
   status: noFix
-CONTINUE_WITHOUT_LABEL_IN_CASE:
+continue_without_label_in_case:
   status: needsFix
   notes: |-
     Suggest each of the labels that are valid.
-COVARIANT_AND_STATIC:
+covariant_and_static:
   status: needsFix
   notes: |-
     Remove either `covariant` or `static`.
-COVARIANT_CONSTRUCTOR:
+covariant_constructor:
   status: noFix
   notes: |-
     This error code is currently unreported and constructors
     are treated the same as members (see `COVARIANT_MEMBER`).
-COVARIANT_MEMBER:
+covariant_member:
   status: hasFix
-DEFAULT_IN_SWITCH_EXPRESSION:
+default_in_switch_expression:
   status: hasFix
-DEFAULT_VALUE_IN_FUNCTION_TYPE:
+default_value_in_function_type:
   status: needsFix
   notes: |-
     Remove the default value.
-DEFERRED_AFTER_PREFIX:
+deferred_after_prefix:
   status: needsFix
   notes: |-
     Move the `deferred` keyword before the prefix.
-DIRECTIVE_AFTER_DECLARATION:
+directive_after_declaration:
   status: needsFix
   notes: |-
     Move the directive to the directive section.
-DUPLICATE_DEFERRED:
+duplicate_deferred:
   status: needsFix
   notes: |-
     Remove the second `deferred`.
-DUPLICATE_LABEL_IN_SWITCH_STATEMENT:
+duplicate_label_in_switch_statement:
   status: noFix
-DUPLICATE_PREFIX:
+duplicate_prefix:
   status: needsFix
   notes: |-
     Remove the duplicate.
-DUPLICATED_MODIFIER:
+duplicated_modifier:
   status: hasFix
-EMPTY_ENUM_BODY:
+empty_enum_body:
   status: noFix
   notes: |-
     We can't guess at the names or number of the enum constants that should be
     added.
-EMPTY_RECORD_LITERAL_WITH_COMMA:
+empty_record_literal_with_comma:
   status: hasFix
-EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST:
+empty_record_type_named_fields_list:
   status: noFix
   notes: |-
     It's likely that the user just hasn't provided a named field yet, and
     offering to remove the braces would be counter-productive.
-EMPTY_RECORD_TYPE_WITH_COMMA:
+empty_record_type_with_comma:
   status: hasFix
-ENUM_IN_CLASS:
+enum_in_class:
   status: needsFix
   notes: |-
     Move the nested enum to the top level.
-EQUALITY_CANNOT_BE_EQUALITY_OPERAND:
+equality_cannot_be_equality_operand:
   status: noFix
-EXPECTED_CASE_OR_DEFAULT:
+expected_case_or_default:
   status: noFix
-EXPECTED_CATCH_CLAUSE_BODY:
+expected_catch_clause_body:
   status: hasFix
-EXPECTED_CLASS_BODY:
+expected_class_body:
   status: hasFix
-EXPECTED_CLASS_MEMBER:
+expected_class_member:
   status: noFix
-EXPECTED_ELSE_OR_COMMA:
+expected_else_or_comma:
   status: noFix
-EXPECTED_EXECUTABLE:
+expected_executable:
   status: noFix
-EXPECTED_EXTENSION_BODY:
+expected_extension_body:
   status: hasFix
-EXPECTED_EXTENSION_TYPE_BODY:
+expected_extension_type_body:
   status: hasFix
-EXPECTED_FINALLY_CLAUSE_BODY:
+expected_finally_clause_body:
   status: hasFix
-EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD:
+expected_identifier_but_got_keyword:
   status: noFix
-EXPECTED_INSTEAD:
+expected_instead:
   status: noFix
-EXPECTED_LIST_OR_MAP_LITERAL:
+expected_list_or_map_literal:
   status: needsFix
   notes: |-
     Add the braces or brackets for the literal.
-EXPECTED_MIXIN_BODY:
+expected_mixin_body:
   status: hasFix
-EXPECTED_NAMED_TYPE_EXTENDS:
+expected_named_type_extends:
   status: noFix
-EXPECTED_NAMED_TYPE_IMPLEMENTS:
+expected_named_type_implements:
   status: noFix
-EXPECTED_NAMED_TYPE_ON:
+expected_named_type_on:
   status: noFix
-EXPECTED_NAMED_TYPE_WITH:
+expected_named_type_with:
   status: noFix
-EXPECTED_REPRESENTATION_FIELD:
+expected_representation_field:
   status: noFix
-EXPECTED_REPRESENTATION_TYPE:
+expected_representation_type:
   status: noFix
-EXPECTED_STRING_LITERAL:
+expected_string_literal:
   status: noFix
-EXPECTED_SWITCH_EXPRESSION_BODY:
+expected_switch_expression_body:
   status: hasFix
-EXPECTED_SWITCH_STATEMENT_BODY:
+expected_switch_statement_body:
   status: hasFix
-EXPECTED_TOKEN:
+expected_token:
   status: hasFix
-EXPECTED_TRY_STATEMENT_BODY:
+expected_try_statement_body:
   status: hasFix
-EXPECTED_TYPE_NAME:
+expected_type_name:
   status: noFix
-EXPERIMENT_NOT_ENABLED:
+experiment_not_enabled:
   status: needsFix
   notes: |-
     Update the sdk constraints.
-EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT:
+experiment_not_enabled_off_by_default:
   status: needsFix
   notes: |-
     Add the experiment to the analysis options file.
-EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
+export_directive_after_part_directive:
   status: needsFix
   notes: |-
     Move the directive to a valid place.
-EXTENSION_AUGMENTATION_HAS_ON_CLAUSE:
+extension_augmentation_has_on_clause:
   status: hasFix
-EXTENSION_DECLARES_ABSTRACT_MEMBER:
+extension_declares_abstract_member:
   status: needsFix
   notes: |-
     Provide an empty body for the member.
-EXTENSION_DECLARES_CONSTRUCTOR:
+extension_declares_constructor:
   status: hasFix
-EXTENSION_TYPE_EXTENDS:
+extension_type_extends:
   status: needsEvaluation
-EXTENSION_TYPE_WITH:
+extension_type_with:
   status: needsEvaluation
-EXTERNAL_CLASS:
+external_class:
   status: hasFix
-EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS:
+external_constructor_with_field_initializers:
   status: needsFix
   notes: |-
     Remove the `external` keyword or remove the initializers.
-EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER:
+external_constructor_with_initializer:
   status: needsFix
   notes: |-
     Remove the `external` keyword or remove the initializers.
-EXTERNAL_ENUM:
+external_enum:
   status: hasFix
-EXTERNAL_FACTORY_REDIRECTION:
+external_factory_redirection:
   status: needsFix
   notes: |-
     Remove the `external` keyword.
-EXTERNAL_FACTORY_WITH_BODY:
+external_factory_with_body:
   status: needsFix
   notes: |-
     Remove the `external` keyword, or remove the body of the factory.
-EXTERNAL_GETTER_WITH_BODY:
+external_getter_with_body:
   status: needsFix
   notes: |-
     Remove the `external` keyword, or remove the body.
-EXTERNAL_LATE_FIELD:
+external_late_field:
   status: needsFix
   notes: |-
     Remove the `external` keyword.
-EXTERNAL_METHOD_WITH_BODY:
+external_method_with_body:
   status: needsFix
   notes: |-
     Remove the `external` keyword, or remove the body.
-EXTERNAL_OPERATOR_WITH_BODY:
+external_operator_with_body:
   status: needsFix
   notes: |-
     Remove the `external` keyword, or remove the body.
-EXTERNAL_SETTER_WITH_BODY:
+external_setter_with_body:
   status: needsFix
   notes: |-
     Remove the `external` keyword, or remove the body.
-EXTERNAL_TYPEDEF:
+external_typedef:
   status: hasFix
-EXTRANEOUS_MODIFIER:
+extraneous_modifier:
   status: hasFix
-EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE:
+extraneous_modifier_in_extension_type:
   status: needsEvaluation
-EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR:
+extraneous_modifier_in_primary_constructor:
   status: needsEvaluation
-FACTORY_TOP_LEVEL_DECLARATION:
+factory_top_level_declaration:
   status: hasFix
-FACTORY_WITH_INITIALIZERS:
+factory_with_initializers:
   status: needsFix
   notes: |-
     Remove the `factory` keyword or remove the initializers.
-FACTORY_WITHOUT_BODY:
+factory_without_body:
   status: noFix
-FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS:
+field_initialized_outside_declaring_class:
   status: noFix
-FINAL_AND_COVARIANT:
+final_and_covariant:
   status: needsFix
   notes: |-
     Remove either `final` or `covariant`.
-FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER:
+final_and_covariant_late_with_initializer:
   status: needsFix
   notes: |-
     Remove either `final` or `covariant`, or remove the initializer.
-FINAL_AND_VAR:
+final_and_var:
   status: needsFix
   notes: |-
     Remove either `final` or `var`.
-FINAL_CONSTRUCTOR:
+final_constructor:
   status: hasFix
-FINAL_ENUM:
+final_enum:
   status: hasFix
-FINAL_METHOD:
+final_method:
   status: hasFix
-FINAL_MIXIN:
+final_mixin:
   status: hasFix
-FINAL_MIXIN_CLASS:
+final_mixin_class:
   status: hasFix
-FUNCTION_TYPED_PARAMETER_VAR:
+function_typed_parameter_var:
   status: noFix
-GETTER_CONSTRUCTOR:
+getter_constructor:
   status: hasFix
-GETTER_IN_FUNCTION:
+getter_in_function:
   status: needsFix
   notes: |-
     Move the getter outside the function, or convert the getter to a function.
-GETTER_WITH_PARAMETERS:
+getter_with_parameters:
   status: hasFix
-ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE:
+illegal_assignment_to_non_assignable:
   status: noFix
-ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME:
+illegal_pattern_assignment_variable_name:
   status: needsEvaluation
-ILLEGAL_PATTERN_IDENTIFIER_NAME:
+illegal_pattern_identifier_name:
   status: needsEvaluation
-ILLEGAL_PATTERN_VARIABLE_NAME:
+illegal_pattern_variable_name:
   status: needsEvaluation
-IMPLEMENTS_BEFORE_EXTENDS:
+implements_before_extends:
   status: needsFix
   notes: |-
     Move the extends clause first.
-IMPLEMENTS_BEFORE_ON:
+implements_before_on:
   status: needsFix
   notes: |-
     Move the implements after the on.
-IMPLEMENTS_BEFORE_WITH:
+implements_before_with:
   status: needsFix
   notes: |-
     Move the implements after the with.
-IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
+import_directive_after_part_directive:
   status: needsFix
   notes: |-
     Move the directive to a valid location.
-INITIALIZED_VARIABLE_IN_FOR_EACH:
+initialized_variable_in_for_each:
   status: needsFix
   notes: |-
     Remove the initializer.
-INTERFACE_ENUM:
+interface_enum:
   status: needsEvaluation
-INTERFACE_MIXIN:
+interface_mixin:
   status: hasFix
-INTERFACE_MIXIN_CLASS:
+interface_mixin_class:
   status: hasFix
-INVALID_AWAIT_IN_FOR:
+invalid_await_in_for:
   status: noFix
   notes: |-
     We could potentially remove the await, but we can't convert the loop and it
     seems wrong to hide the second option.
-INVALID_CODE_POINT:
+invalid_code_point:
   status: noFix
-INVALID_COMMENT_REFERENCE:
+invalid_comment_reference:
   status: noFix
-INVALID_CONSTANT_CONST_PREFIX:
+invalid_constant_const_prefix:
   status: needsFix
   notes: |-
     Add parents around the expression following `const`.
-INVALID_CONSTANT_PATTERN_BINARY:
+invalid_constant_pattern_binary:
   status: hasFix
-INVALID_CONSTANT_PATTERN_DUPLICATE_CONST:
+invalid_constant_pattern_duplicate_const:
   status: needsFix
   notes: |-
     Remove all but the first `const`.
-INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL:
+invalid_constant_pattern_empty_record_literal:
   status: noFix
-INVALID_CONSTANT_PATTERN_GENERIC:
+invalid_constant_pattern_generic:
   status: hasFix
-INVALID_CONSTANT_PATTERN_NEGATION:
+invalid_constant_pattern_negation:
   status: hasFix
-INVALID_CONSTANT_PATTERN_UNARY:
+invalid_constant_pattern_unary:
   status: needsFix
   notes: |-
     Use `AddConst.new`.
-INVALID_CONSTRUCTOR_NAME:
+invalid_constructor_name:
   status: noFix
-INVALID_GENERIC_FUNCTION_TYPE:
+invalid_generic_function_type:
   status: noFix
-INVALID_HEX_ESCAPE:
+invalid_hex_escape:
   status: noFix
-INVALID_INITIALIZER:
+invalid_initializer:
   status: noFix
-INVALID_INSIDE_UNARY_PATTERN:
+invalid_inside_unary_pattern:
   status: hasFix
-INVALID_LITERAL_IN_CONFIGURATION:
+invalid_literal_in_configuration:
   status: noFix
-INVALID_OPERATOR:
+invalid_operator:
   status: noFix
-INVALID_OPERATOR_FOR_SUPER:
+invalid_operator_for_super:
   status: noFix
-INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER:
+invalid_operator_questionmark_period_for_super:
   status: needsFix
   notes: |-
     Replace `?.` with `.`.
-INVALID_STAR_AFTER_ASYNC:
+invalid_star_after_async:
   status: needsFix
   notes: |-
     Convert to a block body (already an assist, maybe no work needed).
-INVALID_SUPER_IN_INITIALIZER:
+invalid_super_in_initializer:
   status: noFix
-INVALID_SYNC:
+invalid_sync:
   status: needsFix
   notes: |-
     Convert to a block body (already an assist, maybe no work needed).
-INVALID_THIS_IN_INITIALIZER:
+invalid_this_in_initializer:
   status: noFix
-INVALID_UNICODE_ESCAPE_STARTED:
+invalid_unicode_escape_started:
   status: noFix
-INVALID_UNICODE_ESCAPE_U_BRACKET:
+invalid_unicode_escape_u_bracket:
   status: noFix
-INVALID_UNICODE_ESCAPE_U_NO_BRACKET:
+invalid_unicode_escape_u_no_bracket:
   status: noFix
-INVALID_UNICODE_ESCAPE_U_STARTED:
+invalid_unicode_escape_u_started:
   status: noFix
-INVALID_USE_OF_COVARIANT_IN_EXTENSION:
+invalid_use_of_covariant_in_extension:
   status: hasFix
-INVALID_USE_OF_IDENTIFIER_AUGMENTED:
+invalid_use_of_identifier_augmented:
   status: noFix
-LATE_PATTERN_VARIABLE_DECLARATION:
+late_pattern_variable_declaration:
   status: hasFix
-LIBRARY_DIRECTIVE_NOT_FIRST:
+library_directive_not_first:
   status: needsFix
   notes: |-
     Move the directive.
-LITERAL_WITH_CLASS_AND_NEW:
+literal_with_class_and_new:
   status: needsFix
   notes: |-
     Remove `new List.`.
-LITERAL_WITH_CLASS:
+literal_with_class:
   status: needsFix
   notes: |-
     Remove the `List.`.
-LITERAL_WITH_NEW:
+literal_with_new:
   status: hasFix
-LOCAL_FUNCTION_DECLARATION_MODIFIER:
+local_function_declaration_modifier:
   status: noFix
-MEMBER_WITH_CLASS_NAME:
+member_with_class_name:
   status: noFix
-MISSING_ASSIGNABLE_SELECTOR:
+missing_assignable_selector:
   status: noFix
-MISSING_ASSIGNMENT_IN_INITIALIZER:
+missing_assignment_in_initializer:
   status: needsFix
   notes: |-
     Add the `=`.
-MISSING_CATCH_OR_FINALLY:
+missing_catch_or_finally:
   status: noFix
-MISSING_CLOSING_PARENTHESIS:
+missing_closing_parenthesis:
   status: noFix
   notes: |-
     The targeted location isn't likely to be the right place for the paren.
-MISSING_CONST_FINAL_VAR_OR_TYPE:
+missing_const_final_var_or_type:
   status: hasFix
-MISSING_ENUM_BODY:
+missing_enum_body:
   status: hasFix
-MISSING_EXPRESSION_IN_INITIALIZER:
+missing_expression_in_initializer:
   status: noFix
-MISSING_EXPRESSION_IN_THROW:
+missing_expression_in_throw:
   status: noFix
-MISSING_FUNCTION_BODY:
+missing_function_body:
   status: hasFix
-MISSING_FUNCTION_KEYWORD:
+missing_function_keyword:
   status: noFix
-MISSING_FUNCTION_PARAMETERS:
+missing_function_parameters:
   status: noFix
-MISSING_GET:
+missing_get:
   status: needsFix
   notes: |-
     Add the `get`.
-MISSING_IDENTIFIER:
+missing_identifier:
   status: noFix
-MISSING_INITIALIZER:
+missing_initializer:
   status: noFix
-MISSING_KEYWORD_OPERATOR:
+missing_keyword_operator:
   status: needsFix
   notes: |-
     Add `operator`.
-MISSING_METHOD_PARAMETERS:
+missing_method_parameters:
   status: needsFix
   notes: |-
     Add an empty parameter list.
-MISSING_NAME_FOR_NAMED_PARAMETER:
+missing_name_for_named_parameter:
   status: noFix
-MISSING_NAME_IN_LIBRARY_DIRECTIVE:
+missing_name_in_library_directive:
   status: noFix
-MISSING_NAME_IN_PART_OF_DIRECTIVE:
+missing_name_in_part_of_directive:
   status: noFix
-MISSING_PREFIX_IN_DEFERRED_IMPORT:
+missing_prefix_in_deferred_import:
   status: noFix
-MISSING_PRIMARY_CONSTRUCTOR:
+missing_primary_constructor:
   status: needsEvaluation
-MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS:
+missing_primary_constructor_parameters:
   status: needsEvaluation
-MISSING_STAR_AFTER_SYNC:
+missing_star_after_sync:
   status: needsFix
   notes: |-
     Remove the `sync` keyword. Add a `*`.
-MISSING_STATEMENT:
+missing_statement:
   status: noFix
-MISSING_TERMINATOR_FOR_PARAMETER_GROUP:
+missing_terminator_for_parameter_group:
   status: needsFix
   notes: |-
     Add the missing terminator.
-MISSING_TYPEDEF_PARAMETERS:
+missing_typedef_parameters:
   status: hasFix
-MISSING_VARIABLE_IN_FOR_EACH:
+missing_variable_in_for_each:
   status: noFix
-MIXED_PARAMETER_GROUPS:
+mixed_parameter_groups:
   status: noFix
-MIXIN_DECLARES_CONSTRUCTOR:
+mixin_declares_constructor:
   status: hasFix
-MIXIN_WITH_CLAUSE:
+mixin_with_clause:
   status: needsEvaluation
-MODIFIER_OUT_OF_ORDER:
+modifier_out_of_order:
   status: noFix
   notes: |-
     There isn't enough information to reorder them correctly. Consider making
     this diagnostic less general so that we'll have information for a fix.
-MULTIPLE_CLAUSES:
+multiple_clauses:
   status: noFix
   notes: |-
     There isn't enough information to know how to fix it. Consider making this
     diagnostic less general so that we'll have information for a fix.
-MULTIPLE_EXTENDS_CLAUSES:
+multiple_extends_clauses:
   status: noFix
-MULTIPLE_IMPLEMENTS_CLAUSES:
+multiple_implements_clauses:
   status: needsFix
   notes: |-
     Merge the two clauses.
-MULTIPLE_LIBRARY_DIRECTIVES:
+multiple_library_directives:
   status: noFix
-MULTIPLE_NAMED_PARAMETER_GROUPS:
+multiple_named_parameter_groups:
   status: needsFix
   notes: |-
     Merge the groups.
-MULTIPLE_ON_CLAUSES:
+multiple_on_clauses:
   status: needsFix
   notes: |-
     Merge the clauses.
-MULTIPLE_PART_OF_DIRECTIVES:
+multiple_part_of_directives:
   status: noFix
-MULTIPLE_POSITIONAL_PARAMETER_GROUPS:
+multiple_positional_parameter_groups:
   status: needsFix
   notes: |-
     Merge the groups.
-MULTIPLE_REPRESENTATION_FIELDS:
+multiple_representation_fields:
   status: needsFix
   notes: |-
     Remove extra fields.
     Maybe wrap into a record.
-MULTIPLE_VARIABLES_IN_FOR_EACH:
+multiple_variables_in_for_each:
   status: noFix
-MULTIPLE_VARIANCE_MODIFIERS:
+multiple_variance_modifiers:
   status: noFix
-MULTIPLE_WITH_CLAUSES:
+multiple_with_clauses:
   status: needsFix
   notes: |-
     Merge the two clauses.
-NAMED_FUNCTION_EXPRESSION:
+named_function_expression:
   status: needsFix
   notes: |-
     Remove the name.
-NAMED_FUNCTION_TYPE:
+named_function_type:
   status: needsFix
   notes: |-
     Replace the name with `Function`.
-NAMED_PARAMETER_OUTSIDE_GROUP:
+named_parameter_outside_group:
   status: needsFix
   notes: |-
     Move it inside a group, creating the group if it doesn't already exist.
-NATIVE_CLAUSE_IN_NON_SDK_CODE:
+native_clause_in_non_sdk_code:
   status: needsFix
   notes: |-
     Remove the native clause.
-NATIVE_CLAUSE_SHOULD_BE_ANNOTATION:
+native_clause_should_be_annotation:
   status: noFix
-NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE:
+native_function_body_in_non_sdk_code:
   status: needsFix
   notes: |-
     Remove the `native` keyword.
-NON_CONSTRUCTOR_FACTORY:
+non_constructor_factory:
   status: needsFix
   notes: |-
     Remove the keyword `factory`.
-NON_IDENTIFIER_LIBRARY_NAME:
+non_identifier_library_name:
   status: noFix
-NON_PART_OF_DIRECTIVE_IN_PART:
+non_part_of_directive_in_part:
   status: needsFix
   notes: |-
     Remove the directive. Move the directive to the library.
-NON_STRING_LITERAL_AS_URI:
+non_string_literal_as_uri:
   status: noFix
-NON_USER_DEFINABLE_OPERATOR:
+non_user_definable_operator:
   status: noFix
-NORMAL_BEFORE_OPTIONAL_PARAMETERS:
+normal_before_optional_parameters:
   status: needsFix
   notes: |-
     Move the normal parameters before the optional.
-NULL_AWARE_CASCADE_OUT_OF_ORDER:
+null_aware_cascade_out_of_order:
   status: needsFix
   notes: |-
     Move the `?..` to the first operator in the chain.
-OUT_OF_ORDER_CLAUSES:
+out_of_order_clauses:
   status: noFix
   notes: |-
     There isn't enough information for a fix. Consider splitting this diagnostic
     so that each variant has enough information.
-PATTERN_ASSIGNMENT_DECLARES_VARIABLE:
+pattern_assignment_declares_variable:
   status: hasFix
-PART_OF_NAME:
+part_of_name:
   status: needsFix
   notes: |-
     Convert to URI.
-PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD:
+pattern_variable_declaration_outside_function_or_method:
   status: noFix
-POSITIONAL_AFTER_NAMED_ARGUMENT:
+positional_after_named_argument:
   status: noFix
   notes: |-
     This probably isn't produced anymore.
-POSITIONAL_PARAMETER_OUTSIDE_GROUP:
+positional_parameter_outside_group:
   status: needsFix
   notes: |-
     Add the square brackets.
-PREFIX_AFTER_COMBINATOR:
+prefix_after_combinator:
   status: needsFix
   notes: |-
     Move the prefix before the combinators.
-PRIVATE_OPTIONAL_PARAMETER:
+private_optional_parameter:
   status: needsFix
   notes: |-
     Remove the underscore
-PRIVATE_NAMED_NON_FIELD_PARAMETER:
+private_named_non_field_parameter:
   status: needsEvaluation
-RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
+record_literal_one_positional_no_trailing_comma:
   status: hasFix
-RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA:
+record_type_one_positional_no_trailing_comma:
   status: hasFix
-REDIRECTING_CONSTRUCTOR_WITH_BODY:
+redirecting_constructor_with_body:
   status: needsFix
   notes: |-
     Remove the body. Remove the redirection.
-REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR:
+redirection_in_non_factory_constructor:
   status: needsFix
   notes: |-
     Remove the redirection.
-REPRESENTATION_FIELD_MODIFIER:
+representation_field_modifier:
   status: needsFix
   notes: Remove it.
-REPRESENTATION_FIELD_TRAILING_COMMA:
+representation_field_trailing_comma:
   status: hasFix
-SEALED_ENUM:
+sealed_enum:
   status: needsEvaluation
-SEALED_MIXIN:
+sealed_mixin:
   status: hasFix
-SEALED_MIXIN_CLASS:
+sealed_mixin_class:
   status: hasFix
-SETTER_CONSTRUCTOR:
+setter_constructor:
   status: hasFix
-SETTER_IN_FUNCTION:
+setter_in_function:
   status: needsFix
   notes: |-
     Move the setter outside the function. Convert the setter to a function.
-STACK_OVERFLOW:
+stack_overflow:
   status: noFix
-STATIC_CONSTRUCTOR:
+static_constructor:
   status: hasFix
-STATIC_GETTER_WITHOUT_BODY:
+static_getter_without_body:
   status: hasFix
-STATIC_OPERATOR:
+static_operator:
   status: hasFix
-STATIC_SETTER_WITHOUT_BODY:
+static_setter_without_body:
   status: hasFix
-SWITCH_HAS_CASE_AFTER_DEFAULT_CASE:
+switch_has_case_after_default_case:
   status: needsFix
   notes: |-
     Move the default case to the end.
-SWITCH_HAS_MULTIPLE_DEFAULT_CASES:
+switch_has_multiple_default_cases:
   status: needsFix
   notes: |-
     Merge the bodies.
-TOP_LEVEL_OPERATOR:
+top_level_operator:
   status: noFix
-TYPE_ARGUMENTS_ON_TYPE_VARIABLE:
+type_arguments_on_type_variable:
   status: needsFix
   notes: |-
     Remove the type arguments
-TYPE_BEFORE_FACTORY:
+type_before_factory:
   status: needsFix
   notes: |-
     Move the `factory` before the type.
-TYPE_PARAMETER_ON_CONSTRUCTOR:
+type_parameter_on_constructor:
   status: needsFix
   notes: |-
     Remove the type parameters.
-TYPE_PARAMETER_ON_OPERATOR:
+type_parameter_on_operator:
   status: needsFix
   notes: |-
     Remove the type parameters.
-TYPEDEF_IN_CLASS:
+typedef_in_class:
   status: needsFix
   notes: |-
     Move the typedef to the top level.
-UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP:
+unexpected_terminator_for_parameter_group:
   status: needsFix
   notes: |-
     Remove the terminator.
-UNEXPECTED_TOKEN:
+unexpected_token:
   status: noFix
-UNEXPECTED_TOKENS:
+unexpected_tokens:
   status: noFix
-VAR_AND_TYPE:
+var_and_type:
   status: hasFix
-VAR_AS_TYPE_NAME:
+var_as_type_name:
   status: hasFix
-VAR_CLASS:
+var_class:
   status: needsFix
   notes: |-
     Remove `var`.
-VAR_ENUM:
+var_enum:
   status: needsFix
   notes: |-
     Remove `var`.
-VAR_RETURN_TYPE:
+var_return_type:
   status: hasFix
-VAR_TYPEDEF:
+var_typedef:
   status: needsFix
   notes: |-
     Remove `var`.
-VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT:
+variable_pattern_keyword_in_declaration_context:
   status: hasFix
-VOID_WITH_TYPE_ARGUMENTS:
+void_with_type_arguments:
   status: needsFix
   notes: |-
     Remove the type arguments.
-WITH_BEFORE_EXTENDS:
+with_before_extends:
   status: needsFix
   notes: |-
     Move the extends clause.
-WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER:
+wrong_number_of_parameters_for_setter:
   status: needsFix
-WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER:
+wrong_separator_for_positional_parameter:
   status: hasFix
-WRONG_TERMINATOR_FOR_PARAMETER_GROUP:
+wrong_terminator_for_parameter_group:
   status: needsFix
   notes: |-
     Replace the terminator with the correct terminator.
-ASSET_DOES_NOT_EXIST:
+asset_does_not_exist:
   status: noFix
   since: ~2.15
-ASSET_DIRECTORY_DOES_NOT_EXIST:
+asset_directory_does_not_exist:
   status: noFix
   since: ~2.15
   notes: |-
     Theoretically we could offer to create the directory, but I suspect that
     this occurs more frequently as a result of mistyping the directory path.
-ASSET_FIELD_NOT_LIST:
+asset_field_not_list:
   status: noFix
   since: ~2.15
-ASSET_MISSING_PATH:
+asset_missing_path:
   status: needsFix
   notes: We could add a path field with a blank value.
-ASSET_NOT_STRING:
+asset_not_string:
   status: noFix
   since: ~2.15
-ASSET_NOT_STRING_OR_MAP:
+asset_not_string_or_map:
   status: noFix
-ASSET_PATH_NOT_STRING:
+asset_path_not_string:
   status: noFix
-DEPENDENCIES_FIELD_NOT_MAP:
+dependencies_field_not_map:
   status: noFix
   since: ~2.15
-DEPRECATED_FIELD:
+deprecated_field:
   status: needsFix
   since: ~2.15
-FLUTTER_FIELD_NOT_MAP:
+flutter_field_not_map:
   status: noFix
   since: ~2.15
-INVALID_DEPENDENCY:
+invalid_dependency:
   status: noFix
-INVALID_PLATFORMS_FIELD:
+invalid_platforms_field:
   status: needsEvaluation
-MISSING_DEPENDENCY:
+missing_dependency:
   status: hasFix
-MISSING_NAME:
+missing_name:
   status: hasFix
-NAME_NOT_STRING:
+name_not_string:
   status: noFix
   since: ~2.15
-PATH_DOES_NOT_EXIST:
+path_does_not_exist:
   status: noFix
-PATH_NOT_POSIX:
+path_not_posix:
   status: needsFix
   since: ~2.15
   notes: |-
     If the path is a windows path, then we should be able to convert it.
-PATH_PUBSPEC_DOES_NOT_EXIST:
+path_pubspec_does_not_exist:
   status: noFix
-PLATFORM_VALUE_DISALLOWED:
+platform_value_disallowed:
   status: needsEvaluation
-UNKNOWN_PLATFORM:
+unknown_platform:
   status: needsEvaluation
-UNNECESSARY_DEV_DEPENDENCY:
+unnecessary_dev_dependency:
   status: needsFix
   since: ~2.15
   notes: |-
     The fix is to remove the dependency
-WORKSPACE_FIELD_NOT_LIST:
+workspace_field_not_list:
   status: needsEvaluation
-WORKSPACE_VALUE_NOT_STRING:
+workspace_value_not_string:
   status: needsEvaluation
-WORKSPACE_VALUE_NOT_SUBDIRECTORY:
+workspace_value_not_subdirectory:
   status: needsEvaluation
-ENCODING:
+encoding:
   status: needsEvaluation
-ILLEGAL_CHARACTER:
+illegal_character:
   status: noFix
-MISSING_DIGIT:
+missing_digit:
   status: noFix
-MISSING_HEX_DIGIT:
+missing_hex_digit:
   status: noFix
-MISSING_QUOTE:
+missing_quote:
   status: noFix
-UNABLE_GET_CONTENT:
+unable_get_content:
   status: noFix
-UNEXPECTED_DOLLAR_IN_STRING:
+unexpected_dollar_in_string:
   status: noFix
-UNEXPECTED_SEPARATOR_IN_NUMBER:
+unexpected_separator_in_number:
   status: hasFix
-UNSUPPORTED_OPERATOR:
+unsupported_operator:
   status: noFix
-UNTERMINATED_MULTI_LINE_COMMENT:
+unterminated_multi_line_comment:
   status: noFix
-UNTERMINATED_STRING_LITERAL:
+unterminated_string_literal:
   status: noFix
-DEAD_NULL_AWARE_EXPRESSION:
+dead_null_aware_expression:
   status: hasFix
-INVALID_NULL_AWARE_OPERATOR:
+invalid_null_aware_operator:
   status: hasFix
-INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT:
+invalid_null_aware_operator_after_short_circuit:
   status: hasFix
-INVALID_NULL_AWARE_ELEMENT:
+invalid_null_aware_element:
   status: hasFix
-INVALID_NULL_AWARE_MAP_ENTRY_KEY:
+invalid_null_aware_map_entry_key:
   status: hasFix
-INVALID_NULL_AWARE_MAP_ENTRY_VALUE:
+invalid_null_aware_map_entry_value:
   status: hasFix
-MISSING_ENUM_CONSTANT_IN_SWITCH:
+missing_enum_constant_in_switch:
   status: hasFix
-UNNECESSARY_NON_NULL_ASSERTION:
+unnecessary_non_null_assertion:
   status: hasFix
-UNNECESSARY_NULL_ASSERT_PATTERN:
+unnecessary_null_assert_pattern:
   status: hasFix
-UNNECESSARY_NULL_CHECK_PATTERN:
+unnecessary_null_check_pattern:
   status: hasFix
-ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
+argument_type_not_assignable_to_error_handler:
   status: noFix
   notes: |-
     Fix depends on user's intent, which can't be known.
-ASSIGNMENT_OF_DO_NOT_STORE:
+assignment_of_do_not_store:
   status: noFix
   notes: |-
     Fix depends on user's intent, which can't be known.
-BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR:
+body_might_complete_normally_catch_error:
   status: needsFix
-CAST_FROM_NULL_ALWAYS_FAILS:
+cast_from_null_always_fails:
   status: noFix
-CAST_FROM_NULLABLE_ALWAYS_FAILS:
+cast_from_nullable_always_fails:
   status: noFix
-CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE:
+constant_pattern_never_matches_value_type:
   status: noFix
-BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
+body_might_complete_normally_nullable:
   status: hasFix
-DEAD_CODE:
+dead_code:
   status: hasFix
-DEAD_CODE_CATCH_FOLLOWING_CATCH:
+dead_code_catch_following_catch:
   status: hasFix
-DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER:
+dead_code_late_wildcard_variable_initializer:
   status: hasFix
-DEAD_CODE_ON_CATCH_SUBTYPE:
+dead_code_on_catch_subtype:
   status: hasFix
-DEPRECATED_EXPORT_USE:
+deprecated_export_use:
   status: hasFix
   notes: |-
     A data driven fix using `replacedBy`.
-DEPRECATED_EXTEND:
+deprecated_extend:
   status: hasFix
-DEPRECATED_EXTENDS_FUNCTION:
+deprecated_extends_function:
   status: needsFix
   notes: |-
     The fix is to remove the class from the implements list.
-DEPRECATED_IMPLEMENT:
+deprecated_implement:
   status: hasFix
-DEPRECATED_IMPLEMENTS_FUNCTION:
+deprecated_implements_function:
   status: hasFix
-DEPRECATED_INSTANTIATE:
+deprecated_instantiate:
   status: noFix
   notes: |-
     The only fix would be to delete the whole instance creation expression, or
     follow the directions in the deprecation message.
-DEPRECATED_MIXIN:
+deprecated_mixin:
   status: needsFix
-DEPRECATED_MIXIN_FUNCTION:
+deprecated_mixin_function:
   status: needsFix
   notes: |-
     The fix is to remove `Function` from where it's referenced.
-DEPRECATED_NEW_IN_COMMENT_REFERENCE:
+deprecated_new_in_comment_reference:
   status: hasFix
-DEPRECATED_OPTIONAL:
+deprecated_optional:
   status: needsEvaluation
-DEPRECATED_SUBCLASS:
+deprecated_subclass:
   status: hasFix
-DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT:
+doc_directive_argument_wrong_format:
   status: noFix
-DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS:
+doc_directive_has_extra_arguments:
   status: needsFix
   notes: |-
     The fix is to remove the extra arguments.
-DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT:
+doc_directive_has_unexpected_named_argument:
   status: needsFix
   notes: |-
     The fix is to remove the unexpected named argument.
-DOC_DIRECTIVE_MISSING_CLOSING_BRACE:
+doc_directive_missing_closing_brace:
   status: needsFix
   notes: Add the closing brace at the end of the line.
-DOC_DIRECTIVE_MISSING_CLOSING_TAG:
+doc_directive_missing_closing_tag:
   status: needsFix
   notes: Add the appropriate closing tag, perhaps on the line just following.
-DOC_DIRECTIVE_MISSING_ONE_ARGUMENT:
+doc_directive_missing_one_argument:
   status: noFix
-DOC_DIRECTIVE_MISSING_OPENING_TAG:
+doc_directive_missing_opening_tag:
   status: needsFix
   notes: |-
     I can think of two: Offer to insert the appropriate starting tag (maybe
     on the preceding line), and offer to change the end-tag to the start-tag.
-DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS:
+doc_directive_missing_three_arguments:
   status: noFix
-DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS:
+doc_directive_missing_two_arguments:
   status: noFix
-DOC_DIRECTIVE_UNKNOWN:
+doc_directive_unknown:
   status: noFix
-DOC_IMPORT_CANNOT_BE_DEFERRED:
+doc_import_cannot_be_deferred:
   status: needsFix
-DOC_IMPORT_CANNOT_HAVE_COMBINATORS:
+doc_import_cannot_have_combinators:
   status: needsFix
-DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
+doc_import_cannot_have_configurations:
   status: needsFix
-DOC_IMPORT_CANNOT_HAVE_PREFIX:
+doc_import_cannot_have_prefix:
   status: needsFix
-DUPLICATE_EXPORT:
+duplicate_export:
   status: needsFix
   notes: |-
     One fix is to remove the duplicated export.
-DUPLICATE_HIDDEN_NAME:
+duplicate_hidden_name:
   status: hasFix
-DUPLICATE_IGNORE:
+duplicate_ignore:
   status: needsFix
   notes: |-
     One fix is to remove the duplicated error code.
-DUPLICATE_IMPORT:
+duplicate_import:
   status: hasFix
-DUPLICATE_SHOWN_NAME:
+duplicate_shown_name:
   status: hasFix
-EQUAL_ELEMENTS_IN_SET:
+equal_elements_in_set:
   status: noFix
   notes: |-
     Fix depends on user's intent, which can't be known.
-EQUAL_KEYS_IN_MAP:
+equal_keys_in_map:
   status: noFix
   notes: |-
     Fix depends on user's intent, which can't be known.
-EXPERIMENTAL_MEMBER_USE:
+experimental_member_use:
   status: needsEvaluation
-INFERENCE_FAILURE_ON_COLLECTION_LITERAL:
+inference_failure_on_collection_literal:
   status: noFix
-INFERENCE_FAILURE_ON_FUNCTION_INVOCATION:
+inference_failure_on_function_invocation:
   status: noFix
-INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE:
+inference_failure_on_function_return_type:
   status: noFix
-INFERENCE_FAILURE_ON_GENERIC_INVOCATION:
+inference_failure_on_generic_invocation:
   status: noFix
-INFERENCE_FAILURE_ON_INSTANCE_CREATION:
+inference_failure_on_instance_creation:
   status: noFix
-INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE:
+inference_failure_on_uninitialized_variable:
   status: noFix
-INFERENCE_FAILURE_ON_UNTYPED_PARAMETER:
+inference_failure_on_untyped_parameter:
   status: noFix
-INVALID_ANNOTATION_TARGET:
+invalid_annotation_target:
   status: hasFix
-INVALID_AWAIT_NOT_REQUIRED_ANNOTATION:
+invalid_await_not_required_annotation:
   status: needsFix
   notes: The fix is to remove the annotation.
-INVALID_DEPRECATED_EXTEND_ANNOTATION:
+invalid_deprecated_extend_annotation:
   status: needsFix
   notes: The fix is to remove the annotation.
-INVALID_DEPRECATED_IMPLEMENT_ANNOTATION:
+invalid_deprecated_implement_annotation:
   status: needsFix
   notes: The fix is to remove the annotation.
-INVALID_DEPRECATED_INSTANTIATE_ANNOTATION:
+invalid_deprecated_instantiate_annotation:
   status: needsFix
   notes: The fix is to remove the annotation.
-INVALID_DEPRECATED_MIXIN_ANNOTATION:
+invalid_deprecated_mixin_annotation:
   status: needsFix
   notes: The fix is to remove the annotation.
-INVALID_DEPRECATED_OPTIONAL_ANNOTATION:
+invalid_deprecated_optional_annotation:
   status: needsFix
   notes: The fix is to remove the annotation.
-INVALID_DEPRECATED_SUBCLASS_ANNOTATION:
+invalid_deprecated_subclass_annotation:
   status: needsFix
   notes: The fix is to remove the annotation.
-INVALID_EXPORT_OF_INTERNAL_ELEMENT:
+invalid_export_of_internal_element:
   status: needsFix
   notes: |-
     Low priority, because this is likely not encountered often.
 
     The fix is to update the export directive so that the name is no longer
     exported.
-INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY:
+invalid_export_of_internal_element_indirectly:
   status: needsFix
   notes: |-
     Low priority, because this is likely not encountered often and the only fix
@@ -3629,272 +3629,272 @@ INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY:
 
     The fix is to update the export directive so that the member using the name
     is no longer exported.
-INVALID_FACTORY_METHOD_DECL:
+invalid_factory_method_decl:
   status: noFix
-INVALID_FACTORY_METHOD_IMPL:
+invalid_factory_method_impl:
   status: noFix
-INVALID_INTERNAL_ANNOTATION:
+invalid_internal_annotation:
   status: hasFix
-INVALID_LITERAL_ANNOTATION:
+invalid_literal_annotation:
   status: hasFix
-INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN:
+invalid_language_version_override_at_sign:
   status: needsFix
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
-INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS:
+invalid_language_version_override_equals:
   status: needsFix
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
-INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER:
+invalid_language_version_override_greater:
   status: needsFix
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
-INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION:
+invalid_language_version_override_location:
   status: needsFix
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
-INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE:
+invalid_language_version_override_lower_case:
   status: needsFix
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
-INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER:
+invalid_language_version_override_number:
   status: needsFix
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
-INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX:
+invalid_language_version_override_prefix:
   status: needsFix
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
-INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS:
+invalid_language_version_override_trailing_characters:
   status: needsFix
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
-INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES:
+invalid_language_version_override_two_slashes:
   status: needsFix
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
-INVALID_NON_VIRTUAL_ANNOTATION:
+invalid_non_virtual_annotation:
   status: hasFix
-INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
+invalid_override_of_non_virtual_member:
   status: noFix
-INVALID_REOPEN_ANNOTATION:
+invalid_reopen_annotation:
   status: hasFix
-INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER:
+invalid_use_of_do_not_submit_member:
   status: needsEvaluation
-INVALID_USE_OF_INTERNAL_MEMBER:
+invalid_use_of_internal_member:
   status: noFix
-INVALID_USE_OF_PROTECTED_MEMBER:
+invalid_use_of_protected_member:
   status: noFix
-INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER:
+invalid_use_of_visible_for_overriding_member:
   status: noFix
   since: ~2.15
-INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER:
+invalid_use_of_visible_for_template_member:
   status: noFix
-INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER:
+invalid_use_of_visible_for_testing_member:
   status: noFix
-INVALID_WIDGET_PREVIEW_APPLICATION:
+invalid_widget_preview_application:
   status: needsEvaluation
-INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT:
+invalid_widget_preview_private_argument:
   status: needsEvaluation
-INVALID_VISIBILITY_ANNOTATION:
+invalid_visibility_annotation:
   status: hasFix
-INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
+invalid_visible_for_overriding_annotation:
   status: hasFix
-INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION:
+invalid_visible_outside_template_annotation:
   status: needsEvaluation
-MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
+missing_override_of_must_be_overridden_one:
   status: hasFix
-MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
+missing_override_of_must_be_overridden_two:
   status: hasFix
-MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS:
+missing_override_of_must_be_overridden_three_plus:
   status: hasFix
-MISSING_REQUIRED_PARAM:
+missing_required_param:
   status: hasFix
-MISSING_REQUIRED_PARAM_WITH_DETAILS:
+missing_required_param_with_details:
   status: hasFix
-MIXIN_ON_SEALED_CLASS:
+mixin_on_sealed_class:
   status: noFix
   notes: |-
     `sealed` annotation is likely to be replaced by the `sealed` keyword
     in the next stable release.
-MULTIPLE_COMBINATORS:
+multiple_combinators:
   status: hasFix
-MUST_BE_IMMUTABLE:
+must_be_immutable:
   status: noFix
-MUST_CALL_SUPER:
+must_call_super:
   status: hasFix
-NON_CONST_ARGUMENT_FOR_CONST_PARAMETER:
+non_const_argument_for_const_parameter:
   status: needsEvaluation
-NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
+non_const_call_to_literal_constructor:
   status: needsFix
   notes: |-
     The fix is to add `const` before the constructor invocation.
-NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW:
+non_const_call_to_literal_constructor_using_new:
   status: hasFix
-NON_NULLABLE_EQUALS_PARAMETER:
+non_nullable_equals_parameter:
   status: needsFix
   notes: |-
     The fix is to remove the question mark if the parameter has one (if the
     written type is an alias, it may not).
-NULLABLE_TYPE_IN_CATCH_CLAUSE:
+nullable_type_in_catch_clause:
   status: hasFix
-NULL_ARGUMENT_TO_NON_NULL_TYPE:
+null_argument_to_non_null_type:
   status: noFix
   since: ~2.15
-NULL_CHECK_ALWAYS_FAILS:
+null_check_always_fails:
   status: hasFix
-OVERRIDE_ON_NON_OVERRIDING_FIELD:
+override_on_non_overriding_field:
   status: hasFix
-OVERRIDE_ON_NON_OVERRIDING_GETTER:
+override_on_non_overriding_getter:
   status: hasFix
-OVERRIDE_ON_NON_OVERRIDING_METHOD:
+override_on_non_overriding_method:
   status: hasFix
-OVERRIDE_ON_NON_OVERRIDING_SETTER:
+override_on_non_overriding_setter:
   status: hasFix
-PATTERN_NEVER_MATCHES_VALUE_TYPE:
+pattern_never_matches_value_type:
   status: noFix
-RECEIVER_OF_TYPE_NEVER:
+receiver_of_type_never:
   status: needsFix
   notes: |-
     We _could_ remove the thing being received (method invocation, etc.)
-REDECLARE_ON_NON_REDECLARING_MEMBER:
+redeclare_on_non_redeclaring_member:
   status: hasFix
-REMOVED_LINT_USE:
+removed_lint_use:
   status: needsFix
-REPLACED_LINT_USE:
+replaced_lint_use:
   status: needsFix
-RETURN_OF_DO_NOT_STORE:
+return_of_do_not_store:
   status: needsFix
   notes: |-
     The fix is to add the annotation to the enclosing function.
-RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR:
+return_of_invalid_type_from_catch_error:
   status: noFix
-RETURN_TYPE_INVALID_FOR_CATCH_ERROR:
+return_type_invalid_for_catch_error:
   status: noFix
-SDK_VERSION_CONSTRUCTOR_TEAROFFS:
+sdk_version_constructor_tearoffs:
   status: needsFix
   since: 2.15
-SDK_VERSION_GT_GT_GT_OPERATOR:
+sdk_version_gt_gt_gt_operator:
   status: hasFix
-SDK_VERSION_SINCE:
+sdk_version_since:
   status: needsFix
   notes: |-
     The fix would be to update the SDK constraints. The user would still need to
     run `dart pub` before the diagnostic would go away, and there's a question
     whether a fix that doesn't actually fix the problem is something we want.
-STRICT_RAW_TYPE:
+strict_raw_type:
   status: needsFix
   notes: |-
     One fix would be to add an explicit `<dynamic>`, but we can also provide
     more helpful fixes that pretend inference works the way the user may
     have thought it did. For example in: `List a = <int>[];`, we can add
     `<int>` after `List`.
-SUBTYPE_OF_SEALED_CLASS:
+subtype_of_sealed_class:
   status: needsFix
   notes: |-
     `sealed` annotation is likely to be replaced by the `sealed` keyword
     in the next stable release.
     Remove the sealed class in the `extends` or `implements` clause.
     Use RemoveNameFromDeclarationClause.
-TEXT_DIRECTION_CODE_POINT_IN_COMMENT:
+text_direction_code_point_in_comment:
   status: hasFix
-TEXT_DIRECTION_CODE_POINT_IN_LITERAL:
+text_direction_code_point_in_literal:
   status: hasFix
-TYPE_CHECK_IS_NOT_NULL:
+type_check_is_not_null:
   status: hasFix
-TYPE_CHECK_IS_NULL:
+type_check_is_null:
   status: hasFix
-UNDEFINED_HIDDEN_NAME:
+undefined_hidden_name:
   status: hasFix
-UNDEFINED_REFERENCED_PARAMETER:
+undefined_referenced_parameter:
   status: needsFix
   notes: |-
     Can try to find the correct parameter name.
-UNDEFINED_SHOWN_NAME:
+undefined_shown_name:
   status: hasFix
-UNIGNORABLE_IGNORE:
+unignorable_ignore:
   status: needsFix
   notes: |-
     Remove the ignore comment (or one code in the comment).
-UNNECESSARY_CAST_PATTERN:
+unnecessary_cast_pattern:
   status: needsFix
   notes: |-
     The fix is to remove the cast pattern, assuming that doing so won't produce
     invalid code.
-UNNECESSARY_CAST:
+unnecessary_cast:
   status: hasFix
-UNNECESSARY_FINAL:
+unnecessary_final:
   status: hasFix
-UNNECESSARY_NAN_COMPARISON_FALSE:
-  status: hasFix
-  notes: |-
-    Add another fix to remove the comparison.
-UNNECESSARY_NAN_COMPARISON_TRUE:
+unnecessary_nan_comparison_false:
   status: hasFix
   notes: |-
     Add another fix to remove the comparison.
-UNNECESSARY_NO_SUCH_METHOD:
+unnecessary_nan_comparison_true:
+  status: hasFix
+  notes: |-
+    Add another fix to remove the comparison.
+unnecessary_no_such_method:
   status: needsFix
   notes: |-
     Remove the noSuchMethod implementation.
-UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE:
+unnecessary_null_comparison_always_null_false:
   status: hasFix
-UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE:
+unnecessary_null_comparison_always_null_true:
   status: hasFix
-UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE:
+unnecessary_null_comparison_never_null_false:
   status: hasFix
-UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE:
+unnecessary_null_comparison_never_null_true:
   status: hasFix
-UNNECESSARY_QUESTION_MARK:
+unnecessary_question_mark:
   status: hasFix
-UNNECESSARY_SET_LITERAL:
+unnecessary_set_literal:
   status: hasFix
-UNNECESSARY_TYPE_CHECK_FALSE:
+unnecessary_type_check_false:
   status: hasFix
-UNNECESSARY_TYPE_CHECK_TRUE:
+unnecessary_type_check_true:
   status: hasFix
-UNNECESSARY_WILDCARD_PATTERN:
+unnecessary_wildcard_pattern:
   status: hasFix
-UNREACHABLE_SWITCH_CASE:
+unreachable_switch_case:
   status: hasFix
-UNREACHABLE_SWITCH_DEFAULT:
+unreachable_switch_default:
   status: hasFix
-UNUSED_CATCH_CLAUSE:
+unused_catch_clause:
   status: hasFix
-UNUSED_CATCH_STACK:
+unused_catch_stack:
   status: hasFix
-UNUSED_ELEMENT:
+unused_element:
   status: hasFix
-UNUSED_ELEMENT_PARAMETER:
+unused_element_parameter:
   status: hasFix
-UNUSED_FIELD:
+unused_field:
   status: hasFix
-UNUSED_IMPORT:
+unused_import:
   status: hasFix
-UNUSED_LABEL:
+unused_label:
   status: hasFix
-UNUSED_LOCAL_VARIABLE:
+unused_local_variable:
   status: hasFix
-UNUSED_RESULT:
+unused_result:
   status: noFix
   notes: |-
     There is no predictable common way in which a result _should_ be used.
-UNUSED_RESULT_WITH_MESSAGE:
+unused_result_with_message:
   status: noFix
   notes: |-
     There is no predictable common way in which a result _should_ be used.
-UNUSED_SHOWN_NAME:
+unused_shown_name:
   status: hasFix
-URI_DOES_NOT_EXIST_IN_DOC_IMPORT:
+uri_does_not_exist_in_doc_import:
   status: needsFix
   notes: |-
     The same fix as CompileTimeErrorCode.URI_DOES_NOT_EXIST
