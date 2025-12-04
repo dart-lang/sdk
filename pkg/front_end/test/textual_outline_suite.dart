@@ -170,7 +170,8 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
           formatterExceptionSt = st;
           if (e is FormatterException) {
             for (var error in e.errors) {
-              if (error.diagnosticCode.name == "EXPERIMENT_NOT_ENABLED") {
+              if (error.diagnosticCode.name.toUpperCase() ==
+                  "EXPERIMENT_NOT_ENABLED") {
                 allowFormatterCrash = true;
               }
             }
