@@ -1430,6 +1430,10 @@ extension on ArgumentList {
       if (parent.element case ConstructorElement constructorElement) {
         return constructorElement.type;
       }
+    } else if (parent is EnumConstantArguments) {
+      if (parent.parent case EnumConstantDeclaration enumConstantDeclaration) {
+        return enumConstantDeclaration.constructorElement?.type;
+      }
     }
     return null;
   }

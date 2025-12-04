@@ -505,6 +505,17 @@ void f() {
 ''', 'String');
   }
 
+  Future<void> test_dotShorthand_enumConstantCreation() async {
+    await assertContextType('''
+enum E0 {
+  c0,
+  c1(.^);
+
+  const E0([E0? other]);
+}
+''', 'E0?');
+  }
+
   Future<void> test_dotShorthand_guardedPattern_switchExpression() async {
     await assertContextType('''
 enum E { a }
