@@ -31,12 +31,16 @@ mixin NullShortingMixin<
   int get nullShortingDepth => _guards.length;
 
   @override
-  Type finishNullShorting(int targetDepth, Type inferredType) {
+  Type finishNullShorting(
+    int targetDepth,
+    Type inferredType, {
+    required Expression wholeExpression,
+  }) {
     assert(targetDepth < nullShortingDepth);
     inferredType = operations.makeNullable(inferredType);
     do {
       // End non-nullable promotion of the null-aware variable.
-      flow.nullAwareAccess_end();
+      flow.nullAwareAccess_end(wholeExpression: wholeExpression);
       handleNullShortingStep(_guards.removeLast(), inferredType);
     } while (nullShortingDepth > targetDepth);
     handleNullShortingFinished(inferredType);
@@ -132,5 +136,9 @@ abstract interface class TypeAnalysisNullShortingInterface<
   /// termination of null shorting. For example, if the expression that is being
   /// analyzed is `i?.toString()`, the return value will represent the type
   /// `String?`.
-  Type finishNullShorting(int targetDepth, Type inferredType);
+  Type finishNullShorting(
+    int targetDepth,
+    Type inferredType, {
+    required Expression wholeExpression,
+  });
 }

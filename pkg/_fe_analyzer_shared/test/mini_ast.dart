@@ -913,7 +913,7 @@ class Cascade extends Expression {
         Kind.expression,
         location: location,
       );
-      h.flow.nullAwareAccess_end();
+      h.flow.nullAwareAccess_end(wholeExpression: this);
     }
     h.irBuilder.let(targetTmp, location: location);
     h.flow.cascadeExpression_end(this);

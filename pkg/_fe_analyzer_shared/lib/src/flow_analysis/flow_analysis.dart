@@ -2045,8 +2045,11 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void nullAwareAccess_end() {
-    _wrap('nullAwareAccess_end()', () => _wrapped.nullAwareAccess_end());
+  void nullAwareAccess_end({required Expression wholeExpression}) {
+    _wrap(
+      'nullAwareAccess_end(wholeExpression: $wholeExpression)',
+      () => _wrapped.nullAwareAccess_end(wholeExpression: wholeExpression),
+    );
   }
 
   @override
@@ -2631,7 +2634,7 @@ abstract interface class FlowAnalysisNullShortingInterface<
   Type extends Object
 > {
   /// Call this method after visiting an expression using `?.`.
-  void nullAwareAccess_end();
+  void nullAwareAccess_end({required Expression wholeExpression});
 
   /// Call this method after visiting a null-aware operator such as `?.`,
   /// `?..`, `?.[`, or `?..[`.
@@ -6016,7 +6019,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void nullAwareAccess_end() {
+  void nullAwareAccess_end({required Expression wholeExpression}) {
     _NullAwareAccessContext<Type> context =
         _stack.removeLast() as _NullAwareAccessContext<Type>;
     _current = _join(_current, context._previous).unsplit();
