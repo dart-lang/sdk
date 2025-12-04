@@ -12,7 +12,7 @@ import "dart:core" as core;
 
 class C extends core::Object /*hasConstConstructor*/  {
   const erroneous constructor •() → self::C
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/rasta/bad_constructor_redirection.dart:6:21: Error: Too many positional arguments: 0 allowed, but 1 found.
+    : invalid-initializer "pkg/front_end/testcases/rasta/bad_constructor_redirection.dart:6:21: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
   const C() : this.x(1);
                     ^"

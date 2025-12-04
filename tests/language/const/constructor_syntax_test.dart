@@ -50,7 +50,6 @@ class C3 {
   // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
   //                 ^
   // [cfe] 'field' is a final instance variable that was initialized at the declaration.
-  // [cfe] Not a constant expression.
   //                   ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   // [cfe] New expression is not a constant expression.

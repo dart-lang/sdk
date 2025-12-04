@@ -46,14 +46,14 @@ class A2 extends core::Object {
 }
 class B2 extends self::A2 {
   constructor •() → self::B2
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/super_parameters/simple_named_super_parameters.dart:25:37: Error: No named parameter with the name 'baz'.
+    : invalid-initializer "pkg/front_end/testcases/super_parameters/simple_named_super_parameters.dart:25:37: Error: No named parameter with the name 'baz'.
   B2() : super(foo: 42, bar: \"bar\", baz: false); // Error.
                                     ^^^"
     ;
 }
 class C2 extends self::A2 {
   constructor •({required core::int foo}) → self::C2
-    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/super_parameters/simple_named_super_parameters.dart:29:35: Error: Required named parameter 'bar' must be provided.
+    : invalid-initializer "pkg/front_end/testcases/super_parameters/simple_named_super_parameters.dart:29:35: Error: Required named parameter 'bar' must be provided.
   C2({required super.foo}) : super(); // Error.
                                   ^"
     ;

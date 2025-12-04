@@ -26,7 +26,7 @@ abstract class Foo extends core::Object {
     : invalid-initializer "pkg/front_end/testcases/regress/abstract_field_duplicate_initializer.dart:7:12: Error: Abstract fields cannot have initializers.
 Try removing the field initializer or the 'abstract' keyword from the field declaration.
   Foo(this.foo, this.foo) {}
-           ^^^", final dynamic #t1 = invalid-expression "pkg/front_end/testcases/regress/abstract_field_duplicate_initializer.dart:7:22: Error: 'foo' was already initialized by this constructor.
+           ^^^", invalid-initializer "pkg/front_end/testcases/regress/abstract_field_duplicate_initializer.dart:7:22: Error: 'foo' was already initialized by this constructor.
   Foo(this.foo, this.foo) {}
                      ^" {}
   abstract get foo() → core::int;

@@ -110,15 +110,6 @@ abstract class FieldDeclaration {
   /// The [DartType] of this field declaration.
   abstract DartType fieldType;
 
-  /// Creates the [Initializer] for the invalid initialization of this field.
-  ///
-  /// This is only used for instance fields.
-  Initializer buildErroneousInitializer(
-    Expression effect,
-    Expression value, {
-    required int fileOffset,
-  });
-
   /// Creates the AST node for this field as the default initializer.
   ///
   /// This is only used for instance fields.
@@ -290,19 +281,6 @@ class RegularFieldDeclaration
       );
     }
     _encoding.createBodies(coreTypes, initializer);
-  }
-
-  @override
-  Initializer buildErroneousInitializer(
-    Expression effect,
-    Expression value, {
-    required int fileOffset,
-  }) {
-    return _encoding.buildErroneousInitializer(
-      effect,
-      value,
-      fileOffset: fileOffset,
-    );
   }
 
   @override

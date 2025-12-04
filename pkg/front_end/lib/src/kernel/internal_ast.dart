@@ -654,14 +654,6 @@ class IfNullExpression extends InternalExpression {
   }
 }
 
-/// Common base class for shadow objects representing initializers in kernel
-/// form.
-abstract class InitializerJudgment implements AuxiliaryInitializer {
-  /// Performs type inference for whatever concrete type of
-  /// [InitializerJudgment] this is.
-  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor);
-}
-
 /// Concrete shadow object representing an integer literal in kernel form.
 class IntJudgment extends IntLiteral implements ExpressionJudgment {
   /// The literal text of the number, as it appears in the source, which may
@@ -753,44 +745,6 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write(literal);
-  }
-}
-
-/// Concrete shadow object representing an invalid initializer in kernel form.
-class ShadowInvalidInitializer extends LocalInitializer
-    implements InitializerJudgment {
-  ShadowInvalidInitializer(VariableDeclaration variable) : super(variable);
-
-  @override
-  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitShadowInvalidInitializer(this);
-  }
-
-  @override
-  String toString() {
-    return "ShadowInvalidInitializer(${toStringInternal()})";
-  }
-}
-
-/// Concrete shadow object representing an invalid initializer in kernel form.
-class ShadowInvalidFieldInitializer extends LocalInitializer
-    implements InitializerJudgment {
-  DartType fieldType;
-  Expression value;
-
-  ShadowInvalidFieldInitializer(this.fieldType, this.value, Expression effect)
-    : super(new VariableDeclaration.forValue(effect)) {
-    value.parent = this;
-  }
-
-  @override
-  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitShadowInvalidFieldInitializer(this);
-  }
-
-  @override
-  String toString() {
-    return "ShadowInvalidFieldInitializer(${toStringInternal()})";
   }
 }
 
@@ -948,7 +902,6 @@ class VariableDeclarationImpl extends VariableStatement
   }
 }
 
-// Coverage-ignore(suite): Not run.
 class InternalLocalVariable
     with InternalExpressionVariableMixin, DelegatingVariableMixin
     implements LocalVariable, InternalExpressionVariable {
@@ -975,7 +928,6 @@ class InternalLocalVariable
 mixin DelegatingVariableMixin on InternalExpressionVariableMixin
     implements InternalExpressionVariable {
   @override
-  // Coverage-ignore(suite): Not run.
   String? get cosmeticName => astVariable.cosmeticName;
 
   @override
@@ -1047,7 +999,6 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isFinal => astVariable.isFinal;
 
   @override
@@ -1077,7 +1028,6 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isLate => astVariable.isLate;
 
   @override
@@ -1127,7 +1077,6 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isWildcard => astVariable.isWildcard;
 
   @override
@@ -1137,7 +1086,6 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   DartType get type => astVariable.type;
 
   @override
@@ -1152,13 +1100,11 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
       astVariable.variableInitialization;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void set variableInitialization(VariableInitialization? value) {
     astVariable.variableInitialization = value;
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isAssignable => astVariable.isAssignable;
 
   @override
@@ -1361,7 +1307,6 @@ mixin InternalExpressionVariableMixin implements InternalExpressionVariable {
   String? lateName;
 
   @override
-  // Coverage-ignore(suite): Not run.
   ExpressionVariable get asExpressionVariable => this as ExpressionVariable;
 }
 

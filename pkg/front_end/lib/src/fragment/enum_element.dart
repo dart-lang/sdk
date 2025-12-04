@@ -111,15 +111,6 @@ class EnumElementDeclaration
   UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
-  Initializer buildErroneousInitializer(
-    Expression effect,
-    Expression value, {
-    required int fileOffset,
-  }) {
-    throw new UnsupportedError("${runtimeType}.buildErroneousInitializer");
-  }
-
-  @override
   void buildFieldOutlineExpressions({
     required ClassHierarchy classHierarchy,
     required SourceLibraryBuilder libraryBuilder,

@@ -431,7 +431,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   InitializerInferenceResult inferInitializer(Initializer initializer) {
     InitializerInferenceResult inferenceResult;
-    if (initializer is InitializerJudgment) {
+    if (initializer is InternalInitializer) {
       inferenceResult = initializer.acceptInference(this);
     } else {
       inferenceResult = initializer.accept(this);
@@ -3882,31 +3882,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression replacement = new IntLiteral(intValue);
     DartType inferredType = coreTypes.intRawType(Nullability.nonNullable);
     return new ExpressionInferenceResult(inferredType, replacement);
-  }
-
-  InitializerInferenceResult visitShadowInvalidInitializer(
-    ShadowInvalidInitializer node,
-  ) {
-    ExpressionInferenceResult initializerResult = inferExpression(
-      node.variable.initializer!,
-      const UnknownType(),
-      isVoidAllowed: false,
-    );
-    node.variable.initializer = initializerResult.expression
-      ..parent = node.variable;
-    return new SuccessfulInitializerInferenceResult(node);
-  }
-
-  InitializerInferenceResult visitShadowInvalidFieldInitializer(
-    ShadowInvalidFieldInitializer node,
-  ) {
-    ExpressionInferenceResult initializerResult = inferExpression(
-      node.value,
-      node.fieldType,
-      isVoidAllowed: false,
-    );
-    node.value = initializerResult.expression..parent = node;
-    return new SuccessfulInitializerInferenceResult(node);
   }
 
   @override
@@ -16120,13 +16095,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   InitializerInferenceResult visitAuxiliaryInitializer(
     AuxiliaryInitializer node,
   ) {
     if (node is InternalInitializer) {
       return node.acceptInference(this);
     }
-    // Coverage-ignore(suite): Not run.
     return _unhandledInitializer(node);
   }
 
@@ -16511,7 +16486,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   StatementInferenceResult visitVariableInitialization(
     VariableInitialization node,
   ) {

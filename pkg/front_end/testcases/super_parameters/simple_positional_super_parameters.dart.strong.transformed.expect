@@ -46,7 +46,7 @@ class A2 extends core::Object {
 }
 class B2 extends self::A2 {
   constructor •() → self::B2
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/super_parameters/simple_positional_super_parameters.dart:25:15: Error: Too many positional arguments: 2 allowed, but 3 found.
+    : invalid-initializer "pkg/front_end/testcases/super_parameters/simple_positional_super_parameters.dart:25:15: Error: Too many positional arguments: 2 allowed, but 3 found.
 Try removing the extra positional arguments.
   B2() : super(0, 1, 2); // Error.
               ^"
@@ -54,7 +54,7 @@ Try removing the extra positional arguments.
 }
 class C2 extends self::A2 {
   constructor •(core::int foo) → self::C2
-    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/super_parameters/simple_positional_super_parameters.dart:29:24: Error: Too few positional arguments: 2 required, 1 given.
+    : invalid-initializer "pkg/front_end/testcases/super_parameters/simple_positional_super_parameters.dart:29:24: Error: Too few positional arguments: 2 required, 1 given.
   C2(super.foo) : super(); // Error.
                        ^"
     ;

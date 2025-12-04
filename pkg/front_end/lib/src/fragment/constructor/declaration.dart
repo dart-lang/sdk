@@ -1470,6 +1470,10 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
   @override
   bool get isRedirecting {
     for (Initializer initializer in _constructor.initializers) {
+      assert(
+        initializer is! AuxiliaryInitializer,
+        "Unexpected auxiliary initializer $initializer.",
+      );
       if (initializer is RedirectingInitializer) {
         return true;
       }

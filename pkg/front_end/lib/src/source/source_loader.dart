@@ -971,10 +971,6 @@ severity: $severity
     return formattedMessage;
   }
 
-  MemberBuilder getDuplicatedFieldInitializerError() {
-    return target.getDuplicatedFieldInitializerError(this);
-  }
-
   MemberBuilder getNativeAnnotation() => target.getNativeAnnotation(this);
 
   void addNativeAnnotation(Annotatable annotatable, String nativeMethodName) {

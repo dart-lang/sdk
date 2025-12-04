@@ -1460,13 +1460,14 @@ class Resolver {
           Initializer? errorMessageInitializer;
           if (positionalSuperParametersIssueOffsets != null) {
             for (int issueOffset in positionalSuperParametersIssueOffsets) {
-              Expression errorMessageExpression = problemReporting.buildProblem(
-                compilerContext: compilerContext,
-                message: codeMissingPositionalSuperConstructorParameter,
-                fileUri: fileUri,
-                fileOffset: issueOffset,
-                length: noLength,
-              );
+              InvalidExpression errorMessageExpression = problemReporting
+                  .buildProblem(
+                    compilerContext: compilerContext,
+                    message: codeMissingPositionalSuperConstructorParameter,
+                    fileUri: fileUri,
+                    fileOffset: issueOffset,
+                    length: noLength,
+                  );
               errorMessageInitializer ??= _buildInvalidInitializer(
                 errorMessageExpression,
               );
@@ -1475,13 +1476,14 @@ class Resolver {
           }
           if (namedSuperParametersIssueOffsets != null) {
             for (int issueOffset in namedSuperParametersIssueOffsets) {
-              Expression errorMessageExpression = problemReporting.buildProblem(
-                compilerContext: compilerContext,
-                message: codeMissingNamedSuperConstructorParameter,
-                fileUri: fileUri,
-                fileOffset: issueOffset,
-                length: noLength,
-              );
+              InvalidExpression errorMessageExpression = problemReporting
+                  .buildProblem(
+                    compilerContext: compilerContext,
+                    message: codeMissingNamedSuperConstructorParameter,
+                    fileUri: fileUri,
+                    fileOffset: issueOffset,
+                    length: noLength,
+                  );
               errorMessageInitializer ??= _buildInvalidInitializer(
                 errorMessageExpression,
               );
@@ -1789,9 +1791,8 @@ class Resolver {
     }
   }
 
-  Initializer _buildInvalidInitializer(Expression expression) {
-    return new ShadowInvalidInitializer(
-      new VariableDeclaration.forValue(expression),
-    )..fileOffset = expression.fileOffset;
+  Initializer _buildInvalidInitializer(InvalidExpression expression) {
+    return new InvalidInitializer(expression.message)
+      ..fileOffset = expression.fileOffset;
   }
 }
