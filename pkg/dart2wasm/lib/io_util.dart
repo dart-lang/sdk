@@ -137,10 +137,9 @@ class CompilerPhaseInputOutputManager {
     return await Process.run(executable, args);
   }
 
-  Future<int> getModuleCount(Uri mainWasmFile) async {
-    final mainPath = (await resolveUri(mainWasmFile))!.toFilePath();
-    final files = (await Directory(path.dirname(mainPath)).list().toList());
-    final prefix = path.basenameWithoutExtension(mainPath);
+  Future<int> getModuleCount(String mainWasmFile) async {
+    final files = (await Directory(path.dirname(mainWasmFile)).list().toList());
+    final prefix = path.basenameWithoutExtension(mainWasmFile);
     bool isMultiModule = false;
     int maxModuleId = 0;
     for (final file in files) {
