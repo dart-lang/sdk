@@ -1255,6 +1255,8 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
     return super.match(context, element) &&
         flags.isOperatorEqualWithParameterTypeFromObject ==
             element.isOperatorEqualWithParameterTypeFromObject &&
+        flags.isOriginDeclaration == element.isOriginDeclaration &&
+        flags.isOriginInterface == element.isOriginInterface &&
         typeInferenceError == element.typeInferenceError;
   }
 
@@ -1441,7 +1443,7 @@ class SetterItem extends PropertyAccessorItem<SetterElementImpl> {
 class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
   TopLevelFunctionItem({
     required super.id,
-    required super.flags,
+    required _TopLevelFunctionItemFlags super.flags,
     required super.metadata,
     required super.functionType,
   });
@@ -1453,7 +1455,7 @@ class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
   }) {
     return TopLevelFunctionItem(
       id: id,
-      flags: _ExecutableItemFlags.encode(element),
+      flags: _TopLevelFunctionItemFlags.encode(element),
       metadata: ManifestMetadata.encode(context, element.metadata),
       functionType: element.type.encode(context),
     );
@@ -1462,10 +1464,21 @@ class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
   factory TopLevelFunctionItem.read(BinaryReader reader) {
     return TopLevelFunctionItem(
       id: ManifestItemId.read(reader),
-      flags: _ExecutableItemFlags.read(reader),
+      flags: _TopLevelFunctionItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
       functionType: ManifestFunctionType.read(reader),
     );
+  }
+
+  @override
+  _TopLevelFunctionItemFlags get flags =>
+      super.flags as _TopLevelFunctionItemFlags;
+
+  @override
+  bool match(MatchContext context, TopLevelFunctionElementImpl element) {
+    return super.match(context, element) &&
+        flags.isOriginDeclaration == element.isOriginDeclaration &&
+        flags.isOriginLoadLibrary == element.isOriginLoadLibrary;
   }
 }
 
@@ -1675,7 +1688,11 @@ enum _InterfaceItemFlag { reserved }
 
 enum _ManifestItemFlag { isSynthetic }
 
-enum _MethodItemFlag { isOperatorEqualWithParameterTypeFromObject }
+enum _MethodItemFlag {
+  isOperatorEqualWithParameterTypeFromObject,
+  isOriginDeclaration,
+  isOriginInterface,
+}
 
 enum _MixinItemFlag { isBase }
 
@@ -1684,6 +1701,8 @@ enum _PropertyAccessorItemFlag {
   isOriginInterface,
   isOriginVariable,
 }
+
+enum _TopLevelFunctionItemFlag { isOriginDeclaration, isOriginLoadLibrary }
 
 enum _TopLevelVariableItemFlag {
   isExternal,
@@ -1887,10 +1906,6 @@ extension type _ExecutableItemFlags._(int _bits) implements _ManifestItemFlags {
       bits |= _maskFor(_ExecutableItemFlag.isStatic);
     }
     return _ExecutableItemFlags._(bits);
-  }
-
-  factory _ExecutableItemFlags.read(BinaryReader reader) {
-    return _ExecutableItemFlags._(reader.readUint30());
   }
 
   bool get hasEnclosingTypeParameterReference {
@@ -2182,6 +2197,12 @@ extension type _MethodItemFlags._(int _bits) implements _ExecutableItemFlags {
         _MethodItemFlag.isOperatorEqualWithParameterTypeFromObject,
       );
     }
+    if (element.isOriginDeclaration) {
+      bits |= _maskFor(_MethodItemFlag.isOriginDeclaration);
+    }
+    if (element.isOriginInterface) {
+      bits |= _maskFor(_MethodItemFlag.isOriginInterface);
+    }
     return _MethodItemFlags._(bits);
   }
 
@@ -2191,6 +2212,14 @@ extension type _MethodItemFlags._(int _bits) implements _ExecutableItemFlags {
 
   bool get isOperatorEqualWithParameterTypeFromObject {
     return _has(_MethodItemFlag.isOperatorEqualWithParameterTypeFromObject);
+  }
+
+  bool get isOriginDeclaration {
+    return _has(_MethodItemFlag.isOriginDeclaration);
+  }
+
+  bool get isOriginInterface {
+    return _has(_MethodItemFlag.isOriginInterface);
   }
 
   void write(BinaryWriter writer) {
@@ -2287,6 +2316,50 @@ extension type _PropertyAccessorItemFlags._(int _bits)
   }
 
   static int _maskFor(_PropertyAccessorItemFlag flag) {
+    var bit = _base + flag.index;
+    assert(bit < 30);
+    return 1 << bit;
+  }
+}
+
+extension type _TopLevelFunctionItemFlags._(int _bits)
+    implements _ExecutableItemFlags {
+  static final int _base = _ExecutableItemFlags._next;
+
+  factory _TopLevelFunctionItemFlags.encode(
+    TopLevelFunctionElementImpl element,
+  ) {
+    var bits = _ExecutableItemFlags.encode(element)._bits;
+    if (element.isOriginDeclaration) {
+      bits |= _maskFor(_TopLevelFunctionItemFlag.isOriginDeclaration);
+    }
+    if (element.isOriginLoadLibrary) {
+      bits |= _maskFor(_TopLevelFunctionItemFlag.isOriginLoadLibrary);
+    }
+    return _TopLevelFunctionItemFlags._(bits);
+  }
+
+  factory _TopLevelFunctionItemFlags.read(BinaryReader reader) {
+    return _TopLevelFunctionItemFlags._(reader.readUint30());
+  }
+
+  bool get isOriginDeclaration {
+    return _has(_TopLevelFunctionItemFlag.isOriginDeclaration);
+  }
+
+  bool get isOriginLoadLibrary {
+    return _has(_TopLevelFunctionItemFlag.isOriginLoadLibrary);
+  }
+
+  void write(BinaryWriter writer) {
+    writer.writeUint30(_bits);
+  }
+
+  bool _has(_TopLevelFunctionItemFlag flag) {
+    return (_bits & _maskFor(flag)) != 0;
+  }
+
+  static int _maskFor(_TopLevelFunctionItemFlag flag) {
     var bit = _base + flag.index;
     assert(bit < 30);
     return 1 << bit;

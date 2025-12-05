@@ -3980,6 +3980,8 @@ package:analyzer/dart/element/element.dart:
     firstFragment (getter: MethodFragment)
     fragments (getter: List<MethodFragment>)
     isOperator (getter: bool)
+    isOriginDeclaration (getter: bool)
+    isOriginInterface (getter: bool)
   MethodFragment (class extends Object implements ExecutableFragment):
     new (constructor: MethodFragment Function())
     element (getter: MethodElement)
@@ -4126,6 +4128,8 @@ package:analyzer/dart/element/element.dart:
     fragments (getter: List<TopLevelFunctionFragment>)
     isDartCoreIdentical (getter: bool)
     isEntryPoint (getter: bool)
+    isOriginDeclaration (getter: bool)
+    isOriginLoadLibrary (getter: bool)
   TopLevelFunctionFragment (class extends Object implements ExecutableFragment):
     new (constructor: TopLevelFunctionFragment Function())
     element (getter: TopLevelFunctionElement)

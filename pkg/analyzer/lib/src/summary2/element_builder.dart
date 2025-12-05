@@ -1523,6 +1523,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     } else {
       var fragment = TopLevelFunctionFragmentImpl(name: name2);
       fragment.isAugmentation = node.augmentKeyword != null;
+      fragment.isOriginDeclaration = true;
       fragment.isStatic = true;
       executableFragment = fragment;
 
@@ -1721,6 +1722,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       var fragment = MethodFragmentImpl(name: _getFragmentName(nameToken));
       fragment.isAbstract = node.isAbstract;
       fragment.isAugmentation = node.augmentKeyword != null;
+      fragment.isOriginDeclaration = true;
       fragment.isStatic = node.isStatic;
       _addChildFragment(fragment);
       executableFragment = fragment;

@@ -2693,6 +2693,16 @@ abstract class MethodElement implements ExecutableElement {
   /// The test might be based on the name of the executable element, in which
   /// case the result will be correct when the name is legal.
   bool get isOperator;
+
+  /// Whether the method is from an explicit [MethodDeclaration].
+  ///
+  /// When this is `true`, [isOriginInterface] is `false`.
+  bool get isOriginDeclaration;
+
+  /// Whether the method is created while building interface.
+  ///
+  /// When this is `true`, [isOriginDeclaration] is `false`.
+  bool get isOriginInterface;
 }
 
 /// The portion of a [MethodElement] contributed by a single declaration.
@@ -3195,6 +3205,16 @@ abstract class TopLevelFunctionElement implements ExecutableElement {
   ///
   /// A top-level function is an entry point if it has the name `main`.
   bool get isEntryPoint;
+
+  /// Whether the function is from an explicit [FunctionDeclaration].
+  ///
+  /// When this is `true`, [isOriginLoadLibrary] is `false`.
+  bool get isOriginDeclaration;
+
+  /// Whether the function is the synthetic `loadLibrary` function.
+  ///
+  /// When this is `true`, [isOriginDeclaration] is `false`.
+  bool get isOriginLoadLibrary;
 }
 
 /// The portion of a [TopLevelFunctionElement] contributed by a single

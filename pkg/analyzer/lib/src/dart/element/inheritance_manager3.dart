@@ -996,6 +996,7 @@ class InheritanceManager3 {
 
       var resultFragment = MethodFragmentImpl(name: executable.name);
       resultFragment.enclosingFragment = class_.firstFragment;
+      resultFragment.isOriginInterface = true;
       resultFragment.isSynthetic = true;
       resultFragment.formalParameters = List.generate(
         transformedParameters.length,
@@ -1099,6 +1100,8 @@ class InheritanceManager3 {
 
       var resultFragment = MethodFragmentImpl(name: fragmentName);
       resultFragment.enclosingFragment = targetClass.firstFragment;
+      resultFragment.isOriginInterface = true;
+      resultFragment.isSynthetic = true;
       resultFragment.typeParameters = resultType.typeParameters
           .map((e) => e.firstFragment)
           .toList();
