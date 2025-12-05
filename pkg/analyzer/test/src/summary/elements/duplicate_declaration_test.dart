@@ -951,7 +951,7 @@ library
           reference: <testLibrary>::@extensionType::E::@def::0::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F4
               type: int
               field: <testLibrary>::@extensionType::E::@def::0::@field::it
@@ -979,7 +979,7 @@ library
           reference: <testLibrary>::@extensionType::E::@def::1::@constructor::new
           firstFragment: #F8
           formalParameters
-            #E1 requiredPositional final hasImplicitType declaring this.it
+            #E1 requiredPositional final declaring this.it
               firstFragment: #F9
               type: double
               field: <testLibrary>::@extensionType::E::@def::1::@field::it

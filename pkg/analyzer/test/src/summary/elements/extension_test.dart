@@ -886,7 +886,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F4
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F5
               type: Object?
               field: <testLibrary>::@extensionType::A::@field::it

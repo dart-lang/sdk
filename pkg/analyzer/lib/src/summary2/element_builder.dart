@@ -2083,8 +2083,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
             privateName: null,
           )
           ..isDeclaring = true
-          ..isOriginDeclaration = true
-          ..hasImplicitType = true;
+          ..isOriginDeclaration = true;
     formalParameterFragment.metadata = _buildMetadata(formalParameter.metadata);
     formalParameter.declaredFragment = formalParameterFragment;
 
