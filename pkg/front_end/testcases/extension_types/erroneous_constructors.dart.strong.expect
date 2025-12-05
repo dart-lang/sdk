@@ -23,6 +23,14 @@ library;
 //   E4.named(bool it) : it = false, this(it);
 //                          ^
 //
+// pkg/front_end/testcases/extension_types/erroneous_constructors.dart:6:3: Error: Final field 'it' is not initialized by this constructor.
+// Try to initialize the field using an initializing formal or a field initializer.
+//   E1.named(dynamic value) : this(value, value);
+//   ^^^^^
+// pkg/front_end/testcases/extension_types/erroneous_constructors.dart:5:27: Context: 'it' is defined here.
+// extension type E1(dynamic it) {
+//                           ^^
+//
 import self as self;
 import "dart:core" as core;
 

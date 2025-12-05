@@ -12270,9 +12270,26 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       staticTarget: node.target,
     );
     arguments.resetExplicitTypeArguments();
+    LocatedMessage? message = problemReporting.checkArgumentsForFunction(
+      function: node.target.function,
+      arguments: node.arguments,
+      fileOffset: node.arguments.fileOffset,
+      fileUri: fileUri,
+      typeParameters: <TypeParameter>[],
+    );
+    Initializer? result;
+    if (message != null) {
+      result = createInvalidInitializer(
+        problemReporting.buildProblemFromLocatedMessage(
+          compilerContext: compilerContext,
+          message: message,
+        ),
+      );
+    }
     return new InitializerInferenceResult.fromInvocationInferenceResult(
-      new RedirectingInitializer(node.target, arguments)
-        ..fileOffset = node.fileOffset,
+      result ??
+          (new RedirectingInitializer(node.target, arguments)
+            ..fileOffset = node.fileOffset),
       inferenceResult,
     );
   }
@@ -12310,8 +12327,25 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       skipTypeArgumentInference: true,
       staticTarget: node.target,
     );
+
+    LocatedMessage? message = problemReporting.checkArgumentsForFunction(
+      function: node.target.function,
+      arguments: node.arguments,
+      fileOffset: node.arguments.fileOffset,
+      fileUri: fileUri,
+      typeParameters: node.target.function.typeParameters,
+    );
+    Initializer? result;
+    if (message != null) {
+      result = createInvalidInitializer(
+        problemReporting.buildProblemFromLocatedMessage(
+          compilerContext: compilerContext,
+          message: message,
+        ),
+      );
+    }
     return new InitializerInferenceResult.fromInvocationInferenceResult(
-      node,
+      result ?? node,
       inferenceResult,
     );
   }
@@ -12690,10 +12724,27 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       skipTypeArgumentInference: true,
       staticTarget: node.target,
     );
+    LocatedMessage? message = problemReporting.checkArgumentsForFunction(
+      function: node.target.function,
+      arguments: node.arguments,
+      fileOffset: node.arguments.fileOffset,
+      fileUri: fileUri,
+      typeParameters: <TypeParameter>[],
+    );
+    Initializer? result;
+    if (message != null) {
+      result = createInvalidInitializer(
+        problemReporting.buildProblemFromLocatedMessage(
+          compilerContext: compilerContext,
+          message: message,
+        ),
+      );
+    }
     return new InitializerInferenceResult.fromInvocationInferenceResult(
-      new SuperInitializer(node.target, node.arguments)
-        ..fileOffset = node.fileOffset
-        ..isSynthetic = node.isSynthetic,
+      result ??
+          (new SuperInitializer(node.target, node.arguments)
+            ..fileOffset = node.fileOffset
+            ..isSynthetic = node.isSynthetic),
       inferenceResult,
     );
   }

@@ -7,6 +7,14 @@ library;
 //   const E2.named(int value) : this(value, value); // Error.
 //                                   ^
 //
+// pkg/front_end/testcases/enhanced_enums/redirecting_initializers.dart:22:9: Error: Final field 'foo' is not initialized by this constructor.
+// Try to initialize the field using an initializing formal or a field initializer.
+//   const E2.named(int value) : this(value, value); // Error.
+//         ^^^^^
+// pkg/front_end/testcases/enhanced_enums/redirecting_initializers.dart:19:13: Context: 'foo' is defined here.
+//   final int foo;
+//             ^^^
+//
 import self as self;
 import "dart:core" as core;
 
