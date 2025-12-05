@@ -1281,7 +1281,7 @@ library
             #F16 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
               element: <testLibrary>::@setter::t2::@formalParameter::value
       functions
-        #F17 getC (nameOffset:56) (firstTokenOffset:54) (offset:56)
+        #F17 isOriginDeclaration getC (nameOffset:56) (firstTokenOffset:54) (offset:56)
           element: <testLibrary>::@function::getC
   classes
     hasNonFinalField class I
@@ -1367,7 +1367,7 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::t2
   functions
-    getC
+    isOriginDeclaration getC
       reference: <testLibrary>::@function::getC
       firstFragment: #F17
       returnType: C
@@ -1412,9 +1412,9 @@ library
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:121)
               element: <testLibrary>::@setter::uFuture::@formalParameter::value
       functions
-        #F9 fValue (nameOffset:25) (firstTokenOffset:21) (offset:25)
+        #F9 isOriginDeclaration fValue (nameOffset:25) (firstTokenOffset:21) (offset:25)
           element: <testLibrary>::@function::fValue
-        #F10 fFuture (nameOffset:53) (firstTokenOffset:41) (offset:53)
+        #F10 isOriginDeclaration fFuture (nameOffset:53) (firstTokenOffset:41) (offset:53)
           element: <testLibrary>::@function::fFuture
   topLevelVariables
     hasImplicitType hasInitializer isOriginDeclaration uValue
@@ -1460,11 +1460,11 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::uFuture
   functions
-    fValue
+    isOriginDeclaration fValue
       reference: <testLibrary>::@function::fValue
       firstFragment: #F9
       returnType: int
-    fFuture
+    isOriginDeclaration fFuture
       reference: <testLibrary>::@function::fFuture
       firstFragment: #F10
       returnType: Future<int>
@@ -1675,7 +1675,7 @@ library
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::a::@formalParameter::value
           methods
-            #F7 m (nameOffset:26) (firstTokenOffset:21) (offset:26)
+            #F7 isOriginDeclaration m (nameOffset:26) (firstTokenOffset:21) (offset:26)
               element: <testLibrary>::@class::A::@method::m
       topLevelVariables
         #F8 hasInitializer isOriginDeclaration vSetField (nameOffset:39) (firstTokenOffset:39) (offset:39)
@@ -1739,7 +1739,7 @@ library
           returnType: void
           variable: <testLibrary>::@class::A::@field::a
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F7
           returnType: void
@@ -2021,11 +2021,11 @@ library
                 #F68 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:308)
                   element: <testLibrary>::@class::X::@setter::t23::@formalParameter::value
       functions
-        #F69 newA (nameOffset:332) (firstTokenOffset:330) (offset:332)
+        #F69 isOriginDeclaration newA (nameOffset:332) (firstTokenOffset:330) (offset:332)
           element: <testLibrary>::@function::newA
-        #F70 newB (nameOffset:353) (firstTokenOffset:351) (offset:353)
+        #F70 isOriginDeclaration newB (nameOffset:353) (firstTokenOffset:351) (offset:353)
           element: <testLibrary>::@function::newB
-        #F71 newC (nameOffset:374) (firstTokenOffset:372) (offset:374)
+        #F71 isOriginDeclaration newC (nameOffset:374) (firstTokenOffset:372) (offset:374)
           element: <testLibrary>::@function::newC
   classes
     hasNonFinalField class A
@@ -2369,15 +2369,15 @@ library
           returnType: void
           variable: <testLibrary>::@class::X::@field::t23
   functions
-    newA
+    isOriginDeclaration newA
       reference: <testLibrary>::@function::newA
       firstFragment: #F69
       returnType: A
-    newB
+    isOriginDeclaration newB
       reference: <testLibrary>::@function::newB
       firstFragment: #F70
       returnType: B
-    newC
+    isOriginDeclaration newC
       reference: <testLibrary>::@function::newC
       firstFragment: #F71
       returnType: C
@@ -3625,7 +3625,7 @@ library
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@setter::x::@formalParameter::value
       functions
-        #F13 f (nameOffset:57) (firstTokenOffset:55) (offset:57)
+        #F13 isOriginDeclaration f (nameOffset:57) (firstTokenOffset:55) (offset:57)
           element: <testLibrary>::@function::f
   classes
     hasNonFinalField class I
@@ -3691,7 +3691,7 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::x
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F13
       returnType: C
@@ -3723,7 +3723,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 foo (nameOffset:16) (firstTokenOffset:12) (offset:16)
+            #F3 isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:12) (offset:16)
               element: <testLibrary>::@class::A::@method::foo
         #F4 class B (nameOffset:36) (firstTokenOffset:30) (offset:36)
           element: <testLibrary>::@class::B
@@ -3732,7 +3732,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F6 foo (nameOffset:52) (firstTokenOffset:52) (offset:52)
+            #F6 isOriginDeclaration foo (nameOffset:52) (firstTokenOffset:52) (offset:52)
               element: <testLibrary>::@class::B::@method::foo
       topLevelVariables
         #F7 hasInitializer isOriginDeclaration x (nameOffset:70) (firstTokenOffset:70) (offset:70)
@@ -3764,7 +3764,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@method::foo
           firstFragment: #F3
           returnType: int
@@ -3778,7 +3778,7 @@ library
           firstFragment: #F5
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: #F6
           returnType: int
@@ -4112,7 +4112,7 @@ library
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@setter::vNoTypeArgument::@formalParameter::value
       functions
-        #F9 f (nameOffset:2) (firstTokenOffset:0) (offset:2)
+        #F9 isOriginDeclaration f (nameOffset:2) (firstTokenOffset:0) (offset:2)
           element: <testLibrary>::@function::f
           typeParameters
             #F10 T (nameOffset:4) (firstTokenOffset:4) (offset:4)
@@ -4161,7 +4161,7 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::vNoTypeArgument
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F9
       typeParameters
@@ -4205,7 +4205,7 @@ library
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@setter::vWrongArgumentType::@formalParameter::value
       functions
-        #F9 f (nameOffset:7) (firstTokenOffset:0) (offset:7)
+        #F9 isOriginDeclaration f (nameOffset:7) (firstTokenOffset:0) (offset:7)
           element: <testLibrary>::@function::f
           formalParameters
             #F10 requiredPositional p (nameOffset:13) (firstTokenOffset:9) (offset:13)
@@ -4254,7 +4254,7 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::vWrongArgumentType
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F9
       formalParameters
@@ -4315,12 +4315,12 @@ library
                 #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
                   element: <testLibrary>::@class::A::@setter::staticClassVariable::@formalParameter::value
           methods
-            #F9 staticClassMethod (nameOffset:195) (firstTokenOffset:181) (offset:195)
+            #F9 isOriginDeclaration staticClassMethod (nameOffset:195) (firstTokenOffset:181) (offset:195)
               element: <testLibrary>::@class::A::@method::staticClassMethod
               formalParameters
                 #F10 requiredPositional p (nameOffset:217) (firstTokenOffset:213) (offset:217)
                   element: <testLibrary>::@class::A::@method::staticClassMethod::@formalParameter::p
-            #F11 instanceClassMethod (nameOffset:238) (firstTokenOffset:231) (offset:238)
+            #F11 isOriginDeclaration instanceClassMethod (nameOffset:238) (firstTokenOffset:231) (offset:238)
               element: <testLibrary>::@class::A::@method::instanceClassMethod
               formalParameters
                 #F12 requiredPositional p (nameOffset:262) (firstTokenOffset:258) (offset:262)
@@ -4414,7 +4414,7 @@ library
             #F50 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:567)
               element: <testLibrary>::@setter::r_instanceClassMethod::@formalParameter::value
       functions
-        #F51 topLevelFunction (nameOffset:7) (firstTokenOffset:0) (offset:7)
+        #F51 isOriginDeclaration topLevelFunction (nameOffset:7) (firstTokenOffset:0) (offset:7)
           element: <testLibrary>::@function::topLevelFunction
           formalParameters
             #F52 requiredPositional p (nameOffset:28) (firstTokenOffset:24) (offset:28)
@@ -4461,7 +4461,7 @@ library
           returnType: void
           variable: <testLibrary>::@class::A::@field::staticClassVariable
       methods
-        static staticClassMethod
+        static isOriginDeclaration staticClassMethod
           reference: <testLibrary>::@class::A::@method::staticClassMethod
           firstFragment: #F9
           formalParameters
@@ -4469,7 +4469,7 @@ library
               firstFragment: #F10
               type: int
           returnType: String
-        instanceClassMethod
+        isOriginDeclaration instanceClassMethod
           reference: <testLibrary>::@class::A::@method::instanceClassMethod
           firstFragment: #F11
           formalParameters
@@ -4671,7 +4671,7 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::r_instanceClassMethod
   functions
-    topLevelFunction
+    isOriginDeclaration topLevelFunction
       reference: <testLibrary>::@function::topLevelFunction
       firstFragment: #F51
       formalParameters
@@ -5173,7 +5173,7 @@ library
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@setter::h::@formalParameter::value
       functions
-        #F9 f (nameOffset:8) (firstTokenOffset:0) (offset:8)
+        #F9 isOriginDeclaration f (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@function::f
   topLevelVariables
     hasImplicitType hasInitializer isOriginDeclaration s
@@ -5219,7 +5219,7 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::h
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F9
       returnType: dynamic
@@ -6196,7 +6196,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 m (nameOffset:19) (firstTokenOffset:12) (offset:19)
+            #F3 isOriginDeclaration m (nameOffset:19) (firstTokenOffset:12) (offset:19)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F4 requiredPositional p (nameOffset:25) (firstTokenOffset:21) (offset:25)
@@ -6240,7 +6240,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           formalParameters
@@ -12110,7 +12110,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 m (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration m (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F4 requiredPositional a (nameOffset:23) (firstTokenOffset:19) (offset:23)
@@ -12122,7 +12122,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F7 m (nameOffset:58) (firstTokenOffset:53) (offset:58)
+            #F7 isOriginDeclaration m (nameOffset:58) (firstTokenOffset:53) (offset:58)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F8 requiredPositional a (nameOffset:60) (firstTokenOffset:60) (offset:60)
@@ -12138,7 +12138,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           formalParameters
@@ -12156,7 +12156,7 @@ library
           firstFragment: #F6
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -12196,7 +12196,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 m (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration m (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F4 requiredPositional a (nameOffset:23) (firstTokenOffset:19) (offset:23)
@@ -12208,7 +12208,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F7 m (nameOffset:48) (firstTokenOffset:43) (offset:48)
+            #F7 isOriginDeclaration m (nameOffset:48) (firstTokenOffset:43) (offset:48)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F8 requiredPositional a (nameOffset:57) (firstTokenOffset:50) (offset:57)
@@ -12220,7 +12220,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F11 m (nameOffset:100) (firstTokenOffset:100) (offset:100)
+            #F11 isOriginDeclaration m (nameOffset:100) (firstTokenOffset:100) (offset:100)
               element: <testLibrary>::@class::C::@method::m
               formalParameters
                 #F12 requiredPositional a (nameOffset:102) (firstTokenOffset:102) (offset:102)
@@ -12234,7 +12234,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           formalParameters
@@ -12250,7 +12250,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -12270,7 +12270,7 @@ library
           firstFragment: #F10
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F11
           typeInferenceError: overrideNoCombinedSuperSignature
@@ -12310,7 +12310,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 foo (nameOffset:25) (firstTokenOffset:21) (offset:25)
+            #F3 isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:21) (offset:25)
               element: <testLibrary>::@class::A::@method::foo
               formalParameters
                 #F4 requiredPositional x (nameOffset:33) (firstTokenOffset:29) (offset:33)
@@ -12322,7 +12322,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F7 foo (nameOffset:68) (firstTokenOffset:61) (offset:68)
+            #F7 isOriginDeclaration foo (nameOffset:68) (firstTokenOffset:61) (offset:68)
               element: <testLibrary>::@class::B::@method::foo
               formalParameters
                 #F8 requiredPositional x (nameOffset:76) (firstTokenOffset:72) (offset:76)
@@ -12334,7 +12334,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F11 foo (nameOffset:126) (firstTokenOffset:120) (offset:126)
+            #F11 isOriginDeclaration foo (nameOffset:126) (firstTokenOffset:120) (offset:126)
               element: <testLibrary>::@class::C::@method::foo
               formalParameters
                 #F12 requiredPositional x (nameOffset:130) (firstTokenOffset:130) (offset:130)
@@ -12348,7 +12348,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        abstract foo
+        abstract isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@method::foo
           firstFragment: #F3
           formalParameters
@@ -12364,7 +12364,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
       methods
-        abstract foo
+        abstract isOriginDeclaration foo
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: #F7
           formalParameters
@@ -12383,7 +12383,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F10
       methods
-        abstract foo
+        abstract isOriginDeclaration foo
           reference: <testLibrary>::@class::C::@method::foo
           firstFragment: #F11
           typeInferenceError: overrideNoCombinedSuperSignature
@@ -12422,7 +12422,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 m (nameOffset:16) (firstTokenOffset:12) (offset:16)
+            #F3 isOriginDeclaration m (nameOffset:16) (firstTokenOffset:12) (offset:16)
               element: <testLibrary>::@class::A::@method::m
         #F4 class B (nameOffset:31) (firstTokenOffset:25) (offset:31)
           element: <testLibrary>::@class::B
@@ -12431,7 +12431,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F6 m (nameOffset:44) (firstTokenOffset:37) (offset:44)
+            #F6 isOriginDeclaration m (nameOffset:44) (firstTokenOffset:37) (offset:44)
               element: <testLibrary>::@class::B::@method::m
         #F7 class C (nameOffset:59) (firstTokenOffset:53) (offset:59)
           element: <testLibrary>::@class::C
@@ -12440,7 +12440,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F9 m (nameOffset:88) (firstTokenOffset:88) (offset:88)
+            #F9 isOriginDeclaration m (nameOffset:88) (firstTokenOffset:88) (offset:88)
               element: <testLibrary>::@class::C::@method::m
   classes
     class A
@@ -12451,7 +12451,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           returnType: int
@@ -12463,7 +12463,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F6
           returnType: String
@@ -12479,7 +12479,7 @@ library
           firstFragment: #F8
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F9
           typeInferenceError: overrideNoCombinedSuperSignature
@@ -12516,7 +12516,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F4 m (nameOffset:20) (firstTokenOffset:15) (offset:20)
+            #F4 isOriginDeclaration m (nameOffset:20) (firstTokenOffset:15) (offset:20)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F5 requiredPositional a (nameOffset:24) (firstTokenOffset:22) (offset:24)
@@ -12531,7 +12531,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F9 m (nameOffset:52) (firstTokenOffset:47) (offset:52)
+            #F9 isOriginDeclaration m (nameOffset:52) (firstTokenOffset:47) (offset:52)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F10 requiredPositional a (nameOffset:56) (firstTokenOffset:54) (offset:56)
@@ -12543,7 +12543,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F13 m (nameOffset:112) (firstTokenOffset:112) (offset:112)
+            #F13 isOriginDeclaration m (nameOffset:112) (firstTokenOffset:112) (offset:112)
               element: <testLibrary>::@class::C::@method::m
               formalParameters
                 #F14 requiredPositional a (nameOffset:114) (firstTokenOffset:114) (offset:114)
@@ -12560,7 +12560,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F4
           hasEnclosingTypeParameterReference: true
@@ -12580,7 +12580,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F8
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F9
           hasEnclosingTypeParameterReference: true
@@ -12603,7 +12603,7 @@ library
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: int}
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F13
           typeInferenceError: overrideNoCombinedSuperSignature
@@ -12646,7 +12646,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F5 m (nameOffset:20) (firstTokenOffset:18) (offset:20)
+            #F5 isOriginDeclaration m (nameOffset:20) (firstTokenOffset:18) (offset:20)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F6 requiredPositional a (nameOffset:24) (firstTokenOffset:22) (offset:24)
@@ -12661,7 +12661,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F10 m (nameOffset:49) (firstTokenOffset:47) (offset:49)
+            #F10 isOriginDeclaration m (nameOffset:49) (firstTokenOffset:47) (offset:49)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F11 requiredPositional a (nameOffset:55) (firstTokenOffset:51) (offset:55)
@@ -12673,7 +12673,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F14 m (nameOffset:119) (firstTokenOffset:119) (offset:119)
+            #F14 isOriginDeclaration m (nameOffset:119) (firstTokenOffset:119) (offset:119)
               element: <testLibrary>::@class::C::@method::m
               formalParameters
                 #F15 requiredPositional a (nameOffset:121) (firstTokenOffset:121) (offset:121)
@@ -12692,7 +12692,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F5
           hasEnclosingTypeParameterReference: true
@@ -12712,7 +12712,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F9
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F10
           hasEnclosingTypeParameterReference: true
@@ -12735,7 +12735,7 @@ library
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {K: int, V: String}
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F14
           typeInferenceError: overrideNoCombinedSuperSignature
@@ -12770,7 +12770,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 m (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration m (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F4 requiredPositional a (nameOffset:23) (firstTokenOffset:19) (offset:23)
@@ -12782,7 +12782,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F7 m (nameOffset:53) (firstTokenOffset:53) (offset:53)
+            #F7 isOriginDeclaration m (nameOffset:53) (firstTokenOffset:53) (offset:53)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F8 requiredPositional a (nameOffset:55) (firstTokenOffset:55) (offset:55)
@@ -12798,7 +12798,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           formalParameters
@@ -12816,7 +12816,7 @@ library
           firstFragment: #F6
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -12853,7 +12853,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 m (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration m (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F4 requiredPositional a (nameOffset:23) (firstTokenOffset:19) (offset:23)
@@ -12865,7 +12865,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F7 m (nameOffset:53) (firstTokenOffset:53) (offset:53)
+            #F7 isOriginDeclaration m (nameOffset:53) (firstTokenOffset:53) (offset:53)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F8 requiredPositional a (nameOffset:55) (firstTokenOffset:55) (offset:55)
@@ -12881,7 +12881,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           formalParameters
@@ -12899,7 +12899,7 @@ library
           firstFragment: #F6
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -12936,7 +12936,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 m (nameOffset:12) (firstTokenOffset:12) (offset:12)
+            #F3 isOriginDeclaration m (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F4 requiredPositional a (nameOffset:14) (firstTokenOffset:14) (offset:14)
@@ -12948,7 +12948,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F7 m (nameOffset:44) (firstTokenOffset:44) (offset:44)
+            #F7 isOriginDeclaration m (nameOffset:44) (firstTokenOffset:44) (offset:44)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F8 requiredPositional a (nameOffset:46) (firstTokenOffset:46) (offset:46)
@@ -12962,7 +12962,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           formalParameters
@@ -12980,7 +12980,7 @@ library
           firstFragment: #F6
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -13014,7 +13014,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 foo (nameOffset:16) (firstTokenOffset:12) (offset:16)
+            #F3 isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:12) (offset:16)
               element: <testLibrary>::@class::A::@method::foo
               formalParameters
                 #F4 requiredPositional a (nameOffset:27) (firstTokenOffset:20) (offset:27)
@@ -13026,7 +13026,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F7 m (nameOffset:63) (firstTokenOffset:63) (offset:63)
+            #F7 isOriginDeclaration m (nameOffset:63) (firstTokenOffset:63) (offset:63)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F8 requiredPositional a (nameOffset:65) (firstTokenOffset:65) (offset:65)
@@ -13040,7 +13040,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@method::foo
           firstFragment: #F3
           formalParameters
@@ -13058,7 +13058,7 @@ library
           firstFragment: #F6
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -13110,7 +13110,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F9 m (nameOffset:48) (firstTokenOffset:48) (offset:48)
+            #F9 isOriginDeclaration m (nameOffset:48) (firstTokenOffset:48) (offset:48)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F10 requiredPositional a (nameOffset:50) (firstTokenOffset:50) (offset:50)
@@ -13156,7 +13156,7 @@ library
           firstFragment: #F8
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F9
           formalParameters
@@ -13196,7 +13196,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F5 m (nameOffset:20) (firstTokenOffset:18) (offset:20)
+            #F5 isOriginDeclaration m (nameOffset:20) (firstTokenOffset:18) (offset:20)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F6 requiredPositional a (nameOffset:24) (firstTokenOffset:22) (offset:24)
@@ -13217,7 +13217,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F12 m (nameOffset:94) (firstTokenOffset:94) (offset:94)
+            #F12 isOriginDeclaration m (nameOffset:94) (firstTokenOffset:94) (offset:94)
               element: <testLibrary>::@class::C::@method::m
               formalParameters
                 #F13 requiredPositional a (nameOffset:96) (firstTokenOffset:96) (offset:96)
@@ -13236,7 +13236,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F5
           hasEnclosingTypeParameterReference: true
@@ -13271,7 +13271,7 @@ library
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {T: String}
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F12
           formalParameters
@@ -13308,7 +13308,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 m (nameOffset:19) (firstTokenOffset:12) (offset:19)
+            #F3 isOriginDeclaration m (nameOffset:19) (firstTokenOffset:12) (offset:19)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F4 requiredPositional a (nameOffset:25) (firstTokenOffset:21) (offset:25)
@@ -13320,7 +13320,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F7 m (nameOffset:55) (firstTokenOffset:55) (offset:55)
+            #F7 isOriginDeclaration m (nameOffset:55) (firstTokenOffset:55) (offset:55)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F8 requiredPositional a (nameOffset:57) (firstTokenOffset:57) (offset:57)
@@ -13332,7 +13332,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F11 m (nameOffset:87) (firstTokenOffset:87) (offset:87)
+            #F11 isOriginDeclaration m (nameOffset:87) (firstTokenOffset:87) (offset:87)
               element: <testLibrary>::@class::C::@method::m
               formalParameters
                 #F12 requiredPositional a (nameOffset:89) (firstTokenOffset:89) (offset:89)
@@ -13346,7 +13346,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           formalParameters
@@ -13364,7 +13364,7 @@ library
           firstFragment: #F6
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -13382,7 +13382,7 @@ library
           firstFragment: #F10
           superConstructor: <testLibrary>::@class::B::@constructor::new
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F11
           formalParameters
@@ -13419,7 +13419,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 m (nameOffset:19) (firstTokenOffset:12) (offset:19)
+            #F3 isOriginDeclaration m (nameOffset:19) (firstTokenOffset:12) (offset:19)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F4 requiredPositional a (nameOffset:25) (firstTokenOffset:21) (offset:25)
@@ -13431,7 +13431,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F7 m (nameOffset:58) (firstTokenOffset:58) (offset:58)
+            #F7 isOriginDeclaration m (nameOffset:58) (firstTokenOffset:58) (offset:58)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F8 requiredPositional a (nameOffset:60) (firstTokenOffset:60) (offset:60)
@@ -13443,7 +13443,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F11 m (nameOffset:90) (firstTokenOffset:90) (offset:90)
+            #F11 isOriginDeclaration m (nameOffset:90) (firstTokenOffset:90) (offset:90)
               element: <testLibrary>::@class::C::@method::m
               formalParameters
                 #F12 requiredPositional a (nameOffset:92) (firstTokenOffset:92) (offset:92)
@@ -13457,7 +13457,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           formalParameters
@@ -13475,7 +13475,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -13493,7 +13493,7 @@ library
           firstFragment: #F10
           superConstructor: <testLibrary>::@class::B::@constructor::new
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F11
           formalParameters
@@ -13530,7 +13530,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 m (nameOffset:19) (firstTokenOffset:12) (offset:19)
+            #F3 isOriginDeclaration m (nameOffset:19) (firstTokenOffset:12) (offset:19)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F4 requiredPositional a (nameOffset:25) (firstTokenOffset:21) (offset:25)
@@ -13542,7 +13542,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F7 m (nameOffset:67) (firstTokenOffset:67) (offset:67)
+            #F7 isOriginDeclaration m (nameOffset:67) (firstTokenOffset:67) (offset:67)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F8 requiredPositional a (nameOffset:69) (firstTokenOffset:69) (offset:69)
@@ -13554,7 +13554,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F11 m (nameOffset:99) (firstTokenOffset:99) (offset:99)
+            #F11 isOriginDeclaration m (nameOffset:99) (firstTokenOffset:99) (offset:99)
               element: <testLibrary>::@class::C::@method::m
               formalParameters
                 #F12 requiredPositional a (nameOffset:101) (firstTokenOffset:101) (offset:101)
@@ -13568,7 +13568,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           formalParameters
@@ -13587,7 +13587,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -13605,7 +13605,7 @@ library
           firstFragment: #F10
           superConstructor: <testLibrary>::@class::B::@constructor::new
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F11
           formalParameters
@@ -13644,7 +13644,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F5 m (nameOffset:20) (firstTokenOffset:18) (offset:20)
+            #F5 isOriginDeclaration m (nameOffset:20) (firstTokenOffset:18) (offset:20)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F6 requiredPositional a (nameOffset:24) (firstTokenOffset:22) (offset:24)
@@ -13658,7 +13658,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F10 m (nameOffset:77) (firstTokenOffset:77) (offset:77)
+            #F10 isOriginDeclaration m (nameOffset:77) (firstTokenOffset:77) (offset:77)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F11 requiredPositional a (nameOffset:79) (firstTokenOffset:79) (offset:79)
@@ -13679,7 +13679,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F5
           hasEnclosingTypeParameterReference: true
@@ -13703,7 +13703,7 @@ library
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {K: int, V: String}
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F10
           formalParameters
@@ -13740,7 +13740,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 m (nameOffset:19) (firstTokenOffset:12) (offset:19)
+            #F3 isOriginDeclaration m (nameOffset:19) (firstTokenOffset:12) (offset:19)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F4 requiredPositional a (nameOffset:25) (firstTokenOffset:21) (offset:25)
@@ -13752,7 +13752,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F7 m (nameOffset:55) (firstTokenOffset:55) (offset:55)
+            #F7 isOriginDeclaration m (nameOffset:55) (firstTokenOffset:55) (offset:55)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F8 requiredPositional a (nameOffset:57) (firstTokenOffset:57) (offset:57)
@@ -13766,7 +13766,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           formalParameters
@@ -13784,7 +13784,7 @@ library
           firstFragment: #F6
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -13818,7 +13818,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 m (nameOffset:19) (firstTokenOffset:12) (offset:19)
+            #F3 isOriginDeclaration m (nameOffset:19) (firstTokenOffset:12) (offset:19)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F4 requiredPositional a (nameOffset:25) (firstTokenOffset:21) (offset:25)
@@ -13832,7 +13832,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F8 m (nameOffset:67) (firstTokenOffset:67) (offset:67)
+            #F8 isOriginDeclaration m (nameOffset:67) (firstTokenOffset:67) (offset:67)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F9 requiredPositional a (nameOffset:69) (firstTokenOffset:69) (offset:69)
@@ -13848,7 +13848,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           formalParameters
@@ -13869,7 +13869,7 @@ library
           firstFragment: #F7
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F8
           formalParameters
@@ -13906,7 +13906,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 m (nameOffset:19) (firstTokenOffset:12) (offset:19)
+            #F3 isOriginDeclaration m (nameOffset:19) (firstTokenOffset:12) (offset:19)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F4 requiredPositional a (nameOffset:25) (firstTokenOffset:21) (offset:25)
@@ -13920,7 +13920,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F8 m (nameOffset:67) (firstTokenOffset:67) (offset:67)
+            #F8 isOriginDeclaration m (nameOffset:67) (firstTokenOffset:67) (offset:67)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F9 requiredPositional a (nameOffset:69) (firstTokenOffset:69) (offset:69)
@@ -13936,7 +13936,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           formalParameters
@@ -13957,7 +13957,7 @@ library
           firstFragment: #F7
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F8
           formalParameters
@@ -14000,7 +14000,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F5 m (nameOffset:20) (firstTokenOffset:18) (offset:20)
+            #F5 isOriginDeclaration m (nameOffset:20) (firstTokenOffset:18) (offset:20)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F6 requiredPositional a (nameOffset:24) (firstTokenOffset:22) (offset:24)
@@ -14021,7 +14021,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F12 m (nameOffset:94) (firstTokenOffset:94) (offset:94)
+            #F12 isOriginDeclaration m (nameOffset:94) (firstTokenOffset:94) (offset:94)
               element: <testLibrary>::@class::C::@method::m
               formalParameters
                 #F13 requiredPositional a (nameOffset:96) (firstTokenOffset:96) (offset:96)
@@ -14040,7 +14040,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F5
           hasEnclosingTypeParameterReference: true
@@ -14075,7 +14075,7 @@ library
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {T: String}
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F12
           formalParameters
@@ -14114,7 +14114,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F5 m (nameOffset:29) (firstTokenOffset:27) (offset:29)
+            #F5 isOriginDeclaration m (nameOffset:29) (firstTokenOffset:27) (offset:29)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F6 requiredPositional a (nameOffset:33) (firstTokenOffset:31) (offset:33)
@@ -14126,7 +14126,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F9 m (nameOffset:77) (firstTokenOffset:77) (offset:77)
+            #F9 isOriginDeclaration m (nameOffset:77) (firstTokenOffset:77) (offset:77)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F10 requiredPositional a (nameOffset:79) (firstTokenOffset:79) (offset:79)
@@ -14145,7 +14145,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
       methods
-        abstract m
+        abstract isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F5
           hasEnclosingTypeParameterReference: true
@@ -14164,7 +14164,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F8
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F9
           formalParameters
@@ -14198,7 +14198,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 m (nameOffset:28) (firstTokenOffset:21) (offset:28)
+            #F3 isOriginDeclaration m (nameOffset:28) (firstTokenOffset:21) (offset:28)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F4 requiredPositional a (nameOffset:34) (firstTokenOffset:30) (offset:34)
@@ -14210,7 +14210,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F7 m (nameOffset:65) (firstTokenOffset:65) (offset:65)
+            #F7 isOriginDeclaration m (nameOffset:65) (firstTokenOffset:65) (offset:65)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F8 requiredPositional a (nameOffset:67) (firstTokenOffset:67) (offset:67)
@@ -14224,7 +14224,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        abstract m
+        abstract isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           formalParameters
@@ -14242,7 +14242,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -14282,7 +14282,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F5 m (nameOffset:29) (firstTokenOffset:27) (offset:29)
+            #F5 isOriginDeclaration m (nameOffset:29) (firstTokenOffset:27) (offset:29)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F6 requiredPositional a (nameOffset:33) (firstTokenOffset:31) (offset:33)
@@ -14305,7 +14305,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F13 m (nameOffset:123) (firstTokenOffset:123) (offset:123)
+            #F13 isOriginDeclaration m (nameOffset:123) (firstTokenOffset:123) (offset:123)
               element: <testLibrary>::@class::C::@method::m
               formalParameters
                 #F14 requiredPositional a (nameOffset:125) (firstTokenOffset:125) (offset:125)
@@ -14324,7 +14324,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
       methods
-        abstract m
+        abstract isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F5
           hasEnclosingTypeParameterReference: true
@@ -14359,7 +14359,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F12
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F13
           formalParameters
@@ -14400,7 +14400,7 @@ library
               element: <testLibrary>::@class::A1::@constructor::new
               typeName: A1
           methods
-            #F3 _foo (nameOffset:38) (firstTokenOffset:34) (offset:38)
+            #F3 isOriginDeclaration _foo (nameOffset:38) (firstTokenOffset:34) (offset:38)
               element: <testLibrary>::@class::A1::@method::_foo
         #F4 class A2 (nameOffset:59) (firstTokenOffset:53) (offset:59)
           element: <testLibrary>::@class::A2
@@ -14409,7 +14409,7 @@ library
               element: <testLibrary>::@class::A2::@constructor::new
               typeName: A2
           methods
-            #F6 _foo (nameOffset:77) (firstTokenOffset:77) (offset:77)
+            #F6 isOriginDeclaration _foo (nameOffset:77) (firstTokenOffset:77) (offset:77)
               element: <testLibrary>::@class::A2::@method::_foo
   classes
     class A1
@@ -14420,7 +14420,7 @@ library
           reference: <testLibrary>::@class::A1::@constructor::new
           firstFragment: #F2
       methods
-        _foo
+        isOriginDeclaration _foo
           reference: <testLibrary>::@class::A1::@method::_foo
           firstFragment: #F3
           returnType: int
@@ -14434,7 +14434,7 @@ library
           firstFragment: #F5
           superConstructor: <testLibrary>::@class::A1::@constructor::new
       methods
-        _foo
+        isOriginDeclaration _foo
           reference: <testLibrary>::@class::A2::@method::_foo
           firstFragment: #F6
           returnType: int
@@ -14464,7 +14464,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 m (nameOffset:19) (firstTokenOffset:12) (offset:19)
+            #F3 isOriginDeclaration m (nameOffset:19) (firstTokenOffset:12) (offset:19)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F4 requiredPositional a (nameOffset:25) (firstTokenOffset:21) (offset:25)
@@ -14476,7 +14476,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F7 m (nameOffset:67) (firstTokenOffset:67) (offset:67)
+            #F7 isOriginDeclaration m (nameOffset:67) (firstTokenOffset:67) (offset:67)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F8 requiredPositional a (nameOffset:69) (firstTokenOffset:69) (offset:69)
@@ -14490,7 +14490,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           formalParameters
@@ -14509,7 +14509,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -14551,7 +14551,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F5 m (nameOffset:20) (firstTokenOffset:18) (offset:20)
+            #F5 isOriginDeclaration m (nameOffset:20) (firstTokenOffset:18) (offset:20)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F6 requiredPositional a (nameOffset:24) (firstTokenOffset:22) (offset:24)
@@ -14566,7 +14566,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F10 m (nameOffset:49) (firstTokenOffset:47) (offset:49)
+            #F10 isOriginDeclaration m (nameOffset:49) (firstTokenOffset:47) (offset:49)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F11 requiredPositional a (nameOffset:55) (firstTokenOffset:51) (offset:55)
@@ -14578,7 +14578,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F14 m (nameOffset:119) (firstTokenOffset:119) (offset:119)
+            #F14 isOriginDeclaration m (nameOffset:119) (firstTokenOffset:119) (offset:119)
               element: <testLibrary>::@class::C::@method::m
               formalParameters
                 #F15 requiredPositional a (nameOffset:121) (firstTokenOffset:121) (offset:121)
@@ -14597,7 +14597,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F5
           hasEnclosingTypeParameterReference: true
@@ -14617,7 +14617,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F9
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F10
           hasEnclosingTypeParameterReference: true
@@ -14640,7 +14640,7 @@ library
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {K: int, V: String}
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F14
           formalParameters
@@ -14677,7 +14677,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 m (nameOffset:19) (firstTokenOffset:12) (offset:19)
+            #F3 isOriginDeclaration m (nameOffset:19) (firstTokenOffset:12) (offset:19)
               element: <testLibrary>::@class::A::@method::m
               formalParameters
                 #F4 requiredPositional a (nameOffset:25) (firstTokenOffset:21) (offset:25)
@@ -14689,7 +14689,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F7 m (nameOffset:52) (firstTokenOffset:45) (offset:52)
+            #F7 isOriginDeclaration m (nameOffset:52) (firstTokenOffset:45) (offset:52)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
                 #F8 requiredPositional a (nameOffset:58) (firstTokenOffset:54) (offset:58)
@@ -14701,7 +14701,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F11 m (nameOffset:101) (firstTokenOffset:101) (offset:101)
+            #F11 isOriginDeclaration m (nameOffset:101) (firstTokenOffset:101) (offset:101)
               element: <testLibrary>::@class::C::@method::m
               formalParameters
                 #F12 requiredPositional a (nameOffset:103) (firstTokenOffset:103) (offset:103)
@@ -14715,7 +14715,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           formalParameters
@@ -14731,7 +14731,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -14751,7 +14751,7 @@ library
           firstFragment: #F10
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F11
           formalParameters

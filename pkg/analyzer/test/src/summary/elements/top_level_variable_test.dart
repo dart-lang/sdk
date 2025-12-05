@@ -1788,7 +1788,7 @@ library
         #F3 extension E (nameOffset:21) (firstTokenOffset:11) (offset:21)
           element: <testLibrary>::@extension::E
           methods
-            #F4 f (nameOffset:43) (firstTokenOffset:32) (offset:43)
+            #F4 isOriginDeclaration f (nameOffset:43) (firstTokenOffset:32) (offset:43)
               element: <testLibrary>::@extension::E::@method::f
       topLevelVariables
         #F5 hasInitializer isOriginDeclaration x (nameOffset:59) (firstTokenOffset:59) (offset:59)
@@ -1817,7 +1817,7 @@ library
       extendedType: A
       onDeclaration: <testLibrary>::@class::A
       methods
-        static f
+        static isOriginDeclaration f
           reference: <testLibrary>::@extension::E::@method::f
           firstFragment: #F4
           returnType: int
@@ -2728,7 +2728,7 @@ library
         #F2 augment isOriginDeclaration foo (nameOffset:30) (firstTokenOffset:14) (offset:30)
           element: <testLibrary>::@getter::foo
       functions
-        #F3 foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F3 isOriginDeclaration foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
   topLevelVariables
     synthetic isOriginGetterSetter foo
@@ -2743,7 +2743,7 @@ library
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
   functions
-    foo
+    isOriginDeclaration foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F3
       returnType: void
@@ -3446,7 +3446,7 @@ library
             #F3 requiredPositional _ (nameOffset:34) (firstTokenOffset:30) (offset:34)
               element: <testLibrary>::@setter::foo::@formalParameter::_
       functions
-        #F4 foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F4 isOriginDeclaration foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
   topLevelVariables
     synthetic isOriginGetterSetter foo
@@ -3465,7 +3465,7 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
   functions
-    foo
+    isOriginDeclaration foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F4
       returnType: void
@@ -4296,7 +4296,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@setter::foo::@formalParameter::value
       functions
-        #F5 foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F5 isOriginDeclaration foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
   topLevelVariables
     hasInitializer isOriginDeclaration foo
@@ -4322,7 +4322,7 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
   functions
-    foo
+    isOriginDeclaration foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F5
       returnType: void

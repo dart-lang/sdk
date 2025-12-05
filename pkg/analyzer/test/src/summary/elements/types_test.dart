@@ -32,10 +32,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 isOriginDeclaration f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       returnType: dynamic
@@ -57,7 +57,7 @@ library
         #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
       functions
-        #F2 main (nameOffset:18) (firstTokenOffset:18) (offset:18)
+        #F2 isOriginDeclaration main (nameOffset:18) (firstTokenOffset:18) (offset:18)
           element: <testLibrary>::@function::main
           formalParameters
             #F3 requiredPositional f (nameOffset:25) (firstTokenOffset:23) (offset:25)
@@ -68,7 +68,7 @@ library
       firstFragment: #F1
       aliasedType: dynamic Function(int)
   functions
-    main
+    isOriginDeclaration main
       reference: <testLibrary>::@function::main
       firstFragment: #F2
       formalParameters
@@ -214,7 +214,7 @@ library
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@setter::y::@formalParameter::value
       functions
-        #F9 f (nameOffset:35) (firstTokenOffset:21) (offset:35)
+        #F9 isOriginDeclaration f (nameOffset:35) (firstTokenOffset:21) (offset:35)
           element: <testLibrary>::@function::f
   topLevelVariables
     hasImplicitType hasInitializer isOriginDeclaration x
@@ -260,7 +260,7 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::y
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F9
       returnType: FutureOr<int>
@@ -303,7 +303,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F5 m (nameOffset:30) (firstTokenOffset:18) (offset:30)
+            #F5 isOriginDeclaration m (nameOffset:30) (firstTokenOffset:18) (offset:30)
               element: <testLibrary>::@class::C::@method::m
               typeParameters
                 #F6 V (nameOffset:32) (firstTokenOffset:32) (offset:32)
@@ -329,7 +329,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
       methods
-        static m
+        static isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F5
           typeParameters
@@ -374,7 +374,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 call (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration call (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@class::C::@method::call
         #F4 class D (nameOffset:36) (firstTokenOffset:30) (offset:36)
           element: <testLibrary>::@class::D
@@ -403,7 +403,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
       methods
-        call
+        isOriginDeclaration call
           reference: <testLibrary>::@class::C::@method::call
           firstFragment: #F3
           returnType: void
@@ -774,10 +774,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isOriginDeclaration f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       returnType: void
@@ -824,7 +824,7 @@ library
               element: <testLibrary>::@class::X1::@constructor::new
               typeName: X1
           methods
-            #F3 == (nameOffset:74) (firstTokenOffset:61) (offset:74)
+            #F3 isOriginDeclaration == (nameOffset:74) (firstTokenOffset:61) (offset:74)
               element: <testLibrary>::@class::X1::@method::==
               formalParameters
                 #F4 requiredPositional other (nameOffset:77) (firstTokenOffset:77) (offset:77)
@@ -836,7 +836,7 @@ library
               element: <testLibrary>::@class::X2::@constructor::new
               typeName: X2
           methods
-            #F7 == (nameOffset:145) (firstTokenOffset:132) (offset:145)
+            #F7 isOriginDeclaration == (nameOffset:145) (firstTokenOffset:132) (offset:145)
               element: <testLibrary>::@class::X2::@method::==
               formalParameters
                 #F8 requiredPositional other (nameOffset:148) (firstTokenOffset:148) (offset:148)
@@ -848,7 +848,7 @@ library
               element: <testLibrary>::@class::X3::@constructor::new
               typeName: X3
           methods
-            #F11 == (nameOffset:213) (firstTokenOffset:200) (offset:213)
+            #F11 isOriginDeclaration == (nameOffset:213) (firstTokenOffset:200) (offset:213)
               element: <testLibrary>::@class::X3::@method::==
               formalParameters
                 #F12 requiredPositional other (nameOffset:216) (firstTokenOffset:216) (offset:216)
@@ -864,7 +864,7 @@ library
           firstFragment: #F2
           superConstructor: package:test/nullSafe.dart::@class::NullSafeDefault::@constructor::new
       methods
-        ==
+        isOriginDeclaration ==
           reference: <testLibrary>::@class::X1::@method::==
           firstFragment: #F3
           formalParameters
@@ -882,7 +882,7 @@ library
           firstFragment: #F6
           superConstructor: package:test/nullSafe.dart::@class::NullSafeObject::@constructor::new
       methods
-        ==
+        isOriginDeclaration ==
           reference: <testLibrary>::@class::X2::@method::==
           firstFragment: #F7
           formalParameters
@@ -900,7 +900,7 @@ library
           firstFragment: #F10
           superConstructor: package:test/nullSafe.dart::@class::NullSafeInt::@constructor::new
       methods
-        ==
+        isOriginDeclaration ==
           reference: <testLibrary>::@class::X3::@method::==
           firstFragment: #F11
           formalParameters
@@ -1245,7 +1245,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 f (nameOffset:31) (firstTokenOffset:29) (offset:31)
+            #F3 isOriginDeclaration f (nameOffset:31) (firstTokenOffset:29) (offset:31)
               element: <testLibrary>::@class::C::@method::f
   classes
     class C
@@ -1256,7 +1256,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
       methods
-        f
+        isOriginDeclaration f
           reference: <testLibrary>::@class::C::@method::f
           firstFragment: #F3
           returnType: O Function(O)
@@ -1746,7 +1746,7 @@ library
         package:test/a.dart
         package:test/b.dart
       functions
-        #F1 foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
+        #F1 isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
           element: <testLibrary>::@function::foo
           formalParameters
             #F2 optionalPositional p (nameOffset:39) (firstTokenOffset:39) (offset:39)
@@ -1759,7 +1759,7 @@ library
                     package:test/b.dart::@function::V
                   staticType: InvalidType
   functions
-    foo
+    isOriginDeclaration foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F1
       formalParameters
@@ -1793,7 +1793,7 @@ library
       libraryImports
         package:test/c.dart
       functions
-        #F1 foo (nameOffset:17) (firstTokenOffset:17) (offset:17)
+        #F1 isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:17) (offset:17)
           element: <testLibrary>::@function::foo
           formalParameters
             #F2 optionalPositional p (nameOffset:22) (firstTokenOffset:22) (offset:22)
@@ -1804,7 +1804,7 @@ library
                   element: package:test/a.dart::@function::V
                   staticType: dynamic Function()
   functions
-    foo
+    isOriginDeclaration foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F1
       formalParameters
@@ -1843,7 +1843,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@setter::V::@formalParameter::value
       functions
-        #F5 foo (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F5 isOriginDeclaration foo (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::foo
           formalParameters
             #F6 optionalPositional p (nameOffset:5) (firstTokenOffset:5) (offset:5)
@@ -1853,7 +1853,7 @@ library
                   token: V @9
                   element: <testLibrary>::@getter::V
                   staticType: dynamic
-        #F7 V (nameOffset:16) (firstTokenOffset:16) (offset:16)
+        #F7 isOriginDeclaration V (nameOffset:16) (firstTokenOffset:16) (offset:16)
           element: <testLibrary>::@function::V
   topLevelVariables
     hasImplicitType isOriginDeclaration V
@@ -1879,7 +1879,7 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::V
   functions
-    foo
+    isOriginDeclaration foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F5
       formalParameters
@@ -1890,7 +1890,7 @@ library
             fragment: #F6
             expression: expression_0
       returnType: dynamic
-    V
+    isOriginDeclaration V
       reference: <testLibrary>::@function::V
       firstFragment: #F7
       returnType: dynamic
@@ -2099,7 +2099,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F5 g (nameOffset:23) (firstTokenOffset:18) (offset:23)
+            #F5 isOriginDeclaration g (nameOffset:23) (firstTokenOffset:18) (offset:23)
               element: <testLibrary>::@class::C::@method::g
               typeParameters
                 #F6 V (nameOffset:25) (firstTokenOffset:25) (offset:25)
@@ -2120,7 +2120,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
       methods
-        g
+        isOriginDeclaration g
           reference: <testLibrary>::@class::C::@method::g
           firstFragment: #F5
           typeParameters
@@ -2166,7 +2166,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F5 g (nameOffset:23) (firstTokenOffset:18) (offset:23)
+            #F5 isOriginDeclaration g (nameOffset:23) (firstTokenOffset:18) (offset:23)
               element: <testLibrary>::@class::C::@method::g
               typeParameters
                 #F6 V (nameOffset:25) (firstTokenOffset:25) (offset:25)
@@ -2187,7 +2187,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
       methods
-        g
+        isOriginDeclaration g
           reference: <testLibrary>::@class::C::@method::g
           firstFragment: #F5
           typeParameters
@@ -2215,7 +2215,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isOriginDeclaration f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           typeParameters
             #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
@@ -2223,7 +2223,7 @@ library
             #F3 U (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E1 U
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       typeParameters
@@ -2257,7 +2257,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isOriginDeclaration f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           typeParameters
             #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
@@ -2265,7 +2265,7 @@ library
             #F3 U (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E1 U
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       typeParameters
@@ -2291,10 +2291,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isOriginDeclaration f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       returnType: void
@@ -2319,7 +2319,7 @@ library
         #F2 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::v
       functions
-        #F3 f (nameOffset:52) (firstTokenOffset:47) (offset:52)
+        #F3 isOriginDeclaration f (nameOffset:52) (firstTokenOffset:47) (offset:52)
           element: <testLibrary>::@function::f
   topLevelVariables
     final hasImplicitType hasInitializer isOriginDeclaration v
@@ -2334,7 +2334,7 @@ library
       returnType: int Function<T>(T)
       variable: <testLibrary>::@topLevelVariable::v
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F3
       returnType: bool
@@ -2354,7 +2354,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isOriginDeclaration f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           typeParameters
             #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
@@ -2365,7 +2365,7 @@ library
             #F4 requiredPositional b (nameOffset:18) (firstTokenOffset:13) (offset:18)
               element: <testLibrary>::@function::f::@formalParameter::b
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       typeParameters
@@ -2419,7 +2419,7 @@ library
                 #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
                   element: <testLibrary>::@class::C::@setter::v::@formalParameter::value
       functions
-        #F9 f (nameOffset:74) (firstTokenOffset:69) (offset:74)
+        #F9 isOriginDeclaration f (nameOffset:74) (firstTokenOffset:69) (offset:74)
           element: <testLibrary>::@function::f
   classes
     hasNonFinalField class C
@@ -2461,7 +2461,7 @@ library
           returnType: void
           variable: <testLibrary>::@class::C::@field::v
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F9
       returnType: bool
@@ -2481,7 +2481,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isOriginDeclaration f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           typeParameters
             #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
@@ -2492,7 +2492,7 @@ library
             #F4 requiredPositional b (nameOffset:18) (firstTokenOffset:13) (offset:18)
               element: <testLibrary>::@function::f::@formalParameter::b
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       typeParameters
@@ -2526,7 +2526,7 @@ library
         #F2 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::v
       functions
-        #F3 f (nameOffset:40) (firstTokenOffset:35) (offset:40)
+        #F3 isOriginDeclaration f (nameOffset:40) (firstTokenOffset:35) (offset:40)
           element: <testLibrary>::@function::f
   topLevelVariables
     final hasImplicitType hasInitializer isOriginDeclaration v
@@ -2541,7 +2541,7 @@ library
       returnType: int Function()
       variable: <testLibrary>::@topLevelVariable::v
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F3
       returnType: bool
@@ -2566,7 +2566,7 @@ library
         #F2 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::v
       functions
-        #F3 f (nameOffset:70) (firstTokenOffset:65) (offset:70)
+        #F3 isOriginDeclaration f (nameOffset:70) (firstTokenOffset:65) (offset:70)
           element: <testLibrary>::@function::f
   topLevelVariables
     final hasImplicitType hasInitializer isOriginDeclaration v
@@ -2581,7 +2581,7 @@ library
       returnType: int Function(int, String)
       variable: <testLibrary>::@topLevelVariable::v
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F3
       returnType: bool
