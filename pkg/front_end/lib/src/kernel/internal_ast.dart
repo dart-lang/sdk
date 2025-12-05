@@ -902,7 +902,7 @@ class VariableDeclarationImpl extends VariableStatement
   }
 }
 
-class InternalLocalVariable
+class InternalLocalVariable extends Node
     with InternalExpressionVariableMixin, DelegatingVariableMixin
     implements LocalVariable, InternalExpressionVariable {
   @override
@@ -923,6 +923,25 @@ class InternalLocalVariable
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
   });
+
+  @override
+  String toString() {
+    return "InternalLocalVariable(${toStringInternal()})";
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpressionVariable(astVariable);
+    List<String> modifiers = [
+      if (forSyntheticToken) "forSyntheticToken",
+      if (isImplicitlyTyped) "isImplicitlyTyped",
+      if (isLocalFunction) "isLocalFunction",
+    ];
+    if (modifiers.isNotEmpty) {
+      printer.write("[${modifiers.join(",")}]");
+    }
+  }
 }
 
 mixin DelegatingVariableMixin on InternalExpressionVariableMixin
@@ -1108,6 +1127,65 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   bool get isAssignable => astVariable.isAssignable;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsFinal => astVariable.hasIsFinal;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsConst => astVariable.hasIsConst;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsLate => astVariable.hasIsLate;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsInitializingFormal => astVariable.hasIsInitializingFormal;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsSynthesized => astVariable.hasIsSynthesized;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsHoisted => astVariable.hasIsHoisted;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasHasDeclaredInitializer => astVariable.hasHasDeclaredInitializer;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsCovariantByClass => astVariable.hasIsCovariantByClass;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsRequired => astVariable.hasIsRequired;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsCovariantByDeclaration =>
+      astVariable.hasIsCovariantByDeclaration;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsLowered => astVariable.hasIsLowered;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsWildcard => astVariable.hasIsWildcard;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsSuperInitializingFormal =>
+      astVariable.hasIsSuperInitializingFormal;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsErroneouslyInitialized =>
+      astVariable.hasIsErroneouslyInitialized;
+
+  @override
   int get fileOffset {
     throw new UnsupportedError("${this.runtimeType}");
   }
@@ -1184,13 +1262,15 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   String toStringInternal() {
-    throw new UnsupportedError("${this.runtimeType}");
+    return super.toStringInternal();
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   String toText(AstTextStrategy strategy) {
-    throw new UnsupportedError("${this.runtimeType}");
+    return super.toText(strategy);
   }
 
   @override

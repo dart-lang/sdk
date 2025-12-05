@@ -59,6 +59,7 @@ import '../source/check_helper.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart';
 import 'closure_context.dart';
+import 'context_allocation_strategy.dart';
 import 'external_ast_helper.dart';
 import 'for_in.dart';
 import 'inference_results.dart';
@@ -192,6 +193,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   // TODO(johnniwinther): This can be improved by detecting whether the assigned
   // variable was declared outside the try statement or local function.
   bool _inTryOrLocalFunction = false;
+
+  ContextAllocationStrategy _contextAllocationStrategy =
+      new TrivialContextAllocationStrategy();
 
   InferenceVisitorImpl(
     super.inferrer,
@@ -464,6 +468,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     BlockExpression node,
     DartType typeContext,
   ) {
+    _contextAllocationStrategy.enterScopeProvider(node);
     // This is only used for error cases. The spec doesn't use this and
     // therefore doesn't specify the type context for the subterms.
     StatementInferenceResult bodyResult = inferStatement(node.body);
@@ -477,6 +482,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isVoidAllowed: true,
     );
     node.value = valueResult.expression..parent = node;
+    _contextAllocationStrategy.exitScopeProvider(node);
     return new ExpressionInferenceResult(valueResult.inferredType, node);
   }
 
@@ -1204,17 +1210,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   StatementInferenceResult visitBlock(Block node) {
+    _contextAllocationStrategy.enterScopeProvider(node);
     registerIfUnreachableForTesting(node);
     List<Statement>? result = _visitStatements<Statement>(node.statements);
+    StatementInferenceResult statementInferenceResult;
     if (result != null) {
       Block block = new Block(result)..fileOffset = node.fileOffset;
       libraryBuilder.loader.dataForTesting
       // Coverage-ignore(suite): Not run.
       ?.registerAlias(node, block);
-      return new StatementInferenceResult.single(block);
+      statementInferenceResult = new StatementInferenceResult.single(block);
     } else {
-      return const StatementInferenceResult();
+      statementInferenceResult = const StatementInferenceResult();
     }
+    _contextAllocationStrategy.exitScopeProvider(node);
+    return statementInferenceResult;
   }
 
   @override
@@ -3381,6 +3391,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   StatementInferenceResult visitForInStatement(ForInStatement node) {
+    _contextAllocationStrategy.enterScopeProvider(node);
     assert(node.variable.name != null);
     ForInResult result = handleForInDeclaringVariable(
       node,
@@ -3410,6 +3421,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     node.variable = result.variable..parent = node;
     node.iterable = result.iterable..parent = node;
     node.body = body..parent = node;
+    _contextAllocationStrategy.exitScopeProvider(node);
     return const StatementInferenceResult();
   }
 
@@ -3464,6 +3476,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   StatementInferenceResult visitForStatement(ForStatement node) {
+    _contextAllocationStrategy.enterScopeProvider(node);
     List<VariableDeclaration>? variables;
     for (int index = 0; index < node.variables.length; index++) {
       VariableDeclaration variable = node.variables[index];
@@ -3538,6 +3551,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.updates[index] = updateResult.expression..parent = node;
     }
     flowAnalysis.for_end();
+    _contextAllocationStrategy.exitScopeProvider(node);
     return const StatementInferenceResult();
   }
 
@@ -13204,11 +13218,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   void visitCatch(Catch node) {
+    _contextAllocationStrategy.enterScopeProvider(node);
     StatementInferenceResult bodyResult = inferStatement(node.body);
     if (bodyResult.hasChanged) {
       // Coverage-ignore-block(suite): Not run.
       node.body = bodyResult.statement..parent = node;
     }
+    _contextAllocationStrategy.exitScopeProvider(node);
   }
 
   StatementInferenceResult visitTryStatement(TryStatement node) {
@@ -16562,6 +16578,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     StatementInferenceResult statementInferenceResult =
         _inferInternalExpressionVariableDeclaration(node, nodeVariable);
     node.variable = nodeVariable.astVariable;
+    int variableKey = assignedVariables.promotionKeyStore.keyForVariable(
+      node.variable,
+    );
+    _contextAllocationStrategy.handleVariableInitialization(
+      node,
+      captureKind:
+          (assignedVariables.anywhere.captured.contains(variableKey) ||
+              assignedVariables.anywhere.readCaptured.contains(variableKey))
+          ? CaptureKind.captured
+          : CaptureKind.notCaptured,
+    );
     return statementInferenceResult;
   }
 

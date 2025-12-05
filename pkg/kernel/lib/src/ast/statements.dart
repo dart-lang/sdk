@@ -1941,6 +1941,48 @@ class VariableStatement extends Statement implements VariableDeclaration {
   void set variable(ExpressionVariable value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
+
+  @override
+  bool get hasHasDeclaredInitializer => true;
+
+  @override
+  bool get hasIsConst => true;
+
+  @override
+  bool get hasIsCovariantByClass => true;
+
+  @override
+  bool get hasIsCovariantByDeclaration => true;
+
+  @override
+  bool get hasIsErroneouslyInitialized => true;
+
+  @override
+  bool get hasIsFinal => true;
+
+  @override
+  bool get hasIsHoisted => true;
+
+  @override
+  bool get hasIsInitializingFormal => true;
+
+  @override
+  bool get hasIsLate => true;
+
+  @override
+  bool get hasIsLowered => true;
+
+  @override
+  bool get hasIsRequired => true;
+
+  @override
+  bool get hasIsSuperInitializingFormal => true;
+
+  @override
+  bool get hasIsSynthesized => true;
+
+  @override
+  bool get hasIsWildcard => true;
 }
 
 /// Declaration a local function.

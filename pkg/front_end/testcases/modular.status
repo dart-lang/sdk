@@ -21,5 +21,4 @@ inference/mixin_inference_unification_2: TypeCheckError
 coverage/static2_test: TypeCheckError
 
 # Temporarily unimplemented binary serialization, see https://github.com/dart-lang/sdk/issues/61765
-closure_context_lowering/local_functions: ExpectationFileMismatchSerialized
 closure_context_lowering/local_variables: Crash
