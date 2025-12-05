@@ -2,5 +2,5 @@ library;
 import self as self;
 
 static method test1() → dynamic {
-  function test2() → Null /* scope= */ {}
+  function test2() → Null {}
 }

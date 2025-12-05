@@ -619,7 +619,16 @@ class BodyBuilderImpl extends StackListenerImpl
 
   @override
   void registerVariableAssignment(ExpressionVariable variable) {
-    assignedVariables.write(variable);
+    // TODO(cstefantsova): Always pass [variable] to [assignedVariables.write]
+    // when [InferenceVisitorBase.flowAnalysis] will use
+    // [InternalExpressionVariable] instead of [ExpressionVariable] (that is,
+    // pass it for the `Variable` type parameter of [FlowAnalysis]).
+    if (variable case InternalExpressionVariable variable) {
+      assignedVariables.write(variable.astVariable);
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      assignedVariables.write(variable);
+    }
   }
 
   @override
@@ -2586,10 +2595,15 @@ class BodyBuilderImpl extends StackListenerImpl
 
   @override
   void registerVariableRead(ExpressionVariable variable) {
-    if (!(variable is InternalExpressionVariable &&
-            (variable as InternalExpressionVariable).isLocalFunction) &&
-        !variable.isWildcard) {
-      assignedVariables.read(variable);
+    if (variable case InternalExpressionVariable variable) {
+      if (!variable.isLocalFunction && !variable.isWildcard) {
+        assignedVariables.read(variable.astVariable);
+      }
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      if (!variable.isWildcard) {
+        assignedVariables.read(variable);
+      }
     }
   }
 
@@ -3462,21 +3476,23 @@ class BodyBuilderImpl extends StackListenerImpl
       name = createWildcardVariableName(wildcardVariableIndex);
       wildcardVariableIndex++;
     }
-    VariableInitialization variable;
+    VariableInitialization variableInitialization;
+    InternalExpressionVariable internalVariable;
     if (isClosureContextLoweringEnabled) {
-      variable = new VariableInitialization(
-        variable: new InternalLocalVariable(
-          astVariable: new LocalVariable(
-            cosmeticName: name,
-            type: currentLocalVariableType,
-          ),
-          forSyntheticToken: identifier.token.isSynthetic,
-          isImplicitlyTyped: currentLocalVariableType == null,
-        ).asExpressionVariable,
+      internalVariable = new InternalLocalVariable(
+        astVariable: new LocalVariable(
+          cosmeticName: name,
+          type: currentLocalVariableType,
+        ),
+        forSyntheticToken: identifier.token.isSynthetic,
+        isImplicitlyTyped: currentLocalVariableType == null,
+      );
+      variableInitialization = new VariableInitialization(
+        variable: internalVariable.asExpressionVariable,
         initializer: initializer,
       );
     } else {
-      variable =
+      variableInitialization = internalVariable =
           new VariableDeclarationImpl(
               name,
               forSyntheticToken: identifier.token.isSynthetic,
@@ -3493,8 +3509,8 @@ class BodyBuilderImpl extends StackListenerImpl
             ..fileOffset = identifier.nameOffset
             ..fileEqualsOffset = offsetForToken(equalsToken);
     }
-    assignedVariables.declare(variable.variable);
-    push(variable);
+    assignedVariables.declare(internalVariable.astVariable);
+    push(variableInitialization);
   }
 
   @override
@@ -7762,12 +7778,6 @@ class BodyBuilderImpl extends StackListenerImpl
       body,
       token.charOffset,
     );
-
-    if (isClosureContextLoweringEnabled) {
-      // TODO(cstefantsova): Add function parameters to the scope.
-      function.scope = new Scope(contexts: [])
-        ..fileOffset = function.fileOffset;
-    }
 
     if (declaration is FunctionDeclaration) {
       VariableDeclaration variable = declaration.variable;

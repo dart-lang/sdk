@@ -258,5 +258,4 @@ wildcard_variables/local_var_no_shadowing: semiFuzzFailureOnForceRebuildBodies #
 wildcard_variables/top_level_function_no_shadow: semiFuzzFailureOnForceRebuildBodies # Expected
 
 # Temporarily unimplemented binary serialization, see https://github.com/dart-lang/sdk/issues/61765
-closure_context_lowering/local_functions: ExpectationFileMismatchSerialized
 closure_context_lowering/local_variables: Crash

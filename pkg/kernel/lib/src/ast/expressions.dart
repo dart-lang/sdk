@@ -246,7 +246,7 @@ class VariableGet extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write(printer.getVariableName(variable));
+    printer.write(printer.getVariableName(expressionVariable));
     if (promotedType != null) {
       printer.write('{');
       printer.writeType(promotedType!);

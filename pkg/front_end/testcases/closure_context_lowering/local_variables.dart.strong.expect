@@ -1,7 +1,20 @@
 library;
 import self as self;
+import "dart:core" as core;
 
-static method test() → dynamic {
+static method testNotCaptured() → dynamic /* scope=[
+  not-captured VariableContext([
+    local-variable a;
+  ]),
+] */ {
   a := 0;
   return a;
+}
+static method testCaptured() → dynamic /* scope=[
+  captured VariableContext([
+    local-variable a;
+  ]),
+] */ {
+  a := 0;
+  return () → core::int => a;
 }

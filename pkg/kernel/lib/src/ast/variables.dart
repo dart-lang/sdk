@@ -45,6 +45,20 @@ abstract interface class IExpressionVariable implements TreeNode {
   abstract bool isSuperInitializingFormal;
   abstract bool isErroneouslyInitialized;
   bool get isAssignable;
+  bool get hasIsFinal;
+  bool get hasIsConst;
+  bool get hasIsLate;
+  bool get hasIsInitializingFormal;
+  bool get hasIsSynthesized;
+  bool get hasIsHoisted;
+  bool get hasHasDeclaredInitializer;
+  bool get hasIsCovariantByClass;
+  bool get hasIsRequired;
+  bool get hasIsCovariantByDeclaration;
+  bool get hasIsLowered;
+  bool get hasIsWildcard;
+  bool get hasIsSuperInitializingFormal;
+  bool get hasIsErroneouslyInitialized;
   ExpressionVariable get asExpressionVariable;
 }
 
@@ -91,6 +105,34 @@ sealed class ExpressionVariable extends Variable
   abstract bool isSuperInitializingFormal;
   @override
   abstract bool isErroneouslyInitialized;
+  @override
+  bool get hasIsFinal;
+  @override
+  bool get hasIsConst;
+  @override
+  bool get hasIsLate;
+  @override
+  bool get hasIsInitializingFormal;
+  @override
+  bool get hasIsSynthesized;
+  @override
+  bool get hasIsHoisted;
+  @override
+  bool get hasHasDeclaredInitializer;
+  @override
+  bool get hasIsCovariantByClass;
+  @override
+  bool get hasIsRequired;
+  @override
+  bool get hasIsCovariantByDeclaration;
+  @override
+  bool get hasIsLowered;
+  @override
+  bool get hasIsWildcard;
+  @override
+  bool get hasIsSuperInitializingFormal;
+  @override
+  bool get hasIsErroneouslyInitialized;
 
   @override
   bool get isAssignable;
@@ -300,6 +342,48 @@ class LocalVariable extends ExpressionVariable {
   }
 
   String? get name => cosmeticName;
+
+  @override
+  bool get hasIsFinal => true;
+
+  @override
+  bool get hasIsConst => true;
+
+  @override
+  bool get hasIsLate => true;
+
+  @override
+  bool get hasIsInitializingFormal => false;
+
+  @override
+  bool get hasIsSynthesized => false;
+
+  @override
+  bool get hasIsHoisted => true;
+
+  @override
+  bool get hasHasDeclaredInitializer => false;
+
+  @override
+  bool get hasIsCovariantByClass => false;
+
+  @override
+  bool get hasIsRequired => false;
+
+  @override
+  bool get hasIsCovariantByDeclaration => false;
+
+  @override
+  bool get hasIsLowered => true;
+
+  @override
+  bool get hasIsWildcard => true;
+
+  @override
+  bool get hasIsSuperInitializingFormal => false;
+
+  @override
+  bool get hasIsErroneouslyInitialized => false;
 }
 
 /// Abstract parameter class, the parent for positional and named parameters.
@@ -513,6 +597,48 @@ class PositionalParameter extends FunctionParameter {
   }
 
   String? get name => cosmeticName;
+
+  @override
+  bool get hasIsFinal => true;
+
+  @override
+  bool get hasIsConst => false;
+
+  @override
+  bool get hasIsLate => false;
+
+  @override
+  bool get hasIsInitializingFormal => true;
+
+  @override
+  bool get hasIsSynthesized => false;
+
+  @override
+  bool get hasIsHoisted => false;
+
+  @override
+  bool get hasHasDeclaredInitializer => false;
+
+  @override
+  bool get hasIsCovariantByClass => true;
+
+  @override
+  bool get hasIsRequired => true;
+
+  @override
+  bool get hasIsCovariantByDeclaration => true;
+
+  @override
+  bool get hasIsLowered => false;
+
+  @override
+  bool get hasIsWildcard => true;
+
+  @override
+  bool get hasIsSuperInitializingFormal => true;
+
+  @override
+  bool get hasIsErroneouslyInitialized => false;
 }
 
 /// Named parameters. The [name] field is mandatory.
@@ -562,6 +688,48 @@ class NamedParameter extends FunctionParameter {
   void set initializer(Expression? value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
+
+  @override
+  bool get hasIsFinal => true;
+
+  @override
+  bool get hasIsConst => false;
+
+  @override
+  bool get hasIsLate => false;
+
+  @override
+  bool get hasIsInitializingFormal => true;
+
+  @override
+  bool get hasIsSynthesized => false;
+
+  @override
+  bool get hasIsHoisted => false;
+
+  @override
+  bool get hasHasDeclaredInitializer => false;
+
+  @override
+  bool get hasIsCovariantByClass => true;
+
+  @override
+  bool get hasIsRequired => true;
+
+  @override
+  bool get hasIsCovariantByDeclaration => true;
+
+  @override
+  bool get hasIsLowered => false;
+
+  @override
+  bool get hasIsWildcard => true;
+
+  @override
+  bool get hasIsSuperInitializingFormal => true;
+
+  @override
+  bool get hasIsErroneouslyInitialized => false;
 }
 
 /// The variable storage for `this`.
@@ -758,6 +926,48 @@ class ThisVariable extends ExpressionVariable {
   }
 
   String? get name => cosmeticName;
+
+  @override
+  bool get hasIsFinal => true;
+
+  @override
+  bool get hasIsConst => true;
+
+  @override
+  bool get hasIsLate => true;
+
+  @override
+  bool get hasIsInitializingFormal => true;
+
+  @override
+  bool get hasIsSynthesized => true;
+
+  @override
+  bool get hasIsHoisted => true;
+
+  @override
+  bool get hasHasDeclaredInitializer => true;
+
+  @override
+  bool get hasIsCovariantByClass => true;
+
+  @override
+  bool get hasIsRequired => true;
+
+  @override
+  bool get hasIsCovariantByDeclaration => true;
+
+  @override
+  bool get hasIsLowered => true;
+
+  @override
+  bool get hasIsWildcard => true;
+
+  @override
+  bool get hasIsSuperInitializingFormal => true;
+
+  @override
+  bool get hasIsErroneouslyInitialized => true;
 }
 
 /// A variable introduced during desugaring. Such variables don't correspond to
@@ -949,6 +1159,48 @@ class SyntheticVariable extends ExpressionVariable {
   }
 
   String? get name => cosmeticName;
+
+  @override
+  bool get hasIsFinal => true;
+
+  @override
+  bool get hasIsConst => false;
+
+  @override
+  bool get hasIsLate => false;
+
+  @override
+  bool get hasIsInitializingFormal => false;
+
+  @override
+  bool get hasIsSynthesized => false;
+
+  @override
+  bool get hasIsHoisted => true;
+
+  @override
+  bool get hasHasDeclaredInitializer => false;
+
+  @override
+  bool get hasIsCovariantByClass => false;
+
+  @override
+  bool get hasIsRequired => false;
+
+  @override
+  bool get hasIsCovariantByDeclaration => false;
+
+  @override
+  bool get hasIsLowered => true;
+
+  @override
+  bool get hasIsWildcard => false;
+
+  @override
+  bool get hasIsSuperInitializingFormal => false;
+
+  @override
+  bool get hasIsErroneouslyInitialized => false;
 }
 
 /// The enum reflecting the kind of a variable context. A context is
@@ -968,6 +1220,11 @@ class VariableContext extends TreeNode {
   final List<Variable> variables;
 
   VariableContext({required this.captureKind, required this.variables});
+
+  void addVariable(Variable variable) {
+    variable.parent = this;
+    variables.add(variable);
+  }
 
   @override
   R accept<R>(TreeVisitor<R> v) {
@@ -1024,6 +1281,11 @@ class Scope extends TreeNode {
 
   Scope({required this.contexts});
 
+  void addContext(VariableContext context) {
+    context.parent = this;
+    contexts.add(context);
+  }
+
   @override
   R accept<R>(TreeVisitor<R> v) {
     // TODO(cstefantsova): Implement accept.
@@ -1076,5 +1338,5 @@ sealed class ScopeProvider {
   ///
   /// It's represented as nullable due to the experimental status of the
   /// feature. When the feature isn't enabled, [scope] should return null.
-  Scope? get scope;
+  abstract Scope? scope;
 }
