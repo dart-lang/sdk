@@ -111,6 +111,8 @@ abstract class DartEditBuilder implements EditBuilder {
   /// type of the field. (The keyword `var` will be provided automatically when
   /// required.) If a [typeGroupName] is provided, then if a type was written
   /// it will be in the linked edit group with that name.
+  ///
+  /// {@macro typeParametersInScope}
   void writeFieldDeclaration(
     String name, {
     void Function()? initializerWriter,
@@ -120,6 +122,8 @@ abstract class DartEditBuilder implements EditBuilder {
     String? nameGroupName,
     DartType? type,
     String? typeGroupName,
+    bool alwaysWriteType = false,
+    List<TypeParameterElement>? typeParametersInScope,
   });
 
   /// Writes the code for a single parameter with the given [name].
@@ -203,6 +207,8 @@ abstract class DartEditBuilder implements EditBuilder {
   /// [returnType] is provided, then it will be used as the return type of the
   /// getter. If a [returnTypeGroupName] is provided, then if a return type was
   /// written it will be in the linked edit group with that name.
+  ///
+  /// {@macro typeParametersInScope}
   void writeGetterDeclaration(
     String name, {
     void Function() bodyWriter,
@@ -210,6 +216,8 @@ abstract class DartEditBuilder implements EditBuilder {
     String nameGroupName,
     DartType returnType,
     String returnTypeGroupName,
+    bool alwaysWriteType = false,
+    List<TypeParameterElement>? typeParametersInScope,
   });
 
   /// Writes the given [name], possibly with a prefix, assuming that the name
@@ -358,6 +366,7 @@ abstract class DartEditBuilder implements EditBuilder {
     String? nameGroupName,
     DartType? parameterType,
     String? parameterTypeGroupName,
+    bool alwaysWriteType = false,
     List<TypeParameterElement>? typeParametersInScope,
   });
 

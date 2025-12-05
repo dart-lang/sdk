@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/dart_type.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -11,6 +12,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:meta/meta.dart';
@@ -26,6 +28,7 @@ abstract class CreateFieldOrGetter extends ResolvedCorrectionProducer {
     required InterfaceElement? targetElement,
     required String fieldName,
     required DartType? fieldType,
+    required InterfaceType? targetType,
   });
 
   @protected
@@ -68,6 +71,9 @@ abstract class CreateFieldOrGetter extends ResolvedCorrectionProducer {
     }
 
     var matchedType = objectPattern.type.typeOrThrow;
+    if (matchedType case TypeParameterType(:TypeImpl bound)) {
+      matchedType = bound;
+    }
     if (matchedType is! InterfaceTypeImpl) {
       return;
     }
@@ -80,6 +86,7 @@ abstract class CreateFieldOrGetter extends ResolvedCorrectionProducer {
       targetElement: matchedType.element,
       fieldName: effectiveName,
       fieldType: fieldType,
+      targetType: matchedType,
     );
   }
 }
@@ -106,14 +113,19 @@ class CreateGetter extends CreateFieldOrGetter {
     required InterfaceElement? targetElement,
     required String fieldName,
     required DartType? fieldType,
+    required InterfaceType? targetType,
   }) async {
     _getterName = fieldName;
+    var bound = targetType.typeParameterCorrespondingTo(fieldType);
 
     await _addDeclaration(
       builder: builder,
       staticModifier: false,
       targetElement: targetElement,
-      fieldType: fieldType,
+      fieldType: bound ?? fieldType,
+      typeParametersInScope: [
+        ?bound.ifTypeOrNull<TypeParameterType>()?.element,
+      ],
     );
   }
 
@@ -142,15 +154,23 @@ class CreateGetter extends CreateFieldOrGetter {
     // prepare target element
     var staticModifier = false;
     InstanceElement? targetElement;
+    InterfaceType? targetType;
     if (target is ExtensionOverride) {
       targetElement = target.element;
-    } else if (target case Identifier(element: InstanceElement element)) {
+    } else if (target case Identifier(
+      element: InstanceElement element,
+      :var writeOrReadType,
+    )) {
       targetElement = element;
       staticModifier = true;
+      if (writeOrReadType is InterfaceType) {
+        targetType = writeOrReadType;
+      }
     } else if (target != null) {
       // prepare target interface type
-      var targetType = target.staticType;
-      if (targetType is! InterfaceType) {
+      if (target.staticType case InterfaceType type) {
+        targetType = type;
+      } else {
         return;
       }
       targetElement = targetType.element;
@@ -176,6 +196,10 @@ class CreateGetter extends CreateFieldOrGetter {
         }
         targetElement = targetElement.extendedInterfaceElement;
       }
+      if (targetElement?.thisType case InterfaceType type
+          when !staticModifier) {
+        targetType = type;
+      }
       if (targetElement == null) {
         return;
       }
@@ -186,12 +210,16 @@ class CreateGetter extends CreateFieldOrGetter {
     if (fieldType is InvalidType) {
       return;
     }
+    var bound = targetType.typeParameterCorrespondingTo(fieldType);
 
     await _addDeclaration(
       builder: builder,
       staticModifier: staticModifier,
       targetElement: targetElement,
-      fieldType: fieldType,
+      fieldType: bound ?? fieldType,
+      typeParametersInScope: [
+        ?bound.ifTypeOrNull<TypeParameterType>()?.element,
+      ],
     );
   }
 
@@ -200,6 +228,7 @@ class CreateGetter extends CreateFieldOrGetter {
     required bool staticModifier,
     required InstanceElement? targetElement,
     required DartType? fieldType,
+    required List<TypeParameterElement>? typeParametersInScope,
   }) async {
     if (targetElement == null) {
       return;
@@ -227,6 +256,7 @@ class CreateGetter extends CreateFieldOrGetter {
           nameGroupName: 'NAME',
           returnType: fieldType ?? typeProvider.dynamicType,
           returnTypeGroupName: 'TYPE',
+          typeParametersInScope: typeParametersInScope,
         );
       });
     });
