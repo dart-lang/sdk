@@ -5975,6 +5975,20 @@ class LibraryElementImpl extends ElementImpl
 
   @override
   @trackedDirectly
+  bool get isOriginNotExistingFile {
+    globalResultRequirements?.record_library_isOriginNotExistingFile(
+      element: this,
+    );
+    return hasModifier(Modifier.ORIGIN_NOT_EXISTING_FILE);
+  }
+
+  set isOriginNotExistingFile(bool value) {
+    setModifier(Modifier.ORIGIN_NOT_EXISTING_FILE, value);
+  }
+
+  @Deprecated('Use isOriginNotExistingFile instead')
+  @override
+  @trackedDirectly
   bool get isSynthetic {
     globalResultRequirements?.record_library_isSynthetic(element: this);
     return hasModifier(Modifier.SYNTHETIC);
@@ -6930,17 +6944,20 @@ class LibraryFragmentImpl extends FragmentImpl
   bool shouldIgnoreUndefined({required String? prefix, required String name}) {
     for (var libraryFragment in withEnclosing) {
       for (var importElement in libraryFragment.libraryImports) {
-        if (importElement.prefix?.element.name == prefix &&
-            importElement.importedLibrary?.isSynthetic != false) {
-          var showCombinators = importElement.combinators
-              .whereType<ShowElementCombinator>()
-              .toList();
-          if (prefix != null && showCombinators.isEmpty) {
-            return true;
-          }
-          for (var combinator in showCombinators) {
-            if (combinator.shownNames.contains(name)) {
+        if (importElement.prefix?.element.name == prefix) {
+          var importedLibrary = importElement.importedLibrary;
+          if (importedLibrary == null ||
+              importedLibrary.isOriginNotExistingFile) {
+            var showCombinators = importElement.combinators
+                .whereType<ShowElementCombinator>()
+                .toList();
+            if (prefix != null && showCombinators.isEmpty) {
               return true;
+            }
+            for (var combinator in showCombinators) {
+              if (combinator.shownNames.contains(name)) {
+                return true;
+              }
             }
           }
         }
@@ -8163,6 +8180,9 @@ enum Modifier {
 
   /// Whether the constructor was created for a mixin application.
   ORIGIN_MIXIN_APPLICATION,
+
+  /// Indicates that the library is created from a file that does not exist.
+  ORIGIN_NOT_EXISTING_FILE,
 
   /// Whether the property accessor is from a field or top-level variable.
   ORIGIN_VARIABLE,

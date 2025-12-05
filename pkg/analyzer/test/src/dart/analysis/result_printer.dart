@@ -59,6 +59,12 @@ class BundleRequirementsPrinter extends ManifestPrinter {
           if (libraryRequirements.name case var name?) {
             sink.writelnWithIndent('name: $name');
           }
+          // TODO(scheglov): print it
+          // if (libraryRequirements.isOriginNotExistingFile case var value?) {
+          //   if (value) {
+          //     sink.writelnWithIndent('isOriginNotExistingFile: $value');
+          //   }
+          // }
           if (libraryRequirements.isSynthetic case var value?) {
             if (value) {
               sink.writelnWithIndent('isSynthetic: $value');
@@ -643,6 +649,13 @@ class DriverEventsPrinter {
           'expected': failure.expected ?? '<null>',
           'actual': failure.actual ?? '<null>',
         });
+      case LibraryIsOriginNotExistingFileMismatch():
+        sink.writelnWithIndent('libraryIsOriginNotExistingFileMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'expected': failure.expected,
+          'actual': failure.actual,
+        });
       case LibraryFeatureSetMismatch():
         sink.writelnWithIndent('libraryFeatureSetMismatch');
         sink.writeProperties({'libraryUri': failure.libraryUri});
@@ -1137,6 +1150,10 @@ class LibraryManifestPrinter extends ManifestPrinter {
     if (manifest.name case var name?) {
       sink.writelnWithIndent('name: $name');
     }
+    // TODO(scheglov): print it
+    // sink.writeFlags({
+    //   'isOriginNotExistingFile': manifest.isOriginNotExistingFile,
+    // });
     sink.writeFlags({'isSynthetic': manifest.isSynthetic});
 
     var libraryMetadata = manifest.libraryMetadata;

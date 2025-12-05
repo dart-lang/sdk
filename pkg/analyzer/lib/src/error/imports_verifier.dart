@@ -65,7 +65,7 @@ class ImportsVerifier {
         if (libraryElement == null) {
           continue;
         }
-        if (libraryElement.isSynthetic) {
+        if (libraryElement.isOriginNotExistingFile) {
           continue;
         }
         _allImports.add(directive);
@@ -247,7 +247,7 @@ class ImportsVerifier {
           }
 
           // The URI target does not exist, reported this elsewhere.
-          if (uri.library.isSynthetic) {
+          if (uri.library.isOriginNotExistingFile) {
             continue;
           }
 

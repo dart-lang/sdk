@@ -2235,6 +2235,9 @@ abstract class LibraryElement implements Element {
   /// Whether the library is part of the SDK.
   bool get isInSdk;
 
+  /// Whether the library is created from a file that does not exist.
+  bool get isOriginNotExistingFile;
+
   /// The language version for this library.
   LibraryLanguageVersion get languageVersion;
 

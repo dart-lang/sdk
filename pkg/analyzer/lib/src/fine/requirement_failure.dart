@@ -418,6 +418,29 @@ class LibraryFeatureSetMismatch extends RequirementFailure {
   }
 }
 
+class LibraryIsOriginNotExistingFileMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final bool expected;
+  final bool actual;
+
+  LibraryIsOriginNotExistingFileMismatch({
+    required this.libraryUri,
+    required this.expected,
+    required this.actual,
+  });
+
+  @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.libraryIsOriginNotExistingFileMismatch;
+  }
+
+  @override
+  String toString() {
+    return 'LibraryIsOriginNotExistingFileMismatch(libraryUri: $libraryUri, '
+        'expected: $expected, actual: $actual)';
+  }
+}
+
 class LibraryIsSyntheticMismatch extends RequirementFailure {
   final Uri libraryUri;
   final bool expected;
@@ -615,7 +638,8 @@ enum RequirementFailureKindId {
   superImplementedMethodIdMismatch(43),
   topLevelIdMismatch(44),
   topLevelNotInstance(45),
-  topLevelNotInterface(46);
+  topLevelNotInterface(46),
+  libraryIsOriginNotExistingFileMismatch(47);
 
   final int id;
 
