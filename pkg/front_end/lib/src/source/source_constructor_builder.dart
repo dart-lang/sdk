@@ -13,7 +13,6 @@ import '../api_prototype/experimental_flags.dart';
 import '../base/compiler_context.dart';
 import '../base/messages.dart'
     show
-        LocatedMessage,
         Message,
         codeMoreThanOneSuperInitializer,
         codeRedirectingConstructorWithAnotherInitializer,
@@ -321,38 +320,12 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
       } else {
         inferenceResult?.applyResult(_initializers, parent);
         superInitializer = initializer;
-
-        LocatedMessage? message = problemReporting.checkArgumentsForFunction(
-          function: initializer.target.function,
-          arguments: initializer.arguments,
-          fileOffset: initializer.arguments.fileOffset,
-          fileUri: fileUri,
-          typeParameters: <TypeParameter>[],
-        );
-        if (message != null) {
-          _initializers.add(
-            createInvalidInitializer(
-              problemReporting.buildProblemFromLocatedMessage(
-                compilerContext: compilerContext,
-                message: message,
-              ),
-            )..parent = parent,
-          );
-          return false;
-        } else {
-          _initializers.add(initializer..parent = parent);
-          return true;
-        }
+        _initializers.add(initializer..parent = parent);
+        return true;
       }
     } else if (initializer
-        case RedirectingInitializer(
-              target: Member initializerTarget,
-              arguments: var initializerArguments as ArgumentsImpl,
-            ) ||
-            ExtensionTypeRedirectingInitializer(
-              target: Member initializerTarget,
-              arguments: var initializerArguments,
-            )) {
+        case RedirectingInitializer() ||
+            ExtensionTypeRedirectingInitializer()) {
       if (superInitializer != null) {
         // Point to the existing super initializer.
         _injectInvalidInitializer(
@@ -408,31 +381,8 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
         if (initializer is RedirectingInitializer) {
           redirectingInitializer = initializer;
         }
-
-        LocatedMessage? message = problemReporting.checkArgumentsForFunction(
-          function: initializerTarget.function!,
-          arguments: initializerArguments,
-          fileOffset: initializerArguments.fileOffset,
-          fileUri: fileUri,
-          typeParameters: initializer is ExtensionTypeRedirectingInitializer
-              ? initializerTarget.function!.typeParameters
-              : const <TypeParameter>[],
-        );
-        if (message != null) {
-          _initializers.add(
-            createInvalidInitializer(
-              problemReporting.buildProblemFromLocatedMessage(
-                compilerContext: compilerContext,
-                message: message,
-              ),
-            )..parent = parent,
-          );
-          markAsErroneous();
-          return false;
-        } else {
-          _initializers.add(initializer..parent = parent);
-          return true;
-        }
+        _initializers.add(initializer..parent = parent);
+        return true;
       }
     } else if (redirectingInitializer != null) {
       int length = noLength;
