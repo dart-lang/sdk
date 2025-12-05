@@ -773,7 +773,10 @@ class LibraryBuilder {
       nameLength,
       libraryUnitNode.featureSet,
     );
-    libraryElement.isSynthetic = !libraryFile.exists;
+    if (!libraryFile.exists) {
+      libraryElement.isOriginNotExistingFile = true;
+      libraryElement.isSynthetic = true;
+    }
     libraryElement.languageVersion = libraryUnitNode.languageVersion;
     libraryElement.reference = libraryReference;
     libraryReference.element = libraryElement;

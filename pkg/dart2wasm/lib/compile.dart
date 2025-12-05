@@ -608,8 +608,8 @@ Future<CompilationResult> _runTfaPhase(
 
 Future<CodegenResult> _loadCodegenResult(compiler.WasmCompilerOptions options,
     CompilerPhaseInputOutputManager ioManager) async {
-  return CodegenResult(options.mainUri.toFilePath(),
-      await ioManager.getModuleCount(options.mainUri));
+  final mainUri = (await ioManager.resolveUri(options.mainUri))!.toFilePath();
+  return CodegenResult(mainUri, await ioManager.getModuleCount(mainUri));
 }
 
 Future<CompilationResult> _runCodegenPhase(

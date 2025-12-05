@@ -54,11 +54,14 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   StringBuffer? _carbonCopyBuffer;
 
   DartEditBuilderImpl(
-    super.sourceFileEditBuilder,
+    DartFileEditBuilderImpl super.sourceFileEditBuilder,
     super.offset,
     super.length, {
     super.description,
   });
+
+  CodeStyleOptions get _codeStyleOptions =>
+      _dartFileEditBuilder._codeStyleOptions;
 
   DartFileEditBuilderImpl get _dartFileEditBuilder =>
       fileEditBuilder as DartFileEditBuilderImpl;
@@ -206,7 +209,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     String? nameGroupName,
     DartType? type,
     String? typeGroupName,
+    bool alwaysWriteType = false,
+    List<TypeParameterElement>? typeParametersInScope,
   }) {
+    alwaysWriteType = alwaysWriteType || _codeStyleOptions.specifyTypes;
     if (isStatic) {
       write(Keyword.STATIC.lexeme);
       write(' ');
@@ -221,13 +227,19 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(' ');
       typeRequired = false;
     }
-    if (type != null) {
+    if (type != null || alwaysWriteType) {
       // `writeType` will write `var` for `dynamic`, which we cannot use after
       // `final`.
-      if (isFinal && type is DynamicType) {
+      if ((isFinal || alwaysWriteType) && type is DynamicType) {
         write(Keyword.DYNAMIC.lexeme);
       } else {
-        writeType(type, groupName: typeGroupName, required: !isFinal);
+        writeType(
+          type,
+          groupName: typeGroupName,
+          required: !isFinal,
+          shouldWriteDynamic: alwaysWriteType,
+          typeParametersInScope: typeParametersInScope,
+        );
       }
       write(' ');
     } else if (typeRequired) {
@@ -257,29 +269,24 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     String? typeGroupName,
     bool isRequiredType = false,
   }) {
-    bool writeTypeIfCan() {
-      if (_canWriteType(type, typeParametersInScope: typeParametersInScope) &&
-          (isRequiredType || type is! DynamicType)) {
-        _writeType(
-          type,
-          typeParametersInScope: typeParametersInScope,
-          shouldWriteDynamic: isRequiredType,
-        );
-        return true;
-      }
-      return false;
-    }
-
     bool writeType() {
       if (typeGroupName != null) {
         late bool hasType;
         addLinkedEdit(typeGroupName, (DartLinkedEditBuilder builder) {
-          hasType = writeTypeIfCan();
+          hasType = _writeTypeIfCan(
+            type,
+            typeParametersInScope: typeParametersInScope,
+            shouldWriteDynamic: isRequiredType,
+          );
           builder.addSuperTypesAsSuggestions(type);
         });
         return hasType;
       }
-      return writeTypeIfCan();
+      return _writeTypeIfCan(
+        type,
+        typeParametersInScope: typeParametersInScope,
+        shouldWriteDynamic: isRequiredType,
+      );
     }
 
     void writeName() {
@@ -424,13 +431,21 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     String? nameGroupName,
     DartType? returnType,
     String? returnTypeGroupName,
+    bool alwaysWriteType = false,
+    List<TypeParameterElement>? typeParametersInScope,
   }) {
+    alwaysWriteType = alwaysWriteType || _codeStyleOptions.specifyReturnTypes;
     if (isStatic) {
       write(Keyword.STATIC.lexeme);
       write(' ');
     }
-    if (returnType != null && returnType is! DynamicType) {
-      if (writeType(returnType, groupName: returnTypeGroupName)) {
+    if (alwaysWriteType || (returnType != null && returnType is! DynamicType)) {
+      if (writeType(
+        returnType,
+        groupName: returnTypeGroupName,
+        typeParametersInScope: typeParametersInScope,
+        shouldWriteDynamic: alwaysWriteType,
+      )) {
         write(' ');
       }
     }
@@ -700,29 +715,24 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     String? typeGroupName,
     bool isRequiredType = false,
   }) {
-    bool writeTypeIfCan() {
-      if (_canWriteType(type, typeParametersInScope: typeParametersInScope) &&
-          (isRequiredType || type is! DynamicType)) {
-        _writeType(
-          type,
-          typeParametersInScope: typeParametersInScope,
-          shouldWriteDynamic: isRequiredType,
-        );
-        return true;
-      }
-      return false;
-    }
-
     bool writeType() {
       if (typeGroupName != null) {
         late bool hasType;
         addLinkedEdit(typeGroupName, (DartLinkedEditBuilder builder) {
-          hasType = writeTypeIfCan();
+          hasType = _writeTypeIfCan(
+            type,
+            typeParametersInScope: typeParametersInScope,
+            shouldWriteDynamic: isRequiredType,
+          );
           builder.addSuperTypesAsSuggestions(type);
         });
         return hasType;
       }
-      return writeTypeIfCan();
+      return _writeTypeIfCan(
+        type,
+        typeParametersInScope: typeParametersInScope,
+        shouldWriteDynamic: isRequiredType,
+      );
     }
 
     void writeName() {
@@ -853,8 +863,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     String? nameGroupName,
     DartType? parameterType,
     String? parameterTypeGroupName,
+    bool alwaysWriteType = false,
     List<TypeParameterElement>? typeParametersInScope,
   }) {
+    alwaysWriteType = alwaysWriteType || _codeStyleOptions.specifyTypes;
     if (isStatic) {
       write(Keyword.STATIC.lexeme);
       write(' ');
@@ -867,11 +879,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(name);
     }
     write('(');
-    if (parameterType != null && parameterType is! DynamicType) {
+    parameterType ??= DynamicTypeImpl.instance;
+    if (alwaysWriteType || parameterType is! DynamicType) {
       if (writeType(
         parameterType,
         groupName: parameterTypeGroupName,
         typeParametersInScope: typeParametersInScope,
+        shouldWriteDynamic: alwaysWriteType,
       )) {
         write(' ');
       }
@@ -898,31 +912,23 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }) {
     var wroteType = false;
     if (type != null) {
-      // TODO(FMorschel): Refactor all similar (same name) local functions to
-      // a private method.
-      void writeTypeIfCan() {
-        if (_canWriteType(type, typeParametersInScope: typeParametersInScope) &&
-            (shouldWriteDynamic || type is! DynamicType)) {
-          _writeType(
+      if (groupName != null) {
+        addLinkedEdit(groupName, (LinkedEditBuilder builder) {
+          wroteType = _writeTypeIfCan(
             type,
             typeParametersInScope: typeParametersInScope,
             shouldWriteDynamic: shouldWriteDynamic,
           );
-          wroteType = true;
-          return;
-        }
-        wroteType = false;
-      }
-
-      if (groupName != null) {
-        addLinkedEdit(groupName, (LinkedEditBuilder builder) {
-          writeTypeIfCan();
           if (wroteType && addSupertypeProposals) {
             _addSuperTypeProposals(builder, type, {});
           }
         });
       } else {
-        writeTypeIfCan();
+        wroteType = _writeTypeIfCan(
+          type,
+          typeParametersInScope: typeParametersInScope,
+          shouldWriteDynamic: shouldWriteDynamic,
+        );
       }
     }
     if (!wroteType && required) {
@@ -939,17 +945,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }) {
     write(typeParameter.name ?? '');
     if (typeParameter.bound != null) {
-      if (_canWriteType(
+      _writeTypeIfCan(
         typeParameter.bound,
         typeParametersInScope: typeParametersInScope,
-      )) {
-        write(' extends ');
-        _writeType(
-          typeParameter.bound,
-          typeParametersInScope: typeParametersInScope,
-          shouldWriteDynamic: true,
-        );
-      }
+        shouldWriteDynamic: true,
+        prefix: ' extends ',
+      );
     }
   }
 
@@ -1055,7 +1056,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// Checks if the code to reference [type] in this compilation unit can be
   /// written.
   ///
-  /// See also [_writeType].
+  /// See also [_writeType] and [_writeTypeIfCan].
   bool _canWriteType(
     DartType? type, {
     required List<TypeParameterElement>? typeParametersInScope,
@@ -1086,10 +1087,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     if (type is FunctionType) {
-      var typeParameters = type.typeParameters.toList();
-      if (typeParametersInScope != null) {
-        typeParameters.addAll(typeParametersInScope);
-      }
+      var typeParameters = [...type.typeParameters, ...?typeParametersInScope];
       return _canWriteType(
             type.returnType,
             typeParametersInScope: typeParameters,
@@ -1383,7 +1381,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         return type;
       }
       return _getVisibleType(
-        type.element.bound ?? _typeProvider.objectQuestionType,
+        type.element.bound?.withNullability(type.nullabilitySuffix) ??
+            _typeProvider.objectQuestionType,
         typeParametersInScope: typeParametersInScope,
       );
     }
@@ -1465,7 +1464,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// Writes the code to reference [type] in this compilation unit.
   ///
   /// This shouldn't be called unless [_canWriteType] returns `true` for the
-  /// [type].
+  /// [type]. Also see [_writeTypeIfCan] that already handles this.
   ///
   /// If [typeParametersInScope] is provided, then the type parameters are
   /// known to be visible in the scope in which the type will be written.
@@ -1647,6 +1646,41 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
       write('>');
     }
+  }
+
+  /// Writes [type] if it should be, and returns whether it was written.
+  ///
+  /// If the [type] is `null` it will not be written.
+  ///
+  /// Internally handles [type] to verify and write down only a visible type
+  /// (see [_getVisibleType]).
+  bool _writeTypeIfCan(
+    DartType? type, {
+    required List<TypeParameterElement>? typeParametersInScope,
+    required bool shouldWriteDynamic,
+    String? prefix,
+  }) {
+    if (type == null) return false;
+    var visibleType = _getVisibleType(
+      type,
+      typeParametersInScope: typeParametersInScope,
+    );
+    if (!shouldWriteDynamic && visibleType is DynamicType) return false;
+    if (!_canWriteType(
+      visibleType,
+      typeParametersInScope: typeParametersInScope,
+    )) {
+      return false;
+    }
+    if (prefix != null) {
+      write(prefix);
+    }
+    _writeType(
+      visibleType,
+      typeParametersInScope: typeParametersInScope,
+      shouldWriteDynamic: shouldWriteDynamic,
+    );
+    return true;
   }
 
   void _writeTypeNullability(DartType type) {
@@ -3297,4 +3331,14 @@ extension on LibraryImport {
 
   Iterable<ShowElementCombinator> get showCombinators =>
       combinators.whereType<ShowElementCombinator>();
+}
+
+extension on DartType {
+  TypeImpl? withNullability(NullabilitySuffix nullabilitySuffix) {
+    var self = this;
+    if (self is TypeImpl) {
+      return self.withNullability(nullabilitySuffix);
+    }
+    return null;
+  }
 }

@@ -3847,6 +3847,7 @@ package:analyzer/dart/element/element.dart:
     isDartAsync (getter: bool)
     isDartCore (getter: bool)
     isInSdk (getter: bool)
+    isOriginNotExistingFile (getter: bool)
     languageVersion (getter: LibraryLanguageVersion)
     library (getter: LibraryElement)
     loadLibraryFunction (getter: TopLevelFunctionElement)

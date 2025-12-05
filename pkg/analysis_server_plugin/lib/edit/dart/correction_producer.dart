@@ -570,21 +570,11 @@ abstract class ResolvedCorrectionProducer
         return type;
       }
     }
-    // `=> myFunction();`.
-    if (parent is ExpressionFunctionBody) {
-      if (_closureReturnType(expression) case var returnType?) {
+    // `=> myFunction();` || `return myFunction();`.
+    if (parent is ExpressionFunctionBody || parent is ReturnStatement) {
+      if (_executableReturnType(expression) case var returnType?) {
         return returnType;
       }
-      var executable = expression.enclosingExecutableElement;
-      return executable?.returnType;
-    }
-    // `return myFunction();`.
-    if (parent is ReturnStatement) {
-      if (_closureReturnType(expression) case var returnType?) {
-        return returnType;
-      }
-      var executable = expression.enclosingExecutableElement;
-      return executable?.returnType;
     }
     // `int v = myFunction();`.
     if (parent is VariableDeclaration) {
@@ -769,9 +759,12 @@ abstract class ResolvedCorrectionProducer
   bool isEnabled(Feature feature) =>
       libraryElement2.featureSet.isEnabled(feature);
 
-  /// Looks if the [expression] is directly inside a closure and returns the
-  /// return type of the closure.
-  DartType? _closureReturnType(Expression expression) {
+  /// Looks if the [expression] is directly inside an executable and returns the
+  /// return type.
+  ///
+  /// - If it is a closure, the return type of the closure.
+  /// - If it is a method, the return type of the method.
+  DartType? _executableReturnType(Expression expression) {
     if (expression.enclosingClosure case FunctionExpression(
       :var correspondingParameter,
       :var staticType,
@@ -781,6 +774,11 @@ abstract class ResolvedCorrectionProducer
       )) {
         return returnType;
       }
+    }
+    if (expression.enclosingExecutableElement case ExecutableElement(
+      :var returnType,
+    )) {
+      return returnType;
     }
     return null;
   }
