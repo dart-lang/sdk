@@ -34842,82 +34842,6 @@ void main() {}
     );
   }
 
-  test_dependency_libraryElement_exists() async {
-    configuration
-      ..withGetErrorsEvents = false
-      ..withStreamResolvedUnitResults = false;
-
-    _ManualRequirements.install((state) {
-      var library = state.singleUnit.importedLibraries.first;
-      library.isOriginNotExistingFile;
-    });
-
-    newFile('$testPackageLibPath/test.dart', r'''
-import 'a.dart';
-''');
-
-    await _runChangeScenario(
-      operation: _FineOperationTestFileGetErrors(),
-      expectedInitialEvents: r'''
-[status] working
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/a.dart
-    hashForRequirements: #H0
-    flags: isSynthetic
-    exportMapId: #M0
-  requirements
-[operation] linkLibraryCycle
-  package:test/test.dart
-    hashForRequirements: #H1
-    exportMapId: #M1
-  requirements
-[operation] analyzeFile
-  file: /home/test/lib/test.dart
-  library: /home/test/lib/test.dart
-[operation] analyzedLibrary
-  file: /home/test/lib/test.dart
-  requirements
-    libraries
-      package:test/a.dart
-        libraryMetadataId: #M2
-        exportMapId: #M0
-[status] idle
-''',
-      updateFiles: () {
-        var a = newFile('$testPackageLibPath/a.dart', '');
-        return [a];
-      },
-      expectedUpdatedEvents: r'''
-[status] working
-[operation] linkLibraryCycle
-  package:test/a.dart
-    hashForRequirements: #H2
-    exportMapId: #M0
-  requirements
-[operation] reuseLinkedBundle
-  package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  libraryIsOriginNotExistingFileMismatch
-    libraryUri: package:test/a.dart
-    expected: true
-    actual: false
-[operation] analyzeFile
-  file: /home/test/lib/test.dart
-  library: /home/test/lib/test.dart
-[operation] analyzedLibrary
-  file: /home/test/lib/test.dart
-  requirements
-    libraries
-      package:test/a.dart
-        libraryMetadataId: #M2
-        exportMapId: #M0
-[status] idle
-''',
-    );
-  }
-
   test_dependency_libraryElement_exportedLibraries() async {
     configuration
       ..withGetErrorsEvents = false
@@ -37757,6 +37681,83 @@ typedef C = int;
     );
   }
 
+  test_dependency_libraryElement_isOriginNotExistingFile() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.isOriginNotExistingFile;
+    });
+
+    newFile('$testPackageLibPath/test.dart', r'''
+import 'a.dart';
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    flags: isOriginNotExistingFile isSynthetic
+    exportMapId: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    exportMapId: #M1
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        isOriginNotExistingFile: true
+        libraryMetadataId: #M2
+        exportMapId: #M0
+[status] idle
+''',
+      updateFiles: () {
+        var a = newFile('$testPackageLibPath/a.dart', '');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    exportMapId: #M0
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  libraryIsOriginNotExistingFileMismatch
+    libraryUri: package:test/a.dart
+    expected: true
+    actual: false
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M2
+        exportMapId: #M0
+[status] idle
+''',
+    );
+  }
+
   test_dependency_libraryElement_isSynthetic() async {
     configuration
       ..withGetErrorsEvents = false
@@ -37780,7 +37781,7 @@ import 'a.dart';
 [operation] linkLibraryCycle
   package:test/a.dart
     hashForRequirements: #H0
-    flags: isSynthetic
+    flags: isOriginNotExistingFile isSynthetic
     exportMapId: #M0
   requirements
 [operation] linkLibraryCycle
@@ -37796,6 +37797,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        isOriginNotExistingFile: true
         isSynthetic: true
         libraryMetadataId: #M2
         exportMapId: #M0
@@ -38021,7 +38023,7 @@ library;
 [operation] linkLibraryCycle
   package:test/test.dart
     hashForRequirements: #H0
-    flags: isSynthetic
+    flags: isOriginNotExistingFile isSynthetic
     exportMapId: #M0
   requirements
 [operation] analyzeFile
