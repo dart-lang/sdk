@@ -69,7 +69,7 @@ AnalysisOptionsErrorCode:
       int endOffset: the ending offset of the text in the file that contains the error
       String errorMessage: the error message
     problemMessage: "#errorMessage in #includingFilePath(#startOffset..#endOffset)"
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -104,7 +104,7 @@ AnalysisOptionsErrorCode:
       #### Common fixes
 
       If the file is intended to be included, then correct the included file to
-      be valid YAML::
+      be valid YAML:
 
       ```yaml
       // %uri="shared.yaml"
@@ -130,7 +130,7 @@ AnalysisOptionsErrorCode:
     parameters:
       String errorMessage: the error message from the parse error
     problemMessage: "#errorMessage"
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -171,7 +171,7 @@ AnalysisOptionsWarningCode:
       String optionName: the option name
     problemMessage: "The option '#optionName' is no longer supported."
     correctionMessage: Try removing the option.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -211,7 +211,7 @@ AnalysisOptionsWarningCode:
     sharedName: ANALYSIS_OPTION_DEPRECATED
     problemMessage: "The option '#p0' is no longer supported."
     correctionMessage: "Try using the new '#p1' option."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       An error code indicating that the given option is deprecated.
   DEPRECATED_LINT:
@@ -220,7 +220,7 @@ AnalysisOptionsWarningCode:
       String ruleName: the rule name
     problemMessage: The lint rule '#ruleName' is deprecated and shouldn't be enabled.
     correctionMessage: Try removing '#ruleName'.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -279,7 +279,7 @@ AnalysisOptionsWarningCode:
       String ruleName: the rule name
     problemMessage: "The rule '#ruleName' is already enabled and doesn't need to be enabled again."
     correctionMessage: "Try removing all but one occurrence of the rule."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -319,7 +319,7 @@ AnalysisOptionsWarningCode:
       int endOffset: the ending offset of the text in the file that contains the warning
       String warningMessage: the warning message
     problemMessage: "Warning in the included options file #includingFilePath(#startOffset..#endOffset): #warningMessage"
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -359,7 +359,7 @@ AnalysisOptionsWarningCode:
       String includingFilePath: the path of the file containing the include directive
       String contextRootPath: the path of the context being analyzed
     problemMessage: "The URI '#includedUri' included in '#includingFilePath' can't be found when analyzing '#contextRootPath'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -398,7 +398,7 @@ AnalysisOptionsWarningCode:
       String incompatibleRules: the incompatible rules
     problemMessage: "The rule '#ruleName' is incompatible with '#incompatibleRules'."
     correctionMessage: "Try removing all but one of the incompatible rules."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -441,7 +441,7 @@ AnalysisOptionsWarningCode:
     sharedName: INCOMPATIBLE_LINT
     problemMessage: "The rule '#p0' is incompatible with #p1."
     correctionMessage: "Try locally disabling all but one of the conflicting rules or removing one of the incompatible files."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       An error code indicating an incompatible rule.
 
@@ -456,7 +456,7 @@ AnalysisOptionsWarningCode:
     sharedName: INCOMPATIBLE_LINT
     problemMessage: "The rule '#p0' is incompatible with #p1, which is included from #p2 file#p3."
     correctionMessage: "Try locally disabling all but one of the conflicting rules or removing one of the incompatible files."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       An error code indicating an incompatible rule.
 
@@ -466,7 +466,7 @@ AnalysisOptionsWarningCode:
       String optionName: the option name
       String detailMessage: the detail message
     problemMessage: "Invalid option specified for '#optionName': #detailMessage"
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -514,7 +514,7 @@ AnalysisOptionsWarningCode:
     parameters:
       String sectionName: the section name
     problemMessage: "Invalid format for the '#sectionName' section."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -562,7 +562,7 @@ AnalysisOptionsWarningCode:
       String contextRoot: the root of the analysis context
     problemMessage: "Plugins can only be specified in the root of a pub workspace or the root of a package that isn't in a workspace."
     correctionMessage: "Try specifying plugins in an analysis options file at '#contextRoot'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -595,7 +595,7 @@ AnalysisOptionsWarningCode:
       Object includingFilePath: the path of the file containing the include directive
     problemMessage: "The URI '#includedUri' included in '#includingFilePath' includes '#includingFilePath', creating a circular reference."
     correctionMessage: "Try changing the chain of 'include's to break the circularity."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -639,7 +639,7 @@ AnalysisOptionsWarningCode:
       String sdkVersion: the SDK version in which the lint was removed
     problemMessage: "'#ruleName' was removed in Dart '#sdkVersion'"
     correctionMessage: "Try removing the reference to '#ruleName'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -688,7 +688,7 @@ AnalysisOptionsWarningCode:
       String ruleName: the rule name
     problemMessage: "'#ruleName' isn't a recognized lint rule."
     correctionMessage: "Try using the name of a recognized lint rule."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -697,8 +697,8 @@ AnalysisOptionsWarningCode:
 
       #### Example
 
-      The following code produces this diagnostic because the lint
-      `this_is_not_a_real_lint` isn't a known lint:
+      The following code produces this diagnostic because
+      `implementation_import` isn't a known lint:
 
       ```yaml
       // %uri="analysis_options.yaml"
@@ -736,7 +736,7 @@ AnalysisOptionsWarningCode:
     parameters:
       String codeName: the unrecognized error code
     problemMessage: "'#codeName' isn't a recognized diagnostic code."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -788,7 +788,7 @@ AnalysisOptionsWarningCode:
     sharedName: UNSUPPORTED_OPTION
     problemMessage: "The option '#optionKey' isn't supported by '#sectionName'."
     correctionMessage: Try removing the option.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       An error code indicating that a plugin is being configured with an
       unsupported option and legal options are provided.
@@ -801,7 +801,7 @@ AnalysisOptionsWarningCode:
     sharedName: UNSUPPORTED_OPTION
     problemMessage: "The option '#optionKey' isn't supported by '#sectionName'."
     correctionMessage: "Try using the only supported option: '#legalValue', or removing the option."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -851,7 +851,7 @@ AnalysisOptionsWarningCode:
     sharedName: UNSUPPORTED_OPTION
     problemMessage: "The option '#optionKey' isn't supported by '#sectionName'."
     correctionMessage: "Try using one of the supported options: #legalValues."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       An error code indicating that a YAML section is being configured with an
       unsupported option and legal options are provided.
@@ -863,7 +863,7 @@ AnalysisOptionsWarningCode:
       String legalValues: legal values
     problemMessage: "The value '#invalidValue' isn't supported by '#optionName'."
     correctionMessage: "Try using one of the supported values: #legalValues."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -14952,7 +14952,7 @@ CompileTimeErrorCode:
       String publicName: the corresponding public name of private named parameter
     problemMessage: "The corresponding public name '#publicName' is already the name of another parameter."
     correctionMessage: "Try renaming one of the parameters."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -14981,7 +14981,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters: none
     problemMessage: "A private named parameter must be a public identifier after removing the leading underscore."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 

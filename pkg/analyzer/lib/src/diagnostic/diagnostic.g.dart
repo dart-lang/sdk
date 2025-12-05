@@ -387,6 +387,7 @@ analysisOptionDeprecated = DiagnosticWithArguments(
   name: 'analysis_option_deprecated',
   problemMessage: "The option '{0}' is no longer supported.",
   correctionMessage: "Try removing the option.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'analysis_option_deprecated',
   withArguments: _withArgumentsAnalysisOptionDeprecated,
@@ -405,6 +406,7 @@ analysisOptionDeprecatedWithReplacement = DiagnosticWithArguments(
   name: 'analysis_option_deprecated',
   problemMessage: "The option '{0}' is no longer supported.",
   correctionMessage: "Try using the new '{1}' option.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'analysis_option_deprecated_with_replacement',
   withArguments: _withArgumentsAnalysisOptionDeprecatedWithReplacement,
@@ -3293,6 +3295,7 @@ deprecatedLint = DiagnosticWithArguments(
   name: 'deprecated_lint',
   problemMessage: "The lint rule '{0}' is deprecated and shouldn't be enabled.",
   correctionMessage: "Try removing '{0}'.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'deprecated_lint',
   withArguments: _withArgumentsDeprecatedLint,
@@ -4030,6 +4033,7 @@ duplicateRule = DiagnosticWithArguments(
   problemMessage:
       "The rule '{0}' is already enabled and doesn't need to be enabled again.",
   correctionMessage: "Try removing all but one occurrence of the rule.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'duplicate_rule',
   withArguments: _withArgumentsDuplicateRule,
@@ -6801,6 +6805,7 @@ const DiagnosticWithArguments<
 includedFileParseError = DiagnosticWithArguments(
   name: 'included_file_parse_error',
   problemMessage: "{3} in {0}({1}..{2})",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'included_file_parse_error',
   withArguments: _withArgumentsIncludedFileParseError,
@@ -6832,6 +6837,7 @@ const DiagnosticWithArguments<
 includedFileWarning = DiagnosticWithArguments(
   name: 'included_file_warning',
   problemMessage: "Warning in the included options file {0}({1}..{2}): {3}",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'included_file_warning',
   withArguments: _withArgumentsIncludedFileWarning,
@@ -6861,6 +6867,7 @@ includeFileNotFound = DiagnosticWithArguments(
   name: 'include_file_not_found',
   problemMessage:
       "The URI '{0}' included in '{1}' can't be found when analyzing '{2}'.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'include_file_not_found',
   withArguments: _withArgumentsIncludeFileNotFound,
@@ -6888,6 +6895,7 @@ incompatibleLint = DiagnosticWithArguments(
   name: 'incompatible_lint',
   problemMessage: "The rule '{0}' is incompatible with '{1}'.",
   correctionMessage: "Try removing all but one of the incompatible rules.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'incompatible_lint',
   withArguments: _withArgumentsIncompatibleLint,
@@ -6910,6 +6918,7 @@ incompatibleLintFiles = DiagnosticWithArguments(
   correctionMessage:
       "Try locally disabling all but one of the conflicting rules or "
       "removing one of the incompatible files.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'incompatible_lint_files',
   withArguments: _withArgumentsIncompatibleLintFiles,
@@ -6939,6 +6948,7 @@ incompatibleLintIncluded = DiagnosticWithArguments(
   correctionMessage:
       "Try locally disabling all but one of the conflicting rules or "
       "removing one of the incompatible files.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'incompatible_lint_included',
   withArguments: _withArgumentsIncompatibleLintIncluded,
@@ -8687,6 +8697,7 @@ const DiagnosticWithArguments<
 invalidOption = DiagnosticWithArguments(
   name: 'invalid_option',
   problemMessage: "Invalid option specified for '{0}': {1}",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'invalid_option',
   withArguments: _withArgumentsInvalidOption,
@@ -8856,6 +8867,7 @@ const DiagnosticWithArguments<
 invalidSectionFormat = DiagnosticWithArguments(
   name: 'invalid_section_format',
   problemMessage: "Invalid format for the '{0}' section.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'invalid_section_format',
   withArguments: _withArgumentsInvalidSectionFormat,
@@ -12942,6 +12954,7 @@ const DiagnosticWithArguments<
 parseError = DiagnosticWithArguments(
   name: 'parse_error',
   problemMessage: "{0}",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'parse_error',
   withArguments: _withArgumentsParseError,
@@ -13289,6 +13302,7 @@ pluginsInInnerOptions = DiagnosticWithArguments(
       "of a package that isn't in a workspace.",
   correctionMessage:
       "Try specifying plugins in an analysis options file at '{0}'.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'plugins_in_inner_options',
   withArguments: _withArgumentsPluginsInInnerOptions,
@@ -13470,6 +13484,7 @@ privateNamedParameterDuplicatePublicName = DiagnosticWithArguments(
       "The corresponding public name '{0}' is already the name of another "
       "parameter.",
   correctionMessage: "Try renaming one of the parameters.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'private_named_parameter_duplicate_public_name',
   withArguments: _withArgumentsPrivateNamedParameterDuplicatePublicName,
@@ -13483,6 +13498,7 @@ privateNamedParameterWithoutPublicName = DiagnosticWithoutArgumentsImpl(
   problemMessage:
       "A private named parameter must be a public identifier after removing the "
       "leading underscore.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'private_named_parameter_without_public_name',
   expectedTypes: [],
@@ -13680,6 +13696,7 @@ recursiveIncludeFile = DiagnosticWithArguments(
       "reference.",
   correctionMessage:
       "Try changing the chain of 'include's to break the circularity.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'recursive_include_file',
   withArguments: _withArgumentsRecursiveIncludeFile,
@@ -14077,6 +14094,7 @@ removedLint = DiagnosticWithArguments(
   name: 'removed_lint',
   problemMessage: "'{0}' was removed in Dart '{1}'",
   correctionMessage: "Try removing the reference to '{0}'.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'removed_lint',
   withArguments: _withArgumentsRemovedLint,
@@ -15824,6 +15842,7 @@ undefinedLint = DiagnosticWithArguments(
   name: 'undefined_lint',
   problemMessage: "'{0}' isn't a recognized lint rule.",
   correctionMessage: "Try using the name of a recognized lint rule.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'undefined_lint',
   withArguments: _withArgumentsUndefinedLint,
@@ -16547,6 +16566,7 @@ const DiagnosticWithArguments<
 unrecognizedErrorCode = DiagnosticWithArguments(
   name: 'unrecognized_error_code',
   problemMessage: "'{0}' isn't a recognized diagnostic code.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'unrecognized_error_code',
   withArguments: _withArgumentsUnrecognizedErrorCode,
@@ -16627,6 +16647,7 @@ unsupportedOptionWithLegalValue = DiagnosticWithArguments(
   problemMessage: "The option '{1}' isn't supported by '{0}'.",
   correctionMessage:
       "Try using the only supported option: '{2}', or removing the option.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'unsupported_option_with_legal_value',
   withArguments: _withArgumentsUnsupportedOptionWithLegalValue,
@@ -16655,6 +16676,7 @@ unsupportedOptionWithLegalValues = DiagnosticWithArguments(
   name: 'unsupported_option',
   problemMessage: "The option '{1}' isn't supported by '{0}'.",
   correctionMessage: "Try using one of the supported options: {2}.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'unsupported_option_with_legal_values',
   withArguments: _withArgumentsUnsupportedOptionWithLegalValues,
@@ -16681,6 +16703,7 @@ unsupportedOptionWithoutValues = DiagnosticWithArguments(
   name: 'unsupported_option',
   problemMessage: "The option '{1}' isn't supported by '{0}'.",
   correctionMessage: "Try removing the option.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'unsupported_option_without_values',
   withArguments: _withArgumentsUnsupportedOptionWithoutValues,
@@ -16705,6 +16728,7 @@ unsupportedValue = DiagnosticWithArguments(
   name: 'unsupported_value',
   problemMessage: "The value '{1}' isn't supported by '{0}'.",
   correctionMessage: "Try using one of the supported values: {2}.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'unsupported_value',
   withArguments: _withArgumentsUnsupportedValue,
