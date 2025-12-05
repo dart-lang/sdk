@@ -409,7 +409,9 @@ class DriverEventsPrinter {
   }
 
   void _writeDiagnostic(Diagnostic d) {
-    sink.writelnWithIndent('${d.offset} +${d.length} ${d.diagnosticCode.name}');
+    sink.writelnWithIndent(
+      '${d.offset} +${d.length} ${d.diagnosticCode.name.toUpperCase()}',
+    );
   }
 
   void _writeErrorsEvent(GetErrorsEvent event) {
@@ -1965,7 +1967,9 @@ class ResolvedUnitResultPrinter {
   }
 
   void _writeDiagnostic(Diagnostic d) {
-    sink.writelnWithIndent('${d.offset} +${d.length} ${d.diagnosticCode.name}');
+    sink.writelnWithIndent(
+      '${d.offset} +${d.length} ${d.diagnosticCode.name.toUpperCase()}',
+    );
   }
 
   void _writeResolvedUnitResult(ResolvedUnitResultImpl result) {

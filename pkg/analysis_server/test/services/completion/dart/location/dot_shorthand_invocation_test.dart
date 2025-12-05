@@ -134,8 +134,6 @@ void f() {
 suggestions
   named
     kind: constructorInvocation
-  notConstant
-    kind: constructor
 ''');
   }
 
@@ -156,8 +154,6 @@ replacement
 suggestions
   named
     kind: constructorInvocation
-  notConstant
-    kind: constructor
 ''');
   }
 
@@ -178,8 +174,6 @@ replacement
 suggestions
   named
     kind: constructorInvocation
-  notConstant
-    kind: constructor
 ''');
   }
 

@@ -210,6 +210,31 @@ linter:
     );
   }
 
+  Future<void>
+  test_incompatible_multiple_include_noLintMainFile_mixedCase() async {
+    newFile('/included1.yaml', '''
+linter:
+  rules:
+    - ruLe_neg
+''');
+    newFile('/included2.yaml', '''
+linter:
+  rules:
+    - rule_poS
+''');
+    assertErrors(
+      '''
+include:
+  - included1.yaml
+  - included2.yaml
+
+linter:
+  rules:
+''',
+      [diag.incompatibleLintIncluded],
+    );
+  }
+
   void test_incompatible_noTrigger_invalidMap() {
     newFile('/included.yaml', '''
 linter:
@@ -272,6 +297,36 @@ linter:
 ''');
   }
 
+  Future<void> test_incompatible_rule_map_include_mixedCase() async {
+    var includedCode = TestCode.parse('''
+linter:
+  rules:
+    [!rulE_neg!]: true
+''');
+    var included = newFile('/included.yaml', includedCode.code);
+    var testCode = TestCode.parse('''
+include: included.yaml
+
+linter:
+  rules:
+    [!Rule_pos!]: true
+''');
+    await assertErrorsInCode(testCode.code, [
+      error(
+        diag.incompatibleLintFiles,
+        testCode.range.sourceRange.offset,
+        testCode.range.sourceRange.length,
+        contextMessages: [
+          contextMessage(
+            included,
+            includedCode.range.sourceRange.offset,
+            includedCode.range.sourceRange.length,
+          ),
+        ],
+      ),
+    ]);
+  }
+
   void test_incompatible_trigger_invalidMap() {
     newFile('/included.yaml', '''
 linter:
@@ -304,6 +359,24 @@ include: included.yaml
 linter:
   rules:
     rule_pos: invalid_value
+''',
+      [diag.unsupportedValue],
+    );
+  }
+
+  void test_incompatible_unsuportedValue_invalidMap_mixedCase() {
+    newFile('/included.yaml', '''
+linter:
+  rules:
+    rUle_neg: true
+''');
+    assertErrors(
+      '''
+include: included.yaml
+
+linter:
+  rules:
+    Rule_pos: invalid_value
 ''',
       [diag.unsupportedValue],
     );
@@ -352,6 +425,18 @@ linter:
       sdk: dart3_3,
     );
   }
+
+  test_removed_rule_previousSdk_mixedCase() {
+    assertErrors(
+      '''
+linter:
+  rules:
+    - remOved_in_2_12_lint
+''',
+      [diag.removedLint],
+      sdk: dart3_3,
+    );
+  }
 }
 
 @reflectiveTest
@@ -379,6 +464,28 @@ linter:
     );
   }
 
+  void test_deprecated_rule_map_mixedCase() {
+    assertErrors(
+      '''
+linter:
+  rules:
+    deprecated_lInt: false
+''',
+      [diag.deprecatedLint],
+    );
+  }
+
+  void test_deprecated_rule_mixedCase() {
+    assertErrors(
+      '''
+linter:
+  rules:
+    - deprecAted_lint
+''',
+      [diag.deprecatedLint],
+    );
+  }
+
   void test_deprecated_rule_previousSDK() {
     assertErrors(
       '''
@@ -397,6 +504,17 @@ linter:
 linter:
   rules:
     - deprecated_lint_with_replacement
+''',
+      [diag.deprecatedLintWithReplacement],
+    );
+  }
+
+  void test_deprecated_rule_withReplacement_mixedCase() {
+    assertErrors(
+      '''
+linter:
+  rules:
+    - deprecated_lint_with_rePlacement
 ''',
       [diag.deprecatedLintWithReplacement],
     );
@@ -437,6 +555,18 @@ linter:
   rules:
     - stable_lint
     - stable_lint
+''',
+      [diag.duplicateRule],
+    );
+  }
+
+  void test_duplicated_rule_mixedCase() {
+    assertErrors(
+      '''
+linter:
+  rules:
+    - stable_lint
+    - staBle_lint
 ''',
       [diag.duplicateRule],
     );
@@ -497,6 +627,52 @@ linter:
 ''');
   }
 
+  Future<void> test_incompatible_rule_map_mixedCase() async {
+    var testCode = TestCode.parse('''
+linter:
+  rules:
+    /*[0*/Rule_pos/*0]*/: true
+    /*[1*/rUle_neg/*1]*/: true
+''');
+    await assertErrorsInCode(testCode.code, [
+      error(
+        diag.incompatibleLint,
+        testCode.ranges.last.sourceRange.offset,
+        testCode.ranges.last.sourceRange.length,
+        contextMessages: [
+          contextMessage(
+            analysisOptionsFile,
+            testCode.ranges.first.sourceRange.offset,
+            testCode.ranges.first.sourceRange.length,
+          ),
+        ],
+      ),
+    ]);
+  }
+
+  Future<void> test_incompatible_rule_mixedCase() async {
+    var testCode = TestCode.parse('''
+linter:
+  rules:
+    - /*[0*/rule_Pos/*0]*/
+    - /*[1*/rule_neG/*1]*/
+''');
+    await assertErrorsInCode(testCode.code, [
+      error(
+        diag.incompatibleLint,
+        testCode.ranges.last.sourceRange.offset,
+        testCode.ranges.last.sourceRange.length,
+        contextMessages: [
+          contextMessage(
+            analysisOptionsFile,
+            testCode.ranges.first.sourceRange.offset,
+            testCode.ranges.first.sourceRange.length,
+          ),
+        ],
+      ),
+    ]);
+  }
+
   void test_no_duplicated_rule_include() {
     newFile('/included.yaml', '''
 linter:
@@ -544,6 +720,18 @@ linter:
     );
   }
 
+  void test_replaced_rule_mixedCase() {
+    assertErrors(
+      '''
+linter:
+  rules:
+    - replaCed_lint
+''',
+      [diag.replacedLint],
+      sdk: dart3,
+    );
+  }
+
   void test_stable_rule() {
     assertNoErrors('''
 linter:
@@ -557,6 +745,22 @@ linter:
 linter:
   rules:
     stable_lint: true
+''');
+  }
+
+  void test_stable_rule_map_mixedCase() {
+    assertNoErrors('''
+linter:
+  rules:
+    sTable_lint: true
+''');
+  }
+
+  void test_stable_rule_mixedCase() {
+    assertNoErrors('''
+linter:
+  rules:
+    - Stable_lint
 ''');
   }
 

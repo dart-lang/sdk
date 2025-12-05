@@ -34,6 +34,8 @@ suggestions
     kind: keyword
   false
     kind: keyword
+  null
+    kind: keyword
   this
     kind: keyword
   const

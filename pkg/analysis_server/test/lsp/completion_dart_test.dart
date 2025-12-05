@@ -732,6 +732,25 @@ class Foo {
     );
   }
 
+  Future<void> test_functionTearOff() async {
+    content = '''
+void f(void Function(int) x) {
+  f(^);
+}
+
+void myFunction(int i) {}
+''';
+
+    await expectLabel(
+      content,
+      label: 'myFunction',
+      labelDetail: ' (…) → void',
+      labelDescription: null,
+      filterText: null,
+      detail: '(int i) → void',
+    );
+  }
+
   Future<void> test_functionType_callMember_identifierQualified() async {
     content = '''
 extension on void Function(int i) {

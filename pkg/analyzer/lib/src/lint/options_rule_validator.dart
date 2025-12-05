@@ -65,10 +65,8 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     this.isPrimarySource = true,
   });
 
-  AbstractAnalysisRule? getRegisteredLint(String value) => Registry
-      .ruleRegistry
-      .rules
-      .firstWhereOrNull((rule) => rule.name == value);
+  AbstractAnalysisRule? getRegisteredLint(String value) =>
+      Registry.ruleRegistry[value];
 
   bool isDeprecatedInCurrentOrEarlierSdk(RuleState state) =>
       state.isDeprecated && _beforeCurrentConstraint(state.since);
@@ -182,8 +180,13 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     List<_IncompatibleRuleData> incompatibleRules = [];
     for (var incompatibleRule in rule.incompatibleRules) {
       for (var MapEntry(:key, value: rules) in rules.entries) {
-        if (rules.map((node) => node.value).contains(incompatibleRule)) {
-          var list = rules.where((scalar) => scalar.value == incompatibleRule);
+        if (rules
+            .map((node) => _safeToLower(node.value))
+            .contains(incompatibleRule.toLowerCase())) {
+          var list = rules.where(
+            (scalar) =>
+                _safeToLower(scalar.value) == incompatibleRule.toLowerCase(),
+          );
           for (var scalar in list) {
             var rule = getRegisteredLint(scalar.value.toString())!;
             incompatibleRules.add(
@@ -259,7 +262,9 @@ class LinterRuleOptionsValidator extends OptionsValidator {
         );
       }
     }
-    if (rules[null]!.map((e) => e.value).contains(ruleData.node.value)) {
+    if (rules[null]!
+        .map((e) => _safeToLower(e.value))
+        .contains(_safeToLower(ruleData.node.value))) {
       reporter.atSourceSpan(
         ruleData.node.span,
         diag.duplicateRule,
@@ -356,6 +361,9 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     }
     return seenRules;
   }
+
+  Object? _safeToLower(Object? value) =>
+      value is String ? value.toLowerCase() : value;
 
   void _validateRules(
     YamlNode? rules,

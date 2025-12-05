@@ -18,7 +18,7 @@ const _desc = r'Prefer to use `whereType` on iterable.';
 
 class PreferIterableWhereType extends AnalysisRule {
   PreferIterableWhereType()
-    : super(name: LintNames.prefer_iterable_whereType, description: _desc);
+    : super(name: LintNames.prefer_iterable_wheretype, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.preferIterableWheretype;

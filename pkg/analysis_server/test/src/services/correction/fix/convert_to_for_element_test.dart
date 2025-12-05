@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class ConvertToForElementBulkTest extends BulkFixProcessorTest {
   @override
-  String get lintCode => LintNames.prefer_for_elements_to_map_fromIterable;
+  String get lintCode => LintNames.prefer_for_elements_to_map_fromiterable;
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
@@ -51,7 +51,7 @@ class ConvertToForElementTest extends FixProcessorLintTest {
   FixKind get kind => DartFixKind.convertToForElement;
 
   @override
-  String get lintCode => LintNames.prefer_for_elements_to_map_fromIterable;
+  String get lintCode => LintNames.prefer_for_elements_to_map_fromiterable;
 
   /// More coverage in the `convert_to_for_element_line_test.dart` assist test.
   Future<void>

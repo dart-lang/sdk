@@ -1741,12 +1741,8 @@ suggestions
     kind: topLevelVariable
   B0
     kind: constructorInvocation
-  B0.named
-    kind: constructor
   B0.namedConst
     kind: constructorInvocation
-  C0.new
-    kind: constructor
 ''');
   }
 
@@ -2294,12 +2290,6 @@ class A0 {
 ''');
     assertResponse(r'''
 suggestions
-  A0.new
-    kind: constructor
-  String.fromCharCode
-    kind: constructor
-  String.fromCharCodes
-    kind: constructor
   String.fromEnvironment
     kind: constructorInvocation
 ''');

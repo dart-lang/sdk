@@ -11,8 +11,8 @@
 class Empty {
   Empty({required this._});
   //                   ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+  // [cfe] A private named parameter must have a corresponding public name.
 
   String? _;
 }
@@ -21,13 +21,13 @@ class Empty {
 class Digit {
   Digit({
     required this._123,
-    //   ^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //            ^^^^
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._1more,
-    //   ^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //            ^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
   });
 
   String? _123;
@@ -40,13 +40,13 @@ class Private {
   Private({
     required this.__,
     //            ^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
 
     required this.__tooPrivate,
     //            ^^^^^^^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
   });
 
   String? __;
@@ -59,136 +59,136 @@ class Reserved {
   Reserved({
     required this._assert,
     //            ^^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._break,
     //            ^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._case,
     //            ^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._catch,
     //            ^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._class,
     //            ^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._const,
     //            ^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._continue,
     //            ^^^^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._default,
     //            ^^^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._do,
     //            ^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._else,
     //            ^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._enum,
     //            ^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._extends,
     //            ^^^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._false,
     //            ^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._final,
     //            ^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._finally,
     //            ^^^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._for,
     //            ^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._if,
     //            ^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._in,
     //            ^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._is,
     //            ^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._new,
     //            ^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._null,
     //            ^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._rethrow,
     //            ^^^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._return,
     //            ^^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._super,
     //            ^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._switch,
     //            ^^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._this,
     //            ^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._throw,
     //            ^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._true,
     //            ^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._try,
     //            ^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._var,
     //            ^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._void,
     //            ^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._while,
     //            ^^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
     required this._with,
     //            ^^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
+    // [cfe] A private named parameter must have a corresponding public name.
   });
 
   String? _assert;

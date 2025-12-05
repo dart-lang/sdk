@@ -2714,7 +2714,8 @@ suggestions
   Future<void> test_defaultFormalParameter_named_expression() async {
     // TODO(brianwilkerson): This is invalid code and there's no clear answer as
     //  to what ought to be suggested. Consider deleting the test, or making it
-    //  so that we don't suggest anything.
+    //  so that we don't suggest anything. We currently suggest only constant
+    //  values.
     await computeSuggestions('''
 f0() {}
 void bar() {}
@@ -2724,8 +2725,6 @@ class A0 {
 ''');
     assertResponse(r'''
 suggestions
-  A0.new
-    kind: constructor
 ''');
   }
 

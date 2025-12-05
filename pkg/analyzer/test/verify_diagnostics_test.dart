@@ -374,7 +374,8 @@ class DocumentationValidator {
         message.documentation,
       );
       if (docs != null) {
-        codeName = (message.sharedName ?? message.analyzerCode).snakeCaseName;
+        codeName =
+            (message.sharedName ?? message.analyzerCode).lowerSnakeCaseName;
         variableName = message.analyzerCode.lowerSnakeCaseName;
         if (unverifiedDocs.contains(variableName)) {
           continue;
@@ -443,7 +444,7 @@ class DocumentationValidator {
         _reportProblem('Expected one error but found none ($section $index).');
       } else if (errorCount == 1) {
         Diagnostic diagnostic = diagnostics[0];
-        if (diagnostic.diagnosticCode.name != codeName) {
+        if (diagnostic.diagnosticCode.name.toLowerCase() != codeName) {
           _reportProblem(
             'Expected an error with code $codeName, '
             'found ${diagnostic.diagnosticCode} ($section $index).',

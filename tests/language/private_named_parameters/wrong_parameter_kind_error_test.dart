@@ -11,20 +11,20 @@ class C {
   // In a generative constructor, but not an initializing formal.
   C({int? _notInitializingFormal});
   //      ^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] SYNTACTIC_ERROR.PRIVATE_NAMED_NON_FIELD_PARAMETER
+  // [cfe] A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').
 
   // In a factory constructor.
   factory C.fact({int? _inFactory}) => throw '!';
   //                   ^^^^^^^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] SYNTACTIC_ERROR.PRIVATE_NAMED_NON_FIELD_PARAMETER
+  // [cfe] A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').
 }
 
 // In a non-constructor function.
 void function({int? _parameter}) {}
 //                  ^^^^^^^^^^
-// [analyzer] unspecified
-// [cfe] unspecified
+// [analyzer] SYNTACTIC_ERROR.PRIVATE_NAMED_NON_FIELD_PARAMETER
+// [cfe] A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').
 
 void main() {}

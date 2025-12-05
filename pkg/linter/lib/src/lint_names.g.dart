@@ -310,7 +310,7 @@ abstract final class LintNames {
 
   static const String no_logic_in_create_state = 'no_logic_in_create_state';
 
-  static const String no_runtimeType_toString = 'no_runtimeType_toString';
+  static const String no_runtimetype_tostring = 'no_runtimetype_tostring';
 
   static const String no_self_assignments = 'no_self_assignments';
 
@@ -400,8 +400,8 @@ abstract final class LintNames {
 
   static const String prefer_final_parameters = 'prefer_final_parameters';
 
-  static const String prefer_for_elements_to_map_fromIterable =
-      'prefer_for_elements_to_map_fromIterable';
+  static const String prefer_for_elements_to_map_fromiterable =
+      'prefer_for_elements_to_map_fromiterable';
 
   static const String prefer_foreach = 'prefer_foreach';
 
@@ -432,7 +432,7 @@ abstract final class LintNames {
 
   static const String prefer_is_not_operator = 'prefer_is_not_operator';
 
-  static const String prefer_iterable_whereType = 'prefer_iterable_whereType';
+  static const String prefer_iterable_wheretype = 'prefer_iterable_wheretype';
 
   static const String prefer_mixin = 'prefer_mixin';
 

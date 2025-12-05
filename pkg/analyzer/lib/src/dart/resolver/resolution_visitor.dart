@@ -627,8 +627,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _defineElements(element.getters);
         _defineElements(element.setters);
         _defineElements(element.methods);
-        // Skip the representation field.
-        _elementWalker!.getVariable();
         node.body.accept(this);
       });
     });

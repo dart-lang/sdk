@@ -57,8 +57,6 @@ class A1 {}
 suggestions
   A1
     kind: class
-  A1.new
-    kind: constructor
   const
     kind: keyword
   false
@@ -96,8 +94,6 @@ int f01() => 0;
 suggestions
   A1
     kind: class
-  A1.named
-    kind: constructor
   c01
     kind: topLevelVariable
   const
