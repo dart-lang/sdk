@@ -380,6 +380,19 @@ class A {}
     );
   }
 
+  test_int_recordType() async {
+    await assertErrorsInCode(
+      '''
+void f((int, int) x) {
+  if (x case 0) {}
+}
+
+class A {}
+''',
+      [error(diag.constantPatternNeverMatchesValueType, 36, 1)],
+    );
+  }
+
   test_int_String() async {
     await assertErrorsInCode(
       '''
@@ -395,12 +408,12 @@ void f(String x) {
     await assertErrorsInCode(
       '''
 void f(void Function() x) {
-  if (x case (null)) {}
+  if (x case null) {}
 }
 ''',
       [
-        error(diag.constantPatternNeverMatchesValueType, 42, 4),
-        error(diag.deadCode, 49, 2),
+        error(diag.constantPatternNeverMatchesValueType, 41, 4),
+        error(diag.deadCode, 47, 2),
       ],
     );
   }
@@ -408,7 +421,7 @@ void f(void Function() x) {
   test_Null_functionTypeQuestion() async {
     await assertNoErrorsInCode('''
 void f(void Function()? x) {
-  if (x case (null)) {}
+  if (x case null) {}
 }
 ''');
   }
@@ -417,12 +430,12 @@ void f(void Function()? x) {
     await assertErrorsInCode(
       '''
 void f(int x) {
-  if (x case (null)) {}
+  if (x case null) {}
 }
 ''',
       [
-        error(diag.constantPatternNeverMatchesValueType, 30, 4),
-        error(diag.deadCode, 37, 2),
+        error(diag.constantPatternNeverMatchesValueType, 29, 4),
+        error(diag.deadCode, 35, 2),
       ],
     );
   }
@@ -430,7 +443,29 @@ void f(int x) {
   test_Null_intQuestion() async {
     await assertNoErrorsInCode('''
 void f(int? x) {
-  if (x case (null)) {}
+  if (x case null) {}
+}
+''');
+  }
+
+  test_Null_recordType() async {
+    await assertErrorsInCode(
+      '''
+void f((int, int) x) {
+  if (x case null) {}
+}
+''',
+      [
+        error(diag.constantPatternNeverMatchesValueType, 36, 4),
+        error(diag.deadCode, 42, 2),
+      ],
+    );
+  }
+
+  test_Null_recordTypeQuestion() async {
+    await assertNoErrorsInCode('''
+void f((int, int)? x) {
+  if (x case null) {}
 }
 ''');
   }

@@ -532,6 +532,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           return _typeSystem.isNullable(valueType);
         }
         return false;
+      } else if (valueType is RecordType) {
+        if (constantType.isDartCoreNull) {
+          return _typeSystem.isNullable(valueType);
+        }
+        return false;
       }
     }
     // All other cases are not supported, so no warning.

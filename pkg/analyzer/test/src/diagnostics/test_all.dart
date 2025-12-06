@@ -183,6 +183,7 @@ import 'deprecated_colon_for_default_value_test.dart'
 import 'deprecated_export_use_test.dart' as deprecated_export_use;
 import 'deprecated_extend_test.dart' as deprecated_extend;
 import 'deprecated_extends_function_test.dart' as deprecated_extends_function;
+import 'deprecated_factory_method_test.dart' as deprecated_factory_method;
 import 'deprecated_implement_test.dart' as deprecated_implement;
 import 'deprecated_implements_function_test.dart'
     as deprecated_implements_function;
@@ -1079,6 +1080,7 @@ main() {
     deprecated_export_use.main();
     deprecated_extend.main();
     deprecated_extends_function.main();
+    deprecated_factory_method.main();
     deprecated_implement.main();
     deprecated_implements_function.main();
     deprecated_instantiate.main();

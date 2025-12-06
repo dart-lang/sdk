@@ -63,7 +63,9 @@ Future<String> getMachineListing(
       {
         'name': rule.name,
         'description': rule.description,
-        'categories': info.categories.toList(growable: false),
+        'categories': info.categories
+            .map((category) => category.name)
+            .toList(growable: false),
         'state': rule.state.label,
         'incompatible': rule.incompatibleRules,
         'sets': const [],

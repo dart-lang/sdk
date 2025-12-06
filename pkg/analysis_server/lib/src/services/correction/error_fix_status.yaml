@@ -3898,3 +3898,5 @@ uri_does_not_exist_in_doc_import:
   status: needsFix
   notes: |-
     The same fix as CompileTimeErrorCode.URI_DOES_NOT_EXIST
+deprecated_factory_method:
+  status: hasFix

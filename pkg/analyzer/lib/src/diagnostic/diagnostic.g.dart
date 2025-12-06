@@ -3223,6 +3223,21 @@ const DiagnosticWithoutArguments deprecatedExtendsFunction =
       expectedTypes: [],
     );
 
+/// No parameters.
+const DiagnosticWithoutArguments deprecatedFactoryMethod =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'deprecated_factory_method',
+      problemMessage:
+          "Methods named 'factory' will become constructors when the "
+          "primary_constructors feature is enabled.",
+      correctionMessage:
+          "Try adding a return type or modifier before the method's name, or "
+          "change the name of the method.",
+      type: DiagnosticType.STATIC_WARNING,
+      uniqueName: 'deprecated_factory_method',
+      expectedTypes: [],
+    );
+
 /// Parameters:
 /// String p0: the name of the field
 const DiagnosticWithArguments<

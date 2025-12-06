@@ -525,6 +525,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     RemoveDefaultValue.new,
     RemoveRequired.new,
   ],
+  diag.deprecatedFactoryMethod: [AddReturnType.new],
   diag.dotShorthandUndefinedGetter: [
     AddEnumConstant.new,
     ChangeTo.getterOrSetter,

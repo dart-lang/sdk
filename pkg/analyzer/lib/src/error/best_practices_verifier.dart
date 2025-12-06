@@ -676,6 +676,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     bool wasInDoNotStoreMember = _inDoNotStoreMember;
+    var nameToken = node.name;
     var element = node.declaredFragment!.element;
     var enclosingElement = element.enclosingElement;
 
@@ -706,7 +707,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _checkStrictInferenceReturnType(
           node.returnType,
           node,
-          node.name.lexeme,
+          nameToken.lexeme,
         );
       }
       if (!elementIsOverride) {
@@ -723,13 +724,29 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         // always named, so we can safely assume
         // `overriddenElement.enclosingElement3.name` is non-`null`.
         _diagnosticReporter.atToken(
-          node.name,
+          nameToken,
           diag.invalidOverrideOfNonVirtualMember,
           arguments: [
-            node.name.lexeme,
+            nameToken.lexeme,
             overriddenElement.enclosingElement!.displayName,
           ],
         );
+      }
+
+      bool isAmbiguousFactoryMethod() {
+        if (nameToken.lexeme != Keyword.FACTORY.lexeme) return false;
+        var firstToken = node.firstTokenAfterCommentAndMetadata;
+        if (firstToken == nameToken) return true;
+        if (firstToken.lexeme == Keyword.EXTERNAL.lexeme ||
+            firstToken.lexeme == Keyword.AUGMENT.lexeme) {
+          return firstToken.next == nameToken;
+        }
+        return false;
+      }
+
+      if (!_currentLibrary.featureSet.isEnabled(Feature.primary_constructors) &&
+          isAmbiguousFactoryMethod()) {
+        _diagnosticReporter.atToken(nameToken, diag.deprecatedFactoryMethod);
       }
 
       super.visitMethodDeclaration(node);

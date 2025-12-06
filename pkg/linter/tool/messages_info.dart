@@ -2,79 +2,39 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:analyzer/analysis_rule/rule_state.dart';
+import 'package:analyzer_utilities/lint_messages.dart';
+import 'package:analyzer_utilities/messages.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:yaml/yaml.dart';
-
-import 'util/path_utils.dart';
-
-const _categoryNames = {
-  'binarySize',
-  'brevity',
-  'documentationCommentMaintenance',
-  'effectiveDart',
-  'errorProne',
-  'flutter',
-  'languageFeatureUsage',
-  'memoryLeaks',
-  'nonPerformant',
-  'pub',
-  'publicInterface',
-  'style',
-  'unintentional',
-  'unusedCode',
-  'web',
-};
 
 const String _messagesFileName = 'pkg/linter/messages.yaml';
 
-const _stateNames = {
-  'experimental',
-  'stable',
-  'internal',
-  'deprecated',
-  'removed',
-};
-
 final Map<String, RuleInfo> messagesRuleInfo = () {
-  var messagesYaml = loadYamlNode(File(_messagesYamlPath).readAsStringSync());
-  if (messagesYaml is! YamlMap) {
-    throw StateError("The '$_messagesFileName' file is not a YAML map.");
-  }
-  var lintCodes = messagesYaml['LinterLintCode'] as YamlMap?;
-  if (lintCodes == null) {
-    throw StateError(
-      "The '$_messagesFileName' file does not have a 'LinterLintCode' section.",
-    );
-  }
-
   {
-    var lintCodeKeys = lintCodes.keys.cast<String>().toList(growable: false);
-    var lintCodeKeysSorted = lintCodeKeys.sorted();
-    for (var i = 0; i < lintCodeKeys.length; i++) {
-      if (lintCodeKeys[i] != lintCodeKeysSorted[i]) {
+    var lintNames = lintMessages
+        .map((m) => m.analyzerCode.lowerSnakeCaseName)
+        .toList(growable: false);
+    var lintCodeKeysSorted = lintNames.sorted();
+    for (var i = 0; i < lintNames.length; i++) {
+      if (lintNames[i] != lintCodeKeysSorted[i]) {
         throw StateError(
           "The LintCode entries in '$_messagesFileName' "
-          "are not sorted alphabetically, starting at '${lintCodeKeys[i]}'.",
+          "are not sorted alphabetically, starting at '${lintNames[i]}'.",
         );
       }
     }
   }
 
   var builders = <String, _RuleBuilder>{};
-  for (var MapEntry(key: String uniqueName, value: YamlMap data)
-      in lintCodes.entries) {
-    String sharedName;
-    if (data.containsKey('sharedName')) {
-      sharedName = data['sharedName'] as String;
-    } else {
-      sharedName = uniqueName;
-    }
-    var rule = builders.putIfAbsent(sharedName, () => _RuleBuilder(sharedName));
-    rule.addEntry(uniqueName, data);
+  for (var message in lintMessages) {
+    var sharedNameString =
+        (message.sharedName ?? message.analyzerCode).lowerSnakeCaseName;
+    var rule = builders.putIfAbsent(
+      sharedNameString,
+      () => _RuleBuilder(sharedNameString),
+    );
+    rule.addEntry(message.analyzerCode.lowerSnakeCaseName, message);
   }
 
   return builders.map((key, value) {
@@ -86,12 +46,10 @@ final Map<String, RuleInfo> messagesRuleInfo = () {
   });
 }();
 
-final String _messagesYamlPath = pathRelativeToPackageRoot(['messages.yaml']);
-
 class CodeInfo {
   final String uniqueName;
-  final String problemMessage;
-  final String? correctionMessage;
+  final List<TemplatePart> problemMessage;
+  final List<TemplatePart>? correctionMessage;
 
   CodeInfo(
     this.uniqueName, {
@@ -104,7 +62,7 @@ class RuleInfo {
   final String name;
   final List<CodeInfo> codes;
   final List<RuleState> states;
-  final Set<String> categories;
+  final Set<LintCategory> categories;
   final bool hasPublishedDocs;
   final String? documentation;
   final String deprecatedDetails;
@@ -127,11 +85,15 @@ class RuleInfo {
 class _RuleBuilder {
   final String sharedName;
   final List<
-    ({String uniqueName, String? problemMessage, String? correctionMessage})
+    ({
+      String uniqueName,
+      List<TemplatePart> problemMessage,
+      List<TemplatePart>? correctionMessage,
+    })
   >
   _codes = [];
-  List<({String name, Version version})>? _stateEntries;
-  Set<String>? _categories;
+  Map<LintStateName, Version>? _states;
+  Set<LintCategory>? _categories;
   bool? _hasPublishedDocs;
   String? _documentation;
   String? _deprecatedDetails;
@@ -139,16 +101,16 @@ class _RuleBuilder {
   _RuleBuilder(this.sharedName);
 
   bool get _wasRemoved =>
-      _stateEntries?.any((state) => state.name == 'removed') ?? false;
+      _states?.keys.any((key) => key == LintStateName.removed) ?? false;
 
-  void addEntry(String uniqueName, YamlMap data) {
-    _addCode(uniqueName, data);
+  void addEntry(String uniqueName, LintMessage message) {
+    _addCode(uniqueName, message);
 
-    _setStates(data);
-    _setCategories(data);
-    _setDeprecatedDetails(data);
-    _setDocumentation(data);
-    _setHasPublishedDocs(data);
+    _setStates(message);
+    _setCategories(message);
+    _setDeprecatedDetails(message);
+    _setDocumentation(message);
+    _setHasPublishedDocs(message);
   }
 
   RuleInfo build() => RuleInfo(
@@ -169,30 +131,17 @@ class _RuleBuilder {
     removed: _wasRemoved,
   );
 
-  void _addCode(String name, Map<Object?, Object?> data) {
+  void _addCode(String name, LintMessage message) {
     if (_codes.map((code) => code.uniqueName).any((n) => n == name)) {
       _throwLintError(
         "Has more than one LintCode with '$name' as its 'uniqueName'.",
       );
     }
 
-    String? problemMessage;
-    if (data.containsKey('problemMessage')) {
-      problemMessage = _requireType('problemMessage', data['problemMessage']);
-    }
-
-    String? correctionMessage;
-    if (data.containsKey('correctionMessage')) {
-      correctionMessage = _requireType(
-        'correctionMessage',
-        data['correctionMessage'],
-      );
-    }
-
     _codes.add((
       uniqueName: name,
-      problemMessage: problemMessage,
-      correctionMessage: correctionMessage,
+      problemMessage: message.problemMessage,
+      correctionMessage: message.correctionMessage,
     ));
   }
 
@@ -223,121 +172,51 @@ class _RuleBuilder {
     return value;
   }
 
-  T _requireType<T extends Object?>(String propertyName, Object? value) {
-    if (value is! T) {
-      _throwLintError("The '$propertyName' property must be of type '$T'.");
-    }
-
-    return value;
-  }
-
-  Iterable<T> _requireTypeForItems<T extends Object?>(
-    String propertyName,
-    Iterable<Object?> items,
-  ) {
-    for (var item in items) {
-      if (item is! T) {
-        _throwLintError(
-          "The items in the '$propertyName' collection must "
-          "each be of type '$T'.",
-        );
-      }
-    }
-
-    return items.cast<T>();
-  }
-
-  void _setCategories(Map<Object?, Object?> data) {
+  void _setCategories(LintMessage message) {
     const propertyName = 'categories';
-    if (!data.containsKey(propertyName)) return;
+    var value = message.categories;
+    if (value == null) return;
 
-    var value = data[propertyName];
     if (_categories != null) _alreadySpecified(propertyName);
-
-    var categoryValues = _requireType<Iterable<Object?>>(propertyName, value);
-    var categoryStrings = _requireTypeForItems<String>(
-      propertyName,
-      categoryValues,
-    );
-
-    var countWithDuplicates = categoryStrings.length;
-    var categoriesSet = categoryStrings.toSet();
-    if (countWithDuplicates != categoriesSet.length) {
-      _throwLintError("The '$propertyName' property must not have duplicates.");
-    }
-
-    for (var category in categoriesSet) {
-      if (!_categoryNames.contains(category)) {
-        _throwLintError("The specified '$category' category is invalid.");
-      }
-    }
-
-    _categories = categoriesSet;
+    _categories = value;
   }
 
-  void _setDeprecatedDetails(Map<Object?, Object?> data) {
+  void _setDeprecatedDetails(LintMessage message) {
     const propertyName = 'deprecatedDetails';
-    if (!data.containsKey(propertyName)) return;
+    var value = message.deprecatedDetails;
+    if (value == null) return;
 
-    var value = data[propertyName];
     if (_deprecatedDetails != null) _alreadySpecified(propertyName);
 
-    var deprecatedDetails = _requireType<String>(propertyName, value);
-    _requireNotEmpty(propertyName, deprecatedDetails);
-    _deprecatedDetails = deprecatedDetails;
+    _requireNotEmpty(propertyName, value);
+    _deprecatedDetails = value;
   }
 
-  void _setDocumentation(Map<Object?, Object?> data) {
+  void _setDocumentation(LintMessage message) {
     const propertyName = 'documentation';
-    if (!data.containsKey(propertyName)) return;
+    var value = message.documentation;
+    if (value == null) return;
 
-    var value = data[propertyName];
     if (_documentation != null) _alreadySpecified(propertyName);
 
-    var documentationValue = _requireType<String>(propertyName, value);
-    _requireNotEmpty(propertyName, documentationValue);
-    _documentation = documentationValue;
+    _requireNotEmpty(propertyName, value);
+    _documentation = value;
   }
 
-  void _setHasPublishedDocs(Map<Object?, Object?> data) {
-    const propertyName = 'hasPublishedDocs';
-    if (!data.containsKey(propertyName)) return;
+  void _setHasPublishedDocs(LintMessage message) {
+    var value = message.hasPublishedDocs;
 
-    var value = data[propertyName];
-    var hasPublishedValue = _requireType<bool>(propertyName, value);
-    _hasPublishedDocs = hasPublishedValue || (_hasPublishedDocs ?? false);
+    _hasPublishedDocs = value || (_hasPublishedDocs ?? false);
   }
 
-  void _setStates(Map<Object?, Object?> data) {
+  void _setStates(LintMessage message) {
     const propertyName = 'state';
-    if (!data.containsKey(propertyName)) return;
+    var value = message.state;
+    if (value == null) return;
 
-    var value = data[propertyName];
-    if (_stateEntries != null) _alreadySpecified(propertyName);
+    if (_states != null) _alreadySpecified(propertyName);
 
-    var stateValue = _requireType<Map<Object?, Object?>>(propertyName, value);
-
-    _stateEntries = stateValue.entries.map((state) {
-      var stateName = state.key;
-      var version = state.value;
-      if (stateName is! String || version is! String) {
-        _throwLintError('Each state key and value must be a string.');
-      }
-
-      if (!_stateNames.contains(stateName)) {
-        _throwLintError('$stateName is not a valid state name.');
-      }
-
-      try {
-        var parsedVersion = Version.parse('$version.0');
-        return (name: stateName, version: parsedVersion);
-      } on Exception {
-        _throwLintError(
-          'The state versions must be in '
-          "'major.minor' format, but found '$version'.",
-        );
-      }
-    }).toList();
+    _states = value;
   }
 
   Never _throwLintError(String message) {
@@ -354,7 +233,7 @@ class _RuleBuilder {
     var codeInfos = <CodeInfo>[];
     for (var code in _codes) {
       var problemMessage = code.problemMessage;
-      if (problemMessage == null) {
+      if (problemMessage.isEmpty) {
         _throwLintError(
           "'LintCode.${code.uniqueName}' is missing a 'problemMessage'.",
         );
@@ -379,24 +258,27 @@ class _RuleBuilder {
   }
 
   List<RuleState> _validateStates() {
-    var states = _stateEntries;
+    var states = _states;
     if (states == null || states.isEmpty) {
       throw StateError('Tried to build a RuleInfo without a state added!');
     }
 
-    var sortedStates = states
+    var sortedStates = states.entries
         .map(
-          (state) => switch (state.name) {
-            'experimental' => RuleState.experimental(since: state.version),
-            'stable' => RuleState.stable(since: state.version),
-            'internal' => RuleState.internal(since: state.version),
-            'deprecated' => RuleState.deprecated(since: state.version),
+          (entry) => switch (entry.key) {
+            LintStateName.experimental => RuleState.experimental(
+              since: entry.value,
+            ),
+            LintStateName.stable => RuleState.stable(since: entry.value),
+            LintStateName.internal => RuleState.internal(since: entry.value),
+            LintStateName.deprecated => RuleState.deprecated(
+              since: entry.value,
+            ),
             // Note: the reason `RuleState.removed` is deprecated is to
             // encourage clients to use `AbstractAnalysisRule`, so this
             // reference is ok.
             // ignore: deprecated_member_use
-            'removed' => RuleState.removed(since: state.version),
-            _ => _throwLintError('Unexpected state name: ${state.name}.'),
+            LintStateName.removed => RuleState.removed(since: entry.value),
           },
         )
         .sortedBy<VersionRange>((state) => state.since ?? Version.none);
