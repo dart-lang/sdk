@@ -671,10 +671,8 @@ analyzer:
     // - foo/** in /home/test
     // - foo in /home/test
     // But at least that's it.
-    _assertWorkspaceCollectionText(
-      workspaceRootPath,
-      withExcludedGlobs: true,
-      r'''
+    configuration.withExcludedGlobs = true;
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
 contexts
   /home/test
     packagesFile: /home/test/.dart_tool/package_config.json
@@ -711,8 +709,7 @@ workspaces
     pubPackages
       workspacePackage_0_0: PubPackage
         root: /home/test
-''',
-    );
+''');
   }
 
   test_packageConfigWorkspace_multipleAnalysisOptions_outerExclude() async {
@@ -1708,7 +1705,6 @@ workspaces
   void _assertWorkspaceCollectionText(
     String workspaceRootPath,
     String expected, {
-    bool withExcludedGlobs = false,
     File? optionsFile,
     void Function({required AnalysisOptionsImpl analysisOptions})?
     updateAnalysisOptions,
@@ -1716,7 +1712,6 @@ workspaces
     if (optionsFile != null) {
       expect(optionsFile.exists, isTrue);
     }
-    configuration.withExcludedGlobs = withExcludedGlobs;
     var collection = AnalysisContextCollectionImpl(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
