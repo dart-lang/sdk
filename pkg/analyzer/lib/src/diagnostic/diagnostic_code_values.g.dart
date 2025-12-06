@@ -214,6 +214,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.deprecatedExportUse,
   diag.deprecatedExtend,
   diag.deprecatedExtendsFunction,
+  diag.deprecatedFactoryMethod,
   diag.deprecatedField,
   diag.deprecatedImplement,
   diag.deprecatedImplementsFunction,

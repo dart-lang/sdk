@@ -25329,6 +25329,12 @@ WarningCode:
       ```dart
       class F {}
       ```
+  DEPRECATED_FACTORY_METHOD:
+    type: staticWarning
+    parameters: none
+    problemMessage: Methods named 'factory' will become constructors when the primary_constructors feature is enabled.
+    correctionMessage: Try adding a return type or modifier before the method's name, or change the name of the method.
+    hasPublishedDocs: false
   DEPRECATED_IMPLEMENT:
     type: staticWarning
     parameters:
