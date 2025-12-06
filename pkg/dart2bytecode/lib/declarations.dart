@@ -361,6 +361,7 @@ class FieldDeclaration {
   static const hasPragmaFlag = 1 << 15;
   static const hasCustomScriptFlag = 1 << 16;
   static const isExtensionTypeMemberFlag = 1 << 17;
+  static const isShared = 1 << 18;
 
   final int flags;
   final ObjectHandle name;
@@ -490,6 +491,9 @@ class FieldDeclaration {
     }
     if ((flags & hasInitializerFlag) != 0) {
       sb.write(', has-initializer');
+    }
+    if ((flags & isShared) != 0) {
+      sb.write(', shared');
     }
     sb.writeln();
     if ((flags & hasInitializerCodeFlag) != 0) {
@@ -1158,11 +1162,13 @@ class ClosureCode {
   static const hasExceptionsTableFlag = 1 << 0;
   static const hasSourcePositionsFlag = 1 << 1;
   static const hasLocalVariablesFlag = 1 << 2;
+  static const capturesOnlyFinalAndSharedVarsFlag = 1 << 3;
 
   final Uint8List bytecodes;
   final ExceptionsTable exceptionsTable;
   final SourcePositions? sourcePositions;
   final LocalVariableTable? localVariables;
+  final bool capturesOnlyFinalAndSharedVars;
 
   bool get hasExceptionsTable => exceptionsTable.blocks.isNotEmpty;
   bool get hasSourcePositions => sourcePositions?.isNotEmpty ?? false;
@@ -1171,10 +1177,11 @@ class ClosureCode {
   int get flags =>
       (hasExceptionsTable ? hasExceptionsTableFlag : 0) |
       (hasSourcePositions ? hasSourcePositionsFlag : 0) |
-      (hasLocalVariables ? hasLocalVariablesFlag : 0);
+      (hasLocalVariables ? hasLocalVariablesFlag : 0) |
+      (capturesOnlyFinalAndSharedVars ? capturesOnlyFinalAndSharedVarsFlag : 0);
 
   ClosureCode(this.bytecodes, this.exceptionsTable, this.sourcePositions,
-      this.localVariables);
+      this.localVariables, this.capturesOnlyFinalAndSharedVars);
 
   void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
@@ -1202,8 +1209,12 @@ class ClosureCode {
     final localVariables = ((flags & hasLocalVariablesFlag) != 0)
         ? reader.readLinkOffset<LocalVariableTable>()
         : null;
+    final capturesOnlyFinalAndSharedVars =
+        (flags & capturesOnlyFinalAndSharedVarsFlag) != 0;
+
     return new ClosureCode(
-        bytecodes, exceptionsTable, sourcePositions, localVariables);
+        bytecodes, exceptionsTable, sourcePositions, localVariables,
+        capturesOnlyFinalAndSharedVars);
   }
 
   @override

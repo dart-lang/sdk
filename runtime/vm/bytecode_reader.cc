@@ -21,6 +21,7 @@
 #include "vm/hash.h"
 #include "vm/hash_table.h"
 #include "vm/longjump.h"
+#include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
@@ -303,9 +304,14 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
           (flags & ClosureCode::kHasSourcePositionsFlag) != 0;
       const bool has_local_variables =
           (flags & ClosureCode::kHasLocalVariablesFlag) != 0;
+      const bool does_close_over_only_final_and_shared_vars =
+          (flags & ClosureCode::kCapturesOnlyFinalAndSharedVarsFlag) != 0;
 
       // Read closure bytecode and attach to closure function.
       closure_bytecode = ReadBytecode(pool);
+
+      closure.set_does_close_over_only_final_and_shared_vars(
+          does_close_over_only_final_and_shared_vars);
       closure.AttachBytecode(closure_bytecode);
 
       ReadExceptionsTable(closure, closure_bytecode, has_exceptions_table);
@@ -1790,6 +1796,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
   const int kHasPragmaFlag = 1 << 15;
   const int kHasCustomScriptFlag = 1 << 16;
   const int kIsExtensionTypeMemberFlag = 1 << 17;
+  const int kIsSharedFlag = 1 << 18;
 
   const int num_fields = reader_.ReadListLength();
   if ((num_fields == 0) && !cls.is_enum_class()) {
@@ -1818,6 +1825,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     const bool is_extension_type_member =
         (flags & kIsExtensionTypeMemberFlag) != 0;
     const bool has_initializer = (flags & kHasInitializerFlag) != 0;
+    const bool is_shared = (flags & kIsSharedFlag) != 0;
 
     name ^= ReadObject();
     type ^= ReadObject();
@@ -1848,6 +1856,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     field.set_is_extension_member(is_extension_member);
     field.set_is_extension_type_member(is_extension_type_member);
     field.set_has_initializer(has_initializer);
+    field.set_is_shared(is_shared);
 
     if (!has_nontrivial_initializer) {
       value = ReadObject();
@@ -1895,7 +1904,12 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       function.set_is_extension_type_member(is_extension_type_member);
       SetupFieldAccessorFunction(cls, function, type);
       if (is_static) {
-        function.AttachBytecode(Object::implicit_static_getter_bytecode());
+        if (is_shared) {
+          function.AttachBytecode(
+              Object::implicit_shared_static_getter_bytecode());
+        } else {
+          function.AttachBytecode(Object::implicit_static_getter_bytecode());
+        }
       } else {
         function.AttachBytecode(Object::implicit_getter_bytecode());
       }
@@ -1903,7 +1917,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     }
 
     if ((flags & kHasSetterFlag) != 0) {
-      ASSERT(is_late || ((!is_static) && (!is_final)));
+      ASSERT(is_late || ((!is_static) && (!is_final)) || is_shared);
       ASSERT(!is_const);
       name ^= ReadObject();
       const auto& signature = FunctionType::Handle(Z, FunctionType::New());
@@ -1922,7 +1936,12 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       function.set_is_extension_type_member(is_extension_type_member);
       SetupFieldAccessorFunction(cls, function, type);
       if (is_static) {
-        function.AttachBytecode(Object::implicit_static_setter_bytecode());
+        if (is_shared) {
+          function.AttachBytecode(
+              Object::implicit_shared_static_setter_bytecode());
+        } else {
+          function.AttachBytecode(Object::implicit_static_setter_bytecode());
+        }
       } else {
         function.AttachBytecode(Object::implicit_setter_bytecode());
       }
