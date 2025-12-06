@@ -1367,6 +1367,10 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(e.isExternal, 'external ');
       _sink.writeIf(e.isExtensionTypeMember, 'isExtensionTypeMember ');
 
+      _assertHasExactlyOneTrue([e.isOriginDeclaration, e.isOriginInterface]);
+      _sink.writeIf(e.isOriginDeclaration, 'isOriginDeclaration ');
+      _sink.writeIf(e.isOriginInterface, 'isOriginInterface ');
+
       _writeElementName(e);
     });
 
@@ -1414,6 +1418,10 @@ class _Element2Writer extends _AbstractElementWriter {
       // _sink.writeIf(f.isStatic, 'static ');
       // _sink.writeIf(f.isAbstract, 'abstract ');
       // _sink.writeIf(f.isExternal, 'external ');
+
+      _assertHasExactlyOneTrue([f.isOriginDeclaration, f.isOriginInterface]);
+      _sink.writeIf(f.isOriginDeclaration, 'isOriginDeclaration ');
+      _sink.writeIf(f.isOriginInterface, 'isOriginInterface ');
 
       _writeFragmentName(f);
       _writeFragmentBodyModifiers(f);
@@ -1667,6 +1675,11 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       // _sink.writeIf(e.isAugmentation, 'augment ');
       _sink.writeIf(e.isExternal, 'external ');
+
+      _assertHasExactlyOneTrue([e.isOriginDeclaration, e.isOriginLoadLibrary]);
+      _sink.writeIf(e.isOriginDeclaration, 'isOriginDeclaration ');
+      _sink.writeIf(e.isOriginLoadLibrary, 'isOriginLoadLibrary ');
+
       _writeElementName(e);
       // _writeBodyModifiers(e);
     });
@@ -1703,6 +1716,11 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeObjectId(f);
       // _sink.writeIf(e.isAugmentation, 'augment ');
       // _sink.writeIf(e.isExternal, 'external ');
+
+      _assertHasExactlyOneTrue([f.isOriginDeclaration, f.isOriginLoadLibrary]);
+      _sink.writeIf(f.isOriginDeclaration, 'isOriginDeclaration ');
+      _sink.writeIf(f.isOriginLoadLibrary, 'isOriginLoadLibrary ');
+
       _writeFragmentName(f);
       // _writeBodyModifiers(e);
     });

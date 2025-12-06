@@ -59,12 +59,11 @@ class BundleRequirementsPrinter extends ManifestPrinter {
           if (libraryRequirements.name case var name?) {
             sink.writelnWithIndent('name: $name');
           }
-          // TODO(scheglov): print it
-          // if (libraryRequirements.isOriginNotExistingFile case var value?) {
-          //   if (value) {
-          //     sink.writelnWithIndent('isOriginNotExistingFile: $value');
-          //   }
-          // }
+          if (libraryRequirements.isOriginNotExistingFile case var value?) {
+            if (value) {
+              sink.writelnWithIndent('isOriginNotExistingFile: $value');
+            }
+          }
           if (libraryRequirements.isSynthetic case var value?) {
             if (value) {
               sink.writelnWithIndent('isSynthetic: $value');
@@ -1150,11 +1149,10 @@ class LibraryManifestPrinter extends ManifestPrinter {
     if (manifest.name case var name?) {
       sink.writelnWithIndent('name: $name');
     }
-    // TODO(scheglov): print it
-    // sink.writeFlags({
-    //   'isOriginNotExistingFile': manifest.isOriginNotExistingFile,
-    // });
-    sink.writeFlags({'isSynthetic': manifest.isSynthetic});
+    sink.writeFlags({
+      'isOriginNotExistingFile': manifest.isOriginNotExistingFile,
+      'isSynthetic': manifest.isSynthetic,
+    });
 
     var libraryMetadata = manifest.libraryMetadata;
     if (!libraryMetadata.isEmpty) {

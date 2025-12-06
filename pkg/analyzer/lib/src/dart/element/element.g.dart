@@ -322,6 +322,28 @@ mixin _FragmentImplMixin {
   void setModifier(Modifier modifier, bool value);
 }
 
+mixin _MethodFragmentImplMixin {
+  bool get isOriginDeclaration {
+    return hasModifier(Modifier.ORIGIN_DECLARATION);
+  }
+
+  set isOriginDeclaration(bool value) {
+    setModifier(Modifier.ORIGIN_DECLARATION, value);
+  }
+
+  bool get isOriginInterface {
+    return hasModifier(Modifier.ORIGIN_INTERFACE);
+  }
+
+  set isOriginInterface(bool value) {
+    setModifier(Modifier.ORIGIN_INTERFACE, value);
+  }
+
+  bool hasModifier(Modifier modifier);
+
+  void setModifier(Modifier modifier, bool value);
+}
+
 mixin _MixinFragmentImplMixin {
   bool get isBase {
     return hasModifier(Modifier.BASE);
@@ -395,6 +417,28 @@ mixin _PropertyInducingFragmentImplMixin {
 
   set isOriginGetterSetter(bool value) {
     setModifier(Modifier.ORIGIN_GETTER_SETTER, value);
+  }
+
+  bool hasModifier(Modifier modifier);
+
+  void setModifier(Modifier modifier, bool value);
+}
+
+mixin _TopLevelFunctionFragmentImplMixin {
+  bool get isOriginDeclaration {
+    return hasModifier(Modifier.ORIGIN_DECLARATION);
+  }
+
+  set isOriginDeclaration(bool value) {
+    setModifier(Modifier.ORIGIN_DECLARATION, value);
+  }
+
+  bool get isOriginLoadLibrary {
+    return hasModifier(Modifier.ORIGIN_LOAD_LIBRARY);
+  }
+
+  set isOriginLoadLibrary(bool value) {
+    setModifier(Modifier.ORIGIN_LOAD_LIBRARY, value);
   }
 
   bool hasModifier(Modifier modifier);

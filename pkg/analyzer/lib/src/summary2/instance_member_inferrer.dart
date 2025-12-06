@@ -388,7 +388,7 @@ class InstanceMemberInferrer {
   /// If the given [element] represents an instance method, infer the return
   /// type and any parameter type(s) where they were not provided.
   void _inferExecutable(MethodElementImpl element) {
-    if (element.isStatic) {
+    if (!element.isOriginDeclaration || element.isStatic) {
       return;
     }
 

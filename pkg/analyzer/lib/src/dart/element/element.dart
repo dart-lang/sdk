@@ -7081,6 +7081,7 @@ final class LoadLibraryFunctionProvider {
     var name = TopLevelFunctionElement.LOAD_LIBRARY_NAME;
 
     var fragment = TopLevelFunctionFragmentImpl(name: name);
+    fragment.isOriginLoadLibrary = true;
     fragment.isSynthetic = true;
     fragment.isStatic = true;
     fragment.enclosingFragment = library.firstFragment;
@@ -7751,6 +7752,14 @@ class MethodElementImpl extends ExecutableElementImpl
 
   @override
   @trackedIncludedInId
+  bool get isOriginDeclaration => _firstFragment.isOriginDeclaration;
+
+  @override
+  @trackedIncludedInId
+  bool get isOriginInterface => _firstFragment.isOriginInterface;
+
+  @override
+  @trackedIncludedInId
   ElementKind get kind => ElementKind.METHOD;
 
   @override
@@ -7820,7 +7829,9 @@ class MethodElementImpl extends ExecutableElementImpl
   }
 }
 
+@GenerateFragmentImpl(modifiers: _MethodFragmentImplModifiers.values)
 class MethodFragmentImpl extends ExecutableFragmentImpl
+    with _MethodFragmentImplMixin
     implements MethodFragment {
   @override
   late final MethodElementImpl element;
@@ -8177,6 +8188,9 @@ enum Modifier {
 
   /// Whether the property accessor is created while building interface.
   ORIGIN_INTERFACE,
+
+  /// Whether the top-level function is `loadLibrary`.
+  ORIGIN_LOAD_LIBRARY,
 
   /// Whether the constructor was created for a mixin application.
   ORIGIN_MIXIN_APPLICATION,
@@ -9506,6 +9520,14 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
 
   @override
   @trackedIncludedInId
+  bool get isOriginDeclaration => _firstFragment.isOriginDeclaration;
+
+  @override
+  @trackedIncludedInId
+  bool get isOriginLoadLibrary => _firstFragment.isOriginLoadLibrary;
+
+  @override
+  @trackedIncludedInId
   ElementKind get kind => ElementKind.FUNCTION;
 
   @override
@@ -9571,7 +9593,9 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
 }
 
 /// A concrete implementation of a [TopLevelFunctionFragment].
+@GenerateFragmentImpl(modifiers: _TopLevelFunctionFragmentImplModifiers.values)
 class TopLevelFunctionFragmentImpl extends FunctionFragmentImpl
+    with _TopLevelFunctionFragmentImplMixin
     implements TopLevelFunctionFragment {
   /// The element corresponding to this fragment.
   @override
@@ -10599,6 +10623,8 @@ enum _FragmentImplModifiers {
   isSynthetic,
 }
 
+enum _MethodFragmentImplModifiers { isOriginDeclaration, isOriginInterface }
+
 enum _MixinFragmentImplModifiers { isBase }
 
 enum _NonParameterVariableFragmentImplModifiers { hasInitializer }
@@ -10642,6 +10668,11 @@ class _Sentinel {
 
   static final List<LibraryExportImpl> libraryExport = List.unmodifiable([]);
   static final List<LibraryImportImpl> libraryImport = List.unmodifiable([]);
+}
+
+enum _TopLevelFunctionFragmentImplModifiers {
+  isOriginDeclaration,
+  isOriginLoadLibrary,
 }
 
 enum _VariableFragmentImplModifiers {

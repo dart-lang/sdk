@@ -329,7 +329,7 @@ library
                 #F20 requiredPositional v (nameOffset:132) (firstTokenOffset:128) (offset:132)
                   element: <testLibrary>::@mixin::M::@setter::s::@formalParameter::v
           methods
-            #F21 m (nameOffset:144) (firstTokenOffset:140) (offset:144)
+            #F21 isOriginDeclaration m (nameOffset:144) (firstTokenOffset:140) (offset:144)
               element: <testLibrary>::@mixin::M::@method::m
               formalParameters
                 #F22 requiredPositional v (nameOffset:153) (firstTokenOffset:146) (offset:153)
@@ -432,7 +432,7 @@ library
           returnType: void
           variable: <testLibrary>::@mixin::M::@field::s
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@mixin::M::@method::m
           firstFragment: #F21
           formalParameters
@@ -1619,7 +1619,7 @@ library
         #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           methods
-            #F2 foo (nameOffset:22) (firstTokenOffset:17) (offset:22) invokesSuperSelf
+            #F2 isOriginDeclaration foo (nameOffset:22) (firstTokenOffset:17) (offset:22) invokesSuperSelf
               element: <testLibrary>::@mixin::M::@method::foo
   mixins
     mixin M
@@ -1628,7 +1628,7 @@ library
       superclassConstraints
         Object
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@mixin::M::@method::foo
           firstFragment: #F2
           returnType: void
@@ -1659,7 +1659,7 @@ library
         #F3 mixin B (nameOffset:17) (firstTokenOffset:11) (offset:17)
           element: <testLibrary>::@mixin::B
           methods
-            #F4 A (nameOffset:33) (firstTokenOffset:28) (offset:33)
+            #F4 isOriginDeclaration A (nameOffset:33) (firstTokenOffset:28) (offset:33)
               element: <testLibrary>::@mixin::B::@method::A
   classes
     class A
@@ -1676,7 +1676,7 @@ library
       superclassConstraints
         A
       methods
-        A
+        isOriginDeclaration A
           reference: <testLibrary>::@mixin::B::@method::A
           firstFragment: #F4
           returnType: void
@@ -1703,7 +1703,7 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           methods
-            #F3 foo (nameOffset:20) (firstTokenOffset:15) (offset:20)
+            #F3 isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:15) (offset:20)
               element: <testLibrary>::@mixin::M::@method::foo
   mixins
     mixin M
@@ -1715,7 +1715,7 @@ library
       superclassConstraints
         Object
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@mixin::M::@method::foo
           firstFragment: #F3
           returnType: void
@@ -1742,7 +1742,7 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           methods
-            #F3 foo (nameOffset:20) (firstTokenOffset:15) (offset:20)
+            #F3 isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:15) (offset:20)
               element: <testLibrary>::@mixin::M::@method::foo
               formalParameters
                 #F4 requiredPositional _ (nameOffset:26) (firstTokenOffset:24) (offset:26)
@@ -1757,7 +1757,7 @@ library
       superclassConstraints
         Object
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@mixin::M::@method::foo
           firstFragment: #F3
           hasEnclosingTypeParameterReference: true
@@ -2139,19 +2139,19 @@ library
         #F1 mixin A (nameOffset:14) (firstTokenOffset:0) (offset:14)
           element: <testLibrary>::@mixin::A::@def::0
           methods
-            #F2 foo1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
+            #F2 isOriginDeclaration foo1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
               element: <testLibrary>::@mixin::A::@def::0::@method::foo1
         #F3 mixin A (nameOffset:44) (firstTokenOffset:38) (offset:44)
           element: <testLibrary>::@mixin::A::@def::1
           nextFragment: #F4
           methods
-            #F5 foo2 (nameOffset:55) (firstTokenOffset:50) (offset:55)
+            #F5 isOriginDeclaration foo2 (nameOffset:55) (firstTokenOffset:50) (offset:55)
               element: <testLibrary>::@mixin::A::@def::1::@method::foo2
         #F4 mixin A (nameOffset:82) (firstTokenOffset:68) (offset:82)
           element: <testLibrary>::@mixin::A::@def::1
           previousFragment: #F3
           methods
-            #F6 foo3 (nameOffset:93) (firstTokenOffset:88) (offset:93)
+            #F6 isOriginDeclaration foo3 (nameOffset:93) (firstTokenOffset:88) (offset:93)
               element: <testLibrary>::@mixin::A::@def::1::@method::foo3
   mixins
     mixin A
@@ -2160,7 +2160,7 @@ library
       superclassConstraints
         Object
       methods
-        foo1
+        isOriginDeclaration foo1
           reference: <testLibrary>::@mixin::A::@def::0::@method::foo1
           firstFragment: #F2
           returnType: void
@@ -2170,11 +2170,11 @@ library
       superclassConstraints
         Object
       methods
-        foo2
+        isOriginDeclaration foo2
           reference: <testLibrary>::@mixin::A::@def::1::@method::foo2
           firstFragment: #F5
           returnType: void
-        foo3
+        isOriginDeclaration foo3
           reference: <testLibrary>::@mixin::A::@def::1::@method::foo3
           firstFragment: #F6
           returnType: void
@@ -2207,13 +2207,13 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F3
           methods
-            #F4 foo1 (nameOffset:37) (firstTokenOffset:32) (offset:37)
+            #F4 isOriginDeclaration foo1 (nameOffset:37) (firstTokenOffset:32) (offset:37)
               element: <testLibrary>::@mixin::A::@method::foo1
         #F3 mixin A (nameOffset:64) (firstTokenOffset:50) (offset:64)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           methods
-            #F5 foo2 (nameOffset:75) (firstTokenOffset:70) (offset:75)
+            #F5 isOriginDeclaration foo2 (nameOffset:75) (firstTokenOffset:70) (offset:75)
               element: <testLibrary>::@mixin::A::@method::foo2
   mixins
     mixin B
@@ -2227,11 +2227,11 @@ library
       superclassConstraints
         Object
       methods
-        foo1
+        isOriginDeclaration foo1
           reference: <testLibrary>::@mixin::A::@method::foo1
           firstFragment: #F4
           returnType: void
-        foo2
+        isOriginDeclaration foo2
           reference: <testLibrary>::@mixin::A::@method::foo2
           firstFragment: #F5
           returnType: void
@@ -3535,13 +3535,13 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
         #F2 mixin A (nameOffset:43) (firstTokenOffset:29) (offset:43)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 bar (nameOffset:54) (firstTokenOffset:49) (offset:54)
+            #F4 isOriginDeclaration bar (nameOffset:54) (firstTokenOffset:49) (offset:54)
               element: <testLibrary>::@mixin::A::@method::bar
   mixins
     mixin A
@@ -3550,11 +3550,11 @@ library
       superclassConstraints
         Object
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@method::foo
           firstFragment: #F3
           returnType: void
-        bar
+        isOriginDeclaration bar
           reference: <testLibrary>::@mixin::A::@method::bar
           firstFragment: #F4
           returnType: void
@@ -3584,16 +3584,16 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 foo1 (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration foo1 (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo1
               nextFragment: #F4
-            #F5 foo2 (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F5 isOriginDeclaration foo2 (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@mixin::A::@method::foo2
         #F2 mixin A (nameOffset:61) (firstTokenOffset:47) (offset:61)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 augment foo1 (nameOffset:80) (firstTokenOffset:67) (offset:80)
+            #F4 augment isOriginDeclaration foo1 (nameOffset:80) (firstTokenOffset:67) (offset:80)
               element: <testLibrary>::@mixin::A::@method::foo1
               previousFragment: #F3
   mixins
@@ -3603,11 +3603,11 @@ library
       superclassConstraints
         Object
       methods
-        foo1
+        isOriginDeclaration foo1
           reference: <testLibrary>::@mixin::A::@method::foo1
           firstFragment: #F3
           returnType: void
-        foo2
+        isOriginDeclaration foo2
           reference: <testLibrary>::@mixin::A::@method::foo2
           firstFragment: #F5
           returnType: void
@@ -3640,7 +3640,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
         #F2 mixin A (nameOffset:43) (firstTokenOffset:29) (offset:43)
@@ -3648,7 +3648,7 @@ library
           previousFragment: #F1
           nextFragment: #F5
           methods
-            #F4 augment foo (nameOffset:62) (firstTokenOffset:49) (offset:62)
+            #F4 augment isOriginDeclaration foo (nameOffset:62) (firstTokenOffset:49) (offset:62)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               nextFragment: #F6
@@ -3656,7 +3656,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           methods
-            #F6 augment foo (nameOffset:107) (firstTokenOffset:94) (offset:107)
+            #F6 augment isOriginDeclaration foo (nameOffset:107) (firstTokenOffset:94) (offset:107)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F4
   mixins
@@ -3666,7 +3666,7 @@ library
       superclassConstraints
         Object
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@method::foo
           firstFragment: #F3
           returnType: void
@@ -3699,7 +3699,7 @@ library
               element: #E0 T
               nextFragment: #F4
           methods
-            #F5 foo (nameOffset:17) (firstTokenOffset:15) (offset:17)
+            #F5 isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:15) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
         #F2 mixin A (nameOffset:52) (firstTokenOffset:38) (offset:52)
           element: <testLibrary>::@mixin::A
@@ -3709,7 +3709,7 @@ library
               element: #E0 T
               previousFragment: #F3
           methods
-            #F6 bar (nameOffset:63) (firstTokenOffset:61) (offset:63)
+            #F6 isOriginDeclaration bar (nameOffset:63) (firstTokenOffset:61) (offset:63)
               element: <testLibrary>::@mixin::A::@method::bar
   mixins
     mixin A
@@ -3721,12 +3721,12 @@ library
       superclassConstraints
         Object
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@method::foo
           firstFragment: #F5
           hasEnclosingTypeParameterReference: true
           returnType: T
-        bar
+        isOriginDeclaration bar
           reference: <testLibrary>::@mixin::A::@method::bar
           firstFragment: #F6
           hasEnclosingTypeParameterReference: true
@@ -3760,7 +3760,7 @@ library
               element: #E0 T
               nextFragment: #F4
           methods
-            #F5 foo (nameOffset:17) (firstTokenOffset:15) (offset:17)
+            #F5 isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:15) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F6
         #F2 mixin A (nameOffset:52) (firstTokenOffset:38) (offset:52)
@@ -3771,7 +3771,7 @@ library
               element: #E0 T
               previousFragment: #F3
           methods
-            #F6 augment foo (nameOffset:71) (firstTokenOffset:61) (offset:71)
+            #F6 augment isOriginDeclaration foo (nameOffset:71) (firstTokenOffset:61) (offset:71)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F5
   mixins
@@ -3784,7 +3784,7 @@ library
       superclassConstraints
         Object
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@method::foo
           firstFragment: #F5
           hasEnclosingTypeParameterReference: true
@@ -3815,16 +3815,16 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
-            #F5 bar (nameOffset:33) (firstTokenOffset:28) (offset:33)
+            #F5 isOriginDeclaration bar (nameOffset:33) (firstTokenOffset:28) (offset:33)
               element: <testLibrary>::@mixin::A::@method::bar
         #F2 mixin A (nameOffset:59) (firstTokenOffset:45) (offset:59)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 augment foo (nameOffset:81) (firstTokenOffset:68) (offset:81)
+            #F4 augment isOriginDeclaration foo (nameOffset:81) (firstTokenOffset:68) (offset:81)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
   mixins
@@ -3834,11 +3834,11 @@ library
       superclassConstraints
         Object
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@method::foo
           firstFragment: #F3
           returnType: void
-        bar
+        isOriginDeclaration bar
           reference: <testLibrary>::@mixin::A::@method::bar
           firstFragment: #F5
           returnType: void
@@ -4465,7 +4465,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 foo (nameOffset:33) (firstTokenOffset:29) (offset:33)
+            #F3 isOriginDeclaration foo (nameOffset:33) (firstTokenOffset:29) (offset:33)
               element: <testLibrary>::@class::A::@method::foo
               formalParameters
                 #F4 requiredPositional a (nameOffset:44) (firstTokenOffset:37) (offset:44)
@@ -4478,7 +4478,7 @@ library
           element: <testLibrary>::@mixin::B
           previousFragment: #F5
           methods
-            #F7 foo (nameOffset:76) (firstTokenOffset:76) (offset:76)
+            #F7 isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:76) (offset:76)
               element: <testLibrary>::@mixin::B::@method::foo
               formalParameters
                 #F8 requiredPositional a (nameOffset:80) (firstTokenOffset:80) (offset:80)
@@ -4492,7 +4492,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@method::foo
           firstFragment: #F3
           formalParameters
@@ -4507,7 +4507,7 @@ library
       superclassConstraints
         A
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@mixin::B::@method::foo
           firstFragment: #F7
           formalParameters
@@ -4545,7 +4545,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 foo (nameOffset:44) (firstTokenOffset:40) (offset:44)
+            #F3 isOriginDeclaration foo (nameOffset:44) (firstTokenOffset:40) (offset:44)
               element: <testLibrary>::@class::A::@method::foo
               formalParameters
                 #F4 requiredPositional a (nameOffset:55) (firstTokenOffset:48) (offset:55)
@@ -4555,7 +4555,7 @@ library
           element: <testLibrary>::@mixin::B
           nextFragment: #F6
           methods
-            #F7 foo (nameOffset:12) (firstTokenOffset:12) (offset:12)
+            #F7 isOriginDeclaration foo (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@mixin::B::@method::foo
               formalParameters
                 #F8 requiredPositional a (nameOffset:16) (firstTokenOffset:16) (offset:16)
@@ -4572,7 +4572,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@method::foo
           firstFragment: #F3
           formalParameters
@@ -4589,7 +4589,7 @@ library
       interfaces
         A
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@mixin::B::@method::foo
           firstFragment: #F7
           formalParameters
@@ -4627,7 +4627,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 foo (nameOffset:44) (firstTokenOffset:40) (offset:44)
+            #F3 isOriginDeclaration foo (nameOffset:44) (firstTokenOffset:40) (offset:44)
               element: <testLibrary>::@class::A::@method::foo
               formalParameters
                 #F4 requiredPositional a (nameOffset:55) (firstTokenOffset:48) (offset:55)
@@ -4637,7 +4637,7 @@ library
           element: <testLibrary>::@mixin::B
           nextFragment: #F6
           methods
-            #F7 foo (nameOffset:12) (firstTokenOffset:12) (offset:12)
+            #F7 isOriginDeclaration foo (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@mixin::B::@method::foo
               formalParameters
                 #F8 requiredPositional a (nameOffset:16) (firstTokenOffset:16) (offset:16)
@@ -4654,7 +4654,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@method::foo
           firstFragment: #F3
           formalParameters
@@ -4669,7 +4669,7 @@ library
       superclassConstraints
         A
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@mixin::B::@method::foo
           firstFragment: #F7
           formalParameters
@@ -4709,7 +4709,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 foo (nameOffset:49) (firstTokenOffset:45) (offset:49)
+            #F3 isOriginDeclaration foo (nameOffset:49) (firstTokenOffset:45) (offset:49)
               element: <testLibrary>::@class::A::@method::foo
               formalParameters
                 #F4 requiredPositional a (nameOffset:60) (firstTokenOffset:53) (offset:60)
@@ -4719,7 +4719,7 @@ library
           element: <testLibrary>::@mixin::B
           nextFragment: #F6
           methods
-            #F7 foo (nameOffset:17) (firstTokenOffset:17) (offset:17)
+            #F7 isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@mixin::B::@method::foo
               nextFragment: #F8
               formalParameters
@@ -4730,7 +4730,7 @@ library
           element: <testLibrary>::@mixin::B
           previousFragment: #F5
           methods
-            #F8 augment foo (nameOffset:100) (firstTokenOffset:92) (offset:100)
+            #F8 augment isOriginDeclaration foo (nameOffset:100) (firstTokenOffset:92) (offset:100)
               element: <testLibrary>::@mixin::B::@method::foo
               previousFragment: #F7
               formalParameters
@@ -4746,7 +4746,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@method::foo
           firstFragment: #F3
           formalParameters
@@ -4761,7 +4761,7 @@ library
       superclassConstraints
         A
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@mixin::B::@method::foo
           firstFragment: #F7
           formalParameters
@@ -4797,7 +4797,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -4809,7 +4809,7 @@ library
           previousFragment: #F1
           nextFragment: #F7
           methods
-            #F4 augment foo (nameOffset:63) (firstTokenOffset:50) (offset:63)
+            #F4 augment isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:50) (offset:63)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               nextFragment: #F8
@@ -4822,7 +4822,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           methods
-            #F8 augment foo (nameOffset:109) (firstTokenOffset:96) (offset:109)
+            #F8 augment isOriginDeclaration foo (nameOffset:109) (firstTokenOffset:96) (offset:109)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F4
               typeParameters
@@ -4836,7 +4836,7 @@ library
       superclassConstraints
         Object
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@method::foo
           firstFragment: #F3
           typeParameters
@@ -4871,7 +4871,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -4883,7 +4883,7 @@ library
           previousFragment: #F1
           nextFragment: #F7
           methods
-            #F4 augment foo (nameOffset:63) (firstTokenOffset:50) (offset:63)
+            #F4 augment isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:50) (offset:63)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               nextFragment: #F8
@@ -4896,7 +4896,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           methods
-            #F8 augment foo (nameOffset:112) (firstTokenOffset:99) (offset:112)
+            #F8 augment isOriginDeclaration foo (nameOffset:112) (firstTokenOffset:99) (offset:112)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F4
               typeParameters
@@ -4910,7 +4910,7 @@ library
       superclassConstraints
         Object
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@method::foo
           firstFragment: #F3
           typeParameters
@@ -4945,7 +4945,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -4960,7 +4960,7 @@ library
           previousFragment: #F1
           nextFragment: #F9
           methods
-            #F4 augment foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
+            #F4 augment isOriginDeclaration foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               nextFragment: #F10
@@ -4977,7 +4977,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           methods
-            #F10 augment foo (nameOffset:112) (firstTokenOffset:99) (offset:112)
+            #F10 augment isOriginDeclaration foo (nameOffset:112) (firstTokenOffset:99) (offset:112)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F4
               typeParameters
@@ -4994,7 +4994,7 @@ library
       superclassConstraints
         Object
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@method::foo
           firstFragment: #F3
           typeParameters
@@ -5028,7 +5028,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -5039,7 +5039,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 augment foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
+            #F4 augment isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               typeParameters
@@ -5053,7 +5053,7 @@ library
       superclassConstraints
         Object
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@method::foo
           firstFragment: #F3
           typeParameters
@@ -5086,7 +5086,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -5097,7 +5097,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 augment foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
+            #F4 augment isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               typeParameters
@@ -5111,7 +5111,7 @@ library
       superclassConstraints
         Object
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@method::foo
           firstFragment: #F3
           typeParameters
@@ -5144,7 +5144,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -5155,7 +5155,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 augment foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
+            #F4 augment isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               typeParameters
@@ -5169,7 +5169,7 @@ library
       superclassConstraints
         Object
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@method::foo
           firstFragment: #F3
           typeParameters
@@ -5202,7 +5202,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -5213,7 +5213,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 augment foo (nameOffset:64) (firstTokenOffset:51) (offset:64)
+            #F4 augment isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:51) (offset:64)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               typeParameters
@@ -5227,7 +5227,7 @@ library
       superclassConstraints
         Object
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@method::foo
           firstFragment: #F3
           typeParameters
@@ -5260,7 +5260,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -5274,7 +5274,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 augment foo (nameOffset:68) (firstTokenOffset:55) (offset:68)
+            #F4 augment isOriginDeclaration foo (nameOffset:68) (firstTokenOffset:55) (offset:68)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               typeParameters
@@ -5291,7 +5291,7 @@ library
       superclassConstraints
         Object
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@method::foo
           firstFragment: #F3
           typeParameters

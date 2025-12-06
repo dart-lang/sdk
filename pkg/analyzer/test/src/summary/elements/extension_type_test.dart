@@ -147,7 +147,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F4
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -215,7 +215,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F4
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -291,7 +291,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::primary
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F4
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -362,7 +362,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F4
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -430,7 +430,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F4
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -506,7 +506,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F4
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -583,7 +583,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::primary
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F4
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -660,7 +660,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::primary
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F4
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -738,7 +738,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F4
               type: num
               field: <testLibrary>::@extensionType::A::@field::it
@@ -816,7 +816,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F4
               type: num
               field: <testLibrary>::@extensionType::A::@field::it
@@ -894,7 +894,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F4
               type: num
               field: <testLibrary>::@extensionType::A::@field::it
@@ -975,7 +975,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F4
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -1038,7 +1038,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F4
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -1323,7 +1323,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F4
               type: int
               metadata
@@ -1964,7 +1964,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F4
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -2001,7 +2001,7 @@ library
             #F3 synthetic isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
           methods
-            #F4 foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F4 isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
               formalParameters
                 #F5 requiredPositional a (nameOffset:42) (firstTokenOffset:38) (offset:42)
@@ -2027,7 +2027,7 @@ library
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       methods
-        isExtensionTypeMember foo
+        isExtensionTypeMember isOriginDeclaration foo
           reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: #F4
           formalParameters
@@ -2062,7 +2062,7 @@ library
             #F3 synthetic isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
           methods
-            #F4 foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F4 isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
               formalParameters
                 #F5 optionalNamed a (nameOffset:43) (firstTokenOffset:39) (offset:43)
@@ -2092,7 +2092,7 @@ library
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       methods
-        isExtensionTypeMember foo
+        isExtensionTypeMember isOriginDeclaration foo
           reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: #F4
           formalParameters
@@ -2199,7 +2199,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.<null-name>
+            #E0 requiredPositional final declaring this.<null-name>
               firstFragment: #F4
               type: InvalidType
               field: <null>
@@ -2852,7 +2852,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
-            #E2 requiredPositional final hasImplicitType declaring this.it
+            #E2 requiredPositional final declaring this.it
               firstFragment: #F6
               type: Map<T, U>
               field: <testLibrary>::@extensionType::A::@field::it
@@ -2962,7 +2962,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F6
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -3018,7 +3018,7 @@ library
             #F9 synthetic isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@extensionType::A::@getter::it
           methods
-            #F10 foo1 (nameOffset:42) (firstTokenOffset:37) (offset:42)
+            #F10 isOriginDeclaration foo1 (nameOffset:42) (firstTokenOffset:37) (offset:42)
               element: <testLibrary>::@extensionType::A::@method::foo1
         #F2 extension type A (nameOffset:78) (firstTokenOffset:55) (offset:78)
           element: <testLibrary>::@extensionType::A
@@ -3038,7 +3038,7 @@ library
                   previousFragment: #F6
               previousFragment: #F5
           methods
-            #F11 foo2 (nameOffset:97) (firstTokenOffset:92) (offset:97)
+            #F11 isOriginDeclaration foo2 (nameOffset:97) (firstTokenOffset:92) (offset:97)
               element: <testLibrary>::@extensionType::A::@method::foo2
   extensionTypes
     extension type A
@@ -3059,7 +3059,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F6
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -3070,11 +3070,11 @@ library
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       methods
-        isExtensionTypeMember foo1
+        isExtensionTypeMember isOriginDeclaration foo1
           reference: <testLibrary>::@extensionType::A::@method::foo1
           firstFragment: #F10
           returnType: void
-        isExtensionTypeMember foo2
+        isExtensionTypeMember isOriginDeclaration foo2
           reference: <testLibrary>::@extensionType::A::@method::foo2
           firstFragment: #F11
           returnType: void
@@ -3158,7 +3158,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F6
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -3265,7 +3265,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
-            #E1 requiredPositional final hasImplicitType declaring this.it
+            #E1 requiredPositional final declaring this.it
               firstFragment: #F8
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -3363,7 +3363,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F6
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -3473,7 +3473,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F8
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -3624,7 +3624,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F8
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -3776,7 +3776,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F8
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -3931,7 +3931,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F8
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -4053,7 +4053,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F8
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -4170,7 +4170,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F8
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -4295,7 +4295,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F7
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -4430,7 +4430,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F7
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -4559,7 +4559,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F8
           formalParameters
-            #E1 requiredPositional final hasImplicitType declaring this.it
+            #E1 requiredPositional final declaring this.it
               firstFragment: #F9
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -4679,7 +4679,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F7
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -4832,7 +4832,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F7
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -4958,7 +4958,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F8
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -5099,7 +5099,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F7
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -5379,7 +5379,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F6
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -5407,7 +5407,7 @@ library
           reference: <testLibrary>::@extensionType::I1::@constructor::new
           firstFragment: #F12
           formalParameters
-            #E1 requiredPositional final hasImplicitType declaring this.it
+            #E1 requiredPositional final declaring this.it
               firstFragment: #F13
               type: int
               field: <testLibrary>::@extensionType::I1::@field::it
@@ -5435,7 +5435,7 @@ library
           reference: <testLibrary>::@extensionType::I2::@constructor::new
           firstFragment: #F21
           formalParameters
-            #E2 requiredPositional final hasImplicitType declaring this.it
+            #E2 requiredPositional final declaring this.it
               firstFragment: #F22
               type: int
               field: <testLibrary>::@extensionType::I2::@field::it
@@ -5463,7 +5463,7 @@ library
           reference: <testLibrary>::@extensionType::I3::@constructor::new
           firstFragment: #F26
           formalParameters
-            #E3 requiredPositional final hasImplicitType declaring this.it
+            #E3 requiredPositional final declaring this.it
               firstFragment: #F27
               type: int
               field: <testLibrary>::@extensionType::I3::@field::it
@@ -5597,7 +5597,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
-            #E2 requiredPositional final hasImplicitType declaring this.it
+            #E2 requiredPositional final declaring this.it
               firstFragment: #F8
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -5625,7 +5625,7 @@ library
           reference: <testLibrary>::@extensionType::I1::@constructor::new
           firstFragment: #F14
           formalParameters
-            #E3 requiredPositional final hasImplicitType declaring this.it
+            #E3 requiredPositional final declaring this.it
               firstFragment: #F15
               type: int
               field: <testLibrary>::@extensionType::I1::@field::it
@@ -5656,7 +5656,7 @@ library
           reference: <testLibrary>::@extensionType::I2::@constructor::new
           firstFragment: #F20
           formalParameters
-            #E4 requiredPositional final hasImplicitType declaring this.it
+            #E4 requiredPositional final declaring this.it
               firstFragment: #F21
               type: int
               field: <testLibrary>::@extensionType::I2::@field::it
@@ -5790,7 +5790,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
-            #E2 requiredPositional final hasImplicitType declaring this.it
+            #E2 requiredPositional final declaring this.it
               firstFragment: #F8
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -5818,7 +5818,7 @@ library
           reference: <testLibrary>::@extensionType::I1::@constructor::new
           firstFragment: #F14
           formalParameters
-            #E3 requiredPositional final hasImplicitType declaring this.it
+            #E3 requiredPositional final declaring this.it
               firstFragment: #F15
               type: int
               field: <testLibrary>::@extensionType::I1::@field::it
@@ -5849,7 +5849,7 @@ library
           reference: <testLibrary>::@extensionType::I2::@constructor::new
           firstFragment: #F20
           formalParameters
-            #E4 requiredPositional final hasImplicitType declaring this.it
+            #E4 requiredPositional final declaring this.it
               firstFragment: #F21
               type: int
               field: <testLibrary>::@extensionType::I2::@field::it
@@ -5901,7 +5901,7 @@ library
             #F9 synthetic isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
           methods
-            #F10 foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F10 isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
         #F2 extension type A (nameOffset:69) (firstTokenOffset:46) (offset:69)
           element: <testLibrary>::@extensionType::A
@@ -5921,7 +5921,7 @@ library
                   previousFragment: #F6
               previousFragment: #F5
           methods
-            #F11 bar (nameOffset:88) (firstTokenOffset:83) (offset:88)
+            #F11 isOriginDeclaration bar (nameOffset:88) (firstTokenOffset:83) (offset:88)
               element: <testLibrary>::@extensionType::A::@method::bar
   extensionTypes
     extension type A
@@ -5942,7 +5942,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F6
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -5953,11 +5953,11 @@ library
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       methods
-        isExtensionTypeMember foo
+        isExtensionTypeMember isOriginDeclaration foo
           reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: #F10
           returnType: void
-        isExtensionTypeMember bar
+        isExtensionTypeMember isOriginDeclaration bar
           reference: <testLibrary>::@extensionType::A::@method::bar
           firstFragment: #F11
           returnType: void
@@ -6004,10 +6004,10 @@ library
             #F9 synthetic isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
           methods
-            #F10 foo1 (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F10 isOriginDeclaration foo1 (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo1
               nextFragment: #F11
-            #F12 foo2 (nameOffset:51) (firstTokenOffset:46) (offset:51)
+            #F12 isOriginDeclaration foo2 (nameOffset:51) (firstTokenOffset:46) (offset:51)
               element: <testLibrary>::@extensionType::A::@method::foo2
         #F2 extension type A (nameOffset:87) (firstTokenOffset:64) (offset:87)
           element: <testLibrary>::@extensionType::A
@@ -6027,7 +6027,7 @@ library
                   previousFragment: #F6
               previousFragment: #F5
           methods
-            #F11 augment foo1 (nameOffset:114) (firstTokenOffset:101) (offset:114)
+            #F11 augment isOriginDeclaration foo1 (nameOffset:114) (firstTokenOffset:101) (offset:114)
               element: <testLibrary>::@extensionType::A::@method::foo1
               previousFragment: #F10
   extensionTypes
@@ -6049,7 +6049,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F6
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -6060,11 +6060,11 @@ library
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       methods
-        isExtensionTypeMember foo1
+        isExtensionTypeMember isOriginDeclaration foo1
           reference: <testLibrary>::@extensionType::A::@method::foo1
           firstFragment: #F10
           returnType: void
-        isExtensionTypeMember foo2
+        isExtensionTypeMember isOriginDeclaration foo2
           reference: <testLibrary>::@extensionType::A::@method::foo2
           firstFragment: #F12
           returnType: void
@@ -6114,7 +6114,7 @@ library
             #F9 synthetic isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
           methods
-            #F10 foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F10 isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
               nextFragment: #F11
         #F2 extension type A (nameOffset:69) (firstTokenOffset:46) (offset:69)
@@ -6139,7 +6139,7 @@ library
               nextFragment: #F15
               previousFragment: #F5
           methods
-            #F11 augment foo (nameOffset:96) (firstTokenOffset:83) (offset:96)
+            #F11 augment isOriginDeclaration foo (nameOffset:96) (firstTokenOffset:83) (offset:96)
               element: <testLibrary>::@extensionType::A::@method::foo
               previousFragment: #F10
               nextFragment: #F16
@@ -6161,7 +6161,7 @@ library
                   previousFragment: #F7
               previousFragment: #F8
           methods
-            #F16 augment foo (nameOffset:158) (firstTokenOffset:145) (offset:158)
+            #F16 augment isOriginDeclaration foo (nameOffset:158) (firstTokenOffset:145) (offset:158)
               element: <testLibrary>::@extensionType::A::@method::foo
               previousFragment: #F11
   extensionTypes
@@ -6183,7 +6183,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F6
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -6194,7 +6194,7 @@ library
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       methods
-        isExtensionTypeMember foo
+        isExtensionTypeMember isOriginDeclaration foo
           reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: #F10
           returnType: void
@@ -6244,7 +6244,7 @@ library
             #F11 synthetic isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@extensionType::A::@getter::it
           methods
-            #F12 foo (nameOffset:34) (firstTokenOffset:32) (offset:34)
+            #F12 isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:32) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
         #F2 extension type A (nameOffset:78) (firstTokenOffset:55) (offset:78)
           element: <testLibrary>::@extensionType::A
@@ -6268,7 +6268,7 @@ library
                   previousFragment: #F8
               previousFragment: #F7
           methods
-            #F13 bar (nameOffset:97) (firstTokenOffset:95) (offset:97)
+            #F13 isOriginDeclaration bar (nameOffset:97) (firstTokenOffset:95) (offset:97)
               element: <testLibrary>::@extensionType::A::@method::bar
   extensionTypes
     extension type A
@@ -6292,7 +6292,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
-            #E1 requiredPositional final hasImplicitType declaring this.it
+            #E1 requiredPositional final declaring this.it
               firstFragment: #F8
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -6303,12 +6303,12 @@ library
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       methods
-        isExtensionTypeMember foo
+        isExtensionTypeMember isOriginDeclaration foo
           reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: #F12
           hasEnclosingTypeParameterReference: true
           returnType: T
-        isExtensionTypeMember bar
+        isExtensionTypeMember isOriginDeclaration bar
           reference: <testLibrary>::@extensionType::A::@method::bar
           firstFragment: #F13
           hasEnclosingTypeParameterReference: true
@@ -6359,7 +6359,7 @@ library
             #F11 synthetic isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@extensionType::A::@getter::it
           methods
-            #F12 foo (nameOffset:34) (firstTokenOffset:32) (offset:34)
+            #F12 isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:32) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
               nextFragment: #F13
         #F2 extension type A (nameOffset:78) (firstTokenOffset:55) (offset:78)
@@ -6384,7 +6384,7 @@ library
                   previousFragment: #F8
               previousFragment: #F7
           methods
-            #F13 augment foo (nameOffset:105) (firstTokenOffset:95) (offset:105)
+            #F13 augment isOriginDeclaration foo (nameOffset:105) (firstTokenOffset:95) (offset:105)
               element: <testLibrary>::@extensionType::A::@method::foo
               previousFragment: #F12
   extensionTypes
@@ -6409,7 +6409,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
-            #E1 requiredPositional final hasImplicitType declaring this.it
+            #E1 requiredPositional final declaring this.it
               firstFragment: #F8
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -6420,7 +6420,7 @@ library
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       methods
-        isExtensionTypeMember foo
+        isExtensionTypeMember isOriginDeclaration foo
           reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: #F12
           hasEnclosingTypeParameterReference: true
@@ -6468,10 +6468,10 @@ library
             #F9 synthetic isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
           methods
-            #F10 foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F10 isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
               nextFragment: #F11
-            #F12 bar (nameOffset:50) (firstTokenOffset:45) (offset:50)
+            #F12 isOriginDeclaration bar (nameOffset:50) (firstTokenOffset:45) (offset:50)
               element: <testLibrary>::@extensionType::A::@method::bar
         #F2 extension type A (nameOffset:85) (firstTokenOffset:62) (offset:85)
           element: <testLibrary>::@extensionType::A
@@ -6491,7 +6491,7 @@ library
                   previousFragment: #F6
               previousFragment: #F5
           methods
-            #F11 augment foo (nameOffset:115) (firstTokenOffset:102) (offset:115)
+            #F11 augment isOriginDeclaration foo (nameOffset:115) (firstTokenOffset:102) (offset:115)
               element: <testLibrary>::@extensionType::A::@method::foo
               previousFragment: #F10
   extensionTypes
@@ -6513,7 +6513,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F6
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -6524,11 +6524,11 @@ library
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       methods
-        isExtensionTypeMember foo
+        isExtensionTypeMember isOriginDeclaration foo
           reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: #F10
           returnType: void
-        isExtensionTypeMember bar
+        isExtensionTypeMember isOriginDeclaration bar
           reference: <testLibrary>::@extensionType::A::@method::bar
           firstFragment: #F12
           returnType: void
@@ -6635,7 +6635,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F7
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -6765,7 +6765,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F7
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -6901,7 +6901,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
-            #E0 requiredPositional final hasImplicitType declaring this.it
+            #E0 requiredPositional final declaring this.it
               firstFragment: #F8
               type: int
               field: <testLibrary>::@extensionType::A::@field::it

@@ -47,7 +47,7 @@ ExtensionTypeDeclaration
           type: int
         name: it
         declaredFragment: <testLibraryFragment> it@33
-          element: hasImplicitType isFinal isPublic
+          element: isFinal isPublic
             type: int
             field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
@@ -87,7 +87,7 @@ ExtensionTypeDeclaration
           type: int
         name: it
         declaredFragment: <testLibraryFragment> it@27
-          element: hasImplicitType isFinal isPublic
+          element: isFinal isPublic
             type: int
             field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
@@ -126,7 +126,7 @@ ExtensionTypeDeclaration
           type: int
         name: it
         declaredFragment: <testLibraryFragment> it@21
-          element: hasImplicitType isFinal isPublic
+          element: isFinal isPublic
             type: int
             field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
@@ -189,7 +189,7 @@ ExtensionTypeDeclaration
           type: num
         name: it
         declaredFragment: <testLibraryFragment> it@21
-          element: hasImplicitType isFinal isPublic
+          element: isFinal isPublic
             type: num
             field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
@@ -264,7 +264,7 @@ ExtensionTypeDeclaration
           type: int
         name: it
         declaredFragment: <testLibraryFragment> it@21
-          element: hasImplicitType isFinal isPublic
+          element: isFinal isPublic
             type: int
             field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
@@ -304,7 +304,7 @@ ExtensionTypeDeclaration
           type: String
         name: it
         declaredFragment: <testLibraryFragment> it@24
-          element: hasImplicitType isFinal isPublic
+          element: isFinal isPublic
             type: String
             field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
@@ -376,7 +376,7 @@ ExtensionTypeDeclaration
           type: int
         name: it
         declaredFragment: <testLibraryFragment> it@21
-          element: hasImplicitType isFinal isPublic
+          element: isFinal isPublic
             type: int
             field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
@@ -512,7 +512,7 @@ ExtensionTypeDeclaration
           type: Map<T, U>
         name: it
         declaredFragment: <testLibraryFragment> it@33
-          element: hasImplicitType isFinal isPublic
+          element: isFinal isPublic
             type: Map<T, U>
             field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
@@ -568,7 +568,7 @@ ExtensionTypeDeclaration
           type: int
         name: _
         declaredFragment: <testLibraryFragment> _@43
-          element: hasImplicitType isFinal isPrivate
+          element: isFinal isPrivate
             type: int
             field: <testLibrary>::@extensionType::ET::@field::_
       rightParenthesis: )

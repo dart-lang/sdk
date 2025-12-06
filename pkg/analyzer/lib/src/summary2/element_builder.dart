@@ -1523,6 +1523,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     } else {
       var fragment = TopLevelFunctionFragmentImpl(name: name2);
       fragment.isAugmentation = node.augmentKeyword != null;
+      fragment.isOriginDeclaration = true;
       fragment.isStatic = true;
       executableFragment = fragment;
 
@@ -1721,6 +1722,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       var fragment = MethodFragmentImpl(name: _getFragmentName(nameToken));
       fragment.isAbstract = node.isAbstract;
       fragment.isAugmentation = node.augmentKeyword != null;
+      fragment.isOriginDeclaration = true;
       fragment.isStatic = node.isStatic;
       _addChildFragment(fragment);
       executableFragment = fragment;
@@ -2081,8 +2083,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
             privateName: null,
           )
           ..isDeclaring = true
-          ..isOriginDeclaration = true
-          ..hasImplicitType = true;
+          ..isOriginDeclaration = true;
     formalParameterFragment.metadata = _buildMetadata(formalParameter.metadata);
     formalParameter.declaredFragment = formalParameterFragment;
 

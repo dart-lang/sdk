@@ -859,6 +859,12 @@ class SubstitutedMethodElementImpl extends SubstitutedExecutableElementImpl
   bool get isOperator => baseElement.isOperator;
 
   @override
+  bool get isOriginDeclaration => baseElement.isOriginDeclaration;
+
+  @override
+  bool get isOriginInterface => baseElement.isOriginInterface;
+
+  @override
   LibraryElement get library => baseElement.library;
 
   @override

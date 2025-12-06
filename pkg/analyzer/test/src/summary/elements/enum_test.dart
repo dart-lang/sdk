@@ -3600,7 +3600,7 @@ library
             #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
           methods
-            #F8 foo (nameOffset:23) (firstTokenOffset:19) (offset:23)
+            #F8 isOriginDeclaration foo (nameOffset:23) (firstTokenOffset:19) (offset:23)
               element: <testLibrary>::@enum::E::@method::foo
               typeParameters
                 #F9 U (nameOffset:27) (firstTokenOffset:27) (offset:27)
@@ -3651,7 +3651,7 @@ library
           returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::E::@method::foo
           firstFragment: #F8
           hasEnclosingTypeParameterReference: true
@@ -3722,7 +3722,7 @@ library
             #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
           methods
-            #F7 toString (nameOffset:23) (firstTokenOffset:16) (offset:23)
+            #F7 isOriginDeclaration toString (nameOffset:23) (firstTokenOffset:16) (offset:23)
               element: <testLibrary>::@enum::E::@method::toString
   enums
     enum E
@@ -3762,7 +3762,7 @@ library
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
       methods
-        toString
+        isOriginDeclaration toString
           reference: <testLibrary>::@enum::E::@method::toString
           firstFragment: #F7
           returnType: String
@@ -5744,7 +5744,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F5 foo (nameOffset:52) (firstTokenOffset:52) (offset:52)
+            #F5 isOriginDeclaration foo (nameOffset:52) (firstTokenOffset:52) (offset:52)
               element: <testLibrary>::@class::A::@method::foo
         #F6 class B (nameOffset:70) (firstTokenOffset:64) (offset:70)
           element: <testLibrary>::@class::B
@@ -5753,7 +5753,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F8 foo (nameOffset:92) (firstTokenOffset:92) (offset:92)
+            #F8 isOriginDeclaration foo (nameOffset:92) (firstTokenOffset:92) (offset:92)
               element: <testLibrary>::@class::B::@method::foo
         #F9 class C (nameOffset:110) (firstTokenOffset:104) (offset:110)
           element: <testLibrary>::@class::C
@@ -5762,7 +5762,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F11 foo (nameOffset:141) (firstTokenOffset:141) (offset:141)
+            #F11 isOriginDeclaration foo (nameOffset:141) (firstTokenOffset:141) (offset:141)
               element: <testLibrary>::@class::C::@method::foo
         #F12 class D (nameOffset:159) (firstTokenOffset:153) (offset:159)
           element: <testLibrary>::@class::D
@@ -5865,7 +5865,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@method::foo
           firstFragment: #F5
           returnType: dynamic
@@ -5879,7 +5879,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F7
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: #F8
           returnType: dynamic
@@ -5894,7 +5894,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F10
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@class::C::@method::foo
           firstFragment: #F11
           returnType: dynamic
@@ -6674,7 +6674,7 @@ library
             #F6 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::values
           methods
-            #F7 foo (nameOffset:40) (firstTokenOffset:30) (offset:40)
+            #F7 isOriginDeclaration foo (nameOffset:40) (firstTokenOffset:30) (offset:40)
               element: <testLibrary>::@enum::E::@method::foo
               metadata
                 Annotation
@@ -6732,7 +6732,7 @@ library
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::E::@method::foo
           firstFragment: #F7
           metadata
@@ -6841,7 +6841,7 @@ library
             #F9 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@enum::E::@getter::foo
           methods
-            #F10 bar (nameOffset:81) (firstTokenOffset:69) (offset:81)
+            #F10 isOriginDeclaration bar (nameOffset:81) (firstTokenOffset:69) (offset:81)
               element: <testLibrary>::@enum::E::@method::bar
               metadata
                 Annotation
@@ -6923,7 +6923,7 @@ library
           returnType: int
           variable: <testLibrary>::@enum::E::@field::foo
       methods
-        bar
+        isOriginDeclaration bar
           reference: <testLibrary>::@enum::E::@method::bar
           firstFragment: #F10
           metadata
@@ -8976,13 +8976,13 @@ library
             #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
-            #F8 foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F8 isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
               element: <testLibrary>::@enum::A::@method::foo
         #F2 enum A (nameOffset:46) (firstTokenOffset:33) (offset:46)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           methods
-            #F9 bar (nameOffset:58) (firstTokenOffset:53) (offset:58)
+            #F9 isOriginDeclaration bar (nameOffset:58) (firstTokenOffset:53) (offset:58)
               element: <testLibrary>::@enum::A::@method::bar
   enums
     enum A
@@ -9022,11 +9022,11 @@ library
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@method::foo
           firstFragment: #F8
           returnType: void
-        bar
+        isOriginDeclaration bar
           reference: <testLibrary>::@enum::A::@method::bar
           firstFragment: #F9
           returnType: void
@@ -9298,7 +9298,7 @@ library
             #F4 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::A::@def::0::@getter::values
           methods
-            #F5 foo1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
+            #F5 isOriginDeclaration foo1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
               element: <testLibrary>::@enum::A::@def::0::@method::foo1
         #F6 enum A (nameOffset:43) (firstTokenOffset:38) (offset:43)
           element: <testLibrary>::@enum::A::@def::1
@@ -9340,13 +9340,13 @@ library
             #F12 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@enum::A::@def::1::@getter::values
           methods
-            #F13 foo2 (nameOffset:59) (firstTokenOffset:54) (offset:59)
+            #F13 isOriginDeclaration foo2 (nameOffset:59) (firstTokenOffset:54) (offset:59)
               element: <testLibrary>::@enum::A::@def::1::@method::foo2
         #F7 enum A (nameOffset:85) (firstTokenOffset:72) (offset:85)
           element: <testLibrary>::@enum::A::@def::1
           previousFragment: #F6
           methods
-            #F14 foo3 (nameOffset:97) (firstTokenOffset:92) (offset:97)
+            #F14 isOriginDeclaration foo3 (nameOffset:97) (firstTokenOffset:92) (offset:97)
               element: <testLibrary>::@enum::A::@def::1::@method::foo3
   enums
     enum A
@@ -9373,7 +9373,7 @@ library
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@def::0::@field::values
       methods
-        foo1
+        isOriginDeclaration foo1
           reference: <testLibrary>::@enum::A::@def::0::@method::foo1
           firstFragment: #F5
           returnType: void
@@ -9414,11 +9414,11 @@ library
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@def::1::@field::values
       methods
-        foo2
+        isOriginDeclaration foo2
           reference: <testLibrary>::@enum::A::@def::1::@method::foo2
           firstFragment: #F13
           returnType: void
-        foo3
+        isOriginDeclaration foo3
           reference: <testLibrary>::@enum::A::@def::1::@method::foo3
           firstFragment: #F14
           returnType: void
@@ -9462,13 +9462,13 @@ library
             #F5 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::A::@getter::values
           methods
-            #F6 foo1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
+            #F6 isOriginDeclaration foo1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
               element: <testLibrary>::@enum::A::@method::foo1
         #F2 enum A (nameOffset:51) (firstTokenOffset:38) (offset:51)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           methods
-            #F7 foo2 (nameOffset:63) (firstTokenOffset:58) (offset:63)
+            #F7 isOriginDeclaration foo2 (nameOffset:63) (firstTokenOffset:58) (offset:63)
               element: <testLibrary>::@enum::A::@method::foo2
   enums
     enum A
@@ -9495,11 +9495,11 @@ library
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
       methods
-        foo1
+        isOriginDeclaration foo1
           reference: <testLibrary>::@enum::A::@method::foo1
           firstFragment: #F6
           returnType: void
-        foo2
+        isOriginDeclaration foo2
           reference: <testLibrary>::@enum::A::@method::foo2
           firstFragment: #F7
           returnType: void
@@ -14581,13 +14581,13 @@ library
             #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
-            #F8 foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F8 isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
               element: <testLibrary>::@enum::A::@method::foo
         #F2 enum A (nameOffset:46) (firstTokenOffset:33) (offset:46)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           methods
-            #F9 bar (nameOffset:58) (firstTokenOffset:53) (offset:58)
+            #F9 isOriginDeclaration bar (nameOffset:58) (firstTokenOffset:53) (offset:58)
               element: <testLibrary>::@enum::A::@method::bar
   enums
     enum A
@@ -14627,11 +14627,11 @@ library
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@method::foo
           firstFragment: #F8
           returnType: void
-        bar
+        isOriginDeclaration bar
           reference: <testLibrary>::@enum::A::@method::bar
           firstFragment: #F9
           returnType: void
@@ -14699,7 +14699,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           methods
-            #F8 foo (nameOffset:41) (firstTokenOffset:36) (offset:41)
+            #F8 isOriginDeclaration foo (nameOffset:41) (firstTokenOffset:36) (offset:41)
               element: <testLibrary>::@enum::A::@method::foo
               formalParameters
                 #F9 optionalPositional x (nameOffset:50) (firstTokenOffset:46) (offset:50)
@@ -14746,7 +14746,7 @@ library
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@method::foo
           firstFragment: #F8
           formalParameters
@@ -14821,16 +14821,16 @@ library
             #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
-            #F8 foo1 (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F8 isOriginDeclaration foo1 (nameOffset:21) (firstTokenOffset:16) (offset:21)
               element: <testLibrary>::@enum::A::@method::foo1
               nextFragment: #F9
-            #F10 foo2 (nameOffset:38) (firstTokenOffset:33) (offset:38)
+            #F10 isOriginDeclaration foo2 (nameOffset:38) (firstTokenOffset:33) (offset:38)
               element: <testLibrary>::@enum::A::@method::foo2
         #F2 enum A (nameOffset:64) (firstTokenOffset:51) (offset:64)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           methods
-            #F9 augment foo1 (nameOffset:84) (firstTokenOffset:71) (offset:84)
+            #F9 augment isOriginDeclaration foo1 (nameOffset:84) (firstTokenOffset:71) (offset:84)
               element: <testLibrary>::@enum::A::@method::foo1
               previousFragment: #F8
   enums
@@ -14871,11 +14871,11 @@ library
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
       methods
-        foo1
+        isOriginDeclaration foo1
           reference: <testLibrary>::@enum::A::@method::foo1
           firstFragment: #F8
           returnType: void
-        foo2
+        isOriginDeclaration foo2
           reference: <testLibrary>::@enum::A::@method::foo2
           firstFragment: #F10
           returnType: void
@@ -14943,18 +14943,18 @@ library
             #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
-            #F8 foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F8 isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
               element: <testLibrary>::@enum::A::@method::foo
               nextFragment: #F9
         #F2 enum A (nameOffset:46) (firstTokenOffset:33) (offset:46)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           methods
-            #F9 augment foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
+            #F9 augment isOriginDeclaration foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
               element: <testLibrary>::@enum::A::@method::foo
               previousFragment: #F8
               nextFragment: #F10
-            #F10 augment foo (nameOffset:90) (firstTokenOffset:77) (offset:90)
+            #F10 augment isOriginDeclaration foo (nameOffset:90) (firstTokenOffset:77) (offset:90)
               element: <testLibrary>::@enum::A::@method::foo
               previousFragment: #F9
   enums
@@ -14995,7 +14995,7 @@ library
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@method::foo
           firstFragment: #F8
           returnType: void
@@ -15065,7 +15065,7 @@ library
             #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
-            #F8 foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F8 isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
               element: <testLibrary>::@enum::A::@method::foo
               nextFragment: #F9
         #F2 enum A (nameOffset:46) (firstTokenOffset:33) (offset:46)
@@ -15073,7 +15073,7 @@ library
           previousFragment: #F1
           nextFragment: #F10
           methods
-            #F9 augment foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
+            #F9 augment isOriginDeclaration foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
               element: <testLibrary>::@enum::A::@method::foo
               previousFragment: #F8
               nextFragment: #F11
@@ -15081,7 +15081,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F2
           methods
-            #F11 augment foo (nameOffset:110) (firstTokenOffset:97) (offset:110)
+            #F11 augment isOriginDeclaration foo (nameOffset:110) (firstTokenOffset:97) (offset:110)
               element: <testLibrary>::@enum::A::@method::foo
               previousFragment: #F9
   enums
@@ -15122,7 +15122,7 @@ library
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@method::foo
           firstFragment: #F8
           returnType: void
@@ -15193,7 +15193,7 @@ library
             #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
-            #F8 foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F8 isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
               element: <testLibrary>::@enum::A::@method::foo
               nextFragment: #F9
         #F2 enum A (nameOffset:46) (firstTokenOffset:33) (offset:46)
@@ -15201,7 +15201,7 @@ library
           previousFragment: #F1
           nextFragment: #F10
           methods
-            #F9 augment foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
+            #F9 augment isOriginDeclaration foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
               element: <testLibrary>::@enum::A::@method::foo
               previousFragment: #F8
               nextFragment: #F11
@@ -15209,7 +15209,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F2
           methods
-            #F11 augment foo (nameOffset:111) (firstTokenOffset:98) (offset:111)
+            #F11 augment isOriginDeclaration foo (nameOffset:111) (firstTokenOffset:98) (offset:111)
               element: <testLibrary>::@enum::A::@method::foo
               previousFragment: #F9
   enums
@@ -15250,7 +15250,7 @@ library
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@method::foo
           firstFragment: #F8
           returnType: void
@@ -15331,7 +15331,7 @@ library
             #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
-            #F10 foo (nameOffset:28) (firstTokenOffset:26) (offset:28)
+            #F10 isOriginDeclaration foo (nameOffset:28) (firstTokenOffset:26) (offset:28)
               element: <testLibrary>::@enum::A::@method::foo
         #F2 enum A (nameOffset:62) (firstTokenOffset:49) (offset:62)
           element: <testLibrary>::@enum::A
@@ -15341,7 +15341,7 @@ library
               element: #E0 T
               previousFragment: #F3
           methods
-            #F11 bar (nameOffset:74) (firstTokenOffset:72) (offset:74)
+            #F11 isOriginDeclaration bar (nameOffset:74) (firstTokenOffset:72) (offset:74)
               element: <testLibrary>::@enum::A::@method::bar
   enums
     enum A
@@ -15384,12 +15384,12 @@ library
           returnType: List<A<dynamic>>
           variable: <testLibrary>::@enum::A::@field::values
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@method::foo
           firstFragment: #F10
           hasEnclosingTypeParameterReference: true
           returnType: T
-        bar
+        isOriginDeclaration bar
           reference: <testLibrary>::@enum::A::@method::bar
           firstFragment: #F11
           hasEnclosingTypeParameterReference: true
@@ -15471,7 +15471,7 @@ library
             #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
-            #F10 foo (nameOffset:28) (firstTokenOffset:26) (offset:28)
+            #F10 isOriginDeclaration foo (nameOffset:28) (firstTokenOffset:26) (offset:28)
               element: <testLibrary>::@enum::A::@method::foo
               nextFragment: #F11
         #F2 enum A (nameOffset:62) (firstTokenOffset:49) (offset:62)
@@ -15482,7 +15482,7 @@ library
               element: #E0 T
               previousFragment: #F3
           methods
-            #F11 augment foo (nameOffset:82) (firstTokenOffset:72) (offset:82)
+            #F11 augment isOriginDeclaration foo (nameOffset:82) (firstTokenOffset:72) (offset:82)
               element: <testLibrary>::@enum::A::@method::foo
               previousFragment: #F10
   enums
@@ -15526,7 +15526,7 @@ library
           returnType: List<A<dynamic>>
           variable: <testLibrary>::@enum::A::@field::values
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@method::foo
           firstFragment: #F10
           hasEnclosingTypeParameterReference: true
@@ -17057,7 +17057,7 @@ library
           element: <testLibrary>::@enum::B
           previousFragment: #F1
           methods
-            #F8 foo (nameOffset:66) (firstTokenOffset:66) (offset:66)
+            #F8 isOriginDeclaration foo (nameOffset:66) (firstTokenOffset:66) (offset:66)
               element: <testLibrary>::@enum::B::@method::foo
               formalParameters
                 #F9 requiredPositional a (nameOffset:70) (firstTokenOffset:70) (offset:70)
@@ -17102,7 +17102,7 @@ library
           returnType: List<B>
           variable: <testLibrary>::@enum::B::@field::values
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::B::@method::foo
           firstFragment: #F8
           formalParameters
@@ -17181,7 +17181,7 @@ library
             #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@enum::B::@getter::values
           methods
-            #F8 foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
+            #F8 isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@enum::B::@method::foo
               formalParameters
                 #F9 requiredPositional a (nameOffset:38) (firstTokenOffset:38) (offset:38)
@@ -17229,7 +17229,7 @@ library
           returnType: List<B>
           variable: <testLibrary>::@enum::B::@field::values
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::B::@method::foo
           firstFragment: #F8
           formalParameters
@@ -17308,7 +17308,7 @@ library
             #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@enum::B::@getter::values
           methods
-            #F8 foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
+            #F8 isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@enum::B::@method::foo
               formalParameters
                 #F9 requiredPositional a (nameOffset:38) (firstTokenOffset:38) (offset:38)
@@ -17356,7 +17356,7 @@ library
           returnType: List<B>
           variable: <testLibrary>::@enum::B::@field::values
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@enum::B::@method::foo
           firstFragment: #F8
           formalParameters
