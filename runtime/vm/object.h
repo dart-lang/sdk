@@ -527,7 +527,9 @@ class Object {
   V(Bytecode, implicit_getter_bytecode)                                        \
   V(Bytecode, implicit_setter_bytecode)                                        \
   V(Bytecode, implicit_static_getter_bytecode)                                 \
+  V(Bytecode, implicit_shared_static_getter_bytecode)                          \
   V(Bytecode, implicit_static_setter_bytecode)                                 \
+  V(Bytecode, implicit_shared_static_setter_bytecode)                          \
   V(Bytecode, method_extractor_bytecode)                                       \
   V(Bytecode, invoke_closure_bytecode)                                         \
   V(Bytecode, invoke_field_bytecode)                                           \

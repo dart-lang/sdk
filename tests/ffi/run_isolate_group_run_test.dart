@@ -28,6 +28,7 @@ var foo_no_initializer;
 @pragma('vm:shared')
 var shared_foo_no_initializer;
 
+@pragma('vm:shared')
 final foo_final = 1234;
 
 @pragma('vm:never-inline')
@@ -221,17 +222,20 @@ main(List<String> args) {
   StringMethodTearoffTest();
   ListMethodTearoffTest(args);
 
-  final rp = ReceivePort();
-  Expect.throws(
-    () {
-      IsolateGroup.runSync(() {
-        sp = rp.sendPort;
-      });
-    },
-    (e) =>
-        e is ArgumentError && e.toString().contains("Only trivially-immutable"),
-  );
-  rp.close();
+  {
+    final rp = ReceivePort();
+    Expect.throws(
+      () {
+        IsolateGroup.runSync(() {
+          sp = rp.sendPort;
+        });
+      },
+      (e) =>
+          e is ArgumentError &&
+          e.toString().contains("Only trivially-immutable"),
+    );
+    rp.close();
+  }
 
   // deferred libraries can't be used from isolate group callbacks.
   Expect.throws(() {

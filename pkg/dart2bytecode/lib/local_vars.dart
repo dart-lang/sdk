@@ -7,6 +7,8 @@ import 'dart:math' show min, max;
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
+import 'package:vm/transformations/pragma.dart';
+
 import 'dbc.dart';
 import 'options.dart' show BytecodeOptions;
 
@@ -157,8 +159,8 @@ class LocalVariables {
   List<VariableDeclaration> get sortedNamedParameters =>
       _currentFrame.sortedNamedParameters;
 
-  LocalVariables(Member node, this.options, this.staticTypeContext) {
-    final scopeBuilder = new _ScopeBuilder(this);
+  LocalVariables(PragmaAnnotationParser pragmaParser, Member node, this.options, this.staticTypeContext) {
+    final scopeBuilder = new _ScopeBuilder(pragmaParser, this);
     node.accept(scopeBuilder);
 
     final allocator = new _Allocator(this);
@@ -174,6 +176,9 @@ class LocalVariables {
     _currentScopeInternal = _currentScope.parent;
     _currentFrameInternal = _currentScopeInternal?.frame;
   }
+
+  bool get capturesOnlyFinalAndSharedVars =>
+    _currentFrame.capturesOnlyFinalAndSharedVars;
 
   void withTemp(TreeNode node, int temp, void action()) {
     final old = _temps![node];
@@ -192,16 +197,18 @@ class VarDesc {
   final VariableDeclaration declaration;
   Scope scope;
   bool isCaptured = false;
+  bool _isShared;
   int? index;
   int? originalParamSlotIndex;
 
-  VarDesc(this.declaration, this.scope) {
+  VarDesc(this.declaration, this.scope, this._isShared) {
     scope.vars.add(this);
   }
 
   Frame get frame => scope.frame;
 
   bool get isAllocated => index != null;
+  bool get isFinalOrShared => declaration.isFinal || _isShared;
 
   void capture() {
     assert(!isAllocated);
@@ -243,6 +250,7 @@ class Frame {
   int frameSize = 0;
   List<int> temporaries = <int>[];
   int? contextLevelAtEntry;
+  bool capturesOnlyFinalAndSharedVars = true;
 
   Frame(this.function, this.parent);
 
@@ -302,7 +310,9 @@ class _ScopeBuilder extends RecursiveVisitor {
   List<TreeNode> _enclosingTryCatches = const [];
   int _loopDepth = 0;
 
-  _ScopeBuilder(this.locals);
+  final PragmaAnnotationParser _pragmaParser;
+
+  _ScopeBuilder(this._pragmaParser, this.locals);
 
   List<VariableDeclaration> _sortNamedParameters(FunctionNode function) {
     final params = function.namedParameters.toList();
@@ -462,7 +472,10 @@ class _ScopeBuilder extends RecursiveVisitor {
     if (scope == null) {
       scope = _currentScope;
     }
-    final VarDesc v = new VarDesc(variable, scope);
+    final isShared = _pragmaParser
+          .parsedPragmas<ParsedVmSharedPragma>(variable.annotations)
+          .isNotEmpty;
+    final VarDesc v = new VarDesc(variable, scope, isShared);
     assert(locals._vars[variable] == null,
         'Double declaring variable ${variable}!');
     locals._vars[variable] = v;
@@ -475,6 +488,9 @@ class _ScopeBuilder extends RecursiveVisitor {
     }
     if (v.frame != _currentFrame) {
       v.capture();
+      if (!v.isFinalOrShared) {
+        _currentFrame.capturesOnlyFinalAndSharedVars = false;
+      }
     }
   }
 

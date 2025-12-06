@@ -1635,10 +1635,9 @@ class UntaggedClosureData : public UntaggedObject {
   using PackedAwaiterLinkIndex = BitField<decltype(packed_fields_),
                                           uint8_t,
                                           PackedAwaiterLinkDepth::kNextBit>;
-  using DoesCloseOverOnlySharedFields =
-      BitField<decltype(packed_fields_),
-               bool,
-               PackedAwaiterLinkIndex::kNextBit>;
+  using CapturesOnlySharedFields = BitField<decltype(packed_fields_),
+                                            bool,
+                                            PackedAwaiterLinkIndex::kNextBit>;
   friend class Function;
   friend class UnitDeserializationRoots;
 };

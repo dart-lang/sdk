@@ -308,6 +308,7 @@ class BytecodeReaderHelper : public ValueObject {
     static const int kHasExceptionsTableFlag = 1 << 0;
     static const int kHasSourcePositionsFlag = 1 << 1;
     static const int kHasLocalVariablesFlag = 1 << 2;
+    static const int kCapturesOnlyFinalAndSharedVarsFlag = 1 << 3;
   };
 
   // Parameter flags, must be in sync with ParameterFlags constants in

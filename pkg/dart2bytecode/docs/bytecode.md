@@ -524,7 +524,7 @@ type FieldDeclaration {
                 hasGetter, hasSetter,
                 hasInitializer, hasNontrivialInitializer, hasInitializerCode,
                 hasSourcePositions, hasAnnotations, hasPragma,
-                hasCustomScript, isExtensionTypeMember);
+                hasCustomScript, isExtensionTypeMember, isShared);
   PackedObject name;
   PackedObject type;
 
@@ -680,7 +680,8 @@ type ClosureDeclaration {
 }
 
 type ClosureCode {
-  UInt flags = (hasExceptionsTable, hasSourcePositions, hasLocalVariables)
+  UInt flags = (hasExceptionsTable, hasSourcePositions, hasLocalVariables,
+                capturesOnlyFinalAndSharedVars)
 
   UInt bytecodeSizeInBytes;
   Byte[bytecodeSizeInBytes] bytecodes;
