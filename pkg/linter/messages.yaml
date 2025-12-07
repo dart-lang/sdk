@@ -8259,12 +8259,11 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: false
-    deprecatedDetails: |-
+    documentation: |-
       **DON'T** assign new values to parameters of methods or functions.
-
-      Assigning new values to parameters is generally a bad practice unless an
-      operator such as `??=` is used.  Otherwise, arbitrarily reassigning parameters
-      is usually a mistake.
+      Assigning new values to parameters is generally a bad practice, even when using
+      operators such as `??=`. Arbitrarily reassigning parameters is usually a
+      mistake and can make code harder to reason about.
 
       **BAD:**
       ```dart
@@ -8275,14 +8274,14 @@ LinterLintCode:
 
       **BAD:**
       ```dart
-      void badFunction(int required, {int optional: 42}) { // LINT
+      void badFunction(int required, {int? optional}) { // LINT
         optional ??= 8;
       }
       ```
 
       **BAD:**
       ```dart
-      void badFunctionPositional(int required, [int optional = 42]) { // LINT
+      void badFunctionPositional(int required, [int? optional]) { // LINT
         optional ??= 8;
       }
       ```
@@ -8305,15 +8304,17 @@ LinterLintCode:
 
       **GOOD:**
       ```dart
-      void actuallyGood(int required, {int optional}) { // OK
-        optional ??= ...;
+      void actuallyGood(int required, {int? optional}) { // OK
+        final value = optional ?? 8;
+        print(value);
       }
       ```
 
       **GOOD:**
       ```dart
-      void actuallyGoodPositional(int required, [int optional]) { // OK
-        optional ??= ...;
+      void actuallyGoodPositional(int required, [int? optional]) { // OK
+        final value = optional ?? 8;
+        print(value);
       }
       ```
 
