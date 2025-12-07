@@ -8259,7 +8259,7 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: false
-    documentation: |-
+    deprecatedDetails: |-
       **DON'T** assign new values to parameters of methods or functions.
 
       Assigning new values to parameters is generally a bad practice, even when using
