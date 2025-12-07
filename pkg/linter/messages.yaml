@@ -7741,12 +7741,12 @@ LinterLintCode:
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
-      Don't type annotate initialized local variables when the type is obvious.
+      Don't type annotate initialized local variables when the type is [obvious](https://dart.dev/resources/glossary#obviously-typed).
 
       Local variables, especially in modern code where functions tend to be small,
       have very little scope. Omitting the type focuses the reader's attention on the
       more important *name* of the variable and its initialized value. Hence, local
-      variable type annotations that are obvious should be omitted.
+      variable type annotations that are [obvious](https://dart.dev/resources/glossary#obviously-typed) should be omitted.
 
       **BAD:**
       ```dart
@@ -7815,7 +7815,7 @@ LinterLintCode:
     hasPublishedDocs: false
     deprecatedDetails: |-
       Don't type annotate initialized top-level or static variables when the type is
-      obvious.
+      [obvious](https://dart.dev/resources/glossary#obviously-typed).
 
       **BAD:**
       ```dart
