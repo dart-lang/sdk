@@ -8261,6 +8261,7 @@ LinterLintCode:
     hasPublishedDocs: false
     documentation: |-
       **DON'T** assign new values to parameters of methods or functions.
+
       Assigning new values to parameters is generally a bad practice, even when using
       operators such as `??=`. Arbitrarily reassigning parameters is usually a
       mistake and can make code harder to reason about.
