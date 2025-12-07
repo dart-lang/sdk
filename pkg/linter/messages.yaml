@@ -11955,7 +11955,7 @@ LinterLintCode:
     hasPublishedDocs: false
     deprecatedDetails: |-
       Do type annotate initialized top-level or static variables when the type is
-      non-obvious.
+      [non-obvious](https://dart.dev/resources/glossary#obviously-typed).
 
       Type annotations on top-level or static variables can serve as a request for
       type inference, documenting the expected outcome of the type inference step,
