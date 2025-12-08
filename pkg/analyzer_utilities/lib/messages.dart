@@ -142,55 +142,6 @@ List<T> _loadCfeStyleMessages<T extends CfeStyleMessage>(
   );
 }
 
-/// An analyzer error code, consisting of an optional class name and an error
-/// name.
-///
-/// This class implements [operator==] and [hashCode] so it can be used as a map
-/// key or in a set.
-///
-/// This class implements [Comparable], so lists of it can be safely
-/// [List.sort]ed.
-class AnalyzerCode implements Comparable<AnalyzerCode> {
-  /// The diagnostic name.
-  ///
-  /// The diagnostic name is in "snake case", meaning it consists of words
-  /// separated by underscores. Those words might be lower case or upper case.
-  ///
-  // TODO(paulberry): change `messages.yaml` to consistently use lower snake
-  // case, and remove [lowerSnakeCaseName].
-  final String snakeCaseName;
-
-  AnalyzerCode({required this.snakeCaseName});
-
-  /// The string that should be generated into analyzer source code to refer to
-  /// this diagnostic code.
-  String get analyzerCodeReference => ['diag', camelCaseName].join('.');
-
-  /// The diagnostic name, converted to camel case.
-  String get camelCaseName => snakeCaseName.toCamelCase();
-
-  @override
-  int get hashCode => snakeCaseName.hashCode;
-
-  /// The diagnostic name, converted to lower snake case.
-  String get lowerSnakeCaseName => snakeCaseName.toLowerCase();
-
-  /// The diagnostic name, converted to PascalCase.
-  String get pascalCaseName => snakeCaseName.toPascalCase();
-
-  @override
-  bool operator ==(Object other) =>
-      other is AnalyzerCode && snakeCaseName == other.snakeCaseName;
-
-  @override
-  int compareTo(AnalyzerCode other) {
-    return snakeCaseName.compareTo(other.snakeCaseName);
-  }
-
-  @override
-  String toString() => snakeCaseName;
-}
-
 /// In-memory representation of diagnostic information obtained from a
 /// `messages.yaml` file in `pkg/front_end` or `pkg/_fe_analyzer_shared`.
 abstract class CfeStyleMessage extends Message {
@@ -250,6 +201,54 @@ sealed class Conversion {
   ///
   /// If no conversion is needed, returns `null`.
   String? toCode({required String name, required DiagnosticParameterType type});
+}
+
+/// A diagnostic code name used by either the analyzer or the front end.
+///
+/// This class implements [operator==] and [hashCode] so it can be used as a map
+/// key or in a set.
+///
+/// This class implements [Comparable], so lists of it can be safely
+/// [List.sort]ed.
+class DiagnosticCodeName implements Comparable<DiagnosticCodeName> {
+  /// The diagnostic name.
+  ///
+  /// The diagnostic name is in "snake case", meaning it consists of words
+  /// separated by underscores. Those words might be lower case or upper case.
+  ///
+  // TODO(paulberry): change `messages.yaml` to consistently use lower snake
+  // case, and remove [lowerSnakeCaseName].
+  final String snakeCaseName;
+
+  DiagnosticCodeName({required this.snakeCaseName});
+
+  /// The string that should be generated into analyzer source code to refer to
+  /// this diagnostic code.
+  String get analyzerCodeReference => ['diag', camelCaseName].join('.');
+
+  /// The diagnostic name, converted to camel case.
+  String get camelCaseName => snakeCaseName.toCamelCase();
+
+  @override
+  int get hashCode => snakeCaseName.hashCode;
+
+  /// The diagnostic name, converted to lower snake case.
+  String get lowerSnakeCaseName => snakeCaseName.toLowerCase();
+
+  /// The diagnostic name, converted to PascalCase.
+  String get pascalCaseName => snakeCaseName.toPascalCase();
+
+  @override
+  bool operator ==(Object other) =>
+      other is DiagnosticCodeName && snakeCaseName == other.snakeCaseName;
+
+  @override
+  int compareTo(DiagnosticCodeName other) {
+    return snakeCaseName.compareTo(other.snakeCaseName);
+  }
+
+  @override
+  String toString() => snakeCaseName;
 }
 
 /// In-memory representation of a single key/value pair from the `parameters`
@@ -394,7 +393,7 @@ enum DiagnosticParameterType {
 /// A set of tables derived from shared, CFE, analyzer, and linter diagnostics.
 class DiagnosticTables {
   /// List of shared diagnostics for which analyzer diagnostics should be
-  /// automatically generated, sorted by [AnalyzerCode.camelCaseName].
+  /// automatically generated, sorted by [DiagnosticCodeName.camelCaseName].
   final List<SharedMessage> sortedSharedDiagnostics = [];
 
   /// List of front end diagnostics, sorted by front end code.
@@ -406,7 +405,7 @@ class DiagnosticTables {
   /// A message is considered active is [MessageWithAnalyzerCode.isRemoved] is
   /// `false` and the message is not an [AliasMessage].
   ///
-  /// Each list is sorted by [AnalyzerCode.camelCaseName].
+  /// Each list is sorted by [DiagnosticCodeName.camelCaseName].
   final Map<AnalyzerDiagnosticPackage, List<MessageWithAnalyzerCode>>
   activeMessagesByPackage = {};
 
@@ -414,7 +413,7 @@ class DiagnosticTables {
     var frontEndCodeDuplicateChecker = _DuplicateChecker<String>(
       kind: 'Front end code',
     );
-    var analyzerCodeDuplicateChecker = _DuplicateChecker<AnalyzerCode>(
+    var analyzerCodeDuplicateChecker = _DuplicateChecker<DiagnosticCodeName>(
       kind: 'Analyzer code',
     );
     var analyzerCodeCamelCaseNameDuplicateChecker = _DuplicateChecker<String>(
@@ -557,7 +556,7 @@ abstract class Message {
   /// If present, indicates that this error code has a special name for
   /// presentation to the user, that is potentially shared with other error
   /// codes.
-  final AnalyzerCode? sharedName;
+  final DiagnosticCodeName? sharedName;
 
   /// If present, indicates that this error code has been renamed from
   /// [previousName] to its current name (or [sharedName]).
@@ -603,7 +602,7 @@ abstract class Message {
           ) ??
           [],
       sharedName = switch (messageYaml.getOptionalString('sharedName')) {
-        var s? => AnalyzerCode(snakeCaseName: s),
+        var s? => DiagnosticCodeName(snakeCaseName: s),
         null => null,
       },
       removedIn = messageYaml.getOptionalString('removedIn'),
@@ -922,7 +921,7 @@ class SharedMessage extends CfeStyleMessage with MessageWithAnalyzerCode {
   /// Shared diagnostics are required to have exactly one analyzer code
   /// associated with them.
   @override
-  final AnalyzerCode analyzerCode;
+  final DiagnosticCodeName analyzerCode;
 
   @override
   final bool hasPublishedDocs;
@@ -944,13 +943,13 @@ class SharedMessage extends CfeStyleMessage with MessageWithAnalyzerCode {
   @override
   AnalyzerDiagnosticPackage get package => AnalyzerDiagnosticPackage.analyzer;
 
-  static AnalyzerCode _decodeAnalyzerCode(YamlNode node) {
+  static DiagnosticCodeName _decodeAnalyzerCode(YamlNode node) {
     switch (node) {
       case YamlScalar(value: String s):
         switch (s.split('.')) {
           case [_, var snakeCaseName]
               when snakeCaseName == snakeCaseName.toUpperCase():
-            return AnalyzerCode(snakeCaseName: snakeCaseName);
+            return DiagnosticCodeName(snakeCaseName: snakeCaseName);
         }
     }
     throw 'Analyzer codes must take the form ClassName.DIAGNOSTIC_NAME.';
