@@ -1220,6 +1220,24 @@ suggestions
     );
   }
 
+  Future<void> test_privateNamed() async {
+    await computeSuggestions('''
+class A {
+  final int? _foo;
+  A({this._foo});
+}
+
+f() {
+  A(^);
+}
+''');
+    assertResponse(r'''
+suggestions
+  |foo: |
+    kind: namedArgument
+''');
+  }
+
   Future<void> test_superCall_excludesSuperParams() async {
     await computeSuggestions('''
 class A {
