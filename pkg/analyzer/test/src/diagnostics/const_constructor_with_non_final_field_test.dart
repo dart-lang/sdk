@@ -45,6 +45,15 @@ class B implements A {
 ''');
   }
 
+  test_constGenerativeNamed_hasAbstractVariableDeclaration() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  abstract int x;
+  const A();
+}
+''');
+  }
+
   test_constGenerativeNamed_hasNonFinal() async {
     await assertErrorsInCode(
       r'''

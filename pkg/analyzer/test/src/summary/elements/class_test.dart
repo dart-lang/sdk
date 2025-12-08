@@ -7800,7 +7800,7 @@ library
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@class::C::@setter::i::@formalParameter::value
   classes
-    abstract hasNonFinalField class C
+    abstract class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields

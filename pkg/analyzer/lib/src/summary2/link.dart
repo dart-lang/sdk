@@ -308,7 +308,7 @@ class Linker {
           .where((field) => field.isInstanceField)
           .every((field) {
             // If has storage...
-            if (field.isOriginDeclaration ||
+            if ((field.isOriginDeclaration && !field.isAbstract) ||
                 field.isOriginDeclaringFormalParameter) {
               // ...then must be final
               return field.isFinal || field.isConst;
