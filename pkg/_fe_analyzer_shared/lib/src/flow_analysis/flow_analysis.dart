@@ -5058,61 +5058,11 @@ class _FlowAnalysisImpl<
   /// [_Reference] object referring to the scrutinee.  Otherwise `null`.
   _Reference<Type>? _scrutineeReference;
 
-  /// The most recently visited expression for which an [ExpressionInfo] object
-  /// exists, or `null` if no expression has been visited that has a
-  /// corresponding [ExpressionInfo] object.
-  ///
-  /// This field, along with [_expressionInfo], establishes a mechanism to allow
-  /// a flow analysis method that's handling a given AST node to retrieve an
-  /// [ExpressionInfo] that was previously created during the handling of one of
-  /// that node's children. The mechanism works as follows:
-  ///
-  /// While visiting the child, [_storeExpressionInfo] is called (passing in the
-  /// child node and the [ExpressionInfo]). It stores the child node in
-  /// [_expressionWithInfo] and the info in [_expressionInfo].
-  ///
-  /// While visiting the parent, [_getExpressionInfo] is called (passing in the
-  /// child node). It checks whether [_expressionWithInfo] matches the child
-  /// node; if it does match, that means there are no intervening
-  /// flow-irrelevant nodes, and so it returns [_expressionInfo]. If it doesn't
-  /// match, that means that some other flow-irrelevant was visited since the
-  /// last time [_storeExpressionInfo] was called, and so the info in
-  /// [_expressionInfo] is no longer relevant, and so it returns `null`.
-  ///
-  /// Note that if [_storeExpressionInfo] is called once for expression `e1` and
-  /// then again for expression `e2`, the second call will overwrite the info
-  /// stored by the first call. So if this is followed by a [_getExpressionInfo]
-  /// call for `e1`, `null` will be returned. In principle this situation should
-  /// never arise, since the client is expected to visit AST nodes in a
-  /// single-pass depth-first pre-order fashion. However, in practice, it
-  /// happens sometimes (see https://github.com/dart-lang/sdk/issues/56887).
-  Expression? _expressionWithInfo;
+  /// The mapping from expressions to their [ExpressionInfo]s.
+  final Map<Expression, ExpressionInfo<Type>> _expressionInfoMap = {};
 
-  /// If [_expressionWithInfo] is not `null`, the [ExpressionInfo] object
-  /// corresponding to it.  Otherwise `null`.
-  ///
-  /// See [_expressionWithInfo] for a detailed explanation.
-  ExpressionInfo<Type>? _expressionInfo;
-
-  /// The most recently visited expression which was a reference, or `null` if
-  /// no such expression has been visited.
-  ///
-  /// This field serves the same role as [_expressionWithInfo], except that it
-  /// is only updated for expressions that might refer to something promotable
-  /// (a get of a local variable or a property), so it is less likely to have
-  /// trouble if the client doesn't visit AST nodes in the proper order (see
-  /// https://github.com/dart-lang/sdk/issues/56887).
-  Expression? _expressionWithReference;
-
-  /// If [_expressionWithReference] is not `null`, the reference corresponding
-  /// to it. Otherwise `null`.
-  ///
-  /// This field serves the same role as [_expressionInfo], except that it is
-  /// only updated for expressions that might refer to something promotable (a
-  /// get of a local variable or a property), so it is less likely to have
-  /// trouble if the client doesn't visit AST nodes in the proper order (see
-  /// https://github.com/dart-lang/sdk/issues/56887).
-  _Reference<Type>? _expressionReference;
+  /// The mapping from expressions to their [_Reference]s.
+  final Map<Expression, _Reference<Type>> _expressionReferenceMap = {};
 
   final AssignedVariables<Node, Variable> _assignedVariables;
 
@@ -5535,8 +5485,9 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  ExpressionInfo<Type>? expressionInfoForTesting(Expression target) =>
-      identical(target, _expressionWithInfo) ? _expressionInfo : null;
+  ExpressionInfo<Type>? expressionInfoForTesting(Expression target) {
+    return _expressionInfoMap[target];
+  }
 
   @override
   void finish() {
@@ -6026,8 +5977,8 @@ class _FlowAnalysisImpl<
     // If any expression info or expression reference was stored for the
     // null-aware expression, it was only valid in the case where the target
     // expression was not null. So it needs to be cleared now.
-    _expressionInfo = null;
-    _expressionReference = null;
+    _expressionInfoMap.remove(wholeExpression);
+    _expressionReferenceMap.remove(wholeExpression);
   }
 
   @override
@@ -6833,15 +6784,15 @@ class _FlowAnalysisImpl<
 
   @override
   Map<Type, NonPromotionReason> Function() whyNotPromoted(Expression target) {
-    if (identical(target, _expressionWithReference)) {
-      _Reference<Type>? referenceWithType = _expressionReference;
-      if (referenceWithType != null) {
-        PromotionModel<Type>? currentPromotionInfo = _current.promotionInfo
-            ?.get(this, referenceWithType.promotionKey);
-        return _getNonPromotionReasons(referenceWithType, currentPromotionInfo);
-      }
+    if (_expressionReferenceMap[target] case var reference?) {
+      PromotionModel<Type>? currentPromotionInfo = _current.promotionInfo?.get(
+        this,
+        reference.promotionKey,
+      );
+      return _getNonPromotionReasons(reference, currentPromotionInfo);
+    } else {
+      return () => {};
     }
-    return () => {};
   }
 
   @override
@@ -7100,17 +7051,31 @@ class _FlowAnalysisImpl<
     if (_scrutineeReference != null) {
       print('  scrutineeReference: $_scrutineeReference');
     }
-    if (_expressionWithInfo != null) {
-      print('  expressionWithInfo: $_expressionWithInfo');
+    int expressionInfoEntryIndex = 0;
+    for (MapEntry<Expression, ExpressionInfo<Type>> expressionInfoEntry
+        in _expressionInfoMap.entries) {
+      print(
+        '  expressionWithInfo #$expressionInfoEntryIndex: '
+        '${expressionInfoEntry.key}',
+      );
+      print(
+        '  expressionInfo #$expressionInfoEntryIndex: '
+        '${expressionInfoEntry.value}',
+      );
+      expressionInfoEntryIndex++;
     }
-    if (_expressionInfo != null) {
-      print('  expressionInfo: $_expressionInfo');
-    }
-    if (_expressionWithReference != null) {
-      print('  expressionWithReference: $_expressionWithReference');
-    }
-    if (_expressionReference != null) {
-      print('  expressionReference: $_expressionReference');
+    int expressionReferenceEntryIndex = 0;
+    for (MapEntry<Expression, _Reference<Type>> expressionReferenceEntry
+        in _expressionReferenceMap.entries) {
+      print(
+        '  expressionWithReference #$expressionReferenceEntryIndex: '
+        '${expressionReferenceEntry.key}',
+      );
+      print(
+        '  expressionReference #$expressionReferenceEntryIndex: '
+        '${expressionReferenceEntry.value}',
+      );
+      expressionReferenceEntryIndex++;
     }
     if (_stack.isNotEmpty) {
       print('  stack:');
@@ -7177,11 +7142,13 @@ class _FlowAnalysisImpl<
       new ExpressionInfo<Type>.trivial(model: _current, type: type);
 
   void _forwardExpression(Expression newExpression, Expression oldExpression) {
-    if (identical(_expressionWithInfo, oldExpression)) {
-      _expressionWithInfo = newExpression;
+    if (_expressionInfoMap[oldExpression] case var expressionInfo?) {
+      _expressionInfoMap.remove(oldExpression);
+      _expressionInfoMap[newExpression] = expressionInfo;
     }
-    if (identical(_expressionWithReference, oldExpression)) {
-      _expressionWithReference = newExpression;
+    if (_expressionReferenceMap[oldExpression] case var expressionReference?) {
+      _expressionReferenceMap.remove(oldExpression);
+      _expressionReferenceMap[newExpression] = expressionReference;
     }
   }
 
@@ -7207,32 +7174,35 @@ class _FlowAnalysisImpl<
   /// [ExpressionInfo] associated with the [expression], then `null` is
   /// returned.
   ///
-  /// See [_expressionWithInfo] for details about how this works.
-  ///
-  /// To reduce GC pressure, if this method returns a non-null value, it resets
-  /// [_expressionInfo] to `null` as a side effect. This means that if
-  /// [_getExpressionInfo] is called twice for the same [expression] (without
-  /// an intervening call to [_storeExpressionInfo]), the second call will
-  /// return `null`. This should not be a problem because the client is expected
-  /// to visit AST nodes in a single-pass depth-first pre-order fashion.
+  /// To reduce GC pressure, if this method returns a non-null value, it deletes
+  /// the association of the [expression] with its [ExpressionInfo] object. This
+  /// means that if [_getExpressionInfo] is called twice for the same
+  /// [expression] (without an intervening call to [_storeExpressionInfo]), the
+  /// second call will return `null`. This should not be a problem because the
+  /// client is expected to visit AST nodes in a single-pass depth-first
+  /// pre-order fashion.
   ExpressionInfo<Type>? _getExpressionInfo(Expression? expression) {
-    if (identical(expression, _expressionWithInfo)) {
-      ExpressionInfo<Type>? expressionInfo = _expressionInfo;
-      _expressionInfo = null;
-      return expressionInfo;
-    } else {
+    if (expression == null) {
       return null;
+    } else {
+      ExpressionInfo<Type>? expressionInfo = _expressionInfoMap[expression];
+      _expressionInfoMap.remove(expression);
+      return expressionInfo;
     }
   }
 
   @override
   _Reference<Type>? _getExpressionReference(Expression? expression) {
-    if (identical(expression, _expressionWithReference)) {
-      _Reference<Type>? expressionReference = _expressionReference;
-      _expressionReference = null;
-      return expressionReference;
-    } else {
+    if (expression == null) {
       return null;
+    } else {
+      _Reference<Type>? expressionInfo = _expressionReferenceMap[expression];
+      if (expressionInfo != null) {
+        _expressionReferenceMap.remove(expression);
+        return expressionInfo;
+      } else {
+        return null;
+      }
     }
   }
 
@@ -7725,14 +7695,11 @@ class _FlowAnalysisImpl<
   /// Associates [expression], which should be the most recently visited
   /// expression, with the given [expressionInfo] object, and updates the
   /// current flow model state to correspond to it.
-  ///
-  /// See [_expressionWithInfo] for details about how this works.
   void _storeExpressionInfo(
     Expression expression,
     ExpressionInfo<Type> expressionInfo,
   ) {
-    _expressionWithInfo = expression;
-    _expressionInfo = expressionInfo;
+    _expressionInfoMap[expression] = expressionInfo;
   }
 
   /// Associates [expression], which should be the most recently visited
@@ -7747,8 +7714,7 @@ class _FlowAnalysisImpl<
     Expression expression,
     _Reference<Type> expressionReference,
   ) {
-    _expressionWithReference = expression;
-    _expressionReference = expressionReference;
+    _expressionReferenceMap[expression] = expressionReference;
   }
 
   TrivialVariableReference<Type> _thisOrSuperReference(
