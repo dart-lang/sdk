@@ -3304,7 +3304,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var container = executable.enclosingElement as InterfaceElement;
         return DiagnosticMessageImpl(
           filePath: executable.firstFragment.libraryFragment.source.fullName,
-          offset: nonSynthetic.firstFragment.nameOffset!,
+          offset: nonSynthetic.firstFragment.offset,
           length: nonSynthetic.firstFragment.name!.length,
           message: "Inherited from '${container.name}'",
           url: null,

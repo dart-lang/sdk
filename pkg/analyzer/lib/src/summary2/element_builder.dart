@@ -1375,11 +1375,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
-      node.primaryConstructor.typeParameters?.accept(this);
-      _buildExtensionTypePrimaryConstructor(
-        primaryConstructor: node.primaryConstructor,
-        extensionFragment: fragment,
-      );
+      node.primaryConstructor.accept(this);
       node.body.accept(this);
     });
 
@@ -1810,10 +1806,15 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       fragmentName = _getFragmentName(nameToken) ?? 'new';
     }
 
+    var parent = node.parent;
+    var isAugmentation =
+        parent is ExtensionTypeDeclarationImpl && parent.augmentKeyword != null;
+
     var fragment = ConstructorFragmentImpl(name: fragmentName);
+    fragment.isAugmentation = isAugmentation;
     fragment.isOriginDeclaration = true;
     fragment.isConst =
-        node.constKeyword != null || node.parent is EnumDeclarationImpl;
+        node.constKeyword != null || parent is EnumDeclarationImpl;
     fragment.isDeclaring = true;
     fragment.isPrimary = true;
     fragment.typeName = node.typeName.lexeme;
@@ -1822,13 +1823,21 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     _addChildFragment(fragment);
 
     // Handle declaring formal parameters.
-    for (var formalParameter in node.formalParameters.parameters) {
-      if (formalParameter.hasFinalOrVarKeyword) {
+    var formalParameters = node.formalParameters.parameters;
+    for (var (i, formalParameter) in formalParameters.indexed) {
+      var isExtensionTypeRepresentation =
+          i == 0 && parent is ExtensionTypeDeclarationImpl;
+      if (formalParameter.hasFinalOrVarKeyword ||
+          isExtensionTypeRepresentation) {
         var name = _getFragmentName(formalParameter.name);
         var fieldFragment = FieldFragmentImpl(name: name);
-        fieldFragment.isFinal = formalParameter.isFinal;
+        fieldFragment.isAugmentation = isAugmentation;
+        fieldFragment.isFinal =
+            formalParameter.isFinal || isExtensionTypeRepresentation;
         fieldFragment.isOriginDeclaringFormalParameter = true;
-        fieldFragment.isSynthetic = true;
+        if (!isExtensionTypeRepresentation) {
+          fieldFragment.isSynthetic = true;
+        }
         fieldFragment.hasImplicitType = !formalParameter.isExplicitlyTyped;
         _linker.elementNodes[fieldFragment] = formalParameter;
         _addChildFragment(fieldFragment);
@@ -2051,60 +2060,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         fragment.typeParameters = holder.typeParameters;
       }
     });
-  }
-
-  void _buildExtensionTypePrimaryConstructor({
-    required ExtensionTypeFragmentImpl extensionFragment,
-    required PrimaryConstructorDeclarationImpl primaryConstructor,
-  }) {
-    var formalParameter = primaryConstructor.formalParameters.parameters.first;
-    formalParameter as SimpleFormalParameterImpl;
-
-    var fieldNameToken = formalParameter.name;
-
-    var fieldFragment = FieldFragmentImpl(
-      name: _getFragmentName(fieldNameToken),
-    );
-    fieldFragment.isAugmentation = extensionFragment.isAugmentation;
-    fieldFragment.isFinal = true;
-    fieldFragment.isOriginDeclaringFormalParameter = true;
-    fieldFragment.metadata = _buildMetadata(formalParameter.metadata);
-    _linker.elementNodes[fieldFragment] = primaryConstructor;
-
-    _addChildFragment(fieldFragment);
-
-    var formalParameterFragment =
-        FieldFormalParameterFragmentImpl(
-            name: _getFragmentName(fieldNameToken),
-            nameOffset: null,
-            parameterKind: ParameterKind.REQUIRED,
-            // An extension type's representation object parameter is never
-            // named, so can't be a private named parameter.
-            privateName: null,
-          )
-          ..isDeclaring = true
-          ..isOriginDeclaration = true;
-    formalParameterFragment.metadata = _buildMetadata(formalParameter.metadata);
-    formalParameter.declaredFragment = formalParameterFragment;
-
-    {
-      var constructorFragment =
-          ConstructorFragmentImpl(
-              name: primaryConstructor.constructorName?.name.lexeme ?? 'new',
-            )
-            ..isOriginDeclaration = true
-            ..isAugmentation = extensionFragment.isAugmentation
-            ..isConst = primaryConstructor.constKeyword != null
-            ..isDeclaring = true
-            ..isPrimary = true
-            ..formalParameters = [formalParameterFragment];
-      constructorFragment.typeName = extensionFragment.name;
-      _linker.elementNodes[constructorFragment] = primaryConstructor;
-
-      _addChildFragment(constructorFragment);
-    }
-
-    formalParameter.type!.accept(this);
   }
 
   MetadataImpl _buildMetadata(List<AnnotationImpl> nodeList) {

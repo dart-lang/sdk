@@ -65,7 +65,7 @@ class DiagnosticFactory {
         DiagnosticMessageImpl(
           filePath: originalFragment.libraryFragment!.source.fullName,
           message: "The first definition of this name.",
-          offset: originalFragment.nameOffset ?? -1,
+          offset: originalFragment.offset,
           length: originalElement.nonSynthetic.name!.length,
           url: null,
         ),

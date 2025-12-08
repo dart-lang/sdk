@@ -2926,6 +2926,15 @@ class FieldElementImpl extends PropertyInducingElementImpl
   String? get name => _firstFragment.name;
 
   @override
+  @trackedIndirectly
+  Element get nonSynthetic {
+    if (isOriginDeclaringFormalParameter) {
+      return declaringFormalParameter!;
+    }
+    return super.nonSynthetic;
+  }
+
+  @override
   @trackedDirectly
   SetterElementImpl? get setter {
     globalResultRequirements?.record_fieldElement_setter(
