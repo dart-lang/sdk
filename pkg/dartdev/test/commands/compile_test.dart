@@ -468,6 +468,45 @@ void defineCompileTests() {
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
+  for (var sanitizer in ['asan', 'msan', 'tsan']) {
+    test('Compile and run aot snapshot - $sanitizer', () async {
+      final p = project(
+          mainSrc:
+              'void main() { print(const String.fromEnvironment("dart.vm.$sanitizer")); }');
+      final inFile =
+          path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+      final outFile = path.canonicalize(path.join(p.dirPath, 'main.aot'));
+
+      var result = await p.run(
+        [
+          'compile',
+          'aot-snapshot',
+          '--target-sanitizer',
+          sanitizer,
+          '-v',
+          '-o',
+          'main.aot',
+          inFile,
+        ],
+      );
+
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
+      expect(File(outFile).existsSync(), true,
+          reason: 'File not found: $outFile');
+
+      final Directory binDir = File(Platform.resolvedExecutable).parent;
+      result = Process.runSync(
+        path.join(binDir.path, 'dartaotruntime_$sanitizer'),
+        [outFile],
+      );
+
+      expect(result.stdout, contains('true'));
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
+    }, skip: !Platform.isLinux);
+  }
+
   test('Compile and run kernel snapshot', () async {
     final p = project(mainSrc: 'void main() { print("I love kernel"); }');
     final outFile = path.join(p.dirPath, 'main.dill');
