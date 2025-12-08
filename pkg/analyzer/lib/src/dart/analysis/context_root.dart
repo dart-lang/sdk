@@ -60,7 +60,7 @@ class ContextRootImpl implements ContextRoot {
 
   @override
   bool operator ==(Object other) {
-    return other is ContextRoot && root.path == other.root.path;
+    return other is ContextRootImpl && root.path == other.root.path;
   }
 
   @override
