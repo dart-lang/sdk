@@ -575,15 +575,13 @@ Remove debugging information from the output and save it separately to the speci
       return ['none'];
     }
 
-    switch (Target.current) {
-      case Target.linuxX64:
-      case Target.linuxArm64:
-        return ['none', 'asan', 'msan', 'tsan'];
-      case Target.linuxRiscv64:
-        return ['none', 'asan', 'tsan'];
-      default:
-        return ['none'];
+    final v = Platform.version;
+    if (v.contains('"linux_x64"') || v.contains('"linux_arm64"')) {
+      return ['none', 'asan', 'msan', 'tsan'];
+    } else if (v.contains('"linux_riscv64"')) {
+      return ['none', 'asan', 'tsan'];
     }
+    return ['none'];
   }
 
   @override
