@@ -14,6 +14,7 @@ enum SnippetContext {
   inClass,
   inComment,
   inConstructorInvocation,
+  inDotShorthand,
   inExpression,
   inIdentifierDeclaration,
   inPattern,

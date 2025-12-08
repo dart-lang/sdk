@@ -188,6 +188,30 @@ class A {}
 ''', SnippetContext.inComment);
   }
 
+  Future<void> test_dotShorthand_constructor() async {
+    await testRequest(r'''
+String _ = .[!^fromCharCode!]('42');
+''', SnippetContext.inDotShorthand);
+  }
+
+  Future<void> test_dotShorthand_invocation() async {
+    await testRequest(r'''
+int _ = .[!^parse!]('42');
+''', SnippetContext.inDotShorthand);
+  }
+
+  Future<void> test_dotShorthand_noIdentifier() async {
+    await testRequest(r'''
+String _ = .[!^!];
+''', SnippetContext.inDotShorthand);
+  }
+
+  Future<void> test_dotShorthand_propertyAccess() async {
+    await testRequest(r'''
+Duration _ = .[!^zero!];
+''', SnippetContext.inDotShorthand);
+  }
+
   Future<void> test_enum() async {
     await testRequest(r'''
 enum A {
