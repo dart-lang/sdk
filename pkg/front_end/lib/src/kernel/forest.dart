@@ -282,7 +282,7 @@ class Forest {
 
   ForElement createForElement(
     int fileOffset,
-    List<VariableDeclaration> variables,
+    List<VariableInitialization> variables,
     Expression? condition,
     List<Expression> updates,
     Expression body,
@@ -295,7 +295,7 @@ class Forest {
     int fileOffset, {
     required PatternVariableDeclaration patternVariableDeclaration,
     required List<VariableDeclaration> intermediateVariables,
-    required List<VariableDeclaration> variables,
+    required List<VariableInitialization> variables,
     required Expression? condition,
     required List<Expression> updates,
     required Expression body,
@@ -312,7 +312,7 @@ class Forest {
 
   ForMapEntry createForMapEntry(
     int fileOffset,
-    List<VariableDeclaration> variables,
+    List<VariableInitialization> variables,
     Expression? condition,
     List<Expression> updates,
     MapLiteralEntry body,
@@ -325,7 +325,7 @@ class Forest {
     int fileOffset, {
     required PatternVariableDeclaration patternVariableDeclaration,
     required List<VariableDeclaration> intermediateVariables,
-    required List<VariableDeclaration> variables,
+    required List<VariableInitialization> variableInitializations,
     required Expression? condition,
     required List<Expression> updates,
     required MapLiteralEntry body,
@@ -333,7 +333,7 @@ class Forest {
     return new PatternForMapEntry(
       patternVariableDeclaration: patternVariableDeclaration,
       intermediateVariables: intermediateVariables,
-      variables: variables,
+      variables: variableInitializations,
       condition: condition,
       updates: updates,
       body: body,
@@ -505,7 +505,7 @@ class Forest {
   /// Return a representation of a for statement.
   Statement createForStatement(
     int fileOffset,
-    List<VariableDeclaration>? variables,
+    List<VariableInitialization>? variables,
     Expression? condition,
     List<Expression> updaters,
     Statement body,
@@ -1219,7 +1219,7 @@ class _VariablesDeclaration extends AuxiliaryStatement {
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableDeclaration(
+      printer.writeVariableInitialization(
         declarations[index],
         includeModifiersAndType: index == 0,
       );

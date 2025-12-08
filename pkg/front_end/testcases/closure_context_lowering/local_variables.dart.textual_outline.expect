@@ -1,3 +1,7 @@
 testNotCaptured() {}
 
 testCaptured() {}
+
+testForCounterNotCaptured() {}
+
+testForCounterCaptured() {}

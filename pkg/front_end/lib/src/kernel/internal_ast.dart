@@ -385,7 +385,7 @@ class Cascade extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
-    printer.writeVariableDeclaration(variable);
+    printer.writeVariableInitialization(variable);
     printer.write(' in cascade {');
     printer.incIndentation();
     for (Expression expression in expressions) {
@@ -431,7 +431,7 @@ class DeferredCheck extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
-    printer.writeVariableDeclaration(variable);
+    printer.writeVariableInitialization(variable);
     printer.write(' in ');
     printer.writeExpression(expression);
   }
@@ -888,7 +888,7 @@ class VariableDeclarationImpl extends VariableStatement
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeVariableDeclaration(
+    printer.writeVariableInitialization(
       this,
       isLate: isLate || lateGetter != null,
       type: lateType ?? type,
@@ -1050,7 +1050,6 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   bool get isLate => astVariable.isLate;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void set isLate(bool value) {
     astVariable.isLate = value;
   }

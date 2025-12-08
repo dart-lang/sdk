@@ -534,7 +534,8 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitForStatement(ForStatement node) {
-    List<VariableDeclaration> variables = node.variables.map(clone).toList();
+    List<VariableInitialization> variables =
+        node.variableInitializations.map(clone).toList();
     return new ForStatement(variables, cloneOptional(node.condition),
         node.updates.map(clone).toList(), clone(node.body));
   }

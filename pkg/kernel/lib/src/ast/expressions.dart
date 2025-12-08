@@ -4845,7 +4845,7 @@ class Let extends Expression {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
-    printer.writeVariableDeclaration(variable);
+    printer.writeVariableInitialization(variable);
     printer.write(' in ');
     printer.writeExpression(body);
   }

@@ -224,7 +224,7 @@ class NameSystem {
 }
 
 abstract class Annotator {
-  String annotateVariable(Printer printer, VariableDeclaration node);
+  String annotateVariable(Printer printer, VariableInitialization node);
   String annotateReturn(Printer printer, FunctionNode node);
   String annotateField(Printer printer, Field node);
 }
@@ -1103,6 +1103,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       writeVariableContext(context, separator: separator);
     }
     --indentation;
+    writeIndentation();
     writeWord('] */');
   }
 
@@ -2422,8 +2423,12 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   void visitForStatement(ForStatement node) {
     writeIndentation();
     writeSpaced('for');
+    if (node.scope case Scope scope?) {
+      writeScope(scope);
+      ensureSpace();
+    }
     writeSymbol('(');
-    writeList(node.variables, writeVariableDeclaration);
+    writeList(node.variableInitializations, writeVariableInitialization);
     writeComma(';');
     Expression? condition = node.condition;
     if (condition != null) {
@@ -2647,26 +2652,32 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   void writeVariableInitialization(
     VariableInitialization node,
   ) {
-    if (showOffsets) writeWord("[${node.fileOffset}]");
-    if (showMetadata) writeMetadata(node);
-    writeAnnotationList(node.annotations, separateLines: false);
-    writeModifier(node.isErroneouslyInitialized, 'erroneously-initialized');
-    bool hasImplicitInitializer = node.initializer is NullLiteral ||
-        (node.initializer is ConstantExpression &&
-            (node.initializer as ConstantExpression).constant is NullConstant);
-    if ((node.initializer == null || hasImplicitInitializer) &&
-        node.hasDeclaredInitializer) {
-      writeModifier(node.hasDeclaredInitializer, 'has-declared-initializer');
-    } else if (node.initializer != null &&
-        !hasImplicitInitializer &&
-        !node.hasDeclaredInitializer) {
-      writeModifier(node.hasDeclaredInitializer, 'has-no-declared-initializer');
-    }
-    writeWord(getVariableName(node.variable));
-    Expression? initializer = node.initializer;
-    if (initializer != null) {
-      writeSpaced(':=');
-      writeExpression(initializer);
+    if (node is VariableDeclaration) {
+      writeVariableDeclaration(node);
+    } else {
+      if (showOffsets) writeWord("[${node.fileOffset}]");
+      if (showMetadata) writeMetadata(node);
+      writeAnnotationList(node.annotations, separateLines: false);
+      writeModifier(node.isErroneouslyInitialized, 'erroneously-initialized');
+      bool hasImplicitInitializer = node.initializer is NullLiteral ||
+          (node.initializer is ConstantExpression &&
+              (node.initializer as ConstantExpression).constant
+                  is NullConstant);
+      if ((node.initializer == null || hasImplicitInitializer) &&
+          node.hasDeclaredInitializer) {
+        writeModifier(node.hasDeclaredInitializer, 'has-declared-initializer');
+      } else if (node.initializer != null &&
+          !hasImplicitInitializer &&
+          !node.hasDeclaredInitializer) {
+        writeModifier(
+            node.hasDeclaredInitializer, 'has-no-declared-initializer');
+      }
+      writeWord(getVariableName(node.variable));
+      Expression? initializer = node.initializer;
+      if (initializer != null) {
+        writeSpaced(':=');
+        writeExpression(initializer);
+      }
     }
   }
 

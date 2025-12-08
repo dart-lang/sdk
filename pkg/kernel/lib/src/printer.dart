@@ -467,7 +467,7 @@ class AstPrinter {
     node.toTextInternal(this, includeTypeArguments: includeTypeArguments);
   }
 
-  /// Writes the variable declaration [node] to the printer buffer.
+  /// Writes the [VariableInitialization] [node] to the printer buffer.
   ///
   /// If [includeModifiersAndType] is `true`, the declaration is prefixed by
   /// the modifiers and declared type of the variable. Otherwise only the
@@ -475,7 +475,7 @@ class AstPrinter {
   ///
   /// If [isLate] and [type] are provided, these values are used instead of
   /// the corresponding properties on [node].
-  void writeVariableDeclaration(VariableDeclaration node,
+  void writeVariableInitialization(VariableInitialization node,
       {bool includeModifiersAndType = true,
       bool? isLate,
       DartType? type,
@@ -496,7 +496,7 @@ class AstPrinter {
       writeType(type ?? node.type);
       _sb.write(' ');
     }
-    _sb.write(getVariableName(node));
+    _sb.write(getVariableName(node.variable));
     if (includeInitializer && node.initializer != null && !node.isRequired) {
       _sb.write(' = ');
       writeExpression(node.initializer!);
@@ -556,7 +556,7 @@ class AstPrinter {
       if (index == node.requiredParameterCount) {
         _sb.write('[');
       }
-      writeVariableDeclaration(node.positionalParameters[index]);
+      writeVariableInitialization(node.positionalParameters[index]);
     }
     if (node.requiredParameterCount < node.positionalParameters.length) {
       _sb.write(']');
@@ -570,7 +570,7 @@ class AstPrinter {
         if (index > 0) {
           _sb.write(', ');
         }
-        writeVariableDeclaration(node.namedParameters[index]);
+        writeVariableInitialization(node.namedParameters[index]);
       }
       _sb.write('}');
     }

@@ -5131,7 +5131,7 @@ class EquivalenceStrategy {
     if (other is! ForStatement) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkForStatement_variables(visitor, node, other)) {
+    if (!checkForStatement_variableInitializations(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkForStatement_condition(visitor, node, other)) {
@@ -9542,10 +9542,13 @@ class EquivalenceStrategy {
     return checkStatement_fileOffset(visitor, node, other);
   }
 
-  bool checkForStatement_variables(
+  bool checkForStatement_variableInitializations(
       EquivalenceVisitor visitor, ForStatement node, ForStatement other) {
     return visitor.checkLists(
-        node.variables, other.variables, visitor.checkNodes, 'variables');
+        node.variableInitializations,
+        other.variableInitializations,
+        visitor.checkNodes,
+        'variableInitializations');
   }
 
   bool checkForStatement_condition(

@@ -3751,7 +3751,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
   }
 
-  List<VariableDeclaration>? _buildForLoopVariableDeclarations(
+  List<VariableInitialization>? _buildForLoopVariableDeclarations(
     variableOrExpression,
   ) {
     // TODO(ahe): This can be simplified now that we have the events
@@ -3759,40 +3759,40 @@ class BodyBuilderImpl extends StackListenerImpl
     if (variableOrExpression is Generator) {
       variableOrExpression = variableOrExpression.buildForEffect();
     }
-    if (variableOrExpression is VariableDeclaration) {
+    if (variableOrExpression is VariableInitialization) {
       // Late for loop variables are not supported. An error has already been
       // reported by the parser.
       variableOrExpression.isLate = false;
-      return <VariableDeclaration>[variableOrExpression];
+      return <VariableInitialization>[variableOrExpression];
     } else if (variableOrExpression is Expression) {
       VariableDeclaration variable = new VariableDeclarationImpl.forEffect(
         variableOrExpression,
       );
-      return <VariableDeclaration>[variable];
+      return <VariableInitialization>[variable];
     } else if (variableOrExpression is ExpressionStatement) {
       // Coverage-ignore-block(suite): Not run.
       VariableDeclaration variable = new VariableDeclarationImpl.forEffect(
         variableOrExpression.expression,
       );
-      return <VariableDeclaration>[variable];
+      return <VariableInitialization>[variable];
     } else if (forest.isVariablesDeclaration(variableOrExpression)) {
       return forest.variablesDeclarationExtractDeclarations(
         variableOrExpression,
       );
     } else if (variableOrExpression is List<Object>) {
       // Coverage-ignore-block(suite): Not run.
-      List<VariableDeclaration> variables = <VariableDeclaration>[];
+      List<VariableInitialization> variables = <VariableInitialization>[];
       for (Object v in variableOrExpression) {
         variables.addAll(_buildForLoopVariableDeclarations(v)!);
       }
       return variables;
     } else if (variableOrExpression is PatternVariableDeclaration) {
       // Coverage-ignore-block(suite): Not run.
-      return <VariableDeclaration>[];
+      return <VariableInitialization>[];
     } else if (variableOrExpression is ParserRecovery) {
-      return <VariableDeclaration>[];
+      return <VariableInitialization>[];
     } else if (variableOrExpression == null) {
-      return <VariableDeclaration>[];
+      return <VariableInitialization>[];
     }
     return null;
   }
@@ -3991,7 +3991,7 @@ class BodyBuilderImpl extends StackListenerImpl
         .popNode();
 
     Object? variableOrExpression = pop();
-    List<VariableDeclaration>? variables;
+    List<VariableInitialization>? variables;
     List<VariableDeclaration>? intermediateVariables;
     if (variableOrExpression is PatternVariableDeclaration) {
       variables = pop() as List<VariableDeclaration>; // Internal variables.
@@ -4015,7 +4015,7 @@ class BodyBuilderImpl extends StackListenerImpl
           offsetForToken(forToken),
           patternVariableDeclaration: variableOrExpression,
           intermediateVariables: intermediateVariables!,
-          variables: variables,
+          variableInitializations: variables,
           condition: condition,
           updates: updates,
           body: entry,
@@ -4110,7 +4110,7 @@ class BodyBuilderImpl extends StackListenerImpl
         .deferNode();
 
     Object? variableOrExpression = pop();
-    List<VariableDeclaration>? variables;
+    List<VariableInitialization>? variables;
     List<VariableDeclaration>? intermediateVariables;
     if (variableOrExpression is PatternVariableDeclaration) {
       variables = pop() as List<VariableDeclaration>;

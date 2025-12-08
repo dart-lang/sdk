@@ -69,6 +69,8 @@ class TypeArgumentsVisitor extends VerifyingAnalysis {
           'VariableDeclaration',
           uri: astUri,
         );
+        InterfaceType variableInitializationType = interface
+            .createInterfaceType('VariableInitialization', uri: astUri);
         DartType typeArgument = receiver.arguments.types.single;
         if (interface.isSubtypeOf(typeArgument, expressionType) &&
             typeArgument != expressionType) {
@@ -100,6 +102,19 @@ class TypeArgumentsVisitor extends VerifyingAnalysis {
                 node,
                 "map().toList() with type argument "
                 "${typeArgument} instead of ${variableDeclarationType}",
+              );
+            }
+          } else if (interface.isSubtypeOf(
+            typeArgument,
+            variableInitializationType,
+          )) {
+            // [VariableInitialization] is used as an exclusive member of, for
+            // instance, `ForStatement.variableInitializations`.
+            if (typeArgument != variableInitializationType) {
+              registerError(
+                node,
+                "map().toList() with type argument "
+                "${typeArgument} instead of ${variableInitializationType}",
               );
             }
           } else if (typeArgument != statementType) {

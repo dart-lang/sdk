@@ -1023,7 +1023,7 @@ class TypeCheckingVisitor
 
   @override
   void visitForStatement(ForStatement node) {
-    node.variables.forEach(visitVariableDeclaration);
+    node.variableInitializations.forEach(visitVariableInitialization);
     if (node.condition != null) {
       node.condition = checkExpressionAndAssignability(
           node.condition!, environment.coreTypes.boolNonNullableRawType);
@@ -1093,6 +1093,11 @@ class TypeCheckingVisitor
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
+    visitVariableInitialization(node);
+  }
+
+  @override
+  void visitVariableInitialization(VariableInitialization node) {
     if (node.initializer != null) {
       node.initializer =
           checkExpressionAndAssignability(node.initializer!, node.type);
@@ -1345,13 +1350,6 @@ class TypeCheckingVisitor
   @override
   void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
     // TODO(johnniwinther): Implement this.
-  }
-
-  @override
-  void visitVariableInitialization(VariableInitialization node) {
-    // TODO(cstefantsova): Implement visitVariableInitialization.
-    throw new UnimplementedError(
-        "Unimplemented support for $node (${node.runtimeType}).");
   }
 
   @override
