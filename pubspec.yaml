@@ -63,6 +63,7 @@ workspace:
   - pkg/native_compiler
   - pkg/native_stack_traces
   - pkg/node_preamble
+  - pkg/perf_witness
   - pkg/reload_test
   - pkg/scrape
   - pkg/server_plugin
