@@ -871,6 +871,7 @@ deserialize
 deserialized
 designed
 desired
+destructively
 desugar
 desugared
 desugaring
