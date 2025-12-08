@@ -143,7 +143,7 @@ List<M> decodeAnalyzerMessagesYaml<M extends AnalyzerMessage>(
   String packagePath, {
   required M Function(
     MessageYaml, {
-    required AnalyzerCode analyzerCode,
+    required DiagnosticCodeName analyzerCode,
     required AnalyzerDiagnosticPackage package,
   })
   decodeMessage,
@@ -196,7 +196,7 @@ List<M> decodeAnalyzerMessagesYaml<M extends AnalyzerMessage>(
         key: keyNode,
         value: diagnosticValue,
         decoder: (messageYaml) {
-          var analyzerCode = AnalyzerCode(snakeCaseName: diagnosticName);
+          var analyzerCode = DiagnosticCodeName(snakeCaseName: diagnosticName);
           return decodeMessage(
             messageYaml,
             analyzerCode: analyzerCode,
@@ -409,7 +409,7 @@ enum AnalyzerDiagnosticType {
 /// analyzer's `messages.yaml` file.
 class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
   @override
-  final AnalyzerCode analyzerCode;
+  final DiagnosticCodeName analyzerCode;
 
   @override
   final bool hasPublishedDocs;
@@ -422,7 +422,7 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
 
   factory AnalyzerMessage(
     MessageYaml messageYaml, {
-    required AnalyzerCode analyzerCode,
+    required DiagnosticCodeName analyzerCode,
     required AnalyzerDiagnosticPackage package,
   }) {
     if (messageYaml.getOptionalString('aliasFor') case var aliasFor?) {
@@ -571,7 +571,7 @@ mixin MessageWithAnalyzerCode on Message {
   }();
 
   /// The code used by the analyzer to refer to this diagnostic message.
-  AnalyzerCode get analyzerCode;
+  DiagnosticCodeName get analyzerCode;
 
   /// The name of the constant in analyzer code that should be used to refer to
   /// this message.

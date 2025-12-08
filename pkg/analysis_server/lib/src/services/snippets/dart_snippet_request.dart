@@ -125,6 +125,12 @@ class DartSnippetRequest {
         return SnippetContext.inIdentifierDeclaration;
       }
 
+      if (node is DotShorthandInvocation ||
+          node is DotShorthandConstructorInvocation ||
+          node is DotShorthandPropertyAccess) {
+        return SnippetContext.inDotShorthand;
+      }
+
       if (node is PropertyAccess ||
           node is FieldFormalParameter ||
           node is PrefixedIdentifier ||

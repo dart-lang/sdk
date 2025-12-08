@@ -41,6 +41,9 @@ class LogPlayer {
     var nextIndex = 0;
     ServerDriver? server;
     var pendingServerMessageExpectations = <Message>[];
+    // Maps the recorded message IDs for messages initiated by the analysis
+    // server to the actual message IDs observed for this run.
+    var actualServerMessageIds = <int, int>{};
     try {
       while (nextIndex < entries.length) {
         // TODO(brianwilkerson): This doesn't currently attempt to retain the same
@@ -56,15 +59,20 @@ class LogPlayer {
             server = ServerDriver(arguments: entry.argList);
             await server.start();
             server.serverMessages.listen((message) {
-              var entryToRemove = pendingServerMessageExpectations
+              var isServerInitiatedRequest = message.method != null;
+              var foundMessage = pendingServerMessageExpectations
                   .firstWhereOrNull(
-                    (expectation) => const MapEquality().equals(
-                      expectation.map,
-                      message.map,
+                    (recorded) => recorded.equals(
+                      message,
+                      skipMatchId: isServerInitiatedRequest,
                     ),
                   );
-              if (entryToRemove != null) {
-                pendingServerMessageExpectations.remove(entryToRemove);
+
+              if (foundMessage != null) {
+                if (isServerInitiatedRequest) {
+                  actualServerMessageIds[foundMessage.id] = message.id;
+                }
+                pendingServerMessageExpectations.remove(foundMessage);
               } else {
                 stderr.writeln(
                   'Unexpected message from analysis server:\n'
@@ -74,6 +82,19 @@ class LogPlayer {
             });
           case EntryKind.message:
             if (entry.receiver == ProcessId.server) {
+              // Rewrite the IDs for responses to the analysis server so they
+              // match the real request ID.
+              if (entry.message.isResponse) {
+                var actualId = actualServerMessageIds[entry.message.id];
+                if (actualId == null) {
+                  throw StateError(
+                    'Cannot respond to a server message that we haven\'t '
+                    'recieved yet, expected an analysis server request with '
+                    'ID: ${entry.message.id}',
+                  );
+                }
+                entry.message.setId(actualId);
+              }
               await _sendMessageToServer(entry, server);
             } else if (entry.sender == ProcessId.server) {
               pendingServerMessageExpectations.add(entry.message);
@@ -161,4 +182,20 @@ receiver: ${entry.receiver}
       '${pendingServerMessageExpectations.join('\n\n')}',
     );
   }
+}
+
+extension MessageExtension on Message {
+  bool equals(Message other, {bool skipMatchId = true}) {
+    if (method != other.method) return false;
+    if (!skipMatchId && id != other.id) return false;
+    return switch (method) {
+      // No method means this is a response, compare the result.
+      null => const DeepCollectionEquality().equals(result, other.result),
+      // A method means this is a request, compare the params.
+      String() => const DeepCollectionEquality().equals(params, other.params),
+    };
+  }
+
+  // Can't be a setter https://github.com/dart-lang/language/issues/4334
+  void setId(int newId) => map['id'] = newId;
 }

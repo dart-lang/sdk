@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
-import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -1828,7 +1827,7 @@ class _AnalysisContextCollectionPrinter {
           _writeDartFile(fsState, file);
         }
       });
-      if (configuration.withExcludedGlobs && contextRoot is ContextRootImpl) {
+      if (configuration.withExcludedGlobs) {
         sink.writeElements('excludedGlobs', contextRoot.excludedGlobs, (glob) {
           sink.writelnWithIndent(
             '${glob.glob.pattern} in ${glob.parent.posixPath}',

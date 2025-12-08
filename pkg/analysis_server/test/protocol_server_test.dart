@@ -429,6 +429,9 @@ class MockDiagnosticCode implements engine.DiagnosticCode {
   bool get isUnresolvedIdentifier => false;
 
   @override
+  String get lowerCaseName => name.toLowerCase();
+
+  @override
   String get problemMessage {
     throw StateError('Unexpected invocation of problemMessage');
   }

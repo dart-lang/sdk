@@ -5,11 +5,19 @@
 extension StringExtension on String {
   static final _toSnakeCaseRegExp = RegExp('_?[A-Z]');
   static final _startsWithLowerCaseRegExp = RegExp('^[a-z]');
+  static final _startsWithUpperCaseRegExp = RegExp('^[A-Z]');
 
   /// Returns `true` if the string is a `camelCase` string.
   bool get isCamelCase {
     if (contains('_')) return false;
     if (_startsWithLowerCaseRegExp.matchAsPrefix(this) == null) return false;
+    return true;
+  }
+
+  /// Returns `true` if the string is a `PascalCase` string.
+  bool get isPascalCase {
+    if (contains('_')) return false;
+    if (_startsWithUpperCaseRegExp.matchAsPrefix(this) == null) return false;
     return true;
   }
 

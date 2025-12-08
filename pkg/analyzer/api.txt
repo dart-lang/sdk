@@ -4579,6 +4579,8 @@ package:analyzer/error/error.dart:
     hasPublishedDocs (getter: bool)
     isIgnorable (getter: bool)
     isUnresolvedIdentifier (getter: bool)
+    lowerCaseName (getter: String)
+    lowerCaseUniqueName (getter: String)
     name (getter: String)
     numParameters (getter: int)
     problemMessage (getter: String)

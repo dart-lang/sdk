@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
@@ -49,7 +48,7 @@ class ContextLocatorImpl {
   /// If a [packagesFile] is specified, then it is assumed to be the path to the
   /// `.packages` file that should be used in place of the one that would be
   /// found by looking in the directories containing the context roots.
-  List<ContextRoot> locateRoots({
+  List<ContextRootImpl> locateRoots({
     required List<String> includedPaths,
     List<String>? excludedPaths,
     String? optionsFile,
@@ -396,11 +395,11 @@ class ContextLocatorImpl {
   /// Returns true if the folder was contained in the root and did not create a
   /// new root, false if it did create a new root.
   bool _createContextRoots(
-    List<ContextRoot> roots,
+    List<ContextRootImpl> roots,
     Set<String> visited,
     Folder folder,
     List<Folder> excludedFolders,
-    ContextRoot containingRoot,
+    ContextRootImpl containingRoot,
     Set<String> containingRootEnabledLegacyPlugins,
     List<LocatedGlob> excludedGlobs,
     File? optionsFile,
@@ -472,8 +471,7 @@ class ContextLocatorImpl {
     }
 
     if (optionsFileToUse != null) {
-      (containingRoot as ContextRootImpl).optionsFileMap[folder] =
-          optionsFileToUse;
+      containingRoot.optionsFileMap[folder] = optionsFileToUse;
       if (optionsFileToUse != optionsFileFromParentInSameRoot) {
         // Add excluded globs only if we found a new options file.
         var excludes = _getExcludedGlobs(
@@ -506,11 +504,11 @@ class ContextLocatorImpl {
   /// If either the [optionsFile] or [packagesFile] is non-`null` then the given
   /// file will be used even if there is a local version of the file.
   void _createContextRootsIn(
-    List<ContextRoot> roots,
+    List<ContextRootImpl> roots,
     Set<String> visited,
     Folder folder,
     List<Folder> excludedFolders,
-    ContextRoot containingRoot,
+    ContextRootImpl containingRoot,
     Set<String> containingRootEnabledLegacyPlugins,
     List<LocatedGlob> excludedGlobs,
     File? optionsFile,

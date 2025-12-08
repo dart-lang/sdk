@@ -50,6 +50,28 @@ class Option {
   });
 }
 
+enum Sanitizer {
+  none('none', [], []),
+  asan('asan', ['dart.vm.asan=true'], ['--target_address_sanitizer']),
+  msan('msan', ['dart.vm.msan=true'], ['--target_memory_sanitizer']),
+  tsan('tsan', ['dart.vm.tsan=true'], ['--target_thread_sanitizer']);
+
+  final String name;
+  final List<String> defines;
+  final List<String> genSnapshotFlags;
+  const Sanitizer(this.name, this.defines, this.genSnapshotFlags);
+
+  static Sanitizer? fromString(String? s) {
+    if (s == null) {
+      return none;
+    }
+    for (final sanitizer in values) {
+      if (sanitizer.name == s) return sanitizer;
+    }
+    return null;
+  }
+}
+
 bool checkFile(String sourcePath) {
   if (!FileSystemEntity.isFileSync(sourcePath)) {
     stderr.writeln('"$sourcePath" file not found.');
@@ -538,7 +560,30 @@ Remove debugging information from the output and save it separately to the speci
       ..addOption('target-arch',
           help: 'Compile to a specific target architecture.',
           allowed: Architecture.values.map((v) => v.name).toList())
+      ..addOption('target-sanitizer',
+          help: 'Compile to a specific target sanitizer. Sanitizers are not offered with single-file executables because the sanitizers cannot symbolize embedded snapshots.',
+          allowed: availableSanitizers())
       ..addExperimentalFlags(verbose: verbose);
+  }
+
+  List<String> availableSanitizers() {
+    // Native tools are not able to symbolize the embedded snapshot in
+    // single-file executables. For the sanitizers, getting natively symbolized
+    // reports is the whole point, so don't provide single-file executables and
+    // make users explicitly pass the snapshot to the AOT runtime.
+    if (commandName != aotSnapshotCmdName) {
+      return ['none'];
+    }
+
+    switch (Target.current) {
+      case Target.linuxX64:
+      case Target.linuxArm64:
+        return ['none', 'asan', 'msan', 'tsan'];
+      case Target.linuxRiscv64:
+        return ['none', 'asan', 'tsan'];
+      default:
+        return ['none'];
+    }
   }
 
   @override
@@ -653,13 +698,17 @@ Remove debugging information from the output and save it separately to the speci
 
     final tempDir = Directory.systemTemp.createTempSync();
     try {
+      final sanitizer = Sanitizer.fromString(args.option('target-sanitizer'))!;
       final kernelGenerator = KernelGenerator(
         genSnapshot: genSnapshotBinary,
         targetDartAotRuntime: dartAotRuntimeBinary,
         kind: format,
         sourceFile: sourcePath,
         outputFile: args.option('output'),
-        defines: args.multiOption(defineOption.flag),
+        defines: [
+          ...sanitizer.defines,
+          ...args.multiOption(defineOption.flag),
+        ],
         packages: args.option('packages'),
         enableExperiment: args.enabledExperiments.join(','),
         enableAsserts: args.flag(enableAssertsOption.flag),
@@ -674,7 +723,10 @@ Remove debugging information from the output and save it separately to the speci
         extraOptions: args.multiOption('extra-gen-kernel-options'),
       );
       await snapshotGenerator.generate(
-        extraOptions: args.multiOption('extra-gen-snapshot-options'),
+        extraOptions: [
+          ...sanitizer.genSnapshotFlags,
+          ...args.multiOption('extra-gen-snapshot-options'),
+        ],
       );
       return 0;
     } catch (e, st) {
