@@ -777,9 +777,8 @@ class A {
   int foo() => 0;
 }
 
-void main() {
-  var bar = A().foo(); // OK
-  print(bar);
+void f(int bar) {
+  bar = A().foo();
 }
 ''');
   }
@@ -813,6 +812,53 @@ class A {
 
 void main() {
   var _ = A().foo();
+}
+''');
+  }
+
+  test_method_result_assignedInDeclaration() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 0;
+}
+
+void f(A a) {
+  var bar = a.foo();
+  print(bar);
+}
+''');
+  }
+
+  test_method_result_assignedInDeclarationPattern() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  (int, int) foo() => (0, 0);
+}
+
+void f(A a) {
+  var (bar, baz) = a.foo();
+  print(bar + baz);
+}
+''');
+  }
+
+  test_method_result_assignedInPattern() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  (int, int) foo() => (0, 0);
+}
+
+void f(A a, int bar, int baz) {
+  (bar, baz) = a.foo();
 }
 ''');
   }
