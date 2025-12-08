@@ -258,6 +258,18 @@ abstract class DiagnosticCode {
   /// `// ignore:` or `// ignore_for_file:`.
   bool get isIgnorable => severity != DiagnosticSeverity.ERROR;
 
+  /// The name of the error code, converted to all lower case.
+  ///
+  /// This should be used instead of [name] to ensure that diagnostic codes are
+  /// matched in case-insensitive fashion.
+  String get lowerCaseName => name.toLowerCase();
+
+  /// The unique name of this error code, converted to all lower case.
+  ///
+  /// This should be used instead of [uniqueName] to ensure that diagnostic
+  /// codes are matched in case-insensitive fashion.
+  String get lowerCaseUniqueName => uniqueName.toLowerCase();
+
   int get numParameters {
     int result = 0;
     String? correctionMessage = _correctionMessage;
