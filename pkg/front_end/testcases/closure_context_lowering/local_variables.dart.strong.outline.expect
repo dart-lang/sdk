@@ -5,3 +5,7 @@ static method testNotCaptured() → dynamic
   ;
 static method testCaptured() → dynamic
   ;
+static method testForCounterNotCaptured() → dynamic
+  ;
+static method testForCounterCaptured() → dynamic
+  ;

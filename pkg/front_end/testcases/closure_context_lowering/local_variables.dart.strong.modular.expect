@@ -18,3 +18,33 @@ static method testCaptured() → dynamic /* scope=[
   a := 0;
   return () → core::int => a;
 }
+static method testForCounterNotCaptured() → dynamic /* scope=[
+  not-captured VariableContext([
+    local-variable a;
+  ]),
+] */ {
+  a := 0;
+  for /* scope=[
+    not-captured VariableContext([
+      local-variable i;
+    ]),
+  ] */ (i := 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    a = a.{core::num::+}(i){(core::num) → core::int};
+  }
+  return a;
+}
+static method testForCounterCaptured() → dynamic /* scope=[
+  not-captured VariableContext([
+    local-variable closures;
+  ]),
+] */ {
+  closures := <core::Function>[];
+  for /* scope=[
+    captured VariableContext([
+      local-variable i;
+    ]),
+  ] */ (i := 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    closures.{core::List::add}(() → core::int => i){(core::Function) → void};
+  }
+  return closures;
+}

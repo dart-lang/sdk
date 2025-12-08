@@ -3477,9 +3477,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   StatementInferenceResult visitForStatement(ForStatement node) {
     _contextAllocationStrategy.enterScopeProvider(node);
-    List<VariableDeclaration>? variables;
-    for (int index = 0; index < node.variables.length; index++) {
-      VariableDeclaration variable = node.variables[index];
+    List<VariableInitialization>? variables;
+    for (int index = 0; index < node.variableInitializations.length; index++) {
+      VariableInitialization variable = node.variableInitializations[index];
       if (variable.name == null) {
         if (variable.initializer != null) {
           ExpressionInferenceResult result = inferExpression(
@@ -3495,8 +3495,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         if (variableResult.hasChanged) {
           // Coverage-ignore-block(suite): Not run.
           if (variables == null) {
-            variables = <VariableDeclaration>[];
-            variables.addAll(node.variables.sublist(0, index));
+            variables = <VariableInitialization>[];
+            variables.addAll(node.variableInitializations.sublist(0, index));
           }
           if (variableResult.statementCount == 1) {
             variables.add(variableResult.statement as VariableDeclaration);
@@ -3514,8 +3514,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (variables != null) {
       // Coverage-ignore-block(suite): Not run.
-      node.variables.clear();
-      node.variables.addAll(variables);
+      node.variableInitializations.clear();
+      node.variableInitializations.addAll(variables);
       setParents(variables, node);
     }
     flowAnalysis.for_conditionBegin(node);
@@ -4278,11 +4278,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     List<VariableDeclaration> declaredVariables =
         patternVariableDeclaration.pattern.declaredVariables;
     assert(declaredVariables.length == element.intermediateVariables.length);
-    assert(declaredVariables.length == element.variables.length);
+    assert(declaredVariables.length == element.variableInitializations.length);
     for (int i = 0; i < declaredVariables.length; i++) {
       DartType type = declaredVariables[i].type;
       element.intermediateVariables[i].type = type;
-      element.variables[i].type = type;
+      element.variableInitializations[i].type = type;
     }
 
     return _inferForElementBase(
@@ -4314,9 +4314,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Map<Expression, DartType> inferredConditionTypes,
   ) {
     // TODO(johnniwinther): Use _visitStatements instead.
-    List<VariableDeclaration>? variables;
-    for (int index = 0; index < element.variables.length; index++) {
-      VariableDeclaration variable = element.variables[index];
+    List<VariableInitialization>? variables;
+    for (
+      int index = 0;
+      index < element.variableInitializations.length;
+      index++
+    ) {
+      VariableInitialization variable = element.variableInitializations[index];
       if (variable.name == null) {
         if (variable.initializer != null) {
           ExpressionInferenceResult initializerResult = inferExpression(
@@ -4334,7 +4338,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           // Coverage-ignore-block(suite): Not run.
           if (variables == null) {
             variables = <VariableDeclaration>[];
-            variables.addAll(element.variables.sublist(0, index));
+            variables.addAll(element.variableInitializations.sublist(0, index));
           }
           if (variableResult.statementCount == 1) {
             variables.add(variableResult.statement as VariableDeclaration);
@@ -4352,8 +4356,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (variables != null) {
       // Coverage-ignore-block(suite): Not run.
-      element.variables.clear();
-      element.variables.addAll(variables);
+      element.variableInitializations.clear();
+      element.variableInitializations.addAll(variables);
       setParents(variables, element);
     }
 
@@ -5172,7 +5176,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         : _createBlock(statements);
     ForStatement loop = _createForStatement(
       element.fileOffset,
-      element.variables,
+      element.variableInitializations,
       element.condition,
       element.updates,
       loopBody,
@@ -5207,7 +5211,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           _createBlock(statements);
     ForStatement loop = _createForStatement(
       element.fileOffset,
-      element.variables,
+      element.variableInitializations,
       element.condition,
       element.updates,
       loopBody,
@@ -5774,7 +5778,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         : _createBlock(statements);
     ForStatement loop = _createForStatement(
       entry.fileOffset,
-      entry.variables,
+      entry.variableInitializations,
       entry.condition,
       entry.updates,
       loopBody,
@@ -5807,7 +5811,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         : _createBlock(statements);
     ForStatement loop = _createForStatement(
       entry.fileOffset,
-      entry.variables,
+      entry.variableInitializations,
       entry.condition,
       entry.updates,
       loopBody,
@@ -6771,7 +6775,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ForStatement _createForStatement(
     int fileOffset,
-    List<VariableDeclaration> variables,
+    List<VariableInitialization> variables,
     Expression? condition,
     List<Expression> updates,
     Statement body,
@@ -7367,11 +7371,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     List<VariableDeclaration> declaredVariables =
         patternVariableDeclaration.pattern.declaredVariables;
     assert(declaredVariables.length == entry.intermediateVariables.length);
-    assert(declaredVariables.length == entry.variables.length);
+    assert(declaredVariables.length == entry.variableInitializations.length);
     for (int i = 0; i < declaredVariables.length; i++) {
       DartType type = declaredVariables[i].type;
       entry.intermediateVariables[i].type = type;
-      entry.variables[i].type = type;
+      entry.variableInitializations[i].type = type;
     }
 
     return _inferForMapEntryBase(
@@ -7427,9 +7431,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     _MapLiteralEntryOffsets offsets,
   ) {
     // TODO(johnniwinther): Use _visitStatements instead.
-    List<VariableDeclaration>? variables;
-    for (int index = 0; index < entry.variables.length; index++) {
-      VariableDeclaration variable = entry.variables[index];
+    List<VariableInitialization>? variables;
+    for (int index = 0; index < entry.variableInitializations.length; index++) {
+      VariableInitialization variable = entry.variableInitializations[index];
       if (variable.name == null) {
         if (variable.initializer != null) {
           ExpressionInferenceResult result = inferExpression(
@@ -7446,7 +7450,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           // Coverage-ignore-block(suite): Not run.
           if (variables == null) {
             variables = <VariableDeclaration>[];
-            variables.addAll(entry.variables.sublist(0, index));
+            variables.addAll(entry.variableInitializations.sublist(0, index));
           }
           if (variableResult.statementCount == 1) {
             variables.add(variableResult.statement as VariableDeclaration);
@@ -7464,8 +7468,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (variables != null) {
       // Coverage-ignore-block(suite): Not run.
-      entry.variables.clear();
-      entry.variables.addAll(variables);
+      entry.variableInitializations.clear();
+      entry.variableInitializations.addAll(variables);
       setParents(variables, entry);
     }
 
@@ -8211,7 +8215,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           PatternForElement result = new PatternForElement(
             patternVariableDeclaration: entry.patternVariableDeclaration,
             intermediateVariables: entry.intermediateVariables,
-            variables: entry.variables,
+            variables: entry.variableInitializations,
             condition: entry.condition,
             updates: entry.updates,
             body: convertToElement(entry.body, onConvertMapEntry),
@@ -8220,7 +8224,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           return result;
         case ForMapEntry():
           ForElement result = new ForElement(
-            entry.variables,
+            entry.variableInitializations,
             entry.condition,
             entry.updates,
             convertToElement(entry.body, onConvertMapEntry),
