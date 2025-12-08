@@ -37,6 +37,9 @@ extension type LogEntry(JsonMap map) {
 
 /// A representation of a message sent from one process to another.
 extension type Message(JsonMap map) {
+  /// The ID of the message. All messages have IDs.
+  int get id => map['id'] as int;
+
   /// Whether this message is a request for the server to exit.
   bool get isExit => method == 'exit';
 
@@ -52,6 +55,9 @@ extension type Message(JsonMap map) {
 
   /// Whether this message is a request for the server to connect with DTD.
   bool get isRequestToConnectWithDtd => method == 'dart/connectToDtd';
+
+  /// Whether this is a response to a request.
+  bool get isResponse => method == null;
 
   /// Whether this message is a request from the server to show a document to
   /// the user.
@@ -71,4 +77,10 @@ extension type Message(JsonMap map) {
   /// The method being sent in this message, or `null` if this message isn't an
   /// LSP request
   String? get method => map['method'] as String?;
+
+  /// Only present if [method] is non-null, and still optional in that case.
+  JsonMap? get params => map['params'] as Map<String, Object?>?;
+
+  /// If [method] is null, this should be non-null.
+  JsonMap? get result => map['result'] as Map<String, Object?>?;
 }
