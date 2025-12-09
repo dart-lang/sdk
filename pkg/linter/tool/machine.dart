@@ -70,7 +70,11 @@ Future<String> getMachineListing(
         'incompatible': rule.incompatibleRules,
         'sets': const [],
         'fixStatus':
-            fixStatusMap[rule.diagnosticCodes.first.uniqueName.suffix] ??
+            fixStatusMap[rule
+                .diagnosticCodes
+                .first
+                .lowerCaseUniqueName
+                .suffix] ??
             'unregistered',
         'details': info.deprecatedDetails,
         'sinceDartSdk': _versionToString(info.states.first.since),

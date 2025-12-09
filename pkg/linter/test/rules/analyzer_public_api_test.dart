@@ -19,18 +19,18 @@ void main() {
 @reflectiveTest
 class AnalyzerPublicApiTest extends LintRuleTest {
   static String get badPartDirective =>
-      diag.analyzerPublicApiBadPartDirective.name;
+      diag.analyzerPublicApiBadPartDirective.lowerCaseName;
 
-  static String get badType => diag.analyzerPublicApiBadType.name;
+  static String get badType => diag.analyzerPublicApiBadType.lowerCaseName;
 
   static String get experimentalInconsistency =>
-      diag.analyzerPublicApiExperimentalInconsistency.name;
+      diag.analyzerPublicApiExperimentalInconsistency.lowerCaseName;
 
   static String get exportsNonPublicName =>
-      diag.analyzerPublicApiExportsNonPublicName.name;
+      diag.analyzerPublicApiExportsNonPublicName.lowerCaseName;
 
   static String get implInPublicApi =>
-      diag.analyzerPublicApiImplInPublicApi.name;
+      diag.analyzerPublicApiImplInPublicApi.lowerCaseName;
 
   String get libFile => '$testPackageRootPath/lib/file.dart';
 
