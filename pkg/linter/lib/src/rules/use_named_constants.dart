@@ -30,6 +30,7 @@ class UseNamedConstants extends AnalysisRule {
   ) {
     var visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
+    registry.addDotShorthandConstructorInvocation(this, visitor);
   }
 }
 
@@ -39,40 +40,48 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    if (node.isConst) {
+      _reportWhenMatchingConstant(node);
+    }
+  }
+
+  @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
-      var type = node.staticType;
-      if (type is! InterfaceType) return;
-      var element = type.element;
-      if (element is ClassElement) {
-        var nodeField = node
-            .thisOrAncestorOfType<VariableDeclaration>()
-            ?.declaredFragment
-            ?.element;
+      _reportWhenMatchingConstant(node);
+    }
+  }
 
-        // avoid diagnostic for fields in the same class having the same value
-        // class A {
-        //   const A();
-        //   static const a = A();
-        //   static const b = A();
-        // }
-        if (nodeField?.enclosingElement == element) return;
+  void _reportWhenMatchingConstant(Expression node) {
+    var type = node.staticType;
+    if (type is! InterfaceType) return;
+    var element = type.element;
+    if (element is ClassElement) {
+      var nodeField = node
+          .thisOrAncestorOfType<VariableDeclaration>()
+          ?.declaredFragment
+          ?.element;
 
-        var library =
-            (node.root as CompilationUnit).declaredFragment?.element.library;
-        if (library == null) return;
-        var value = node.computeConstantValue()?.value;
-        for (var field in element.fields.where(
-          (e) => e.isStatic && e.isConst,
-        )) {
-          if (field.isAccessibleIn(library) &&
-              field.computeConstantValue() == value) {
-            rule.reportAtNode(
-              node,
-              arguments: ['${element.name}.${field.name}'],
-            );
-            return;
-          }
+      // avoid diagnostic for fields in the same class having the same value
+      // class A {
+      //   const A();
+      //   static const a = A();
+      //   static const b = A();
+      // }
+      if (nodeField?.enclosingElement == element) return;
+
+      var library =
+          (node.root as CompilationUnit).declaredFragment?.element.library;
+      if (library == null) return;
+      var value = node.computeConstantValue()?.value;
+      for (var field in element.fields.where((e) => e.isStatic && e.isConst)) {
+        if (field.isAccessibleIn(library) &&
+            field.computeConstantValue() == value) {
+          rule.reportAtNode(node, arguments: ['${element.name}.${field.name}']);
+          return;
         }
       }
     }
