@@ -161,7 +161,7 @@ class FixProcessor {
           if (alreadyCalculated?.add(
                 '${generator.hashCode}|'
                 '${ignoreErrorAnalysisFileKind.id}|'
-                '${diagnostic.diagnosticCode.name}',
+                '${diagnostic.diagnosticCode.lowerCaseName}',
               ) ==
               false) {
             // We did this before and was asked to not do it again. Skip.

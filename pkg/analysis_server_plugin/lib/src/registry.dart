@@ -57,7 +57,7 @@ final class PluginRegistryImpl implements PluginRegistry {
     }
 
     registeredFixGenerators.registerFixForLint(code, generator);
-    fixKinds.putIfAbsent(fixKind, () => []).add(code.name);
+    fixKinds.putIfAbsent(fixKind, () => []).add(code.lowerCaseName);
   }
 
   @override

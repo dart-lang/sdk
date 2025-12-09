@@ -500,7 +500,7 @@ class PluginServer {
             protocol.AnalysisErrorType.STATIC_WARNING,
             _locationFor(unitResult.unit, unitResult.path, diagnostic),
             diagnostic.message,
-            diagnostic.diagnosticCode.name,
+            diagnostic.diagnosticCode.lowerCaseName,
             correction: diagnostic.correctionMessage,
             // TODO(srawlins): Use a valid value here.
             hasFix: true,
