@@ -1162,5 +1162,5 @@ void f(int i, int j) => i;
     'dead_null_aware_expression',
     'invalid_null_aware_operator',
     'unnecessary_null_comparison',
-  }.contains(diagnostic.diagnosticCode.name.toLowerCase());
+  }.contains(diagnostic.diagnosticCode.lowerCaseName);
 }

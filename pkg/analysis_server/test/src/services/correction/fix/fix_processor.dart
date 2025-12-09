@@ -257,8 +257,8 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
     expect(diagnostics, isNotEmpty);
     String? diagnosticCode;
     for (var diagnostic in diagnostics) {
-      diagnosticCode ??= diagnostic.diagnosticCode.name;
-      if (diagnosticCode != diagnostic.diagnosticCode.name) {
+      diagnosticCode ??= diagnostic.diagnosticCode.lowerCaseName;
+      if (diagnosticCode != diagnostic.diagnosticCode.lowerCaseName) {
         fail('Expected only errors of one type but found: $diagnostics');
       }
     }
@@ -272,8 +272,8 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
     expect(diagnostics, isNotEmpty);
     String? diagnosticCode;
     for (var diagnostic in diagnostics) {
-      diagnosticCode ??= diagnostic.diagnosticCode.name;
-      if (diagnosticCode != diagnostic.diagnosticCode.name) {
+      diagnosticCode ??= diagnostic.diagnosticCode.lowerCaseName;
+      if (diagnosticCode != diagnostic.diagnosticCode.lowerCaseName) {
         fail('Expected only errors of one type but found: $diagnostics');
       }
     }
@@ -339,7 +339,7 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
     var lintCodeSet = diagnostics
         .map((d) => d.diagnosticCode)
         .whereType<LintCode>()
-        .where((lintCode) => lintCode.name == name)
+        .where((lintCode) => lintCode.lowerCaseName == name)
         .toSet();
     if (lintCodeSet.length != 1) {
       fail('Expected exactly one LintCode, actually: $lintCodeSet');
@@ -349,7 +349,8 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
 
   DiagnosticFilter lintNameFilter(String name) {
     return (e) {
-      return e.diagnosticCode is LintCode && e.diagnosticCode.name == name;
+      return e.diagnosticCode is LintCode &&
+          e.diagnosticCode.lowerCaseName == name;
     };
   }
 

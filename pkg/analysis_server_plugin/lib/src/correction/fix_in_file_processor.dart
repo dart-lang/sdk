@@ -32,7 +32,7 @@ final class FixInFileProcessor {
     var generators = _getGenerators(diagnostic.diagnosticCode);
 
     String getAlreadyCalculatedValue(ProducerGenerator generator) {
-      return '${generator.hashCode}|${diagnostic.diagnosticCode.name}';
+      return '${generator.hashCode}|${diagnostic.diagnosticCode.lowerCaseName}';
     }
 
     // Remove generators for which we've already calculated and we were asked to
@@ -52,7 +52,9 @@ final class FixInFileProcessor {
     }
 
     var diagnostics = _fixContext.unitResult.diagnostics.where(
-      (e) => diagnostic.diagnosticCode.name == e.diagnosticCode.name,
+      (e) =>
+          diagnostic.diagnosticCode.lowerCaseName ==
+          e.diagnosticCode.lowerCaseName,
     );
     if (diagnostics.length < 2) {
       return const <Fix>[];

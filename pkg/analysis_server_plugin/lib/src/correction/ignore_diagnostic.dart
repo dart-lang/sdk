@@ -253,7 +253,7 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
   @override
   List<String> get fixArguments => [_code];
 
-  String get _code => diagnostic.diagnosticCode.name.toLowerCase();
+  String get _code => diagnostic.diagnosticCode.lowerCaseName;
 
   /// Returns `true` if any of the following is `true`:
   /// - `error.code` is present in the `cannot-ignore` list.
@@ -261,7 +261,7 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
   bool get _isCodeUnignorable {
     var cannotIgnore = (analysisOptions as AnalysisOptionsImpl)
         .unignorableDiagnosticCodeNames
-        .contains(diagnostic.diagnosticCode.name.toLowerCase());
+        .contains(diagnostic.diagnosticCode.lowerCaseName);
 
     if (cannotIgnore) {
       return true;
@@ -275,7 +275,7 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
     return analysisOptions.errorProcessors.any(
       (e) =>
           e.severity == null &&
-          e.code == diagnostic.diagnosticCode.name.toLowerCase(),
+          e.code == diagnostic.diagnosticCode.lowerCaseName,
     );
   }
 }

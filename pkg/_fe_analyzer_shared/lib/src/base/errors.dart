@@ -300,13 +300,13 @@ abstract class DiagnosticCode {
   /// this code, or `null` if there is no published documentation.
   String? get url {
     if (hasPublishedDocs) {
-      return 'https://dart.dev/diagnostics/${name.toLowerCase()}';
+      return 'https://dart.dev/diagnostics/${lowerCaseName}';
     }
     return null;
   }
 
   @override
-  String toString() => uniqueName;
+  String toString() => lowerCaseUniqueName;
 }
 
 abstract class DiagnosticCodeImpl extends DiagnosticCode {

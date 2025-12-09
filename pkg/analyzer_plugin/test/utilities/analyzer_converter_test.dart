@@ -38,7 +38,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
     var diagnosticCode = analyzerDiagnostic.diagnosticCode;
     expect(pluginError, isNotNull);
     var location = pluginError.location;
-    expect(pluginError.code, diagnosticCode.name.toLowerCase());
+    expect(pluginError.code, diagnosticCode.lowerCaseName);
     expect(pluginError.correction, diagnosticCode.correctionMessage);
     expect(location, isNotNull);
     expect(location.file, analyzerDiagnostic.source.fullName);
@@ -186,7 +186,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
         (analyzer.AnalysisOptionsBuilder()
               ..errorProcessors.add(
                 analyzer.ErrorProcessor(
-                  analyzerErrors[0].diagnosticCode.name,
+                  analyzerErrors[0].diagnosticCode.lowerCaseName,
                   severity,
                 ),
               ))
@@ -233,7 +233,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
         (analyzer.AnalysisOptionsBuilder()
               ..errorProcessors.add(
                 analyzer.ErrorProcessor(
-                  analyzerErrors[0].diagnosticCode.name,
+                  analyzerErrors[0].diagnosticCode.lowerCaseName,
                   severity,
                 ),
               ))

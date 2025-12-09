@@ -667,7 +667,7 @@ class NoProducerOverlapsTest {
             ).canBeAppliedAcrossFiles,
           ),
         )
-        .map((e) => e.key.uniqueName);
+        .map((e) => e.key.lowerCaseUniqueName);
     var nonDataDrivenCodes = {
       ...bulkFixForLintCodes,
       ...bulkFixForNonLintCodes,
@@ -680,9 +680,9 @@ class NoProducerOverlapsTest {
           context: StubCorrectionProducerContext.instance,
         );
         if (producer is DataDriven) {
-          dataDrivenCodes.add(code.uniqueName);
+          dataDrivenCodes.add(code.lowerCaseUniqueName);
         } else {
-          nonDataDrivenCodes.add(code.uniqueName);
+          nonDataDrivenCodes.add(code.lowerCaseUniqueName);
         }
       }
     }

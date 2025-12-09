@@ -66,7 +66,7 @@ class AnalyzerConverter {
         endColumn: endColumn,
       ),
       diagnostic.message,
-      diagnosticCode.name.toLowerCase(),
+      diagnosticCode.lowerCaseName,
       contextMessages: contextMessages,
       correction: diagnostic.correctionMessage,
       hasFix: true,

@@ -80,7 +80,7 @@ class FixProcessorMapTest {
         }
       }
       if (bulkCount > 1) {
-        var name = key.name;
+        var name = key.lowerCaseName;
         if (!codesAllowedToHaveMultipleBulkFixes.contains(name)) {
           unexpectedBulkCodes.add(name);
         }

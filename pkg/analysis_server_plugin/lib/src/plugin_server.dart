@@ -500,7 +500,7 @@ class PluginServer {
             protocol.AnalysisErrorType.STATIC_WARNING,
             _locationFor(unitResult.unit, unitResult.path, diagnostic),
             diagnostic.message,
-            diagnostic.diagnosticCode.name,
+            diagnostic.diagnosticCode.lowerCaseName,
             correction: diagnostic.correctionMessage,
             // TODO(srawlins): Use a valid value here.
             hasFix: true,
@@ -533,7 +533,7 @@ class PluginServer {
     DiagnosticCode code,
   ) {
     var configuredSeverity =
-        configuration.diagnosticConfigs[code.name]?.severity;
+        configuration.diagnosticConfigs[code.lowerCaseName]?.severity;
     if (configuredSeverity != null &&
         configuredSeverity != ConfiguredSeverity.enable) {
       var severityName = configuredSeverity.name.toUpperCase();

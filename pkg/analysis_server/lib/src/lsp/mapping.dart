@@ -1854,7 +1854,7 @@ lsp.MarkupContent _asMarkup(
   return lsp.MarkupContent(kind: format, value: content);
 }
 
-String _diagnosticCode(server.DiagnosticCode code) => code.name.toLowerCase();
+String _diagnosticCode(server.DiagnosticCode code) => code.lowerCaseName;
 
 /// Additional details about a completion that may be formatted differently
 /// depending on the client capabilities.

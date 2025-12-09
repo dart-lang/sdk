@@ -193,8 +193,7 @@ final class ExpectedLint extends ExpectedDiagnostic {
     super.contextMessages,
   }) : super(
          (diagnostic) =>
-             diagnostic.diagnosticCode.name.toLowerCase() ==
-             _lintName.toLowerCase(),
+             diagnostic.diagnosticCode.lowerCaseName == _lintName.toLowerCase(),
          offset,
          length,
        );

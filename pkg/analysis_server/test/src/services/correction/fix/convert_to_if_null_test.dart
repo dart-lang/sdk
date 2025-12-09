@@ -88,7 +88,7 @@ void f(String s, bool b) {
       filter: (error) {
         var code = error.diagnosticCode;
         return code is LintCode &&
-            code.name == LintNames.prefer_if_null_operators;
+            code.lowerCaseName == LintNames.prefer_if_null_operators;
       },
     );
   }
@@ -104,7 +104,7 @@ void f(String s, bool b) {
       filter: (error) {
         var code = error.diagnosticCode;
         return code is LintCode &&
-            code.name == LintNames.prefer_if_null_operators;
+            code.lowerCaseName == LintNames.prefer_if_null_operators;
       },
     );
   }
