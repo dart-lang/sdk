@@ -11969,28 +11969,6 @@ LinterLintCode:
       information about the type of the given variable (which may not be immediately
       evident by looking at the initializing expression).
 
-      An expression is considered to have a non-obvious type when it does not
-      have an obvious type.
-
-      An expression e has an obvious type in the following cases:
-
-      - e is a non-collection literal. For instance, 1, true, 'Hello, $name!'.
-      - e is a collection literal with actual type arguments. For instance,
-        <int, bool>{}.
-      - e is a list literal or a set literal where at least one element has an
-        obvious type, and all elements have the same type. For instance, [1, 2] and
-        { [true, false], [] }, but not [1, 1.5].
-      - e is a map literal where all key-value pair have a key with an obvious type
-        and a value with an obvious type, and all keys have the same type, and all
-        values have the same type. For instance, { #a: <int>[] }, but not
-        {1: 1, 2: true}.
-      - e is an instance creation expression whose class part is not raw. For
-        instance C(14) if C is a non-generic class, or C<int>(14) if C accepts one
-        type argument, but not C(14) if C accepts one or more type arguments.
-      - e is a cascade whose target has an obvious type. For instance,
-        1..isEven..isEven has an obvious type because 1 has an obvious type.
-      - e is a type cast. For instance, `myComplexExpression as int`.
-
       **BAD:**
       ```dart
       final myTopLevelVariable =
