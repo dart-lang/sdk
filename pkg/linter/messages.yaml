@@ -15532,6 +15532,7 @@ LinterLintCode:
     correctionMessage: "Try using an if-null operator."
     state:
       stable: "2.13"
+      deprecated: "3.11"
     categories: [effectiveDart, style]
     hasPublishedDocs: true
     documentation: |-
