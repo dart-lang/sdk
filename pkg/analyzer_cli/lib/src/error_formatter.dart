@@ -350,7 +350,7 @@ class HumanErrorFormatter extends ErrorFormatter {
         column: location.columnNumber,
         message: error.message,
         contextMessages: contextMessages,
-        errorCode: error.diagnosticCode.name.toLowerCase(),
+        errorCode: error.diagnosticCode.lowerCaseName,
         correction: error.correctionMessage,
         url: error.diagnosticCode.url,
       ),
@@ -436,7 +436,7 @@ class JsonErrorFormatter extends ErrorFormatter {
         var problemMessage = error.problemMessage;
         var url = error.diagnosticCode.url;
         diagnostics.add({
-          'code': diagnosticCode.name.toLowerCase(),
+          'code': diagnosticCode.lowerCaseName,
           'severity': severity.name,
           'type': diagnosticCode.type.name,
           'location': location(
@@ -503,7 +503,7 @@ class MachineErrorFormatter extends ErrorFormatter {
     out.write('|');
     out.write(error.diagnosticCode.type);
     out.write('|');
-    out.write(error.diagnosticCode.name);
+    out.write(error.diagnosticCode.lowerCaseName);
     out.write('|');
     out.write(_escapeForMachineMode(source.fullName));
     out.write('|');

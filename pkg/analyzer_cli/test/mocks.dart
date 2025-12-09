@@ -75,12 +75,12 @@ class MockErrorCode implements DiagnosticCode {
   DiagnosticSeverity severity;
 
   @override
-  String name;
+  String lowerCaseName;
 
   @override
   String? url;
 
-  MockErrorCode(this.type, this.severity, this.name);
+  MockErrorCode(this.type, this.severity, this.lowerCaseName);
 
   @override
   String get correctionMessage {
@@ -97,16 +97,13 @@ class MockErrorCode implements DiagnosticCode {
   bool get isUnresolvedIdentifier => false;
 
   @override
-  String get lowerCaseName => name.toLowerCase();
+  String get lowerCaseUniqueName {
+    throw StateError('Unexpected invocation of lowerCaseUniqueName');
+  }
 
   @override
   String get problemMessage {
     throw StateError('Unexpected invocation of message');
-  }
-
-  @override
-  String get uniqueName {
-    throw StateError('Unexpected invocation of uniqueName');
   }
 
   @override
