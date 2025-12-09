@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
@@ -766,11 +767,19 @@ final class PluginConfiguration {
   PluginConfiguration({
     required this.name,
     required this.source,
-    this.diagnosticConfigs = const {},
+    Map<String, DiagnosticConfig> diagnosticConfigs = const {},
     this.isEnabled = true,
-  });
+  }) : diagnosticConfigs = LinkedHashMap(
+         equals: _caseInsensitiveEquals,
+         hashCode: _caseInsensitiveHash,
+       )..addAll(diagnosticConfigs);
 
   String sourceYaml() => source.toYaml(name: name);
+
+  static bool _caseInsensitiveEquals(String s1, String s2) =>
+      s1.toLowerCase() == s2.toLowerCase();
+
+  static int _caseInsensitiveHash(String s) => s.toLowerCase().hashCode;
 }
 
 /// The analysis options for plugins, as specified in the top-level `plugins`

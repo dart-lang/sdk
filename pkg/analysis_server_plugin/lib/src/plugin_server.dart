@@ -533,7 +533,7 @@ class PluginServer {
     DiagnosticCode code,
   ) {
     var configuredSeverity =
-        configuration.diagnosticConfigs[code.name]?.severity;
+        configuration.diagnosticConfigs[code.lowerCaseName]?.severity;
     if (configuredSeverity != null &&
         configuredSeverity != ConfiguredSeverity.enable) {
       var severityName = configuredSeverity.name.toUpperCase();
