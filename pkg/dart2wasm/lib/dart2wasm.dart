@@ -145,6 +145,8 @@ final List<Option> options = [
   UriOption("wasm-opt", (o, value) => o.wasmOptPath = value),
   Flag("save-unopt", (o, value) => o.saveUnopt = value),
   Flag("strip-wasm", (o, value) => o.stripWasm = value, negatable: true),
+  IntMultiOption("wasm-opt-module-ids",
+      (o, value) => o.moduleIdsToOptimize = value.toSet()),
 ];
 
 Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(

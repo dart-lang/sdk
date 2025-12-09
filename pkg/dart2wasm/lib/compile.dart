@@ -711,13 +711,26 @@ Future<CompilationResult> _runOptPhase(
     CompilerPhaseInputOutputManager ioManager) async {
   final futures = <Future<void>>[];
   final numModules = codegenResult.numModules;
-  for (int i = 0; i < numModules; i++) {
+  void doOpt(int moduleId) {
     futures.add(ioManager.runWasmOpt(
         codegenResult.mainWasmFile,
-        i,
+        moduleId,
         options.useMultiModuleOpt
             ? _binaryenFlagsMultiModule
             : _binaryenFlags));
+  }
+
+  if (options.moduleIdsToOptimize.isEmpty) {
+    for (int i = 0; i < codegenResult.numModules; i++) {
+      doOpt(i);
+    }
+  } else {
+    for (final moduleId in options.moduleIdsToOptimize) {
+      if (moduleId < 0 || moduleId >= numModules) {
+        throw ArgumentError('Invalid module ID to optimize: $moduleId');
+      }
+      doOpt(moduleId);
+    }
   }
   await Future.wait(futures);
   return OptResult(options.outputFile, numModules);
