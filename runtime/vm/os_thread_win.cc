@@ -172,7 +172,9 @@ ThreadId OSThread::ThreadIdFromIntPtr(intptr_t id) {
 }
 
 bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
-  ::GetCurrentThreadStackLimits(lower, upper);
+  // PULONG and uword are sometimes different fundamental types.
+  ::GetCurrentThreadStackLimits(reinterpret_cast<PULONG_PTR>(lower),
+                                reinterpret_cast<PULONG_PTR>(upper));
   return true;
 }
 
