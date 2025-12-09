@@ -58,6 +58,36 @@ void f(A a) {
     );
   }
 
+  test_dotShorthand() async {
+    await assertDiagnostics(
+      r'''
+void f() {
+  const A a = .new(0);
+}
+class A {
+  const A(int value);
+  static const zero = A(0);
+}
+''',
+      [lint(25, 7)],
+    );
+  }
+
+  test_dotShorthand_const() async {
+    await assertDiagnostics(
+      r'''
+void f() {
+  A a = const .new(0);
+}
+class A {
+  const A(int value);
+  static const zero = A(0);
+}
+''',
+      [lint(19, 13)],
+    );
+  }
+
   test_duplicate_inDefinition() async {
     await assertNoDiagnostics(r'''
 class A {
