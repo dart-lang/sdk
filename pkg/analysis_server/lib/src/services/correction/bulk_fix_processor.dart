@@ -139,7 +139,7 @@ class BulkFixProcessor {
   static final Map<DiagnosticCode, bool> _bulkFixableCodes = {};
 
   static final Set<String> _diagnosticCodes = diagnosticCodeValues
-      .map((code) => code.name.toLowerCase())
+      .map((code) => code.lowerCaseName)
       .toSet();
 
   static final Set<String> _lintCodes = Registry.ruleRegistry.rules
@@ -433,7 +433,7 @@ class BulkFixProcessor {
           }
           details.add(
             BulkFix(pubspecFile.path, [
-              BulkFixDetail(diag.missingDependency.name.toLowerCase(), 1),
+              BulkFixDetail(diag.missingDependency.lowerCaseName, 1),
             ]),
           );
         }
@@ -541,7 +541,7 @@ class BulkFixProcessor {
     diagnostics.sort(_fixOrder);
     for (var diagnostic in diagnostics) {
       if (_codes != null &&
-          !_codes.contains(diagnostic.diagnosticCode.name.toLowerCase())) {
+          !_codes.contains(diagnostic.diagnosticCode.lowerCaseName)) {
         continue;
       }
       var processor = ErrorProcessor.getProcessor(analysisOptions, diagnostic);
@@ -656,7 +656,7 @@ class BulkFixProcessor {
       await _generateFix(
         context,
         OrganizeImports(context: context),
-        directivesOrderingError.diagnosticCode.name,
+        directivesOrderingError.diagnosticCode.lowerCaseName,
       );
       if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
         return;
@@ -667,7 +667,7 @@ class BulkFixProcessor {
         await _generateFix(
           context,
           RemoveUnusedImport(context: context),
-          diagnostic.diagnosticCode.name,
+          diagnostic.diagnosticCode.lowerCaseName,
         );
         if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
           return;
@@ -730,7 +730,7 @@ class BulkFixProcessor {
     );
 
     var diagnosticCode = diagnostic.diagnosticCode;
-    var codeName = diagnosticCode.name;
+    var codeName = diagnosticCode.lowerCaseName;
     try {
       if (diagnosticCode is LintCode) {
         var generators =
@@ -795,7 +795,7 @@ class BulkFixProcessor {
     );
 
     var diagnosticCode = diagnostic.diagnosticCode;
-    var codeName = diagnosticCode.name;
+    var codeName = diagnosticCode.lowerCaseName;
     try {
       if (diagnosticCode is LintCode) {
         var generators =

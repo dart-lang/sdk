@@ -57,12 +57,12 @@ String? verifyErrorFixStatus() {
     for (var rule in Registry.ruleRegistry.rules) ...rule.diagnosticCodes,
   };
   var lintRuleNames = {
-    for (var lintCode in lintRuleCodes) lintCode.uniqueName.toLowerCase(),
+    for (var lintCode in lintRuleCodes) lintCode.lowerCaseUniqueName,
   };
 
   var errorData = ErrorData();
   for (var code in diagnosticCodeValues) {
-    var name = code.uniqueName;
+    var name = code.lowerCaseUniqueName;
     if (code.type == .TODO) {
       // To-do codes are ignored.
       continue;
@@ -85,7 +85,7 @@ String? verifyErrorFixStatus() {
     }
   }
   for (var lintCode in lintRuleCodes) {
-    var name = lintCode.uniqueName;
+    var name = lintCode.lowerCaseUniqueName;
     var info = statusInfo.nodes[name.toLowerCase()];
     if (info == null) {
       errorData.codesWithNoEntry.add(name);
@@ -104,7 +104,7 @@ String? verifyErrorFixStatus() {
   }
 
   var codeNames = {
-    for (var code in diagnosticCodeValues) code.uniqueName.toLowerCase(),
+    for (var code in diagnosticCodeValues) code.lowerCaseUniqueName,
   };
   for (var key in statusInfo.keys) {
     if (key is String) {

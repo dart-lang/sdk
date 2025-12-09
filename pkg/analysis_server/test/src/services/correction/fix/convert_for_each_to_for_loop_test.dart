@@ -199,7 +199,7 @@ void f(List<String> list) {
 }
 ''',
       filter: (error) =>
-          error.diagnosticCode.name ==
+          error.diagnosticCode.lowerCaseName ==
           LintNames.avoid_function_literals_in_foreach_calls,
     );
   }
@@ -227,7 +227,7 @@ void f(List<String> list) {
 }
 ''',
       filter: (error) =>
-          error.diagnosticCode.name ==
+          error.diagnosticCode.lowerCaseName ==
           LintNames.avoid_function_literals_in_foreach_calls,
     );
   }
@@ -259,7 +259,7 @@ void f(core.List<core.Set<core.String>> list) {
 }
 ''',
       filter: (error) =>
-          error.diagnosticCode.name ==
+          error.diagnosticCode.lowerCaseName ==
           LintNames.avoid_function_literals_in_foreach_calls,
     );
   }
@@ -307,7 +307,7 @@ void f(List<String> list) {
 ''');
     await assertNoFix(
       filter: (error) =>
-          error.diagnosticCode.name ==
+          error.diagnosticCode.lowerCaseName ==
           LintNames.avoid_function_literals_in_foreach_calls,
     );
   }
@@ -355,7 +355,7 @@ void f(List<String> list) {
 }
 ''',
       filter: (error) =>
-          error.diagnosticCode.name ==
+          error.diagnosticCode.lowerCaseName ==
           LintNames.avoid_function_literals_in_foreach_calls,
     );
   }
@@ -381,7 +381,7 @@ void f(List<String> list) {
 }
 ''',
       filter: (error) =>
-          error.diagnosticCode.name ==
+          error.diagnosticCode.lowerCaseName ==
           LintNames.avoid_function_literals_in_foreach_calls,
     );
   }
@@ -394,7 +394,7 @@ void f(List<String> list) {
 ''');
     await assertNoFix(
       filter: (error) =>
-          error.diagnosticCode.name ==
+          error.diagnosticCode.lowerCaseName ==
           LintNames.avoid_function_literals_in_foreach_calls,
     );
   }

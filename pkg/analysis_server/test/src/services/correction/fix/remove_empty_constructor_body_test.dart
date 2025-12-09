@@ -74,6 +74,6 @@ class A {
   }
 
   static bool _isInterestingError(Diagnostic e) {
-    return e.diagnosticCode.name == LintNames.empty_constructor_bodies;
+    return e.diagnosticCode.lowerCaseName == LintNames.empty_constructor_bodies;
   }
 }

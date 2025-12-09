@@ -402,7 +402,7 @@ class MockDiagnosticCode implements engine.DiagnosticCode {
   engine.DiagnosticSeverity severity;
 
   @override
-  String name;
+  String lowerCaseName;
 
   @override
   String? url;
@@ -410,7 +410,7 @@ class MockDiagnosticCode implements engine.DiagnosticCode {
   MockDiagnosticCode({
     this.type = engine.DiagnosticType.COMPILE_TIME_ERROR,
     this.severity = engine.DiagnosticSeverity.ERROR,
-    this.name = 'TEST_ERROR',
+    this.lowerCaseName = 'test_error',
     this.url,
   });
 
@@ -429,16 +429,13 @@ class MockDiagnosticCode implements engine.DiagnosticCode {
   bool get isUnresolvedIdentifier => false;
 
   @override
-  String get lowerCaseName => name.toLowerCase();
+  String get lowerCaseUniqueName {
+    throw StateError('Unexpected invocation of lowerCaseUniqueName');
+  }
 
   @override
   String get problemMessage {
     throw StateError('Unexpected invocation of problemMessage');
-  }
-
-  @override
-  String get uniqueName {
-    throw StateError('Unexpected invocation of uniqueName');
   }
 
   @override

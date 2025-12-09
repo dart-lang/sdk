@@ -191,7 +191,7 @@ AnalysisError newAnalysisError_fromEngine(
   var severity = AnalysisErrorSeverity.values.byName(diagnosticSeverity.name);
   var type = AnalysisErrorType.values.byName(diagnosticCode.type.name);
   var message = diagnostic.message;
-  var code = diagnosticCode.name.toLowerCase();
+  var code = diagnosticCode.lowerCaseName;
   List<DiagnosticMessage>? contextMessages;
   if (diagnostic.contextMessages.isNotEmpty) {
     contextMessages = diagnostic.contextMessages
