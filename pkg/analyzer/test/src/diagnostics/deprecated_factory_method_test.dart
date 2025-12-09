@@ -73,11 +73,42 @@ class C {
   augment factory() => throw 0;
 }
 ''',
-      // TODO(brianwilkerson): The `undefinedClass` diagnostic should not be
-      //  produced here.
+      // TODO(brianwilkerson): The diagnostic produced here is expected to
+      //  change to `deprecatedFactoryMethod` when `augmentations` is enabled
+      //  for tests.
+      [error(diag.undefinedClass, 26, 7)],
+    );
+  }
+
+  test_withModifier_augmentAndExternal_after() async {
+    await assertErrorsInCode(
+      '''
+class C {
+  augment external factory();
+}
+''',
+      // TODO(brianwilkerson): The `conflictingModifiers` diagnostic should not
+      //  be produced here.
+      [error(diag.conflictingModifiers, 20, 8)],
+    );
+  }
+
+  test_withModifier_augmentAndExternal_before() async {
+    await assertErrorsInCode(
+      '''
+// @dart=2.12
+class C {
+  augment external factory();
+}
+''',
+      // TODO(brianwilkerson): The `deprecatedFactoryMethod` diagnostic is
+      //  expected to be the only diagnostic when `augmentations` is enabled for
+      //  tests.
       [
         error(diag.undefinedClass, 26, 7),
-        error(diag.deprecatedFactoryMethod, 34, 7),
+        error(diag.expectedToken, 34, 8),
+        error(diag.concreteClassWithAbstractMember, 43, 10),
+        error(diag.deprecatedFactoryMethod, 43, 7),
       ],
     );
   }

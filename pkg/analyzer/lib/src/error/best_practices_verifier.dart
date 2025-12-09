@@ -733,13 +733,24 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         );
       }
 
+      // Returns `true` if the first tokens of the method are any of:
+      // - factory
+      // - external factory
+      // - augment factory
+      // - augment external factory
       bool isAmbiguousFactoryMethod() {
         if (nameToken.lexeme != Keyword.FACTORY.lexeme) return false;
         var firstToken = node.firstTokenAfterCommentAndMetadata;
         if (firstToken == nameToken) return true;
-        if (firstToken.lexeme == Keyword.EXTERNAL.lexeme ||
+        var secondToken = firstToken.next!;
+        if (firstToken.lexeme == Keyword.EXTERNAL.lexeme) {
+          return secondToken == nameToken;
+        }
+        if (_currentLibrary.featureSet.isEnabled(Feature.augmentations) &&
             firstToken.lexeme == Keyword.AUGMENT.lexeme) {
-          return firstToken.next == nameToken;
+          return secondToken == nameToken ||
+              (secondToken.lexeme == Keyword.EXTERNAL.lexeme &&
+                  secondToken.next == nameToken);
         }
         return false;
       }
