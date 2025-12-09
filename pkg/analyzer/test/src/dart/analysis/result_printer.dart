@@ -415,7 +415,7 @@ class DriverEventsPrinter {
 
   void _writeDiagnostic(Diagnostic d) {
     sink.writelnWithIndent(
-      '${d.offset} +${d.length} ${d.diagnosticCode.name.toUpperCase()}',
+      '${d.offset} +${d.length} ${d.diagnosticCode.lowerCaseName.toUpperCase()}',
     );
   }
 
@@ -1983,7 +1983,7 @@ class ResolvedUnitResultPrinter {
 
   void _writeDiagnostic(Diagnostic d) {
     sink.writelnWithIndent(
-      '${d.offset} +${d.length} ${d.diagnosticCode.name.toUpperCase()}',
+      '${d.offset} +${d.length} ${d.diagnosticCode.lowerCaseName.toUpperCase()}',
     );
   }
 

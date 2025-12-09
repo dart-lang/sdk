@@ -348,7 +348,7 @@ void f() {
   void _assertHasLintReported(List<Diagnostic> diagnostics, String name) {
     var matching = diagnostics.where((element) {
       var diagnosticCode = element.diagnosticCode;
-      return diagnosticCode is LintCode && diagnosticCode.name == name;
+      return diagnosticCode is LintCode && diagnosticCode.lowerCaseName == name;
     }).toList();
     expect(matching, hasLength(1));
   }

@@ -40,6 +40,24 @@ class A {
     await assertSnippetResult(code, expectedCode);
   }
 
+  Future<void> test_enum_member() async {
+    var code = r'''
+enum A {
+  a;
+  ^
+}
+''';
+    var expectedCode = r'''
+enum A {
+  a;
+  /*[0*/void/*0]*/ /*[1*/name/*1]*/(/*[2*/params/*2]*/) {
+    ^
+  }
+}
+''';
+    await assertSnippetResult(code, expectedCode);
+  }
+
   Future<void> test_nested() async {
     var code = r'''
 void a() {

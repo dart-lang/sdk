@@ -87,7 +87,7 @@ class ABEngine {
           out.add(
             HarnessDiagnostic(
               path: file,
-              code: diagnostic.diagnosticCode.name,
+              code: diagnostic.diagnosticCode.lowerCaseName,
               severity: severityName,
               offset: diagnostic.offset,
               length: diagnostic.length,

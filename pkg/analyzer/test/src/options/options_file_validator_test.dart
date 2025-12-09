@@ -43,7 +43,7 @@ class ErrorCodeValuesTest {
     StringBuffer missingCodes = StringBuffer();
     errorTypeMap.forEach((Type errorType, List<DiagnosticCode> codes) {
       var listedNames = codes
-          .map((DiagnosticCode code) => code.uniqueName)
+          .map((DiagnosticCode code) => code.lowerCaseUniqueName)
           .toSet();
 
       var declaredNames = reflectClass(errorType).declarations.values

@@ -2803,6 +2803,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// allows logging all traffic over the VM Service.
   Future<vm.VmService> _vmServiceConnectUri(String wsUri) async {
     final socket = await WebSocket.connect(wsUri);
+    // Enable periodic ping on the WebSocket to avoid idle connections (for
+    // example while sat at a breakpoint) from being dropped by some kinds of
+    // anti-virus.
+    // https://github.com/Dart-Code/Dart-Code/issues/5794
+    socket.pingInterval = Duration(seconds: 15);
     final controller = StreamController();
     final streamClosedCompleter = Completer();
     final logger = this.logger;

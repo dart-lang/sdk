@@ -130,9 +130,8 @@ class PluginServer {
     }
 
     var (:analysisContext, :errors) = recentState;
-    var libraryResult = await analysisContext.currentSession.getResolvedLibrary(
-      path,
-    );
+    var libraryResult = await analysisContext.currentSession
+        .getResolvedLibraryContaining(path);
     if (libraryResult is! ResolvedLibraryResult) {
       return protocol.EditGetAssistsResult(const []);
     }
@@ -188,9 +187,8 @@ class PluginServer {
 
     var (:analysisContext, :errors) = recentState;
 
-    var libraryResult = await analysisContext.currentSession.getResolvedLibrary(
-      path,
-    );
+    var libraryResult = await analysisContext.currentSession
+        .getResolvedLibraryContaining(path);
     if (libraryResult is! ResolvedLibraryResult) {
       return protocol.EditGetFixesResult(const []);
     }
@@ -301,27 +299,6 @@ class PluginServer {
     );
   }
 
-  /// Analyzes the library at the given [libraryPath], sending an
-  /// 'analysis.errors' [Notification] for each compilation unit.
-  Future<void> _analyzeLibrary({
-    required AnalysisContext analysisContext,
-    required String libraryPath,
-  }) async {
-    var file = _resourceProvider.getFile(libraryPath);
-    var analysisOptions = analysisContext.getAnalysisOptionsForFile(file);
-    var analysisErrorsByPath = await _computeAnalysisErrors(
-      analysisContext,
-      libraryPath,
-      analysisOptions: analysisOptions as AnalysisOptionsImpl,
-    );
-    for (var MapEntry(key: path, value: analysisErrors)
-        in analysisErrorsByPath.entries) {
-      _channel.sendNotification(
-        protocol.AnalysisErrorsParams(path, analysisErrors).toNotification(),
-      );
-    }
-  }
-
   /// Analyzes the libraries at the given [paths].
   // TODO(srawlins): Refactor how libraries are analyzed using AnalysisDriver,
   // to be similar to what analysis server does:
@@ -366,6 +343,27 @@ class PluginServer {
       await _analyzeLibrary(
         analysisContext: analysisContext,
         libraryPath: path,
+      );
+    }
+  }
+
+  /// Analyzes the library at the given [libraryPath], sending an
+  /// 'analysis.errors' [Notification] for each compilation unit.
+  Future<void> _analyzeLibrary({
+    required AnalysisContext analysisContext,
+    required String libraryPath,
+  }) async {
+    var file = _resourceProvider.getFile(libraryPath);
+    var analysisOptions = analysisContext.getAnalysisOptionsForFile(file);
+    var analysisErrorsByPath = await _computeAnalysisErrors(
+      analysisContext,
+      libraryPath,
+      analysisOptions: analysisOptions as AnalysisOptionsImpl,
+    );
+    for (var MapEntry(key: path, value: analysisErrors)
+        in analysisErrorsByPath.entries) {
+      _channel.sendNotification(
+        protocol.AnalysisErrorsParams(path, analysisErrors).toNotification(),
       );
     }
   }
@@ -491,8 +489,13 @@ class PluginServer {
         return !ignoreInfo.ignored(e, pluginName: pluginName);
       });
 
+      // The list of the `AnalysisError`s and their associated
+      // `protocol.AnalysisError`s.
+      var unitDiagnosticsAndAnalysisErrors =
+          <({Diagnostic diagnostic, protocol.AnalysisError analysisError})>[];
+
       for (var diagnostic in diagnostics) {
-        diagnosticsAndAnalysisErrors.add((
+        unitDiagnosticsAndAnalysisErrors.add((
           diagnostic: diagnostic,
           analysisError: protocol.AnalysisError(
             severityMapping[diagnostic.diagnosticCode] ??
@@ -507,12 +510,14 @@ class PluginServer {
           ),
         ));
       }
-    });
 
-    _recentState[libraryPath] = (
-      analysisContext: analysisContext,
-      errors: [...diagnosticsAndAnalysisErrors],
-    );
+      _recentState[unitResult.path] = (
+        analysisContext: analysisContext,
+        errors: [...unitDiagnosticsAndAnalysisErrors],
+      );
+
+      diagnosticsAndAnalysisErrors.addAll(unitDiagnosticsAndAnalysisErrors);
+    });
 
     // A map that has a key for each unit's path. It is important to collect the
     // analysis errors for each unit, even if it has none. We must send a

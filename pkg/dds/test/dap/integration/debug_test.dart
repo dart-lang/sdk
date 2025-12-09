@@ -253,7 +253,7 @@ main() {
       // Verify we had the expected events.
       expect(
         await eventsFuture,
-        [
+        containsAllInOrder([
           'thread (reason: started, threadId: $threadId)',
           'stopped (reason: entry, threadId: $threadId, allThreadsStopped: false)',
           'continued (threadId: $threadId, allThreadsContinued: false)',
@@ -272,10 +272,12 @@ main() {
           'continued (threadId: $threadId, allThreadsContinued: false)',
           // pause-on-exit to drain stdout and handle looking up URIs
           'stopped (reason: exit, threadId: $threadId, allThreadsStopped: false)',
-          // finished
-          'thread (reason: exited, threadId: $threadId)',
+
+          // We don't check for *thread* exit events, because they are not
+          // guaranteed since they can occur while the VM is terminating
+          // and a termination event implies all threads exit.
           'terminated'
-        ],
+        ]),
       );
     });
 

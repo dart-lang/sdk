@@ -16,7 +16,7 @@ export 'package:analyzer/src/dart/error/lint_codes.dart' show LintCode;
 export 'package:analyzer/src/diagnostic/diagnostic_code_values.dart'
     show diagnosticCodeValues, errorCodeValues;
 
-/// The lazy initialized map from [DiagnosticCode.uniqueName] to the
+/// The lazy initialized map from [DiagnosticCode.lowerCaseUniqueName] to the
 /// [DiagnosticCode] instance.
 final HashMap<String, DiagnosticCode> _uniqueNameToCodeMap =
     _computeUniqueNameToCodeMap();
@@ -27,12 +27,12 @@ DiagnosticCode? errorCodeByUniqueName(String uniqueName) {
   return _uniqueNameToCodeMap[uniqueName];
 }
 
-/// The map from [DiagnosticCode.uniqueName] to the [DiagnosticCode] instance
-/// for all [diagnosticCodeValues].
+/// The map from [DiagnosticCode.lowerCaseUniqueName] to the [DiagnosticCode]
+/// instance for all [diagnosticCodeValues].
 HashMap<String, DiagnosticCode> _computeUniqueNameToCodeMap() {
   var result = HashMap<String, DiagnosticCode>();
   for (DiagnosticCode diagnosticCode in diagnosticCodeValues) {
-    var uniqueName = diagnosticCode.uniqueName;
+    var uniqueName = diagnosticCode.lowerCaseUniqueName;
     assert(() {
       if (result.containsKey(uniqueName)) {
         throw StateError('Not unique: $uniqueName');

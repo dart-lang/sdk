@@ -289,13 +289,13 @@ final class AnalysisOptionsBuilder {
           // If the severity of [error] is also changed in this options file,
           // use the changed severity.
           var processors = errorProcessors.where(
-            (processor) => processor.code == diagnostic.name.toLowerCase(),
+            (processor) => processor.code == diagnostic.lowerCaseName,
           );
           DiagnosticSeverity? diagnosticSeverity = processors.isNotEmpty
               ? processors.first.severity
               : diagnostic.severity;
           if (diagnosticSeverity == severity) {
-            unignorableDiagnosticCodeNames.add(diagnostic.name.toLowerCase());
+            unignorableDiagnosticCodeNames.add(diagnostic.lowerCaseName);
           }
         }
       } else {

@@ -39,10 +39,10 @@ class IgnoredDiagnosticName implements IgnoredElement {
     if (this.pluginName != pluginName) {
       return false;
     }
-    if (name == diagnosticCode.name.toLowerCase()) {
+    if (name == diagnosticCode.lowerCaseName) {
       return true;
     }
-    var uniqueName = diagnosticCode.uniqueName;
+    var uniqueName = diagnosticCode.lowerCaseUniqueName;
     var period = uniqueName.indexOf('.');
     if (period >= 0) {
       uniqueName = uniqueName.substring(period + 1);

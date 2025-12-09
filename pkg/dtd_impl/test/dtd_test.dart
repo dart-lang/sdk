@@ -578,6 +578,21 @@ void main() {
       uri = dtd!.uri!.toString();
       expect(Uri.parse(uri).port, testPort);
     });
+
+    group('ping-interval', () {
+      test('15s by default', () async {
+        dtd = await DartToolingDaemon.startService([]);
+        expect(dtd!.pingInterval, Duration(seconds: 15));
+      });
+      test('explicit', () async {
+        dtd = await DartToolingDaemon.startService(['--ping-interval=1']);
+        expect(dtd!.pingInterval, Duration(seconds: 1));
+      });
+      test('disabled', () async {
+        dtd = await DartToolingDaemon.startService(['--ping-interval=0']);
+        expect(dtd!.pingInterval, isNull);
+      });
+    });
   });
 }
 
