@@ -61,7 +61,9 @@ class ConstantsDataComputer extends DataComputer<String> {
         .map((e) => e.diagnosticCode)
         .where((c) => c != diag.constInitializedWithNonConstantValue);
     return diagnosticCodes.isNotEmpty
-        ? diagnosticCodes.map((c) => c.uniqueName.toUpperCase()).join(',')
+        ? diagnosticCodes
+              .map((c) => c.lowerCaseUniqueName.toUpperCase())
+              .join(',')
         : null;
   }
 

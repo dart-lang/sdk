@@ -108,7 +108,7 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest
     useEmptyByteStore();
     registerLintRule(_AlwaysReportedLint.instance);
     writeTestPackageAnalysisOptionsFile(
-      analysisOptionsContent(rules: [_AlwaysReportedLint.code.name]),
+      analysisOptionsContent(rules: [_AlwaysReportedLint.code.lowerCaseName]),
     );
   }
 
@@ -123,7 +123,10 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest
     await resolveTestFile();
 
     // Existing/empty file triggers the lint.
-    _assertHasLintReported(result.diagnostics, _AlwaysReportedLint.code.name);
+    _assertHasLintReported(
+      result.diagnostics,
+      _AlwaysReportedLint.code.lowerCaseName,
+    );
   }
 
   test_getResolvedUnit_lint_notExistingFile() async {
@@ -136,7 +139,7 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest
   void _assertHasLintReported(List<Diagnostic> diagnostics, String name) {
     var matching = diagnostics.where((element) {
       var diagnosticCode = element.diagnosticCode;
-      return diagnosticCode is LintCode && diagnosticCode.name == name;
+      return diagnosticCode is LintCode && diagnosticCode.lowerCaseName == name;
     }).toList();
     expect(matching, hasLength(1));
   }

@@ -2907,7 +2907,7 @@ class ErrorEncoding {
     return AnalysisDriverUnitErrorBuilder(
       offset: diagnostic.offset,
       length: diagnostic.length,
-      uniqueName: diagnostic.diagnosticCode.uniqueName,
+      uniqueName: diagnostic.diagnosticCode.lowerCaseUniqueName,
       message: diagnostic.message,
       correction: diagnostic.correctionMessage ?? '',
       contextMessages: contextMessages,

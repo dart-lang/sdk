@@ -113,7 +113,7 @@ ParseStringResult parseString({
     for (var error in result.errors) {
       var location = lineInfo.getLocation(error.offset);
       buffer.writeln(
-        '  ${error.diagnosticCode.name}: ${error.message} - '
+        '  ${error.diagnosticCode.lowerCaseName}: ${error.message} - '
         '${location.lineNumber}:${location.columnNumber}',
       );
     }

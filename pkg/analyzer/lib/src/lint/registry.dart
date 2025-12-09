@@ -81,7 +81,7 @@ class Registry with IterableMixin<AbstractAnalysisRule> {
   void registerLintRule(AbstractAnalysisRule rule) {
     _lintRules[rule.name.toLowerCase()] = rule;
     for (var code in rule.diagnosticCodes) {
-      _codeMap[code.uniqueName.toLowerCase()] = code;
+      _codeMap[code.lowerCaseUniqueName] = code;
     }
   }
 
@@ -89,7 +89,7 @@ class Registry with IterableMixin<AbstractAnalysisRule> {
   void registerWarningRule(AbstractAnalysisRule rule) {
     _warningRules[rule.name.toLowerCase()] = rule;
     for (var code in rule.diagnosticCodes) {
-      _codeMap[code.uniqueName.toLowerCase()] = code;
+      _codeMap[code.lowerCaseUniqueName] = code;
     }
   }
 
@@ -97,7 +97,7 @@ class Registry with IterableMixin<AbstractAnalysisRule> {
   void unregisterLintRule(AbstractAnalysisRule rule) {
     _lintRules.remove(rule.name.toLowerCase());
     for (var code in rule.diagnosticCodes) {
-      _codeMap.remove(code.uniqueName.toLowerCase());
+      _codeMap.remove(code.lowerCaseUniqueName);
     }
   }
 
@@ -105,7 +105,7 @@ class Registry with IterableMixin<AbstractAnalysisRule> {
   void unregisterWarningRule(AbstractAnalysisRule rule) {
     _warningRules.remove(rule.name.toLowerCase());
     for (var code in rule.diagnosticCodes) {
-      _codeMap.remove(code.uniqueName.toLowerCase());
+      _codeMap.remove(code.lowerCaseUniqueName);
     }
   }
 }

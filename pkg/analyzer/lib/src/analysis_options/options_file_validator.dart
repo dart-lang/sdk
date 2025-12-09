@@ -346,7 +346,7 @@ class _AnalyzerTopLevelOptionsValidator extends _TopLevelOptionValidator {
 class _CannotIgnoreOptionValidator extends OptionsValidator {
   /// Lazily populated set of diagnostic code names.
   static final Set<String> _diagnosticCodes = diagnosticCodeValues
-      .map((DiagnosticCode code) => code.name.toUpperCase())
+      .map((DiagnosticCode code) => code.lowerCaseName.toUpperCase())
       .toSet();
 
   /// The diagnostic code names that existed, but were removed.
@@ -591,7 +591,7 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
 
   /// Lazily populated set of diagnostic code names.
   static final Set<String> _diagnosticCodes = diagnosticCodeValues
-      .map((DiagnosticCode code) => code.name.toUpperCase())
+      .map((DiagnosticCode code) => code.lowerCaseName.toUpperCase())
       .toSet();
 
   /// The diagnostic code names that existed, but were removed.

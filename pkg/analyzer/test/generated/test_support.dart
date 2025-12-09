@@ -293,7 +293,7 @@ class GatheringDiagnosticListener implements DiagnosticListener {
         }
         buffer.write(expectedCount);
         buffer.write(" errors of type ");
-        buffer.write(code.uniqueName);
+        buffer.write(code.lowerCaseUniqueName);
         buffer.write(", found ");
         buffer.write(actualCount);
       }
@@ -313,7 +313,7 @@ class GatheringDiagnosticListener implements DiagnosticListener {
         buffer.write("; ");
       }
       buffer.write("0 errors of type ");
-      buffer.write(code.uniqueName);
+      buffer.write(code.lowerCaseUniqueName);
       buffer.write(", found ");
       buffer.write(actualCount);
       buffer.write(" (");
@@ -500,5 +500,5 @@ extension on DiagnosticCode {
   ///
   /// For example, if the unique name is `TestClass.MY_ERROR`, this method will
   /// return `diag.myError`.
-  String get constantName => 'diag.${uniqueName.toCamelCase()}';
+  String get constantName => 'diag.${lowerCaseUniqueName.toCamelCase()}';
 }

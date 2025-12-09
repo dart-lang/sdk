@@ -15,7 +15,7 @@ class IgnoreValidator {
   /// A list of known diagnostic codes used to ensure we don't over-report
   /// `unnecessary_ignore`s on error codes that may be contributed by a plugin.
   static final Set<String> _validDiagnosticCodeNames = diagnosticCodeValues
-      .map((d) => d.name.toLowerCase())
+      .map((d) => d.lowerCaseName)
       .toSet();
 
   /// Diagnostic codes used to report `unnecessary_ignore`s.
@@ -284,7 +284,7 @@ class IgnoreValidator {
 }
 
 extension on Diagnostic {
-  String get ignoreName => diagnosticCode.name.toLowerCase();
+  String get ignoreName => diagnosticCode.lowerCaseName;
 }
 
 extension on List<IgnoredElement> {

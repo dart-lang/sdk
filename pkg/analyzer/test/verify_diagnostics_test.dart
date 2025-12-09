@@ -445,7 +445,7 @@ class DocumentationValidator {
         _reportProblem('Expected one error but found none ($section $index).');
       } else if (errorCount == 1) {
         Diagnostic diagnostic = diagnostics[0];
-        if (diagnostic.diagnosticCode.name.toLowerCase() != codeName) {
+        if (diagnostic.diagnosticCode.lowerCaseName != codeName) {
           _reportProblem(
             'Expected an error with code $codeName, '
             'found ${diagnostic.diagnosticCode} ($section $index).',
@@ -492,7 +492,7 @@ class VerifyDiagnosticsTest {
     var nameToCodeMap = <String, List<DiagnosticCode>>{};
     var nameToPublishedMap = <String, bool>{};
     for (var code in diagnosticCodeValues) {
-      var name = code.name;
+      var name = code.lowerCaseName;
       nameToCodeMap.putIfAbsent(name, () => []).add(code);
       nameToPublishedMap[name] =
           (nameToPublishedMap[name] ?? false) || code.hasPublishedDocs;
@@ -516,7 +516,7 @@ class VerifyDiagnosticsTest {
       );
       for (var code in unpublished) {
         buffer.writeln();
-        buffer.write('- ${code.runtimeType}.${code.uniqueName}');
+        buffer.write('- ${code.runtimeType}.${code.lowerCaseUniqueName}');
       }
       fail(buffer.toString());
     }

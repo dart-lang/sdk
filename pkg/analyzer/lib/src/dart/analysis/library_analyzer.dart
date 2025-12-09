@@ -588,7 +588,7 @@ class LibraryAnalyzer {
     bool isIgnored(Diagnostic diagnostic) {
       var code = diagnostic.diagnosticCode;
       // Don't allow un-ignorable codes to be ignored.
-      if (unignorableCodes.contains(code.name.toLowerCase())) {
+      if (unignorableCodes.contains(code.lowerCaseName)) {
         return false;
       }
       return ignoreInfo.ignored(diagnostic);
