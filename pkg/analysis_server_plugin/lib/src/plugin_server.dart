@@ -467,6 +467,10 @@ class PluginServer {
           AnalysisRuleVisitor(nodeRegistry, shouldPropagateExceptions: true),
         );
       }
+
+      // Now that all lint rules have visited the code in each of the compilation
+      // units, we can accept each lint rule's `afterLibrary` hook.
+      AnalysisRuleVisitor(nodeRegistry).afterLibrary();
     }
 
     // TODO(srawlins): Support `AnalysisRuleVisitor.afterLibrary`. See how it is
