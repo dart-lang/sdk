@@ -21,7 +21,7 @@
 // VMOptions=--scavenger_tasks=-1
 // VMOptions=--scavenger_tasks=1
 // VMOptions=--scavenger_tasks=2
-// VMOptions=--profiler --dontneed_on_sweep
+// VMOptions=--dontneed_on_sweep
 
 main() {
   final List<List?> arrays = [];

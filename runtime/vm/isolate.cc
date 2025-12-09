@@ -3042,7 +3042,9 @@ void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor,
       if (visitor->trace_object_id_rings()) {
         for (Isolate* isolate : isolates_) {
           for (intptr_t i = 0; i < isolate->NumServiceIdZones(); ++i) {
-            isolate->GetServiceIdZone(i)->VisitPointers(visitor);
+            if (auto ring = isolate->GetServiceIdZone(i)) {
+              ring->VisitPointers(visitor);
+            }
           }
         }
       }

@@ -274,7 +274,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             type,
             kind: _ProblematicTypeUseKind.useOfExperimentalType,
           );
-    late var offsetAndLength = _offsetAndLengthForFragment(fragment);
+    var offsetAndLength = _offsetAndLengthForFragment(fragment);
     if (nonPublicProblems.isNotEmpty) {
       rule.reportAtOffset(
         offsetAndLength.offset,
@@ -328,6 +328,19 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   ({int length, int offset}) _offsetAndLengthForFragment(Fragment fragment) {
     while (true) {
+      if (fragment.element case PropertyAccessorElement element) {
+        if (element.isOriginVariable) {
+          // ignore: parameter_assignments
+          fragment = element.variable.firstFragment;
+        }
+      }
+      if (fragment.element case FieldElement element) {
+        if (element.isOriginDeclaringFormalParameter) {
+          // ignore:experimental_member_use, parameter_assignments
+          fragment = element.declaringFormalParameter!.firstFragment;
+        }
+      }
+
       if (fragment.nameOffset != null) {
         return (offset: fragment.nameOffset!, length: fragment.name!.length);
       } else if (fragment case PropertyAccessorFragment()

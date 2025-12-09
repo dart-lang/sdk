@@ -9,22 +9,22 @@
 // objects, and between marked and unmarked objects.
 
 // VMOptions=
-// VMOptions=--profiler --no_concurrent_mark --no_concurrent_sweep
-// VMOptions=--profiler --no_concurrent_mark --concurrent_sweep
-// VMOptions=--profiler --no_concurrent_mark --use_compactor
-// VMOptions=--profiler --no_concurrent_mark --use_compactor --force_evacuation
-// VMOptions=--profiler --concurrent_mark --no_concurrent_sweep
-// VMOptions=--profiler --concurrent_mark --concurrent_sweep
-// VMOptions=--profiler --concurrent_mark --use_compactor
-// VMOptions=--profiler --concurrent_mark --use_compactor --force_evacuation
-// VMOptions=--profiler --verify_before_gc
-// VMOptions=--profiler --verify_after_gc
-// VMOptions=--profiler --verify_before_gc --verify_after_gc
-// VMOptions=--profiler --verify_store_buffer
-// VMOptions=--profiler --verify_after_marking
-// VMOptions=--profiler --runtime_allocate_old
-// VMOptions=--profiler --runtime_allocate_spill_tlab
-// VMOptions=--profiler --no_inline_alloc
+// VMOptions=---no_concurrent_mark --no_concurrent_sweep
+// VMOptions=---no_concurrent_mark --concurrent_sweep
+// VMOptions=---no_concurrent_mark --use_compactor
+// VMOptions=---no_concurrent_mark --use_compactor --force_evacuation
+// VMOptions=---concurrent_mark --no_concurrent_sweep
+// VMOptions=---concurrent_mark --concurrent_sweep
+// VMOptions=---concurrent_mark --use_compactor
+// VMOptions=---concurrent_mark --use_compactor --force_evacuation
+// VMOptions=---verify_before_gc
+// VMOptions=---verify_after_gc
+// VMOptions=---verify_before_gc --verify_after_gc
+// VMOptions=---verify_store_buffer
+// VMOptions=---verify_after_marking
+// VMOptions=---runtime_allocate_old
+// VMOptions=---runtime_allocate_spill_tlab
+// VMOptions=---no_inline_alloc
 
 import "dart:isolate";
 import "splay_test.dart" as test;

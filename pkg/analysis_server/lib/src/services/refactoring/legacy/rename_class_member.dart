@@ -518,8 +518,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
 
     if (element is FieldElement) {
       var interfaceElement = element.enclosingElement;
-      if (interfaceElement is InterfaceElement &&
-          interfaceElement is! ExtensionTypeElement) {
+      if (interfaceElement is InterfaceElement) {
         var formalParameters = interfaceElement.constructors
             .expand((constructor) => constructor.formalParameters)
             .whereType<FieldFormalParameterElement>()

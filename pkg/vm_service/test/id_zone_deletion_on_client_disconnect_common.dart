@@ -25,6 +25,17 @@ void testeeMain() {
   debugger(); // LINE_A
 }
 
+Future checkZone(isolateId, client, idZone) async {
+  final result = await client.evaluateInFrame(
+    isolateId,
+    0,
+    'abcString',
+    idZoneId: idZone.id,
+  );
+  await client.callMethod('_collectAllGarbage', isolateId: isolateId);
+  await client.getObject(isolateId, result.id, idZoneId: idZone.id);
+}
+
 final idZoneDeletionOnDisconnectTests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
@@ -38,12 +49,7 @@ final idZoneDeletionOnDisconnectTests = <IsolateTest>[
     );
 
     // Confirm that [idZone1] can be used.
-    await client1.evaluateInFrame(
-      isolateId,
-      0,
-      'abcString',
-      idZoneId: idZone1.id,
-    );
+    await checkZone(isolateId, client1, idZone1);
 
     final client2 = await vmServiceConnectUri(client1.wsUri!);
     final idZone2 = await client2.createIdZone(
@@ -53,35 +59,20 @@ final idZoneDeletionOnDisconnectTests = <IsolateTest>[
     );
 
     // Confirm that [idZone2] can be used.
-    await client2.evaluateInFrame(
-      isolateId,
-      0,
-      'abcString',
-      idZoneId: idZone2.id,
-    );
+    await checkZone(isolateId, client2, idZone2);
 
     // Disposing of [client2] should delete [idZone2];
     await client2.dispose();
 
     // Confirm that [idZone2] can be no longer be used.
     try {
-      await client1.evaluateInFrame(
-        isolateId,
-        0,
-        'abcString',
-        idZoneId: idZone2.id,
-      );
+      await checkZone(isolateId, client1, idZone2);
       fail('successfully used an ID zone that should have been deleted');
     } on RPCError catch (e) {
       expect(e.code, RPCErrorKind.kInvalidParams.code);
     }
 
     // Confirm that [idZone1] can still be used.
-    await client1.evaluateInFrame(
-      isolateId,
-      0,
-      'abcString',
-      idZoneId: idZone1.id,
-    );
+    await checkZone(isolateId, client1, idZone1);
   },
 ];

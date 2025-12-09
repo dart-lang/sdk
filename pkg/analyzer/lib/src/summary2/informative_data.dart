@@ -352,21 +352,8 @@ class InformativeDataApplier {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
     });
 
-    var representationField = element.fields.first;
-    var infoRep = info.representation;
-    representationField.firstTokenOffset = infoRep.fieldFirstTokenOffset;
-    representationField.nameOffset = infoRep.fieldNameOffset;
-    representationField.setCodeRange(infoRep.codeOffset, infoRep.codeLength);
-
-    representationField.deferConstantOffsets(infoRep.fieldConstantOffsets, (
-      applier,
-    ) {
-      applier.applyToMetadata(representationField.metadata);
-    });
-
     DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-      var restFields = element.fields.skip(1).toList();
-      _applyToFields(restFields, info.fields);
+      _applyToFields(element.fields, info.fields);
       _applyToConstructors(element.constructors, info.constructors);
       _applyToAccessors(element.getters, info.getters);
       _applyToAccessors(element.setters, info.setters);
@@ -879,35 +866,8 @@ class _InfoBuilder {
         node,
         name: node.primaryConstructor.typeName,
         typeParameters: node.primaryConstructor.typeParameters,
-        primaryConstructor: node.primaryConstructor.ifTypeOrNull(),
+        primaryConstructor: node.primaryConstructor,
         members: node.body.ifTypeOrNull<BlockClassBody>()?.members ?? [],
-      ),
-      representation: _buildExtensionTypeRepresentationFromPrimaryConstructor(
-        node.primaryConstructor,
-      ),
-    );
-  }
-
-  _InfoExtensionTypeRepresentation
-  _buildExtensionTypeRepresentationFromPrimaryConstructor(
-    PrimaryConstructorDeclaration node,
-  ) {
-    var constructorName = node.constructorName;
-    var firstTokenOffset = node.offset;
-    var lastTokenOffset = node.formalParameters.rightParenthesis.end;
-
-    return _InfoExtensionTypeRepresentation(
-      firstTokenOffset: firstTokenOffset,
-      codeOffset: firstTokenOffset,
-      codeLength: lastTokenOffset - firstTokenOffset,
-      constructorPeriodOffset: constructorName?.period.offset,
-      constructorNameOffset: constructorName?.name.offsetIfNotEmpty,
-      constructorNameEnd: node.formalParameters.leftParenthesis.offset,
-      fieldFirstTokenOffset: node.formalParameters.parameters.first.offset,
-      fieldNameOffset:
-          node.formalParameters.parameters.first.name?.offsetIfNotEmpty,
-      fieldConstantOffsets: _buildConstantOffsets(
-        metadata: node.formalParameters.parameters.first.metadata,
       ),
     );
   }
@@ -1464,72 +1424,9 @@ class _InfoExtensionDeclaration extends _InfoInstanceDeclaration {
 }
 
 class _InfoExtensionTypeDeclaration extends _InfoInterfaceDeclaration {
-  final _InfoExtensionTypeRepresentation representation;
+  _InfoExtensionTypeDeclaration({required super.data});
 
-  _InfoExtensionTypeDeclaration({
-    required super.data,
-    required this.representation,
-  });
-
-  _InfoExtensionTypeDeclaration.read(super.reader)
-    : representation = _InfoExtensionTypeRepresentation.read(reader),
-      super.read();
-
-  @override
-  void write(BinaryWriter writer) {
-    representation.write(writer);
-    super.write(writer);
-  }
-}
-
-class _InfoExtensionTypeRepresentation {
-  final int firstTokenOffset;
-  final int codeOffset;
-  final int codeLength;
-  final int? constructorPeriodOffset;
-  final int? constructorNameOffset;
-  final int? constructorNameEnd;
-  final int? fieldFirstTokenOffset;
-  final int? fieldNameOffset;
-  final Uint32List fieldConstantOffsets;
-
-  _InfoExtensionTypeRepresentation({
-    required this.firstTokenOffset,
-    required this.codeOffset,
-    required this.codeLength,
-    required this.constructorPeriodOffset,
-    required this.constructorNameOffset,
-    required this.constructorNameEnd,
-    required this.fieldFirstTokenOffset,
-    required this.fieldNameOffset,
-    required this.fieldConstantOffsets,
-  });
-
-  factory _InfoExtensionTypeRepresentation.read(BinaryReader reader) {
-    return _InfoExtensionTypeRepresentation(
-      firstTokenOffset: reader.readUint30(),
-      codeOffset: reader.readUint30(),
-      codeLength: reader.readUint30(),
-      constructorPeriodOffset: reader.readOptionalUint30(),
-      constructorNameOffset: reader.readOptionalUint30(),
-      constructorNameEnd: reader.readOptionalUint30(),
-      fieldFirstTokenOffset: reader.readOptionalUint30(),
-      fieldNameOffset: reader.readOptionalUint30(),
-      fieldConstantOffsets: reader.readUint30List(),
-    );
-  }
-
-  void write(BinaryWriter writer) {
-    writer.writeUint30(firstTokenOffset);
-    writer.writeUint30(codeOffset);
-    writer.writeUint30(codeLength);
-    writer.writeOptionalUint30(constructorPeriodOffset);
-    writer.writeOptionalUint30(constructorNameOffset);
-    writer.writeOptionalUint30(constructorNameEnd);
-    writer.writeOptionalUint30(fieldFirstTokenOffset);
-    writer.writeOptionalUint30(fieldNameOffset);
-    writer.writeUint30List(fieldConstantOffsets);
-  }
+  _InfoExtensionTypeDeclaration.read(super.reader) : super.read();
 }
 
 class _InfoFieldDeclaration extends _InfoNode {
