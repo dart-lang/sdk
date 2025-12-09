@@ -196,7 +196,9 @@ List<M> decodeAnalyzerMessagesYaml<M extends AnalyzerMessage>(
         key: keyNode,
         value: diagnosticValue,
         decoder: (messageYaml) {
-          var analyzerCode = DiagnosticCodeName(snakeCaseName: diagnosticName);
+          var analyzerCode = DiagnosticCodeName.fromCamelOrSnakeCase(
+            diagnosticName,
+          );
           return decodeMessage(
             messageYaml,
             analyzerCode: analyzerCode,
