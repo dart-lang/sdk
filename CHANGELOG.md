@@ -1,5 +1,7 @@
 ## 3.10.4
 
+**Released on:** 2025-12-09
+
 This is a patch release that:
 
 - Fixes an issue with `dart run` not working and simply exiting with
