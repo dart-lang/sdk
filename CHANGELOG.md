@@ -1,3 +1,15 @@
+## 3.10.5
+
+This is a patch release that:
+
+- Fixes several issues with elements that are deprecated with one of the new
+  "deprecated functionality" annotations, like `@Deprecated.implement`. This
+  fix directs IDEs to not display such elements (like the `RegExp` class) as
+  fully deprecated (for example, with struck-through text). (issue
+  [dart-lang/sdk#62013])
+
+[dart-lang/sdk#62013]: https://github.com/dart-lang/sdk/issues/62013
+
 ## 3.10.4
 
 **Released on:** 2025-12-09

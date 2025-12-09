@@ -67,7 +67,7 @@ class DartUnitHoverComputer {
         // short code that illustrates the element meaning.
         hover.elementDescription = _elementDisplayString(node, element);
         hover.elementKind = element.kind.displayName;
-        hover.isDeprecated = element.metadata.hasDeprecated;
+        hover.isDeprecated = element.isDeprecatedWithKind('use');
         // not local element
         if (element.enclosingElement is! ExecutableElement) {
           // containing class

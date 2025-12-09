@@ -513,8 +513,10 @@ class DartUnitOutlineComputer {
   /// Whether the list of [annotations] includes a `deprecated` annotation.
   static bool _hasDeprecated(List<Annotation> annotations) {
     for (var annotation in annotations) {
-      if (annotation.elementAnnotation?.isDeprecated ?? false) {
-        return true;
+      if (annotation.elementAnnotation case var element?) {
+        if (element.isDeprecated && element.deprecationKind == 'use') {
+          return true;
+        }
       }
     }
     return false;
