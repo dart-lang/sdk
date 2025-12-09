@@ -138,7 +138,11 @@ mixin ResourceProviderMixin {
     return newFile(path, content);
   }
 
-  /// Writes a `.dart_tool/package_config.json` file at [directoryPath].
+  /// Writes a `.dart_tool/package_config.json` file at [directoryPath],
+  /// returning the [File] object.
+  ///
+  /// See the documentation for [PackageConfigFileBuilder] for information on
+  /// how to add package configurations.
   File newPackageConfigJsonFileFromBuilder(
     String directoryPath,
     PackageConfigFileBuilder builder,

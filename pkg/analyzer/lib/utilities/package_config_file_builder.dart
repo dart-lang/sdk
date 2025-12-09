@@ -7,15 +7,22 @@ import 'package:path/path.dart' as path;
 /// Helper for building `.dart_tool/package_config.json` files.
 ///
 /// See accepted/future-releases/language-versioning/package-config-file-v2.md
-/// in https://github.com/dart-lang/language/
+/// in https://github.com/dart-lang/language/.
+///
+/// Use the [add] method to add package configurations. These configurations
+/// will accumulate into one package config file with the [toContent] method.
 class PackageConfigFileBuilder {
   final List<_PackageDescription> _packages = [];
 
   /// The [rootPath] will be given to `toUriStr` of [toContent] to produce
   /// the corresponding `file://` URI, normally a POSIX path.
   ///
-  /// The [packageUri] is optional, a URI reference, resolved against the
-  /// file URI of the [rootPath]. The result must be inside the [rootPath].
+  /// The [packageUri] is optional (defaults to `'lib/'`), a relative path
+  /// resolved against the file URI of the [rootPath]. The result must be inside
+  /// the [rootPath].
+  ///
+  /// The [languageVersion] specifies the package's Dart language version, in
+  /// the form of 'X.Y', such as '3.9'.
   void add({
     required String name,
     required String rootPath,
