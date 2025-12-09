@@ -84193,6 +84193,60 @@ extension type A<T, U>(int it) {}
     );
   }
 
+  test_manifest_functionType_inferred_defaultValue_readFromBinary() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static const foo = 0;
+}
+void bar({int x = A.foo}) {}
+''');
+
+    await resolveFile(a);
+    await disposeAnalysisContextCollection();
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import 'a.dart';
+final a = bar;
+''',
+      expectedInitialEvents: r'''
+[operation] reuseLinkedBundle SDK
+[operation] reuseLinkedBundle
+  package:test/a.dart
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+    exportMapId: #M2
+    exportMap
+      a: #M0
+''',
+      updatedCode: r'''
+import 'a.dart';
+final a = bar;
+final b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredGetters
+      a: #M0
+      b: #M3
+    declaredVariables
+      a: #M1
+      b: #M4
+    exportMapId: #M5
+    exportMap
+      a: #M0
+      b: #M3
+''',
+    );
+  }
+
   test_manifest_key_differentPackages() async {
     newFile('/packages/foo_v1/lib/foo.dart', r'''
 class A {}
