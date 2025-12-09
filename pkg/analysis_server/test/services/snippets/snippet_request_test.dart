@@ -212,12 +212,29 @@ Duration _ = .[!^zero!];
 ''', SnippetContext.inDotShorthand);
   }
 
-  Future<void> test_enum() async {
+  Future<void> test_enum_constants() async {
     await testRequest(r'''
 enum A {
   [!^!]
 }
-''', SnippetContext.inClass);
+''', SnippetContext.inEnumConstants);
+  }
+
+  Future<void> test_enum_constants_args() async {
+    await testRequest(r'''
+enum A {
+  a([!^!]);
+}
+''', SnippetContext.inConstantExpression);
+  }
+
+  Future<void> test_enum_members() async {
+    await testRequest(r'''
+enum A {
+  a;
+  [!^!]
+}
+''', SnippetContext.inEnumMembers);
   }
 
   Future<void> test_expression_constructor() async {
@@ -621,6 +638,14 @@ foo() {
   var [!^!]
 }
 ''', SnippetContext.inIdentifierDeclaration);
+  }
+
+  Future<void> test_variableDeclaration_constant() async {
+    await testRequest(r'''
+foo() {
+  const a = [!^!]
+}
+''', SnippetContext.inConstantExpression);
   }
 
   Future<void> test_variableDeclaration_partialIdentifier() async {

@@ -118,7 +118,9 @@ class DartSnippetRequest {
       }
 
       if (node is VariableDeclaration) {
-        return SnippetContext.inExpression;
+        return node.isConst
+            ? SnippetContext.inConstantExpression
+            : SnippetContext.inExpression;
       }
 
       if (node is VariableDeclarationList) {
@@ -156,7 +158,9 @@ class DartSnippetRequest {
       }
 
       if (node is Expression) {
-        return SnippetContext.inExpression;
+        return node.inConstantContext
+            ? SnippetContext.inConstantExpression
+            : SnippetContext.inExpression;
       }
 
       if (node is Annotation) {
@@ -169,9 +173,19 @@ class DartSnippetRequest {
 
       if (node is ClassDeclaration ||
           node is ExtensionDeclaration ||
-          node is MixinDeclaration ||
-          node is EnumDeclaration) {
+          node is MixinDeclaration) {
         return SnippetContext.inClass;
+      }
+
+      if (node is EnumConstantArguments) {
+        return SnippetContext.inConstantExpression;
+      }
+
+      if (node is EnumDeclaration) {
+        var semicolon = node.body.semicolon;
+        return semicolon == null || target.offset <= semicolon.offset
+            ? SnippetContext.inEnumConstants
+            : SnippetContext.inEnumMembers;
       }
 
       node = node.parent;

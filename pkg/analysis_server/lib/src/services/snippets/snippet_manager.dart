@@ -62,6 +62,7 @@ class DartSnippetManager {
           WhileStatement.new,
         ],
         SnippetContext.inClass: [FunctionDeclaration.new],
+        SnippetContext.inEnumMembers: [FunctionDeclaration.new],
         SnippetContext.inExpression: [SwitchExpression.new],
       };
 
