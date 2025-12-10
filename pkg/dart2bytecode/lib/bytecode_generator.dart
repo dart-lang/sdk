@@ -1671,7 +1671,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     currentLoopDepth = 0;
     savedMaxSourcePositions = <int>[];
 
-    locals = new LocalVariables(pragmaParser, node, options, staticTypeContext);
+    locals = new LocalVariables(node, options, staticTypeContext);
     locals.enterScope(node);
 
     final int startPosition;
@@ -2508,14 +2508,14 @@ class BytecodeGenerator extends RecursiveVisitor {
     currentLoopDepth = savedLoopDepth;
     asyncTryBlock = savedAsyncTryBlock;
 
-    bool capturesOnlyFinalAndSharedVars =
-        locals.capturesOnlyFinalAndSharedVars;
+    bool capturesOnlyFinalNotLateVars =
+        locals.capturesOnlyFinalNotLateVars;
 
     locals.leaveScope();
 
     closure.code = new ClosureCode(asm.bytecode, asm.exceptionsTable,
         finalizeSourcePositions(), finalizeLocalVariables(),
-        capturesOnlyFinalAndSharedVars);
+        capturesOnlyFinalNotLateVars);
 
     _popAssemblerState();
 

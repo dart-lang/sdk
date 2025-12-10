@@ -8605,22 +8605,20 @@ void Function::set_awaiter_link(Function::AwaiterLink link) const {
   UNREACHABLE();
 }
 
-bool Function::does_close_over_only_final_and_shared_vars() const {
+bool Function::captures_only_final_not_late_vars() const {
   if (IsClosureFunction()) {
     const Object& obj = Object::Handle(untag()->data());
     ASSERT(!obj.IsNull());
-    return ClosureData::Cast(obj).does_close_over_only_final_and_shared_vars();
+    return ClosureData::Cast(obj).captures_only_final_not_late_vars();
   }
   UNREACHABLE();
 }
 
-void Function::set_does_close_over_only_final_and_shared_vars(
-    bool value) const {
+void Function::set_captures_only_final_not_late_vars(bool value) const {
   if (IsClosureFunction()) {
     const Object& obj = Object::Handle(untag()->data());
     ASSERT(!obj.IsNull());
-    ClosureData::Cast(obj).set_does_close_over_only_final_and_shared_vars(
-        value);
+    ClosureData::Cast(obj).set_captures_only_final_not_late_vars(value);
     return;
   }
   UNREACHABLE();
@@ -12208,13 +12206,12 @@ void ClosureData::set_awaiter_link(Function::AwaiterLink link) const {
       link.index);
 }
 
-bool ClosureData::does_close_over_only_final_and_shared_vars() const {
+bool ClosureData::captures_only_final_not_late_vars() const {
   return untag()
       ->packed_fields_.Read<UntaggedClosureData::CapturesOnlySharedFields>();
 }
 
-void ClosureData::set_does_close_over_only_final_and_shared_vars(
-    bool value) const {
+void ClosureData::set_captures_only_final_not_late_vars(bool value) const {
   untag()->packed_fields_.Update<UntaggedClosureData::CapturesOnlySharedFields>(
       value);
 }
