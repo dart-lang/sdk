@@ -92,9 +92,8 @@ class _Node extends graph.Node<_Node> {
     var typeSystem = element.library.typeSystem;
 
     element.representation.type = type;
-    element.primaryFormalParameter.type = type;
-
     element.typeErasure = type.extensionTypeErasure;
+
     element.interfaces = element.interfaces
         .whereType<InterfaceType>()
         .where(typeSystem.isValidExtensionTypeSuperinterface)

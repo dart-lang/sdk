@@ -2648,12 +2648,6 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
     return constructors.first;
   }
 
-  @trackedIndirectly
-  FieldFormalParameterElementImpl get primaryFormalParameter {
-    return primaryConstructor.formalParameters.first
-        as FieldFormalParameterElementImpl;
-  }
-
   @override
   @trackedIndirectly
   FieldElementImpl get representation {
