@@ -5,7 +5,6 @@
 import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
@@ -59,13 +58,9 @@ class _Node extends graph.Node<_Node> {
 
   _Node(this.walker, this.node, this.element);
 
-  TypeImpl get _fieldType {
-    return node.fieldType.typeOrThrow;
-  }
-
   @override
   List<_Node> computeDependencies() {
-    var type = _fieldType;
+    var type = element.representation.type;
     var visitor = _DependenciesCollector();
     type.accept(visitor);
 
@@ -84,7 +79,7 @@ class _Node extends graph.Node<_Node> {
   }
 
   void _evaluate() {
-    var type = _fieldType;
+    var type = element.representation.type;
     _evaluateWithType(type);
   }
 

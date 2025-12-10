@@ -3353,10 +3353,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var element = fragment.element;
     var representationType = element.representation.type;
     if (representationType.isBottom) {
-      diagnosticReporter.atNode(
-        node.fieldType,
-        diag.extensionTypeRepresentationTypeBottom,
-      );
+      var representationFormal = node.representationFormalParameter;
+      var representationTypeNode = representationFormal?.type;
+      if (representationTypeNode != null) {
+        diagnosticReporter.atNode(
+          representationTypeNode,
+          diag.extensionTypeRepresentationTypeBottom,
+        );
+      }
     }
   }
 
