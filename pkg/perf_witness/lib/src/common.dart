@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' as io;
+import 'dart:isolate';
 
 import 'package:dart_data_home/dart_data_home.dart';
 import 'package:path/path.dart' as p;
@@ -19,20 +20,25 @@ final String? _controlSocketsDirectory = () {
   }
 }();
 
-List<({int pid, io.File socketPath})> getAllControlSockets() {
+List<({int pid, String socketPath})> getAllControlSockets() {
   if (_controlSocketsDirectory == null) {
     return const [];
   }
 
   try {
-    final allPidFiles = io.Directory(
-      _controlSocketsDirectory!,
-    ).listSync().whereType<io.File>();
-    return [
-      for (var file in allPidFiles)
-        if (int.tryParse(p.basenameWithoutExtension(file.path)) case final pid?)
-          (pid: pid, socketPath: file),
+    // Caveat: on Windows Unix Domain Sockets are represented as link rather
+    // than file objects, so filtering this list to io.File objects will miss
+    // socket objects entirely.
+    final allPidFiles = io.Directory(_controlSocketsDirectory!)
+        .listSync()
+        .map((e) => e.path)
+        .where((path) => io.FileSystemEntity.typeSync(path) == .unixDomainSock);
+    final result = [
+      for (var path in allPidFiles)
+        if (int.tryParse(p.basenameWithoutExtension(path)) case final pid?)
+          (pid: pid, socketPath: path),
     ];
+    return result;
   } catch (_) {
     // Ignore
     return [];
@@ -61,15 +67,42 @@ abstract class UnixDomainSocket {
     0,
   );
 
-  static Future<io.ServerSocket> bind(String path) {
+  static Future<io.ServerSocket> bind(String path) async {
     if (io.FileSystemEntity.typeSync(path) !=
         io.FileSystemEntityType.notFound) {
       io.File(path).deleteSync();
     }
 
-    return io.ServerSocket.bind(
+    final x = await io.ServerSocket.bind(
       io.InternetAddress(path, type: io.InternetAddressType.unix),
       0,
     );
+
+    print('Server listening on $path: $x');
+
+    return x;
+  }
+}
+
+Future<void> waitForUserToQuit({bool waitForQKeyPress = false}) async {
+  if (waitForQKeyPress) {
+    await Isolate.run(() {
+      print('Press Q to exit');
+      try {
+        io.stdin.echoMode = false;
+        io.stdin.lineMode = false;
+      } catch (_) {
+        // Ignore any issues.
+      }
+      int byte;
+      while ((byte = io.stdin.readByteSync()) != -1) {
+        if (byte == 'Q'.codeUnitAt(0) || byte == 'q'.codeUnitAt(0)) {
+          break;
+        }
+      }
+    });
+  } else {
+    print('Press Ctrl-C to exit');
+    await io.ProcessSignal.sigint.watch().first;
   }
 }
