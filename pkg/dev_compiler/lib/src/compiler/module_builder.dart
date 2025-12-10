@@ -610,10 +610,16 @@ class DdcLibraryBundleBuilder extends _ModuleBuilder {
         ]),
         true,
       );
-      var resultModule = js.statement('dartDevEmbedder.defineLibrary(#, #)', [
-        js.string(library.name!),
-        initFunction,
-      ]);
+      var resultModule = js.statement(
+        'dartDevEmbedder.defineLibrary('
+        '#, #, {"dartSize": #, "sourceMapSize": #})',
+        [
+          js.string(library.name!),
+          initFunction,
+          js.number(library.dartSize!),
+          LibraryCompiler.metricsLocationID,
+        ],
+      );
       body.add(resultModule);
     }
     // The library bundle format only needs to keep track of source maps and
