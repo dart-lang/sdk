@@ -14,7 +14,8 @@ class Navigator extends StatefulWidget {
   }) => throw 0;
 }
 
-class NavigatorState extends State<Navigator> {
+class NavigatorState extends State<Navigator>
+    with TickerProviderStateMixin, RestorationMixin {
   @optionalTypeArgs
   void pop<T extends Object?>([T? result]) {}
 }
