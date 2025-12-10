@@ -29,6 +29,28 @@
 
 ### Tools
 
+#### Analyzer
+
+- The Insights pages (aka the "Analysis Server Diagnostics" pages) now show
+  data regarding the "Message Scheduler."
+- The "Fix all in workspace" command now supports a progress indicator.
+- Analysis via analyzer plugins is now faster on subsequent runs, as the
+  analysis server will now re-use an existing AOT snapshot of the plugins
+  entrypoint. This saves a constant amount of time at the start of each IDE
+  session and `dart analyze` run, on the order of 10 seconds.
+- Various fixes are made for the `call` method on a Function object, like "go
+  to definition," and completion.
+- Various fixes are made for the `error` and `stackTrace` parameters of
+  try/catch statements.
+- Various fixes are made for syntax highlighting, navigation, code completion,
+  hovers, quick fixes, assists, and "rename" refactoring.
+- Various fixes for IDE features with regards to "Dot Shorthand" syntax.
+- Improvements to LSP format-on-type, to not format in undesirable cases.
+- Various performance improvements.
+- Fixes to the 'Extract Widget' refactoring.
+- (Thanks [@FMorschel](https://github.com/FMorschel) and
+  [@DanTup](https://github.com/DanTup) for many of the above enhancements!)
+
 #### Pub
 
 - "Glob" support for pub workspaces.
