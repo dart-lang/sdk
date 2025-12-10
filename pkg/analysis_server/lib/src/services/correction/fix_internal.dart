@@ -461,7 +461,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.unnecessaryToListInSpreads: [RemoveToList.new],
   diag.unnecessaryThis: [RemoveThisExpression.new],
   diag.unnecessaryUnawaited: [RemoveUnawaited.new],
-  diag.unnecessaryUnderscores: [ConvertToWildcardVariable.new],
+  diag.unnecessaryUnderscores: [ConvertToWildcardVariable.automatically],
   diag.unreachableFromMain: [RemoveUnusedElement.new],
   diag.useColoredBox: [ReplaceContainerWithColoredBox.new],
   diag.useDecoratedBox: [ReplaceWithDecoratedBox.new],
