@@ -128,9 +128,6 @@ external JSString str;
 @JS()
 external JSSymbol symbol;
 
-@JS('Symbol')
-external JSSymbol createSymbol(String value);
-
 extension on JSSymbol {
   @JS('toString')
   external String toStringExternal();
@@ -536,10 +533,29 @@ void syncTests() {
   Expect.equals('foo', dartStr);
 
   // [JSSymbol]
-  symbol = createSymbol('foo');
+  symbol = JSSymbol('foo');
   Expect.isTrue(symbol is JSSymbol);
   Expect.isTrue(confuse(symbol) is JSSymbol);
   Expect.equals('Symbol(foo)', symbol.toStringExternal());
+  Expect.equals(symbol.description, 'foo');
+  Expect.notEquals(JSSymbol.forKey('foo'), symbol);
+  Expect.equals(JSSymbol.forKey('foo'), JSSymbol.forKey('foo'));
+  Expect.equals(JSSymbol.forKey('foo').key, 'foo');
+  Expect.isTrue(JSSymbol.asyncDispose is JSSymbol);
+  Expect.isTrue(JSSymbol.asyncIterator is JSSymbol);
+  Expect.isTrue(JSSymbol.dispose is JSSymbol);
+  Expect.isTrue(JSSymbol.hasInstance is JSSymbol);
+  Expect.isTrue(JSSymbol.isConcatSpreadable is JSSymbol);
+  Expect.isTrue(JSSymbol.iterator is JSSymbol);
+  Expect.isTrue(JSSymbol.match is JSSymbol);
+  Expect.isTrue(JSSymbol.matchAll is JSSymbol);
+  Expect.isTrue(JSSymbol.replace is JSSymbol);
+  Expect.isTrue(JSSymbol.search is JSSymbol);
+  Expect.isTrue(JSSymbol.species is JSSymbol);
+  Expect.isTrue(JSSymbol.split is JSSymbol);
+  Expect.isTrue(JSSymbol.toPrimitive is JSSymbol);
+  Expect.isTrue(JSSymbol.toStringTag is JSSymbol);
+  Expect.isTrue(JSSymbol.unscopables is JSSymbol);
 
   // [JSBigInt]
   bigInt = createBigInt('9876543210000000000000123456789');
