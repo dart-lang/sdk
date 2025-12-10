@@ -301,6 +301,26 @@ suggestions
 ''');
   }
 
+  Future<void> test_dotShorthand_onDeclaration() async {
+    await computeSuggestions('''
+enum E0 {
+  c0,
+  c1(.^);
+
+  const E0([E0? other]);
+}
+''');
+    assertResponse(r'''
+suggestions
+  c0
+    kind: enumConstant
+  c1
+    kind: enumConstant
+  values
+    kind: field
+''');
+  }
+
   Future<void> test_enumConstantName() async {
     await _check_locations(
       declaration: '''

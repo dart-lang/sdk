@@ -7,8 +7,11 @@ This is a patch release that:
   fix directs IDEs to not display such elements (like the `RegExp` class) as
   fully deprecated (for example, with struck-through text). (issue
   [dart-lang/sdk#62013])
+- Fixes code completion for dot shorthands in enum constant arguments. (issue
+  [dart-lang/sdk#62168])
 
 [dart-lang/sdk#62013]: https://github.com/dart-lang/sdk/issues/62013
+[dart-lang/sdk#62168]: https://github.com/dart-lang/sdk/issues/62168
 
 ## 3.10.4
 
