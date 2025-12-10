@@ -505,6 +505,15 @@ void f() {
 ''', 'String');
   }
 
+  Future<void> test_dotShorthand_difference() async {
+    await assertContextType('''
+enum E { a }
+void f() {
+  if (E.a != .^) {}
+}
+''', 'E');
+  }
+
   Future<void> test_dotShorthand_enumConstantCreation() async {
     await assertContextType('''
 enum E0 {
@@ -514,6 +523,15 @@ enum E0 {
   const E0([E0? other]);
 }
 ''', 'E0?');
+  }
+
+  Future<void> test_dotShorthand_equality() async {
+    await assertContextType('''
+enum E { a }
+void f() {
+  if (E.a == .^) {}
+}
+''', 'E');
   }
 
   Future<void> test_dotShorthand_guardedPattern_switchExpression() async {

@@ -9,9 +9,12 @@ This is a patch release that:
   [dart-lang/sdk#62013])
 - Fixes code completion for dot shorthands in enum constant arguments. (issue
   [dart-lang/sdk#62168])
+- Fixes code completion for dot shorthands and the `!=` operator. (issue
+  [dart-lang/sdk#62216])
 
 [dart-lang/sdk#62013]: https://github.com/dart-lang/sdk/issues/62013
 [dart-lang/sdk#62168]: https://github.com/dart-lang/sdk/issues/62168
+[dart-lang/sdk#62216]: https://github.com/dart-lang/sdk/issues/62216
 
 ## 3.10.4
 
