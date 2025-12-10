@@ -466,11 +466,11 @@ void MicroAssembler::srai(Register rd, Register rs1, intptr_t shamt) {
 void MicroAssembler::add(Register rd, Register rs1, Register rs2) {
   ASSERT(Supports(RV_I));
   if (Supports(RV_C)) {
-    if (rd == rs1) {
+    if ((rd == rs1) && (rs2 != ZR)) {
       c_add(rd, rs1, rs2);
       return;
     }
-    if (rd == rs2) {
+    if ((rd == rs2) && (rs1 != ZR)) {
       c_add(rd, rs2, rs1);
       return;
     }
@@ -2172,6 +2172,24 @@ void MicroAssembler::sd(Register rs2, Address addr, std::memory_order order) {
 }
 #endif
 
+void MicroAssembler::amocasb(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zacas | RV_Zabha));
+  EmitRType(AMOCAS, order, rs2, addr.base(), WIDTH8, rd, AMO);
+}
+
+void MicroAssembler::amocash(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zacas | RV_Zabha));
+  EmitRType(AMOCAS, order, rs2, addr.base(), WIDTH16, rd, AMO);
+}
+
 void MicroAssembler::amocasw(Register rd,
                              Register rs2,
                              Address addr,
@@ -2208,6 +2226,16 @@ void MicroAssembler::amocasq(Register rd,
   EmitRType(AMOCAS, order, rs2, addr.base(), WIDTH128, rd, AMO);
 }
 #endif
+
+void MicroAssembler::wrsnto() {
+  ASSERT(Supports(RV_Zawrs));
+  EmitIType(WRS_NTO, ZR, PRIV, ZR, SYSTEM);
+}
+
+void MicroAssembler::wrssto() {
+  ASSERT(Supports(RV_Zawrs));
+  EmitIType(WRS_STO, ZR, PRIV, ZR, SYSTEM);
+}
 
 void MicroAssembler::c_lwsp(Register rd, Address addr) {
   ASSERT(rd != ZR);
@@ -2426,7 +2454,6 @@ void MicroAssembler::c_mv(Register rd, Register rs2) {
 
 void MicroAssembler::c_add(Register rd, Register rs1, Register rs2) {
   ASSERT(Supports(RV_C));
-  ASSERT(rd != ZR);
   ASSERT(rd == rs1);
   ASSERT(rs2 != ZR);
   Emit16(C_ADD | EncodeCRd(rd) | EncodeCRs2(rs2));
@@ -4915,12 +4942,12 @@ void Assembler::EnterFullSafepoint(Register state) {
 
   addi(addr, THR, target::Thread::safepoint_state_offset());
   Bind(&retry);
-  lr(state, Address(addr, 0));
+  lrx(state, Address(addr, 0));
   subi(state, state, target::Thread::native_safepoint_state_unacquired());
   bnez(state, &slow_path, Assembler::kNearJump);
 
   li(state, target::Thread::native_safepoint_state_acquired());
-  sc(state, state, Address(addr, 0));
+  scx(state, state, Address(addr, 0));
   beqz(state, &done, Assembler::kNearJump);  // 0 means sc was successful.
 
   if (!FLAG_use_slow_path && !FLAG_target_thread_sanitizer) {
@@ -4950,12 +4977,12 @@ void Assembler::ExitFullSafepoint(Register state) {
 
   addi(addr, THR, target::Thread::safepoint_state_offset());
   Bind(&retry);
-  lr(state, Address(addr, 0));
+  lrx(state, Address(addr, 0));
   subi(state, state, target::Thread::native_safepoint_state_acquired());
   bnez(state, &slow_path, Assembler::kNearJump);
 
   li(state, target::Thread::native_safepoint_state_unacquired());
-  sc(state, state, Address(addr, 0));
+  scx(state, state, Address(addr, 0));
   beqz(state, &done, Assembler::kNearJump);  // 0 means sc was successful.
 
   if (!FLAG_use_slow_path && !FLAG_target_thread_sanitizer) {

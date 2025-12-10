@@ -58,6 +58,14 @@ class FieldAddress : public Address {
   FieldAddress(Register base, Register index) = delete;
 };
 
+#if XLEN == 32
+#define XSUFFIX(inst) inst##w
+#elif XLEN == 64
+#define XSUFFIX(inst) inst##d
+#elif XLEN == 128
+#define XSUFFIX(inst) inst##q
+#endif
+
 // All functions produce exactly one instruction.
 class MicroAssembler : public AssemblerBase {
  public:
@@ -223,16 +231,8 @@ class MicroAssembler : public AssemblerBase {
   void sextw(Register rd, Register rs) { addiw(rd, rs, 0); }
 #endif  // XLEN >= 64
 
-#if XLEN == 32
-  void lx(Register rd, Address addr) { lw(rd, addr); }
-  void sx(Register rs2, Address addr) { sw(rs2, addr); }
-#elif XLEN == 64
-  void lx(Register rd, Address addr) { ld(rd, addr); }
-  void sx(Register rs2, Address addr) { sd(rs2, addr); }
-#elif XLEN == 128
-  void lx(Register rd, Address addr) { lq(rd, addr); }
-  void sx(Register rs2, Address addr) { sq(rs2, addr); }
-#endif
+  void lx(Register rd, Address addr) { XSUFFIX(l)(rd, addr); }
+  void sx(Register rs2, Address addr) { XSUFFIX(s)(rs2, addr); }
 
   // ==== RV32M ====
   void mul(Register rd, Register rs1, Register rs2);
@@ -345,43 +345,28 @@ class MicroAssembler : public AssemblerBase {
                 std::memory_order order = std::memory_order_relaxed);
 #endif  // XLEN >= 64
 
-#if XLEN == 32
-  void lr(Register rd,
-          Address addr,
-          std::memory_order order = std::memory_order_relaxed) {
-    lrw(rd, addr, order);
+  void lrx(Register rd,
+           Address addr,
+           std::memory_order order = std::memory_order_relaxed) {
+    XSUFFIX(lr)(rd, addr, order);
   }
-  void sc(Register rd,
-          Register rs2,
-          Address addr,
-          std::memory_order order = std::memory_order_relaxed) {
-    scw(rd, rs2, addr, order);
+#define AMOX(amo)                                                              \
+  void amo##x(Register rd, Register rs2, Address addr,                         \
+              std::memory_order order = std::memory_order_relaxed) {           \
+    XSUFFIX(amo)(rd, rs2, addr, order);                                        \
   }
-#elif XLEN == 64
-  void lr(Register rd,
-          Address addr,
-          std::memory_order order = std::memory_order_relaxed) {
-    lrd(rd, addr, order);
-  }
-  void sc(Register rd,
-          Register rs2,
-          Address addr,
-          std::memory_order order = std::memory_order_relaxed) {
-    scd(rd, rs2, addr, order);
-  }
-#elif XLEN == 128
-  void lr(Register rd,
-          Address addr,
-          std::memory_order order = std::memory_order_relaxed) {
-    lrq(rd, addr, order);
-  }
-  void sc(Register rd,
-          Register rs2,
-          Address addr,
-          std::memory_order order = std::memory_order_relaxed) {
-    scq(rd, rs2, addr, order);
-  }
-#endif
+  AMOX(sc)
+  AMOX(amoswap)
+  AMOX(amoadd)
+  AMOX(amoxor)
+  AMOX(amoand)
+  AMOX(amoor)
+  AMOX(amomin)
+  AMOX(amomax)
+  AMOX(amominu)
+  AMOX(amomaxu)
+  AMOX(amocas)
+#undef AMOX
 
   // ==== RV32F ====
   void flw(FRegister rd, Address addr);
@@ -759,7 +744,22 @@ class MicroAssembler : public AssemblerBase {
   void sd(Register rs2, Address addr, std::memory_order order);
 #endif
 
+  void lx(Register rd, Address addr, std::memory_order o) {
+    XSUFFIX(l)(rd, addr, o);
+  }
+  void sx(Register rs2, Address addr, std::memory_order o) {
+    XSUFFIX(s)(rs2, addr, o);
+  }
+
   // ==== Zacas: Compare-and-swap ====
+  void amocasb(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amocash(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
   void amocasw(Register rd,
                Register rs2,
                Address addr,
@@ -774,6 +774,10 @@ class MicroAssembler : public AssemblerBase {
                Address addr,
                std::memory_order order = std::memory_order_relaxed);
 #endif
+
+  // ==== Zawrs: Wait on reservation set ====
+  void wrsnto();
+  void wrssto();
 
   // ==== Dart Simulator Debugging ====
   void SimulatorPrintObject(Register rs1);

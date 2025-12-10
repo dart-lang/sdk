@@ -1090,7 +1090,7 @@ void Simulator::Interpret(CInstr instr) {
     case C_JR: {
       if ((instr.encoding() & (C_JALR ^ C_JR)) != 0) {
         if ((instr.rs1() == ZR) && (instr.rs2() == ZR)) {
-          InterpretEBREAK(instr);
+          Fault("EBREAK");
         } else if (instr.rs2() == ZR) {
           // JALR
           uintx_t target = get_xreg(instr.rs1());
@@ -1157,7 +1157,7 @@ void Simulator::Interpret(CInstr instr) {
           uintx_t ra = MemoryRead<uintx_t>(ssp_, ZR);
           ssp_ += sizeof(uintx_t);
           if (ra != get_xreg(Register(5))) {
-            FATAL("Corrupt control flow");
+            Fault("Corrupt control flow");
           }
         }
       } else if ((instr.encoding() & C_MOP_MASK) == C_MOP) {
@@ -2114,8 +2114,12 @@ void Simulator::InterpretSYSTEM(Instr instr) {
           InterpretECALL(instr);
           return;
         case EBREAK:
-          InterpretEBREAK(instr);
-          return;
+          Fault("EBREAK");
+          break;
+        case WRS_NTO:
+        case WRS_STO:
+          // Could issue mwait on host?
+          break;
         default:
           IllegalInstruction(instr);
       }
@@ -2138,7 +2142,7 @@ void Simulator::InterpretSYSTEM(Instr instr) {
           uintx_t ra = MemoryRead<uintx_t>(ssp_, ZR);
           ssp_ += sizeof(uintx_t);
           if (ra != get_xreg(instr.rs1())) {
-            FATAL("Corrupt control flow");
+            Fault("Corrupt control flow");
           }
         }
       } else if ((instr.funct12() == SSRDP) && (instr.rs1() == ZR)) {
@@ -2297,9 +2301,7 @@ void Simulator::InterpretECALL(Instr instr) {
 
   // The C ABI stack alignment is 16 for both 32 and 64 bit.
   if (!Utils::IsAligned(get_xreg(SP), 16)) {
-    PrintRegisters();
-    PrintStack();
-    FATAL("Stack misaligned at call to C function");
+    Fault("Stack misaligned at call to C function");
   }
 
   // We can't instrument the runtime.
@@ -2405,7 +2407,7 @@ template <typename type>
 void Simulator::InterpretLR(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   reserved_address_ = addr;
   reserved_value_ = memory_.Load<type>(addr, instr.memory_order());
@@ -2416,13 +2418,15 @@ template <typename type>
 void Simulator::InterpretSC(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   if (addr != reserved_address_) {
+    reserved_address_ = 0;
     set_xreg(instr.rd(), 1);
     return;
   }
   if ((random_.NextUInt32() % 16) == 0) {  // Spurious failure.
+    reserved_address_ = 0;
     set_xreg(instr.rd(), 1);
     return;
   }
@@ -2431,13 +2435,14 @@ void Simulator::InterpretSC(Instr instr) {
   bool success =
       memory_.CompareExchange(addr, expected, desired, instr.memory_order());
   set_xreg(instr.rd(), success ? 0 : 1);
+  reserved_address_ = 0;
 }
 
 template <typename type>
 void Simulator::InterpretAMOSWAP(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
@@ -2450,7 +2455,7 @@ template <typename type>
 void Simulator::InterpretAMOADD(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
@@ -2463,7 +2468,7 @@ template <typename type>
 void Simulator::InterpretAMOXOR(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
@@ -2476,7 +2481,7 @@ template <typename type>
 void Simulator::InterpretAMOAND(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
@@ -2489,7 +2494,7 @@ template <typename type>
 void Simulator::InterpretAMOOR(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
@@ -2502,7 +2507,7 @@ template <typename type>
 void Simulator::InterpretAMOMIN(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
@@ -2520,7 +2525,7 @@ template <typename type>
 void Simulator::InterpretAMOMAX(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
@@ -2538,7 +2543,7 @@ template <typename type>
 void Simulator::InterpretLOADORDERED(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
@@ -2550,7 +2555,7 @@ template <typename type>
 void Simulator::InterpretSTOREORDERED(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
   type value = get_xreg(instr.rs2());
@@ -2562,7 +2567,7 @@ template <typename type>
 void Simulator::InterpretAMOCAS(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   type expected = get_xreg(instr.rd());
   type desired = get_xreg(instr.rs2());
@@ -2606,6 +2611,9 @@ void Simulator::InterpretAMO8(Instr instr) {
     case STOREORDERED:
       InterpretSTOREORDERED<int8_t>(instr);
       break;
+    case AMOCAS:
+      InterpretAMOCAS<int8_t>(instr);
+      break;
     default:
       IllegalInstruction(instr);
   }
@@ -2645,6 +2653,9 @@ void Simulator::InterpretAMO16(Instr instr) {
       break;
     case STOREORDERED:
       InterpretSTOREORDERED<int16_t>(instr);
+      break;
+    case AMOCAS:
+      InterpretAMOCAS<int16_t>(instr);
       break;
     default:
       IllegalInstruction(instr);
@@ -3635,7 +3646,7 @@ void Simulator::InterpretOPV_IVX(Instr instr) {
       InterpretOPV_IVX<uint64_t>(instr);
       break;
     default:
-      FATAL("Invalid SEW");
+      Fault("Invalid SEW");
   }
 }
 
@@ -3688,7 +3699,7 @@ void Simulator::InterpretOPV_CFG(Instr instr) {
         sew = 64;
         break;
       default:
-        FATAL("Invalid SEW");
+        Fault("Invalid SEW");
     }
     intx_t lmul;
     switch ((vtype >> 0) & 0b111) {
@@ -3714,7 +3725,7 @@ void Simulator::InterpretOPV_CFG(Instr instr) {
         lmul = 8;
         break;
       default:
-        FATAL("Invalid LMUL");
+        Fault("Invalid LMUL");
     }
     uintx_t vlmax;
     if (lmul < 0) {
@@ -3738,18 +3749,6 @@ void Simulator::InterpretOPV_CFG(Instr instr) {
   }
 }
 
-void Simulator::InterpretEBREAK(Instr instr) {
-  PrintRegisters();
-  PrintStack();
-  FATAL("Encountered EBREAK");
-}
-
-void Simulator::InterpretEBREAK(CInstr instr) {
-  PrintRegisters();
-  PrintStack();
-  FATAL("Encountered EBREAK");
-}
-
 void Simulator::IllegalInstruction(Instr instr) {
   PrintRegisters();
   PrintStack();
@@ -3762,21 +3761,23 @@ void Simulator::IllegalInstruction(CInstr instr) {
   FATAL("Illegal instruction: 0x%04x", instr.encoding());
 }
 
+void Simulator::Fault(const char* message) {
+  PrintRegisters();
+  PrintStack();
+  FATAL("%s", message);
+}
+
 template <typename type>
 type Simulator::MemoryRead(uintx_t addr, Register base) {
 #if defined(DEBUG)
   if ((base == SP) || (base == FP)) {
     if ((addr + sizeof(type) > stack_base()) || (addr < get_xreg(SP))) {
-      PrintRegisters();
-      PrintStack();
-      FATAL("Out-of-bounds stack access");
+      Fault("Out-of-bounds stack access");
     }
   } else {
     const uintx_t kPageSize = 16 * KB;
     if ((addr < kPageSize) || (addr + sizeof(type) >= ~kPageSize)) {
-      PrintRegisters();
-      PrintStack();
-      FATAL("Bad memory access");
+      Fault("Bad memory access");
     }
   }
 #endif
@@ -3788,16 +3789,14 @@ void Simulator::MemoryWrite(uintx_t addr, type value, Register base) {
 #if defined(DEBUG)
   if ((base == SP) || (base == FP)) {
     if ((addr + sizeof(type) > stack_base()) || (addr < get_xreg(SP))) {
-      PrintRegisters();
-      PrintStack();
-      FATAL("Out-of-bounds stack access");
+      Fault("Out-of-bounds stack access");
     }
   } else {
     const uintx_t kPageSize = 16 * KB;
     if ((addr < kPageSize) || (addr + sizeof(type) >= ~kPageSize)) {
       PrintRegisters();
       PrintStack();
-      FATAL("Bad memory access");
+      Fault("Bad memory access");
     }
   }
 #endif
@@ -3855,7 +3854,7 @@ intx_t Simulator::CSRRead(uint16_t csr) {
       return instret_ >> 32;
 #endif
     default:
-      FATAL("Unknown CSR: %d", csr);
+      Fault("Unknown CSR");
   }
 }
 
