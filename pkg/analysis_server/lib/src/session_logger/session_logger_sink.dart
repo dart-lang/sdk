@@ -27,8 +27,7 @@ class SessionLoggerFileSink extends SessionLoggerSink {
 
   @override
   void writeLogEntry(JsonMap entry) {
-    var logEntry = json.encode(entry);
-    _sink.writeln('$logEntry,');
+    _sink.writeln(json.encode(entry));
   }
 }
 

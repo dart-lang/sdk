@@ -58,6 +58,7 @@ class WasmCompilerOptions {
   bool dryRun = false;
   Uri? wasmOptPath;
   bool saveUnopt = false;
+  Set<int> moduleIdsToOptimize = const {};
   bool stripWasm = true;
   List<CompilerPhase> phases = const [
     CompilerPhase.cfe,

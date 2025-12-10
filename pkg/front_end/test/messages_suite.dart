@@ -13,6 +13,7 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
         getMessageRelatedInformation;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity, severityEnumValues;
+import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalArguments, parseExperimentalFlags;
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
@@ -176,9 +177,11 @@ class MessageTestSuite extends ChainContext {
     File file = new File.fromUri(uri);
     String fileContent = file.readAsStringSync();
     YamlMap messages = loadYamlNode(fileContent, sourceUrl: uri) as YamlMap;
-    for (String name in messages.keys) {
+    for (String camelCaseName in messages.keys) {
       try {
-        YamlMap messageNode = messages.nodes[name] as YamlMap;
+        // TODO(paulberry): switch CFE to camelCase conventions.
+        var name = camelCaseName.toSnakeCase().toPascalCase();
+        YamlMap messageNode = messages.nodes[camelCaseName] as YamlMap;
         dynamic message = messageNode.value;
         if (message is String) continue;
 
@@ -552,7 +555,7 @@ class MessageTestSuite extends ChainContext {
           ),
         );
       } catch (e, st) {
-        Error.throwWithStackTrace('While processing $name: $e', st);
+        Error.throwWithStackTrace('While processing $camelCaseName: $e', st);
       }
     }
     return result;

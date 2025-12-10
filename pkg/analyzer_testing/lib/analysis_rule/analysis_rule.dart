@@ -20,6 +20,9 @@ import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:meta/meta.dart';
 
+export 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart'
+    show PackageBuilder;
+
 ExpectedContextMessage contextMessage(
   File file,
   int offset,

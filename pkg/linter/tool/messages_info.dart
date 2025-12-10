@@ -13,7 +13,7 @@ const String _messagesFileName = 'pkg/linter/messages.yaml';
 final Map<String, RuleInfo> messagesRuleInfo = () {
   {
     var lintNames = lintMessages
-        .map((m) => m.analyzerCode.lowerSnakeCaseName)
+        .map((m) => m.analyzerCode.snakeCaseName)
         .toList(growable: false);
     var lintCodeKeysSorted = lintNames.sorted();
     for (var i = 0; i < lintNames.length; i++) {
@@ -29,12 +29,12 @@ final Map<String, RuleInfo> messagesRuleInfo = () {
   var builders = <String, _RuleBuilder>{};
   for (var message in lintMessages) {
     var sharedNameString =
-        (message.sharedName ?? message.analyzerCode).lowerSnakeCaseName;
+        (message.sharedName ?? message.analyzerCode).snakeCaseName;
     var rule = builders.putIfAbsent(
       sharedNameString,
       () => _RuleBuilder(sharedNameString),
     );
-    rule.addEntry(message.analyzerCode.lowerSnakeCaseName, message);
+    rule.addEntry(message.analyzerCode.snakeCaseName, message);
   }
 
   return builders.map((key, value) {

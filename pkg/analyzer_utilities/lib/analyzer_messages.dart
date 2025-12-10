@@ -196,7 +196,13 @@ List<M> decodeAnalyzerMessagesYaml<M extends AnalyzerMessage>(
         key: keyNode,
         value: diagnosticValue,
         decoder: (messageYaml) {
-          var analyzerCode = DiagnosticCodeName(snakeCaseName: diagnosticName);
+          if (!diagnosticName.isCamelCase) {
+            throw LocatedError(
+              'Message names should be camelCase',
+              span: keyNode.span,
+            );
+          }
+          var analyzerCode = DiagnosticCodeName.fromCamelCase(diagnosticName);
           return decodeMessage(
             messageYaml,
             analyzerCode: analyzerCode,
@@ -623,7 +629,7 @@ LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     outputConstantHeader(constant);
     constant.writeln('const $staticType $constantName =');
     constant.writeln('$concreteClassName(');
-    var name = (sharedName?.snakeCaseName ?? diagnosticCode).toLowerCase();
+    var name = sharedName?.snakeCaseName ?? diagnosticCode;
     constant.writeln("name: '$name',");
     var maxWidth = 80 - 8 /* indentation */ - 2 /* quotes */ - 1 /* comma */;
     var messageAsCode = convertTemplate(problemMessage);
@@ -650,7 +656,7 @@ LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     if (baseClasses.requiresTypeArgument) {
       constant.writeln('type: ${type.code},');
     }
-    String uniqueName = analyzerCode.snakeCaseName.toLowerCase();
+    String uniqueName = analyzerCode.snakeCaseName;
     constant.writeln("uniqueName: '$uniqueName',");
     if (withArgumentsName != null) {
       constant.writeln('withArguments: $withArgumentsName,');

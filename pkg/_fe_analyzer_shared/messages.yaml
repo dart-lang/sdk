@@ -7,23 +7,23 @@
 
 # See pkg/front_end/messages.yaml for documentation about this file.
 
-ExperimentNotEnabled:
+experimentNotEnabled:
   type: syntacticError
   parameters:
     String string: undocumented
     String string2: undocumented
   problemMessage: "This requires the '#string' language feature to be enabled."
   correctionMessage: "Try updating your pubspec.yaml to set the minimum SDK constraint to #string2 or higher, and running 'pub get'."
-  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
+  analyzerCode: experimentNotEnabled
   hasPublishedDocs: false
 
-ExperimentNotEnabledOffByDefault:
+experimentNotEnabledOffByDefault:
   type: syntacticError
   parameters:
     String string: undocumented
   problemMessage: "This requires the experimental '#string' language feature to be enabled."
   correctionMessage: "Try passing the '--enable-experiment=#string' command line option."
-  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT
+  analyzerCode: experimentNotEnabledOffByDefault
   hasPublishedDocs: false
   script: |
     // @dart=3.5
@@ -31,12 +31,12 @@ ExperimentNotEnabledOffByDefault:
       int i = 42_42_42_42;
     }
 
-RecordLiteralOnePositionalFieldNoTrailingComma:
+recordLiteralOnePositionalFieldNoTrailingComma:
   type: syntacticError
   parameters: none
   problemMessage: "A record literal with exactly one positional field requires a trailing comma."
   correctionMessage: "Try adding a trailing comma."
-  analyzerCode: ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
+  analyzerCode: recordLiteralOnePositionalNoTrailingComma
   hasPublishedDocs: true
   documentation: |-
     #### Description
@@ -69,12 +69,12 @@ RecordLiteralOnePositionalFieldNoTrailingComma:
       var record = const (1);
     }
 
-RecordLiteralZeroFieldsWithTrailingComma:
+recordLiteralZeroFieldsWithTrailingComma:
   type: syntacticError
   parameters: none
   problemMessage: "A record literal without fields can't have a trailing comma."
   correctionMessage: "Try removing the trailing comma."
-  analyzerCode: ParserErrorCode.EMPTY_RECORD_LITERAL_WITH_COMMA
+  analyzerCode: emptyRecordLiteralWithComma
   hasPublishedDocs: true
   documentation: |-
     #### Description
@@ -110,12 +110,12 @@ RecordLiteralZeroFieldsWithTrailingComma:
       var record = (,);
     }
 
-EmptyRecordTypeNamedFieldsList:
+emptyRecordTypeNamedFieldsList:
   type: syntacticError
   parameters: none
   problemMessage: "The list of named fields in a record type can't be empty."
   correctionMessage: "Try adding a named field to the list."
-  analyzerCode: ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST
+  analyzerCode: emptyRecordTypeNamedFieldsList
   hasPublishedDocs: true
   documentation: |-
     #### Description
@@ -152,12 +152,12 @@ EmptyRecordTypeNamedFieldsList:
       (int, int, {/*missing*/}) record = (1, 2,);
     }
 
-RecordTypeZeroFieldsButTrailingComma:
+recordTypeZeroFieldsButTrailingComma:
   type: syntacticError
   parameters: none
   problemMessage: "A record type without fields can't have a trailing comma."
   correctionMessage: "Try removing the trailing comma."
-  analyzerCode: ParserErrorCode.EMPTY_RECORD_TYPE_WITH_COMMA
+  analyzerCode: emptyRecordTypeWithComma
   hasPublishedDocs: true
   documentation: |-
     #### Description
@@ -193,12 +193,12 @@ RecordTypeZeroFieldsButTrailingComma:
       (,) record = ();
     }
 
-RecordTypeOnePositionalFieldNoTrailingComma:
+recordTypeOnePositionalFieldNoTrailingComma:
   type: syntacticError
   parameters: none
   problemMessage: "A record type with exactly one positional field requires a trailing comma."
   correctionMessage: "Try adding a trailing comma."
-  analyzerCode: ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA
+  analyzerCode: recordTypeOnePositionalNoTrailingComma
   hasPublishedDocs: true
   documentation: |-
     #### Description
@@ -231,11 +231,11 @@ RecordTypeOnePositionalFieldNoTrailingComma:
       (int /* missing trailing comma */) record = const (1, );
     }
 
-ExpectedElseOrComma:
+expectedElseOrComma:
   type: syntacticError
   parameters: none
   problemMessage: "Expected 'else' or comma."
-  analyzerCode: ParserErrorCode.EXPECTED_ELSE_OR_COMMA
+  analyzerCode: expectedElseOrComma
   hasPublishedDocs: false
   script: |
     void foo(int i) {
@@ -245,15 +245,15 @@ ExpectedElseOrComma:
       ];
     }
 
-ExpectedStatement:
+expectedStatement:
   type: syntacticError
   parameters: none
   problemMessage: "Expected a statement."
-  analyzerCode: ParserErrorCode.MISSING_STATEMENT
+  analyzerCode: missingStatement
   hasPublishedDocs: false
   statement: "void;"
 
-ExpectedInstead:
+expectedInstead:
   type: syntacticError
   parameters:
     String string: undocumented
@@ -273,289 +273,289 @@ ExpectedInstead:
   #              ^^^^^^^
   #              Expected 'on' instead of this
   #
-  analyzerCode: ParserErrorCode.EXPECTED_INSTEAD
+  analyzerCode: expectedInstead
   hasPublishedDocs: false
   script:
     - "class B {} mixin A extends B { }"
 
-MultipleLibraryDirectives:
+multipleLibraryDirectives:
   type: syntacticError
   parameters: none
   problemMessage: "Only one library directive may be declared in a file."
   correctionMessage: "Try removing all but one of the library directives."
-  analyzerCode: ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES
+  analyzerCode: multipleLibraryDirectives
   hasPublishedDocs: false
   script:
     library foo;
     library bar;
 
-MultipleExtends:
+multipleExtends:
   type: syntacticError
   parameters: none
   problemMessage: "Each class definition can have at most one extends clause."
   correctionMessage: "Try choosing one superclass and define your class to implement (or mix in) the others."
-  analyzerCode: ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES
+  analyzerCode: multipleExtendsClauses
   hasPublishedDocs: false
   script:
     - "class B{} class C{} class A extends B extends C {}"
     - "class B{} class C{} class A extends B, C {}"
 
-MultipleWith:
+multipleWith:
   type: syntacticError
   parameters: none
   problemMessage: "Each class definition can have at most one with clause."
   correctionMessage: "Try combining all of the with clauses into a single clause."
-  analyzerCode: ParserErrorCode.MULTIPLE_WITH_CLAUSES
+  analyzerCode: multipleWithClauses
   hasPublishedDocs: false
   script: "class A extends B with C, D with E {}"
   exampleAllowOtherCodes: true
 
-WithBeforeExtends:
+withBeforeExtends:
   type: syntacticError
   parameters: none
   problemMessage: "The extends clause must be before the with clause."
   correctionMessage: "Try moving the extends clause before the with clause."
-  analyzerCode: ParserErrorCode.WITH_BEFORE_EXTENDS
+  analyzerCode: withBeforeExtends
   hasPublishedDocs: false
   script: "mixin B {} class C {} class A with B extends C {}"
 
-ImplementsBeforeExtends:
+implementsBeforeExtends:
   type: syntacticError
   parameters: none
   problemMessage: "The extends clause must be before the implements clause."
   correctionMessage: "Try moving the extends clause before the implements clause."
-  analyzerCode: ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS
+  analyzerCode: implementsBeforeExtends
   hasPublishedDocs: false
   script: "class A implements B extends C {}"
   exampleAllowOtherCodes: true
 
-ImplementsBeforeOn:
+implementsBeforeOn:
   type: syntacticError
   parameters: none
   problemMessage: "The on clause must be before the implements clause."
   correctionMessage: "Try moving the on clause before the implements clause."
-  analyzerCode: ParserErrorCode.IMPLEMENTS_BEFORE_ON
+  analyzerCode: implementsBeforeOn
   hasPublishedDocs: false
   script: "mixin A implements B on C {}"
   exampleAllowOtherCodes: true
 
-ImplementsBeforeWith:
+implementsBeforeWith:
   type: syntacticError
   parameters: none
   problemMessage: "The with clause must be before the implements clause."
   correctionMessage: "Try moving the with clause before the implements clause."
-  analyzerCode: ParserErrorCode.IMPLEMENTS_BEFORE_WITH
+  analyzerCode: implementsBeforeWith
   hasPublishedDocs: false
   script: "class A extends B implements C with D {}"
   exampleAllowOtherCodes: true
 
-MultipleClauses:
+multipleClauses:
   type: syntacticError
   parameters:
     String string: undocumented
     String string2: undocumented
   problemMessage: "Each '#string' definition can have at most one '#string2' clause."
   correctionMessage: "Try combining all of the '#string2' clauses into a single clause."
-  analyzerCode: ParserErrorCode.MULTIPLE_CLAUSES
+  analyzerCode: multipleClauses
   hasPublishedDocs: false
   script:
     - "mixin B {} enum A implements B implements C, D { v; }"
     - "mixin B {} enum A with B with C, D { v; }"
 
-OutOfOrderClauses:
+outOfOrderClauses:
   type: syntacticError
   parameters:
     String string: undocumented
     String string2: undocumented
   problemMessage: "The '#string' clause must come before the '#string2' clause."
   correctionMessage: "Try moving the '#string' clause before the '#string2' clause."
-  analyzerCode: ParserErrorCode.OUT_OF_ORDER_CLAUSES
+  analyzerCode: outOfOrderClauses
   hasPublishedDocs: false
   script: "class B {} class D {} enum A implements B with D { v; }"
 
-MultipleOnClauses:
+multipleOnClauses:
   type: syntacticError
   parameters: none
   problemMessage: "Each mixin definition can have at most one on clause."
   correctionMessage: "Try combining all of the on clauses into a single clause."
-  analyzerCode: ParserErrorCode.MULTIPLE_ON_CLAUSES
+  analyzerCode: multipleOnClauses
   hasPublishedDocs: false
   script: "mixin A on B on C, D {}"
   exampleAllowOtherCodes: true
 
-MixinWithClause:
+mixinWithClause:
   type: syntacticError
   parameters: none
   problemMessage: "A mixin can't have a with clause."
-  analyzerCode: ParserErrorCode.MIXIN_WITH_CLAUSE
+  analyzerCode: mixinWithClause
   hasPublishedDocs: false
   script: "mixin M {} mixin N with M {}"
 
-ExpectedClassBody:
+expectedClassBody:
   type: syntacticError
   parameters: none
   problemMessage: "A class declaration must have a body, even if it is empty."
   correctionMessage: "Try adding an empty body."
-  analyzerCode: ParserErrorCode.EXPECTED_CLASS_BODY
+  analyzerCode: expectedClassBody
   hasPublishedDocs: false
-  sharedName: EXPECTED_BODY
+  sharedName: expectedBody
   script: |
     class Class
 
-ExpectedMixinBody:
+expectedMixinBody:
   type: syntacticError
   parameters: none
   problemMessage: "A mixin declaration must have a body, even if it is empty."
   correctionMessage: "Try adding an empty body."
-  analyzerCode: ParserErrorCode.EXPECTED_MIXIN_BODY
+  analyzerCode: expectedMixinBody
   hasPublishedDocs: false
-  sharedName: EXPECTED_BODY
+  sharedName: expectedBody
   script: |
     mixin Mixin
 
-ExpectedExtensionBody:
+expectedExtensionBody:
   type: syntacticError
   parameters: none
   problemMessage: "An extension declaration must have a body, even if it is empty."
   correctionMessage: "Try adding an empty body."
-  analyzerCode: ParserErrorCode.EXPECTED_EXTENSION_BODY
+  analyzerCode: expectedExtensionBody
   hasPublishedDocs: false
-  sharedName: EXPECTED_BODY
+  sharedName: expectedBody
   script: |
     extension Extension on int
 
-ExpectedExtensionTypeBody:
+expectedExtensionTypeBody:
   type: syntacticError
   parameters: none
   problemMessage: "An extension type declaration must have a body, even if it is empty."
   correctionMessage: "Try adding an empty body."
-  analyzerCode: ParserErrorCode.EXPECTED_EXTENSION_TYPE_BODY
+  analyzerCode: expectedExtensionTypeBody
   hasPublishedDocs: false
-  sharedName: EXPECTED_BODY
+  sharedName: expectedBody
   script: |
     extension type ExtensionType(int i)
 
-ExpectedTryStatementBody:
+expectedTryStatementBody:
   type: syntacticError
   parameters: none
   problemMessage: "A try statement must have a body, even if it is empty."
   correctionMessage: "Try adding an empty body."
-  analyzerCode: ParserErrorCode.EXPECTED_TRY_STATEMENT_BODY
+  analyzerCode: expectedTryStatementBody
   hasPublishedDocs: false
-  sharedName: EXPECTED_BODY
+  sharedName: expectedBody
   script: |
     method() {
       try finally {}
     }
 
-ExpectedCatchClauseBody:
+expectedCatchClauseBody:
   type: syntacticError
   parameters: none
   problemMessage: "A catch clause must have a body, even if it is empty."
   correctionMessage: "Try adding an empty body."
-  analyzerCode: ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY
+  analyzerCode: expectedCatchClauseBody
   hasPublishedDocs: false
-  sharedName: EXPECTED_BODY
+  sharedName: expectedBody
   script: |
     method() {
       try {} catch (_);
     }
 
-ExpectedFinallyClauseBody:
+expectedFinallyClauseBody:
   type: syntacticError
   parameters: none
   problemMessage: "A finally clause must have a body, even if it is empty."
   correctionMessage: "Try adding an empty body."
-  analyzerCode: ParserErrorCode.EXPECTED_FINALLY_CLAUSE_BODY
+  analyzerCode: expectedFinallyClauseBody
   hasPublishedDocs: false
-  sharedName: EXPECTED_BODY
+  sharedName: expectedBody
   script: |
     method() {
       try {} finally;
     }
 
-ExpectedSwitchExpressionBody:
+expectedSwitchExpressionBody:
   type: syntacticError
   parameters: none
   problemMessage: "A switch expression must have a body, even if it is empty."
   correctionMessage: "Try adding an empty body."
-  analyzerCode: ParserErrorCode.EXPECTED_SWITCH_EXPRESSION_BODY
+  analyzerCode: expectedSwitchExpressionBody
   hasPublishedDocs: false
-  sharedName: EXPECTED_BODY
+  sharedName: expectedBody
   script: |
     method(Never n) => switch (n);
 
-ExpectedSwitchStatementBody:
+expectedSwitchStatementBody:
   type: syntacticError
   parameters: none
   problemMessage: "A switch statement must have a body, even if it is empty."
   correctionMessage: "Try adding an empty body."
-  analyzerCode: ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY
+  analyzerCode: expectedSwitchStatementBody
   hasPublishedDocs: false
-  sharedName: EXPECTED_BODY
+  sharedName: expectedBody
   script: |
     method(Never n) {
       switch (n);
     }
 
-ExpectedIdentifierButGotKeyword:
+expectedIdentifierButGotKeyword:
   type: syntacticError
   parameters:
     Token lexeme: undocumented
   problemMessage: "'#lexeme' can't be used as an identifier because it's a keyword."
   correctionMessage: "Try renaming this to be an identifier that isn't a keyword."
-  analyzerCode: ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  analyzerCode: expectedIdentifierButGotKeyword
   hasPublishedDocs: false
   script: "var default = 42;"
 
-EqualityCannotBeEqualityOperand:
+equalityCannotBeEqualityOperand:
   type: syntacticError
   parameters: none
   problemMessage: "A comparison expression can't be an operand of another comparison expression."
   correctionMessage: "Try putting parentheses around one of the comparisons."
-  analyzerCode: ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND
+  analyzerCode: equalityCannotBeEqualityOperand
   hasPublishedDocs: false
   exampleAllowOtherCodes: true
   script:
     - "main() { var b = a < b < c; }"
     - "main() { var b = a == b != c; }"
 
-VarAsTypeName:
+varAsTypeName:
   type: syntacticError
   parameters: none
   problemMessage: "The keyword 'var' can't be used as a type name."
-  analyzerCode: ParserErrorCode.VAR_AS_TYPE_NAME
+  analyzerCode: varAsTypeName
   hasPublishedDocs: false
   script:
     - "class A { Map<String, var> m; }"
   exampleAllowOtherCodes: true
 
-MissingExpressionInThrow:
+missingExpressionInThrow:
   type: syntacticError
   parameters: none
   problemMessage: "Missing expression after 'throw'."
   correctionMessage: "Add an expression after 'throw' or use 'rethrow' to throw a caught exception"
-  analyzerCode: ParserErrorCode.MISSING_EXPRESSION_IN_THROW
+  analyzerCode: missingExpressionInThrow
   hasPublishedDocs: false
   statement:
     - "throw;"
 
-MissingConstFinalVarOrType:
+missingConstFinalVarOrType:
   type: syntacticError
   parameters: none
   problemMessage: "Variables must be declared using the keywords 'const', 'final', 'var' or a type name."
   correctionMessage: "Try adding the name of the type of the variable or the keyword 'var'."
-  analyzerCode: ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
+  analyzerCode: missingConstFinalVarOrType
   hasPublishedDocs: false
   script:
     - "class C { static f; }"
 
-FunctionTypedParameterVar:
+functionTypedParameterVar:
   type: syntacticError
   parameters: none
   problemMessage: "Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type."
   correctionMessage: "Try replacing the keyword with a return type."
-  analyzerCode: ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR
+  analyzerCode: functionTypedParameterVar
   hasPublishedDocs: false
   script:
     - "void f(const x()) {}"
@@ -563,12 +563,12 @@ FunctionTypedParameterVar:
     - "void f(var x()) {}"
   exampleAllowOtherCodes: true
 
-AbstractClassMember:
+abstractClassMember:
   type: syntacticError
   parameters: none
   problemMessage: "Members of classes can't be declared to be 'abstract'."
   correctionMessage: "Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration."
-  analyzerCode: ParserErrorCode.ABSTRACT_CLASS_MEMBER
+  analyzerCode: abstractClassMember
   hasPublishedDocs: false
   script:
     - |
@@ -580,63 +580,63 @@ AbstractClassMember:
     - |
       abstract class C {abstract set m(int x);}
 
-AbstractExternalField:
+abstractExternalField:
   type: syntacticError
   parameters: none
   problemMessage: "Fields can't be declared both 'abstract' and 'external'."
-  analyzerCode: ParserErrorCode.ABSTRACT_EXTERNAL_FIELD
+  analyzerCode: abstractExternalField
   hasPublishedDocs: false
   correctionMessage: "Try removing the 'abstract' or 'external' keyword."
   script:
     - "abstract class C {abstract external var f;}"
     - "abstract class C {external abstract var f;}"
 
-AbstractStaticField:
+abstractStaticField:
   type: syntacticError
   parameters: none
   problemMessage: "Static fields can't be declared 'abstract'."
-  analyzerCode: ParserErrorCode.ABSTRACT_STATIC_FIELD
+  analyzerCode: abstractStaticField
   hasPublishedDocs: false
   correctionMessage: "Try removing the 'abstract' or 'static' keyword."
   script:
     - "abstract class C {abstract static var f;}"
 
-AbstractLateField:
+abstractLateField:
   type: syntacticError
   parameters: none
   problemMessage: "Abstract fields cannot be late."
-  analyzerCode: ParserErrorCode.ABSTRACT_LATE_FIELD
+  analyzerCode: abstractLateField
   hasPublishedDocs: false
   correctionMessage: "Try removing the 'abstract' or 'late' keyword."
   script:
     - "abstract class C {abstract late var f;}"
 
-AbstractFinalBaseClass:
+abstractFinalBaseClass:
   type: syntacticError
   parameters: none
   problemMessage: "An 'abstract' class can't be declared as both 'final' and 'base'."
   correctionMessage: "Try removing either the 'final' or 'base' keyword."
-  analyzerCode: ParserErrorCode.ABSTRACT_FINAL_BASE_CLASS
+  analyzerCode: abstractFinalBaseClass
   hasPublishedDocs: false
   script:
     - "abstract final base class C {}"
 
-AbstractFinalInterfaceClass:
+abstractFinalInterfaceClass:
   type: syntacticError
   parameters: none
   problemMessage: "An 'abstract' class can't be declared as both 'final' and 'interface'."
   correctionMessage: "Try removing either the 'final' or 'interface' keyword."
-  analyzerCode: ParserErrorCode.ABSTRACT_FINAL_INTERFACE_CLASS
+  analyzerCode: abstractFinalInterfaceClass
   hasPublishedDocs: false
   script:
     - "abstract final interface class C {}"
 
-AbstractSealedClass:
+abstractSealedClass:
   type: syntacticError
   parameters: none
   problemMessage: "A 'sealed' class can't be marked 'abstract' because it's already implicitly abstract."
   correctionMessage: "Try removing the 'abstract' keyword."
-  analyzerCode: ParserErrorCode.ABSTRACT_SEALED_CLASS
+  analyzerCode: abstractSealedClass
   hasPublishedDocs: true
   documentation: |-
     #### Description
@@ -673,73 +673,73 @@ AbstractSealedClass:
     - "sealed abstract class C {}"
     - "abstract sealed class C {}"
 
-ClassInClass:
+classInClass:
   type: syntacticError
   parameters: none
   problemMessage: "Classes can't be declared inside other classes."
   correctionMessage: "Try moving the class to the top-level."
-  analyzerCode: ParserErrorCode.CLASS_IN_CLASS
+  analyzerCode: classInClass
   hasPublishedDocs: false
   script:
     - "class C { class B {} }"
 
-EnumInClass:
+enumInClass:
   type: syntacticError
   parameters: none
   problemMessage: "Enums can't be declared inside classes."
   correctionMessage: "Try moving the enum to the top-level."
-  analyzerCode: ParserErrorCode.ENUM_IN_CLASS
+  analyzerCode: enumInClass
   hasPublishedDocs: false
   script:
     - "class Foo { enum Bar { Bar1, Bar2, Bar3 } }"
 
-TypedefInClass:
+typedefInClass:
   type: syntacticError
   parameters: none
   problemMessage: "Typedefs can't be declared inside classes."
   correctionMessage: "Try moving the typedef to the top-level."
-  analyzerCode: ParserErrorCode.TYPEDEF_IN_CLASS
+  analyzerCode: typedefInClass
   hasPublishedDocs: false
   script:
     - "abstract class C { typedef int F(int x); }"
 
-CovariantMember:
+covariantMember:
   type: syntacticError
   parameters: none
   problemMessage: "Getters, setters and methods can't be declared to be 'covariant'."
   correctionMessage: "Try removing the 'covariant' keyword."
-  analyzerCode: ParserErrorCode.COVARIANT_MEMBER
+  analyzerCode: covariantMember
   hasPublishedDocs: false
   script:
     - "class A { covariant get x => 0; }"
     - "class A { covariant int m() => 0; }"
 
-VarReturnType:
+varReturnType:
   type: syntacticError
   parameters: none
   problemMessage: "The return type can't be 'var'."
   correctionMessage: "Try removing the keyword 'var', or replacing it with the name of the return type."
-  analyzerCode: ParserErrorCode.VAR_RETURN_TYPE
+  analyzerCode: varReturnType
   hasPublishedDocs: false
   script:
     - "class C { var m() {} }"
     - "class C { var C() {} }"
 
-ConstClass:
+constClass:
   type: syntacticError
   parameters: none
   problemMessage: "Classes can't be declared to be 'const'."
   correctionMessage: "Try removing the 'const' keyword. If you're trying to indicate that instances of the class can be constants, place the 'const' keyword on  the class' constructor(s)."
-  analyzerCode: ParserErrorCode.CONST_CLASS
+  analyzerCode: constClass
   hasPublishedDocs: false
   script: "const class C {}"
 
-ConstAndFinal:
+constAndFinal:
   type: syntacticError
   parameters: none
   problemMessage: "Members can't be declared to be both 'const' and 'final'."
   correctionMessage: "Try removing either the 'const' or 'final' keyword."
-  analyzerCode: ParserErrorCode.CONST_AND_FINAL
+  analyzerCode: constAndFinal
   hasPublishedDocs: false
   declaration:
     - "class C { static const final int x = 5; }"
@@ -747,26 +747,26 @@ ConstAndFinal:
     - "const final int x = 5;"
     - "final const int x = 5;"
 
-ConflictingModifiers:
+conflictingModifiers:
   type: syntacticError
   parameters:
     String string: undocumented
     String string2: undocumented
   problemMessage: "Members can't be declared to be both '#string' and '#string2'."
   correctionMessage: "Try removing one of the keywords."
-  analyzerCode: ParserErrorCode.CONFLICTING_MODIFIERS
+  analyzerCode: conflictingModifiers
   hasPublishedDocs: false
   script:
     - "class C { const var x; }"
     - "class C { var const x; }"
   exampleAllowOtherCodes: true
 
-ConstFactory:
+constFactory:
   type: syntacticError
   parameters: none
   problemMessage: "Only redirecting factory constructors can be declared to be 'const'."
   correctionMessage: "Try removing the 'const' keyword, or replacing the body with '=' followed by a valid target."
-  analyzerCode: ParserErrorCode.CONST_FACTORY
+  analyzerCode: constFactory
   hasPublishedDocs: false
   script: |
     class C {
@@ -774,14 +774,14 @@ ConstFactory:
       const C.internal();
     }
 
-ModifierOutOfOrder:
+modifierOutOfOrder:
   type: syntacticError
   parameters:
     String string: undocumented
     String string2: undocumented
   problemMessage: "The modifier '#string' should be before the modifier '#string2'."
   correctionMessage: "Try re-ordering the modifiers."
-  analyzerCode: ParserErrorCode.MODIFIER_OUT_OF_ORDER
+  analyzerCode: modifierOutOfOrder
   hasPublishedDocs: false
   script:
     - "class C { factory const C() = prefix.B.foo; }"
@@ -793,12 +793,12 @@ ModifierOutOfOrder:
     - "var external foo; main(){}"
   exampleAllowOtherCodes: true
 
-TypeBeforeFactory:
+typeBeforeFactory:
   type: syntacticError
   parameters: none
   problemMessage: "Factory constructors cannot have a return type."
   correctionMessage: "Try removing the type appearing before 'factory'."
-  analyzerCode: ParserErrorCode.TYPE_BEFORE_FACTORY
+  analyzerCode: typeBeforeFactory
   hasPublishedDocs: false
   script: |
     class C {
@@ -806,34 +806,34 @@ TypeBeforeFactory:
       C.constructor();
     }
 
-ConstMethod:
+constMethod:
   type: syntacticError
   parameters: none
   problemMessage: "Getters, setters and methods can't be declared to be 'const'."
   correctionMessage: "Try removing the 'const' keyword."
-  analyzerCode: ParserErrorCode.CONST_METHOD
+  analyzerCode: constMethod
   hasPublishedDocs: false
   script:
     - "class C { const m() {} }"
 
-CovariantAndStatic:
+covariantAndStatic:
   type: syntacticError
   parameters: none
   problemMessage: "Members can't be declared to be both 'covariant' and 'static'."
   correctionMessage: "Try removing either the 'covariant' or 'static' keyword."
-  analyzerCode: ParserErrorCode.COVARIANT_AND_STATIC
+  analyzerCode: covariantAndStatic
   hasPublishedDocs: false
   script:
     - "class A {} class C { covariant static A? f; }"
     - "class A {} class C { static covariant A? f; }"
 
-DuplicatedModifier:
+duplicatedModifier:
   type: syntacticError
   parameters:
     Token lexeme: undocumented
   problemMessage: "The modifier '#lexeme' was already specified."
   correctionMessage: "Try removing all but one occurrence of the modifier."
-  analyzerCode: ParserErrorCode.DUPLICATED_MODIFIER
+  analyzerCode: duplicatedModifier
   hasPublishedDocs: false
   comment: |-
     Parameters:
@@ -846,12 +846,12 @@ DuplicatedModifier:
     - "class C { static static var m; }"
     - "class C { var var m; }"
 
-ExternalConstructorWithFieldInitializers:
+externalConstructorWithFieldInitializers:
   type: syntacticError
   parameters: none
   problemMessage: "An external constructor can't initialize fields."
   correctionMessage: "Try removing the field initializers, or removing the keyword 'external'."
-  analyzerCode: ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS
+  analyzerCode: externalConstructorWithFieldInitializers
   hasPublishedDocs: false
   script: |
     class Foo {
@@ -859,35 +859,35 @@ ExternalConstructorWithFieldInitializers:
       external Foo.x(this.x);
     }
 
-ExternalFactoryWithBody:
+externalFactoryWithBody:
   type: syntacticError
   parameters: none
   problemMessage: "External factories can't have a body."
   correctionMessage: "Try removing the body of the factory, or removing the keyword 'external'."
-  analyzerCode: ParserErrorCode.EXTERNAL_FACTORY_WITH_BODY
+  analyzerCode: externalFactoryWithBody
   hasPublishedDocs: false
   script:
     - "class C { external factory C() {} }"
   exampleAllowOtherCodes: true
 
-ExternalLateField:
+externalLateField:
   type: syntacticError
   parameters: none
   problemMessage: "External fields cannot be late."
-  analyzerCode: ParserErrorCode.EXTERNAL_LATE_FIELD
+  analyzerCode: externalLateField
   hasPublishedDocs: false
   correctionMessage: "Try removing the 'external' or 'late' keyword."
   script:
     - "external late var f;"
     - "abstract class C {external late var f;}"
 
-ExtraneousModifier:
+extraneousModifier:
   type: syntacticError
   parameters:
     Token lexeme: undocumented
   problemMessage: "Can't have modifier '#lexeme' here."
   correctionMessage: "Try removing '#lexeme'."
-  analyzerCode: ParserErrorCode.EXTRANEOUS_MODIFIER
+  analyzerCode: extraneousModifier
   hasPublishedDocs: false
   script:
     - "var abstract foo; main(){}"
@@ -903,13 +903,13 @@ ExtraneousModifier:
     - "static typedef foo();"
   exampleAllowOtherCodes: true
 
-ExtraneousModifierInExtension:
+extraneousModifierInExtension:
   type: syntacticError
   parameters:
     Token lexeme: undocumented
   problemMessage: "Can't have modifier '#lexeme' in an extension."
   correctionMessage: "Try removing '#lexeme'."
-  analyzerCode: ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION
+  analyzerCode: invalidUseOfCovariantInExtension
   hasPublishedDocs: true
   comment: No parameters.
   documentation: |-
@@ -943,141 +943,141 @@ ExtraneousModifierInExtension:
   script:
     - "extension on String { foo(covariant String child) {} }"
 
-ExtraneousModifierInExtensionType:
+extraneousModifierInExtensionType:
   type: syntacticError
   parameters:
     Token lexeme: undocumented
   problemMessage: "Can't have modifier '#lexeme' in an extension type."
   correctionMessage: "Try removing '#lexeme'."
-  analyzerCode: ParserErrorCode.EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE
+  analyzerCode: extraneousModifierInExtensionType
   hasPublishedDocs: false
   script:
     - "extension type ET(String i) { foo(covariant String child) {} }"
 
-ExtraneousModifierInPrimaryConstructor:
+extraneousModifierInPrimaryConstructor:
   type: syntacticError
   parameters:
     Token lexeme: undocumented
   problemMessage: "Can't have modifier '#lexeme' in a primary constructor."
   correctionMessage: "Try removing '#lexeme'."
-  analyzerCode: ParserErrorCode.EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+  analyzerCode: extraneousModifierInPrimaryConstructor
   hasPublishedDocs: false
   script:
     - "extension type ET(covariant String i) { }"
 
-FinalAndCovariant:
+finalAndCovariant:
   type: syntacticError
   parameters: none
   problemMessage: "Members can't be declared to be both 'final' and 'covariant'."
   correctionMessage: "Try removing either the 'final' or 'covariant' keyword."
-  analyzerCode: ParserErrorCode.FINAL_AND_COVARIANT
+  analyzerCode: finalAndCovariant
   hasPublishedDocs: false
   script:
     - "class C { covariant final f = 5; }"
     - "class C { final covariant f = 5; }"
   exampleAllowOtherCodes: true
 
-FinalAndCovariantLateWithInitializer:
+finalAndCovariantLateWithInitializer:
   type: syntacticError
   parameters: none
   problemMessage: "Members marked 'late' with an initializer can't be declared to be both 'final' and 'covariant'."
   correctionMessage: "Try removing either the 'final' or 'covariant' keyword, or removing the initializer."
-  analyzerCode: ParserErrorCode.FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER
+  analyzerCode: finalAndCovariantLateWithInitializer
   hasPublishedDocs: false
   # Weak and strong doesn't matter in this instance.
   script:
     - "class C { covariant late final f = 5; }"
 
-FinalAndVar:
+finalAndVar:
   type: syntacticError
   parameters: none
   problemMessage: "Members can't be declared to be both 'final' and 'var'."
   correctionMessage: "Try removing the keyword 'var'."
-  analyzerCode: ParserErrorCode.FINAL_AND_VAR
+  analyzerCode: finalAndVar
   hasPublishedDocs: false
   script:
     - "class C { final var x = 5; }"
     - "class C { var final x = 5; }"
 
-StaticConstructor:
+staticConstructor:
   type: syntacticError
   parameters: none
   problemMessage: "Constructors can't be static."
   correctionMessage: "Try removing the keyword 'static'."
-  analyzerCode: ParserErrorCode.STATIC_CONSTRUCTOR
+  analyzerCode: staticConstructor
   hasPublishedDocs: false
   script:
     - "class C { static C() {} }"
     - "class C { static C.m() {} }"
 
-GetterConstructor:
+getterConstructor:
   type: syntacticError
   parameters: none
   problemMessage: "Constructors can't be a getter."
   correctionMessage: "Try removing 'get'."
-  analyzerCode: ParserErrorCode.GETTER_CONSTRUCTOR
+  analyzerCode: getterConstructor
   hasPublishedDocs: false
   script:
     - "class C { get C.m() {} }"
 
-SetterConstructor:
+setterConstructor:
   type: syntacticError
   parameters: none
   problemMessage: "Constructors can't be a setter."
   correctionMessage: "Try removing 'set'."
-  analyzerCode: ParserErrorCode.SETTER_CONSTRUCTOR
+  analyzerCode: setterConstructor
   hasPublishedDocs: false
   script:
     - "class C { set C.m(x) {} }"
 
-StaticOperator:
+staticOperator:
   type: syntacticError
   parameters: none
   problemMessage: "Operators can't be static."
   correctionMessage: "Try removing the keyword 'static'."
-  analyzerCode: ParserErrorCode.STATIC_OPERATOR
+  analyzerCode: staticOperator
   hasPublishedDocs: false
   script:
     - "class C { static operator +(int x) => x + 1; }"
 
-BreakOutsideOfLoop:
+breakOutsideOfLoop:
   type: syntacticError
   parameters: none
   problemMessage: "A break statement can't be used outside of a loop or switch statement."
   correctionMessage: "Try removing the break statement."
-  analyzerCode: ParserErrorCode.BREAK_OUTSIDE_OF_LOOP
+  analyzerCode: breakOutsideOfLoop
   hasPublishedDocs: false
   script:
     - "main() { break; }"
 
-ContinueOutsideOfLoop:
+continueOutsideOfLoop:
   type: syntacticError
   parameters: none
   problemMessage: "A continue statement can't be used outside of a loop or switch statement."
   correctionMessage: "Try removing the continue statement."
-  analyzerCode: ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP
+  analyzerCode: continueOutsideOfLoop
   hasPublishedDocs: false
   script:
     - "main() { continue; }"
   exampleAllowOtherCodes: true
 
-ContinueWithoutLabelInCase:
+continueWithoutLabelInCase:
   type: syntacticError
   parameters: none
   problemMessage: "A continue statement in a switch statement must have a label as a target."
   correctionMessage: "Try adding a label associated with one of the case clauses to the continue statement."
-  analyzerCode: ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE
+  analyzerCode: continueWithoutLabelInCase
   hasPublishedDocs: false
   script:
     - "main(List<String> x) { switch (x) {case 1: continue;} }"
 
-DuplicateLabelInSwitchStatement:
+duplicateLabelInSwitchStatement:
   type: syntacticError
   parameters:
     Name name: undocumented
   problemMessage: "The label '#name' was already used in this switch statement."
   correctionMessage: "Try choosing a different name for this label."
-  analyzerCode: ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT
+  analyzerCode: duplicateLabelInSwitchStatement
   hasPublishedDocs: false
   comment: |-
     Parameters:
@@ -1085,44 +1085,44 @@ DuplicateLabelInSwitchStatement:
   statement:
     - "switch (0) {l1: case 0: break; l1: case 1: break;}"
 
-InitializedVariableInForEach:
+initializedVariableInForEach:
   type: syntacticError
   parameters: none
   problemMessage: "The loop variable in a for-each loop can't be initialized."
   correctionMessage: "Try removing the initializer, or using a different kind of loop."
-  analyzerCode: ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH
+  analyzerCode: initializedVariableInForEach
   hasPublishedDocs: false
   statement:
     - "for (int a = 0 in <int>[10]) {}"
 
-InvalidAwaitFor:
+invalidAwaitFor:
   type: syntacticError
   parameters: none
   problemMessage: "The keyword 'await' isn't allowed for a normal 'for' statement."
   correctionMessage: "Try removing the keyword, or use a for-each statement."
-  analyzerCode: ParserErrorCode.INVALID_AWAIT_IN_FOR
+  analyzerCode: invalidAwaitInFor
   hasPublishedDocs: false
   script:
     - "f() async {await for (int i = 0; i < 5; i++) {}}"
 
-VoidWithTypeArguments:
+voidWithTypeArguments:
   type: syntacticError
   parameters: none
   problemMessage: "Type 'void' can't have type arguments."
   correctionMessage: "Try removing the type arguments."
-  analyzerCode: ParserErrorCode.VOID_WITH_TYPE_ARGUMENTS
+  analyzerCode: voidWithTypeArguments
   hasPublishedDocs: false
   script:
     - "void<int> f() {}"
 
 # TODO(danrubel): Review where this error is generated and consider generating
 # FieldInitializedOutsideDeclaringClass instead of this in some situations.
-InvalidInitializer:
+invalidInitializer:
   type: syntacticError
   parameters: none
   problemMessage: "Not a valid initializer."
   correctionMessage: "To initialize a field, use the syntax 'name = value'."
-  analyzerCode: ParserErrorCode.INVALID_INITIALIZER
+  analyzerCode: invalidInitializer
   hasPublishedDocs: false
   script: |
     class A {
@@ -1134,58 +1134,58 @@ InvalidInitializer:
     }
   exampleAllowOtherCodes: true
 
-FieldInitializedOutsideDeclaringClass:
+fieldInitializedOutsideDeclaringClass:
   type: syntacticError
   parameters: none
   problemMessage: "A field can only be initialized in its declaring class"
   correctionMessage: "Try passing a value into the superclass constructor, or moving the initialization into the constructor body."
-  analyzerCode: ParserErrorCode.FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS
+  analyzerCode: fieldInitializedOutsideDeclaringClass
   hasPublishedDocs: false
   script:
     - "class A { int a; } class C extends A { C() : super.a = 42; }"
   exampleAllowOtherCodes: true
 
-StackOverflow:
+stackOverflow:
   type: syntacticError
   parameters: none
   problemMessage: "The file has too many nested expressions or statements."
   correctionMessage: "Try simplifying the code."
-  analyzerCode: ParserErrorCode.STACK_OVERFLOW
+  analyzerCode: stackOverflow
   hasPublishedDocs: false
 
-InvalidHexEscape:
+invalidHexEscape:
   type: syntacticError
   parameters: none
   problemMessage: "An escape sequence starting with '\\x' must be followed by 2 hexadecimal digits."
-  analyzerCode: ParserErrorCode.INVALID_HEX_ESCAPE
+  analyzerCode: invalidHexEscape
   hasPublishedDocs: false
   expression:
     - "'\\x0'"
     - "'\\x0y'"
 
-InvalidUnicodeEscapeUStarted:
+invalidUnicodeEscapeUStarted:
   type: syntacticError
   parameters: none
   problemMessage: "An escape sequence starting with '\\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'."
-  analyzerCode: ParserErrorCode.INVALID_UNICODE_ESCAPE_U_STARTED
+  analyzerCode: invalidUnicodeEscapeUStarted
   hasPublishedDocs: false
   expression:
     - "'\\u'"
 
-InvalidUnicodeEscapeUNoBracket:
+invalidUnicodeEscapeUNoBracket:
   type: syntacticError
   parameters: none
   problemMessage: "An escape sequence starting with '\\u' must be followed by 4 hexadecimal digits."
-  analyzerCode: ParserErrorCode.INVALID_UNICODE_ESCAPE_U_NO_BRACKET
+  analyzerCode: invalidUnicodeEscapeUNoBracket
   hasPublishedDocs: false
   expression:
     - "'\\u0F'"
 
-InvalidUnicodeEscapeUBracket:
+invalidUnicodeEscapeUBracket:
   type: syntacticError
   parameters: none
   problemMessage: "An escape sequence starting with '\\u{' must be followed by 1 to 6 hexadecimal digits followed by a '}'."
-  analyzerCode: ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET
+  analyzerCode: invalidUnicodeEscapeUBracket
   hasPublishedDocs: false
   expression:
     - "'\\u{'"
@@ -1193,12 +1193,12 @@ InvalidUnicodeEscapeUBracket:
     - "'\\u{0Z}'"
     - "'\\u{0000003}'"
 
-InvalidEscapeStarted:
+invalidEscapeStarted:
   type: syntacticError
   parameters: none
   problemMessage: "The string '\\' can't stand alone."
   correctionMessage: "Try adding another backslash (\\) to escape the '\\'."
-  analyzerCode: ParserErrorCode.INVALID_UNICODE_ESCAPE_STARTED
+  analyzerCode: invalidUnicodeEscapeStarted
   hasPublishedDocs: false
   exampleAllowOtherCodes: true
   expression:
@@ -1206,22 +1206,22 @@ InvalidEscapeStarted:
       print('Hello, World!\
       ');
 
-UnexpectedTokens:
+unexpectedTokens:
   type: syntacticError
   parameters: none
   problemMessage: "Unexpected tokens."
-  analyzerCode: ParserErrorCode.UNEXPECTED_TOKENS
+  analyzerCode: unexpectedTokens
   hasPublishedDocs: false
   script: "enum E w Foo { v; }"
 
-LiteralWithClassAndNew:
+literalWithClassAndNew:
   type: syntacticError
   parameters:
     String string: undocumented
     Token lexeme: undocumented
   problemMessage: "A #string literal can't be prefixed by 'new #lexeme'."
   correctionMessage: "Try removing 'new' and '#lexeme'"
-  analyzerCode: ParserErrorCode.LITERAL_WITH_CLASS_AND_NEW
+  analyzerCode: literalWithClassAndNew
   hasPublishedDocs: false
   script:
     - "var x = new Map{};"
@@ -1231,14 +1231,14 @@ LiteralWithClassAndNew:
     - "var x = new Set{1};"
     - "var x = new List[1];"
 
-LiteralWithClass:
+literalWithClass:
   type: syntacticError
   parameters:
     String string: undocumented
     Token lexeme: undocumented
   problemMessage: "A #string literal can't be prefixed by '#lexeme'."
   correctionMessage: "Try removing '#lexeme'"
-  analyzerCode: ParserErrorCode.LITERAL_WITH_CLASS
+  analyzerCode: literalWithClass
   hasPublishedDocs: false
   script:
     - "var x = Map{};"
@@ -1254,12 +1254,12 @@ LiteralWithClass:
     - "var x = const Set{1};"
     - "var x = const List[1];"
 
-LiteralWithNew:
+literalWithNew:
   type: syntacticError
   parameters: none
   problemMessage: "A literal can't be prefixed by 'new'."
   correctionMessage: "Try removing 'new'"
-  analyzerCode: ParserErrorCode.LITERAL_WITH_NEW
+  analyzerCode: literalWithNew
   hasPublishedDocs: false
   script:
     - "var x = new <String, String>{};"
@@ -1272,54 +1272,54 @@ LiteralWithNew:
     - "var x = new {'a'};"
     - "var x = new ['a'];"
 
-OnlyTry:
+onlyTry:
   type: syntacticError
   parameters: none
   problemMessage: "A try block must be followed by an 'on', 'catch', or 'finally' clause."
   correctionMessage: "Try adding either a catch or finally clause, or remove the try statement."
-  analyzerCode: ParserErrorCode.MISSING_CATCH_OR_FINALLY
+  analyzerCode: missingCatchOrFinally
   hasPublishedDocs: false
   statement: "try {}"
 
-TypeAfterVar:
+typeAfterVar:
   type: syntacticError
   parameters: none
   problemMessage: "Variables can't be declared using both 'var' and a type name."
   correctionMessage: "Try removing 'var.'"
-  analyzerCode: ParserErrorCode.VAR_AND_TYPE
+  analyzerCode: varAndType
   hasPublishedDocs: false
   script:
     - "var String foo; main(){}"
   exampleAllowOtherCodes: true
 
-CatchSyntax:
+catchSyntax:
   type: syntacticError
   parameters: none
   problemMessage: "'catch' must be followed by '(identifier)' or '(identifier, identifier)'."
   correctionMessage: "No types are needed, the first is given by 'on', the second is always 'StackTrace'."
-  analyzerCode: ParserErrorCode.CATCH_SYNTAX
+  analyzerCode: catchSyntax
   hasPublishedDocs: false
   statement:
     - "try {} catch {}"
     - "try {} catch () {}"
     - "try {} catch (e,) {}"
 
-CatchSyntaxExtraParameters:
+catchSyntaxExtraParameters:
   type: syntacticError
   parameters: none
   problemMessage: "'catch' must be followed by '(identifier)' or '(identifier, identifier)'."
   correctionMessage: "No types are needed, the first is given by 'on', the second is always 'StackTrace'."
-  analyzerCode: ParserErrorCode.CATCH_SYNTAX_EXTRA_PARAMETERS
+  analyzerCode: catchSyntaxExtraParameters
   hasPublishedDocs: false
   statement:
     - "try {} catch (e, s, x) {}"
 
-SuperNullAware:
+superNullAware:
   type: syntacticError
   parameters: none
   problemMessage: "The operator '?.' cannot be used with 'super' because 'super' cannot be null."
   correctionMessage: "Try replacing '?.' with '.'"
-  analyzerCode: ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+  analyzerCode: invalidOperatorQuestionmarkPeriodForSuper
   hasPublishedDocs: false
   script: |
     class Super {
@@ -1330,12 +1330,12 @@ SuperNullAware:
     }
   exampleAllowOtherCodes: true
 
-NullAwareCascadeOutOfOrder:
+nullAwareCascadeOutOfOrder:
   type: syntacticError
   parameters: none
   problemMessage: "The '?..' cascade operator must be first in the cascade sequence."
   correctionMessage: "Try moving the '?..' operator to be the first cascade operator in the sequence."
-  analyzerCode: ParserErrorCode.NULL_AWARE_CASCADE_OUT_OF_ORDER
+  analyzerCode: nullAwareCascadeOutOfOrder
   hasPublishedDocs: false
   script: |
     void foo(int? x) {
@@ -1345,11 +1345,11 @@ NullAwareCascadeOutOfOrder:
     }
   exampleAllowOtherCodes: true
 
-MetadataTypeArguments:
+metadataTypeArguments:
   type: syntacticError
   parameters: none
   problemMessage: "An annotation can't use type arguments."
-  analyzerCode: ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS
+  analyzerCode: annotationWithTypeArguments
   hasPublishedDocs: false
   script: |
     // @dart=2.12
@@ -1359,21 +1359,21 @@ MetadataTypeArguments:
     @C<int>() // Error
     void foo() {}
 
-MetadataTypeArgumentsUninstantiated:
+metadataTypeArgumentsUninstantiated:
   type: syntacticError
   parameters: none
   problemMessage: "An annotation with type arguments must be followed by an argument list."
-  analyzerCode: ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED
+  analyzerCode: annotationWithTypeArgumentsUninstantiated
   hasPublishedDocs: false
   script:
     - "@deprecated<int> class C {}"
 
-MetadataSpaceBeforeParenthesis:
+metadataSpaceBeforeParenthesis:
   type: syntacticError
   parameters: none
   problemMessage: "Annotations can't have spaces or comments before the parenthesis."
   correctionMessage: Remove any spaces or comments before the parenthesis.
-  analyzerCode: ParserErrorCode.ANNOTATION_SPACE_BEFORE_PARENTHESIS
+  analyzerCode: annotationSpaceBeforeParenthesis
   hasPublishedDocs: false
   script:
     - >-
@@ -1387,22 +1387,22 @@ MetadataSpaceBeforeParenthesis:
       }
       @Foo () class Bar {}
 
-ConstructorWithReturnType:
+constructorWithReturnType:
   type: syntacticError
   parameters: none
   problemMessage: "Constructors can't have a return type."
   correctionMessage: "Try removing the return type."
-  analyzerCode: ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE
+  analyzerCode: constructorWithReturnType
   hasPublishedDocs: false
   script:
     - "class C { int C() {} }"
     - "class C { void C.m() {} }"
 
-ConstructorWithTypeParameters:
+constructorWithTypeParameters:
   type: syntacticError
   parameters: none
   problemMessage: "Constructors can't have type parameters."
-  analyzerCode: ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR
+  analyzerCode: typeParameterOnConstructor
   hasPublishedDocs: false
   correctionMessage: "Try removing the type parameters."
   script:
@@ -1421,22 +1421,22 @@ ConstructorWithTypeParameters:
         C.internal();
       }
 
-ConstructorWithTypeArguments:
+constructorWithTypeArguments:
   type: syntacticError
   parameters: none
   problemMessage: "A constructor invocation can't have type arguments after the constructor name."
   correctionMessage: "Try removing the type arguments or placing them after the class name."
-  analyzerCode: ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS
+  analyzerCode: constructorWithTypeArguments
   hasPublishedDocs: false
   script:
     - "class C<X> { C.foo(); } bar() { new C.foo<int>(); }"
     - "class C<X> { C.foo(); } bar() { C.foo<int>(); }"
 
-ConstructorWithWrongName:
+constructorWithWrongName:
   type: syntacticError
   parameters: none
   problemMessage: "The name of a constructor must match the name of the enclosing class."
-  analyzerCode: ParserErrorCode.INVALID_CONSTRUCTOR_NAME
+  analyzerCode: invalidConstructorName
   hasPublishedDocs: false
   script:
     - >-
@@ -1452,12 +1452,12 @@ ConstructorWithWrongName:
         A.internal();
       }
 
-FieldInitializerOutsideConstructor:
+fieldInitializerOutsideConstructor:
   type: compileTimeError
   parameters: none
   problemMessage: "Field formal parameters can only be used in a constructor."
   correctionMessage: "Try removing 'this.'."
-  analyzerCode: CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
+  analyzerCode: fieldInitializerOutsideConstructor
   hasPublishedDocs: true
   documentation: |-
     #### Description
@@ -1497,86 +1497,86 @@ FieldInitializerOutsideConstructor:
     - "class C { void m(this.x); }"
   exampleAllowOtherCodes: true
 
-NativeClauseShouldBeAnnotation:
+nativeClauseShouldBeAnnotation:
   type: syntacticError
   parameters: none
   problemMessage: "Native clause in this form is deprecated."
   correctionMessage: "Try removing this native clause and adding @native() or @native('native-name') before the declaration."
-  analyzerCode: ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION
+  analyzerCode: nativeClauseShouldBeAnnotation
   hasPublishedDocs: false
 
-MissingPrefixInDeferredImport:
+missingPrefixInDeferredImport:
   type: syntacticError
   parameters: none
   problemMessage: "Deferred imports should have a prefix."
   correctionMessage: "Try adding a prefix to the import by adding an 'as' clause."
-  analyzerCode: ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT
+  analyzerCode: missingPrefixInDeferredImport
   hasPublishedDocs: false
   script:
     main.dart: |
       import 'lib.dart' deferred;
     lib.dart: ""
 
-DeferredAfterPrefix:
+deferredAfterPrefix:
   type: syntacticError
   parameters: none
   problemMessage: "The deferred keyword should come immediately before the prefix ('as' clause)."
   correctionMessage: "Try moving the deferred keyword before the prefix."
-  analyzerCode: ParserErrorCode.DEFERRED_AFTER_PREFIX
+  analyzerCode: deferredAfterPrefix
   hasPublishedDocs: false
   script:
     main.dart: |
       import "lib.dart" as foo deferred;
     lib.dart: ""
 
-DuplicateDeferred:
+duplicateDeferred:
   type: syntacticError
   parameters: none
   problemMessage: "An import directive can only have one 'deferred' keyword."
   correctionMessage: "Try removing all but one 'deferred' keyword."
-  analyzerCode: ParserErrorCode.DUPLICATE_DEFERRED
+  analyzerCode: duplicateDeferred
   hasPublishedDocs: false
   script:
     main.dart: |
       import "lib.dart" deferred as foo deferred;
     lib.dart: ""
 
-DuplicatePrefix:
+duplicatePrefix:
   type: syntacticError
   parameters: none
   problemMessage: "An import directive can only have one prefix ('as' clause)."
   correctionMessage: "Try removing all but one prefix."
-  analyzerCode: ParserErrorCode.DUPLICATE_PREFIX
+  analyzerCode: duplicatePrefix
   hasPublishedDocs: false
   script:
     main.dart: |
       import "lib.dart" as foo as bar;
     lib.dart: ""
 
-PrefixAfterCombinator:
+prefixAfterCombinator:
   type: syntacticError
   parameters: none
   problemMessage: "The prefix ('as' clause) should come before any show/hide combinators."
   correctionMessage: "Try moving the prefix before the combinators."
-  analyzerCode: ParserErrorCode.PREFIX_AFTER_COMBINATOR
+  analyzerCode: prefixAfterCombinator
   hasPublishedDocs: false
   script:
     main.dart: |
       import "lib.dart" show Foo hide Foo as Foo;
     lib.dart: ""
 
-MixinDeclaresConstructor:
+mixinDeclaresConstructor:
   type: syntacticError
   parameters: none
   problemMessage: "Mixins can't declare constructors."
-  analyzerCode: ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR
+  analyzerCode: mixinDeclaresConstructor
   hasPublishedDocs: false
   script: |
     mixin M {
       const M();
     }
 
-ExtensionDeclaresAbstractMember:
+extensionDeclaresAbstractMember:
   type: syntacticError
   parameters: none
   problemMessage: "Extensions can't declare abstract members."
@@ -1585,7 +1585,7 @@ ExtensionDeclaresAbstractMember:
     extension E on int {
       void method();
     }
-  analyzerCode: ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER
+  analyzerCode: extensionDeclaresAbstractMember
   comment: No parameters.
   documentation: |-
     #### Description
@@ -1609,7 +1609,7 @@ ExtensionDeclaresAbstractMember:
     Either provide an implementation for the member or remove it.
   hasPublishedDocs: true
 
-ExtensionDeclaresConstructor:
+extensionDeclaresConstructor:
   type: syntacticError
   parameters: none
   problemMessage: "Extensions can't declare constructors."
@@ -1618,7 +1618,7 @@ ExtensionDeclaresConstructor:
     extension E on int {
       E();
     }
-  analyzerCode: ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR
+  analyzerCode: extensionDeclaresConstructor
   comment: No parameters.
   documentation: |-
     #### Description
@@ -1644,83 +1644,83 @@ ExtensionDeclaresConstructor:
     Remove the constructor or replace it with a static method.
   hasPublishedDocs: true
 
-ExtensionAugmentationHasOnClause:
+extensionAugmentationHasOnClause:
   type: syntacticError
   parameters: none
   problemMessage: "Extension augmentations can't have 'on' clauses."
   correctionMessage: "Try removing the 'on' clause."
-  analyzerCode: ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE
+  analyzerCode: extensionAugmentationHasOnClause
   hasPublishedDocs: false
   script: |
     augment extension E on int {}
   comment: No parameters.
 
-AnnotationOnTypeArgument:
+annotationOnTypeArgument:
   type: syntacticError
   parameters: none
   problemMessage: "Type arguments can't have annotations because they aren't declarations."
-  analyzerCode: ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT
+  analyzerCode: annotationOnTypeArgument
   hasPublishedDocs: false
   script:
     - "class A<E> {} class C { m() => new A<@Object() C>(); }"
 
-ExternalClass:
+externalClass:
   type: syntacticError
   parameters: none
   problemMessage: "Classes can't be declared to be 'external'."
   correctionMessage: "Try removing the keyword 'external'."
-  analyzerCode: ParserErrorCode.EXTERNAL_CLASS
+  analyzerCode: externalClass
   hasPublishedDocs: false
   script:
     - "external class C {}"
 
-ExternalEnum:
+externalEnum:
   type: syntacticError
   parameters: none
   problemMessage: "Enums can't be declared to be 'external'."
   correctionMessage: "Try removing the keyword 'external'."
-  analyzerCode: ParserErrorCode.EXTERNAL_ENUM
+  analyzerCode: externalEnum
   hasPublishedDocs: false
   script:
     - "external enum E {ONE}"
 
-ExternalMethodWithBody:
+externalMethodWithBody:
   type: syntacticError
   parameters: none
   problemMessage: "An external or native method can't have a body."
-  analyzerCode: ParserErrorCode.EXTERNAL_METHOD_WITH_BODY
+  analyzerCode: externalMethodWithBody
   hasPublishedDocs: false
   script:
     - "class C {external foo() {}}"
     - "class C {foo() native {}}"
     - "class C {foo() native 'bar' {}}"
 
-ExternalConstructorWithInitializer:
+externalConstructorWithInitializer:
   type: syntacticError
   parameters: none
   problemMessage: "An external constructor can't have any initializers."
-  analyzerCode: ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER
+  analyzerCode: externalConstructorWithInitializer
   hasPublishedDocs: false
   script:
     - "class C { int? x; external C() : x = 1; }"
     - "class C { int? x; external C.foo() : x = 1; }"
 
-ExternalTypedef:
+externalTypedef:
   type: syntacticError
   parameters: none
   problemMessage: "Typedefs can't be declared to be 'external'."
   correctionMessage: "Try removing the keyword 'external'."
-  analyzerCode: ParserErrorCode.EXTERNAL_TYPEDEF
+  analyzerCode: externalTypedef
   hasPublishedDocs: false
   script:
     - "external typedef F();"
 
-OperatorWithTypeParameters:
+operatorWithTypeParameters:
   type: syntacticError
   parameters: none
   problemMessage: "Types parameters aren't allowed when defining an operator."
   correctionMessage: "Try removing the type parameters."
-  analyzerCode: ParserErrorCode.TYPE_PARAMETER_ON_OPERATOR
+  analyzerCode: typeParameterOnOperator
   hasPublishedDocs: false
   comment: |-
     7.1.1 Operators: Type parameters are not syntactically supported on an
@@ -1728,12 +1728,12 @@ OperatorWithTypeParameters:
   script:
     - "class C { operator []<T>(T t) => null; }"
 
-LibraryDirectiveNotFirst:
+libraryDirectiveNotFirst:
   type: syntacticError
   parameters: none
   problemMessage: "The library directive must appear before all other directives."
   correctionMessage: "Try moving the library directive before any other directives."
-  analyzerCode: ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST
+  analyzerCode: libraryDirectiveNotFirst
   hasPublishedDocs: false
   script:
     - "class Foo{} library l;"
@@ -1741,34 +1741,34 @@ LibraryDirectiveNotFirst:
     - "part 'a.dart'; library l;"
   exampleAllowOtherCodes: true
 
-ImportAfterPart:
+importAfterPart:
   type: syntacticError
   parameters: none
   problemMessage: "Import directives must precede part directives."
   correctionMessage: "Try moving the import directives before the part directives."
-  analyzerCode: ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
+  analyzerCode: importDirectiveAfterPartDirective
   hasPublishedDocs: false
   script:
     - "part 'foo.dart'; import 'bar.dart';"
   exampleAllowOtherCodes: true
 
-ExportAfterPart:
+exportAfterPart:
   type: syntacticError
   parameters: none
   problemMessage: "Export directives must precede part directives."
   correctionMessage: "Try moving the export directives before the part directives."
-  analyzerCode: ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
+  analyzerCode: exportDirectiveAfterPartDirective
   hasPublishedDocs: false
   exampleAllowOtherCodes: true
   script:
     - "part 'foo.dart'; export 'bar.dart';"
 
-DirectiveAfterDeclaration:
+directiveAfterDeclaration:
   type: syntacticError
   parameters: none
   problemMessage: "Directives must appear before any declarations."
   correctionMessage: "Try moving the directive before any declarations."
-  analyzerCode: ParserErrorCode.DIRECTIVE_AFTER_DECLARATION
+  analyzerCode: directiveAfterDeclaration
   hasPublishedDocs: false
   script:
     - main.dart: |
@@ -1780,12 +1780,12 @@ DirectiveAfterDeclaration:
         export 'bar.dart';
       bar.dart: ""
 
-PartOfTwice:
+partOfTwice:
   type: syntacticError
   parameters: none
   problemMessage: "Only one part-of directive may be declared in a file."
   correctionMessage: "Try removing all but one of the part-of directives."
-  analyzerCode: ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES
+  analyzerCode: multiplePartOfDirectives
   hasPublishedDocs: false
   script:
     - main.dart: |
@@ -1807,46 +1807,46 @@ PartOfTwice:
         part of "main.dart";
         part of "main.dart";
 
-FactoryTopLevelDeclaration:
+factoryTopLevelDeclaration:
   type: syntacticError
   parameters: none
   problemMessage: "Top-level declarations can't be declared to be 'factory'."
   correctionMessage: "Try removing the keyword 'factory'."
-  analyzerCode: ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION
+  analyzerCode: factoryTopLevelDeclaration
   hasPublishedDocs: false
   script:
     - "factory class C {}"
 
-RedirectionInNonFactory:
+redirectionInNonFactory:
   type: syntacticError
   parameters: none
   problemMessage: "Only factory constructor can specify '=' redirection."
   correctionMessage: "Try making this a factory constructor, or remove the redirection."
-  analyzerCode: ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR
+  analyzerCode: redirectionInNonFactoryConstructor
   hasPublishedDocs: false
   script:
     - "class C { C() = D; }"
   exampleAllowOtherCodes: true
 
-TopLevelOperator:
+topLevelOperator:
   type: syntacticError
   parameters: none
   problemMessage: "Operators must be declared within a class."
   correctionMessage: "Try removing the operator, moving it to a class, or converting it to be a function."
-  analyzerCode: ParserErrorCode.TOP_LEVEL_OPERATOR
+  analyzerCode: topLevelOperator
   hasPublishedDocs: false
   script:
     - "operator +(bool x, bool y) => x | y;"
     - "bool operator +(bool x, bool y) => x | y;"
     - "void operator +(bool x, bool y) => x | y;"
 
-TypeArgumentsOnTypeVariable:
+typeArgumentsOnTypeVariable:
   type: syntacticError
   parameters:
     Name name: undocumented
   problemMessage: "Can't use type arguments with type variable '#name'."
   correctionMessage: "Try removing the type arguments."
-  analyzerCode: ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE
+  analyzerCode: typeArgumentsOnTypeVariable
   hasPublishedDocs: false
   script:
     - "void method<S>(S<int> a) {}"
@@ -1866,12 +1866,12 @@ TypeArgumentsOnTypeVariable:
 # definition. Similarly, imported names are declarations, not
 # definitions. Consequently, it is more convenient to use the word
 # "declaration" instead of "definition" as the former implies less.
-MemberWithSameNameAsClass:
+memberWithSameNameAsClass:
   type: syntacticError
   parameters: none
   problemMessage: "A class member can't have the same name as the enclosing class."
   correctionMessage: "Try renaming the member."
-  analyzerCode: ParserErrorCode.MEMBER_WITH_CLASS_NAME
+  analyzerCode: memberWithClassName
   hasPublishedDocs: false
   script:
     - "class C { get C {} }"
@@ -1881,22 +1881,22 @@ MemberWithSameNameAsClass:
     - "class C { int? C; }"
     - "class C { int? A, B, C, D, E; }"
 
-MissingOperatorKeyword:
+missingOperatorKeyword:
   type: syntacticError
   parameters: none
   problemMessage: "Operator declarations must be preceded by the keyword 'operator'."
   correctionMessage: "Try adding the keyword 'operator'."
-  analyzerCode: ParserErrorCode.MISSING_KEYWORD_OPERATOR
+  analyzerCode: missingKeywordOperator
   hasPublishedDocs: false
   script:
     - "class C { +(x) {} }"
 
-InvalidOperator:
+invalidOperator:
   type: syntacticError
   parameters:
     Token lexeme: undocumented
   problemMessage: "The string '#lexeme' isn't a user-definable operator."
-  analyzerCode: ParserErrorCode.INVALID_OPERATOR
+  analyzerCode: invalidOperator
   hasPublishedDocs: false
   comment: |-
     Parameters:
@@ -1904,120 +1904,120 @@ InvalidOperator:
   script:
     - "class C { void operator %=(x) {} }"
 
-InvalidSuperInInitializer:
+invalidSuperInInitializer:
   type: syntacticError
   parameters: none
   problemMessage: "Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')"
-  analyzerCode: ParserErrorCode.INVALID_SUPER_IN_INITIALIZER
+  analyzerCode: invalidSuperInInitializer
   hasPublishedDocs: false
 
-InvalidThisInInitializer:
+invalidThisInInitializer:
   type: syntacticError
   parameters: none
   problemMessage: "Can only use 'this' in an initializer for field initialization (e.g. 'this.x = something') and constructor redirection (e.g. 'this()' or 'this.namedConstructor())"
-  analyzerCode: ParserErrorCode.INVALID_THIS_IN_INITIALIZER
+  analyzerCode: invalidThisInInitializer
   hasPublishedDocs: false
 
-SwitchHasCaseAfterDefault:
+switchHasCaseAfterDefault:
   type: syntacticError
   parameters: none
   problemMessage: "The default case should be the last case in a switch statement."
   correctionMessage: "Try moving the default case after the other case clauses."
-  analyzerCode: ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE
+  analyzerCode: switchHasCaseAfterDefaultCase
   hasPublishedDocs: false
   script:
     - "class C { foo(int a) {switch (a) {default: return 0; case 1: return 1;}} }"
 
-SwitchHasMultipleDefaults:
+switchHasMultipleDefaults:
   type: syntacticError
   parameters: none
   problemMessage: "The 'default' case can only be declared once."
   correctionMessage: "Try removing all but one default case."
-  analyzerCode: ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES
+  analyzerCode: switchHasMultipleDefaultCases
   hasPublishedDocs: false
   script:
     - "class C { foo(int a) {switch (a) {default: return 0; default: return 1;}} }"
 
-ExpectedAnInitializer:
+expectedAnInitializer:
   type: syntacticError
   parameters: none
   problemMessage: "Expected an initializer."
-  analyzerCode: ParserErrorCode.MISSING_INITIALIZER
+  analyzerCode: missingInitializer
   hasPublishedDocs: false
   script:
     - "class C { C() : {} }"
 
-MissingAssignmentInInitializer:
+missingAssignmentInInitializer:
   type: syntacticError
   parameters: none
   problemMessage: "Expected an assignment after the field name."
   correctionMessage: "To initialize a field, use the syntax 'name = value'."
-  analyzerCode: ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER
+  analyzerCode: missingAssignmentInInitializer
   hasPublishedDocs: false
   script:
     - "class C { C() : x(3) {} }"
   exampleAllowOtherCodes: true
 
-RedirectingConstructorWithBody:
+redirectingConstructorWithBody:
   type: syntacticError
   parameters: none
   problemMessage: "Redirecting constructors can't have a body."
   correctionMessage: "Try removing the body, or not making this a redirecting constructor."
-  analyzerCode: ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY
+  analyzerCode: redirectingConstructorWithBody
   hasPublishedDocs: false
   script:
     - "class C { C() : this.x() {} }"
   exampleAllowOtherCodes: true
 
-IllegalAssignmentToNonAssignable:
+illegalAssignmentToNonAssignable:
   type: syntacticError
   parameters: none
   problemMessage: "Illegal assignment to non-assignable expression."
-  analyzerCode: ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
+  analyzerCode: illegalAssignmentToNonAssignable
   hasPublishedDocs: false
   script:
     - "main(){ f()++; }"
 
-MissingAssignableSelector:
+missingAssignableSelector:
   type: syntacticError
   parameters: none
   problemMessage: "Missing selector such as '.identifier' or '[0]'."
   correctionMessage: "Try adding a selector."
-  analyzerCode: ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR
+  analyzerCode: missingAssignableSelector
   hasPublishedDocs: false
   script:
     - "main(){ ++f(); }"
 
-ColonInPlaceOfIn:
+colonInPlaceOfIn:
   type: syntacticError
   parameters: none
   problemMessage: "For-in loops use 'in' rather than a colon."
   correctionMessage: "Try replacing the colon with the keyword 'in'."
-  analyzerCode: ParserErrorCode.COLON_IN_PLACE_OF_IN
+  analyzerCode: colonInPlaceOfIn
   hasPublishedDocs: false
   script: |
     void foo() {
       for(var x : []) {}
     }
 
-BinaryOperatorWrittenOut:
+binaryOperatorWrittenOut:
   type: syntacticError
   parameters:
     String string: undocumented
     String string2: undocumented
   problemMessage: "Binary operator '#string' is written as '#string2' instead of the written out word."
   correctionMessage: "Try replacing '#string' with '#string2'."
-  analyzerCode: ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT
+  analyzerCode: binaryOperatorWrittenOut
   hasPublishedDocs: false
   script: |
     int foo(int x, int y) => x xor y;
 
-ExternalFactoryRedirection:
+externalFactoryRedirection:
   type: syntacticError
   parameters: none
   problemMessage: "A redirecting factory can't be external."
   correctionMessage: "Try removing the 'external' modifier."
-  analyzerCode: ParserErrorCode.EXTERNAL_FACTORY_REDIRECTION
+  analyzerCode: externalFactoryRedirection
   hasPublishedDocs: false
   script: |
     class Foo {
@@ -2025,124 +2025,124 @@ ExternalFactoryRedirection:
       external factory Foo.x(int i) = Foo._;
     }
 
-MultipleVarianceModifiers:
+multipleVarianceModifiers:
   type: syntacticError
   parameters: none
   problemMessage: "Each type parameter can have at most one variance modifier."
   correctionMessage: "Use at most one of the 'in', 'out', or 'inout' modifiers."
-  analyzerCode: ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS
+  analyzerCode: multipleVarianceModifiers
   hasPublishedDocs: false
   experiments: variance
   script: |
     class C<in out X> {}
 
 
-BaseEnum:
+baseEnum:
   type: syntacticError
   parameters: none
   problemMessage: "Enums can't be declared to be 'base'."
   correctionMessage: "Try removing the keyword 'base'."
-  analyzerCode: ParserErrorCode.BASE_ENUM
+  analyzerCode: baseEnum
   hasPublishedDocs: false
   script:
     - "base enum E { v }"
 
-FinalEnum:
+finalEnum:
   type: syntacticError
   parameters: none
   problemMessage: "Enums can't be declared to be 'final'."
   correctionMessage: "Try removing the keyword 'final'."
-  analyzerCode: ParserErrorCode.FINAL_ENUM
+  analyzerCode: finalEnum
   hasPublishedDocs: false
   script:
     - "final enum E { v }"
 
-InterfaceEnum:
+interfaceEnum:
   type: syntacticError
   parameters: none
   problemMessage: "Enums can't be declared to be 'interface'."
   correctionMessage: "Try removing the keyword 'interface'."
-  analyzerCode: ParserErrorCode.INTERFACE_ENUM
+  analyzerCode: interfaceEnum
   hasPublishedDocs: false
   script:
     - "interface enum E { v }"
 
-SealedEnum:
+sealedEnum:
   type: syntacticError
   parameters: none
   problemMessage: "Enums can't be declared to be 'sealed'."
   correctionMessage: "Try removing the keyword 'sealed'."
-  analyzerCode: ParserErrorCode.SEALED_ENUM
+  analyzerCode: sealedEnum
   hasPublishedDocs: false
   script:
     - "sealed enum E { v }"
 
-FinalMixin:
+finalMixin:
   type: syntacticError
   parameters: none
   problemMessage: "A mixin can't be declared 'final'."
   correctionMessage: "Try removing the 'final' keyword."
-  analyzerCode: ParserErrorCode.FINAL_MIXIN
+  analyzerCode: finalMixin
   hasPublishedDocs: false
   script:
     - "final mixin M {}"
 
-InterfaceMixin:
+interfaceMixin:
   type: syntacticError
   parameters: none
   problemMessage: "A mixin can't be declared 'interface'."
   correctionMessage: "Try removing the 'interface' keyword."
-  analyzerCode: ParserErrorCode.INTERFACE_MIXIN
+  analyzerCode: interfaceMixin
   hasPublishedDocs: false
   script:
     - "interface mixin M {}"
 
-SealedMixin:
+sealedMixin:
   type: syntacticError
   parameters: none
   problemMessage: "A mixin can't be declared 'sealed'."
   correctionMessage: "Try removing the 'sealed' keyword."
-  analyzerCode: ParserErrorCode.SEALED_MIXIN
+  analyzerCode: sealedMixin
   hasPublishedDocs: false
   script:
     - "sealed mixin M {}"
 
-FinalMixinClass:
+finalMixinClass:
   type: syntacticError
   parameters: none
   problemMessage: "A mixin class can't be declared 'final'."
   correctionMessage: "Try removing the 'final' keyword."
-  analyzerCode: ParserErrorCode.FINAL_MIXIN_CLASS
+  analyzerCode: finalMixinClass
   hasPublishedDocs: false
   script:
     - "final mixin class C {}"
 
-InterfaceMixinClass:
+interfaceMixinClass:
   type: syntacticError
   parameters: none
   problemMessage: "A mixin class can't be declared 'interface'."
   correctionMessage: "Try removing the 'interface' keyword."
-  analyzerCode: ParserErrorCode.INTERFACE_MIXIN_CLASS
+  analyzerCode: interfaceMixinClass
   hasPublishedDocs: false
   script:
     - "interface mixin class C {}"
 
-SealedMixinClass:
+sealedMixinClass:
   type: syntacticError
   parameters: none
   problemMessage: "A mixin class can't be declared 'sealed'."
   correctionMessage: "Try removing the 'sealed' keyword."
-  analyzerCode: ParserErrorCode.SEALED_MIXIN_CLASS
+  analyzerCode: sealedMixinClass
   hasPublishedDocs: false
   script:
     - "sealed mixin class C {}"
 
-InvalidConstantPatternNegation:
+invalidConstantPatternNegation:
   type: syntacticError
   parameters: none
   problemMessage: "Only negation of a numeric literal is supported as a constant pattern."
   correctionMessage: "Try wrapping the expression in 'const ( ... )'."
-  analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_NEGATION
+  analyzerCode: invalidConstantPatternNegation
   hasPublishedDocs: false
   script: |
     method(x) {
@@ -2150,13 +2150,13 @@ InvalidConstantPatternNegation:
       if (x case -y) {}
     }
 
-InvalidConstantPatternUnary:
+invalidConstantPatternUnary:
   type: syntacticError
   parameters:
     Name name: undocumented
   problemMessage: "The unary operator #name is not supported as a constant pattern."
   correctionMessage: "Try wrapping the expression in 'const ( ... )'."
-  analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_UNARY
+  analyzerCode: invalidConstantPatternUnary
   hasPublishedDocs: false
   script: |
     method(x) {
@@ -2164,73 +2164,73 @@ InvalidConstantPatternUnary:
       if (x case !y) {}
     }
 
-InvalidConstantPatternDuplicateConst:
+invalidConstantPatternDuplicateConst:
   type: syntacticError
   parameters: none
   problemMessage: "Duplicate 'const' keyword in constant expression."
   correctionMessage: "Try removing one of the 'const' keywords."
-  analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_DUPLICATE_CONST
+  analyzerCode: invalidConstantPatternDuplicateConst
   hasPublishedDocs: false
   script: |
     method(x) {
       if (x case const const []) {}
     }
 
-InvalidConstantPatternEmptyRecordLiteral:
+invalidConstantPatternEmptyRecordLiteral:
   type: syntacticError
   parameters: none
   problemMessage: "The empty record literal is not supported as a constant pattern."
-  analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL
+  analyzerCode: invalidConstantPatternEmptyRecordLiteral
   hasPublishedDocs: false
   script: |
     method(x) {
       if (x case const ()) {}
     }
 
-InvalidConstantPatternGeneric:
+invalidConstantPatternGeneric:
   type: syntacticError
   parameters: none
   problemMessage: "This expression is not supported as a constant pattern."
   correctionMessage: "Try wrapping the expression in 'const ( ... )'."
-  analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_GENERIC
+  analyzerCode: invalidConstantPatternGeneric
   hasPublishedDocs: false
   script: |
     method(x) {
       if (x case List<int>) {}
     }
 
-InvalidConstantPatternConstPrefix:
+invalidConstantPatternConstPrefix:
   type: syntacticError
   parameters: none
   problemMessage: "The expression can't be prefixed by 'const' to form a constant pattern."
   correctionMessage: "Try wrapping the expression in 'const ( ... )' instead."
-  analyzerCode: ParserErrorCode.INVALID_CONSTANT_CONST_PREFIX
+  analyzerCode: invalidConstantConstPrefix
   hasPublishedDocs: false
   script: |
     method(x) {
       if (x case const 1) {}
     }
 
-InvalidConstantPatternBinary:
+invalidConstantPatternBinary:
   type: syntacticError
   parameters:
     Name name: undocumented
   problemMessage: "The binary operator #name is not supported as a constant pattern."
   correctionMessage: "Try wrapping the expression in 'const ( ... )'."
-  analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY
+  analyzerCode: invalidConstantPatternBinary
   hasPublishedDocs: false
   script: |
     method(x) {
       if (x case 1 + 2) {}
     }
 
-PatternAssignmentDeclaresVariable:
+patternAssignmentDeclaresVariable:
   type: syntacticError
   parameters:
     Name name: undocumented
   problemMessage: "Variable '#name' can't be declared in a pattern assignment."
   correctionMessage: "Try using a preexisting variable or changing the assignment to a pattern variable declaration."
-  analyzerCode: ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE
+  analyzerCode: patternAssignmentDeclaresVariable
   hasPublishedDocs: false
   script: |
     method(x) {
@@ -2238,12 +2238,12 @@ PatternAssignmentDeclaresVariable:
       [y, var z] = x;
     }
 
-VariablePatternKeywordInDeclarationContext:
+variablePatternKeywordInDeclarationContext:
   type: syntacticError
   parameters: none
   problemMessage: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
   correctionMessage: Try removing the keyword.
-  analyzerCode: ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT
+  analyzerCode: variablePatternKeywordInDeclarationContext
   comment: No parameters.
   hasPublishedDocs: true
   script: |
@@ -2280,13 +2280,13 @@ VariablePatternKeywordInDeclarationContext:
     }
     ```
 
-IllegalPatternVariableName:
+illegalPatternVariableName:
   type: syntacticError
   parameters:
     Token lexeme: undocumented
   problemMessage: The variable declared by a variable pattern can't be named '#lexeme'.
   correctionMessage: Choose a different name.
-  analyzerCode: ParserErrorCode.ILLEGAL_PATTERN_VARIABLE_NAME
+  analyzerCode: illegalPatternVariableName
   hasPublishedDocs: false
   comment: |-
     Parameters:
@@ -2298,13 +2298,13 @@ IllegalPatternVariableName:
       }
     }
 
-IllegalPatternAssignmentVariableName:
+illegalPatternAssignmentVariableName:
   type: syntacticError
   parameters:
     Token lexeme: undocumented
   problemMessage: A variable assigned by a pattern assignment can't be named '#lexeme'.
   correctionMessage: Choose a different name.
-  analyzerCode: ParserErrorCode.ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME
+  analyzerCode: illegalPatternAssignmentVariableName
   hasPublishedDocs: false
   comment: |-
     Parameters:
@@ -2315,13 +2315,13 @@ IllegalPatternAssignmentVariableName:
       (when) = x;
     }
 
-IllegalPatternIdentifierName:
+illegalPatternIdentifierName:
   type: syntacticError
   parameters:
     Token lexeme: undocumented
   problemMessage: A pattern can't refer to an identifier named '#lexeme'.
   correctionMessage: Match the identifier using '== #lexeme'.
-  analyzerCode: ParserErrorCode.ILLEGAL_PATTERN_IDENTIFIER_NAME
+  analyzerCode: illegalPatternIdentifierName
   hasPublishedDocs: false
   comment: |-
     Parameters:
@@ -2334,12 +2334,12 @@ IllegalPatternIdentifierName:
       }
     }
 
-InvalidInsideUnaryPattern:
+invalidInsideUnaryPattern:
   type: syntacticError
   parameters: none
   problemMessage: This pattern cannot appear inside a unary pattern (cast pattern, null check pattern, or null assert pattern) without parentheses.
   correctionMessage: Try combining into a single pattern if possible, or enclose the inner pattern in parentheses.
-  analyzerCode: ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN
+  analyzerCode: invalidInsideUnaryPattern
   hasPublishedDocs: false
   comment: No parameters.
   script: |
@@ -2347,12 +2347,12 @@ InvalidInsideUnaryPattern:
       if (x case _ as int as num) {}
     }
 
-LatePatternVariableDeclaration:
+latePatternVariableDeclaration:
   type: syntacticError
   parameters: none
   problemMessage: A pattern variable declaration may not use the `late` keyword.
   correctionMessage: Try removing the keyword `late`.
-  analyzerCode: ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION
+  analyzerCode: latePatternVariableDeclaration
   hasPublishedDocs: false
   comment: No parameters.
   script: |
@@ -2360,12 +2360,12 @@ LatePatternVariableDeclaration:
       late var (y, z) = x;
     }
 
-PatternVariableDeclarationOutsideFunctionOrMethod:
+patternVariableDeclarationOutsideFunctionOrMethod:
   type: syntacticError
   parameters: none
   problemMessage: A pattern variable declaration may not appear outside a function or method.
   correctionMessage: Try declaring ordinary variables and assigning from within a function or method.
-  analyzerCode: ParserErrorCode.PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD
+  analyzerCode: patternVariableDeclarationOutsideFunctionOrMethod
   hasPublishedDocs: false
   comment: No parameters.
   script: |
@@ -2373,12 +2373,12 @@ PatternVariableDeclarationOutsideFunctionOrMethod:
       var (a, b) = (0, 1);
     }
 
-DefaultInSwitchExpression:
+defaultInSwitchExpression:
   type: syntacticError
   parameters: none
   problemMessage: A switch expression may not use the `default` keyword.
   correctionMessage: Try replacing `default` with `_`.
-  analyzerCode: ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION
+  analyzerCode: defaultInSwitchExpression
   hasPublishedDocs: false
   comment: No parameters.
   script: |
@@ -2387,64 +2387,64 @@ DefaultInSwitchExpression:
       default => 'other'
     };
 
-MissingPrimaryConstructor:
+missingPrimaryConstructor:
   type: syntacticError
   parameters: none
   problemMessage: "An extension type declaration must have a primary constructor declaration."
   correctionMessage: "Try adding a primary constructor to the extension type declaration."
-  analyzerCode: ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR
+  analyzerCode: missingPrimaryConstructor
   hasPublishedDocs: false
   script: |
     extension type E {}
 
-MissingPrimaryConstructorParameters:
+missingPrimaryConstructorParameters:
   type: syntacticError
   parameters: none
   problemMessage: "A primary constructor declaration must have formal parameters."
   correctionMessage: "Try adding formal parameters after the primary constructor name."
-  analyzerCode: ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS
+  analyzerCode: missingPrimaryConstructorParameters
   hasPublishedDocs: false
   script: |
     extension type E.name {}
 
-ExtensionTypeExtends:
+extensionTypeExtends:
   type: syntacticError
   parameters: none
   problemMessage: "An extension type declaration can't have an 'extends' clause."
   correctionMessage: "Try removing the 'extends' clause or replacing the 'extends' with 'implements'."
-  analyzerCode: ParserErrorCode.EXTENSION_TYPE_EXTENDS
+  analyzerCode: extensionTypeExtends
   hasPublishedDocs: false
   script: |
     extension type F(int i) {}
     extension type E(int i) extends F {}
 
-ExtensionTypeWith:
+extensionTypeWith:
   type: syntacticError
   parameters: none
   problemMessage: "An extension type declaration can't have a 'with' clause."
   correctionMessage: "Try removing the 'with' clause or replacing the 'with' with 'implements'."
-  analyzerCode: ParserErrorCode.EXTENSION_TYPE_WITH
+  analyzerCode: extensionTypeWith
   hasPublishedDocs: false
   script: |
     extension type F(int i) {}
     extension type E(int i) with F {}
 
-ConstWithoutPrimaryConstructor:
+constWithoutPrimaryConstructor:
   type: syntacticError
   parameters: none
   problemMessage: "'const' can only be used together with a primary constructor declaration."
   correctionMessage: "Try removing the 'const' keyword or adding a primary constructor declaration."
-  analyzerCode: ParserErrorCode.CONST_WITHOUT_PRIMARY_CONSTRUCTOR
+  analyzerCode: constWithoutPrimaryConstructor
   hasPublishedDocs: false
   script: |
     class const C {}
 
-NewConstructorQualifiedName:
+newConstructorQualifiedName:
   type: syntacticError
   parameters: none
   problemMessage: "Constructors declared with the 'new' keyword can't have qualified names."
   correctionMessage: "Try removing the class name prefix from the qualified name or removing the 'new' keyword."
-  analyzerCode: ParserErrorCode.NEW_CONSTRUCTOR_QUALIFIED_NAME
+  analyzerCode: newConstructorQualifiedName
   hasPublishedDocs: false
   experiments: primary-constructors
   script: |
@@ -2452,12 +2452,12 @@ NewConstructorQualifiedName:
       new C.named();
     }
 
-NewConstructorNewName:
+newConstructorNewName:
   type: syntacticError
   parameters: none
   problemMessage: "Constructors declared with the 'new' keyword can't be named 'new'."
   correctionMessage: "Try removing the second 'new' or changing it to a different name."
-  analyzerCode: ParserErrorCode.NEW_CONSTRUCTOR_NEW_NAME
+  analyzerCode: newConstructorNewName
   hasPublishedDocs: false
   experiments: primary-constructors
   script: |
@@ -2465,12 +2465,12 @@ NewConstructorNewName:
       new new();
     }
 
-FactoryConstructorNewName:
+factoryConstructorNewName:
   type: syntacticError
   parameters: none
   problemMessage: "Factory constructors can't be named 'new'."
   correctionMessage: "Try removing the 'new' keyword or changing it to a different name."
-  analyzerCode: ParserErrorCode.FACTORY_CONSTRUCTOR_NEW_NAME
+  analyzerCode: factoryConstructorNewName
   hasPublishedDocs: false
   experiments: primary-constructors
   script: |

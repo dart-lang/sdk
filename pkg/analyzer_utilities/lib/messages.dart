@@ -153,7 +153,7 @@ abstract class CfeStyleMessage extends Message {
   ///
   /// This is the key corresponding to the diagnostic's entry in
   /// `messages.yaml`.
-  final String frontEndCode;
+  final DiagnosticCodeName frontEndCode;
 
   CfeStyleMessage(MessageYaml messageYaml)
     : cfeSeverity = messageYaml.get(
@@ -172,7 +172,15 @@ abstract class CfeStyleMessage extends Message {
         },
         ifAbsent: () => null,
       ),
-      frontEndCode = messageYaml.keyString,
+      frontEndCode = switch (messageYaml.keyString) {
+        var s when s.isCamelCase => DiagnosticCodeName.fromCamelCase(
+          messageYaml.keyString,
+        ),
+        _ => throw LocatedError(
+          'Front end codes must be camelCase',
+          span: messageYaml.keySpan,
+        ),
+      },
       super(messageYaml, requireProblemMessage: true) {
     // Ignore extra keys related to front end example-based tests.
     messageYaml.allowExtraKeys({
@@ -211,29 +219,50 @@ sealed class Conversion {
 /// This class implements [Comparable], so lists of it can be safely
 /// [List.sort]ed.
 class DiagnosticCodeName implements Comparable<DiagnosticCodeName> {
-  /// The diagnostic name.
+  /// Exceptions to the usual rules for converting diagnostic code names from
+  /// camel case to snake case.
   ///
-  /// The diagnostic name is in "snake case", meaning it consists of words
-  /// separated by underscores. Those words might be lower case or upper case.
-  ///
-  // TODO(paulberry): change `messages.yaml` to consistently use lower snake
-  // case, and remove [lowerSnakeCaseName].
+  /// Normally, diagnostic code names are converted from camel case to snake
+  /// case using [StringExtension.toSnakeCase]. But in rare situations when the
+  /// name contains numbers, this can produce results that aren't ideal. Rather
+  /// than try to fix these rare situations in a general fashion, it's easier to
+  /// just have an explicit map of the problematic names, with their preferred
+  /// snake case forms.
+  static const Map<String, String> _snakeCaseExceptions = {
+    'finalNotInitializedConstructor1': 'final_not_initialized_constructor_1',
+    'finalNotInitializedConstructor2': 'final_not_initialized_constructor_2',
+    'finalNotInitializedConstructor3Plus':
+        'final_not_initialized_constructor_3_plus',
+    'linesLongerThan80Chars': 'lines_longer_than_80_chars',
+  };
+
+  /// The diagnostic name, as a "lower snake case" name (lower case words
+  /// separated by underscores).
   final String snakeCaseName;
 
-  DiagnosticCodeName({required this.snakeCaseName});
+  /// The diagnostic name, as a "camel case" name (lower case word followed by
+  /// capitalized words, with no separation between words).
+  final String camelCaseName;
+
+  DiagnosticCodeName.fromCamelCase(this.camelCaseName)
+    : snakeCaseName =
+          _snakeCaseExceptions[camelCaseName] ?? camelCaseName.toSnakeCase() {
+    if (snakeCaseName.toLowerCase() != snakeCaseName) {
+      throw 'Snake case name ${json.encode(snakeCaseName)} is not all lower '
+          'case';
+    }
+    if (snakeCaseName.toCamelCase() != camelCaseName) {
+      throw 'Round-trip conversion from ${json.encode(camelCaseName)} to snake '
+          'case and back produces ${json.encode(snakeCaseName.toCamelCase())}';
+    }
+  }
 
   /// The string that should be generated into analyzer source code to refer to
   /// this diagnostic code.
   String get analyzerCodeReference => ['diag', camelCaseName].join('.');
 
-  /// The diagnostic name, converted to camel case.
-  String get camelCaseName => snakeCaseName.toCamelCase();
-
   @override
   int get hashCode => snakeCaseName.hashCode;
-
-  /// The diagnostic name, converted to lower snake case.
-  String get lowerSnakeCaseName => snakeCaseName.toLowerCase();
 
   /// The diagnostic name, converted to PascalCase.
   String get pascalCaseName => snakeCaseName.toPascalCase();
@@ -410,7 +439,7 @@ class DiagnosticTables {
   activeMessagesByPackage = {};
 
   DiagnosticTables._(List<Message> messages) {
-    var frontEndCodeDuplicateChecker = _DuplicateChecker<String>(
+    var frontEndCodeDuplicateChecker = _DuplicateChecker<DiagnosticCodeName>(
       kind: 'Front end code',
     );
     var analyzerCodeDuplicateChecker = _DuplicateChecker<DiagnosticCodeName>(
@@ -601,10 +630,17 @@ abstract class Message {
             isRequired: requireProblemMessage,
           ) ??
           [],
-      sharedName = switch (messageYaml.getOptionalString('sharedName')) {
-        var s? => DiagnosticCodeName(snakeCaseName: s),
-        null => null,
-      },
+      sharedName = messageYaml.get(
+        'sharedName',
+        decode: (s) => switch (s) {
+          YamlScalar(:String value) =>
+            value.isCamelCase
+                ? DiagnosticCodeName.fromCamelCase(value)
+                : throw 'Shared names should be camelCase',
+          _ => throw 'Must be a string',
+        },
+        ifAbsent: () => null,
+      ),
       removedIn = messageYaml.getOptionalString('removedIn'),
       previousName = messageYaml.getOptionalString('previousName'),
       parameters = messageYaml.parameters,
@@ -947,12 +983,11 @@ class SharedMessage extends CfeStyleMessage with MessageWithAnalyzerCode {
     switch (node) {
       case YamlScalar(value: String s):
         switch (s.split('.')) {
-          case [_, var snakeCaseName]
-              when snakeCaseName == snakeCaseName.toUpperCase():
-            return DiagnosticCodeName(snakeCaseName: snakeCaseName);
+          case [var camelCaseName] when camelCaseName.isCamelCase:
+            return DiagnosticCodeName.fromCamelCase(camelCaseName);
         }
     }
-    throw 'Analyzer codes must take the form ClassName.DIAGNOSTIC_NAME.';
+    throw 'Analyzer codes must be camelCase names.';
   }
 }
 

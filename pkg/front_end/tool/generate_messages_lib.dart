@@ -152,7 +152,7 @@ class _TemplateCompiler {
   _TemplateCompiler({
     required this.message,
     required this.pseudoSharedCodeValues,
-  }) : name = message.frontEndCode,
+  }) : name = message.frontEndCode.pascalCaseName,
        problemMessage = message.problemMessage,
        correctionMessage = message.correctionMessage,
        severity = message.cfeSeverity,
