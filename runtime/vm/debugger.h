@@ -396,7 +396,7 @@ class ActivationFrame : public ZoneAllocated {
   ClosurePtr GetClosure();
   ObjectPtr GetReceiver();
 
-  const Context& GetSavedCurrentContext();
+  const Context& GetSavedCurrentContext(intptr_t* index = nullptr);
   ObjectPtr GetSuspendStateVar();
   ObjectPtr GetSuspendableFunctionData();
 
