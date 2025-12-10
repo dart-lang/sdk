@@ -100,19 +100,15 @@ B4 = JoinBlock(B13, B3) idom:B0 dominates:(B30, B29)
   Branch(v28, true: B29, false: B30)
 B29 = TargetBlock() idom:B4
   Goto(B34)
-B30 = TargetBlock() idom:B4 dominates:(B32)
-  Goto(B32)
-B32 = JoinBlock(B30) idom:B30
+B30 = TargetBlock() idom:B4
   Goto(B3)
-B3 = JoinBlock(B32, B7) idom:B0
+B3 = JoinBlock(B30, B7) idom:B0
   v41 = Phi(v24, v1)
   v20 = BinaryIntOp +(v41, v5)
   Goto(B4)
-B14 = TargetBlock() idom:B8 dominates:(B17)
-  Goto(B17)
-B17 = JoinBlock(B14) idom:B14
+B14 = TargetBlock() idom:B8
   Goto(B34)
-B34 = JoinBlock(B17, B29) idom:B0
+B34 = JoinBlock(B14, B29) idom:B0
   Return(v38)
 
 --- main

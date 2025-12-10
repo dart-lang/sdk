@@ -9,6 +9,7 @@ import 'dart:isolate';
 import 'package:args/args.dart';
 import 'package:perf_witness/server.dart';
 import 'package:perf_witness/src/async_span.dart';
+import 'package:perf_witness/src/common.dart';
 
 final parser = ArgParser()
   ..addOption('tag', abbr: 't', help: 'Tag for the process')
@@ -35,8 +36,15 @@ Future<void> busyLoop({required String name}) async {
 }
 
 void main(List<String> args) async {
-  ProcessSignal.sigint.watch().listen((_) {
-    print('SIGINT received');
+  print('PID: $pid');
+
+  // On Windows there is no easy way to send Ctrl-C (SIGINT) to the process
+  // so we use a keypress instead.
+  final shouldStopFuture = waitForUserToQuit(
+    waitForQKeyPress: Platform.isWindows,
+  );
+
+  shouldStopFuture.then((_) {
     shouldStop = true;
   });
 

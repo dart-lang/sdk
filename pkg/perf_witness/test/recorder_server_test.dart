@@ -57,6 +57,19 @@ Future<io.Process> runProcess(
   return process;
 }
 
+extension on io.Process {
+  Future<void> askToExit() async {
+    // On Windows we can't send Ctrl-C so we resort to using a Q keypress
+    // instead.
+    if (io.Platform.isWindows) {
+      stdin.add('q'.codeUnits);
+      await stdin.flush();
+    } else {
+      kill(io.ProcessSignal.sigint);
+    }
+  }
+}
+
 class BusyLoopProcess {
   final io.Process process;
   final String tag;
@@ -90,7 +103,18 @@ class BusyLoopProcess {
     );
   }
 
-  int get pid => process.pid;
+  int get pid {
+    if (io.Platform.isWindows) {
+      // On Windows dartvm.exe is a child process of dart.exe so process.pid
+      // does not necessary match the PID of the process which will actually
+      // execute the code.
+      return int.parse(
+        stdout.firstWhere((line) => line.startsWith('PID: ')).split(': ')[1],
+      );
+    }
+
+    return process.pid;
+  }
 
   void kill() {
     process.kill();
@@ -121,6 +145,7 @@ class RecorderProcess {
           '-o',
           outputDir.path,
           if (tag != null) ...['--tag', tag],
+          if (io.Platform.isWindows) '--wait-for-keypress',
           if (recordNewProcesses) '--record-new-processes',
           if (enableAsyncSpans) '--enable-async-spans',
           if (!enableProfiler) '--no-enable-profiler',
@@ -137,7 +162,7 @@ class RecorderProcess {
   }
 
   Future<void> stop() async {
-    process.kill(io.ProcessSignal.sigint);
+    await process.askToExit();
     if (await process.exitCode case final int exitCode when exitCode != 0) {
       throw Exception('Recorder process failed with exit code $exitCode');
     }
@@ -194,7 +219,7 @@ void main() {
       // Run the recorder in a separate process.
       final recorder = await RecorderProcess.start(tempDir, outputDir);
       await Future.delayed(const Duration(seconds: 2));
-      busyLoopProcess.process.kill(io.ProcessSignal.sigint);
+      await busyLoopProcess.process.askToExit();
       await busyLoopProcess.process.exitCode;
       await recorder.stop();
 
@@ -499,6 +524,7 @@ void main() {
           outputDir,
           tag: 'new-process-tag',
           recordNewProcesses: true,
+          waitFor: 'Listening for new processes',
         );
 
         // Start a new process that should be recorded.

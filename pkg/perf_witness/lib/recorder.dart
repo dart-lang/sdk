@@ -21,6 +21,8 @@ class PerfWitnessRecorderConfig {
   final bool enableProfiler;
   final List<String> streams;
 
+  final bool useKeyPressInsteadOfCtrlC;
+
   PerfWitnessRecorderConfig({
     this.outputDir,
     this.tag,
@@ -28,6 +30,7 @@ class PerfWitnessRecorderConfig {
     this.enableAsyncSpans = false,
     this.enableProfiler = true,
     this.streams = const [],
+    this.useKeyPressInsteadOfCtrlC = false,
   });
 
   factory PerfWitnessRecorderConfig.fromParsedArgs(ArgResults args) {
@@ -42,6 +45,7 @@ class PerfWitnessRecorderConfig {
       enableAsyncSpans: args['enable-async-spans'] as bool,
       enableProfiler: args['enable-profiler'] as bool,
       streams: streams,
+      useKeyPressInsteadOfCtrlC: args['wait-for-keypress'] as bool,
     );
   }
 
@@ -69,6 +73,12 @@ class PerfWitnessRecorderConfig {
         help: 'Enable profiler.',
         negatable: true,
         defaultsTo: true,
+      )
+      ..addFlag(
+        'wait-for-keypress',
+        help: 'Use Q keypress instead of Ctrl-C',
+        negatable: false,
+        hide: true,
       )
       ..addMultiOption(
         'streams',
@@ -153,7 +163,7 @@ Future<void> record(PerfWitnessRecorderConfig config) async {
   }
 
   if (matchedConnections.isNotEmpty || config.recordNewProcesses) {
-    await io.ProcessSignal.sigint.watch().first;
+    await waitForUserToQuit(waitForQKeyPress: config.useKeyPressInsteadOfCtrlC);
     recording = false;
     await Future.wait([
       for (var conn in matchedConnections)
@@ -211,12 +221,12 @@ class Connection {
     return Connection._(info, client);
   }
 
-  static Future<Connection?> _tryConnectTo(io.File controlSocket) async {
+  static Future<Connection?> _tryConnectTo(String controlSocket) async {
     try {
-      return await Connection.connectTo(controlSocket.path);
+      return await Connection.connectTo(controlSocket);
     } catch (_) {
       try {
-        controlSocket.deleteSync(); // Likely stale file. Purge it.
+        io.File(controlSocket).deleteSync(); // Likely stale file. Purge it.
       } catch (_) {}
       return null;
     }

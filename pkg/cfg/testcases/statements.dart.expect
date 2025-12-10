@@ -106,7 +106,7 @@ B0 = EntryBlock() dominates:(B5)
   v28 = Constant(1)
   v1 = Parameter(n)
   Goto(B5)
-B5 = JoinBlock(B0, B23) idom:B0 dominates:(B11, B25, B10) loop-header (depth:1 body:(B5, B10, B21, B23) back-edges:(B23))
+B5 = JoinBlock(B0, B21) idom:B0 dominates:(B11, B25, B10) loop-header (depth:1 body:(B5, B10, B21) back-edges:(B21))
   v37 = Phi(v2, v29)
   v35 = Phi(v2, v15)
   v9 = Comparison int <(v37, v1)
@@ -117,9 +117,7 @@ B10 = TargetBlock() idom:B5 dominates:(B21, B20) in-loop:B5
   Branch(v19, true: B20, false: B21)
 B20 = TargetBlock() idom:B10
   Goto(B25)
-B21 = TargetBlock() idom:B10 dominates:(B23) in-loop:B5
-  Goto(B23)
-B23 = JoinBlock(B21) idom:B21 in-loop:B5
+B21 = TargetBlock() idom:B10 in-loop:B5
   v29 = BinaryIntOp +(v37, v28)
   Goto(B5)
 B11 = TargetBlock() idom:B5
@@ -174,13 +172,13 @@ B0 = EntryBlock() dominates:(B5)
   v1 = Parameter(n)
   v2 = Parameter(m)
   Goto(B5)
-B5 = JoinBlock(B0, B43) idom:B0 dominates:(B11, B10) loop-header (depth:1 body:(B5, B10, B14, B20, B43, B19, B26, B28, B39, B41, B30, B38, B25) back-edges:(B43))
+B5 = JoinBlock(B0, B43) idom:B0 dominates:(B11, B10) loop-header (depth:1 body:(B5, B10, B14, B20, B43, B19, B26, B39, B30, B38, B25) back-edges:(B43))
   v58 = Phi(v3, v53)
   v9 = Comparison int <(v58, v1)
   Branch(v9, true: B10, false: B11)
 B10 = TargetBlock() idom:B5 dominates:(B14) in-loop:B5
   Goto(B14)
-B14 = JoinBlock(B10, B30) idom:B10 dominates:(B20, B43, B19) loop-header (depth:2 body:(B14, B19, B26, B28, B39, B41, B30, B25) back-edges:(B30))
+B14 = JoinBlock(B10, B30) idom:B10 dominates:(B20, B43, B19) loop-header (depth:2 body:(B14, B19, B26, B39, B30, B25) back-edges:(B30))
   v59 = Phi(v3, v48)
   v18 = Comparison int <(v59, v2)
   Branch(v18, true: B19, false: B20)
@@ -189,20 +187,16 @@ B19 = TargetBlock() idom:B14 dominates:(B26, B30, B25) in-loop:B14
   Branch(v24, true: B25, false: B26)
 B25 = TargetBlock() idom:B19 in-loop:B14
   Goto(B30)
-B26 = TargetBlock() idom:B19 dominates:(B28) in-loop:B14
-  Goto(B28)
-B28 = JoinBlock(B26) idom:B26 dominates:(B39, B38) in-loop:B14
+B26 = TargetBlock() idom:B19 dominates:(B39, B38) in-loop:B14
   v34 = BinaryIntOp +(v58, v59)
   v36 = BinaryIntOp %(v34, v35)
   v37 = Comparison int ==(v36, v3)
   Branch(v37, true: B38, false: B39)
-B38 = TargetBlock() idom:B28 in-loop:B5
+B38 = TargetBlock() idom:B26 in-loop:B5
   Goto(B43)
-B39 = TargetBlock() idom:B28 dominates:(B41) in-loop:B14
-  Goto(B41)
-B41 = JoinBlock(B39) idom:B39 in-loop:B14
+B39 = TargetBlock() idom:B26 in-loop:B14
   Goto(B30)
-B30 = JoinBlock(B41, B25) idom:B19 in-loop:B14
+B30 = JoinBlock(B39, B25) idom:B19 in-loop:B14
   v48 = BinaryIntOp +(v59, v47)
   Goto(B14)
 B20 = TargetBlock() idom:B14 in-loop:B5
@@ -239,9 +233,7 @@ B3 = JoinBlock(B14, B8) idom:B0
 B15 = TargetBlock() idom:B9 dominates:(B21, B30, B5, B20)
   v19 = Comparison int ==(v1, v18)
   Branch(v19, true: B20, false: B21)
-B20 = TargetBlock() idom:B15 dominates:(B4)
-  Goto(B4)
-B4 = JoinBlock(B20) idom:B20
+B20 = TargetBlock() idom:B15
   DirectCall print(v36)
   Goto(B5)
 B21 = TargetBlock() idom:B15 dominates:(B27, B26)
@@ -249,7 +241,7 @@ B21 = TargetBlock() idom:B15 dominates:(B27, B26)
   Branch(v25, true: B26, false: B27)
 B26 = TargetBlock() idom:B21
   Goto(B5)
-B5 = JoinBlock(B26, B4) idom:B15
+B5 = JoinBlock(B26, B20) idom:B15
   DirectCall print(v39)
   Goto(B30)
 B27 = TargetBlock() idom:B21
@@ -266,11 +258,7 @@ B0 = EntryBlock() dominates:(B4, B24, B3)
   v11 = Constant(3)
   v35 = Constant(null)
   TryEntry(try-body: B3, catch-block: B4)
-B3 = TargetBlock() exception-handler:B4 idom:B0 dominates:(B8)
-  Goto(B8)
-B8 = TargetBlock() exception-handler:B4 idom:B3 dominates:(B13)
-  Goto(B13)
-B13 = JoinBlock(B8) exception-handler:B4 idom:B8
+B3 = TargetBlock() exception-handler:B4 idom:B0
   DirectCall print(v11)
   Goto(B24)
 B4 = CatchBlock() idom:B0
@@ -280,7 +268,7 @@ B4 = CatchBlock() idom:B0
   DirectCall print(v26)
   DirectCall print(v38)
   Goto(B24)
-B24 = JoinBlock(B4, B13) idom:B0
+B24 = JoinBlock(B4, B3) idom:B0
   Return(v35)
 
 --- tryFinallyWithBreaks
@@ -295,26 +283,16 @@ B0 = EntryBlock() dominates:(B2, B1)
   v84 = Constant(42)
   Constant(true)
   TryEntry(try-body: B1, catch-block: B2)
-B1 = TargetBlock() exception-handler:B2 idom:B0 dominates:(B8)
+B1 = TargetBlock() exception-handler:B2 idom:B0 dominates:(B17, B16)
   DirectCall print(v4)
-  Goto(B8)
-B8 = JoinBlock(B1) exception-handler:B2 idom:B1 dominates:(B13)
-  Goto(B13)
-B13 = TargetBlock() exception-handler:B2 idom:B8 dominates:(B17, B16)
   TryEntry(try-body: B16, catch-block: B17)
-B16 = TargetBlock() exception-handler:B17 idom:B13 dominates:(B25)
+B16 = TargetBlock() exception-handler:B17 idom:B1 dominates:(B30)
   DirectCall print(v6)
-  Goto(B25)
-B25 = TargetBlock() exception-handler:B17 idom:B16 dominates:(B30)
   Goto(B30)
-B30 = JoinBlock(B25) exception-handler:B2 idom:B25 dominates:(B65)
+B30 = JoinBlock(B16) exception-handler:B2 idom:B16
   DirectCall print(v59)
-  Goto(B65)
-B65 = JoinBlock(B30) exception-handler:B2 idom:B30 dominates:(B80)
-  Goto(B80)
-B80 = JoinBlock(B65) idom:B65
   Return(v84)
-B17 = CatchBlock() exception-handler:B2 idom:B13
+B17 = CatchBlock() exception-handler:B2 idom:B1
   v57 = Parameter(#exception)
   v58 = Parameter(#stackTrace)
   DirectCall print(v59)
@@ -338,9 +316,7 @@ B3 = TargetBlock() exception-handler:B4 idom:B0 dominates:(B10, B9)
   Branch(v1, true: B9, false: B10)
 B9 = TargetBlock() exception-handler:B4 idom:B3
   Throw(v14)
-B10 = TargetBlock() exception-handler:B4 idom:B3 dominates:(B12)
-  Goto(B12)
-B12 = JoinBlock(B10) exception-handler:B4 idom:B10
+B10 = TargetBlock() exception-handler:B4 idom:B3
   Goto(B17)
 B4 = CatchBlock() idom:B0 dominates:(B24, B23)
   v19 = Parameter(#exception)
@@ -352,11 +328,9 @@ B23 = TargetBlock() idom:B4 dominates:(B30, B29)
   Branch(v2, true: B29, false: B30)
 B29 = TargetBlock() idom:B23
   Throw(v19, v20)
-B30 = TargetBlock() idom:B23 dominates:(B32)
-  Goto(B32)
-B32 = JoinBlock(B30) idom:B30
+B30 = TargetBlock() idom:B23
   Goto(B17)
-B17 = JoinBlock(B32, B12) idom:B0
+B17 = JoinBlock(B30, B10) idom:B0
   Return(v16)
 B24 = TargetBlock() idom:B4
   Throw(v19, v20)
