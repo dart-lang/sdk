@@ -1091,4 +1091,50 @@ class A {
 }
 ''');
   }
+
+  Future<void> test_switchExpression_expression() async {
+    await resolveTestCode('''
+class A {
+  void f() {
+    int _ = switch (test) {
+      _ => 0,
+    };
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  Object? test;
+
+  void f() {
+    int _ = switch (test) {
+      _ => 0,
+    };
+  }
+}
+''');
+  }
+
+  Future<void> test_switchExpression_result() async {
+    await resolveTestCode('''
+class A {
+  void f(int value) {
+    int _ = switch (value) {
+      _ => test,
+    };
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int test;
+
+  void f(int value) {
+    int _ = switch (value) {
+      _ => test,
+    };
+  }
+}
+''');
+  }
 }

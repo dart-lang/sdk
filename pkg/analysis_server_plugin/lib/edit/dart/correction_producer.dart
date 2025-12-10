@@ -752,6 +752,12 @@ abstract class ResolvedCorrectionProducer
       }
       return typeProvider.iterableType(inferredType);
     }
+    if (parent case SwitchExpressionCase(:SwitchExpression parent)) {
+      return inferUndefinedExpressionType(parent);
+    }
+    if (parent is SwitchExpression) {
+      return typeProvider.objectQuestionType;
+    }
     // We don't know.
     return null;
   }
