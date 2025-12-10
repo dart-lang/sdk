@@ -93,10 +93,10 @@ class TypesBuilder {
       _declaration(declaration);
     }
 
+    _copyDeclaringFormalParametersExplicitTypes();
     buildExtensionTypes(_linker, nodes.declarations);
     _MixinsInference(_toInferMixins).perform();
     breakInterfaceCycles(_linker, nodes.declarations);
-    _copyDeclaringFormalParametersExplicitTypes();
   }
 
   void _addFragmentWithClause(
