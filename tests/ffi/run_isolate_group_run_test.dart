@@ -35,6 +35,8 @@ main(List<String> args) {
   testFailToCaptureLateFinalVar();
   testCapturesFinalNotSharedVar();
 
+  testCyclesBetweenClosures();
+
   testUpdateNotSharedStaticField();
   testUpdateSharedStringStaticVar();
 
@@ -145,6 +147,22 @@ calculateTwelve() => 12;
 void testCapturesFinalNotSharedVar() {
   final int late_final_var = calculateTwelve();
   Expect.equals(late_final_var, IsolateGroup.runSync(() => late_final_var));
+}
+
+///
+void testCyclesBetweenClosures() {
+  final int i = 0;
+  final void Function() func1 = () {
+    if (i > 0) {
+      throw i;
+    }
+  };
+  void func2() {
+    func1();
+  }
+
+  ;
+  IsolateGroup.runSync(func2);
 }
 
 ///
