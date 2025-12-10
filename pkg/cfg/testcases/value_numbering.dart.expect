@@ -12,9 +12,7 @@ B0 = EntryBlock() dominates:(B11, B10)
 B10 = TargetBlock() idom:B0
   v18 = InterfaceCall List.[](v1, v22)
   Return(v18)
-B11 = TargetBlock() idom:B0 dominates:(B13)
-  Goto(B13)
-B13 = JoinBlock(B11) idom:B11
+B11 = TargetBlock() idom:B0
   Return(v8)
 
 --- test2

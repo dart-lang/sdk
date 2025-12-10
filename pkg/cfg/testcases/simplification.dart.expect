@@ -184,17 +184,11 @@ B0 = EntryBlock()
   Return(v80)
 
 --- redundantPhi
-B0 = EntryBlock() dominates:(B6, B8, B5)
+B0 = EntryBlock()
   v3 = Constant(0)
   v16 = Constant(null)
   v1 = Parameter(x)
-  v4 = Comparison int >(v1, v3)
-  Branch(v4, true: B5, false: B6)
-B5 = TargetBlock() idom:B0
-  Goto(B8)
-B6 = TargetBlock() idom:B0
-  Goto(B8)
-B8 = JoinBlock(B6, B5) idom:B0
+  Comparison int >(v1, v3)
   DirectCall print(v1)
   Return(v16)
 
