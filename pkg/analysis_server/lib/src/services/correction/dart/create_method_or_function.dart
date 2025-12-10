@@ -158,6 +158,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
         // append return type
         if (builder.writeType(
           functionType.returnType,
+          typeParametersInScope: functionType.typeParameters,
           groupName: 'RETURN_TYPE',
         )) {
           builder.write(' ');

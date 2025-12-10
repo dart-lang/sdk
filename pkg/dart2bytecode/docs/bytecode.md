@@ -681,7 +681,7 @@ type ClosureDeclaration {
 
 type ClosureCode {
   UInt flags = (hasExceptionsTable, hasSourcePositions, hasLocalVariables,
-                capturesOnlyFinalAndSharedVars)
+                capturesOnlyFinalNotLateVars)
 
   UInt bytecodeSizeInBytes;
   Byte[bytecodeSizeInBytes] bytecodes;

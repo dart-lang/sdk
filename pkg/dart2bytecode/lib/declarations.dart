@@ -1162,13 +1162,13 @@ class ClosureCode {
   static const hasExceptionsTableFlag = 1 << 0;
   static const hasSourcePositionsFlag = 1 << 1;
   static const hasLocalVariablesFlag = 1 << 2;
-  static const capturesOnlyFinalAndSharedVarsFlag = 1 << 3;
+  static const capturesOnlyFinalNotLateVarsFlag = 1 << 3;
 
   final Uint8List bytecodes;
   final ExceptionsTable exceptionsTable;
   final SourcePositions? sourcePositions;
   final LocalVariableTable? localVariables;
-  final bool capturesOnlyFinalAndSharedVars;
+  final bool capturesOnlyFinalNotLateVars;
 
   bool get hasExceptionsTable => exceptionsTable.blocks.isNotEmpty;
   bool get hasSourcePositions => sourcePositions?.isNotEmpty ?? false;
@@ -1178,10 +1178,10 @@ class ClosureCode {
       (hasExceptionsTable ? hasExceptionsTableFlag : 0) |
       (hasSourcePositions ? hasSourcePositionsFlag : 0) |
       (hasLocalVariables ? hasLocalVariablesFlag : 0) |
-      (capturesOnlyFinalAndSharedVars ? capturesOnlyFinalAndSharedVarsFlag : 0);
+      (capturesOnlyFinalNotLateVars ? capturesOnlyFinalNotLateVarsFlag : 0);
 
   ClosureCode(this.bytecodes, this.exceptionsTable, this.sourcePositions,
-      this.localVariables, this.capturesOnlyFinalAndSharedVars);
+      this.localVariables, this.capturesOnlyFinalNotLateVars);
 
   void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
@@ -1209,12 +1209,12 @@ class ClosureCode {
     final localVariables = ((flags & hasLocalVariablesFlag) != 0)
         ? reader.readLinkOffset<LocalVariableTable>()
         : null;
-    final capturesOnlyFinalAndSharedVars =
-        (flags & capturesOnlyFinalAndSharedVarsFlag) != 0;
+    final capturesOnlyFinalNotLateVars =
+        (flags & capturesOnlyFinalNotLateVarsFlag) != 0;
 
     return new ClosureCode(
         bytecodes, exceptionsTable, sourcePositions, localVariables,
-        capturesOnlyFinalAndSharedVars);
+        capturesOnlyFinalNotLateVars);
   }
 
   @override

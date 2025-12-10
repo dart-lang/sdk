@@ -1860,6 +1860,26 @@ List f() {
     await assertNoFix();
   }
 
+  Future<void> test_insideClass() async {
+    // This will be improved at https://github.com/dart-lang/sdk/issues/61186
+    await resolveTestCode('''
+class C {
+  void foo(List<int> a) {
+    a.map((e) => _m(e, 1));
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  void foo(List<int> a) {
+    a.map((e) => _m(e, 1));
+  }
+
+  Object? _m(int e, int i) {}
+}
+''');
+  }
+
   Future<void> test_internal_instance_extension() async {
     await resolveTestCode('''
 extension E on String {

@@ -31,7 +31,7 @@ abstract class SingleChildRenderObjectWidget extends RenderObjectWidget {
 }
 
 @optionalTypeArgs
-abstract class State<T extends StatefulWidget> {
+abstract class State<T extends StatefulWidget> with Diagnosticable {
   BuildContext get context;
 
   bool get mounted;

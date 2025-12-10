@@ -731,6 +731,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Convert to wildcard variable',
   );
+  static const convertToWildcardVariableMulti = FixKind(
+    'dart.fix.convert.toWildcardVariable.multi',
+    DartFixKindPriority.inFile,
+    'Convert to wildcard variables everywhere in file',
+  );
   static const createClassUppercase = FixKind(
     'dart.fix.create.class.uppercase',
     DartFixKindPriority.standard + 2,

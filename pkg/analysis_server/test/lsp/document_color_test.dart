@@ -176,6 +176,70 @@ var white = [!Colors.white!];
     );
   }
 
+  Future<void>
+  test_colorConstant_primaryConstructor_defaultValue_optionalNamed() async {
+    content = '''
+import 'package:flutter/material.dart';
+
+class const C({Color c = [!Colors.white!]}) {}
+''';
+
+    await _checkPresentations(
+      select: Color(alpha: 1, red: 1, green: 0, blue: 0),
+      expectPresentations: [
+        _color('Color.fromARGB(255, 255, 0, 0)', withConst: true),
+        _color('Color.fromRGBO(255, 0, 0, 1)', withConst: true),
+        _color(
+          'Color.from(alpha: 1, red: 1, green: 0, blue: 0)',
+          withConst: true,
+        ),
+        _color('Color(0xFFFF0000)', withConst: true),
+      ],
+    );
+  }
+
+  Future<void>
+  test_colorConstant_primaryConstructor_defaultValue_optionalPositional() async {
+    content = '''
+import 'package:flutter/material.dart';
+
+class const C([Color c = [!Colors.white!]]) {}
+''';
+
+    await _checkPresentations(
+      select: Color(alpha: 1, red: 1, green: 0, blue: 0),
+      expectPresentations: [
+        _color('Color.fromARGB(255, 255, 0, 0)', withConst: true),
+        _color('Color.fromRGBO(255, 0, 0, 1)', withConst: true),
+        _color(
+          'Color.from(alpha: 1, red: 1, green: 0, blue: 0)',
+          withConst: true,
+        ),
+        _color('Color(0xFFFF0000)', withConst: true),
+      ],
+    );
+  }
+
+  Future<void> test_colorConstant_primaryConstructor_invocation() async {
+    content = '''
+import 'package:flutter/material.dart';
+
+class const C(Color c) {}
+
+const c = C([!Colors.white!]);
+''';
+
+    await _checkPresentations(
+      select: Color(alpha: 1, red: 1, green: 0, blue: 0),
+      expectPresentations: [
+        _color('Color.fromARGB(255, 255, 0, 0)'),
+        _color('Color.fromRGBO(255, 0, 0, 1)'),
+        _color('Color.from(alpha: 1, red: 1, green: 0, blue: 0)'),
+        _color('Color(0xFFFF0000)'),
+      ],
+    );
+  }
+
   /// If a color is in a const context, we should not insert 'const'.
   Future<void> test_colorConstructor_constContext() async {
     content = '''

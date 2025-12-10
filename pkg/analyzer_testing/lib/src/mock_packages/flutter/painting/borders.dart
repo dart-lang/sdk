@@ -11,7 +11,7 @@ import 'package:flutter/foundation.dart';
 import 'basic_types.dart';
 
 @immutable
-class BorderSide {
+class BorderSide with Diagnosticable {
   static const BorderSide none = BorderSide(
     width: 0.0,
     style: BorderStyle.none,

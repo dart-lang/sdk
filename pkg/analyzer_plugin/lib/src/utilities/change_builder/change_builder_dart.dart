@@ -1377,7 +1377,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           enclosing is FormalParameterElement) {
         enclosing = enclosing!.enclosingElement;
       }
-      if (enclosing == _enclosingExecutable || enclosing == _enclosingClass) {
+      if (enclosing != null &&
+          (enclosing == _enclosingExecutable || enclosing == _enclosingClass)) {
         return type;
       }
       return _getVisibleType(
@@ -1514,9 +1515,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     if (type is FunctionType) {
+      var typeParameters = [...type.typeParameters, ...?typeParametersInScope];
       _writeType(
         type.returnType,
-        typeParametersInScope: typeParametersInScope,
+        typeParametersInScope: typeParameters,
         shouldWriteDynamic: shouldWriteDynamic,
       );
       if (shouldWriteDynamic || type.returnType is! DynamicType) {
@@ -1525,11 +1527,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write('Function');
       writeTypeParameters(
         type.typeParameters,
-        typeParametersInScope: typeParametersInScope,
+        typeParametersInScope: typeParameters,
       );
       writeFormalParameters(
         type.formalParameters,
-        typeParametersInScope: typeParametersInScope,
+        typeParametersInScope: typeParameters,
         includeDefaultValues: false,
         fillParameterNames: false,
       );

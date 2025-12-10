@@ -8,13 +8,16 @@ final foundationDiagnosticsLibrary = MockLibraryUnit(
   'lib/src/foundation/diagnostics.dart',
   r'''
 mixin Diagnosticable {
+  @protected
+  @mustCallSuper
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {}
 }
 
 abstract class DiagnosticableTree with Diagnosticable {
   const DiagnosticableTree();
 
-  List<DiagnosticsNode> debugDescribeChildren() => const [];
+  @protected
+  List<DiagnosticsNode> debugDescribeChildren();
 }
 
 class DiagnosticPropertiesBuilder {

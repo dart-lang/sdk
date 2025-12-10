@@ -772,7 +772,14 @@ abstract class ResolvedCorrectionProducer
       if (correspondingParameter?.type ?? staticType case FunctionType(
         :var returnType,
       )) {
-        return returnType;
+        if (returnType is! InvalidType) {
+          return returnType;
+        }
+        if (correspondingParameter?.baseElement.type case FunctionType(
+          :var returnType,
+        )) {
+          return returnType;
+        }
       }
     }
     if (expression.enclosingExecutableElement case ExecutableElement(

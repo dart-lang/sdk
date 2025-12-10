@@ -837,6 +837,27 @@ extension E on Object {
 ''');
   }
 
+  Future<void> test_insideClass() async {
+    await resolveTestCode('''
+class C {
+  void foo(List<int> a) {
+    a.map((e) => _m(e, 1));
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  void foo(List<int> a) {
+    a.map((e) => _m(e, 1));
+  }
+}
+
+extension on C {
+  T _m<T>(int e, int i) {}
+}
+''');
+  }
+
   Future<void> test_main_part() async {
     var partPath = join(testPackageLibPath, 'part.dart');
     newFile(partPath, '''

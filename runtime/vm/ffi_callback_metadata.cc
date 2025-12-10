@@ -4,6 +4,7 @@
 
 #include "vm/ffi_callback_metadata.h"
 
+#include "vm/allocation.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/dart_api_state.h"
 #include "vm/flag_list.h"
@@ -351,16 +352,49 @@ PersistentHandle* FfiCallbackMetadata::CreatePersistentHandle(
   return handle;
 }
 
+class VisitedScope : public StackResource {
+ public:
+  explicit VisitedScope(Thread* thread)
+      : StackResource(thread), thread_(thread) {
+    ASSERT(thread->forward_table_new() == nullptr);
+    set_ = new WeakTable();
+    thread->set_forward_table_new(set_);
+  }
+
+  ~VisitedScope() { thread_->set_forward_table_new(nullptr); }
+
+  bool IsMarked(ClosurePtr closure) {
+    return set_->GetValueExclusive(closure) != 0;
+  }
+  void Mark(ClosurePtr closure) { set_->SetValueExclusive(closure, 1); }
+
+ private:
+  Thread* thread_;
+  WeakTable* set_;
+};
+
+static void EnsureOnlyTriviallyImmutableValuesInClosureHelper(
+    Zone* zone,
+    ClosurePtr closure_ptr,
+    VisitedScope* visited);
+
 static void ValidateTriviallyImmutabilityOfAnObject(Zone* zone,
                                                     Object* p_obj,
-                                                    ObjectPtr object_ptr) {
+                                                    ObjectPtr object_ptr,
+                                                    VisitedScope* visited) {
   *p_obj = object_ptr;
   if (p_obj->IsSmi() || p_obj->IsNull()) {
     return;
   }
   if (p_obj->IsClosure()) {
-    FfiCallbackMetadata::EnsureOnlyTriviallyImmutableValuesInClosure(
-        zone, Closure::RawCast(p_obj->ptr()));
+    ClosurePtr closure_ptr = Closure::RawCast(p_obj->ptr());
+    if (visited->IsMarked(closure_ptr)) {
+      // Skip circular references
+      return;
+    }
+    visited->Mark(closure_ptr);
+    EnsureOnlyTriviallyImmutableValuesInClosureHelper(zone, closure_ptr,
+                                                      visited);
     return;
   }
   if (p_obj->IsImmutable()) {
@@ -377,9 +411,10 @@ static void ValidateTriviallyImmutabilityOfAnObject(Zone* zone,
   UNREACHABLE();
 }
 
-void FfiCallbackMetadata::EnsureOnlyTriviallyImmutableValuesInClosure(
+static void EnsureOnlyTriviallyImmutableValuesInClosureHelper(
     Zone* zone,
-    ClosurePtr closure_ptr) {
+    ClosurePtr closure_ptr,
+    VisitedScope* visited) {
   Closure& closure = Closure::Handle(zone, closure_ptr);
   if (closure.IsNull()) {
     return;
@@ -388,7 +423,7 @@ void FfiCallbackMetadata::EnsureOnlyTriviallyImmutableValuesInClosure(
   const auto& function = Function::Handle(closure.function());
   if (function.IsImplicitClosureFunction()) {
     ValidateTriviallyImmutabilityOfAnObject(
-        zone, &obj, closure.GetImplicitClosureReceiver());
+        zone, &obj, closure.GetImplicitClosureReceiver(), visited);
   } else {
     const Context& context = Context::Handle(zone, closure.GetContext());
     if (context.IsNull()) {
@@ -396,19 +431,28 @@ void FfiCallbackMetadata::EnsureOnlyTriviallyImmutableValuesInClosure(
     }
     // Iterate through all elements of the context.
     for (intptr_t i = 0; i < context.num_variables(); i++) {
-      ValidateTriviallyImmutabilityOfAnObject(zone, &obj, context.At(i));
+      ValidateTriviallyImmutabilityOfAnObject(zone, &obj, context.At(i),
+                                              visited);
     }
 
-    if (!function.does_close_over_only_final_and_shared_vars()) {
+    if (!function.captures_only_final_not_late_vars()) {
       const String& error = String::Handle(
-          zone,
-          String::New(
-              "Only final and 'vm:shared' variables can be captured by isolate "
-              "group callbacks."));
+          zone, String::New(
+                    "Only final not-late variables can be captured by isolate "
+                    "group callbacks."));
       Exceptions::ThrowArgumentError(error);
       UNREACHABLE();
     }
   }
+}
+
+void FfiCallbackMetadata::EnsureOnlyTriviallyImmutableValuesInClosure(
+    Zone* zone,
+    ClosurePtr closure_ptr) {
+  auto thread = Thread::Current();
+  VisitedScope visited(thread);
+  EnsureOnlyTriviallyImmutableValuesInClosureHelper(zone, closure_ptr,
+                                                    &visited);
 }
 
 FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateLocalFfiCallback(

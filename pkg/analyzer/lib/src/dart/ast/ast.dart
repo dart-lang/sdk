@@ -8964,13 +8964,6 @@ final class ExtensionTypeDeclarationImpl
     return body.endToken;
   }
 
-  /// The type annotation of the only formal parameter of the primary
-  /// constructor. It is always present, ensured by the AST builder.
-  TypeAnnotationImpl get fieldType {
-    var formal = primaryConstructor.formalParameters.parameters.first;
-    return (formal as SimpleFormalParameterImpl).type!;
-  }
-
   @generated
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -9046,6 +9039,13 @@ final class ExtensionTypeDeclarationImpl
             ?.firstFragment;
     representation.constructorFragment = declaredFragment?.constructors.first;
     return representation;
+  }
+
+  /// Usually, the only formal parameter of the primary constructor.
+  /// But could be `null` in invalid code.
+  SimpleFormalParameterImpl? get representationFormalParameter {
+    var formalParameters = primaryConstructor.formalParameters;
+    return formalParameters.parameters.firstOrNull.ifTypeOrNull();
   }
 
   @Deprecated('Use body instead')

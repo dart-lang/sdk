@@ -627,7 +627,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   DartType? visitBinaryExpression(BinaryExpression node) {
     if (node.operator.end <= offset) {
       if (node.operator.type == TokenType.EQ_EQ ||
-          node.operator.type == TokenType.BANG_EQ_EQ) {
+          node.operator.type == TokenType.BANG_EQ) {
         // TODO(kallentu): Fix the parser implementation where dot shorthand
         // const constructor declarations recover with a wrapping function
         // expression invocation and then remove this.

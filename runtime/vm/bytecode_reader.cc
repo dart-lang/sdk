@@ -304,14 +304,14 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
           (flags & ClosureCode::kHasSourcePositionsFlag) != 0;
       const bool has_local_variables =
           (flags & ClosureCode::kHasLocalVariablesFlag) != 0;
-      const bool does_close_over_only_final_and_shared_vars =
-          (flags & ClosureCode::kCapturesOnlyFinalAndSharedVarsFlag) != 0;
+      const bool captures_only_final_not_late_vars =
+          (flags & ClosureCode::kCapturesOnlyFinalNotLateVarsFlag) != 0;
 
       // Read closure bytecode and attach to closure function.
       closure_bytecode = ReadBytecode(pool);
 
-      closure.set_does_close_over_only_final_and_shared_vars(
-          does_close_over_only_final_and_shared_vars);
+      closure.set_captures_only_final_not_late_vars(
+          captures_only_final_not_late_vars);
       closure.AttachBytecode(closure_bytecode);
 
       ReadExceptionsTable(closure, closure_bytecode, has_exceptions_table);

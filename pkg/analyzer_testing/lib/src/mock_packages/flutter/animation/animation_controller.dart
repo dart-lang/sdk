@@ -7,6 +7,10 @@ import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 final animationAnimationControllerLibrary = MockLibraryUnit(
   'lib/src/animation/animation_controller.dart',
   r'''
-class AnimationController extends Animation<double> {}
+class AnimationController extends Animation<double>
+    with
+        AnimationEagerListenerMixin,
+        AnimationLocalListenersMixin,
+        AnimationLocalStatusListenersMixin {}
 ''',
 );
