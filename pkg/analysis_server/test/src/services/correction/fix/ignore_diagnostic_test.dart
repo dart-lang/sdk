@@ -184,11 +184,11 @@ void f() {
   }
   ''');
     await assertHasFix('''
-include:
-  - package:lints/recommended.yaml
 analyzer:
   errors:
     unused_local_variable: ignore
+include:
+  - package:lints/recommended.yaml
 ''', target: analysisOptionsPath);
   }
 
