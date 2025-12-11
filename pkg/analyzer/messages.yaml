@@ -19914,8 +19914,8 @@ FfiCode:
   abiSpecificIntegerMappingUnsupported:
     type: compileTimeError
     parameters:
-      String p0: the value of the invalid mapping
-    problemMessage: "Invalid mapping to '#p0'; only mappings to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16', 'UInt32', and 'Uint64' are supported."
+      String mappingName: the value of the invalid mapping
+    problemMessage: "Invalid mapping to '#mappingName'; only mappings to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16', 'UInt32', and 'Uint64' are supported."
     correctionMessage: Try changing the value to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16', 'UInt32', or 'Uint64'.
     hasPublishedDocs: true
     documentation: |-
@@ -20130,8 +20130,8 @@ FfiCode:
   argumentMustBeAConstant:
     type: compileTimeError
     parameters:
-      String p0: the name of the argument
-    problemMessage: "Argument '#p0' must be a constant."
+      String argumentName: the name of the argument
+    problemMessage: "Argument '#argumentName' must be a constant."
     correctionMessage: Try replacing the value with a literal or const.
     hasPublishedDocs: true
     documentation: |-
@@ -20259,8 +20259,8 @@ FfiCode:
   nativeFieldInvalidType:
     type: compileTimeError
     parameters:
-      Type p0: The invalid type.
-    problemMessage: "'#p0' is an unsupported type for native fields. Native fields only support pointers, arrays or numeric and compound types."
+      Type type: The invalid type.
+    problemMessage: "'#type' is an unsupported type for native fields. Native fields only support pointers, arrays or numeric and compound types."
     correctionMessage: "Try changing the type in the `@Native` annotation to a numeric FFI type, a pointer, array, or a compound class."
     hasPublishedDocs: true
     documentation: |-
@@ -20474,9 +20474,9 @@ FfiCode:
   compoundImplementsFinalizable:
     type: compileTimeError
     parameters:
-      String p0: the name of the struct or union class
-    problemMessage: "The class '#p0' can't implement Finalizable."
-    correctionMessage: "Try removing the implements clause from '#p0'."
+      String className: the name of the struct or union class
+    problemMessage: "The class '#className' can't implement Finalizable."
+    correctionMessage: "Try removing the implements clause from '#className'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -20566,10 +20566,10 @@ FfiCode:
   emptyStruct:
     type: compileTimeError
     parameters:
-      String p0: the name of the subclass
-      String p1: the name of the superclass
-    problemMessage: "The class '#p0' can't be empty because it's a subclass of '#p1'."
-    correctionMessage: "Try adding a field to '#p0' or use a different superclass."
+      String subclassName: the name of the subclass
+      String superclassName: the name of the superclass
+    problemMessage: "The class '#subclassName' can't be empty because it's a subclass of '#superclassName'."
+    correctionMessage: "Try adding a field to '#subclassName' or use a different superclass."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -20798,9 +20798,9 @@ FfiCode:
   ffiNativeUnexpectedNumberOfParameters:
     type: compileTimeError
     parameters:
-      int p0: the expected number of parameters
-      int p1: the actual number of parameters
-    problemMessage: "Unexpected number of Native annotation parameters. Expected #p0 but has #p1."
+      int expected: the expected number of parameters
+      int actual: the actual number of parameters
+    problemMessage: "Unexpected number of Native annotation parameters. Expected #expected but has #actual."
     correctionMessage: Make sure parameters match the function annotated.
     hasPublishedDocs: true
     documentation: |-
@@ -20849,9 +20849,9 @@ FfiCode:
   ffiNativeUnexpectedNumberOfParametersWithReceiver:
     type: compileTimeError
     parameters:
-      int p0: the expected number of parameters
-      int p1: the actual number of parameters
-    problemMessage: "Unexpected number of Native annotation parameters. Expected #p0 but has #p1. Native instance method annotation must have receiver as first argument."
+      int expected: the expected number of parameters
+      int actual: the actual number of parameters
+    problemMessage: "Unexpected number of Native annotation parameters. Expected #expected but has #actual. Native instance method annotation must have receiver as first argument."
     correctionMessage: Make sure parameters match the function annotated, including an extra first parameter for the receiver.
     hasPublishedDocs: true
     documentation: |-
@@ -21090,9 +21090,9 @@ FfiCode:
   genericStructSubclass:
     type: compileTimeError
     parameters:
-      String p0: the name of the struct class
-    problemMessage: "The class '#p0' can't extend 'Struct' or 'Union' because '#p0' is generic."
-    correctionMessage: "Try removing the type parameters from '#p0'."
+      String className: the name of the struct class
+    problemMessage: "The class '#className' can't extend 'Struct' or 'Union' because '#className' is generic."
+    correctionMessage: "Try removing the type parameters from '#className'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -21129,8 +21129,8 @@ FfiCode:
   invalidExceptionValue:
     type: compileTimeError
     parameters:
-      String p0: the name of the method
-    problemMessage: "The method #p0 can't have an exceptional return value (the second argument) when the return type of the function is either 'void', 'Handle' or 'Pointer'."
+      String methodName: the name of the method
+    problemMessage: "The method #methodName can't have an exceptional return value (the second argument) when the return type of the function is either 'void', 'Handle' or 'Pointer'."
     correctionMessage: Try removing the exceptional return value.
     hasPublishedDocs: true
     documentation: |-
@@ -21179,8 +21179,8 @@ FfiCode:
   invalidFieldTypeInStruct:
     type: compileTimeError
     parameters:
-      String p0: the type of the field
-    problemMessage: "Fields in struct classes can't have the type '#p0'. They can only be declared as 'int', 'double', 'Array', 'Pointer', or subtype of 'Struct' or 'Union'."
+      String type: the type of the field
+    problemMessage: "Fields in struct classes can't have the type '#type'. They can only be declared as 'int', 'double', 'Array', 'Pointer', or subtype of 'Struct' or 'Union'."
     correctionMessage: "Try using 'int', 'double', 'Array', 'Pointer', or subtype of 'Struct' or 'Union'."
     hasPublishedDocs: true
     documentation: |-
@@ -21388,9 +21388,9 @@ FfiCode:
   missingAnnotationOnStructField:
     type: compileTimeError
     parameters:
-      Type p0: the type that is missing a native type annotation
-      String p1: the superclass which is extended by this field's class
-    problemMessage: "Fields of type '#p0' in a subclass of '#p1' must have an annotation indicating the native type."
+      Type type: the type that is missing a native type annotation
+      String superclassName: the superclass which is extended by this field's class
+    problemMessage: "Fields of type '#type' in a subclass of '#superclassName' must have an annotation indicating the native type."
     correctionMessage: Try adding an annotation.
     hasPublishedDocs: true
     documentation: |-
@@ -21432,8 +21432,8 @@ FfiCode:
   missingExceptionValue:
     type: compileTimeError
     parameters:
-      String p0: the name of the method
-    problemMessage: "The method #p0 must have an exceptional return value (the second argument) when the return type of the function is neither 'void', 'Handle', nor 'Pointer'."
+      String methodName: the name of the method
+    problemMessage: "The method #methodName must have an exceptional return value (the second argument) when the return type of the function is neither 'void', 'Handle', nor 'Pointer'."
     correctionMessage: Try adding an exceptional return value.
     hasPublishedDocs: true
     documentation: |-
@@ -21566,9 +21566,9 @@ FfiCode:
   mustBeANativeFunctionType:
     type: compileTimeError
     parameters:
-      Object p0: the type that should be a valid dart:ffi native type.
-      String p1: the name of the function whose invocation depends on this relationship
-    problemMessage: "The type '#p0' given to '#p1' must be a valid 'dart:ffi' native function type."
+      Object type: the type that should be a valid dart:ffi native type.
+      String functionName: the name of the function whose invocation depends on this relationship
+    problemMessage: "The type '#type' given to '#functionName' must be a valid 'dart:ffi' native function type."
     correctionMessage: "Try changing the type to only use members for 'dart:ffi'."
     hasPublishedDocs: true
     documentation: |-
@@ -21617,10 +21617,10 @@ FfiCode:
   mustBeASubtype:
     type: compileTimeError
     parameters:
-      Type p0: the type that should be a subtype
-      Type p1: the supertype that the subtype is compared to
-      String p2: the name of the function whose invocation depends on this relationship
-    problemMessage: "The type '#p0' must be a subtype of '#p1' for '#p2'."
+      Type subtype: the type that should be a subtype
+      Type supertype: the supertype that the subtype is compared to
+      String name: the name of the function whose invocation depends on this relationship
+    problemMessage: "The type '#subtype' must be a subtype of '#supertype' for '#name'."
     correctionMessage: Try changing one or both of the type arguments.
     hasPublishedDocs: true
     documentation: |-
@@ -21686,8 +21686,8 @@ FfiCode:
   mustReturnVoid:
     type: compileTimeError
     parameters:
-      Type p0: the return type that should be 'void'.
-    problemMessage: "The return type of the function passed to 'NativeCallable.listener' must be 'void' rather than '#p0'."
+      Type type: the return type that should be 'void'.
+    problemMessage: "The return type of the function passed to 'NativeCallable.listener' must be 'void' rather than '#type'."
     correctionMessage: "Try changing the return type to 'void'."
     hasPublishedDocs: true
     documentation: |-
@@ -21805,8 +21805,8 @@ FfiCode:
   nonConstantTypeArgument:
     type: compileTimeError
     parameters:
-      String p0: the name of the function, method, or constructor having type arguments
-    problemMessage: "The type arguments to '#p0' must be known at compile time, so they can't be type parameters."
+      String executableName: the name of the function, method, or constructor having type arguments
+    problemMessage: "The type arguments to '#executableName' must be known at compile time, so they can't be type parameters."
     correctionMessage: Try changing the type argument to be a constant type.
     hasPublishedDocs: true
     documentation: |-
@@ -21853,8 +21853,8 @@ FfiCode:
   nonNativeFunctionTypeArgumentToPointer:
     type: compileTimeError
     parameters:
-      Type p0: the type that should be a valid dart:ffi native type.
-    problemMessage: "Can't invoke 'asFunction' because the function signature '#p0' for the pointer isn't a valid C function signature."
+      Type type: the type that should be a valid dart:ffi native type.
+    problemMessage: "Can't invoke 'asFunction' because the function signature '#type' for the pointer isn't a valid C function signature."
     correctionMessage: "Try changing the function argument in 'NativeFunction' to only use NativeTypes."
     hasPublishedDocs: true
     documentation: |-
@@ -21956,9 +21956,9 @@ FfiCode:
   nonSizedTypeArgument:
     type: compileTimeError
     parameters:
-      String p0: the name of the field
-      Type p1: the type of the field
-    problemMessage: "The type '#p1' isn't a valid type argument for '#p0'. The type argument must be a native integer, 'Float', 'Double', 'Pointer', or subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
+      String fieldName: the name of the field
+      Type type: the type of the field
+    problemMessage: "The type '#type' isn't a valid type argument for '#fieldName'. The type argument must be a native integer, 'Float', 'Double', 'Pointer', or subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
     correctionMessage: "Try using a native integer, 'Float', 'Double', 'Pointer', or subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
     hasPublishedDocs: true
     documentation: |-
@@ -22196,11 +22196,11 @@ FfiCode:
   subtypeOfFfiClassInExtends:
     type: compileTimeError
     parameters:
-      Object p0: the name of the subclass
-      Object p1: the name of the class being extended, implemented, or mixed in
+      Object subclassName: the name of the subclass
+      Object superclassName: the name of the class being extended, implemented, or mixed in
     removedIn: "3.0"
     sharedName: subtypeOfFfiClass
-    problemMessage: "The class '#p0' can't extend '#p1'."
+    problemMessage: "The class '#subclassName' can't extend '#superclassName'."
     correctionMessage: "Try extending 'Struct' or 'Union'."
     hasPublishedDocs: true
     documentation: |-
@@ -22247,30 +22247,30 @@ FfiCode:
   subtypeOfFfiClassInImplements:
     type: compileTimeError
     parameters:
-      Object p0: the name of the subclass
-      Object p1: the name of the class being extended, implemented, or mixed in
+      Object subclassName: the name of the subclass
+      Object superclassName: the name of the class being extended, implemented, or mixed in
     removedIn: "3.0"
     sharedName: subtypeOfFfiClass
-    problemMessage: "The class '#p0' can't implement '#p1'."
+    problemMessage: "The class '#subclassName' can't implement '#superclassName'."
     correctionMessage: "Try implementing 'Allocator' or 'Finalizable'."
     hasPublishedDocs: true
   subtypeOfFfiClassInWith:
     type: compileTimeError
     parameters:
-      Object p0: the name of the subclass
-      Object p1: the name of the class being extended, implemented, or mixed in
+      Object subclassName: the name of the subclass
+      Object superclassName: the name of the class being extended, implemented, or mixed in
     removedIn: "3.0"
     sharedName: subtypeOfFfiClass
-    problemMessage: "The class '#p0' can't mix in '#p1'."
+    problemMessage: "The class '#subclassName' can't mix in '#superclassName'."
     correctionMessage: "Try extending 'Struct' or 'Union'."
     hasPublishedDocs: true
   subtypeOfStructClassInExtends:
     type: compileTimeError
     parameters:
-      String p0: the name of the subclass
-      String p1: the name of the class being extended, implemented, or mixed in
+      String subclassName: the name of the subclass
+      String superclassName: the name of the class being extended, implemented, or mixed in
     sharedName: subtypeOfStructClass
-    problemMessage: "The class '#p0' can't extend '#p1' because '#p1' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
+    problemMessage: "The class '#subclassName' can't extend '#superclassName' because '#superclassName' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
     correctionMessage: "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly."
     hasPublishedDocs: true
     documentation: |-
@@ -22321,19 +22321,19 @@ FfiCode:
   subtypeOfStructClassInImplements:
     type: compileTimeError
     parameters:
-      String p0: the name of the subclass
-      String p1: the name of the class being extended, implemented, or mixed in
+      String subclassName: the name of the subclass
+      String superclassName: the name of the class being extended, implemented, or mixed in
     sharedName: subtypeOfStructClass
-    problemMessage: "The class '#p0' can't implement '#p1' because '#p1' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
+    problemMessage: "The class '#subclassName' can't implement '#superclassName' because '#superclassName' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
     correctionMessage: "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly."
     hasPublishedDocs: true
   subtypeOfStructClassInWith:
     type: compileTimeError
     parameters:
-      String p0: the name of the subclass
-      String p1: the name of the class being extended, implemented, or mixed in
+      String subclassName: the name of the subclass
+      String superclassName: the name of the class being extended, implemented, or mixed in
     sharedName: subtypeOfStructClass
-    problemMessage: "The class '#p0' can't mix in '#p1' because '#p1' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
+    problemMessage: "The class '#subclassName' can't mix in '#superclassName' because '#superclassName' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
     correctionMessage: "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly."
     hasPublishedDocs: true
 HintCode:
