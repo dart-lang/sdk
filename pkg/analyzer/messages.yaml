@@ -206,11 +206,11 @@ AnalysisOptionsWarningCode:
   analysisOptionDeprecatedWithReplacement:
     type: staticWarning
     parameters:
-      Object p0: the option name
-      Object p1: the replacement option name
+      Object optionName: the option name
+      Object replacementOptionName: the replacement option name
     sharedName: analysisOptionDeprecated
-    problemMessage: "The option '#p0' is no longer supported."
-    correctionMessage: "Try using the new '#p1' option."
+    problemMessage: "The option '#optionName' is no longer supported."
+    correctionMessage: "Try using the new '#replacementOptionName' option."
     hasPublishedDocs: true
     comment: |-
       An error code indicating that the given option is deprecated.
@@ -436,10 +436,10 @@ AnalysisOptionsWarningCode:
   incompatibleLintFiles:
     type: staticWarning
     parameters:
-      String p0: the rule name
-      String p1: the incompatible rules
+      String ruleName: the rule name
+      String incompatibleRules: the incompatible rules
     sharedName: incompatibleLint
-    problemMessage: "The rule '#p0' is incompatible with #p1."
+    problemMessage: "The rule '#ruleName' is incompatible with #incompatibleRules."
     correctionMessage: "Try locally disabling all but one of the conflicting rules or removing one of the incompatible files."
     hasPublishedDocs: true
     comment: |-
@@ -449,12 +449,12 @@ AnalysisOptionsWarningCode:
   incompatibleLintIncluded:
     type: staticWarning
     parameters:
-      String p0: the rule name
-      String p1: the incompatible rules
-      int p2: the number of files that include the incompatible rule
-      String p3: plural suffix for the word "file"
+      String ruleName: the rule name
+      String incompatibleRules: the incompatible rules
+      int numIncludingFiles: the number of files that include the incompatible rule
+      String pluralSuffix: plural suffix for the word "file"
     sharedName: incompatibleLint
-    problemMessage: "The rule '#p0' is incompatible with #p1, which is included from #p2 file#p3."
+    problemMessage: "The rule '#ruleName' is incompatible with #incompatibleRules, which is included from #numIncludingFiles file#pluralSuffix."
     correctionMessage: "Try locally disabling all but one of the conflicting rules or removing one of the incompatible files."
     hasPublishedDocs: true
     comment: |-
@@ -550,9 +550,9 @@ AnalysisOptionsWarningCode:
   multiplePlugins:
     type: staticWarning
     parameters:
-      String p0: the name of the first plugin
+      String firstPluginName: the name of the first plugin
     problemMessage: "Multiple plugins can't be enabled."
-    correctionMessage: "Remove all plugins following the first, '#p0'."
+    correctionMessage: "Remove all plugins following the first, '#firstPluginName'."
     hasPublishedDocs: false
     comment: |-
       An error code indicating multiple plugins have been specified as enabled.

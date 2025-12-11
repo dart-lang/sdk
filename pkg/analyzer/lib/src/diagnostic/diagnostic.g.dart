@@ -397,10 +397,13 @@ analysisOptionDeprecated = DiagnosticWithArguments(
 /// An error code indicating that the given option is deprecated.
 ///
 /// Parameters:
-/// Object p0: the option name
-/// Object p1: the replacement option name
+/// Object optionName: the option name
+/// Object replacementOptionName: the replacement option name
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0, required Object p1})
+  LocatableDiagnostic Function({
+    required Object optionName,
+    required Object replacementOptionName,
+  })
 >
 analysisOptionDeprecatedWithReplacement = DiagnosticWithArguments(
   name: 'analysis_option_deprecated',
@@ -6925,10 +6928,13 @@ incompatibleLint = DiagnosticWithArguments(
 /// The files that enable the referenced rules must be included by context messages.
 ///
 /// Parameters:
-/// String p0: the rule name
-/// String p1: the incompatible rules
+/// String ruleName: the rule name
+/// String incompatibleRules: the incompatible rules
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String ruleName,
+    required String incompatibleRules,
+  })
 >
 incompatibleLintFiles = DiagnosticWithArguments(
   name: 'incompatible_lint',
@@ -6946,16 +6952,17 @@ incompatibleLintFiles = DiagnosticWithArguments(
 /// An error code indicating an incompatible rule.
 ///
 /// Parameters:
-/// String p0: the rule name
-/// String p1: the incompatible rules
-/// int p2: the number of files that include the incompatible rule
-/// String p3: plural suffix for the word "file"
+/// String ruleName: the rule name
+/// String incompatibleRules: the incompatible rules
+/// int numIncludingFiles: the number of files that include the incompatible
+///                        rule
+/// String pluralSuffix: plural suffix for the word "file"
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required int p2,
-    required String p3,
+    required String ruleName,
+    required String incompatibleRules,
+    required int numIncludingFiles,
+    required String pluralSuffix,
   })
 >
 incompatibleLintIncluded = DiagnosticWithArguments(
@@ -10967,9 +10974,9 @@ const DiagnosticWithoutArguments multiplePartOfDirectives =
 /// An error code indicating multiple plugins have been specified as enabled.
 ///
 /// Parameters:
-/// String p0: the name of the first plugin
+/// String firstPluginName: the name of the first plugin
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String firstPluginName})
 >
 multiplePlugins = DiagnosticWithArguments(
   name: 'multiple_plugins',
@@ -17776,12 +17783,12 @@ LocatableDiagnostic _withArgumentsAnalysisOptionDeprecated({
 }
 
 LocatableDiagnostic _withArgumentsAnalysisOptionDeprecatedWithReplacement({
-  required Object p0,
-  required Object p1,
+  required Object optionName,
+  required Object replacementOptionName,
 }) {
   return LocatableDiagnosticImpl(diag.analysisOptionDeprecatedWithReplacement, [
-    p0,
-    p1,
+    optionName,
+    replacementOptionName,
   ]);
 }
 
@@ -19046,23 +19053,26 @@ LocatableDiagnostic _withArgumentsIncompatibleLint({
 }
 
 LocatableDiagnostic _withArgumentsIncompatibleLintFiles({
-  required String p0,
-  required String p1,
+  required String ruleName,
+  required String incompatibleRules,
 }) {
-  return LocatableDiagnosticImpl(diag.incompatibleLintFiles, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.incompatibleLintFiles, [
+    ruleName,
+    incompatibleRules,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsIncompatibleLintIncluded({
-  required String p0,
-  required String p1,
-  required int p2,
-  required String p3,
+  required String ruleName,
+  required String incompatibleRules,
+  required int numIncludingFiles,
+  required String pluralSuffix,
 }) {
   return LocatableDiagnosticImpl(diag.incompatibleLintIncluded, [
-    p0,
-    p1,
-    p2,
-    p3,
+    ruleName,
+    incompatibleRules,
+    numIncludingFiles,
+    pluralSuffix,
   ]);
 }
 
@@ -19842,8 +19852,10 @@ LocatableDiagnostic _withArgumentsMultipleClauses({
   return LocatableDiagnosticImpl(diag.multipleClauses, [string, string2]);
 }
 
-LocatableDiagnostic _withArgumentsMultiplePlugins({required String p0}) {
-  return LocatableDiagnosticImpl(diag.multiplePlugins, [p0]);
+LocatableDiagnostic _withArgumentsMultiplePlugins({
+  required String firstPluginName,
+}) {
+  return LocatableDiagnosticImpl(diag.multiplePlugins, [firstPluginName]);
 }
 
 LocatableDiagnostic _withArgumentsMultipleVariablesInForEach({

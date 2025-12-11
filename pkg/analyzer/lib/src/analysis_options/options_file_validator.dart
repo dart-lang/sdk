@@ -814,10 +814,10 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
     if (plugins is YamlScalar && plugins.value != null) {
       if (_firstIncludedPluginName != null &&
           _firstIncludedPluginName != plugins.value) {
-        reporter.atSourceSpan(
-          plugins.span,
-          diag.multiplePlugins,
-          arguments: [_firstIncludedPluginName],
+        reporter.report(
+          diag.multiplePlugins
+              .withArguments(firstPluginName: _firstIncludedPluginName)
+              .atSourceSpan(plugins.span),
         );
       }
     } else if (plugins is YamlList) {
@@ -826,10 +826,10 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
         // There is already at least one plugin specified in included options.
         for (var plugin in pluginValues) {
           if (plugin.value != _firstIncludedPluginName) {
-            reporter.atSourceSpan(
-              plugin.span,
-              diag.multiplePlugins,
-              arguments: [_firstIncludedPluginName],
+            reporter.report(
+              diag.multiplePlugins
+                  .withArguments(firstPluginName: _firstIncludedPluginName)
+                  .atSourceSpan(plugin.span),
             );
           }
         }
@@ -846,10 +846,10 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
               continue;
             }
           } else if (plugin.value != firstPlugin) {
-            reporter.atSourceSpan(
-              plugin.span,
-              diag.multiplePlugins,
-              arguments: [firstPlugin],
+            reporter.report(
+              diag.multiplePlugins
+                  .withArguments(firstPluginName: firstPlugin)
+                  .atSourceSpan(plugin.span),
             );
           }
         }
@@ -860,10 +860,10 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
         // There is already at least one plugin specified in included options.
         for (var plugin in pluginValues) {
           if (plugin != null && plugin.value != _firstIncludedPluginName) {
-            reporter.atSourceSpan(
-              plugin.span,
-              diag.multiplePlugins,
-              arguments: [_firstIncludedPluginName],
+            reporter.report(
+              diag.multiplePlugins
+                  .withArguments(firstPluginName: _firstIncludedPluginName)
+                  .atSourceSpan(plugin.span),
             );
           }
         }
@@ -880,10 +880,10 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
               continue;
             }
           } else if (plugin != null && plugin.value != firstPlugin) {
-            reporter.atSourceSpan(
-              plugin.span,
-              diag.multiplePlugins,
-              arguments: [firstPlugin],
+            reporter.report(
+              diag.multiplePlugins
+                  .withArguments(firstPluginName: firstPlugin)
+                  .atSourceSpan(plugin.span),
             );
           }
         }
