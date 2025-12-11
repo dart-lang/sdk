@@ -85,10 +85,14 @@ main() {
       firstType.element.firstFragment.libraryFragment.source,
     );
 
-    reporter.atNode(
-      findNode.simple('x'),
-      diag.argumentTypeNotAssignable,
-      arguments: [firstType, secondType, ''],
+    reporter.report(
+      diag.argumentTypeNotAssignable
+          .withArguments(
+            actualStaticType: firstType,
+            expectedStaticType: secondType,
+            additionalInfo: '',
+          )
+          .at(findNode.simple('x')),
     );
 
     var diagnostic = listener.diagnostics[0];
@@ -126,10 +130,14 @@ main() {
       listener,
       firstType.element.firstFragment.libraryFragment.source,
     );
-    reporter.atNode(
-      findNode.simple('x'),
-      diag.argumentTypeNotAssignable,
-      arguments: [firstType, secondType, ''],
+    reporter.report(
+      diag.argumentTypeNotAssignable
+          .withArguments(
+            actualStaticType: firstType,
+            expectedStaticType: secondType,
+            additionalInfo: '',
+          )
+          .at(findNode.simple('x')),
     );
 
     var diagnostic = listener.diagnostics[0];
@@ -155,10 +163,14 @@ main() {
 
     var source = result.unit.declaredFragment!.source;
     var reporter = DiagnosticReporter(listener, source);
-    reporter.atNode(
-      findNode.simple('x'),
-      diag.argumentTypeNotAssignable,
-      arguments: [fa.variables.type!.type!, fb.variables.type!.type!, ''],
+    reporter.report(
+      diag.argumentTypeNotAssignable
+          .withArguments(
+            actualStaticType: fa.variables.type!.type!,
+            expectedStaticType: fb.variables.type!.type!,
+            additionalInfo: '',
+          )
+          .at(findNode.simple('x')),
     );
 
     var diagnostic = listener.diagnostics[0];
@@ -186,10 +198,14 @@ main() {
 
     var source = result.unit.declaredFragment!.source;
     var reporter = DiagnosticReporter(listener, source);
-    reporter.atNode(
-      findNode.simple('x'),
-      diag.argumentTypeNotAssignable,
-      arguments: [ba.variables.type!.type!, bb.variables.type!.type!, ''],
+    reporter.report(
+      diag.argumentTypeNotAssignable
+          .withArguments(
+            actualStaticType: ba.variables.type!.type!,
+            expectedStaticType: bb.variables.type!.type!,
+            additionalInfo: '',
+          )
+          .at(findNode.simple('x')),
     );
 
     var diagnostic = listener.diagnostics[0];

@@ -155,14 +155,19 @@ class AssignmentExpressionResolver {
       }
     }
 
-    _diagnosticReporter.atNode(
-      right,
-      diag.invalidAssignment,
-      arguments: [rightType, writeType],
-      contextMessages: _resolver.computeWhyNotPromotedMessages(
-        right,
-        whyNotPromoted?.call(),
-      ),
+    _diagnosticReporter.report(
+      diag.invalidAssignment
+          .withArguments(
+            actualStaticType: rightType,
+            expectedStaticType: writeType,
+          )
+          .withContextMessages(
+            _resolver.computeWhyNotPromotedMessages(
+              right,
+              whyNotPromoted?.call(),
+            ),
+          )
+          .at(right),
     );
   }
 

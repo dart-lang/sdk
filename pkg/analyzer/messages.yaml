@@ -1331,10 +1331,10 @@ CompileTimeErrorCode:
   argumentTypeNotAssignable:
     type: compileTimeError
     parameters:
-      Type p0: the name of the actual argument type
-      Type p1: the name of the expected type
-      String p2: additional information, if any, when problem is associated with records
-    problemMessage: "The argument type '#p0' can't be assigned to the parameter type '#p1'. #p2"
+      Type actualStaticType: the name of the actual argument type
+      Type expectedStaticType: the name of the expected type
+      String additionalInfo: additional information, if any, when problem is associated with records
+    problemMessage: "The argument type '#actualStaticType' can't be assigned to the parameter type '#expectedStaticType'. #additionalInfo"
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -9287,10 +9287,10 @@ CompileTimeErrorCode:
   invalidAssignment:
     type: compileTimeError
     parameters:
-      Type p0: the name of the right hand side type
-      Type p1: the name of the left hand side type
-    problemMessage: "A value of type '#p0' can't be assigned to a variable of type '#p1'."
-    correctionMessage: "Try changing the type of the variable, or casting the right-hand type to '#p1'."
+      Type actualStaticType: the name of the right hand side type
+      Type expectedStaticType: the name of the left hand side type
+    problemMessage: "A value of type '#actualStaticType' can't be assigned to a variable of type '#expectedStaticType'."
+    correctionMessage: "Try changing the type of the variable, or casting the right-hand type to '#expectedStaticType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description

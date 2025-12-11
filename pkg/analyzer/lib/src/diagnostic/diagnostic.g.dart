@@ -506,15 +506,15 @@ const DiagnosticWithoutArguments argumentMustBeNative =
     );
 
 /// Parameters:
-/// Type p0: the name of the actual argument type
-/// Type p1: the name of the expected type
-/// String p2: additional information, if any, when problem is associated with
-///            records
+/// Type actualStaticType: the name of the actual argument type
+/// Type expectedStaticType: the name of the expected type
+/// String additionalInfo: additional information, if any, when problem is
+///                        associated with records
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required DartType p0,
-    required DartType p1,
-    required String p2,
+    required DartType actualStaticType,
+    required DartType expectedStaticType,
+    required String additionalInfo,
   })
 >
 argumentTypeNotAssignable = DiagnosticWithArguments(
@@ -7569,10 +7569,13 @@ invalidAnnotationTarget = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the name of the right hand side type
-/// Type p1: the name of the left hand side type
+/// Type actualStaticType: the name of the right hand side type
+/// Type expectedStaticType: the name of the left hand side type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType actualStaticType,
+    required DartType expectedStaticType,
+  })
 >
 invalidAssignment = DiagnosticWithArguments(
   name: 'invalid_assignment',
@@ -17799,11 +17802,15 @@ LocatableDiagnostic _withArgumentsArgumentMustBeAConstant({
 }
 
 LocatableDiagnostic _withArgumentsArgumentTypeNotAssignable({
-  required DartType p0,
-  required DartType p1,
-  required String p2,
+  required DartType actualStaticType,
+  required DartType expectedStaticType,
+  required String additionalInfo,
 }) {
-  return LocatableDiagnosticImpl(diag.argumentTypeNotAssignable, [p0, p1, p2]);
+  return LocatableDiagnosticImpl(diag.argumentTypeNotAssignable, [
+    actualStaticType,
+    expectedStaticType,
+    additionalInfo,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsArgumentTypeNotAssignableToErrorHandler({
@@ -19242,10 +19249,13 @@ LocatableDiagnostic _withArgumentsInvalidAnnotationTarget({
 }
 
 LocatableDiagnostic _withArgumentsInvalidAssignment({
-  required DartType p0,
-  required DartType p1,
+  required DartType actualStaticType,
+  required DartType expectedStaticType,
 }) {
-  return LocatableDiagnosticImpl(diag.invalidAssignment, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.invalidAssignment, [
+    actualStaticType,
+    expectedStaticType,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidCastFunction({
