@@ -4,4 +4,16 @@ testForCounterCaptured() {}
 
 testForCounterNotCaptured() {}
 
+testForInCounterCaptured(List<int> list) {}
+
+testForInCounterNotCaptured(List<int> list) {}
+
+testForInElementCounterCaptured(List<int> list) {}
+
+testForInElementCounterNotCaptured(List<int> list) {}
+
+testForInMapEntryCounterCaptured(List<int> list) {}
+
+testForInMapEntryCounterNotCaptured(List<int> list) {}
+
 testNotCaptured() {}

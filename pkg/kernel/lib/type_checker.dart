@@ -972,10 +972,11 @@ class TypeCheckingVisitor
     // TODO(asgerf): Store interface targets on for-in loops or desugar them,
     // instead of doing the ad-hoc resolution here.
     if (node.isAsync) {
-      checkAssignable(node, getStreamElementType(iterable), node.variable.type);
+      checkAssignable(
+          node, getStreamElementType(iterable), node.expressionVariable.type);
     } else {
       checkAssignable(
-          node, getIterableElementType(iterable), node.variable.type);
+          node, getIterableElementType(iterable), node.expressionVariable.type);
     }
     visitStatement(node.body);
   }

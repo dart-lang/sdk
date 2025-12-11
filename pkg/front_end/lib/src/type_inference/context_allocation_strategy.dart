@@ -6,6 +6,11 @@ import 'package:kernel/ast.dart';
 import '../util/local_stack.dart';
 
 abstract class ContextAllocationStrategy {
+  // TODO(cstefantsova): Replace this flag by implementing the default strategy.
+  bool isClosureContextLoweringEnabled;
+
+  ContextAllocationStrategy({required this.isClosureContextLoweringEnabled});
+
   LocalStack<ScopeProvider> _scopeProviderStack = new LocalStack<ScopeProvider>(
     <ScopeProvider>[],
   );
@@ -27,35 +32,40 @@ abstract class ContextAllocationStrategy {
   }
 
   void enterScopeProvider(ScopeProvider scopeProvider) {
-    assert(() {
-      _writeDebugLine(
-        "Entered ${scopeProvider.runtimeType} "
-        "(id=${identityHashCode(scopeProvider)}).",
-      );
-      return true;
-    }());
-    _scopeProviderStack.push(scopeProvider);
+    if (isClosureContextLoweringEnabled) {
+      assert(() {
+        _writeDebugLine(
+          "Entered ${scopeProvider.runtimeType} "
+          "(id=${identityHashCode(scopeProvider)}).",
+        );
+        return true;
+      }());
+      _scopeProviderStack.push(scopeProvider);
+    }
   }
 
   void exitScopeProvider(ScopeProvider scopeProvider) {
-    assert(() {
-      _writeDebugLine(
-        "Exited ${scopeProvider.runtimeType} "
-        "(id=${identityHashCode(scopeProvider)}).",
+    if (isClosureContextLoweringEnabled) {
+      assert(() {
+        _writeDebugLine(
+          "Exited ${scopeProvider.runtimeType} "
+          "(id=${identityHashCode(scopeProvider)}).",
+        );
+        return true;
+      }());
+      assert(
+        identical(_currentScopeProvider, scopeProvider),
+        "Expected the current scope provider "
+        "to be identical to the exited one: "
+        "current=${_currentScopeProvider.runtimeType}, "
+        "exited=${scopeProvider.runtimeType}."
+        "\nDebug log:\n${_readDebugLog()}",
       );
-      return true;
-    }());
-    assert(
-      identical(_currentScopeProvider, scopeProvider),
-      "Expected the current scope provider to be identical to the exited one: "
-      "current=${_currentScopeProvider.runtimeType}, "
-      "exited=${scopeProvider.runtimeType}."
-      "\nDebug log:\n${_readDebugLog()}",
-    );
-    _scopeProviderStack.pop();
+      _scopeProviderStack.pop();
+    }
   }
 
-  VariableContext ensureVariableContextInCurrentScope({
+  VariableContext _ensureVariableContextInCurrentScope({
     required CaptureKind captureKind,
   }) {
     assert(_currentScopeProvider != null);
@@ -74,21 +84,27 @@ abstract class ContextAllocationStrategy {
     return context;
   }
 
-  void handleVariableInitialization(
-    VariableInitialization variableInitialization, {
+  void handleDeclarationOfVariable(
+    ExpressionVariable variable, {
     required CaptureKind captureKind,
   });
 }
 
 class TrivialContextAllocationStrategy extends ContextAllocationStrategy {
+  TrivialContextAllocationStrategy({
+    required super.isClosureContextLoweringEnabled,
+  });
+
   @override
-  void handleVariableInitialization(
-    VariableInitialization variableInitialization, {
+  void handleDeclarationOfVariable(
+    ExpressionVariable variable, {
     required CaptureKind captureKind,
   }) {
-    assert(_currentScopeProvider != null);
-    ensureVariableContextInCurrentScope(
-      captureKind: captureKind,
-    ).addVariable(variableInitialization.variable);
+    if (isClosureContextLoweringEnabled) {
+      assert(_currentScopeProvider != null);
+      _ensureVariableContextInCurrentScope(
+        captureKind: captureKind,
+      ).addVariable(variable);
+    }
   }
 }

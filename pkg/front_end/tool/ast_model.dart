@@ -130,7 +130,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'LocalVariable': {'variableInitialization': FieldRule(isDeclaration: false)},
   'BreakStatement': {'target': FieldRule(isDeclaration: false)},
   'ForStatement': {'variableInitializations': FieldRule(isDeclaration: true)},
-  'ForInStatement': {'variable': FieldRule(isDeclaration: true)},
+  'ForInStatement': {'expressionVariable': FieldRule(isDeclaration: true)},
   'SwitchStatement': {'cases': FieldRule(isDeclaration: true)},
   'ContinueSwitchStatement': {'target': FieldRule(isDeclaration: false)},
   'Catch': {

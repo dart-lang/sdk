@@ -626,7 +626,15 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   @override
   List<int>? get fileOffsetsIfMultiple => [fileOffset, bodyOffset];
 
-  VariableDeclaration variable; // Has no initializer.
+  ExpressionVariable expressionVariable;
+
+  // Has no initializer.
+  VariableDeclaration get variable => expressionVariable as VariableDeclaration;
+
+  void set variable(VariableDeclaration value) {
+    expressionVariable = value;
+  }
+
   Expression iterable;
 
   @override
@@ -637,9 +645,9 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   @override
   Scope? scope;
 
-  ForInStatement(this.variable, this.iterable, this.body,
+  ForInStatement(this.expressionVariable, this.iterable, this.body,
       {this.isAsync = false}) {
-    variable.parent = this;
+    expressionVariable.parent = this;
     iterable.parent = this;
     body.parent = this;
   }
@@ -653,15 +661,15 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
 
   @override
   void visitChildren(Visitor v) {
-    variable.accept(v);
+    expressionVariable.accept(v);
     iterable.accept(v);
     body.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
-    variable = v.transform(variable);
-    variable.parent = this;
+    expressionVariable = v.transform(expressionVariable);
+    expressionVariable.parent = this;
     iterable = v.transform(iterable);
     iterable.parent = this;
     body = v.transform(body);
@@ -670,8 +678,8 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    variable = v.transform(variable);
-    variable.parent = this;
+    expressionVariable = v.transform(expressionVariable);
+    expressionVariable.parent = this;
     iterable = v.transform(iterable);
     iterable.parent = this;
     body = v.transform(body);
@@ -765,7 +773,7 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write('for (');
-    printer.writeVariableInitialization(variable);
+    printer.writeExpressionVariable(expressionVariable);
 
     printer.write(' in ');
     printer.writeExpression(iterable);

@@ -342,7 +342,7 @@ class Forest {
 
   ForInElement createForInElement(
     int fileOffset,
-    VariableDeclaration variable,
+    ExpressionVariable variable,
     Expression iterable,
     Expression? synthesizedAssignment,
     Statement? expressionEffects,
@@ -363,7 +363,7 @@ class Forest {
 
   ForInMapEntry createForInMapEntry(
     int fileOffset,
-    VariableDeclaration variable,
+    ExpressionVariable variable,
     Expression iterable,
     Expression? synthesizedAssignment,
     Statement? expressionEffects,

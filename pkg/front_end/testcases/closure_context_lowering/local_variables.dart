@@ -27,3 +27,39 @@ testForCounterCaptured() {
   }
   return closures;
 }
+
+testForInCounterNotCaptured(List<int> list) {
+  int a = 0;
+  for (int i in list) {
+    a += i;
+  }
+  return a;
+}
+
+testForInCounterCaptured(List<int> list) {
+  List<Function> closures = [];
+  for (int i in list) {
+    closures.add(() => i);
+  }
+  return closures;
+}
+
+testForInElementCounterNotCaptured(List<int> list) {
+  List<int> list2 = [for (int i in list) i];
+  return list2;
+}
+
+testForInElementCounterCaptured(List<int> list) {
+  List<Function> closures = [for (int i in list) () => i];
+  return closures;
+}
+
+testForInMapEntryCounterNotCaptured(List<int> list) {
+  Map<int, String> list2 = {for (int i in list) i: "$i"};
+  return list2;
+}
+
+testForInMapEntryCounterCaptured(List<int> list) {
+  Map<int, Function> closures = {for (int i in list) i: () => i};
+  return closures;
+}

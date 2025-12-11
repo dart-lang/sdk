@@ -542,7 +542,7 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitForInStatement(ForInStatement node) {
-    VariableDeclaration newVariable = clone(node.variable);
+    ExpressionVariable newVariable = clone(node.expressionVariable);
     return new ForInStatement(
         newVariable, clone(node.iterable), clone(node.body),
         isAsync: node.isAsync)
