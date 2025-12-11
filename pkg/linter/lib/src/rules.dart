@@ -182,6 +182,7 @@ import 'rules/public_member_api_docs.dart';
 import 'rules/recursive_getters.dart';
 import 'rules/remove_deprecations_in_breaking_version.dart';
 import 'rules/require_trailing_commas.dart';
+import 'rules/simplify_variable_pattern.dart';
 import 'rules/sized_box_for_whitespace.dart';
 import 'rules/sized_box_shrink_expand.dart';
 import 'rules/slash_for_doc_comments.dart';
@@ -436,6 +437,7 @@ void registerLintRules() {
     ..registerLintRule(RemoveDeprecationsInBreakingVersion())
     ..registerLintRule(RequireTrailingCommas())
     ..registerLintRule(SecurePubspecUrls())
+    ..registerLintRule(SimplifyVariablePattern())
     ..registerLintRule(SizedBoxForWhitespace())
     ..registerLintRule(SizedBoxShrinkExpand())
     ..registerLintRule(SlashForDocComments())

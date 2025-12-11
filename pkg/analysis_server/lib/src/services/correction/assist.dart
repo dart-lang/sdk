@@ -402,6 +402,11 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.priority,
     'Remove type annotation',
   );
+  static const removeUnnecessaryName = AssistKind(
+    'dart.assist.remove.unnecessaryName',
+    DartAssistKindPriority.default_,
+    'Remove unnecessary name from pattern',
+  );
   static const replaceConditionalWithIfElse = AssistKind(
     'dart.assist.convert.conditionalToIfElse',
     DartAssistKindPriority.default_,

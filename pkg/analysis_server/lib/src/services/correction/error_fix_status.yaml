@@ -2385,6 +2385,8 @@ require_trailing_commas:
   status: hasFix
 secure_pubspec_urls:
   status: noFix
+simplify_variable_pattern:
+  status: hasFix
 sized_box_for_whitespace:
   status: hasFix
 sized_box_shrink_expand:

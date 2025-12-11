@@ -467,6 +467,8 @@ abstract final class LintNames {
 
   static const String secure_pubspec_urls = 'secure_pubspec_urls';
 
+  static const String simplify_variable_pattern = 'simplify_variable_pattern';
+
   static const String sized_box_for_whitespace = 'sized_box_for_whitespace';
 
   static const String sized_box_shrink_expand = 'sized_box_shrink_expand';

@@ -186,6 +186,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_final.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_late.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_library_directive.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_name.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_parentheses.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_raw_string.dart';
@@ -412,6 +413,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.preferVoidToNull: [ReplaceNullWithVoid.new],
   diag.requireTrailingCommas: [AddTrailingComma.new],
+  diag.simplifyVariablePattern: [RemoveUnnecessaryName.new],
   diag.sizedBoxForWhitespace: [ReplaceContainerWithSizedBox.new],
   diag.slashForDocComments: [ConvertDocumentationIntoLine.new],
   diag.sortChildPropertiesLast: [SortChildPropertyLast.new],

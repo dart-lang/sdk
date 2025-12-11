@@ -94,6 +94,7 @@ import 'join_variable_declaration_test.dart' as join_variable_declaration;
 import 'remove_async_test.dart' as remove_async;
 import 'remove_digit_separators_test.dart' as remove_digit_separators;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
+import 'remove_unnecessary_name_test.dart' as remove_unnecessary_name;
 import 'replace_conditional_with_if_else_test.dart'
     as replace_conditional_with_if_else;
 import 'replace_if_else_with_conditional_test.dart'
@@ -191,6 +192,7 @@ void main() {
     join_variable_declaration.main();
     remove_async.main();
     remove_digit_separators.main();
+    remove_unnecessary_name.main();
     remove_type_annotation.main();
     replace_conditional_with_if_else.main();
     replace_if_else_with_conditional.main();

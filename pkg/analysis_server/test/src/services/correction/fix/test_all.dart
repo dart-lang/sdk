@@ -239,6 +239,7 @@ import 'remove_unnecessary_final_test.dart' as remove_unnecessary_final;
 import 'remove_unnecessary_late_test.dart' as remove_unnecessary_late;
 import 'remove_unnecessary_library_directive_test.dart'
     as remove_unnecessary_library_directive;
+import 'remove_unnecessary_name_test.dart' as remove_unnecessary_name;
 import 'remove_unnecessary_new_test.dart' as remove_unnecessary_new;
 import 'remove_unnecessary_parentheses_test.dart'
     as remove_unnecessary_parentheses;
@@ -528,6 +529,7 @@ void main() {
     remove_unnecessary_final.main();
     remove_unnecessary_late.main();
     remove_unnecessary_library_directive.main();
+    remove_unnecessary_name.main();
     remove_unnecessary_new.main();
     remove_unnecessary_parentheses.main();
     remove_unnecessary_raw_string.main();
