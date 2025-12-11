@@ -282,6 +282,149 @@ DotShorthandConstructorInvocation
 ''');
   }
 
+  test_conflict_instance_getter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int value; // Same name as constructor
+  A.value(this.value);
+}
+
+void main() {
+  A _ = .value(1);
+}
+''');
+
+    assertResolvedNodeText(
+      findNode.singleDotShorthandConstructorInvocation,
+      r'''
+DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: value
+    element: <testLibrary>::@class::A::@constructor::value
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::value
+        staticType: int
+    rightParenthesis: )
+  isDotShorthand: true
+  staticType: A
+''',
+    );
+  }
+
+  test_conflict_instance_method() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int val;
+  A.value(this.val);
+  A? value() => null; // Same name as constructor
+}
+
+void main() {
+  A _ = .value(1);
+}
+''');
+
+    assertResolvedNodeText(
+      findNode.singleDotShorthandConstructorInvocation,
+      r'''
+DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: value
+    element: <testLibrary>::@class::A::@constructor::value
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::val
+        staticType: int
+    rightParenthesis: )
+  isDotShorthand: true
+  staticType: A
+''',
+    );
+  }
+
+  test_conflict_instance_method_factory() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int val;
+  A._(this.val);
+  factory A.foo() => A._(1);
+  A? foo() => A._(2); // Same name as constructor
+}
+
+void main() {
+  A _ = .foo();
+}
+''');
+
+    assertResolvedNodeText(
+      findNode.singleDotShorthandConstructorInvocation,
+      r'''
+DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@constructor::foo
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  staticType: A
+''',
+    );
+  }
+
+  test_conflict_instance_setter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int? val;
+  A.value(this.val);
+
+  // Same name as constructor
+  set value(int v) {
+    val = v;
+  }
+}
+
+void main() {
+  A _ = .value(1);
+}
+''');
+
+    assertResolvedNodeText(
+      findNode.singleDotShorthandConstructorInvocation,
+      r'''
+DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: value
+    element: <testLibrary>::@class::A::@constructor::value
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::val
+        staticType: int
+    rightParenthesis: )
+  isDotShorthand: true
+  staticType: A
+''',
+    );
+  }
+
   test_const_assert() async {
     await assertNoErrorsInCode(r'''
 class C {

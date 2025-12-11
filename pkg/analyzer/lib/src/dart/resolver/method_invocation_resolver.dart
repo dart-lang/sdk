@@ -1244,47 +1244,32 @@ class MethodInvocationResolver with ScopeHelpers {
     required TypeImpl contextType,
   }) {
     var element = _resolveElement(receiver, node.memberName);
-    if (element != null) {
-      if (element is InternalExecutableElement && element.isStatic) {
-        node.memberName.element = element;
-        if (element is InternalPropertyAccessorElement) {
-          return _rewriteAsFunctionExpressionInvocation(
-            node,
-            null,
-            node.period,
-            node.memberName,
-            node.typeArguments,
-            node.argumentList,
-            element.returnType,
-            isCascaded: false,
-          );
-        }
-        _setResolutionForDotShorthand(
+    if (element is InternalExecutableElement && element.isStatic) {
+      node.memberName.element = element;
+      if (element is InternalPropertyAccessorElement) {
+        return _rewriteAsFunctionExpressionInvocation(
           node,
-          element.type,
-          whyNotPromotedArguments,
-          contextType: contextType,
-        );
-      } else {
-        _resolver.diagnosticReporter.atNode(
-          nameNode,
-          diag.dotShorthandUndefinedInvocation,
-          arguments: [nameNode.name, receiver.displayName],
-        );
-        _setInvalidTypeResolutionForDotShorthand(
-          node,
-          setNameTypeToDynamic: false,
-          whyNotPromotedArguments: whyNotPromotedArguments,
-          contextType: contextType,
+          null,
+          node.period,
+          node.memberName,
+          node.typeArguments,
+          node.argumentList,
+          element.returnType,
+          isCascaded: false,
         );
       }
+      _setResolutionForDotShorthand(
+        node,
+        element.type,
+        whyNotPromotedArguments,
+        contextType: contextType,
+      );
       return null;
-    }
-
-    // The dot shorthand is a constructor invocation so we rewrite to a
-    // [DotShorthandConstructorInvocation].
-    if (receiver.getNamedConstructor(name) case ConstructorElementImpl element?
+    } else if (receiver.getNamedConstructor(name)
+        case ConstructorElementImpl element?
         when element.isAccessibleIn(_resolver.definingLibrary)) {
+      // The dot shorthand is a constructor invocation so we rewrite to a
+      // [DotShorthandConstructorInvocation].
       var replacement =
           DotShorthandConstructorInvocationImpl(
               constKeyword: null,
@@ -1307,6 +1292,7 @@ class MethodInvocationResolver with ScopeHelpers {
     );
     _setInvalidTypeResolutionForDotShorthand(
       node,
+      setNameTypeToDynamic: element == null,
       whyNotPromotedArguments: whyNotPromotedArguments,
       contextType: contextType,
     );
