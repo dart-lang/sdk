@@ -31,6 +31,8 @@
   Use `isOriginDeclaration`, `isOriginInterface`, `isOriginVariable` instead.
 * Deprecate `Element.isSynthetic`, use `isOriginXyz` properties instead.
 * Deprecate `LibraryElement.isSynthetic`, use `isOriginNotExistingFile` instead.
+* Document that the class `SyntacticEntity` is not intended to be subclassed by
+  clients.
 
 ## 9.0.0
 * Remove deprecated field `Diagnostic.data`.

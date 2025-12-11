@@ -6,6 +6,8 @@ import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 
 /// Interface representing a syntactic entity (either a token or an AST node)
 /// which has a location and extent in the source file.
+///
+/// Clients may not extend, implement or mix-in this class.
 @AnalyzerPublicApi(
   message: 'exported by package:analyzer/dart/ast/syntactic_entity.dart',
 )
