@@ -3177,7 +3177,7 @@ deprecatedColonForDefaultValue = DiagnosticWithoutArgumentsImpl(
       "will not be supported in language version 3.0 and later.",
   correctionMessage: "Try replacing the colon with an equal sign.",
   hasPublishedDocs: true,
-  type: DiagnosticType.HINT,
+  type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'deprecated_colon_for_default_value',
   expectedTypes: [],
 );
@@ -3302,7 +3302,7 @@ deprecatedInstantiate = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.object],
 );
 
-/// A hint code indicating reference to a deprecated lint.
+/// A warning code indicating reference to a deprecated lint.
 ///
 /// Parameters:
 /// String ruleName: the rule name
@@ -3320,7 +3320,7 @@ deprecatedLint = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string],
 );
 
-/// A hint code indicating reference to a deprecated lint.
+/// A warning code indicating reference to a deprecated lint.
 ///
 /// Parameters:
 /// String deprecatedRuleName: the deprecated lint name
@@ -3352,7 +3352,7 @@ deprecatedMemberUse = DiagnosticWithArguments(
   correctionMessage:
       "Try replacing the use of the deprecated member with the replacement.",
   hasPublishedDocs: true,
-  type: DiagnosticType.HINT,
+  type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'deprecated_member_use',
   withArguments: _withArgumentsDeprecatedMemberUse,
   expectedTypes: [ExpectedType.string],
@@ -3370,7 +3370,7 @@ deprecatedMemberUseWithMessage = DiagnosticWithArguments(
   correctionMessage:
       "Try replacing the use of the deprecated member with the replacement.",
   hasPublishedDocs: true,
-  type: DiagnosticType.HINT,
+  type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'deprecated_member_use_with_message',
   withArguments: _withArgumentsDeprecatedMemberUseWithMessage,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
@@ -6757,7 +6757,7 @@ importDeferredLibraryWithLoadFunction = DiagnosticWithoutArgumentsImpl(
       "Try changing the import to not be deferred, or rename the function in "
       "the imported library.",
   hasPublishedDocs: true,
-  type: DiagnosticType.HINT,
+  type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'import_deferred_library_with_load_function',
   expectedTypes: [],
 );
@@ -16326,7 +16326,7 @@ unnecessaryImport = DiagnosticWithArguments(
       "also provided by the import of '{1}'.",
   correctionMessage: "Try removing the import directive.",
   hasPublishedDocs: true,
-  type: DiagnosticType.HINT,
+  type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'unnecessary_import',
   withArguments: _withArgumentsUnnecessaryImport,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
