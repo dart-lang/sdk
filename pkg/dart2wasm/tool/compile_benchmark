@@ -72,6 +72,7 @@ VM_ARGS=()
 DART2WASM_ARGS=("--require-js-string-builtin")
 DART_FILE=""
 OUTPUT_FILE=""
+PHASES=""
 while [ $# -gt 0 ]; do
     case "$1" in
       --compile-benchmark=*)
@@ -99,6 +100,11 @@ while [ $# -gt 0 ]; do
     -O0 | --optimization-level=0)
       DART2WASM_ARGS+=("-O0")
       RUN_BINARYEN=0
+      shift
+      ;;
+
+    --phases=*)
+      PHASES="${1#--phases=}"
       shift
       ;;
 
@@ -156,6 +162,10 @@ if [ -z "$DART_FILE" -o -z "$OUTPUT_FILE" ]; then
   exit 1
 fi
 
+if [ -z "$PHASES" ]; then
+  PHASES="cfe,tfa,codegen"
+fi
+
 
 PLATFORM_ARG="--platform=$PLATFORM_FILENAME"
 DART2WASM_AOT_SNAPSHOT="$BIN_DIR/$SNAPSHOT_NAME.snapshot"
@@ -192,9 +202,9 @@ COMPILER_GZIP_SIZE=0
 
 function run_compiler() {
   if [ $RUN_SRC -eq 1 ]; then
-    dart2wasm_command=("$DART" "${VM_ARGS[@]}" "$DART2WASM_SRC" "$LIBRARIES_JSON_ARG" "${DART2WASM_ARGS[@]}" "--phases=cfe,tfa,codegen" "$DART_FILE" "$OUTPUT_FILE")
+    dart2wasm_command=("$DART" "${VM_ARGS[@]}" "$DART2WASM_SRC" "$LIBRARIES_JSON_ARG" "${DART2WASM_ARGS[@]}" "--phases=$PHASES" "$DART_FILE" "$OUTPUT_FILE")
   else
-    dart2wasm_command=("$DART_AOT_RUNTIME" "${VM_ARGS[@]}" "$DART2WASM_AOT_SNAPSHOT" "$PLATFORM_ARG" "${DART2WASM_ARGS[@]}" "--phases=cfe,tfa,codegen" "$DART_FILE" "$OUTPUT_FILE")
+    dart2wasm_command=("$DART_AOT_RUNTIME" "${VM_ARGS[@]}" "$DART2WASM_AOT_SNAPSHOT" "$PLATFORM_ARG" "${DART2WASM_ARGS[@]}" "--phases=$PHASES" "$DART_FILE" "$OUTPUT_FILE")
   fi
 
   if [ -n "$COMPILE_BENCHMARK_BASE_NAME" ]; then

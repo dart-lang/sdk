@@ -386,7 +386,10 @@ class ForElement extends ControlFlowElement
 
 /// A 'for-in' element in a list or set literal.
 class ForInElement extends ControlFlowElement with ControlFlowElementMixin {
-  VariableDeclaration variable; // Has no initializer.
+  ExpressionVariable expressionVariable;
+  // Coverage-ignore(suite): Not run.
+  // Has no initializer.
+  VariableDeclaration get variable => expressionVariable as VariableDeclaration;
   Expression iterable;
   Expression? syntheticAssignment; // May be null.
   Statement? expressionEffects; // May be null.
@@ -395,7 +398,7 @@ class ForInElement extends ControlFlowElement with ControlFlowElementMixin {
   bool isAsync; // True if this is an 'await for' loop.
 
   ForInElement(
-    this.variable,
+    this.expressionVariable,
     this.iterable,
     this.syntheticAssignment,
     this.expressionEffects,
@@ -403,7 +406,7 @@ class ForInElement extends ControlFlowElement with ControlFlowElementMixin {
     this.problem, {
     this.isAsync = false,
   }) {
-    variable.parent = this;
+    expressionVariable.parent = this;
     iterable.parent = this;
     syntheticAssignment?.parent = this;
     expressionEffects?.parent = this;
@@ -422,7 +425,7 @@ class ForInElement extends ControlFlowElement with ControlFlowElementMixin {
   @override
   // Coverage-ignore(suite): Not run.
   void visitChildren(Visitor v) {
-    variable.accept(v);
+    expressionVariable.accept(v);
     iterable.accept(v);
     syntheticAssignment?.accept(v);
     expressionEffects?.accept(v);
@@ -433,8 +436,8 @@ class ForInElement extends ControlFlowElement with ControlFlowElementMixin {
   @override
   // Coverage-ignore(suite): Not run.
   void transformChildren(Transformer v) {
-    variable = v.transform(variable);
-    variable.parent = this;
+    expressionVariable = v.transform(expressionVariable);
+    expressionVariable.parent = this;
     iterable = v.transform(iterable);
     iterable.parent = this;
     if (syntheticAssignment != null) {
@@ -456,8 +459,8 @@ class ForInElement extends ControlFlowElement with ControlFlowElementMixin {
   @override
   // Coverage-ignore(suite): Not run.
   void transformOrRemoveChildren(RemovingTransformer v) {
-    variable = v.transform(variable);
-    variable.parent = this;
+    expressionVariable = v.transform(expressionVariable);
+    expressionVariable.parent = this;
     iterable = v.transform(iterable);
     iterable.parent = this;
     if (syntheticAssignment != null) {
@@ -487,7 +490,7 @@ class ForInElement extends ControlFlowElement with ControlFlowElementMixin {
     }
     if (bodyEntry == null) return null;
     ForInMapEntry result = new ForInMapEntry(
-      variable,
+      expressionVariable,
       iterable,
       syntheticAssignment,
       expressionEffects,
@@ -1083,7 +1086,10 @@ class PatternForMapEntry extends TreeNode
 class ForInMapEntry extends TreeNode
     with ControlFlowMapEntryMixin
     implements ControlFlowMapEntry {
-  VariableDeclaration variable; // Has no initializer.
+  ExpressionVariable expressionVariable;
+  // Coverage-ignore(suite): Not run.
+  // Has no initializer.
+  VariableDeclaration get variable => expressionVariable as VariableDeclaration;
   Expression iterable;
   Expression? syntheticAssignment; // May be null.
   Statement? expressionEffects; // May be null.
@@ -1092,7 +1098,7 @@ class ForInMapEntry extends TreeNode
   bool isAsync; // True if this is an 'await for' loop.
 
   ForInMapEntry(
-    this.variable,
+    this.expressionVariable,
     this.iterable,
     this.syntheticAssignment,
     this.expressionEffects,
@@ -1100,7 +1106,7 @@ class ForInMapEntry extends TreeNode
     this.problem, {
     required this.isAsync,
   }) {
-    variable.parent = this;
+    expressionVariable.parent = this;
     iterable.parent = this;
     syntheticAssignment?.parent = this;
     expressionEffects?.parent = this;
@@ -1119,7 +1125,7 @@ class ForInMapEntry extends TreeNode
   @override
   // Coverage-ignore(suite): Not run.
   void visitChildren(Visitor v) {
-    variable.accept(v);
+    expressionVariable.accept(v);
     iterable.accept(v);
     syntheticAssignment?.accept(v);
     expressionEffects?.accept(v);
@@ -1130,8 +1136,8 @@ class ForInMapEntry extends TreeNode
   @override
   // Coverage-ignore(suite): Not run.
   void transformChildren(Transformer v) {
-    variable = v.transform(variable);
-    variable.parent = this;
+    expressionVariable = v.transform(expressionVariable);
+    expressionVariable.parent = this;
     iterable = v.transform(iterable);
     iterable.parent = this;
     if (syntheticAssignment != null) {
@@ -1153,8 +1159,8 @@ class ForInMapEntry extends TreeNode
   @override
   // Coverage-ignore(suite): Not run.
   void transformOrRemoveChildren(RemovingTransformer v) {
-    variable = v.transform(variable);
-    variable.parent = this;
+    expressionVariable = v.transform(expressionVariable);
+    expressionVariable.parent = this;
     iterable = v.transform(iterable);
     iterable.parent = this;
     if (syntheticAssignment != null) {
@@ -1378,7 +1384,7 @@ MapLiteralEntry convertToMapEntry(
 
       case ForInElement():
         ForInMapEntry result = new ForInMapEntry(
-          element.variable,
+          element.expressionVariable,
           element.iterable,
           element.syntheticAssignment,
           element.expressionEffects,

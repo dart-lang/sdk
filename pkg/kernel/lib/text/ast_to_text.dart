@@ -2447,8 +2447,16 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       writeSpaced('await');
     }
     writeSpaced('for');
+    if (node.scope case Scope scope?) {
+      writeScope(scope);
+      ensureSpace();
+    }
     writeSymbol('(');
-    writeVariableDeclaration(node.variable, useVarKeyword: true);
+    if (node.expressionVariable case VariableDeclaration variable) {
+      writeVariableDeclaration(variable, useVarKeyword: true);
+    } else {
+      writeExpressionVariable(node.expressionVariable);
+    }
     writeSpaced('in');
     writeExpression(node.iterable);
     writeSymbol(')');

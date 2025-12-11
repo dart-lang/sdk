@@ -194,8 +194,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   // variable was declared outside the try statement or local function.
   bool _inTryOrLocalFunction = false;
 
-  ContextAllocationStrategy _contextAllocationStrategy =
-      new TrivialContextAllocationStrategy();
+  ContextAllocationStrategy _contextAllocationStrategy;
 
   InferenceVisitorImpl(
     super.inferrer,
@@ -204,7 +203,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     this.operations,
     this.typeAnalyzerOptions,
     super.expressionEvaluationHelper,
-  );
+  ) : _contextAllocationStrategy = new TrivialContextAllocationStrategy(
+        isClosureContextLoweringEnabled: inferrer
+            .libraryBuilder
+            .loader
+            .target
+            .backendTarget
+            .flags
+            .isClosureContextLoweringEnabled,
+      );
 
   @override
   int get stackHeight => _rewriteStack.length;
@@ -3072,18 +3079,26 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ForInResult handleForInDeclaringVariable(
     TreeNode node,
-    VariableDeclaration variable,
+    ExpressionVariable variable,
     Expression iterable,
     Statement? expressionEffects, {
     bool isAsync = false,
   }) {
     DartType elementType;
     bool isVariableTypeNeeded = false;
-    if (variable is VariableDeclarationImpl && variable.isImplicitlyTyped) {
-      isVariableTypeNeeded = true;
-      elementType = const UnknownType();
+    ExpressionVariable astVariable;
+    if (variable case InternalExpressionVariable variable) {
+      if (variable.isImplicitlyTyped) {
+        isVariableTypeNeeded = true;
+        elementType = const UnknownType();
+      } else {
+        elementType = variable.type;
+      }
+      astVariable = variable.astVariable;
     } else {
+      // Coverage-ignore-block(suite): Not run.
       elementType = variable.type;
+      astVariable = variable;
     }
 
     ExpressionInferenceResult iterableResult = inferForInIterable(
@@ -3099,8 +3114,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // This is matched by the call to [forEach_end] in
     // [inferElement], [inferMapEntry] or [inferForInStatement].
     flowAnalysis.declare(
-      variable,
-      new SharedTypeView(variable.type),
+      astVariable,
+      new SharedTypeView(astVariable.type),
       initialized: true,
     );
     flowAnalysis.forEach_bodyBegin(node);
@@ -3124,9 +3139,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     Statement? expressionEffect;
     if (!identical(implicitDowncast, variableGet)) {
-      variable.initializer = implicitDowncast..parent = variable;
-      expressionEffect = variable;
-      variable = tempVariable;
+      if (variable is VariableDeclaration) {
+        variable.initializer = implicitDowncast..parent = variable;
+        expressionEffect = variable;
+        variable = tempVariable;
+      } else {
+        // Coverage-ignore-block(suite): Not run.
+        expressionEffect = new VariableInitialization(
+          variable: variable,
+          initializer: implicitDowncast,
+        );
+        variable = tempVariable;
+      }
     }
     if (expressionEffects != null) {
       // Coverage-ignore-block(suite): Not run.
@@ -3224,7 +3248,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ForInResult _handleForInWithoutVariable(
     TreeNode node,
-    VariableDeclaration variable,
+    ExpressionVariable variable,
     Expression iterable,
     Expression? syntheticAssignment,
     Statement? expressionEffects, {
@@ -3274,7 +3298,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ForInResult _handlePatternForIn(
     TreeNode node,
-    VariableDeclaration variable,
+    ExpressionVariable variable,
     Expression iterable,
     Expression? syntheticAssignment,
     PatternVariableDeclaration patternVariableDeclaration, {
@@ -3359,7 +3383,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ForInResult handleForInWithoutVariable(
     TreeNode node,
-    VariableDeclaration variable,
+    ExpressionVariable variable,
     Expression iterable,
     Expression? syntheticAssignment,
     Statement? expressionEffects, {
@@ -3392,10 +3416,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   StatementInferenceResult visitForInStatement(ForInStatement node) {
     _contextAllocationStrategy.enterScopeProvider(node);
-    assert(node.variable.name != null);
+    assert(node.expressionVariable.cosmeticName != null);
     ForInResult result = handleForInDeclaringVariable(
       node,
-      node.variable,
+      node.expressionVariable,
       node.iterable,
       null,
       isAsync: node.isAsync,
@@ -3418,7 +3442,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         body,
       );
     }
-    node.variable = result.variable..parent = node;
+    ExpressionVariable astVariable =
+        result.variable is InternalExpressionVariable
+        ? (result.variable as InternalExpressionVariable).astVariable
+        : result.variable;
+    node.expressionVariable = astVariable..parent = node;
     node.iterable = result.iterable..parent = node;
     node.body = body..parent = node;
     _contextAllocationStrategy.exitScopeProvider(node);
@@ -3428,7 +3456,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   StatementInferenceResult visitForInStatementWithSynthesizedVariable(
     ForInStatementWithSynthesizedVariable node,
   ) {
-    assert(node.variable!.name == null);
+    assert(node.variable!.cosmeticName == null);
     ForInResult result = handleForInWithoutVariable(
       node,
       node.variable!,
@@ -4404,10 +4432,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Map<Expression, DartType> inferredConditionTypes,
   ) {
     ForInResult result;
-    if (element.variable.name == null) {
+    if (element.expressionVariable.cosmeticName == null) {
       result = handleForInWithoutVariable(
         element,
-        element.variable,
+        element.expressionVariable,
         element.iterable,
         element.syntheticAssignment,
         element.expressionEffects,
@@ -4417,13 +4445,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       result = handleForInDeclaringVariable(
         element,
-        element.variable,
+        element.expressionVariable,
         element.iterable,
         element.expressionEffects,
         isAsync: element.isAsync,
       );
     }
-    element.variable = result.variable..parent = element;
+    ExpressionVariable astVariable =
+        result.variable is InternalExpressionVariable
+        ? (result.variable as InternalExpressionVariable).astVariable
+        : result.variable;
+    element.expressionVariable = astVariable..parent = element;
     element.iterable = result.iterable..parent = element;
     // TODO(johnniwinther): Use ?.. here instead.
     element.syntheticAssignment = result.syntheticAssignment;
@@ -5260,11 +5292,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     ForInStatement loop = _createForInStatement(
       element.fileOffset,
-      element.variable,
+      element.expressionVariable,
       element.iterable,
       loopBody,
       isAsync: element.isAsync,
     );
+    _contextAllocationStrategy.enterScopeProvider(loop);
+    _contextAllocationStrategy.handleDeclarationOfVariable(
+      element.expressionVariable,
+      captureKind: _captureKindForVariable(element.expressionVariable),
+    );
+    _contextAllocationStrategy.exitScopeProvider(loop);
     libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(element, loop);
@@ -5860,11 +5898,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     ForInStatement loop = _createForInStatement(
       entry.fileOffset,
-      entry.variable,
+      entry.expressionVariable,
       entry.iterable,
       loopBody,
       isAsync: entry.isAsync,
     );
+    _contextAllocationStrategy.enterScopeProvider(loop);
+    _contextAllocationStrategy.handleDeclarationOfVariable(
+      entry.expressionVariable,
+      captureKind: _captureKindForVariable(entry.expressionVariable),
+    );
+    _contextAllocationStrategy.exitScopeProvider(loop);
     libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(entry, loop);
@@ -6787,7 +6831,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ForInStatement _createForInStatement(
     int fileOffset,
-    VariableDeclaration variable,
+    ExpressionVariable variable,
     Expression iterable,
     Statement body, {
     bool isAsync = false,
@@ -7529,10 +7573,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     _MapLiteralEntryOffsets offsets,
   ) {
     ForInResult result;
-    if (entry.variable.name == null) {
+    if (entry.expressionVariable.cosmeticName == null) {
       result = handleForInWithoutVariable(
         entry,
-        entry.variable,
+        entry.expressionVariable,
         entry.iterable,
         entry.syntheticAssignment,
         entry.expressionEffects,
@@ -7542,13 +7586,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       result = handleForInDeclaringVariable(
         entry,
-        entry.variable,
+        entry.expressionVariable,
         entry.iterable,
         entry.expressionEffects,
         isAsync: entry.isAsync,
       );
     }
-    entry.variable = result.variable..parent = entry;
+    ExpressionVariable astVariable =
+        result.variable is InternalExpressionVariable
+        ? (result.variable as InternalExpressionVariable).astVariable
+        :
+          // Coverage-ignore(suite): Not run.
+          result.variable;
+    entry.expressionVariable = astVariable..parent = entry;
     entry.iterable = result.iterable..parent = entry;
     // TODO(johnniwinther): Use ?.. here instead.
     entry.syntheticAssignment = result.syntheticAssignment;
@@ -8233,7 +8283,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           return result;
         case ForInMapEntry():
           ForInElement result = new ForInElement(
-            entry.variable,
+            entry.expressionVariable,
             entry.iterable,
             entry.syntheticAssignment,
             entry.expressionEffects,
@@ -16573,6 +16623,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return node is DotShorthand;
   }
 
+  CaptureKind _captureKindForVariable(ExpressionVariable variable) {
+    int variableKey = assignedVariables.promotionKeyStore.keyForVariable(
+      variable,
+    );
+
+    return (assignedVariables.anywhere.captured.contains(variableKey) ||
+            assignedVariables.anywhere.readCaptured.contains(variableKey))
+        ? CaptureKind.captured
+        : CaptureKind.notCaptured;
+  }
+
   @override
   StatementInferenceResult visitVariableInitialization(
     VariableInitialization node,
@@ -16582,16 +16643,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     StatementInferenceResult statementInferenceResult =
         _inferInternalExpressionVariableDeclaration(node, nodeVariable);
     node.variable = nodeVariable.astVariable;
-    int variableKey = assignedVariables.promotionKeyStore.keyForVariable(
+    _contextAllocationStrategy.handleDeclarationOfVariable(
       node.variable,
-    );
-    _contextAllocationStrategy.handleVariableInitialization(
-      node,
-      captureKind:
-          (assignedVariables.anywhere.captured.contains(variableKey) ||
-              assignedVariables.anywhere.readCaptured.contains(variableKey))
-          ? CaptureKind.captured
-          : CaptureKind.notCaptured,
+      captureKind: _captureKindForVariable(node.variable),
     );
     return statementInferenceResult;
   }

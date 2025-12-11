@@ -8087,7 +8087,7 @@ class BodyBuilderImpl extends StackListenerImpl
       null,
     );
     assignedVariables.pushNode(assignedVariablesNodeInfo);
-    VariableDeclaration variable = elements.variable;
+    ExpressionVariable variable = elements.variable;
     Expression? problem = elements.expressionProblem;
     if (entry is MapLiteralEntry) {
       ForInMapEntry result = forest.createForInMapEntry(
@@ -8136,6 +8136,40 @@ class BodyBuilderImpl extends StackListenerImpl
           fileUri: uri,
           fileOffset: lvalue.fileOffset,
           length: lvalue.name!.length,
+        );
+        // As a recovery step, remove the const flag, to not confuse the
+        // constant evaluator further in the pipeline.
+        lvalue.isConst = false;
+      }
+    } else if (lvalue is VariableInitialization) {
+      // Late for-in variables are not supported. An error has already been
+      // reported by the parser.
+      lvalue.isLate = false;
+      elements.explicitVariableDeclaration = lvalue.variable;
+      if (lvalue.isConst) {
+        // Coverage-ignore-block(suite): Not run.
+        elements.expressionProblem = buildProblem(
+          message: cfe.codeForInLoopWithConstVariable,
+          fileUri: uri,
+          fileOffset: lvalue.fileOffset,
+          length: lvalue.cosmeticName!.length,
+        );
+        // As a recovery step, remove the const flag, to not confuse the
+        // constant evaluator further in the pipeline.
+        lvalue.isConst = false;
+      }
+    } else if (lvalue is ExpressionVariable) {
+      // Coverage-ignore-block(suite): Not run.
+      // Late for-in variables are not supported. An error has already been
+      // reported by the parser.
+      lvalue.isLate = false;
+      elements.explicitVariableDeclaration = lvalue;
+      if (lvalue.isConst) {
+        elements.expressionProblem = buildProblem(
+          message: cfe.codeForInLoopWithConstVariable,
+          fileUri: uri,
+          fileOffset: lvalue.fileOffset,
+          length: lvalue.cosmeticName!.length,
         );
         // As a recovery step, remove the const flag, to not confuse the
         // constant evaluator further in the pipeline.
@@ -8291,7 +8325,7 @@ class BodyBuilderImpl extends StackListenerImpl
       lvalue,
       body,
     );
-    VariableDeclaration variable = elements.variable;
+    ExpressionVariable variable = elements.variable;
     Expression? problem = elements.expressionProblem;
     Statement forInStatement;
     if (elements.explicitVariableDeclaration != null) {

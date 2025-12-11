@@ -127,7 +127,8 @@ class CompilerPhaseInputOutputManager {
     final wasmOptPath = options.wasmOptPath?.toFilePath() ?? 'wasm-opt';
     final result = await _runProcess(wasmOptPath, args);
     if (result.exitCode != 0) {
-      throw Exception('wasm-opt failed with exit code ${result.exitCode}:'
+      throw Exception(
+          'wasm-opt failed on module $inputModuleName with exit code ${result.exitCode}:'
           '\n${result.stdout}\n${result.stderr}');
     }
   }

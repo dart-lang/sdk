@@ -106,7 +106,7 @@ abstract class InternalStatement extends AuxiliaryStatement {
 }
 
 class ForInStatementWithSynthesizedVariable extends InternalStatement {
-  VariableDeclaration? variable;
+  ExpressionVariable? variable;
   Expression iterable;
   Expression? syntheticAssignment;
   Statement? expressionEffects;
@@ -902,7 +902,7 @@ class VariableDeclarationImpl extends VariableStatement
   }
 }
 
-class InternalLocalVariable extends Node
+class InternalLocalVariable extends TreeNode
     with InternalExpressionVariableMixin, DelegatingVariableMixin
     implements LocalVariable, InternalExpressionVariable {
   @override
@@ -976,7 +976,6 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isConst => astVariable.isConst;
 
   @override
@@ -1185,31 +1184,20 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
       astVariable.hasIsErroneouslyInitialized;
 
   @override
-  int get fileOffset {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
+  int get fileOffset => astVariable.fileOffset;
 
   @override
+  // Coverage-ignore(suite): Not run.
   void set fileOffset(int value) {
-    throw new UnsupportedError("${this.runtimeType}");
+    astVariable.fileOffset = value;
   }
 
-  int get flags {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
+  // Coverage-ignore(suite): Not run.
+  int get flags => astVariable.flags;
 
+  // Coverage-ignore(suite): Not run.
   void set flags(int value) {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  TreeNode? get parent {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  void set parent(TreeNode? value) {
-    throw new UnsupportedError("${this.runtimeType}");
+    astVariable.flags = value;
   }
 
   @override
@@ -1357,7 +1345,8 @@ abstract interface class InternalExpressionVariable
   abstract String? lateName;
 }
 
-mixin InternalExpressionVariableMixin implements InternalExpressionVariable {
+mixin InternalExpressionVariableMixin on TreeNode
+    implements InternalExpressionVariable {
   @override
   bool get forSyntheticToken;
 
