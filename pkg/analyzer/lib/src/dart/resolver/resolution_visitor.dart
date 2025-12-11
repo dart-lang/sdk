@@ -27,6 +27,7 @@ import 'package:analyzer/src/dart/resolver/record_type_annotation_resolver.dart'
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/element_walker.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -210,9 +211,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       );
     } else if (!(element is LocalVariableElement ||
         element is FormalParameterElement)) {
-      _diagnosticReporter.atToken(
-        node.name,
-        diag.patternAssignmentNotLocalVariable,
+      _diagnosticReporter.report(
+        diag.patternAssignmentNotLocalVariable.at(node.name),
       );
     }
   }
@@ -1002,7 +1002,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         //
         // This is a case where the parser does not report an error, because the
         // parser thinks this could be an InstanceCreationExpression.
-        _diagnosticReporter.atNode(node, diag.sdkVersionConstructorTearoffs);
+        _diagnosticReporter.report(diag.sdkVersionConstructorTearoffs.at(node));
       }
       return newNode.accept(this);
     }

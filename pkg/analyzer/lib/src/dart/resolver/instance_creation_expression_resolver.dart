@@ -7,6 +7,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// A resolver for [InstanceCreationExpression] and
@@ -98,9 +99,8 @@ class InstanceCreationExpressionResolver {
           contextElement.isAbstract &&
           constructorElement != null &&
           !constructorElement.isFactory) {
-        _resolver.diagnosticReporter.atNode(
-          node,
-          diag.instantiateAbstractClass,
+        _resolver.diagnosticReporter.report(
+          diag.instantiateAbstractClass.at(node),
         );
       } else if (typeArguments != null) {
         _resolver.diagnosticReporter.atNode(
@@ -113,9 +113,8 @@ class InstanceCreationExpressionResolver {
         );
       }
     } else {
-      _resolver.diagnosticReporter.atNode(
-        node,
-        diag.dotShorthandMissingContext,
+      _resolver.diagnosticReporter.report(
+        diag.dotShorthandMissingContext.at(node),
       );
     }
 

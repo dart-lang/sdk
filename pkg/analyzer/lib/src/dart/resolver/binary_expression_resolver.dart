@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -20,6 +19,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 
@@ -417,9 +417,8 @@ class BinaryExpressionResolver {
     var leftType = leftOperand.typeOrThrow;
 
     if (identical(leftType, NeverTypeImpl.instance)) {
-      _resolver.diagnosticReporter.atNode(
-        leftOperand,
-        diag.receiverOfTypeNever,
+      _resolver.diagnosticReporter.report(
+        diag.receiverOfTypeNever.at(leftOperand),
       );
       return;
     }

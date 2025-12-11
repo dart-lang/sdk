@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -14,6 +13,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
+import 'package:analyzer/src/error/listener.dart';
 
 /// Helper for resolving [RecordTypeAnnotation]s.
 class RecordTypeAnnotationResolver {
@@ -72,9 +72,8 @@ class RecordTypeAnnotationResolver {
         if (name.startsWith('_')) {
           // Positional record fields named `_` are legal w/ wildcards.
           if (!isPositionalWildCard(field, name)) {
-            _diagnosticReporter.atToken(
-              nameToken,
-              diag.invalidFieldNamePrivate,
+            _diagnosticReporter.report(
+              diag.invalidFieldNamePrivate.at(nameToken),
             );
           }
         } else {
@@ -82,17 +81,15 @@ class RecordTypeAnnotationResolver {
           if (index != null) {
             if (index < positionalCount &&
                 positionalFields.indexOf(field) != index) {
-              _diagnosticReporter.atToken(
-                nameToken,
-                diag.invalidFieldNamePositional,
+              _diagnosticReporter.report(
+                diag.invalidFieldNamePositional.at(nameToken),
               );
             }
           } else if (RecordLiteralResolver.isForbiddenNameForRecordField(
             name,
           )) {
-            _diagnosticReporter.atToken(
-              nameToken,
-              diag.invalidFieldNameFromObject,
+            _diagnosticReporter.report(
+              diag.invalidFieldNameFromObject.at(nameToken),
             );
           }
         }

@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 
 /// Verifier for initializing fields in constructors.
 class ConstructorFieldsVerifier {
@@ -196,16 +196,14 @@ class _Constructor {
             fields[fieldElement] = _InitState.initInInitializer;
           } else if (state == _InitState.initInDeclaration) {
             if (fieldElement.isFinal || fieldElement.isConst) {
-              diagnosticReporter.atNode(
-                fieldName,
-                diag.fieldInitializedInInitializerAndDeclaration,
+              diagnosticReporter.report(
+                diag.fieldInitializedInInitializerAndDeclaration.at(fieldName),
               );
             }
             fields[fieldElement] = _InitState.initInInitializer;
           } else if (state == _InitState.initInFieldFormal) {
-            diagnosticReporter.atNode(
-              fieldName,
-              diag.fieldInitializedInParameterAndInitializer,
+            diagnosticReporter.report(
+              diag.fieldInitializedInParameterAndInitializer.at(fieldName),
             );
           } else if (state == _InitState.initInInitializer) {
             diagnosticReporter.atNode(

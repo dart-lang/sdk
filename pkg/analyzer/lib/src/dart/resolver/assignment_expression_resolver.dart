@@ -8,7 +8,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -18,6 +17,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [AssignmentExpression]s.
@@ -148,9 +148,8 @@ class AssignmentExpressionResolver {
         rightType,
         strictCasts: strictCasts,
       )) {
-        _diagnosticReporter.atNode(
-          right,
-          diag.recordLiteralOnePositionalNoTrailingCommaByType,
+        _diagnosticReporter.report(
+          diag.recordLiteralOnePositionalNoTrailingCommaByType.at(right),
         );
         return;
       }
@@ -180,9 +179,9 @@ class AssignmentExpressionResolver {
 
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
-      _diagnosticReporter.atNode(methodName, diag.useOfVoidResult);
+      _diagnosticReporter.report(diag.useOfVoidResult.at(methodName));
     } else {
-      _diagnosticReporter.atNode(expression, diag.useOfVoidResult);
+      _diagnosticReporter.report(diag.useOfVoidResult.at(expression));
     }
 
     return true;
@@ -232,7 +231,7 @@ class AssignmentExpressionResolver {
     // Example: `y += 0`, is not allowed.
     if (operatorType != TokenType.EQ) {
       if (leftType is VoidType) {
-        _diagnosticReporter.atToken(operator, diag.useOfVoidResult);
+        _diagnosticReporter.report(diag.useOfVoidResult.at(operator));
         return;
       }
     }
@@ -388,7 +387,9 @@ class AssignmentExpressionShared {
         if (element.isFinal) {
           if (element.isLate) {
             if (isForEachIdentifier || assigned) {
-              _errorReporter.atNode(left, diag.lateFinalLocalAlreadyAssigned);
+              _errorReporter.report(
+                diag.lateFinalLocalAlreadyAssigned.at(left),
+              );
             }
           } else {
             if (isForEachIdentifier || !unassigned) {

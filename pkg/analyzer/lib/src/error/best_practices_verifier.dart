@@ -13,7 +13,6 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -31,6 +30,7 @@ import 'package:analyzer/src/error/doc_comment_verifier.dart';
 import 'package:analyzer/src/error/element_usage_frontier_detector.dart';
 import 'package:analyzer/src/error/error_handler_verifier.dart';
 import 'package:analyzer/src/error/experimental_member_use_verifier.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/error/must_call_super_verifier.dart';
 import 'package:analyzer/src/error/null_safe_api_verifier.dart';
 import 'package:analyzer/src/error/widget_preview_verifier.dart';
@@ -170,13 +170,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitAsExpression(AsExpression node) {
     if (_isUnnecessaryCast(node, _typeSystem)) {
-      _diagnosticReporter.atNode(node, diag.unnecessaryCast);
+      _diagnosticReporter.report(diag.unnecessaryCast.at(node));
     }
     var type = node.type.type;
     if (type != null &&
         _typeSystem.isNonNullable(type) &&
         node.expression.typeOrThrow.isDartCoreNull) {
-      _diagnosticReporter.atNode(node, diag.castFromNullAlwaysFails);
+      _diagnosticReporter.report(diag.castFromNullAlwaysFails.at(node));
     }
     super.visitAsExpression(node);
   }
@@ -208,7 +208,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _typeSystem.isNonNullable(type) &&
         matchedValueType != null &&
         matchedValueType.isDartCoreNull) {
-      _diagnosticReporter.atNode(node, diag.castFromNullAlwaysFails);
+      _diagnosticReporter.report(diag.castFromNullAlwaysFails.at(node));
     }
     super.visitCastPattern(node);
   }
@@ -283,9 +283,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var newKeyword = node.newKeyword;
     if (newKeyword != null &&
         _currentLibrary.featureSet.isEnabled(Feature.constructor_tearoffs)) {
-      _diagnosticReporter.atToken(
-        newKeyword,
-        diag.deprecatedNewInCommentReference,
+      _diagnosticReporter.report(
+        diag.deprecatedNewInCommentReference.at(newKeyword),
       );
     }
     super.visitCommentReference(node);
@@ -294,7 +293,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitConstantPattern(ConstantPattern node) {
     if (node.expression.isDoubleNan) {
-      _diagnosticReporter.atNode(node, diag.unnecessaryNanComparisonFalse);
+      _diagnosticReporter.report(diag.unnecessaryNanComparisonFalse.at(node));
     }
     super.visitConstantPattern(node);
   }
@@ -343,14 +342,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // This is a warning in code whose language version is < 3.0, but an error
       // in code whose language version is >= 3.0.
       if (_currentLibrary.languageVersion.effective.major < 3) {
-        _diagnosticReporter.atToken(
-          separator,
-          diag.deprecatedColonForDefaultValue,
+        _diagnosticReporter.report(
+          diag.deprecatedColonForDefaultValue.at(separator),
         );
       } else {
-        _diagnosticReporter.atToken(
-          separator,
-          diag.obsoleteColonForDefaultValue,
+        _diagnosticReporter.report(
+          diag.obsoleteColonForDefaultValue.at(separator),
         );
       }
     }
@@ -757,7 +754,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
       if (!_currentLibrary.featureSet.isEnabled(Feature.primary_constructors) &&
           isAmbiguousFactoryMethod()) {
-        _diagnosticReporter.atToken(nameToken, diag.deprecatedFactoryMethod);
+        _diagnosticReporter.report(diag.deprecatedFactoryMethod.at(nameToken));
       }
 
       super.visitMethodDeclaration(node);
@@ -845,7 +842,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
     if (node.operator.type == TokenType.BANG &&
         node.operand.typeOrThrow.isDartCoreNull) {
-      _diagnosticReporter.atNode(node, diag.nullCheckAlwaysFails);
+      _diagnosticReporter.report(diag.nullCheckAlwaysFails.at(node));
     }
     super.visitPostfixExpression(node);
   }
@@ -1015,7 +1012,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   void _checkFinalParameter(FormalParameter node, Token? keyword) {
     if (node.isFinal) {
-      _diagnosticReporter.atToken(keyword!, diag.unnecessaryFinal);
+      _diagnosticReporter.report(diag.unnecessaryFinal.at(keyword!));
     }
   }
 
@@ -1373,9 +1370,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       TopLevelFunctionElement.LOAD_LIBRARY_NAME,
     );
     if (loadLibraryElement != null) {
-      _diagnosticReporter.atNode(
-        node,
-        diag.importDeferredLibraryWithLoadFunction,
+      _diagnosticReporter.report(
+        diag.importDeferredLibraryWithLoadFunction.at(node),
       );
       return true;
     }
@@ -1407,7 +1403,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (_typeSystem.isNullable(parameterElement.type)) {
-      _diagnosticReporter.atToken(node.name, diag.nonNullableEqualsParameter);
+      _diagnosticReporter.report(diag.nonNullableEqualsParameter.at(node.name));
     }
   }
 
@@ -1423,7 +1419,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (_typeSystem.isPotentiallyNullable(typeObj)) {
-      _diagnosticReporter.atNode(typeNode, diag.nullableTypeInCatchClause);
+      _diagnosticReporter.report(diag.nullableTypeInCatchClause.at(typeNode));
     }
   }
 
@@ -1484,7 +1480,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     FunctionBody body = node.body;
     if (body is ExpressionFunctionBody) {
       if (isNonObjectNoSuchMethodInvocation(body.expression)) {
-        _diagnosticReporter.atToken(node.name, diag.unnecessaryNoSuchMethod);
+        _diagnosticReporter.report(diag.unnecessaryNoSuchMethod.at(node.name));
         return true;
       }
     } else if (body is BlockFunctionBody) {
@@ -1493,7 +1489,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         Statement returnStatement = statements.first;
         if (returnStatement is ReturnStatement &&
             isNonObjectNoSuchMethodInvocation(returnStatement.expression)) {
-          _diagnosticReporter.atToken(node.name, diag.unnecessaryNoSuchMethod);
+          _diagnosticReporter.report(
+            diag.unnecessaryNoSuchMethod.at(node.name),
+          );
           return true;
         }
       }
@@ -1535,7 +1533,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (isReturnVoid) {
         var expression = body.expression;
         if (expression is SetOrMapLiteralImpl && expression.isSet) {
-          _diagnosticReporter.atNode(expression, diag.unnecessarySetLiteral);
+          _diagnosticReporter.report(diag.unnecessarySetLiteral.at(expression));
         }
       }
     }

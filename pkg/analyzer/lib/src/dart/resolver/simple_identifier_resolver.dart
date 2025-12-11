@@ -5,13 +5,13 @@
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
@@ -196,7 +196,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
     var enclosingClass = _resolver.enclosingClass;
     if (_isFactoryConstructorReturnType(node) &&
         !identical(element, enclosingClass)) {
-      diagnosticReporter.atNode(node, diag.invalidFactoryNameNotAClass);
+      diagnosticReporter.report(diag.invalidFactoryNameNotAClass.at(node));
     } else if (_isConstructorReturnType(node) &&
         !identical(element, enclosingClass)) {
       // This error is now reported by the parser.
@@ -212,7 +212,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
     } else if (element == null) {
       // TODO(brianwilkerson): Recover from this error.
       if (node.name == "await" && _resolver.enclosingFunction != null) {
-        diagnosticReporter.atNode(node, diag.undefinedIdentifierAwait);
+        diagnosticReporter.report(diag.undefinedIdentifierAwait.at(node));
       } else if (!_resolver.libraryFragment.shouldIgnoreUndefinedIdentifier(
         node,
       )) {

@@ -10,13 +10,13 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 
 /// A visitor used to find problems with the way the `dart:ffi` APIs are being
 /// used. See 'pkg/vm/lib/transformations/ffi_checks.md' for the specification
@@ -291,9 +291,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var class_ = constructor?.enclosingElement;
     if (class_.isStructSubclass || class_.isUnionSubclass) {
       if (!constructor!.isFactory) {
-        _diagnosticReporter.atNode(
-          node.constructorName,
-          diag.creationOfStructOrUnion,
+        _diagnosticReporter.report(
+          diag.creationOfStructOrUnion.at(node.constructorName),
         );
       }
     } else if (class_.isNativeCallable) {
@@ -314,9 +313,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         if (annotationValue != null && annotationValue.isDefaultAsset) {
           if (hasDefaultAsset) {
             var name = annotation.annotationAst.name;
-            _diagnosticReporter.atNode(
-              name,
-              diag.ffiNativeInvalidDuplicateDefaultAsset,
+            _diagnosticReporter.report(
+              diag.ffiNativeInvalidDuplicateDefaultAsset.at(name),
             );
           }
 
@@ -469,9 +467,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
       if (hadNativeAnnotation) {
         var name = (annotation as ElementAnnotationImpl).annotationAst.name;
-        _diagnosticReporter.atNode(
-          name,
-          diag.ffiNativeInvalidMultipleAnnotations,
+        _diagnosticReporter.report(
+          diag.ffiNativeInvalidMultipleAnnotations.at(name),
         );
         break;
       }
@@ -479,7 +476,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       hadNativeAnnotation = true;
 
       if (!isExternal) {
-        _diagnosticReporter.atToken(errorNode, diag.ffiNativeMustBeExternal);
+        _diagnosticReporter.report(diag.ffiNativeMustBeExternal.at(errorNode));
       }
 
       var ffiSignature = annotationType.typeArguments[0]; // The T in @Native<T>
@@ -564,7 +561,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     if (declarationElement is InternalFieldElement) {
       if (!declarationElement.isStatic) {
-        _diagnosticReporter.atToken(errorToken, diag.nativeFieldNotStatic);
+        _diagnosticReporter.report(diag.nativeFieldNotStatic.at(errorToken));
       }
       type = declarationElement.type;
     } else if (declarationElement is TopLevelVariableElementImpl) {
@@ -572,7 +569,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     } else if (declarationElement is InternalPropertyAccessorElement) {
       type = declarationElement.variable.type;
     } else {
-      _diagnosticReporter.atToken(errorToken, diag.nativeFieldNotStatic);
+      _diagnosticReporter.report(diag.nativeFieldNotStatic.at(errorToken));
       return;
     }
 
@@ -581,7 +578,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       var canonical = _canonicalFfiTypeForDartType(type);
 
       if (canonical == null) {
-        _diagnosticReporter.atToken(errorToken, diag.nativeFieldMissingType);
+        _diagnosticReporter.report(diag.nativeFieldMissingType.at(errorToken));
         return;
       } else {
         ffiSignature = canonical;
@@ -655,9 +652,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (ffiSignature.normalParameterTypes[0].isPointer) {
         var cls = declarationElement.enclosingElement as InterfaceElement;
         if (!_extendsNativeFieldWrapperClass1(cls.thisType)) {
-          _diagnosticReporter.atToken(
-            errorToken,
-            diag.ffiNativeOnlyClassesExtendingNativefieldwrapperclass1CanBePointer,
+          _diagnosticReporter.report(
+            diag.ffiNativeOnlyClassesExtendingNativefieldwrapperclass1CanBePointer
+                .at(errorToken),
           );
         }
       }
@@ -686,9 +683,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             (!type.isPointer &&
                 !_extendsNativeFieldWrapperClass1(type) &&
                 !type.isTypedData)) {
-          _diagnosticReporter.atToken(
-            errorToken,
-            diag.ffiNativeOnlyClassesExtendingNativefieldwrapperclass1CanBePointer,
+          _diagnosticReporter.report(
+            diag.ffiNativeOnlyClassesExtendingNativefieldwrapperclass1CanBePointer
+                .at(errorToken),
           );
         }
       }
@@ -706,7 +703,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           (annotationValue.type! as InterfaceType).typeArguments[0]
               is DynamicType;
       if (nativeTypeIsOmitted) {
-        _diagnosticReporter.atToken(errorToken, diag.nativeFunctionMissingType);
+        _diagnosticReporter.report(
+          diag.nativeFunctionMissingType.at(errorToken),
+        );
       } else {
         _diagnosticReporter.atToken(
           errorToken,
@@ -976,9 +975,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         node.body.members.single is! ConstructorDeclaration ||
         (node.body.members.single as ConstructorDeclaration).constKeyword ==
             null) {
-      _diagnosticReporter.atToken(
-        node.namePart.typeName,
-        diag.abiSpecificIntegerInvalid,
+      _diagnosticReporter.report(
+        diag.abiSpecificIntegerInvalid.at(node.namePart.typeName),
       );
     }
   }
@@ -993,9 +991,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         .toList();
 
     if (ffiPackedAnnotations.isEmpty) {
-      _diagnosticReporter.atToken(
-        errorToken,
-        diag.abiSpecificIntegerMappingMissing,
+      _diagnosticReporter.report(
+        diag.abiSpecificIntegerMappingMissing.at(errorToken),
       );
       return;
     }
@@ -1003,9 +1000,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (ffiPackedAnnotations.length > 1) {
       var extraAnnotations = ffiPackedAnnotations.skip(1);
       for (var annotation in extraAnnotations) {
-        _diagnosticReporter.atNode(
-          annotation.name,
-          diag.abiSpecificIntegerMappingExtra,
+        _diagnosticReporter.report(
+          diag.abiSpecificIntegerMappingExtra.at(annotation.name),
         );
       }
     }
@@ -1075,7 +1071,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (parent is! ArgumentList ||
         grandParent is! MethodInvocation ||
         !grandParent.isNativeLeafInvocation) {
-      _diagnosticReporter.atNode(errorNode, diag.addressPosition);
+      _diagnosticReporter.report(diag.addressPosition.at(errorNode));
     }
   }
 
@@ -1135,7 +1131,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         }
       default:
     }
-    _diagnosticReporter.atNode(errorNode, diag.addressReceiver);
+    _diagnosticReporter.report(diag.addressReceiver.at(errorNode));
   }
 
   void _validateAllocate(FunctionExpressionInvocationImpl node) {
@@ -1187,15 +1183,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (extraAnnotations.isNotEmpty) {
       if (!requiredFound) {
         Annotation invalidAnnotation = extraAnnotations.removeAt(0);
-        _diagnosticReporter.atNode(
-          invalidAnnotation,
-          diag.mismatchedAnnotationOnStructField,
+        _diagnosticReporter.report(
+          diag.mismatchedAnnotationOnStructField.at(invalidAnnotation),
         );
       }
       for (Annotation extraAnnotation in extraAnnotations) {
-        _diagnosticReporter.atNode(
-          extraAnnotation,
-          diag.extraAnnotationOnStructField,
+        _diagnosticReporter.report(
+          diag.extraAnnotationOnStructField.at(extraAnnotation),
         );
       }
     } else if (!requiredFound) {
@@ -1433,16 +1427,14 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (nativeType is FunctionType) {
       if (_primitiveNativeType(nativeType.returnType) ==
           _PrimitiveDartType.handle) {
-        _diagnosticReporter.atEntity(
-          errorEntity,
-          diag.leafCallMustNotReturnHandle,
+        _diagnosticReporter.report(
+          diag.leafCallMustNotReturnHandle.at(errorEntity),
         );
       }
       for (var param in nativeType.normalParameterTypes) {
         if (_primitiveNativeType(param) == _PrimitiveDartType.handle) {
-          _diagnosticReporter.atEntity(
-            errorEntity,
-            diag.leafCallMustNotTakeHandle,
+          _diagnosticReporter.report(
+            diag.leafCallMustNotTakeHandle.at(errorEntity),
           );
         }
       }
@@ -1460,17 +1452,15 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     NodeList<Annotation> annotations = node.metadata;
 
     if (node.externalKeyword == null) {
-      _diagnosticReporter.atToken(
-        fields.variables[0].name,
-        diag.fieldMustBeExternalInStruct,
+      _diagnosticReporter.report(
+        diag.fieldMustBeExternalInStruct.at(fields.variables[0].name),
       );
     }
 
     var fieldType = fields.type;
     if (fieldType == null) {
-      _diagnosticReporter.atToken(
-        fields.variables[0].name,
-        diag.missingFieldTypeInStruct,
+      _diagnosticReporter.report(
+        diag.missingFieldTypeInStruct.at(fields.variables[0].name),
       );
     } else {
       DartType declaredType = fieldType.typeOrThrow;
@@ -1800,7 +1790,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (!validTarget) {
-      _diagnosticReporter.atNode(argument, diag.argumentMustBeNative);
+      _diagnosticReporter.report(diag.argumentMustBeNative.at(argument));
     }
   }
 
@@ -1904,7 +1894,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void _validateNoAnnotations(NodeList<Annotation> annotations) {
     for (Annotation annotation in annotations) {
       if (annotation.element.ffiClass != null) {
-        _diagnosticReporter.atNode(annotation, diag.annotationOnPointerField);
+        _diagnosticReporter.report(
+          diag.annotationOnPointerField.at(annotation),
+        );
       }
     }
   }
@@ -1922,7 +1914,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (ffiPackedAnnotations.length > 1) {
       var extraAnnotations = ffiPackedAnnotations.skip(1);
       for (var annotation in extraAnnotations) {
-        _diagnosticReporter.atNode(annotation, diag.packedAnnotation);
+        _diagnosticReporter.report(diag.packedAnnotation.at(annotation));
       }
     }
 
@@ -1935,7 +1927,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (arguments != null && arguments.isNotEmpty) {
         errorNode = arguments[0];
       }
-      _diagnosticReporter.atNode(errorNode, diag.packedAnnotationAlignment);
+      _diagnosticReporter.report(diag.packedAnnotationAlignment.at(errorNode));
     }
   }
 
@@ -2025,9 +2017,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         .toList();
 
     if (ffiSizeAnnotations.isEmpty) {
-      _diagnosticReporter.atEntity(
-        errorEntity,
-        diag.missingSizeAnnotationCarray,
+      _diagnosticReporter.report(
+        diag.missingSizeAnnotationCarray.at(errorEntity),
       );
       return;
     }
@@ -2035,7 +2026,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (ffiSizeAnnotations.length > 1) {
       var extraAnnotations = ffiSizeAnnotations.skip(1);
       for (var annotation in extraAnnotations) {
-        _diagnosticReporter.atNode(annotation, diag.extraSizeAnnotationCarray);
+        _diagnosticReporter.report(
+          diag.extraSizeAnnotationCarray.at(annotation),
+        );
       }
     }
 
@@ -2045,12 +2038,14 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         annotation.elementAnnotation?.arraySizeDimensions ?? (<int>[], false);
     var annotationDimensions = dimensions.length;
     if (annotationDimensions != arrayDimensions) {
-      _diagnosticReporter.atNode(annotation, diag.sizeAnnotationDimensions);
+      _diagnosticReporter.report(diag.sizeAnnotationDimensions.at(annotation));
     }
 
     if (variableLength) {
       if (!allowVariableLength) {
-        _diagnosticReporter.atNode(annotation, diag.variableLengthArrayNotLast);
+        _diagnosticReporter.report(
+          diag.variableLengthArrayNotLast.at(annotation),
+        );
       }
     }
 
@@ -2096,13 +2091,17 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (i == 0 && variableLength) {
         // Variable dimension can't be negative.
         if (dimensions[0] < 0) {
-          _diagnosticReporter.atNode(errorNode, diag.negativeVariableDimension);
+          _diagnosticReporter.report(
+            diag.negativeVariableDimension.at(errorNode),
+          );
         }
         continue;
       }
 
       if (dimensions[i] <= 0) {
-        _diagnosticReporter.atNode(errorNode, diag.nonPositiveArrayDimension);
+        _diagnosticReporter.report(
+          diag.nonPositiveArrayDimension.at(errorNode),
+        );
       }
     }
   }

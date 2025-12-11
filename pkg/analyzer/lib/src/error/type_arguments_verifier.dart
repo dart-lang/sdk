@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -19,6 +18,7 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
+import 'package:analyzer/src/error/listener.dart';
 
 class TypeArgumentsVerifier {
   final AnalysisOptions _options;
@@ -332,9 +332,10 @@ class TypeArgumentsVerifier {
       if (typeArgument is FunctionTypeImpl &&
           typeArgument.typeParameters.isNotEmpty) {
         if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
-          _diagnosticReporter.atNode(
-            _typeArgumentErrorNode(namedType, i),
-            diag.genericFunctionTypeCannotBeTypeArgument,
+          _diagnosticReporter.report(
+            diag.genericFunctionTypeCannotBeTypeArgument.at(
+              _typeArgumentErrorNode(namedType, i),
+            ),
           );
           continue;
         }
@@ -508,9 +509,10 @@ class TypeArgumentsVerifier {
 
       if (argType is FunctionTypeImpl && argType.typeParameters.isNotEmpty) {
         if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
-          _diagnosticReporter.atNode(
-            typeArgumentList[i],
-            diag.genericFunctionTypeCannotBeTypeArgument,
+          _diagnosticReporter.report(
+            diag.genericFunctionTypeCannotBeTypeArgument.at(
+              typeArgumentList[i],
+            ),
           );
           continue;
         }

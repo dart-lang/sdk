@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -215,10 +215,14 @@ zap: baz
       'baz',
     );
 
-    reporter.atSourceSpan(
-      span,
-      diag.unsupportedOptionWithLegalValue,
-      arguments: ['test', 'zip', 'zap'],
+    reporter.report(
+      diag.unsupportedOptionWithLegalValue
+          .withArguments(
+            sectionName: 'test',
+            optionKey: 'zip',
+            legalValue: 'zap',
+          )
+          .atSourceSpan(span),
     );
     expect(listener.diagnostics, hasLength(1));
     expect(listener.diagnostics.first.offset, offset);

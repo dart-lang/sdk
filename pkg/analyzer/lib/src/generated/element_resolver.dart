@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -13,6 +12,7 @@ import 'package:analyzer/src/dart/resolver/comment_reference_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 
@@ -400,11 +400,11 @@ class ElementResolver {
     switch (context) {
       case SuperContext.annotation:
       case SuperContext.static:
-        _diagnosticReporter.atNode(node, diag.superInInvalidContext);
+        _diagnosticReporter.report(diag.superInInvalidContext.at(node));
       case SuperContext.extension:
-        _diagnosticReporter.atNode(node, diag.superInExtension);
+        _diagnosticReporter.report(diag.superInExtension.at(node));
       case SuperContext.extensionType:
-        _diagnosticReporter.atNode(node, diag.superInExtensionType);
+        _diagnosticReporter.report(diag.superInExtensionType.at(node));
     }
   }
 

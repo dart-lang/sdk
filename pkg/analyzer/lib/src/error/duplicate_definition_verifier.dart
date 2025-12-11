@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/file_analysis.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -15,6 +14,7 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
@@ -644,9 +644,8 @@ class MemberDuplicateDefinitionVerifier {
 
     for (var constant in node.body.constants) {
       if (constant.name.lexeme == declarationName) {
-        _diagnosticReporter.atToken(
-          constant.name,
-          diag.enumConstantSameNameAsEnclosing,
+        _diagnosticReporter.report(
+          diag.enumConstantSameNameAsEnclosing.at(constant.name),
         );
       }
       var constantFragment = constant.declaredFragment!;
@@ -663,9 +662,8 @@ class MemberDuplicateDefinitionVerifier {
     _checkClassMembers(fragment, node.body.members);
 
     if (declarationName == 'values') {
-      _diagnosticReporter.atToken(
-        node.namePart.typeName,
-        diag.enumWithNameValues,
+      _diagnosticReporter.report(
+        diag.enumWithNameValues.at(node.namePart.typeName),
       );
     }
 
@@ -873,7 +871,7 @@ class MemberDuplicateDefinitionVerifier {
 
   void _checkValuesDeclarationInEnum(Token name) {
     if (name.lexeme == 'values') {
-      _diagnosticReporter.atToken(name, diag.valuesDeclarationInEnum);
+      _diagnosticReporter.report(diag.valuesDeclarationInEnum.at(name));
     }
   }
 
