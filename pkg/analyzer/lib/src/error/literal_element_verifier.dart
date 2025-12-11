@@ -5,12 +5,12 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 
 /// Verifier for [CollectionElement]s in list, set, or map literals.
@@ -97,7 +97,7 @@ class LiteralElementVerifier {
           }
           _checkAssignableToElementType(element.typeOrThrow, element);
         } else {
-          _diagnosticReporter.atNode(element, diag.expressionInMap);
+          _diagnosticReporter.report(diag.expressionInMap.at(element));
         }
       case ForElementImpl():
         _verifyElement(element.body);
@@ -108,7 +108,7 @@ class LiteralElementVerifier {
         if (forMap) {
           _verifyMapLiteralEntry(element);
         } else {
-          _diagnosticReporter.atNode(element, diag.mapEntryNotInMap);
+          _diagnosticReporter.report(diag.mapEntryNotInMap.at(element));
         }
       case SpreadElementImpl():
         var isNullAware = element.isNullAware;
@@ -129,7 +129,7 @@ class LiteralElementVerifier {
             element,
           );
         } else {
-          _diagnosticReporter.atNode(element, diag.expressionInMap);
+          _diagnosticReporter.report(diag.expressionInMap.at(element));
         }
       case null:
         break;
@@ -220,7 +220,7 @@ class LiteralElementVerifier {
     var expressionType = expression.typeOrThrow;
     if (expressionType is DynamicType) {
       if (_errorVerifier.strictCasts) {
-        _diagnosticReporter.atNode(expression, diag.notIterableSpread);
+        _diagnosticReporter.report(diag.notIterableSpread.at(expression));
       }
       return;
     }
@@ -233,7 +233,7 @@ class LiteralElementVerifier {
       if (isNullAware) {
         return;
       }
-      _diagnosticReporter.atNode(expression, diag.notNullAwareNullSpread);
+      _diagnosticReporter.report(diag.notNullAwareNullSpread.at(expression));
       return;
     }
 
@@ -242,7 +242,7 @@ class LiteralElementVerifier {
     );
 
     if (iterableType == null) {
-      _diagnosticReporter.atNode(expression, diag.notIterableSpread);
+      _diagnosticReporter.report(diag.notIterableSpread.at(expression));
       return;
     }
 
@@ -313,7 +313,7 @@ class LiteralElementVerifier {
     var expressionType = expression.typeOrThrow;
     if (expressionType is DynamicType) {
       if (_errorVerifier.strictCasts) {
-        _diagnosticReporter.atNode(expression, diag.notMapSpread);
+        _diagnosticReporter.report(diag.notMapSpread.at(expression));
       }
       return;
     }
@@ -326,14 +326,14 @@ class LiteralElementVerifier {
       if (isNullAware) {
         return;
       }
-      _diagnosticReporter.atNode(expression, diag.notNullAwareNullSpread);
+      _diagnosticReporter.report(diag.notNullAwareNullSpread.at(expression));
       return;
     }
 
     var mapType = expressionType.asInstanceOf(typeProvider.mapElement);
 
     if (mapType == null) {
-      _diagnosticReporter.atNode(expression, diag.notMapSpread);
+      _diagnosticReporter.report(diag.notMapSpread.at(expression));
       return;
     }
 

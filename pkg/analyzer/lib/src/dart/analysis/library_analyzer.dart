@@ -38,6 +38,7 @@ import 'package:analyzer/src/error/ignore_validator.dart';
 import 'package:analyzer/src/error/imports_verifier.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/language_version_override_verifier.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/error/override_verifier.dart';
 import 'package:analyzer/src/error/redeclare_verifier.dart';
 import 'package:analyzer/src/error/todo_finder.dart';
@@ -282,9 +283,8 @@ class LibraryAnalyzer {
                 shouldReport = true;
               }
               if (shouldReport) {
-                container.diagnosticReporter.atNode(
-                  directive.uri,
-                  diag.inconsistentLanguageVersionOverride,
+                container.diagnosticReporter.report(
+                  diag.inconsistentLanguageVersionOverride.at(directive.uri),
                 );
               } else {
                 visitPartDirectives(part);
@@ -700,7 +700,7 @@ class LibraryAnalyzer {
     if (state is LibraryImportWithUri) {
       var selectedUriStr = state.selectedUri.relativeUriStr;
       if (selectedUriStr.startsWith('dart-ext:')) {
-        diagnosticReporter.atNode(directive.uri, diag.useOfNativeExtension);
+        diagnosticReporter.report(diag.useOfNativeExtension.at(directive.uri));
       } else if (state.importedSource == null) {
         var errorCode = state.isDocImport
             ? diag.uriDoesNotExistInDocImport
@@ -735,7 +735,7 @@ class LibraryAnalyzer {
         arguments: [state.selectedUri.relativeUriStr],
       );
     } else {
-      diagnosticReporter.atNode(directive.uri, diag.uriWithInterpolation);
+      diagnosticReporter.report(diag.uriWithInterpolation.at(directive.uri));
     }
   }
 
@@ -915,7 +915,7 @@ class LibraryAnalyzer {
     if (state is LibraryExportWithUri) {
       var selectedUriStr = state.selectedUri.relativeUriStr;
       if (selectedUriStr.startsWith('dart-ext:')) {
-        diagnosticReporter.atNode(directive.uri, diag.useOfNativeExtension);
+        diagnosticReporter.report(diag.useOfNativeExtension.at(directive.uri));
       } else if (state.exportedSource == null) {
         diagnosticReporter.atNode(
           directive.uri,
@@ -945,7 +945,7 @@ class LibraryAnalyzer {
         arguments: [state.selectedUri.relativeUriStr],
       );
     } else {
-      diagnosticReporter.atNode(directive.uri, diag.uriWithInterpolation);
+      diagnosticReporter.report(diag.uriWithInterpolation.at(directive.uri));
     }
   }
 

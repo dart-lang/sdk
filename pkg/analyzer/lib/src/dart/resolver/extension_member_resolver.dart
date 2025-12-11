@@ -244,16 +244,17 @@ class ExtensionMemberResolver {
 
     if (!_isValidContext(node)) {
       if (!_isCascadeTarget(node)) {
-        _diagnosticReporter.atNode(node, diag.extensionOverrideWithoutAccess);
+        _diagnosticReporter.report(
+          diag.extensionOverrideWithoutAccess.at(node),
+        );
       }
       nodeImpl.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
     }
 
     var arguments = node.argumentList.arguments;
     if (arguments.length != 1) {
-      _diagnosticReporter.atNode(
-        node.argumentList,
-        diag.invalidExtensionArgumentCount,
+      _diagnosticReporter.report(
+        diag.invalidExtensionArgumentCount.at(node.argumentList),
       );
       nodeImpl.typeArgumentTypes = _listOfDynamic(typeParameters);
       nodeImpl.extendedType = DynamicTypeImpl.instance;
@@ -292,7 +293,7 @@ class ExtensionMemberResolver {
     );
 
     if (receiverType is VoidType) {
-      _diagnosticReporter.atNode(receiverExpression, diag.useOfVoidResult);
+      _diagnosticReporter.report(diag.useOfVoidResult.at(receiverExpression));
     } else if (!_typeSystem.isAssignableTo(
       receiverType,
       extendedType,

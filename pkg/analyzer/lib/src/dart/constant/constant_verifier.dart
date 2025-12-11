@@ -110,13 +110,17 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     if (element is ConstructorElement) {
       // should be 'const' constructor
       if (!element.isConst) {
-        _diagnosticReporter.atNode(node, diag.nonConstantAnnotationConstructor);
+        _diagnosticReporter.report(
+          diag.nonConstantAnnotationConstructor.at(node),
+        );
         return;
       }
       // should have arguments
       var argumentList = node.arguments;
       if (argumentList == null) {
-        _diagnosticReporter.atNode(node, diag.noAnnotationConstructorArguments);
+        _diagnosticReporter.report(
+          diag.noAnnotationConstructorArguments.at(node),
+        );
         return;
       }
       // arguments should be constants
@@ -758,7 +762,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     if (notPotentiallyConstants.isEmpty) return;
 
     for (var notConst in notPotentiallyConstants) {
-      _diagnosticReporter.atNode(notConst, diag.invalidConstant);
+      _diagnosticReporter.report(diag.invalidConstant.at(notConst));
     }
   }
 
@@ -987,7 +991,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           SwitchExpressionCaseImpl() => caseNode.arrow,
           SwitchPatternCaseImpl() => caseNode.keyword,
         };
-        _diagnosticReporter.atToken(errorToken, diag.unreachableSwitchCase);
+        _diagnosticReporter.report(diag.unreachableSwitchCase.at(errorToken));
       }
       if (nonExhaustiveness != null) {
         if (reportNonExhaustive) {
@@ -1046,9 +1050,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       } else {
         if (defaultNode != null && mustBeExhaustive) {
           // Default node is unreachable
-          _diagnosticReporter.atToken(
-            defaultNode.keyword,
-            diag.unreachableSwitchDefault,
+          _diagnosticReporter.report(
+            diag.unreachableSwitchDefault.at(defaultNode.keyword),
           );
         }
       }
@@ -1164,7 +1167,7 @@ class _ConstLiteralVerifier {
 
       return true;
     } else if (element is ForElement) {
-      verifier._diagnosticReporter.atNode(element, diag.constEvalForElement);
+      verifier._diagnosticReporter.report(diag.constEvalForElement.at(element));
       return false;
     } else if (element is IfElement) {
       var conditionConstant = verifier._evaluateAndReportError(
@@ -1337,9 +1340,8 @@ class _ConstLiteralVerifier {
       // TODO(kallentu): Consolidate this with
       // [ConstantVisitor._addElementsToList] and the other similar
       // _addElementsTo methods..
-      verifier._diagnosticReporter.atNode(
-        element.expression,
-        diag.constSpreadExpectedListOrSet,
+      verifier._diagnosticReporter.report(
+        diag.constSpreadExpectedListOrSet.at(element.expression),
       );
       return false;
     }
@@ -1498,9 +1500,8 @@ class _ConstLiteralVerifier {
       }
       return true;
     }
-    verifier._diagnosticReporter.atNode(
-      element.expression,
-      diag.constSpreadExpectedMap,
+    verifier._diagnosticReporter.report(
+      diag.constSpreadExpectedMap.at(element.expression),
     );
     return false;
   }

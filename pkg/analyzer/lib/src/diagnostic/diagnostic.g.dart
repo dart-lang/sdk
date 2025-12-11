@@ -59,9 +59,9 @@ const DiagnosticWithoutArguments abiSpecificIntegerMappingMissing =
     );
 
 /// Parameters:
-/// String p0: the value of the invalid mapping
+/// String mappingName: the value of the invalid mapping
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String mappingName})
 >
 abiSpecificIntegerMappingUnsupported = DiagnosticWithArguments(
   name: 'abi_specific_integer_mapping_unsupported',
@@ -473,9 +473,9 @@ annotationWithTypeArgumentsUninstantiated = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the argument
+/// String argumentName: the name of the argument
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String argumentName})
 >
 argumentMustBeAConstant = DiagnosticWithArguments(
   name: 'argument_must_be_a_constant',
@@ -1511,9 +1511,9 @@ const DiagnosticWithoutArguments colonInPlaceOfIn =
     );
 
 /// Parameters:
-/// String p0: the name of the struct or union class
+/// String className: the name of the struct or union class
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String className})
 >
 compoundImplementsFinalizable = DiagnosticWithArguments(
   name: 'compound_implements_finalizable',
@@ -4146,10 +4146,13 @@ const DiagnosticWithoutArguments emptyRecordTypeWithComma =
     );
 
 /// Parameters:
-/// String p0: the name of the subclass
-/// String p1: the name of the superclass
+/// String subclassName: the name of the subclass
+/// String superclassName: the name of the superclass
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String subclassName,
+    required String superclassName,
+  })
 >
 emptyStruct = DiagnosticWithArguments(
   name: 'empty_struct',
@@ -5651,10 +5654,10 @@ ffiNativeOnlyClassesExtendingNativefieldwrapperclass1CanBePointer =
     );
 
 /// Parameters:
-/// int p0: the expected number of parameters
-/// int p1: the actual number of parameters
+/// int expected: the expected number of parameters
+/// int actual: the actual number of parameters
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required int p0, required int p1})
+  LocatableDiagnostic Function({required int expected, required int actual})
 >
 ffiNativeUnexpectedNumberOfParameters = DiagnosticWithArguments(
   name: 'ffi_native_unexpected_number_of_parameters',
@@ -5670,10 +5673,10 @@ ffiNativeUnexpectedNumberOfParameters = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// int p0: the expected number of parameters
-/// int p1: the actual number of parameters
+/// int expected: the expected number of parameters
+/// int actual: the actual number of parameters
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required int p0, required int p1})
+  LocatableDiagnostic Function({required int expected, required int actual})
 >
 ffiNativeUnexpectedNumberOfParametersWithReceiver = DiagnosticWithArguments(
   name: 'ffi_native_unexpected_number_of_parameters_with_receiver',
@@ -6223,9 +6226,9 @@ genericMethodTypeInstantiationOnDynamic = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the struct class
+/// String className: the name of the struct class
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String className})
 >
 genericStructSubclass = DiagnosticWithArguments(
   name: 'generic_struct_subclass',
@@ -8029,9 +8032,9 @@ invalidDeprecatedSubclassAnnotation = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the method
+/// String methodName: the name of the method
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String methodName})
 >
 invalidExceptionValue = DiagnosticWithArguments(
   name: 'invalid_exception_value',
@@ -8182,9 +8185,9 @@ const DiagnosticWithoutArguments invalidFieldNamePrivate =
     );
 
 /// Parameters:
-/// String p0: the type of the field
+/// String type: the type of the field
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String type})
 >
 invalidFieldTypeInStruct = DiagnosticWithArguments(
   name: 'invalid_field_type_in_struct',
@@ -9719,10 +9722,14 @@ const DiagnosticWithoutArguments mismatchedAnnotationOnStructField =
     );
 
 /// Parameters:
-/// Type p0: the type that is missing a native type annotation
-/// String p1: the superclass which is extended by this field's class
+/// Type type: the type that is missing a native type annotation
+/// String superclassName: the superclass which is extended by this field's
+///                        class
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required String p1})
+  LocatableDiagnostic Function({
+    required DartType type,
+    required String superclassName,
+  })
 >
 missingAnnotationOnStructField = DiagnosticWithArguments(
   name: 'missing_annotation_on_struct_field',
@@ -9973,9 +9980,9 @@ missingEnumConstantInSwitch = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the method
+/// String methodName: the name of the method
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String methodName})
 >
 missingExceptionValue = DiagnosticWithArguments(
   name: 'missing_exception_value',
@@ -11070,11 +11077,14 @@ const DiagnosticWithoutArguments multipleWithClauses =
     );
 
 /// Parameters:
-/// Object p0: the type that should be a valid dart:ffi native type.
-/// String p1: the name of the function whose invocation depends on this
-///            relationship
+/// Object type: the type that should be a valid dart:ffi native type.
+/// String functionName: the name of the function whose invocation depends on
+///                      this relationship
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0, required String p1})
+  LocatableDiagnostic Function({
+    required Object type,
+    required String functionName,
+  })
 >
 mustBeANativeFunctionType = DiagnosticWithArguments(
   name: 'must_be_a_native_function_type',
@@ -11091,15 +11101,15 @@ mustBeANativeFunctionType = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the type that should be a subtype
-/// Type p1: the supertype that the subtype is compared to
-/// String p2: the name of the function whose invocation depends on this
-///            relationship
+/// Type subtype: the type that should be a subtype
+/// Type supertype: the supertype that the subtype is compared to
+/// String name: the name of the function whose invocation depends on this
+///              relationship
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required DartType p0,
-    required DartType p1,
-    required String p2,
+    required DartType subtype,
+    required DartType supertype,
+    required String name,
   })
 >
 mustBeASubtype = DiagnosticWithArguments(
@@ -11152,9 +11162,9 @@ mustCallSuper = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the return type that should be 'void'.
+/// Type type: the return type that should be 'void'.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0})
+  LocatableDiagnostic Function({required DartType type})
 >
 mustReturnVoid = DiagnosticWithArguments(
   name: 'must_return_void',
@@ -11244,9 +11254,9 @@ const DiagnosticWithoutArguments nativeClauseShouldBeAnnotation =
     );
 
 /// Parameters:
-/// Type p0: The invalid type.
+/// Type type: The invalid type.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0})
+  LocatableDiagnostic Function({required DartType type})
 >
 nativeFieldInvalidType = DiagnosticWithArguments(
   name: 'native_field_invalid_type',
@@ -11931,10 +11941,10 @@ const DiagnosticWithoutArguments nonConstantSetElement =
     );
 
 /// Parameters:
-/// String p0: the name of the function, method, or constructor having type
-///            arguments
+/// String executableName: the name of the function, method, or constructor
+///                        having type arguments
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String executableName})
 >
 nonConstantTypeArgument = DiagnosticWithArguments(
   name: 'non_constant_type_argument',
@@ -12223,9 +12233,9 @@ const DiagnosticWithoutArguments nonIdentifierLibraryName =
     );
 
 /// Parameters:
-/// Type p0: the type that should be a valid dart:ffi native type.
+/// Type type: the type that should be a valid dart:ffi native type.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0})
+  LocatableDiagnostic Function({required DartType type})
 >
 nonNativeFunctionTypeArgumentToPointer = DiagnosticWithArguments(
   name: 'non_native_function_type_argument_to_pointer',
@@ -12313,10 +12323,13 @@ nonResizableActivity = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the field
-/// Type p1: the type of the field
+/// String fieldName: the name of the field
+/// Type type: the type of the field
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required String fieldName,
+    required DartType type,
+  })
 >
 nonSizedTypeArgument = DiagnosticWithArguments(
   name: 'non_sized_type_argument',
@@ -14803,10 +14816,14 @@ subtypeOfSealedClass = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the subclass
-/// String p1: the name of the class being extended, implemented, or mixed in
+/// String subclassName: the name of the subclass
+/// String superclassName: the name of the class being extended, implemented,
+///                        or mixed in
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String subclassName,
+    required String superclassName,
+  })
 >
 subtypeOfStructClassInExtends = DiagnosticWithArguments(
   name: 'subtype_of_struct_class',
@@ -14823,10 +14840,14 @@ subtypeOfStructClassInExtends = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the subclass
-/// String p1: the name of the class being extended, implemented, or mixed in
+/// String subclassName: the name of the subclass
+/// String superclassName: the name of the class being extended, implemented,
+///                        or mixed in
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String subclassName,
+    required String superclassName,
+  })
 >
 subtypeOfStructClassInImplements = DiagnosticWithArguments(
   name: 'subtype_of_struct_class',
@@ -14843,10 +14864,14 @@ subtypeOfStructClassInImplements = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the subclass
-/// String p1: the name of the class being extended, implemented, or mixed in
+/// String subclassName: the name of the subclass
+/// String superclassName: the name of the class being extended, implemented,
+///                        or mixed in
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String subclassName,
+    required String superclassName,
+  })
 >
 subtypeOfStructClassInWith = DiagnosticWithArguments(
   name: 'subtype_of_struct_class',
@@ -17690,10 +17715,10 @@ yieldOfInvalidType = DiagnosticWithArguments(
 );
 
 LocatableDiagnostic _withArgumentsAbiSpecificIntegerMappingUnsupported({
-  required String p0,
+  required String mappingName,
 }) {
   return LocatableDiagnosticImpl(diag.abiSpecificIntegerMappingUnsupported, [
-    p0,
+    mappingName,
   ]);
 }
 
@@ -17761,9 +17786,9 @@ LocatableDiagnostic _withArgumentsAnalysisOptionDeprecatedWithReplacement({
 }
 
 LocatableDiagnostic _withArgumentsArgumentMustBeAConstant({
-  required String p0,
+  required String argumentName,
 }) {
-  return LocatableDiagnosticImpl(diag.argumentMustBeAConstant, [p0]);
+  return LocatableDiagnosticImpl(diag.argumentMustBeAConstant, [argumentName]);
 }
 
 LocatableDiagnostic _withArgumentsArgumentTypeNotAssignable({
@@ -17992,9 +18017,11 @@ LocatableDiagnostic _withArgumentsClassUsedAsMixin({required String p0}) {
 }
 
 LocatableDiagnostic _withArgumentsCompoundImplementsFinalizable({
-  required String p0,
+  required String className,
 }) {
-  return LocatableDiagnosticImpl(diag.compoundImplementsFinalizable, [p0]);
+  return LocatableDiagnosticImpl(diag.compoundImplementsFinalizable, [
+    className,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsConcreteClassWithAbstractMember({
@@ -18548,10 +18575,13 @@ LocatableDiagnostic _withArgumentsDuplicateVariablePattern({
 }
 
 LocatableDiagnostic _withArgumentsEmptyStruct({
-  required String p0,
-  required String p1,
+  required String subclassName,
+  required String superclassName,
 }) {
-  return LocatableDiagnosticImpl(diag.emptyStruct, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.emptyStruct, [
+    subclassName,
+    superclassName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsEnumWithAbstractMember({
@@ -18727,23 +18757,23 @@ LocatableDiagnostic _withArgumentsExtraPositionalArgumentsCouldBeNamed({
 }
 
 LocatableDiagnostic _withArgumentsFfiNativeUnexpectedNumberOfParameters({
-  required int p0,
-  required int p1,
+  required int expected,
+  required int actual,
 }) {
   return LocatableDiagnosticImpl(diag.ffiNativeUnexpectedNumberOfParameters, [
-    p0,
-    p1,
+    expected,
+    actual,
   ]);
 }
 
 LocatableDiagnostic
 _withArgumentsFfiNativeUnexpectedNumberOfParametersWithReceiver({
-  required int p0,
-  required int p1,
+  required int expected,
+  required int actual,
 }) {
   return LocatableDiagnosticImpl(
     diag.ffiNativeUnexpectedNumberOfParametersWithReceiver,
-    [p0, p1],
+    [expected, actual],
   );
 }
 
@@ -18856,8 +18886,10 @@ LocatableDiagnostic _withArgumentsForInOfInvalidType({
   return LocatableDiagnosticImpl(diag.forInOfInvalidType, [p0, p1]);
 }
 
-LocatableDiagnostic _withArgumentsGenericStructSubclass({required String p0}) {
-  return LocatableDiagnosticImpl(diag.genericStructSubclass, [p0]);
+LocatableDiagnostic _withArgumentsGenericStructSubclass({
+  required String className,
+}) {
+  return LocatableDiagnosticImpl(diag.genericStructSubclass, [className]);
 }
 
 LocatableDiagnostic _withArgumentsGetterNotAssignableSetterTypes({
@@ -19273,8 +19305,10 @@ LocatableDiagnostic _withArgumentsInvalidDependency({required String p0}) {
   return LocatableDiagnosticImpl(diag.invalidDependency, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsInvalidExceptionValue({required String p0}) {
-  return LocatableDiagnosticImpl(diag.invalidExceptionValue, [p0]);
+LocatableDiagnostic _withArgumentsInvalidExceptionValue({
+  required String methodName,
+}) {
+  return LocatableDiagnosticImpl(diag.invalidExceptionValue, [methodName]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidExportOfInternalElement({
@@ -19306,9 +19340,9 @@ LocatableDiagnostic _withArgumentsInvalidFactoryMethodImpl({
 }
 
 LocatableDiagnostic _withArgumentsInvalidFieldTypeInStruct({
-  required String p0,
+  required String type,
 }) {
-  return LocatableDiagnosticImpl(diag.invalidFieldTypeInStruct, [p0]);
+  return LocatableDiagnosticImpl(diag.invalidFieldTypeInStruct, [type]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidImplementationOverride({
@@ -19592,10 +19626,13 @@ LocatableDiagnostic _withArgumentsMapValueTypeNotAssignableNullability({
 }
 
 LocatableDiagnostic _withArgumentsMissingAnnotationOnStructField({
-  required DartType p0,
-  required String p1,
+  required DartType type,
+  required String superclassName,
 }) {
-  return LocatableDiagnosticImpl(diag.missingAnnotationOnStructField, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.missingAnnotationOnStructField, [
+    type,
+    superclassName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsMissingDartLibrary({required Object p0}) {
@@ -19627,8 +19664,10 @@ LocatableDiagnostic _withArgumentsMissingEnumConstantInSwitch({
   return LocatableDiagnosticImpl(diag.missingEnumConstantInSwitch, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsMissingExceptionValue({required String p0}) {
-  return LocatableDiagnosticImpl(diag.missingExceptionValue, [p0]);
+LocatableDiagnostic _withArgumentsMissingExceptionValue({
+  required String methodName,
+}) {
+  return LocatableDiagnosticImpl(diag.missingExceptionValue, [methodName]);
 }
 
 LocatableDiagnostic _withArgumentsMissingOverrideOfMustBeOverriddenOne({
@@ -19814,18 +19853,25 @@ LocatableDiagnostic _withArgumentsMultipleVariablesInForEach({
 }
 
 LocatableDiagnostic _withArgumentsMustBeANativeFunctionType({
-  required Object p0,
-  required String p1,
+  required Object type,
+  required String functionName,
 }) {
-  return LocatableDiagnosticImpl(diag.mustBeANativeFunctionType, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.mustBeANativeFunctionType, [
+    type,
+    functionName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsMustBeASubtype({
-  required DartType p0,
-  required DartType p1,
-  required String p2,
+  required DartType subtype,
+  required DartType supertype,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.mustBeASubtype, [p0, p1, p2]);
+  return LocatableDiagnosticImpl(diag.mustBeASubtype, [
+    subtype,
+    supertype,
+    name,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsMustBeImmutable({required String p0}) {
@@ -19836,14 +19882,14 @@ LocatableDiagnostic _withArgumentsMustCallSuper({required String p0}) {
   return LocatableDiagnosticImpl(diag.mustCallSuper, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsMustReturnVoid({required DartType p0}) {
-  return LocatableDiagnosticImpl(diag.mustReturnVoid, [p0]);
+LocatableDiagnostic _withArgumentsMustReturnVoid({required DartType type}) {
+  return LocatableDiagnosticImpl(diag.mustReturnVoid, [type]);
 }
 
 LocatableDiagnostic _withArgumentsNativeFieldInvalidType({
-  required DartType p0,
+  required DartType type,
 }) {
-  return LocatableDiagnosticImpl(diag.nativeFieldInvalidType, [p0]);
+  return LocatableDiagnosticImpl(diag.nativeFieldInvalidType, [type]);
 }
 
 LocatableDiagnostic _withArgumentsNewWithNonType({required String p0}) {
@@ -19957,9 +20003,11 @@ LocatableDiagnostic _withArgumentsNonBoolOperand({required String p0}) {
 }
 
 LocatableDiagnostic _withArgumentsNonConstantTypeArgument({
-  required String p0,
+  required String executableName,
 }) {
-  return LocatableDiagnosticImpl(diag.nonConstantTypeArgument, [p0]);
+  return LocatableDiagnosticImpl(diag.nonConstantTypeArgument, [
+    executableName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsNonConstArgumentForConstParameter({
@@ -20042,18 +20090,18 @@ LocatableDiagnostic _withArgumentsNonGenerativeImplicitConstructor({
 }
 
 LocatableDiagnostic _withArgumentsNonNativeFunctionTypeArgumentToPointer({
-  required DartType p0,
+  required DartType type,
 }) {
   return LocatableDiagnosticImpl(diag.nonNativeFunctionTypeArgumentToPointer, [
-    p0,
+    type,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsNonSizedTypeArgument({
-  required String p0,
-  required DartType p1,
+  required String fieldName,
+  required DartType type,
 }) {
-  return LocatableDiagnosticImpl(diag.nonSizedTypeArgument, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.nonSizedTypeArgument, [fieldName, type]);
 }
 
 LocatableDiagnostic _withArgumentsNonTypeAsTypeArgument({required String p0}) {
@@ -20576,27 +20624,33 @@ LocatableDiagnostic _withArgumentsSubtypeOfSealedClass({required String p0}) {
 }
 
 LocatableDiagnostic _withArgumentsSubtypeOfStructClassInExtends({
-  required String p0,
-  required String p1,
+  required String subclassName,
+  required String superclassName,
 }) {
-  return LocatableDiagnosticImpl(diag.subtypeOfStructClassInExtends, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.subtypeOfStructClassInExtends, [
+    subclassName,
+    superclassName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsSubtypeOfStructClassInImplements({
-  required String p0,
-  required String p1,
+  required String subclassName,
+  required String superclassName,
 }) {
   return LocatableDiagnosticImpl(diag.subtypeOfStructClassInImplements, [
-    p0,
-    p1,
+    subclassName,
+    superclassName,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsSubtypeOfStructClassInWith({
-  required String p0,
-  required String p1,
+  required String subclassName,
+  required String superclassName,
 }) {
-  return LocatableDiagnosticImpl(diag.subtypeOfStructClassInWith, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.subtypeOfStructClassInWith, [
+    subclassName,
+    superclassName,
+  ]);
 }
 
 LocatableDiagnostic

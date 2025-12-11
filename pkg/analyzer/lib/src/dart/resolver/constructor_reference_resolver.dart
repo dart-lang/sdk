@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// A resolver for [ConstructorReference] nodes.
@@ -23,9 +24,8 @@ class ConstructorReferenceResolver {
         node.constructorName.type.typeArguments == null) {
       // Only report this if [node] has no explicit type arguments; otherwise
       // the parser has already reported an error.
-      _resolver.diagnosticReporter.atNode(
-        node,
-        diag.sdkVersionConstructorTearoffs,
+      _resolver.diagnosticReporter.report(
+        diag.sdkVersionConstructorTearoffs.at(node),
       );
     }
     node.constructorName.accept(_resolver);
@@ -33,9 +33,8 @@ class ConstructorReferenceResolver {
     if (element != null && !element.isFactory) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElementImpl && enclosingElement.isAbstract) {
-        _resolver.diagnosticReporter.atNode(
-          node,
-          diag.tearoffOfGenerativeConstructorOfAbstractClass,
+        _resolver.diagnosticReporter.report(
+          diag.tearoffOfGenerativeConstructorOfAbstractClass.at(node),
         );
       }
     }

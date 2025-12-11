@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -12,6 +11,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [YieldStatement]s.
@@ -50,9 +50,11 @@ class YieldStatementResolver {
     }
 
     if (expression is MethodInvocation) {
-      _diagnosticReporter.atNode(expression.methodName, diag.useOfVoidResult);
+      _diagnosticReporter.report(
+        diag.useOfVoidResult.at(expression.methodName),
+      );
     } else {
-      _diagnosticReporter.atNode(expression, diag.useOfVoidResult);
+      _diagnosticReporter.report(diag.useOfVoidResult.at(expression));
     }
 
     return true;

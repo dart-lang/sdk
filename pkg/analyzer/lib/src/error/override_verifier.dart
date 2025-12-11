@@ -5,8 +5,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 
 /// Instances of the class `OverrideVerifier` visit all of the declarations in a
 /// compilation unit to verify that if they have an override annotation it is
@@ -45,7 +45,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
         var setter = fieldElement.setter;
         if (setter != null && _isOverride(setter)) continue;
 
-        _errorReporter.atToken(field.name, diag.overrideOnNonOverridingField);
+        _errorReporter.report(diag.overrideOnNonOverridingField.at(field.name));
       }
     }
   }
@@ -56,11 +56,17 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
     if (element.metadata.hasOverride && !_isOverride(element)) {
       switch (element) {
         case MethodElement():
-          _errorReporter.atToken(node.name, diag.overrideOnNonOverridingMethod);
+          _errorReporter.report(
+            diag.overrideOnNonOverridingMethod.at(node.name),
+          );
         case GetterElement():
-          _errorReporter.atToken(node.name, diag.overrideOnNonOverridingGetter);
+          _errorReporter.report(
+            diag.overrideOnNonOverridingGetter.at(node.name),
+          );
         case SetterElement():
-          _errorReporter.atToken(node.name, diag.overrideOnNonOverridingSetter);
+          _errorReporter.report(
+            diag.overrideOnNonOverridingSetter.at(node.name),
+          );
       }
     }
   }

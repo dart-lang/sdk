@@ -8,8 +8,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -80,7 +80,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     if (checkTripleShift) {
       TokenType operatorType = node.operator.type;
       if (operatorType == TokenType.GT_GT_GT) {
-        _errorReporter.atToken(node.operator, diag.sdkVersionGtGtGtOperator);
+        _errorReporter.report(diag.sdkVersionGtGtGtOperator.at(node.operator));
       }
     }
     super.visitBinaryExpression(node);
@@ -112,7 +112,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (checkTripleShift && node.isOperator && node.name.lexeme == '>>>') {
-      _errorReporter.atToken(node.name, diag.sdkVersionGtGtGtOperator);
+      _errorReporter.report(diag.sdkVersionGtGtGtOperator.at(node.name));
     }
     super.visitMethodDeclaration(node);
   }

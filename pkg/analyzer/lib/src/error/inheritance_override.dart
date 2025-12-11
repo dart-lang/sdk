@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -20,6 +19,7 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/error/inference_error.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
 final _missingMustBeOverridden = Expando<List<ExecutableElement>>();
@@ -203,7 +203,9 @@ class _ClassVerifier {
         element is ClassElementImpl &&
         !element.isAbstract &&
         implementsDartCoreEnum) {
-      reporter.atToken(classNameToken, diag.concreteClassHasEnumSuperinterface);
+      reporter.report(
+        diag.concreteClassHasEnumSuperinterface.at(classNameToken),
+      );
       return true;
     }
 
@@ -490,7 +492,7 @@ class _ClassVerifier {
     return _checkDirectSuperType(
       type: type,
       hasEnum: () {
-        reporter.atNode(namedType, diag.concreteClassHasEnumSuperinterface);
+        reporter.report(diag.concreteClassHasEnumSuperinterface.at(namedType));
       },
       notSubtypable: () {
         reporter.atNode(namedType, diagnosticCode, arguments: [type]);
@@ -672,7 +674,7 @@ class _ClassVerifier {
 
   void _checkIllegalEnumValuesDeclaration(Token name) {
     if (implementsDartCoreEnum && name.lexeme == 'values') {
-      reporter.atToken(name, diag.illegalEnumValuesDeclaration);
+      reporter.report(diag.illegalEnumValuesDeclaration.at(name));
     }
   }
 
@@ -715,7 +717,7 @@ class _ClassVerifier {
       return false;
     }
 
-    reporter.atNode(namedType, diag.enumMixinWithInstanceVariable);
+    reporter.report(diag.enumMixinWithInstanceVariable.at(namedType));
     return true;
   }
 
@@ -997,14 +999,14 @@ class _ClassVerifier {
         arguments: namesForError,
       );
     } else {
-      reporter.atToken(
-        classNameToken,
-        diag.missingOverrideOfMustBeOverriddenThreePlus,
-        arguments: [
-          namesForError[0],
-          namesForError[1],
-          (namesForError.length - 2).toString(),
-        ],
+      reporter.report(
+        diag.missingOverrideOfMustBeOverriddenThreePlus
+            .withArguments(
+              firstMember: namesForError[0],
+              secondMember: namesForError[1],
+              additionalCount: (namesForError.length - 2).toString(),
+            )
+            .at(classNameToken),
       );
     }
   }

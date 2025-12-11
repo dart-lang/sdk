@@ -13,11 +13,11 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 
 /// Given a comment reference without a closing `]`, search for a possible
@@ -1215,10 +1215,11 @@ final class _DirectiveParser {
 
     // We've hit EOL without closing brace.
     _end = _offset + index;
-    _diagnosticReporter?.atOffset(
-      offset: _offset + index - 1,
-      length: 1,
-      diagnosticCode: diag.docDirectiveMissingClosingBrace,
+    _diagnosticReporter?.report(
+      diag.docDirectiveMissingClosingBrace.atOffset(
+        offset: _offset + index - 1,
+        length: 1,
+      ),
     );
     return (positionalArguments, namedArguments);
   }
@@ -1250,10 +1251,11 @@ final class _DirectiveParser {
       index++;
       if (index == _length) {
         // Found extra arguments and no closing brace.
-        _diagnosticReporter?.atOffset(
-          offset: _offset + index - 1,
-          length: 1,
-          diagnosticCode: diag.docDirectiveMissingClosingBrace,
+        _diagnosticReporter?.report(
+          diag.docDirectiveMissingClosingBrace.atOffset(
+            offset: _offset + index - 1,
+            length: 1,
+          ),
         );
         break;
       }

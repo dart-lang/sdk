@@ -4,10 +4,10 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -85,9 +85,8 @@ class AnnotationVerifier {
         return;
       }
 
-      _diagnosticReporter.atNode(
-        errorNode ?? node.name,
-        diag.invalidAwaitNotRequiredAnnotation,
+      _diagnosticReporter.report(
+        diag.invalidAwaitNotRequiredAnnotation.at(errorNode ?? node.name),
       );
     }
 
@@ -153,9 +152,8 @@ class AnnotationVerifier {
       }
     }
 
-    _diagnosticReporter.atNode(
-      node.name,
-      diag.invalidDeprecatedExtendAnnotation,
+    _diagnosticReporter.report(
+      diag.invalidDeprecatedExtendAnnotation.at(node.name),
     );
   }
 
@@ -181,9 +179,8 @@ class AnnotationVerifier {
       return;
     }
 
-    _diagnosticReporter.atNode(
-      node.name,
-      diag.invalidDeprecatedImplementAnnotation,
+    _diagnosticReporter.report(
+      diag.invalidDeprecatedImplementAnnotation.at(node.name),
     );
   }
 
@@ -204,9 +201,8 @@ class AnnotationVerifier {
       return;
     }
 
-    _diagnosticReporter.atNode(
-      node.name,
-      diag.invalidDeprecatedInstantiateAnnotation,
+    _diagnosticReporter.report(
+      diag.invalidDeprecatedInstantiateAnnotation.at(node.name),
     );
   }
 
@@ -218,9 +214,8 @@ class AnnotationVerifier {
       return;
     }
 
-    _diagnosticReporter.atNode(
-      node.name,
-      diag.invalidDeprecatedMixinAnnotation,
+    _diagnosticReporter.report(
+      diag.invalidDeprecatedMixinAnnotation.at(node.name),
     );
   }
 
@@ -251,9 +246,8 @@ class AnnotationVerifier {
       if (parent.isOptional && isValidFunction) return;
     }
 
-    _diagnosticReporter.atNode(
-      node.name,
-      diag.invalidDeprecatedOptionalAnnotation,
+    _diagnosticReporter.report(
+      diag.invalidDeprecatedOptionalAnnotation.at(node.name),
     );
   }
 
@@ -280,9 +274,8 @@ class AnnotationVerifier {
       return;
     }
 
-    _diagnosticReporter.atNode(
-      node.name,
-      diag.invalidDeprecatedSubclassAnnotation,
+    _diagnosticReporter.report(
+      diag.invalidDeprecatedSubclassAnnotation.at(node.name),
     );
   }
 
@@ -346,26 +339,32 @@ class AnnotationVerifier {
       for (var variable in parent.variables.variables) {
         var element = variable.declaredTopLevelVariableElement;
         if (element.isPrivate) {
-          _diagnosticReporter.atNode(variable, diag.invalidInternalAnnotation);
+          _diagnosticReporter.report(
+            diag.invalidInternalAnnotation.at(variable),
+          );
         }
       }
     } else if (parent is FieldDeclaration) {
       for (var variable in parent.fields.variables) {
         var element = variable.declaredFieldElement;
         if (element.isPrivate) {
-          _diagnosticReporter.atNode(variable, diag.invalidInternalAnnotation);
+          _diagnosticReporter.report(
+            diag.invalidInternalAnnotation.at(variable),
+          );
         }
       }
     } else if (parent is ConstructorDeclaration) {
       var element = parent.declaredFragment!.element;
       var class_ = element.enclosingElement;
       if (class_.isPrivate || parentElementIsPrivate) {
-        _diagnosticReporter.atNode(node.name, diag.invalidInternalAnnotation);
+        _diagnosticReporter.report(
+          diag.invalidInternalAnnotation.at(node.name),
+        );
       }
     } else if (parentElementIsPrivate) {
-      _diagnosticReporter.atNode(node.name, diag.invalidInternalAnnotation);
+      _diagnosticReporter.report(diag.invalidInternalAnnotation.at(node.name));
     } else if (_inPackagePublicApi) {
-      _diagnosticReporter.atNode(node.name, diag.invalidInternalAnnotation);
+      _diagnosticReporter.report(diag.invalidInternalAnnotation.at(node.name));
     }
   }
 
@@ -401,7 +400,7 @@ class AnnotationVerifier {
   void _checkLiteral(Annotation node) {
     var parent = node.parent;
     if (parent is! ConstructorDeclaration || parent.constKeyword == null) {
-      _diagnosticReporter.atNode(node.name, diag.invalidLiteralAnnotation);
+      _diagnosticReporter.report(diag.invalidLiteralAnnotation.at(node.name));
     }
   }
 
@@ -411,17 +410,23 @@ class AnnotationVerifier {
     var parent = node.parent;
     if (parent is FieldDeclaration) {
       if (parent.isStatic) {
-        _diagnosticReporter.atNode(node.name, diag.invalidNonVirtualAnnotation);
+        _diagnosticReporter.report(
+          diag.invalidNonVirtualAnnotation.at(node.name),
+        );
       }
     } else if (parent is MethodDeclaration) {
       if (parent.parent?.parent is ExtensionDeclaration ||
           parent.parent?.parent is ExtensionTypeDeclaration ||
           parent.isStatic ||
           parent.isAbstract) {
-        _diagnosticReporter.atNode(node.name, diag.invalidNonVirtualAnnotation);
+        _diagnosticReporter.report(
+          diag.invalidNonVirtualAnnotation.at(node.name),
+        );
       }
     } else {
-      _diagnosticReporter.atNode(node.name, diag.invalidNonVirtualAnnotation);
+      _diagnosticReporter.report(
+        diag.invalidNonVirtualAnnotation.at(node.name),
+      );
     }
   }
 
@@ -470,16 +475,16 @@ class AnnotationVerifier {
     if (classElement.isFinal ||
         classElement.isMixinClass ||
         classElement.isSealed) {
-      _diagnosticReporter.atNode(node.name, diag.invalidReopenAnnotation);
+      _diagnosticReporter.report(diag.invalidReopenAnnotation.at(node.name));
       return;
     }
     if (classElement.library != superElement.library) {
-      _diagnosticReporter.atNode(node.name, diag.invalidReopenAnnotation);
+      _diagnosticReporter.report(diag.invalidReopenAnnotation.at(node.name));
       return;
     }
     if (classElement.isBase) {
       if (!superElement.isFinal && !superElement.isInterface) {
-        _diagnosticReporter.atNode(node.name, diag.invalidReopenAnnotation);
+        _diagnosticReporter.report(diag.invalidReopenAnnotation.at(node.name));
         return;
       }
     } else if (!classElement.isBase &&
@@ -487,7 +492,7 @@ class AnnotationVerifier {
         !classElement.isInterface &&
         !classElement.isSealed) {
       if (!superElement.isInterface) {
-        _diagnosticReporter.atNode(node.name, diag.invalidReopenAnnotation);
+        _diagnosticReporter.report(diag.invalidReopenAnnotation.at(node.name));
         return;
       }
     }
@@ -539,9 +544,8 @@ class AnnotationVerifier {
       }
 
       void reportInvalidVisibleForOverriding() {
-        _diagnosticReporter.atNode(
-          node.name,
-          diag.invalidVisibleForOverridingAnnotation,
+        _diagnosticReporter.report(
+          diag.invalidVisibleForOverridingAnnotation.at(node.name),
         );
       }
 
@@ -595,9 +599,8 @@ class AnnotationVerifier {
   /// `@visibleOutsideTemplate` annotation.
   void _checkVisibleOutsideTemplate(Annotation node) {
     void reportError() {
-      _diagnosticReporter.atNode(
-        node.name,
-        diag.invalidVisibleOutsideTemplateAnnotation,
+      _diagnosticReporter.report(
+        diag.invalidVisibleOutsideTemplateAnnotation.at(node.name),
       );
     }
 

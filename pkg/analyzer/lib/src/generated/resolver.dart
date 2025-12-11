@@ -76,6 +76,7 @@ import 'package:analyzer/src/error/base_or_final_type_verifier.dart';
 import 'package:analyzer/src/error/bool_expression_verifier.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/inference_error.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/error/super_formal_parameters_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
@@ -487,11 +488,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             variablePattern.fieldNameWithImplicitName = fieldName;
             nameToken = variablePattern.name;
           } else {
-            diagnosticReporter.atNode(field, diag.missingNamedPatternFieldName);
+            diagnosticReporter.report(
+              diag.missingNamedPatternFieldName.at(field),
+            );
           }
         }
       } else if (mustBeNamed) {
-        diagnosticReporter.atNode(field, diag.positionalFieldInObjectPattern);
+        diagnosticReporter.report(
+          diag.positionalFieldInObjectPattern.at(field),
+        );
       }
       return shared.RecordPatternField(
         node: field,
@@ -1382,9 +1387,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var flow = this.flow;
       if (element.isLate) {
         if (flow.isAssigned(element)) {
-          diagnosticReporter.atToken(
-            node.name,
-            diag.lateFinalLocalAlreadyAssigned,
+          diagnosticReporter.report(
+            diag.lateFinalLocalAlreadyAssigned.at(node.name),
           );
         }
       } else {
@@ -2561,9 +2565,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         if (constructorElement.isFactory) {
           var constructorName = node.arguments?.constructorSelector?.name;
           var errorTarget = constructorName ?? node.name;
-          diagnosticReporter.atEntity(
-            errorTarget,
-            diag.enumConstantInvokesFactoryConstructor,
+          diagnosticReporter.report(
+            diag.enumConstantInvokesFactoryConstructor.at(errorTarget),
           );
         }
       } else {
@@ -2576,9 +2579,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
               arguments: [nameNode.name],
             );
           } else {
-            diagnosticReporter.atToken(
-              node.name,
-              diag.undefinedEnumConstructorUnnamed,
+            diagnosticReporter.report(
+              diag.undefinedEnumConstructorUnnamed.at(node.name),
             );
           }
         }
@@ -5488,9 +5490,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       if (node.inSetterContext()) {
         if (element is PatternVariableElementImpl &&
             element.isVisitingWhenClause) {
-          diagnosticReporter.atNode(
-            node,
-            diag.patternVariableAssignmentInsideGuard,
+          diagnosticReporter.report(
+            diag.patternVariableAssignmentInsideGuard.at(node),
           );
         }
         _localVariableInfo.potentiallyMutatedInScope.add(element);
@@ -5666,7 +5667,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
           node is! ForStatement &&
           node is! SwitchMember &&
           node is! WhileStatement) {
-        diagnosticReporter.atNode(parentNode, diag.continueLabelInvalid);
+        diagnosticReporter.report(diag.continueLabelInvalid.at(parentNode));
       }
       return node;
     }

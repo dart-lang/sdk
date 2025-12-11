@@ -58,7 +58,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -66,6 +65,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/scanner/translate_error_token.dart'
     show translateErrorToken;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/fasta/doc_comment_builder.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -1630,9 +1630,8 @@ class AstBuilder extends StackListener {
                   as SimpleFormalParameterImpl)
               .name!;
       if (representationName.lexeme == builder.name.lexeme) {
-        diagnosticReporter.diagnosticReporter?.atToken(
-          representationName,
-          diag.memberWithClassName,
+        diagnosticReporter.diagnosticReporter?.report(
+          diag.memberWithClassName.at(representationName),
         );
       }
       declarations.add(
@@ -2605,9 +2604,8 @@ class AstBuilder extends StackListener {
     var withClause = pop(NullValues.WithClause) as WithClauseImpl;
     var superclass = pop() as TypeAnnotationImpl;
     if (superclass is! NamedTypeImpl) {
-      diagnosticReporter.diagnosticReporter?.atNode(
-        superclass,
-        diag.expectedNamedTypeExtends,
+      diagnosticReporter.diagnosticReporter?.report(
+        diag.expectedNamedTypeExtends.at(superclass),
       );
       var beginToken = superclass.beginToken;
       var endToken = superclass.endToken;
@@ -2753,7 +2751,7 @@ class AstBuilder extends StackListener {
         components: libraryNameOrUri as List<SimpleIdentifierImpl>,
       );
       if (_featureSet.isEnabled(Feature.enhanced_parts)) {
-        diagnosticReporter.diagnosticReporter?.atNode(name, diag.partOfName);
+        diagnosticReporter.diagnosticReporter?.report(diag.partOfName.at(name));
       }
     }
     var metadata = pop() as List<AnnotationImpl>?;
@@ -2818,9 +2816,8 @@ class AstBuilder extends StackListener {
           case var formalParameterType?:
             fieldType = formalParameterType;
           case null:
-            diagnosticReporter.diagnosticReporter?.atToken(
-              leftParenthesis.next!,
-              diag.expectedRepresentationType,
+            diagnosticReporter.diagnosticReporter?.report(
+              diag.expectedRepresentationType.at(leftParenthesis.next!),
             );
             var typeNameToken = parser.rewriter.insertSyntheticIdentifier(
               leftParenthesis,
@@ -2839,9 +2836,8 @@ class AstBuilder extends StackListener {
               case Keyword.FINAL:
                 break;
               case Keyword.VAR:
-                diagnosticReporter.diagnosticReporter?.atToken(
-                  keyword,
-                  diag.representationFieldModifier,
+                diagnosticReporter.diagnosticReporter?.report(
+                  diag.representationFieldModifier.at(keyword),
                 );
             }
           } else {
@@ -2850,9 +2846,8 @@ class AstBuilder extends StackListener {
                 break;
               case Keyword.FINAL:
               case Keyword.VAR:
-                diagnosticReporter.diagnosticReporter?.atToken(
-                  keyword,
-                  diag.representationFieldModifier,
+                diagnosticReporter.diagnosticReporter?.report(
+                  diag.representationFieldModifier.at(keyword),
                 );
             }
           }
@@ -2862,21 +2857,18 @@ class AstBuilder extends StackListener {
         var maybeComma = firstFormalParameter.endToken.next;
         if (maybeComma != null && maybeComma.type == TokenType.COMMA) {
           if (formalParameterList.parameters.length == 1) {
-            diagnosticReporter.diagnosticReporter?.atToken(
-              maybeComma,
-              diag.representationFieldTrailingComma,
+            diagnosticReporter.diagnosticReporter?.report(
+              diag.representationFieldTrailingComma.at(maybeComma),
             );
           } else {
-            diagnosticReporter.diagnosticReporter?.atToken(
-              maybeComma,
-              diag.multipleRepresentationFields,
+            diagnosticReporter.diagnosticReporter?.report(
+              diag.multipleRepresentationFields.at(maybeComma),
             );
           }
         }
       } else {
-        diagnosticReporter.diagnosticReporter?.atToken(
-          leftParenthesis.next!,
-          diag.expectedRepresentationField,
+        diagnosticReporter.diagnosticReporter?.report(
+          diag.expectedRepresentationField.at(leftParenthesis.next!),
         );
         fieldMetadata = [];
         var typeNameToken = parser.rewriter.insertSyntheticIdentifier(
@@ -3993,9 +3985,8 @@ class AstBuilder extends StackListener {
       //  any type annotation for recovery purposes, and (b) extending the
       //  parser to parse a generic function type at this location.
       if (supertype != null) {
-        diagnosticReporter.diagnosticReporter?.atNode(
-          supertype,
-          diag.expectedNamedTypeExtends,
+        diagnosticReporter.diagnosticReporter?.report(
+          diag.expectedNamedTypeExtends.at(supertype),
         );
       }
     }
@@ -6062,9 +6053,10 @@ class AstBuilder extends StackListener {
       for (var formalParameter in parameters.parameters) {
         var notDefault = formalParameter.notDefault;
         if (notDefault is FieldFormalParameterImpl) {
-          diagnosticReporter.diagnosticReporter?.atToken(
-            notDefault.thisKeyword,
-            diag.externalConstructorWithFieldInitializers,
+          diagnosticReporter.diagnosticReporter?.report(
+            diag.externalConstructorWithFieldInitializers.at(
+              notDefault.thisKeyword,
+            ),
           );
         }
       }
@@ -6374,9 +6366,8 @@ class AstBuilder extends StackListener {
     var valueFormalParameter = formalParameters.parameters.firstOrNull;
     if (valueFormalParameter == null) {
       if (!formalParameters.leftParenthesis.isSynthetic) {
-        diagnosticReporter.diagnosticReporter?.atToken(
-          setterName.token,
-          diag.wrongNumberOfParametersForSetter,
+        diagnosticReporter.diagnosticReporter?.report(
+          diag.wrongNumberOfParametersForSetter.at(setterName.token),
         );
       }
       var valueNameToken = parser.rewriter.insertSyntheticIdentifier(
@@ -6406,9 +6397,8 @@ class AstBuilder extends StackListener {
       return formalParameters;
     }
 
-    diagnosticReporter.diagnosticReporter?.atToken(
-      setterName.token,
-      diag.wrongNumberOfParametersForSetter,
+    diagnosticReporter.diagnosticReporter?.report(
+      diag.wrongNumberOfParametersForSetter.at(setterName.token),
     );
     return FormalParameterListImpl(
       leftParenthesis: formalParameters.leftParenthesis,

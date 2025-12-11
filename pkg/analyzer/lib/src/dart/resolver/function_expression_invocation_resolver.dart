@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -13,6 +12,7 @@ import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -78,7 +78,7 @@ class FunctionExpressionInvocationResolver {
     }
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
-      _diagnosticReporter.atNode(function, diag.receiverOfTypeNever);
+      _diagnosticReporter.report(diag.receiverOfTypeNever.at(function));
       _unresolved(
         node,
         NeverTypeImpl.instance,
@@ -101,9 +101,8 @@ class FunctionExpressionInvocationResolver {
 
     if (callElement == null) {
       if (result.needsGetterError) {
-        _diagnosticReporter.atNode(
-          function,
-          diag.invocationOfNonFunctionExpression,
+        _diagnosticReporter.report(
+          diag.invocationOfNonFunctionExpression.at(function),
         );
       }
       var type = result.isGetterInvalid
@@ -119,9 +118,8 @@ class FunctionExpressionInvocationResolver {
     }
 
     if (callElement.kind != ElementKind.METHOD) {
-      _diagnosticReporter.atNode(
-        function,
-        diag.invocationOfNonFunctionExpression,
+      _diagnosticReporter.report(
+        diag.invocationOfNonFunctionExpression.at(function),
       );
       _unresolved(
         node,
@@ -151,9 +149,9 @@ class FunctionExpressionInvocationResolver {
 
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
-      _diagnosticReporter.atNode(methodName, diag.useOfVoidResult);
+      _diagnosticReporter.report(diag.useOfVoidResult.at(methodName));
     } else {
-      _diagnosticReporter.atNode(expression, diag.useOfVoidResult);
+      _diagnosticReporter.report(diag.useOfVoidResult.at(expression));
     }
 
     return true;
@@ -209,9 +207,8 @@ class FunctionExpressionInvocationResolver {
     }
 
     if (callElement.isStatic) {
-      _diagnosticReporter.atNode(
-        node.argumentList,
-        diag.extensionOverrideAccessToStaticMember,
+      _diagnosticReporter.report(
+        diag.extensionOverrideAccessToStaticMember.at(node.argumentList),
       );
     }
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:yaml/yaml.dart';
 
@@ -10,20 +11,12 @@ import 'package:yaml/yaml.dart';
 void nameValidator(PubspecValidationContext ctx) {
   var contents = ctx.contents;
   if (contents is! YamlMap) {
-    ctx.reporter.atOffset(
-      offset: 0,
-      length: 0,
-      diagnosticCode: diag.missingName,
-    );
+    ctx.reporter.report(diag.missingName.atOffset(offset: 0, length: 0));
     return;
   }
   var nameField = contents.nodes[PubspecField.NAME_FIELD];
   if (nameField == null) {
-    ctx.reporter.atOffset(
-      offset: 0,
-      length: 0,
-      diagnosticCode: diag.missingName,
-    );
+    ctx.reporter.report(diag.missingName.atOffset(offset: 0, length: 0));
   } else if (nameField is! YamlScalar || nameField.value is! String) {
     ctx.reportErrorForNode(nameField, diag.nameNotString);
   }

@@ -436,7 +436,7 @@ class MethodInvocationResolver with ScopeHelpers {
   }
 
   void _reportUseOfVoidType(AstNode errorNode) {
-    _resolver.diagnosticReporter.atNode(errorNode, diag.useOfVoidResult);
+    _resolver.diagnosticReporter.report(diag.useOfVoidResult.at(errorNode));
   }
 
   void _resolveArguments_finishDotShorthandInference(
@@ -581,17 +581,15 @@ class MethodInvocationResolver with ScopeHelpers {
     }
 
     if (member.isStatic) {
-      _resolver.diagnosticReporter.atNode(
-        nameNode,
-        diag.extensionOverrideAccessToStaticMember,
+      _resolver.diagnosticReporter.report(
+        diag.extensionOverrideAccessToStaticMember.at(nameNode),
       );
     }
 
     if (node.isCascaded) {
       // Report this error and recover by treating it like a non-cascade.
-      _resolver.diagnosticReporter.atToken(
-        override.name,
-        diag.extensionOverrideWithCascade,
+      _resolver.diagnosticReporter.report(
+        diag.extensionOverrideWithCascade.at(override.name),
       );
     }
 
@@ -717,7 +715,9 @@ class MethodInvocationResolver with ScopeHelpers {
         whyNotPromotedArguments: whyNotPromotedArguments,
       ).resolveInvocation(rawType: null);
 
-      _resolver.diagnosticReporter.atNode(receiver, diag.receiverOfTypeNever);
+      _resolver.diagnosticReporter.report(
+        diag.receiverOfTypeNever.at(receiver),
+      );
 
       node.methodName.setPseudoExpressionStaticType(_dynamicType);
       node.staticInvokeType = _dynamicType;
