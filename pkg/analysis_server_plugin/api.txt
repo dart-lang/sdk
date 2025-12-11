@@ -165,6 +165,8 @@ dart:core:
 package:_fe_analyzer_shared/src/base/errors.dart:
   Diagnostic (referenced)
   DiagnosticCode (referenced)
+package:_fe_analyzer_shared/src/base/source_range.dart:
+  SourceRange (referenced)
 package:_fe_analyzer_shared/src/scanner/token.dart:
   Token (referenced)
 package:analyzer/analysis_rule/analysis_rule.dart:
@@ -197,8 +199,6 @@ package:analyzer/dart/element/type_system.dart:
   TypeSystem (referenced)
 package:analyzer/instrumentation/service.dart:
   InstrumentationService (referenced)
-package:analyzer/source/source_range.dart:
-  SourceRange (referenced)
 package:analyzer/src/dart/ast/ast.dart:
   AstNode (referenced)
   ClassDeclaration (referenced)

@@ -383,6 +383,7 @@ counted
 counters
 covariances
 coverage
+covering
 cp
 cpu
 cr

@@ -2072,6 +2072,8 @@ package:_fe_analyzer_shared/src/base/errors.dart:
   Diagnostic (referenced)
   DiagnosticSeverity (referenced)
   DiagnosticType (referenced)
+package:_fe_analyzer_shared/src/base/source_range.dart:
+  SourceRange (referenced)
 package:_fe_analyzer_shared/src/base/syntactic_entity.dart:
   SyntacticEntity (referenced)
 package:_fe_analyzer_shared/src/scanner/token.dart:
@@ -2107,8 +2109,6 @@ package:analyzer/file_system/overlay_file_system.dart:
   OverlayResourceProvider (referenced)
 package:analyzer/source/line_info.dart:
   LineInfo (referenced)
-package:analyzer/source/source_range.dart:
-  SourceRange (referenced)
 package:analyzer/src/dart/analysis/byte_store.dart:
   ByteStore (referenced)
 package:analyzer/src/dart/ast/ast.dart:
