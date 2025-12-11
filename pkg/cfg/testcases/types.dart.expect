@@ -1,4 +1,12 @@
---- bar
+--- A._
+B0 = EntryBlock()
+  v6 = Constant(null)
+  v1 = Parameter(this)
+  TypeParameters(v1)
+  DirectCall Object.(v1)
+  Return(v6)
+
+--- A.bar
 B0 = EntryBlock()
   v6 = Constant(1)
   v10 = Constant(2)
@@ -11,7 +19,7 @@ B0 = EntryBlock()
   InterfaceCall A.foo(v8, v1, v10)
   Return(v12)
 
---- foo
+--- A.foo
 B0 = EntryBlock() dominates:(B8, B10, B7)
   v16 = Constant(null)
   v1 = Parameter(this)
@@ -27,6 +35,14 @@ B8 = TargetBlock() idom:B0
   Goto(B10)
 B10 = JoinBlock(B8, B7) idom:B0
   Return(v16)
+
+--- A.
+B0 = EntryBlock()
+  v1 = TypeParameters()
+  v2 = TypeArguments(v1, <A..T%>)
+  v3 = AllocateObject(v2)
+  DirectCall A._(v3)
+  Return(v3)
 
 --- main
 B0 = EntryBlock()

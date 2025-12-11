@@ -1,4 +1,11 @@
---- foo
+--- A.
+B0 = EntryBlock()
+  v4 = Constant(null)
+  v1 = Parameter(this)
+  DirectCall Object.(v1)
+  Return(v4)
+
+--- A.foo
 B0 = EntryBlock()
   Parameter(this)
   v2 = Parameter(a)

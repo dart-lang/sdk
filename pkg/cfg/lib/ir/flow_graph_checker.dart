@@ -264,6 +264,18 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   }
 
   @override
+  void visitLoadInstanceField(LoadInstanceField instr) {}
+
+  @override
+  void visitStoreInstanceField(StoreInstanceField instr) {}
+
+  @override
+  void visitLoadStaticField(LoadStaticField instr) {}
+
+  @override
+  void visitStoreStaticField(StoreStaticField instr) {}
+
+  @override
   void visitThrow(Throw instr) {
     assert(instr.next == null);
     assert(instr.block!.successors.isEmpty);
@@ -302,13 +314,23 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
 
   @override
   void visitTypeArguments(TypeArguments instr) {
-    // TypeArguments can only be used as the first input in a call.
+    // TypeArguments can only be used as the first input in a call or AllocateObject.
     for (final use in instr.inputUses) {
-      final user = use.getInstruction(graph) as CallInstruction;
-      assert(user.hasTypeArguments);
-      assert(user.typeArguments == instr);
+      final user = use.getInstruction(graph);
+      switch (user) {
+        case CallInstruction():
+          assert(user.hasTypeArguments);
+          assert(user.typeArguments == instr);
+        case AllocateObject():
+          assert(user.typeArguments == instr);
+        default:
+          throw 'Unexpected user ${IrToText.instruction(user)} of TypeArguments';
+      }
     }
   }
+
+  @override
+  void visitAllocateObject(AllocateObject instr) {}
 
   @override
   void visitComparison(Comparison instr) {

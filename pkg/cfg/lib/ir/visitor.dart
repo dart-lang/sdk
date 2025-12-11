@@ -25,11 +25,16 @@ abstract interface class InstructionVisitor<R> {
   R visitParameter(Parameter instr);
   R visitLoadLocal(LoadLocal instr);
   R visitStoreLocal(StoreLocal instr);
+  R visitLoadInstanceField(LoadInstanceField instr);
+  R visitStoreInstanceField(StoreInstanceField instr);
+  R visitLoadStaticField(LoadStaticField instr);
+  R visitStoreStaticField(StoreStaticField instr);
   R visitThrow(Throw instr);
   R visitTypeParameters(TypeParameters instr);
   R visitTypeCast(TypeCast instr);
   R visitTypeTest(TypeTest instr);
   R visitTypeArguments(TypeArguments instr);
+  R visitAllocateObject(AllocateObject instr);
   R visitBinaryIntOp(BinaryIntOp instr);
   R visitUnaryIntOp(UnaryIntOp instr);
   R visitBinaryDoubleOp(BinaryDoubleOp instr);
@@ -72,11 +77,18 @@ abstract mixin class DefaultInstructionVisitor<R>
   R visitParameter(Parameter instr) => defaultInstruction(instr);
   R visitLoadLocal(LoadLocal instr) => defaultInstruction(instr);
   R visitStoreLocal(StoreLocal instr) => defaultInstruction(instr);
+  R visitLoadInstanceField(LoadInstanceField instr) =>
+      defaultInstruction(instr);
+  R visitStoreInstanceField(StoreInstanceField instr) =>
+      defaultInstruction(instr);
+  R visitLoadStaticField(LoadStaticField instr) => defaultInstruction(instr);
+  R visitStoreStaticField(StoreStaticField instr) => defaultInstruction(instr);
   R visitThrow(Throw instr) => defaultInstruction(instr);
   R visitTypeParameters(TypeParameters instr) => defaultInstruction(instr);
   R visitTypeCast(TypeCast instr) => defaultInstruction(instr);
   R visitTypeTest(TypeTest instr) => defaultInstruction(instr);
   R visitTypeArguments(TypeArguments instr) => defaultInstruction(instr);
+  R visitAllocateObject(AllocateObject instr) => defaultInstruction(instr);
   R visitBinaryIntOp(BinaryIntOp instr) => defaultInstruction(instr);
   R visitUnaryIntOp(UnaryIntOp instr) => defaultInstruction(instr);
   R visitBinaryDoubleOp(BinaryDoubleOp instr) => defaultInstruction(instr);
