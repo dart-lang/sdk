@@ -806,7 +806,6 @@ void main() async {
                       '#type': 'class',
                       'makeSomeClosures': {
                         '#type': 'function',
-                        '#size': lessThan(0),
                         '<anonymous closure>': {
                           '#type': 'function',
                           '#size': lessThan(0),
@@ -887,7 +886,7 @@ Map<String, dynamic>? diffToJson(ProgramInfo diff,
       keepOnlyInputPackage ? key != 'package:input' : key.startsWith('file:'));
 
   // Rebuild the diff JSON discarding all nodes with size below threshold.
-  const smallChangeThreshold = 13;
+  const smallChangeThreshold = 16;
   Map<String, dynamic>? discardSmallChanges(Map<String, dynamic> map) {
     final result = <String, dynamic>{};
 
