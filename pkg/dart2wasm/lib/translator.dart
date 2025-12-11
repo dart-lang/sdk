@@ -457,12 +457,26 @@ class Translator with KernelNodes {
   bool get isDynamicSubmodule => dynamicModuleInfo?.isSubmodule ?? false;
   w.ModuleBuilder get dynamicSubmodule => dynamicModuleInfo!.submodule;
 
-  w.ModuleBuilder moduleForReference(Reference reference) =>
-      _outputToBuilder[_moduleOutputData.moduleForReference(reference)]!;
+  w.ModuleBuilder moduleForReference(Reference reference) {
+    final module = _moduleOutputData.moduleForReference(reference);
+    return _outputToBuilder[module]!;
+  }
 
-  w.ModuleBuilder moduleForLoadId(Library enclosingLibrary, int loadId) {
-    return moduleForReference(
-        loadingMap.loadId2ImportedLibrary[loadId].reference);
+  /// The module where [constant] should be placed
+  ///
+  /// NOTE: This may return `null` for constants that are e.g. synthesized by
+  /// the backend. In that case the backend decides where to place the constant.
+  w.ModuleBuilder? moduleForConstant(Constant constant) {
+    final module = _moduleOutputData.moduleForConstant(constant);
+    if (module == null) return null;
+    return _outputToBuilder[module];
+  }
+
+  List<w.ModuleBuilder> modulesForLoadId(Library enclosingLibrary, int loadId) {
+    return [
+      for (final moduleMetadata in loadingMap.moduleMap[loadId])
+        _outputToBuilder[moduleMetadata]!,
+    ];
   }
 
   String nameForModule(w.ModuleBuilder module) =>

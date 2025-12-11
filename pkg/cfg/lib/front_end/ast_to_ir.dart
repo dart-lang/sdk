@@ -5,6 +5,7 @@
 import 'package:cfg/front_end/ast_to_ir_types.dart';
 import 'package:cfg/front_end/recognized_methods.dart';
 import 'package:cfg/ir/constant_value.dart';
+import 'package:cfg/ir/field.dart';
 import 'package:cfg/ir/flow_graph.dart';
 import 'package:cfg/ir/flow_graph_builder.dart';
 import 'package:cfg/ir/functions.dart';
@@ -22,20 +23,18 @@ import 'package:kernel/type_environment.dart' show StaticTypeContext;
 ///
 /// Not implemented yet:
 ///  - non-regular functions;
+///  - parameter type checks;
 ///  - closures (including tear-offs and calls);
 ///  - captured variables;
 ///  - late variables;
 ///  - stack overflow/interrupt checks;
 ///  - assert statements;
 ///  - async/async*/sync*/await/yield/yield*;
-///  - super invocations;
-///  - constructor invocations;
 ///  - standalone logical expressions (||, &&, !);
 ///  - null checks;
 ///  - string concatenation;
 ///  - list, set and map literals;
 ///  - record access and literals;
-///  - let expressions;
 ///  - deferred libraries.
 ///
 class AstToIr extends ast.RecursiveVisitor {
@@ -66,6 +65,7 @@ class AstToIr extends ast.RecursiveVisitor {
   }) : coreTypes = GlobalContext.instance.coreTypes,
        hierarchy = GlobalContext.instance.classHierarchy,
        builder = FlowGraphBuilder(function) {
+    assert(!function.member.isAbstract);
     _typeTranslator = GlobalContext.instance.astToIrTypes;
     localVarIndexer = LocalVariableIndexer(
       builder,
@@ -86,17 +86,60 @@ class AstToIr extends ast.RecursiveVisitor {
     } else if (function.hasFunctionTypeParameters) {
       typeParameters = builder.addTypeParameters();
     }
+    final member = function.member;
     switch (function) {
-      case RegularFunction():
-        _translateNode(function.member.function?.body);
-        if (builder.hasOpenBlock) {
-          builder.addNullConstant();
-          builder.addReturn();
-        }
-      default:
-        throw 'Unimplemented';
+      case ImplicitFieldGetter():
+        _buildImplicitGetter(member as ast.Field);
+      case ImplicitFieldSetter():
+        _buildImplicitSetter(member as ast.Field);
+      case FieldInitializerFunction():
+        _translateNode((member as ast.Field).initializer!);
+        builder.addReturn();
+      case RegularFunction() || GetterFunction() || SetterFunction():
+        _translateNode(member.function?.body);
+      case GenerativeConstructor():
+        _translateConstructorInitializers(member as ast.Constructor);
+        _translateNode(member.function.body);
+      case LocalFunction() || TearOffFunction():
+        throw 'Unimplemented buildFlowGraph for ${function.runtimeType}';
+    }
+    if (builder.hasOpenBlock) {
+      builder.addNullConstant();
+      builder.addReturn();
     }
     return builder.done();
+  }
+
+  void _buildImplicitGetter(ast.Field node) {
+    final field = CField(node);
+    if (node.isStatic) {
+      builder.addLoadStaticField(
+        field,
+        checkInitialized: field.isLate || field.hasInitializer,
+      );
+    } else {
+      builder.addLoadLocal(localVarIndexer.receiver);
+      builder.addLoadInstanceField(field, checkInitialized: field.isLate);
+    }
+    builder.addReturn();
+  }
+
+  void _buildImplicitSetter(ast.Field node) {
+    final field = CField(node);
+    if (node.isStatic) {
+      builder.addLoadLocal(localVarIndexer.parameters.last);
+      builder.addStoreStaticField(
+        field,
+        checkNotInitialized: field.isLate && field.isFinal,
+      );
+    } else {
+      builder.addLoadLocal(localVarIndexer.receiver);
+      builder.addLoadLocal(localVarIndexer.parameters.last);
+      builder.addStoreInstanceField(
+        field,
+        checkNotInitialized: field.isLate && field.isFinal,
+      );
+    }
   }
 
   void _translateNode(ast.TreeNode? node) {
@@ -124,6 +167,51 @@ class AstToIr extends ast.RecursiveVisitor {
     for (final node in nodes) {
       _translateNode(node);
     }
+  }
+
+  void _translateConstructorInitializers(ast.Constructor node) {
+    var isRedirecting = false;
+    final initializedFields = <ast.Field>{};
+    for (final initializer in node.initializers) {
+      if (initializer is ast.RedirectingInitializer) {
+        isRedirecting = true;
+      } else if (initializer is ast.FieldInitializer) {
+        initializedFields.add(initializer.field);
+      }
+    }
+
+    if (!isRedirecting) {
+      for (final field in node.enclosingClass.fields) {
+        if (!field.isStatic) {
+          if (field.isLate) {
+            if (!initializedFields.contains(field)) {
+              throw 'Unimplemented: _initLateInstanceField';
+            }
+          } else {
+            final fieldInitializer = field.initializer;
+            if (fieldInitializer != null) {
+              if (initializedFields.contains(field)) {
+                // Do not store a value into the field as it is going to be
+                // overwritten by initializers list.
+                _translateNode(fieldInitializer);
+                builder.pop();
+                if (!builder.hasOpenBlock) return;
+              } else {
+                builder.addLoadLocal(localVarIndexer.receiver);
+                _translateNode(fieldInitializer);
+                if (!builder.hasOpenBlock) {
+                  builder.drop(2);
+                  return;
+                }
+                builder.addStoreInstanceField(CField(field));
+              }
+            }
+          }
+        }
+      }
+    }
+
+    _translateNodes(node.initializers);
   }
 
   /// If this expression is unreachable, then maintain expression stack
@@ -282,6 +370,11 @@ class AstToIr extends ast.RecursiveVisitor {
   @override
   void visitStringLiteral(ast.StringLiteral node) {
     builder.addConstant(ConstantValue.fromString(node.value));
+  }
+
+  @override
+  void visitNullLiteral(ast.NullLiteral node) {
+    builder.addNullConstant();
   }
 
   @override
@@ -1107,6 +1200,145 @@ class AstToIr extends ast.RecursiveVisitor {
       builder.addLoadLocal(tempVar);
     }
   }
+
+  @override
+  void visitLet(ast.Let node) {
+    _translateNode(node.variable);
+    _translateNode(node.body);
+  }
+
+  @override
+  void visitFieldInitializer(ast.FieldInitializer node) {
+    builder.addLoadLocal(localVarIndexer.receiver);
+    _translateNode(node.value);
+    if (!builder.hasOpenBlock) {
+      builder.drop(2);
+      return;
+    }
+    builder.addStoreInstanceField(CField(node.field));
+  }
+
+  @override
+  void visitRedirectingInitializer(ast.RedirectingInitializer node) {
+    final args = node.arguments;
+    assert(args.types.isEmpty);
+    final target = functionRegistry.getFunction(node.target);
+    final inputCount = _translateArguments(ast.ThisExpression(), args);
+    if (_handleUnreachableExpression(inputCount)) return;
+    builder.addDirectCall(
+      target,
+      inputCount,
+      const TopType(const ast.VoidType()),
+    );
+    builder.pop();
+  }
+
+  @override
+  void visitSuperInitializer(ast.SuperInitializer node) {
+    final args = node.arguments;
+    assert(args.types.isEmpty);
+    // Re-resolve target due to partial mixin resolution.
+    ast.Member? targetMember;
+    for (final constr
+        in function.member.enclosingClass!.superclass!.constructors) {
+      if (node.target.name == constr.name) {
+        targetMember = constr;
+        break;
+      }
+    }
+    final target = functionRegistry.getFunction(targetMember!);
+    final inputCount = _translateArguments(ast.ThisExpression(), args);
+    if (_handleUnreachableExpression(inputCount)) return;
+    builder.addDirectCall(
+      target,
+      inputCount,
+      const TopType(const ast.VoidType()),
+    );
+    builder.pop();
+  }
+
+  @override
+  void visitLocalInitializer(ast.LocalInitializer node) {
+    _translateNode(node.variable);
+  }
+
+  @override
+  void visitAssertInitializer(ast.AssertInitializer node) {
+    _translateNode(node.statement);
+  }
+
+  @override
+  void visitSuperMethodInvocation(ast.SuperMethodInvocation node) {
+    final args = node.arguments;
+    final targetMember = hierarchy.getDispatchTarget(
+      function.member.enclosingClass!.superclass!,
+      node.name,
+    );
+    final target = functionRegistry.getFunction(targetMember!);
+    final inputCount = _translateArguments(ast.ThisExpression(), args);
+    if (_handleUnreachableExpression(inputCount)) return;
+    builder.addDirectCall(target, inputCount, _staticType(node));
+  }
+
+  @override
+  void visitSuperPropertyGet(ast.SuperPropertyGet node) {
+    final targetMember = hierarchy.getDispatchTarget(
+      function.member.enclosingClass!.superclass!,
+      node.name,
+    );
+    final target = functionRegistry.getFunction(targetMember!, isGetter: true);
+    builder.addLoadLocal(localVarIndexer.receiver);
+    builder.addDirectCall(target, 1, _staticType(node));
+  }
+
+  @override
+  void visitSuperPropertySet(ast.SuperPropertySet node) {
+    final targetMember = hierarchy.getDispatchTarget(
+      function.member.enclosingClass!.superclass!,
+      node.name,
+      setter: true,
+    );
+    final target = functionRegistry.getFunction(targetMember!, isSetter: true);
+    builder.addLoadLocal(localVarIndexer.receiver);
+    _translateNode(node.value);
+    if (_handleUnreachableExpression(2)) return;
+    final value = builder.stackTop;
+    builder.addDirectCall(target, 2, const TopType(const ast.VoidType()));
+    builder.pop();
+    builder.push(value);
+  }
+
+  @override
+  void visitConstructorInvocation(ast.ConstructorInvocation node) {
+    assert(!node.isConst);
+
+    final args = node.arguments;
+    final target = functionRegistry.getFunction(node.target);
+    TypeArguments? typeArguments;
+    if (args.types.isNotEmpty) {
+      typeArguments = builder.addTypeArguments(
+        args.types,
+        typeParameters: _typeParametersForTypes(args.types),
+      );
+      builder.pop();
+    }
+    final instance = builder.addAllocateObject(
+      _typeTranslator.translate(node.constructedType),
+      typeArguments: typeArguments,
+    );
+    final inputCount = _translateArguments(
+      null,
+      ast.Arguments(args.positional, named: args.named),
+    );
+    if (_handleUnreachableExpression(inputCount + 1)) return;
+    builder.addDirectCall(
+      target,
+      inputCount + 1,
+      const TopType(const ast.VoidType()),
+    );
+    builder.pop();
+    builder.push(instance);
+  }
 }
 
 /// Mapping between AST nodes and CFG IR [LocalVariable].
@@ -1148,19 +1380,14 @@ class LocalVariableIndexer {
         ),
       );
     }
-    if (function is SetterFunction) {
+    if (function is ImplicitFieldSetter) {
       parameters.add(
         builder.declareLocalVariable('#value', null, function.valueType),
       );
     }
     ast.FunctionNode? functionNode = switch (function) {
-      GetterFunction() ||
-      SetterFunction() ||
-      FieldInitializerFunction() => null,
-      RegularFunction() ||
-      GenerativeConstructor() ||
-      TearOffFunction() => function.member.function,
       LocalFunction() => function.localFunction.function,
+      _ => function.member.function,
     };
     if (functionNode != null) {
       for (final v in functionNode.positionalParameters) {

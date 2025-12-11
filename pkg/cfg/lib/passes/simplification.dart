@@ -160,6 +160,18 @@ final class Simplification extends Pass
   Instruction visitStoreLocal(StoreLocal instr) => instr;
 
   @override
+  Instruction visitLoadInstanceField(LoadInstanceField instr) => instr;
+
+  @override
+  Instruction visitStoreInstanceField(StoreInstanceField instr) => instr;
+
+  @override
+  Instruction visitLoadStaticField(LoadStaticField instr) => instr;
+
+  @override
+  Instruction visitStoreStaticField(StoreStaticField instr) => instr;
+
+  @override
   Instruction visitThrow(Throw instr) => instr;
 
   @override
@@ -185,6 +197,9 @@ final class Simplification extends Pass
 
   @override
   Instruction visitTypeArguments(TypeArguments instr) => instr;
+
+  @override
+  Instruction visitAllocateObject(AllocateObject instr) => instr;
 
   @override
   Instruction visitParallelMove(ParallelMove instr) => instr;

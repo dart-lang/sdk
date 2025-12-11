@@ -63,7 +63,8 @@ void main() {
   test('field getter', () {
     final member = coreTypes.pragmaName;
     final func =
-        functionRegistry.getFunction(member, isGetter: true) as GetterFunction;
+        functionRegistry.getFunction(member, isGetter: true)
+            as ImplicitFieldGetter;
     expect(func.member, same(member));
     expect(func.hasReceiverParameter, isTrue);
     expect(func.hasClosureParameter, isFalse);
@@ -71,6 +72,28 @@ void main() {
     expect(func.hasFunctionTypeParameters, isFalse);
     expect(func.returnType, equals(StringType()));
     expect(functionRegistry.getFunction(member, isGetter: true), same(func));
+  });
+
+  test('field setter', () {
+    final member = coreTypes.index.getField(
+      'dart:core',
+      'Error',
+      '_stackTrace',
+    );
+    final func =
+        functionRegistry.getFunction(member, isSetter: true)
+            as ImplicitFieldSetter;
+    expect(func.member, same(member));
+    expect(func.hasReceiverParameter, isTrue);
+    expect(func.hasClosureParameter, isFalse);
+    expect(func.hasClassTypeParameters, isFalse);
+    expect(func.hasFunctionTypeParameters, isFalse);
+    expect(func.returnType, equals(TopType(const ast.VoidType())));
+    expect(functionRegistry.getFunction(member, isSetter: true), same(func));
+    expect(
+      functionRegistry.getFunction(member, isGetter: true),
+      isNot(same(func)),
+    );
   });
 
   test('field initializer', () {

@@ -207,6 +207,7 @@ class ImportSection extends Section {
                 module, moduleName, name, ir.FinalizableIndex(), type);
             tag.finalizableIndex.value = importedTags.length;
             importedTags.add(tag);
+            imports.add(tag);
           default:
             throw "Invalid import kind: $kind";
         }

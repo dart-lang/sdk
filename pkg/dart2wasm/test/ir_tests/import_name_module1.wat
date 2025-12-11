@@ -1,10 +1,27 @@
 (module $module1
   (type $#Top (struct
     (field $field0 i32)))
-  (func $"mainFoo <noInline>" (import "module0" "func0") (result (ref null $#Top)))
+  (type $JSStringImpl (sub final $Object (struct
+    (field $field0 i32)
+    (field $field1 (mut i32))
+    (field $_ref externref))))
+  (type $Object (sub $#Top (struct
+    (field $field0 i32)
+    (field $field1 (mut i32)))))
+  (func $print (import "module0" "func0") (param (ref null $#Top)) (result (ref null $#Top)))
+  (global $".hello world" (import "" "hello world") (ref extern))
+  (global $"C460 \"hello world\"" (ref $JSStringImpl)
+    (i32.const 4)
+    (i32.const 0)
+    (global.get $".hello world")
+    (struct.new $JSStringImpl))
   (func $"deferredFoo <noInline>" (result (ref null $#Top))
     call $"mainFoo <noInline>"
-    drop
     ref.null none
+  )
+  (func $"mainFoo <noInline>"
+    global.get $"C460 \"hello world\""
+    call $print
+    drop
   )
 )

@@ -99,15 +99,46 @@ class CompileAndDumpIr extends RecursiveVisitor {
 
   @override
   void visitProcedure(Procedure node) {
-    final function = functionRegistry.getFunction(
-      node,
-      isGetter: node.isGetter,
-      isSetter: node.isSetter,
-    );
-    // TODO: enable testing of other functions
-    if (function is! RegularFunction) {
+    if (node.isAbstract) {
       return;
     }
+    compileAndDumpFunction(
+      functionRegistry.getFunction(
+        node,
+        isGetter: node.isGetter,
+        isSetter: node.isSetter,
+      ),
+    );
+  }
+
+  @override
+  void visitField(Field node) {
+    if (node.isAbstract) {
+      return;
+    }
+    if (node.hasGetter) {
+      compileAndDumpFunction(
+        functionRegistry.getFunction(node, isGetter: true),
+      );
+    }
+    if (node.hasSetter) {
+      compileAndDumpFunction(
+        functionRegistry.getFunction(node, isSetter: true),
+      );
+    }
+    if ((node.isStatic || node.isLate) && node.initializer != null) {
+      compileAndDumpFunction(
+        functionRegistry.getFunction(node, isInitializer: true),
+      );
+    }
+  }
+
+  @override
+  void visitConstructor(Constructor node) {
+    compileAndDumpFunction(functionRegistry.getFunction(node));
+  }
+
+  void compileAndDumpFunction(CFunction function) {
     final graph = AstToIr(
       function,
       functionRegistry,
@@ -121,7 +152,7 @@ class CompileAndDumpIr extends RecursiveVisitor {
       ControlFlowOptimizations(),
     ]);
     pipeline.run(graph);
-    buffer.writeln('--- ${node.name}');
+    buffer.writeln('--- $function');
     buffer.writeln(
       IrToText(graph, printDominators: true, printLoops: true).toString(),
     );

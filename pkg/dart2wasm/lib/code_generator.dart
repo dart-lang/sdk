@@ -1538,20 +1538,10 @@ abstract class AstCodeGenerator
     return translateExpression(node.value, expectedType);
   }
 
-  w.ModuleBuilder? _activeDeferredLoadingGuard;
-
   @override
   w.ValueType visitLet(Let node, w.ValueType expectedType) {
     translateStatement(node.variable);
-
-    final oldGuard = _activeDeferredLoadingGuard;
-    final newGuard = _recognizeDeferredModuleGuard(node);
-    if (newGuard != null) {
-      _activeDeferredLoadingGuard = newGuard;
-    }
-    final result = translateExpression(node.body, expectedType);
-    _activeDeferredLoadingGuard = oldGuard;
-    return result;
+    return translateExpression(node.body, expectedType);
   }
 
   @override
@@ -2744,37 +2734,6 @@ abstract class AstCodeGenerator
     return expectedType;
   }
 
-  w.ModuleBuilder? _recognizeDeferredModuleGuard(Let let) {
-    if (!translator.options.enableDeferredLoading &&
-        !translator.options.enableMultiModuleStressTestMode) {
-      return null;
-    }
-
-    // TODO(http://dartbug.com/61764): Find better way to do this.
-    //
-    // If we have somewhere in the parent chain of [node] a
-    //
-    //   let
-    //     _ = checkLibraryIsLoadedFromLoadId(<id>)
-    //   in
-    //     <body>
-    //
-    // Then we know that the constant use in <body> can only happen after the
-    // given <id> was loaded, i.e. the constant use is deferred-load-guarded
-    // by <id>.
-    final init = let.variable.initializer;
-    if (init is StaticInvocation) {
-      final target = init.target;
-      if (target == translator.checkLibraryIsLoadedFromLoadId) {
-        final args = init.arguments.positional;
-        final loadId = (args[0] as IntLiteral).value;
-        return translator.moduleForLoadId(
-            enclosingMember.enclosingLibrary, loadId);
-      }
-    }
-    return null;
-  }
-
   @override
   w.ValueType visitNullLiteral(NullLiteral node, w.ValueType expectedType) {
     instantiateConstant(NullConstant(), expectedType);
@@ -3175,7 +3134,7 @@ abstract class AstCodeGenerator
       b,
       constant,
       expectedType,
-      deferredModuleGuard: _activeDeferredLoadingGuard,
+      deferredModuleGuard: translator.moduleForConstant(constant),
     );
   }
 }
@@ -4059,12 +4018,12 @@ class StaticFieldInitializerCodeGenerator extends AstCodeGenerator {
     w.Global global = translator.globals.getGlobalForStaticField(field);
     w.Global? flag = translator.globals.getGlobalInitializedFlag(field);
     translateExpression(field.initializer!, global.type.type);
-    b.global_set(global);
+    translator.globals.writeGlobal(b, global);
     if (flag != null) {
       b.i32_const(1);
-      b.global_set(flag);
+      translator.globals.writeGlobal(b, flag);
     }
-    b.global_get(global);
+    translator.globals.readGlobal(b, global);
     translator.convertType(b, global.type.type, outputs.single);
     b.end();
   }
@@ -4086,7 +4045,7 @@ class EagerStaticFieldInitializerCodeGenerator extends AstCodeGenerator {
     setSourceMapSourceAndFileOffset(source, field.fileOffset);
 
     translateExpression(field.initializer!, global.type.type);
-    b.global_set(global);
+    translator.globals.writeGlobal(b, global);
   }
 }
 
@@ -4116,20 +4075,20 @@ class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
       w.Global global, w.Global? flag, w.BaseFunction? initFunction) {
     if (initFunction == null) {
       // Statically initialized
-      b.global_get(global);
+      translator.globals.readGlobal(b, global);
     } else {
       if (flag != null) {
         // Explicit initialization flag
-        b.global_get(flag);
+        translator.globals.readGlobal(b, flag);
         b.if_(const [], [global.type.type]);
-        b.global_get(global);
+        translator.globals.readGlobal(b, global);
         b.else_();
         translator.callFunction(initFunction, b);
         b.end();
       } else {
         // Null signals uninitialized
         w.Label block = b.block(const [], [initFunction.type.outputs.single]);
-        b.global_get(global);
+        translator.globals.readGlobal(b, global);
         b.br_on_non_null(block);
         translator.callFunction(initFunction, b);
         b.end();
@@ -4139,10 +4098,10 @@ class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
 
   void _generateSetter(w.Global global, w.Global? flag) {
     b.local_get(paramLocals.single);
-    b.global_set(global);
+    translator.globals.writeGlobal(b, global);
     if (flag != null) {
       b.i32_const(1); // true
-      b.global_set(flag);
+      translator.globals.writeGlobal(b, flag);
     }
   }
 }

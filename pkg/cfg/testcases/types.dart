@@ -13,6 +13,9 @@ class A<T> {
       o as Map;
     }
   }
+
+  factory A() => A<T>._();
+  A._();
 }
 
 void main() {}

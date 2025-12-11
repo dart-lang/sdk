@@ -307,6 +307,22 @@ final class ConstantPropagation extends Pass
       throw 'Should not be used in SSA form.';
 
   @override
+  void visitLoadInstanceField(LoadInstanceField instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitStoreInstanceField(StoreInstanceField instr) {}
+
+  @override
+  void visitLoadStaticField(LoadStaticField instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitStoreStaticField(StoreStaticField instr) {}
+
+  @override
   void visitThrow(Throw instr) {}
 
   @override
@@ -347,6 +363,11 @@ final class ConstantPropagation extends Pass
 
   @override
   void visitTypeArguments(TypeArguments instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitAllocateObject(AllocateObject instr) {
     _setNonConstant(instr);
   }
 
