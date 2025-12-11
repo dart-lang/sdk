@@ -94,8 +94,10 @@ extension DynamicModuleMember on Member {
 class DynamicSubmoduleOutputData extends ModuleOutputData {
   final CoreTypes coreTypes;
   final ModuleMetadata _submodule;
-  DynamicSubmoduleOutputData(this.coreTypes, super.modules)
-      : _submodule = modules[1];
+  DynamicSubmoduleOutputData(this.coreTypes, ModuleMetadata mainModule,
+      this._submodule, Map<Library, ModuleMetadata> libraryToModuleMetadata)
+      : super.librarySplit(
+            [mainModule, _submodule], libraryToModuleMetadata, null);
 
   @override
   ModuleMetadata moduleForReference(Reference reference) {
@@ -150,9 +152,9 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
   ModuleOutputData buildModuleOutputData() {
     final builder = ModuleMetadataBuilder(options);
     final mainModule = builder.buildModuleMetadata();
-    mainModule.libraries.addAll(component.libraries);
-    final placeholderModule = builder.buildModuleMetadata(skipEmit: true);
-    return ModuleOutputData([mainModule, placeholderModule]);
+    final placeholderModule = builder.buildModuleMetadata();
+    return ModuleOutputData.librarySplit(
+        [mainModule, placeholderModule], {}, mainModule);
   }
 
   void _addImplicitPragmas() {
@@ -337,14 +339,17 @@ class DynamicSubmoduleStrategy extends ModuleStrategy {
     final builder = ModuleMetadataBuilder(options);
     final mainModule = builder.buildModuleMetadata(skipEmit: true);
     final submodule = builder.buildModuleMetadata(emitAsMain: true);
+
+    final libraryToModuleMetadata = <Library, ModuleMetadata>{};
     for (final library in component.libraries) {
       final module = hasPragma(coreTypes, library, _mainModLibPragma)
           ? mainModule
           : submodule;
-      module.libraries.add(library);
+      libraryToModuleMetadata[library] = module;
     }
 
-    return DynamicSubmoduleOutputData(coreTypes, [mainModule, submodule]);
+    return DynamicSubmoduleOutputData(
+        coreTypes, mainModule, submodule, libraryToModuleMetadata);
   }
 
   @override

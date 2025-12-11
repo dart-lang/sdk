@@ -39,7 +39,6 @@ import 'dynamic_modules.dart';
 import 'io_util.dart';
 import 'js/method_collector.dart' show JSMethods;
 import 'js/runtime_generator.dart' as js;
-import 'library_dependencies_pruner.dart';
 import 'modules.dart';
 import 'record_class_generator.dart';
 import 'records.dart';
@@ -547,30 +546,6 @@ Future<CompilationResult> _runTfaPhase(
     // TFA may have tree shaken members that are in the library index cache.
     // To avoid having dangling references in the index, we create a new one.
     libraryIndex = LibraryIndex(component, _librariesToIndex);
-  }
-
-  // NOTE: The [Library.dependencies] will be in a weird state after TFA:
-  //
-  //   * a library may use members of other libraries without an import that
-  //     provides the member
-  //
-  //   * a library may have many unused imports
-  //
-  // -> See https://dartbug.com/62112 & https://dartbug.com/62111 for details.
-  //
-  // At this point dart2wasm uses library dependencies only for one purpose,
-  // namely for partitioning all libraries into deferred wasm modules. So we now
-  // perform a dart2wasm specific pruning of library imports.
-  //
-  // See [pruneLibraryDependencies] for more information.
-  //
-  // NOTE: In stress test mode the component is manually split into one wasm
-  // module per library without making imports of libraries deferred. To ensure
-  // all modules get loaded before main it injects dummy [LoadLibrary]
-  // expressions that would be optimized out by [pruneLibraryDependencies]. So
-  // we disable the pruning in this case.
-  if (!options.translatorOptions.enableMultiModuleStressTestMode) {
-    pruneLibraryDependencies(libraryIndex, component);
   }
 
   if (options.emitTfa) {

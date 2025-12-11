@@ -1573,7 +1573,7 @@ class _ConstantAccessor {
         usingModule == translator.mainModule) {
       final definition =
           _defineConstantInModuleRecursive(translator.mainModule, info);
-      return _readDefinedConstant(b, usingModule, info, definition);
+      return _readDefinedConstant(b, translator.mainModule, info, definition);
     }
 
     // Remember for the transitive DAG of [constant] that we use it in this

@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
 import 'compiler_options.dart';
+import 'reference_extensions.dart';
 import 'target.dart';
 import 'util.dart';
 
@@ -47,9 +48,6 @@ class ModuleMetadataBuilder {
 /// by library, by class or neither. [containsReference] should be used to
 /// determine if a module contains a given class/member reference.
 class ModuleMetadata {
-  /// The set of libraries contained in this module.
-  final Set<Library> libraries = {};
-
   final bool isMain;
 
   /// The name used to import and export this module.
@@ -65,7 +63,7 @@ class ModuleMetadata {
       {this.skipEmit = false, this.isMain = false});
 
   @override
-  String toString() => '$moduleImportName($libraries)';
+  String toString() => moduleImportName;
 }
 
 /// Data needed to create deferred modules.
@@ -73,13 +71,39 @@ class ModuleOutputData {
   /// All [ModuleMetadata]s generated for the program.
   final List<ModuleMetadata> modules;
 
-  /// Maps the [Library] to the corresponding [ModuleMetadata].
-  late final Map<Library, ModuleMetadata> _libraryToModuleMetadata = {
-    for (final metadata in modules)
-      for (final library in metadata.libraries) library: metadata,
-  };
+  /// Maps the [Reference] to the corresponding [ModuleMetadata].
+  final Map<Reference, ModuleMetadata>? referenceToModuleMetadata;
 
-  ModuleOutputData(this.modules) : assert(modules[0].isMain);
+  /// Maps the [Constant] to the corresponding [ModuleMetadata].
+  final Map<Constant, ModuleMetadata>? constantToModuleMetadata;
+
+  /// Maps the [Library] to the corresponding [ModuleMetadata].
+  final Map<Library, ModuleMetadata>? libraryToModuleMetadata;
+
+  /// Module for any unassigned reference.
+  final ModuleMetadata? defaultModule;
+
+  ModuleOutputData.fineGrainedSplit(
+      this.modules,
+      this.referenceToModuleMetadata,
+      this.constantToModuleMetadata,
+      this.defaultModule)
+      : libraryToModuleMetadata = null,
+        assert(modules[0].isMain);
+
+  ModuleOutputData.librarySplit(
+      this.modules, this.libraryToModuleMetadata, this.defaultModule)
+      : referenceToModuleMetadata = null,
+        constantToModuleMetadata = null,
+        assert(modules[0].isMain);
+
+  ModuleOutputData.monolitic(ModuleMetadata module)
+      : modules = [module],
+        libraryToModuleMetadata = null,
+        referenceToModuleMetadata = null,
+        constantToModuleMetadata = null,
+        defaultModule = module,
+        assert(module.isMain);
 
   ModuleMetadata get mainModule => modules[0];
   Iterable<ModuleMetadata> get deferredModules => modules.skip(1);
@@ -88,7 +112,33 @@ class ModuleOutputData {
 
   /// Returns the module that contains [reference].
   ModuleMetadata moduleForReference(Reference reference) {
-    return _libraryToModuleMetadata[_enclosingLibraryForReference(reference)]!;
+    // Turn artificial [Reference]s used in dart2wasm to the normal Kernel AST
+    // [Reference]s.
+    if (reference.isTypeCheckerReference ||
+        reference.isCheckedEntryReference ||
+        reference.isUncheckedEntryReference ||
+        reference.isBodyReference ||
+        reference.isInitializerReference ||
+        reference.isConstructorBodyReference ||
+        reference.isTearOffReference) {
+      reference = reference.asMember.reference;
+    }
+
+    // We may have fine-grained partitioning of the application.
+    if (referenceToModuleMetadata != null) {
+      return referenceToModuleMetadata![reference] ?? defaultModule!;
+    }
+    // We may have coarse-grained library-based partitioning of the application.
+    if (libraryToModuleMetadata != null) {
+      final library = _enclosingLibraryForReference(reference);
+      return libraryToModuleMetadata![library] ?? defaultModule!;
+    }
+    // We put the entire application into the same wasm module.
+    return defaultModule!;
+  }
+
+  ModuleMetadata? moduleForConstant(Constant constant) {
+    return constantToModuleMetadata?[constant];
   }
 }
 
@@ -106,8 +156,7 @@ class DefaultModuleStrategy extends ModuleStrategy {
     // module.
     final builder = ModuleMetadataBuilder(options);
     final mainModule = builder.buildModuleMetadata(emitAsMain: true);
-    mainModule.libraries.addAll(component.libraries);
-    return ModuleOutputData([mainModule]);
+    return ModuleOutputData.monolitic(mainModule);
   }
 
   @override
@@ -159,31 +208,31 @@ class DeferredModuleLoadingMap {
   // Maps each (library, deferred import) to a unique id.
   final Map<(Library, String), int> loadIds;
 
-  // Maps the unique load id to the imported library.
-  final List<Library> loadId2ImportedLibrary;
+  // Maps the unique load id to the deferred import.
+  final List<LibraryDependency> loadIdToDeferredImport;
 
   // Maps (library, import-name)-id to list of needed modules.
   final List<List<ModuleMetadata>> moduleMap;
 
   DeferredModuleLoadingMap._(
-      this.loadIds, this.moduleMap, this.loadId2ImportedLibrary);
+      this.loadIds, this.moduleMap, this.loadIdToDeferredImport);
 
   factory DeferredModuleLoadingMap.fromComponent(Component c) {
     int nextLoadId = 0;
     final loadIds = <(Library, String), int>{};
-    final loadId2ImportedLibrary = <Library>[];
+    final loadIdToDeferredImport = <LibraryDependency>[];
     final moduleMap = <List<ModuleMetadata>>[];
     for (final library in c.libraries) {
       for (final dep in library.dependencies) {
         if (!dep.isDeferred) continue;
         final name = dep.name!;
         loadIds[(library, name)] = nextLoadId++;
-        loadId2ImportedLibrary.add(dep.targetLibrary);
+        loadIdToDeferredImport.add(dep);
         moduleMap.add([]);
       }
     }
     return DeferredModuleLoadingMap._(
-        loadIds, moduleMap, loadId2ImportedLibrary);
+        loadIds, moduleMap, loadIdToDeferredImport);
   }
 
   void addModuleToLibraryImport(
