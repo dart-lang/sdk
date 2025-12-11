@@ -16,26 +16,18 @@ main() {
 
 @reflectiveTest
 class InvalidWidgetPreviewPrivateArgumentTest extends PubPackageResolutionTest {
+  String correctionMessageBuilder(String original, String public) {
+    return "Rename private symbol '$original' to '$public'.";
+  }
+
   @override
   void setUp() {
     super.setUp();
     writeTestPackageConfig(PackageConfigFileBuilder(), flutter: true);
   }
 
-  // @Preview cannot accept any arguments including references to private
-  // symbols.
-  test_invalidPrivatePreviewArguments() async {
-    String correctionMessageBuilder(String original, String public) {
-      return "Rename private symbol '$original' to '$public'.";
-    }
-
+  test_invalidPrivatePreviewArgument() async {
     const String kPrivateName = '_privateName';
-    const String kExtraPrivateName = '__extraPrivateName';
-    const String kPrivateWidth = '_privateWidth';
-    const String kPrivateHeight = '_privateHeight';
-    const String kPrivateTextScaleFactor = '_textScaleFactor';
-    const String kPrivateWrapper = '_privateWrapper';
-    const String kPrivateTheme = '_privateTheme';
 
     await assertErrorsInCode(
       '''
@@ -43,69 +35,102 @@ import 'package:flutter/widget_previews.dart';
 import 'package:flutter/widgets.dart';
 
 const String $kPrivateName = 'Name';
-const String $kExtraPrivateName = 'Extra';
-const double $kPrivateWidth = 42.0;
-const double $kPrivateHeight = 24.0;
-const double $kPrivateTextScaleFactor = 2.0;
-
-Widget $kPrivateWrapper(Widget child) => child;
-PreviewThemeData $kPrivateTheme() => PreviewThemeData();
 
 @Preview(name: $kPrivateName)
 Widget privateName() => Text('Foo');
-
-@Preview(name: '\$$kPrivateName')
-Widget privateNameStringInterp() => Text('Foo');
-
-@Preview(name: $kExtraPrivateName)
-Widget extraPrivateName() => Text('Foo');
-
-@Preview(width: $kPrivateWidth,
-        height: $kPrivateHeight,
-        textScaleFactor: $kPrivateTextScaleFactor)
-Widget privateDoubles() => Text('Foo');
-
-@Preview(width: $kPrivateWidth + 10)
-Widget numericExpressionWithPrivateDouble() => Text('Foo');
-
-@Preview(wrapper: $kPrivateWrapper)
-Widget privateWrapper() => Text('Foo');
-
-@Preview(theme: $kPrivateTheme)
-Widget privateThemeData() => Text('Foo');
-
 ''',
       [
         error(
           diag.invalidWidgetPreviewPrivateArgument,
-          388,
+          133,
           18,
           correctionContains: correctionMessageBuilder(
             kPrivateName,
             kPrivateName.substring(1),
           ),
         ),
+      ],
+    );
+  }
+
+  test_invalidPrivatePreviewArguments_extraPrivate() async {
+    const String kExtraPrivateName = '__extraPrivateName';
+
+    await assertErrorsInCode(
+      '''
+import 'package:flutter/widget_previews.dart';
+import 'package:flutter/widgets.dart';
+
+const String $kExtraPrivateName = 'Extra';
+
+@Preview(name: $kExtraPrivateName)
+Widget extraPrivateName() => Text('Foo');
+''',
+      [
         error(
           diag.invalidWidgetPreviewPrivateArgument,
-          455,
-          21,
-          correctionContains: correctionMessageBuilder(
-            kPrivateName,
-            kPrivateName.substring(1),
-          ),
-        ),
-        error(
-          diag.invalidWidgetPreviewPrivateArgument,
-          537,
+          140,
           24,
           correctionContains: correctionMessageBuilder(
             kExtraPrivateName,
             kExtraPrivateName.substring(2),
           ),
         ),
+      ],
+    );
+  }
+
+  test_invalidPrivatePreviewArguments_interpolatedInStringArgument() async {
+    const String kPrivateName = '_privateName';
+
+    await assertErrorsInCode(
+      '''
+import 'package:flutter/widget_previews.dart';
+import 'package:flutter/widgets.dart';
+
+const String $kPrivateName = 'Name';
+
+@Preview(name: '\$$kPrivateName')
+Widget privateNameStringInterp() => Text('Foo');
+''',
+      [
         error(
           diag.invalidWidgetPreviewPrivateArgument,
-          615,
+          133,
+          21,
+          correctionContains: correctionMessageBuilder(
+            kPrivateName,
+            kPrivateName.substring(1),
+          ),
+        ),
+      ],
+    );
+  }
+
+  test_invalidPrivatePreviewArguments_size() async {
+    // TODO(srawlins): Update to the new Size argument.
+    const String kPrivateWidth = '_privateWidth';
+    const String kPrivateHeight = '_privateHeight';
+    const String kPrivateTextScaleFactor = '_textScaleFactor';
+
+    await assertErrorsInCode(
+      '''
+import 'package:flutter/widget_previews.dart';
+import 'package:flutter/widgets.dart';
+
+const double $kPrivateWidth = 42.0;
+const double $kPrivateHeight = 24.0;
+const double $kPrivateTextScaleFactor = 2.0;
+
+@Preview(width: $kPrivateWidth,
+        height: $kPrivateHeight,
+        textScaleFactor: $kPrivateTextScaleFactor)
+Widget privateDoubles() => Text('Foo');
+''',
+      [
+        error(
+          diag.invalidWidgetPreviewPrivateArgument,
+          205,
           20,
           correctionContains: correctionMessageBuilder(
             kPrivateWidth,
@@ -114,7 +139,7 @@ Widget privateThemeData() => Text('Foo');
         ),
         error(
           diag.invalidWidgetPreviewPrivateArgument,
-          645,
+          235,
           22,
           correctionContains: correctionMessageBuilder(
             kPrivateHeight,
@@ -123,38 +148,93 @@ Widget privateThemeData() => Text('Foo');
         ),
         error(
           diag.invalidWidgetPreviewPrivateArgument,
-          677,
+          267,
           33,
           correctionContains: correctionMessageBuilder(
             kPrivateTextScaleFactor,
             kPrivateTextScaleFactor.substring(1),
           ),
         ),
+      ],
+    );
+  }
+
+  test_invalidPrivatePreviewArguments_theme() async {
+    const String kPrivateTheme = '_privateTheme';
+
+    await assertErrorsInCode(
+      '''
+import 'package:flutter/widget_previews.dart';
+import 'package:flutter/widgets.dart';
+
+PreviewThemeData $kPrivateTheme() => PreviewThemeData();
+
+@Preview(theme: $kPrivateTheme)
+Widget privateThemeData() => Text('Foo');
+
+''',
+      [
         error(
           diag.invalidWidgetPreviewPrivateArgument,
-          762,
+          153,
+          20,
+          correctionContains: correctionMessageBuilder(
+            kPrivateTheme,
+            kPrivateTheme.substring(1),
+          ),
+        ),
+      ],
+    );
+  }
+
+  test_invalidPrivatePreviewArguments_widthInArgument() async {
+    const String kPrivateWidth = '_privateWidth';
+
+    await assertErrorsInCode(
+      '''
+import 'package:flutter/widget_previews.dart';
+import 'package:flutter/widgets.dart';
+
+const double $kPrivateWidth = 42.0;
+
+@Preview(width: $kPrivateWidth + 10)
+Widget numericExpressionWithPrivateDouble() => Text('Foo');
+''',
+      [
+        error(
+          diag.invalidWidgetPreviewPrivateArgument,
+          132,
           25,
           correctionContains: correctionMessageBuilder(
             kPrivateWidth,
             kPrivateWidth.substring(1),
           ),
         ),
+      ],
+    );
+  }
+
+  test_invalidPrivatePreviewArguments_wrapper() async {
+    const String kPrivateWrapper = '_privateWrapper';
+
+    await assertErrorsInCode(
+      '''
+import 'package:flutter/widget_previews.dart';
+import 'package:flutter/widgets.dart';
+
+Widget $kPrivateWrapper(Widget child) => child;
+
+@Preview(wrapper: $kPrivateWrapper)
+Widget privateWrapper() => Text('Foo');
+''',
+      [
         error(
           diag.invalidWidgetPreviewPrivateArgument,
-          859,
+          144,
           24,
           correctionContains: correctionMessageBuilder(
             kPrivateWrapper,
             kPrivateWrapper.substring(1),
-          ),
-        ),
-        error(
-          diag.invalidWidgetPreviewPrivateArgument,
-          935,
-          20,
-          correctionContains: correctionMessageBuilder(
-            kPrivateTheme,
-            kPrivateTheme.substring(1),
           ),
         ),
       ],
