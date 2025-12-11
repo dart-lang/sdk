@@ -14151,20 +14151,20 @@ removedLintUse = DiagnosticWithArguments(
 /// An error code indicating a removed lint rule.
 ///
 /// Parameters:
-/// String p0: the rule name
-/// String p1: the SDK version in which the lint was removed
-/// String p2: the name of a replacing lint
+/// String ruleName: the rule name
+/// String sdkVersion: the SDK version in which the lint was removed
+/// String replacingLintName: the name of a replacing lint
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required String p2,
+    required String ruleName,
+    required String sdkVersion,
+    required String replacingLintName,
   })
 >
 replacedLint = DiagnosticWithArguments(
   name: 'replaced_lint',
   problemMessage: "'{0}' was replaced by '{2}' in Dart '{1}'.",
-  correctionMessage: "Replace '{0}' with '{1}'.",
+  correctionMessage: "Replace '{0}' with '{2}'.",
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'replaced_lint',
   withArguments: _withArgumentsReplacedLint,
@@ -20477,11 +20477,15 @@ LocatableDiagnostic _withArgumentsRemovedLintUse({
 }
 
 LocatableDiagnostic _withArgumentsReplacedLint({
-  required String p0,
-  required String p1,
-  required String p2,
+  required String ruleName,
+  required String sdkVersion,
+  required String replacingLintName,
 }) {
-  return LocatableDiagnosticImpl(diag.replacedLint, [p0, p1, p2]);
+  return LocatableDiagnosticImpl(diag.replacedLint, [
+    ruleName,
+    sdkVersion,
+    replacingLintName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsReplacedLintUse({

@@ -453,10 +453,14 @@ class LinterRuleOptionsValidator extends OptionsValidator {
           var since = state.since.toString();
           var replacedBy = state.replacedBy;
           if (replacedBy != null) {
-            reporter.atSourceSpan(
-              node.span,
-              diag.replacedLint,
-              arguments: [value, since, replacedBy],
+            reporter.report(
+              diag.replacedLint
+                  .withArguments(
+                    ruleName: value,
+                    sdkVersion: since,
+                    replacingLintName: replacedBy,
+                  )
+                  .atSourceSpan(node.span),
             );
           } else {
             reporter.report(
