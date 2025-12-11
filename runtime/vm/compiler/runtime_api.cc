@@ -664,6 +664,8 @@ const word MegamorphicCache::kSpreadFactor =
     return RoundedAllocationSize(clazz::header() + payload_size);              \
   }
 
+#define DEFINE_ENUM(Name, Elements)
+
 #if defined(TARGET_ARCH_IA32)
 
 #define DEFINE_FIELD(clazz, name)                                              \
@@ -693,7 +695,8 @@ JIT_OFFSETS_LIST(DEFINE_FIELD,
                  DEFINE_ARRAY_SIZEOF,
                  DEFINE_PAYLOAD_SIZEOF,
                  DEFINE_RANGE,
-                 DEFINE_CONSTANT)
+                 DEFINE_CONSTANT,
+                 DEFINE_ENUM)
 
 COMMON_OFFSETS_LIST(DEFINE_FIELD,
                     DEFINE_ARRAY,
@@ -701,7 +704,8 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
                     DEFINE_ARRAY_SIZEOF,
                     DEFINE_PAYLOAD_SIZEOF,
                     DEFINE_RANGE,
-                    DEFINE_CONSTANT)
+                    DEFINE_CONSTANT,
+                    DEFINE_ENUM)
 
 #else
 
@@ -748,7 +752,8 @@ JIT_OFFSETS_LIST(DEFINE_JIT_FIELD,
                  DEFINE_ARRAY_SIZEOF,
                  DEFINE_PAYLOAD_SIZEOF,
                  DEFINE_JIT_RANGE,
-                 DEFINE_CONSTANT)
+                 DEFINE_CONSTANT,
+                 DEFINE_ENUM)
 
 #undef DEFINE_JIT_FIELD
 #undef DEFINE_JIT_ARRAY
@@ -814,7 +819,8 @@ AOT_OFFSETS_LIST(DEFINE_AOT_FIELD,
                  DEFINE_ARRAY_SIZEOF,
                  DEFINE_PAYLOAD_SIZEOF,
                  DEFINE_AOT_RANGE,
-                 DEFINE_CONSTANT)
+                 DEFINE_CONSTANT,
+                 DEFINE_ENUM)
 
 #undef DEFINE_AOT_FIELD
 #undef DEFINE_AOT_ARRAY
@@ -858,7 +864,8 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
                     DEFINE_ARRAY_SIZEOF,
                     DEFINE_PAYLOAD_SIZEOF,
                     DEFINE_RANGE,
-                    DEFINE_CONSTANT)
+                    DEFINE_CONSTANT,
+                    DEFINE_ENUM)
 
 #endif
 
@@ -868,6 +875,7 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
 #undef DEFINE_RANGE
 #undef DEFINE_PAYLOAD_SIZEOF
 #undef DEFINE_CONSTANT
+#undef DEFINE_ENUM
 
 const word StoreBufferBlock::kSize = dart::StoreBufferBlock::kSize;
 

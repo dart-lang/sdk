@@ -684,7 +684,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         defaultValue,
         defaultValue.typeOrThrow,
         node.declaredFragment!.element.type,
-        diag.invalidAssignment,
+        const NonAssignabilityReporterForAssignment(),
       );
     }
 
@@ -3754,7 +3754,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         argument,
         parameterType,
         _intType,
-        diag.argumentTypeNotAssignable,
+        const NonAssignabilityReporterForArgument(),
       );
     }
   }

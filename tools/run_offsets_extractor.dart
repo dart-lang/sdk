@@ -113,6 +113,132 @@ Future<void> writeCHeaderFile(List json) async {
   await run(['git', 'cl', 'format', extractedOffsetsFile]);
 }
 
+Future<void> writeDartFile(List json) async {
+  final extractedOffsetsFile =
+      'pkg/native_compiler/lib/runtime/vm_offsets.g.dart';
+
+  final old = File(extractedOffsetsFile).readAsStringSync();
+  final header = old.substring(0, old.indexOf('base class '));
+
+  // Filter useful configurations.
+  final configs = json
+      .where((c) => c['arch'] == 'arm64' && !c['compressed'] && !c['aot'])
+      .toList();
+
+  // Collect set of method names to declare in the base class.
+  // Collect enums and verify that they are the same across configurations.
+  final values = <String>{};
+  final arrays = <String>{};
+  final ranges = <String>{};
+  final enums = <String, String>{};
+  for (final config in configs) {
+    final offsets = config['offsets'] as List;
+    for (final offset in offsets) {
+      final kind = offset['kind'] as String;
+      switch (kind) {
+        case 'value':
+          values.add(dartName(offset['class'], offset['name']));
+          break;
+        case 'array':
+          arrays.add(dartName(offset['class'], ''));
+          break;
+        case 'range':
+          ranges.add(dartName(offset['class'], offset['name']));
+          break;
+        case 'enum':
+          {
+            final name = offset['name'];
+            final elements = (offset['elements'] as List).join(',\n');
+            if ((enums[name] ??= elements) != elements) {
+              throw 'Enum $name is inconsistent across configurations';
+            }
+            break;
+          }
+      }
+    }
+  }
+
+  // Generate base class.
+  final output = StringBuffer();
+  output.writeln(header);
+  output.writeln('base class VMOffsets {');
+  for (final name in values) {
+    output.writeln("  int get $name => throw 'Unknown';");
+  }
+  for (final name in arrays) {
+    output.writeln("  int get ${name}_elementsStartOffset => throw 'Unknown';");
+    output.writeln("  int get ${name}_elementSize => throw 'Unknown';");
+    output.writeln('  int ${name}_elementOffset(int index) => '
+        '${name}_elementsStartOffset + index * ${name}_elementSize;');
+  }
+  for (final name in ranges) {
+    output.writeln("  List<int> get $name => throw 'Unknown';");
+  }
+  output.writeln('}');
+  output.writeln('');
+
+  // Generate class per configuration.
+  for (final config in configs) {
+    final product = (config['product'] as bool) ? 'Product' : '';
+    final arch = (config['arch'] as String).capitalized;
+    final compressed = (config['compressed'] as bool) ? 'Compressed' : '';
+    final aot = (config['aot'] as bool) ? 'AOT' : '';
+    output.writeln(
+        'final class $arch$product$compressed${aot}VMOffsets extends VMOffsets {');
+    final offsets = config['offsets'] as List;
+    for (final offset in offsets) {
+      final kind = offset['kind'] as String;
+      switch (kind) {
+        case 'value':
+          final name = dartName(offset['class'], offset['name']);
+          final value = toCValue(offset['value']);
+          output.writeln('  @override int get $name => $value;');
+          break;
+        case 'array':
+          final name = dartName(offset['class'], '');
+          final startOffset = toCValue(offset['startOffset']);
+          final elemSize = toCValue(offset['elemSize']);
+          output.writeln('  @override int get ${name}_elementsStartOffset => '
+              '$startOffset;');
+          output.writeln('  @override int get ${name}_elementSize => '
+              '$elemSize;');
+          break;
+        case 'range':
+          final name = dartName(offset['class'], offset['name']);
+          final values = (offset['values'] as List).map(toCValue).toList();
+          output.writeln('  @override List<int> get $name => '
+              '[${values.join(', ')}];');
+          break;
+      }
+    }
+    output.writeln('}');
+    output.writeln();
+  }
+
+  // Generate enums.
+  for (final MapEntry(key: name, value: elements) in enums.entries) {
+    output.writeln("enum ${name.capitalized} {");
+    output.writeln("  $elements");
+    output.writeln('}');
+    output.writeln();
+  }
+
+  File(extractedOffsetsFile).writeAsStringSync(output.toString());
+  print('Written $extractedOffsetsFile');
+  print('Running `${Platform.executable} format $extractedOffsetsFile');
+  await run([Platform.executable, 'format', extractedOffsetsFile]);
+}
+
+String dartName(String cls, String name) {
+  final buf = StringBuffer();
+  buf.write(cls);
+  if (name.isNotEmpty) {
+    buf.write('_');
+    buf.write(name);
+  }
+  return buf.toString();
+}
+
 Future<List<T>> forAllConfigurationsMode<T>(
   Future<T> Function(String buildDir, String mode, String arch) fun,
 ) async {
@@ -173,4 +299,5 @@ void main(List<String> args) async {
   final json = convert.json.decode(text) as List;
 
   await writeCHeaderFile(json);
+  await writeDartFile(json);
 }

@@ -12,6 +12,7 @@ import "dart:core" hide Symbol;
 import "dart:ffi" show Pointer, Struct, Union, IntPtr, Handle, Void, Native;
 import "dart:isolate" show SendPort;
 import "dart:typed_data" show Int32List, Uint8List;
+import "dart:_vm" show FinalThreadLocal;
 
 /// These are the additional parts of this patch library:
 part "class_id_fasta.dart";
@@ -482,3 +483,8 @@ abstract interface class IsolateGroup {
   @Native<Handle Function(Handle)>(symbol: "IsolateGroup_runSync")
   external static Object _runSync(Object computation);
 }
+
+@pragma("vm:shared")
+final _toStringVisiting = FinalThreadLocal<List<Object>>(() => <Object>[]);
+@patch
+List<Object> get toStringVisiting => _toStringVisiting.value;

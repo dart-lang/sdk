@@ -887,7 +887,7 @@ Map<String, dynamic>? diffToJson(ProgramInfo diff,
       keepOnlyInputPackage ? key != 'package:input' : key.startsWith('file:'));
 
   // Rebuild the diff JSON discarding all nodes with size below threshold.
-  const smallChangeThreshold = 16;
+  const smallChangeThreshold = 13;
   Map<String, dynamic>? discardSmallChanges(Map<String, dynamic> map) {
     final result = <String, dynamic>{};
 

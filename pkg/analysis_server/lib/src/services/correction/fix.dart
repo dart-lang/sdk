@@ -1660,6 +1660,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Remove all unnecessary casts in file',
   );
+  static const removeUnnecessaryName = FixKind(
+    'dart.fix.remove.unnecessaryName',
+    DartFixKindPriority.standard,
+    'Remove unnecessary name from pattern',
+  );
+  static const removeUnnecessaryNameMulti = FixKind(
+    'dart.fix.remove.unnecessaryName.multi',
+    DartFixKindPriority.inFile,
+    'Remove unnecessary names from patterns in file',
+  );
   static const removeUnnecessaryFinal = FixKind(
     'dart.fix.remove.unnecessaryFinal',
     DartFixKindPriority.standard,

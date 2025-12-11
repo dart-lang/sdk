@@ -72,4 +72,3 @@ void main() {
   <ConstructorExt>[.new(x), .regular(x), .constRegular(x)];
   <ConstructorExt?>[.new(x), .regular(x), .constRegular(x)];
 }
-

@@ -102,10 +102,13 @@ class PrefixExpressionResolver {
       operandWriteType,
       strictCasts: _resolver.analysisOptions.strictCasts,
     )) {
-      _resolver.diagnosticReporter.atNode(
-        node,
-        diag.invalidAssignment,
-        arguments: [type, operandWriteType],
+      _resolver.diagnosticReporter.report(
+        diag.invalidAssignment
+            .withArguments(
+              actualStaticType: type,
+              expectedStaticType: operandWriteType,
+            )
+            .at(node),
       );
     }
   }

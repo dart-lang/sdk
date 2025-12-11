@@ -60,6 +60,7 @@ main(List<String> args) {
   testBase64Decoder();
   testRandom();
   testEncoding();
+  testRecursiveToString();
 
   print("All tests completed :)");
 }
@@ -436,5 +437,18 @@ void testEncoding() {
   Expect.identical(
     utf8,
     IsolateGroup.runSync(() => Encoding.getByName("utf-8")),
+  );
+}
+
+///
+void testRecursiveToString() {
+  Expect.equals(
+    "[foo, bar, [...], baz]",
+    IsolateGroup.runSync(() {
+      var l = <Object>["foo", "bar"];
+      l.add(l);
+      l.add("baz");
+      return l.toString();
+    }),
   );
 }

@@ -397,10 +397,13 @@ analysisOptionDeprecated = DiagnosticWithArguments(
 /// An error code indicating that the given option is deprecated.
 ///
 /// Parameters:
-/// Object p0: the option name
-/// Object p1: the replacement option name
+/// Object optionName: the option name
+/// Object replacementOptionName: the replacement option name
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0, required Object p1})
+  LocatableDiagnostic Function({
+    required Object optionName,
+    required Object replacementOptionName,
+  })
 >
 analysisOptionDeprecatedWithReplacement = DiagnosticWithArguments(
   name: 'analysis_option_deprecated',
@@ -503,15 +506,15 @@ const DiagnosticWithoutArguments argumentMustBeNative =
     );
 
 /// Parameters:
-/// Type p0: the name of the actual argument type
-/// Type p1: the name of the expected type
-/// String p2: additional information, if any, when problem is associated with
-///            records
+/// Type actualStaticType: the name of the actual argument type
+/// Type expectedStaticType: the name of the expected type
+/// String additionalInfo: additional information, if any, when problem is
+///                        associated with records
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required DartType p0,
-    required DartType p1,
-    required String p2,
+    required DartType actualStaticType,
+    required DartType expectedStaticType,
+    required String additionalInfo,
   })
 >
 argumentTypeNotAssignable = DiagnosticWithArguments(
@@ -3174,7 +3177,7 @@ deprecatedColonForDefaultValue = DiagnosticWithoutArgumentsImpl(
       "will not be supported in language version 3.0 and later.",
   correctionMessage: "Try replacing the colon with an equal sign.",
   hasPublishedDocs: true,
-  type: DiagnosticType.HINT,
+  type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'deprecated_colon_for_default_value',
   expectedTypes: [],
 );
@@ -3299,7 +3302,7 @@ deprecatedInstantiate = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.object],
 );
 
-/// A hint code indicating reference to a deprecated lint.
+/// A warning code indicating reference to a deprecated lint.
 ///
 /// Parameters:
 /// String ruleName: the rule name
@@ -3317,7 +3320,7 @@ deprecatedLint = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string],
 );
 
-/// A hint code indicating reference to a deprecated lint.
+/// A warning code indicating reference to a deprecated lint.
 ///
 /// Parameters:
 /// String deprecatedRuleName: the deprecated lint name
@@ -3349,7 +3352,7 @@ deprecatedMemberUse = DiagnosticWithArguments(
   correctionMessage:
       "Try replacing the use of the deprecated member with the replacement.",
   hasPublishedDocs: true,
-  type: DiagnosticType.HINT,
+  type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'deprecated_member_use',
   withArguments: _withArgumentsDeprecatedMemberUse,
   expectedTypes: [ExpectedType.string],
@@ -3367,7 +3370,7 @@ deprecatedMemberUseWithMessage = DiagnosticWithArguments(
   correctionMessage:
       "Try replacing the use of the deprecated member with the replacement.",
   hasPublishedDocs: true,
-  type: DiagnosticType.HINT,
+  type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'deprecated_member_use_with_message',
   withArguments: _withArgumentsDeprecatedMemberUseWithMessage,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
@@ -6754,7 +6757,7 @@ importDeferredLibraryWithLoadFunction = DiagnosticWithoutArgumentsImpl(
       "Try changing the import to not be deferred, or rename the function in "
       "the imported library.",
   hasPublishedDocs: true,
-  type: DiagnosticType.HINT,
+  type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'import_deferred_library_with_load_function',
   expectedTypes: [],
 );
@@ -6925,10 +6928,13 @@ incompatibleLint = DiagnosticWithArguments(
 /// The files that enable the referenced rules must be included by context messages.
 ///
 /// Parameters:
-/// String p0: the rule name
-/// String p1: the incompatible rules
+/// String ruleName: the rule name
+/// String incompatibleRules: the incompatible rules
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String ruleName,
+    required String incompatibleRules,
+  })
 >
 incompatibleLintFiles = DiagnosticWithArguments(
   name: 'incompatible_lint',
@@ -6946,16 +6952,17 @@ incompatibleLintFiles = DiagnosticWithArguments(
 /// An error code indicating an incompatible rule.
 ///
 /// Parameters:
-/// String p0: the rule name
-/// String p1: the incompatible rules
-/// int p2: the number of files that include the incompatible rule
-/// String p3: plural suffix for the word "file"
+/// String ruleName: the rule name
+/// String incompatibleRules: the incompatible rules
+/// int numIncludingFiles: the number of files that include the incompatible
+///                        rule
+/// String pluralSuffix: plural suffix for the word "file"
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required int p2,
-    required String p3,
+    required String ruleName,
+    required String incompatibleRules,
+    required int numIncludingFiles,
+    required String pluralSuffix,
   })
 >
 incompatibleLintIncluded = DiagnosticWithArguments(
@@ -7562,10 +7569,13 @@ invalidAnnotationTarget = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the name of the right hand side type
-/// Type p1: the name of the left hand side type
+/// Type actualStaticType: the name of the right hand side type
+/// Type expectedStaticType: the name of the left hand side type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType actualStaticType,
+    required DartType expectedStaticType,
+  })
 >
 invalidAssignment = DiagnosticWithArguments(
   name: 'invalid_assignment',
@@ -10967,9 +10977,9 @@ const DiagnosticWithoutArguments multiplePartOfDirectives =
 /// An error code indicating multiple plugins have been specified as enabled.
 ///
 /// Parameters:
-/// String p0: the name of the first plugin
+/// String firstPluginName: the name of the first plugin
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String firstPluginName})
 >
 multiplePlugins = DiagnosticWithArguments(
   name: 'multiple_plugins',
@@ -14151,20 +14161,20 @@ removedLintUse = DiagnosticWithArguments(
 /// An error code indicating a removed lint rule.
 ///
 /// Parameters:
-/// String p0: the rule name
-/// String p1: the SDK version in which the lint was removed
-/// String p2: the name of a replacing lint
+/// String ruleName: the rule name
+/// String sdkVersion: the SDK version in which the lint was removed
+/// String replacingLintName: the name of a replacing lint
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required String p2,
+    required String ruleName,
+    required String sdkVersion,
+    required String replacingLintName,
   })
 >
 replacedLint = DiagnosticWithArguments(
   name: 'replaced_lint',
   problemMessage: "'{0}' was replaced by '{2}' in Dart '{1}'.",
-  correctionMessage: "Replace '{0}' with '{1}'.",
+  correctionMessage: "Replace '{0}' with '{2}'.",
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'replaced_lint',
   withArguments: _withArgumentsReplacedLint,
@@ -16319,7 +16329,7 @@ unnecessaryImport = DiagnosticWithArguments(
       "also provided by the import of '{1}'.",
   correctionMessage: "Try removing the import directive.",
   hasPublishedDocs: true,
-  type: DiagnosticType.HINT,
+  type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'unnecessary_import',
   withArguments: _withArgumentsUnnecessaryImport,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
@@ -17776,12 +17786,12 @@ LocatableDiagnostic _withArgumentsAnalysisOptionDeprecated({
 }
 
 LocatableDiagnostic _withArgumentsAnalysisOptionDeprecatedWithReplacement({
-  required Object p0,
-  required Object p1,
+  required Object optionName,
+  required Object replacementOptionName,
 }) {
   return LocatableDiagnosticImpl(diag.analysisOptionDeprecatedWithReplacement, [
-    p0,
-    p1,
+    optionName,
+    replacementOptionName,
   ]);
 }
 
@@ -17792,11 +17802,15 @@ LocatableDiagnostic _withArgumentsArgumentMustBeAConstant({
 }
 
 LocatableDiagnostic _withArgumentsArgumentTypeNotAssignable({
-  required DartType p0,
-  required DartType p1,
-  required String p2,
+  required DartType actualStaticType,
+  required DartType expectedStaticType,
+  required String additionalInfo,
 }) {
-  return LocatableDiagnosticImpl(diag.argumentTypeNotAssignable, [p0, p1, p2]);
+  return LocatableDiagnosticImpl(diag.argumentTypeNotAssignable, [
+    actualStaticType,
+    expectedStaticType,
+    additionalInfo,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsArgumentTypeNotAssignableToErrorHandler({
@@ -19046,23 +19060,26 @@ LocatableDiagnostic _withArgumentsIncompatibleLint({
 }
 
 LocatableDiagnostic _withArgumentsIncompatibleLintFiles({
-  required String p0,
-  required String p1,
+  required String ruleName,
+  required String incompatibleRules,
 }) {
-  return LocatableDiagnosticImpl(diag.incompatibleLintFiles, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.incompatibleLintFiles, [
+    ruleName,
+    incompatibleRules,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsIncompatibleLintIncluded({
-  required String p0,
-  required String p1,
-  required int p2,
-  required String p3,
+  required String ruleName,
+  required String incompatibleRules,
+  required int numIncludingFiles,
+  required String pluralSuffix,
 }) {
   return LocatableDiagnosticImpl(diag.incompatibleLintIncluded, [
-    p0,
-    p1,
-    p2,
-    p3,
+    ruleName,
+    incompatibleRules,
+    numIncludingFiles,
+    pluralSuffix,
   ]);
 }
 
@@ -19232,10 +19249,13 @@ LocatableDiagnostic _withArgumentsInvalidAnnotationTarget({
 }
 
 LocatableDiagnostic _withArgumentsInvalidAssignment({
-  required DartType p0,
-  required DartType p1,
+  required DartType actualStaticType,
+  required DartType expectedStaticType,
 }) {
-  return LocatableDiagnosticImpl(diag.invalidAssignment, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.invalidAssignment, [
+    actualStaticType,
+    expectedStaticType,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidCastFunction({
@@ -19842,8 +19862,10 @@ LocatableDiagnostic _withArgumentsMultipleClauses({
   return LocatableDiagnosticImpl(diag.multipleClauses, [string, string2]);
 }
 
-LocatableDiagnostic _withArgumentsMultiplePlugins({required String p0}) {
-  return LocatableDiagnosticImpl(diag.multiplePlugins, [p0]);
+LocatableDiagnostic _withArgumentsMultiplePlugins({
+  required String firstPluginName,
+}) {
+  return LocatableDiagnosticImpl(diag.multiplePlugins, [firstPluginName]);
 }
 
 LocatableDiagnostic _withArgumentsMultipleVariablesInForEach({
@@ -20477,11 +20499,15 @@ LocatableDiagnostic _withArgumentsRemovedLintUse({
 }
 
 LocatableDiagnostic _withArgumentsReplacedLint({
-  required String p0,
-  required String p1,
-  required String p2,
+  required String ruleName,
+  required String sdkVersion,
+  required String replacingLintName,
 }) {
-  return LocatableDiagnosticImpl(diag.replacedLint, [p0, p1, p2]);
+  return LocatableDiagnosticImpl(diag.replacedLint, [
+    ruleName,
+    sdkVersion,
+    replacingLintName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsReplacedLintUse({

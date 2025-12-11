@@ -11313,6 +11313,70 @@ LinterLintCode:
       ```yaml
       repository: https://github.com/dart-lang/example
       ```
+  simplifyVariablePattern:
+    type: lint
+    parameters:
+      String memberName: The redundant member name.
+      String memberType: The type of the matched object. Whether a field, getter, or method.
+    problemMessage: "The #memberType identification '#memberName:' is redundant and can be removed."
+    correctionMessage: "Try removing the redundant #memberType identification."
+    state:
+      stable: "3.11"
+    categories: [style]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a variable pattern includes a
+      redundant type member name.
+
+      #### Example
+
+      The following code produces this diagnostic because the variable pattern
+      includes a redundant getter name:
+
+      ```dart
+      void f(Object o) {
+        if (o case String([!length!]: var length)) {
+          print('string is $length characters long');
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the redundant member name:
+
+      ```dart
+      void f(Object o) {
+        if (o case String(:var length)) {
+          print('string is $length characters long');
+        }
+      }
+      ```
+    deprecatedDetails: |-
+      **AVOID** redundant member names in variable patterns.
+
+      When a variable pattern declares a variable with the same name as a member
+      of the matched type, the member name is redundant and can be omitted.
+
+      **BAD:**
+      ```dart
+      void f(Object o) {
+        if (o case String([!length!]: length)) {
+          print('string is $length characters long');
+        }
+      }
+      ```
+
+      **GOOD:**
+      ```dart
+      void f(Object o) {
+        if (o case String(:var length)) {
+          print('string is $length characters long');
+        }
+      }
+      ```
   sizedBoxForWhitespace:
     type: lint
     parameters: none
