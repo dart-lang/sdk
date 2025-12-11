@@ -11,6 +11,7 @@ import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:_fe_analyzer_shared/src/base/diagnostic_message.dart';
 import 'package:_fe_analyzer_shared/src/base/source.dart';
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
+import 'package:source_span/source_span.dart';
 
 import 'customized_codes.dart';
 
@@ -571,6 +572,10 @@ base mixin DiagnosticWithoutArguments on DiagnosticCodeImpl
       new LocatedDiagnostic(this, offset, length);
 
   @override
+  LocatedDiagnostic atSourceSpan(SourceSpan span) =>
+      atOffset(offset: span.start.offset, length: span.length);
+
+  @override
   LocatableDiagnostic withContextMessages(List<DiagnosticMessage> messages) =>
       new LocatableDiagnosticImpl(code, arguments, contextMessages: messages);
 }
@@ -628,6 +633,12 @@ abstract final class LocatableDiagnostic {
   /// The result may be passed to [DiagnosticReporter.reportError].
   LocatedDiagnostic atOffset({required int offset, required int length});
 
+  /// Converts this diagnostic to a [LocatedDiagnostic] by applying it to a
+  /// location in the source code.
+  ///
+  /// The result may be passed to [DiagnosticReporter.reportError].
+  LocatedDiagnostic atSourceSpan(SourceSpan span);
+
   /// Attaches context messages to this diagnostic.
   ///
   /// The return value is a fresh instance of [LocatableDiagnostic]. This allows
@@ -671,6 +682,10 @@ final class LocatableDiagnosticImpl implements LocatableDiagnostic {
   @override
   LocatedDiagnostic atOffset({required int offset, required int length}) =>
       new LocatedDiagnostic(this, offset, length);
+
+  @override
+  LocatedDiagnostic atSourceSpan(SourceSpan span) =>
+      atOffset(offset: span.start.offset, length: span.length);
 
   @override
   LocatableDiagnostic withContextMessages(List<DiagnosticMessage> messages) =>

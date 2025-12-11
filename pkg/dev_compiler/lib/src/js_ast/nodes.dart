@@ -411,12 +411,18 @@ class Program extends Node {
   // is removed.
   final Identifier? librarySelfVar;
 
+  /// Size in bytes of the Dart source code this JavaScript was compiled from.
+  // TODO(nshahan): Remove nullability after support for multiple module formats
+  // is removed.
+  final int? dartSize;
+
   Program(
     this.body, {
     this.scriptTag,
     this.name,
     this.header = const [],
     this.librarySelfVar,
+    this.dartSize,
   });
 
   @override

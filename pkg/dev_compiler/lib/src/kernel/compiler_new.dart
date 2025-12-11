@@ -196,6 +196,9 @@ class LibraryBundleCompiler implements old.Compiler {
           statements,
           name: _extensionSymbolHolderName,
           librarySelfVar: id,
+          // This construct is synthetic and has no Dart sources to attribute
+          // the size to.
+          dartSize: 0,
         ),
       );
     }
@@ -9993,7 +9996,12 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _moduleItems.clear();
 
     // Build the library.
-    return js_ast.Program(items, name: libraryName, librarySelfVar: libraryId);
+    return js_ast.Program(
+      items,
+      name: libraryName,
+      librarySelfVar: libraryId,
+      dartSize: _currentLibrary!.dartSize,
+    );
   }
 
   /// Flattens blocks in [items] to a single list.

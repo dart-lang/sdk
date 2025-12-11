@@ -4,6 +4,9 @@
 - Require version `0.14.0` of the `analyzer_plugin` package.
 - `PluginRegistry.registerFixForRule` now accepts a `DiagnosticCode` (a
   supertype of the old parameter type, `LintCode`).
+- Fixes can now be suggested and applied in part files. (Thanks @FMorschel)
+- `AnalysisRuleVisitor.afterLibrary` is now properly supported.
+- Various documentation improvements.
 
 ## 0.3.4
 
