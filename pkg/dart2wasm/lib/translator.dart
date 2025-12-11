@@ -1695,10 +1695,13 @@ class Translator with KernelNodes {
         return null;
       }
 
+      final entryReference =
+          getFunctionEntry(member.reference, uncheckedEntry: false);
+
       return SingleClosureTarget._(
         member,
-        paramInfoForDirectCall(member.reference),
-        signatureForDirectCall(member.reference),
+        paramInfoForDirectCall(entryReference),
+        signatureForDirectCall(entryReference),
         null,
       );
     } else {
