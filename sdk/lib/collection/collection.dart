@@ -58,6 +58,7 @@ import 'dart:_internal' hide Symbol;
 import 'dart:math' show Random; // Used by ListMixin.shuffle.
 
 export 'dart:_internal' show DoubleLinkedQueueEntry;
+import 'dart:_internal' show isToStringVisiting, toStringVisiting;
 
 part 'collections.dart';
 part 'hash_map.dart';

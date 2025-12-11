@@ -239,3 +239,7 @@ abstract interface class IsolateGroup {
   static Object _runSync(Object computation) =>
       throw UnsupportedError("_runSync");
 }
+
+final List<Object> _toStringVisiting = [];
+@patch
+List<Object> get toStringVisiting => _toStringVisiting;
