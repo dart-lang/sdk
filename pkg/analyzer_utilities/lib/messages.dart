@@ -438,6 +438,9 @@ class DiagnosticTables {
   final Map<AnalyzerDiagnosticPackage, List<MessageWithAnalyzerCode>>
   activeMessagesByPackage = {};
 
+  final Map<String, MessageWithAnalyzerCode> diagnosticsByAnalyzerUniqueName =
+      {};
+
   DiagnosticTables._(List<Message> messages) {
     var frontEndCodeDuplicateChecker = _DuplicateChecker<DiagnosticCodeName>(
       kind: 'Front end code',
@@ -468,6 +471,7 @@ class DiagnosticTables {
                     .snakeCaseName] ??=
                 [])
             .add(message);
+        diagnosticsByAnalyzerUniqueName[analyzerCode.snakeCaseName] = message;
         var package = message.package;
         var type = message.type;
         if (!package.permittedTypes.contains(type)) {
