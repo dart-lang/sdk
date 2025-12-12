@@ -12,6 +12,9 @@ function_structs_by_value_generated_ret_leaf_test: Pass, Slow # https://dartbug.
 function_structs_by_value_generated_ret_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007
 native_assets/asset_*: Pass, Slow # https://dartbug.com/56330
 
+[ $arch == simarm64_arm64 ]
+function_structs_by_value_generated_args_native_test: Pass, Slow
+
 [ $builder_tag == optimization_counter_threshold ]
 aliasing_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
 function_callbacks_structs_by_value_generated_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
