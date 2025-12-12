@@ -73,14 +73,10 @@ abstract class UnixDomainSocket {
       io.File(path).deleteSync();
     }
 
-    final x = await io.ServerSocket.bind(
+    return await io.ServerSocket.bind(
       io.InternetAddress(path, type: io.InternetAddressType.unix),
       0,
     );
-
-    print('Server listening on $path: $x');
-
-    return x;
   }
 }
 
