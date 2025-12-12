@@ -2855,10 +2855,10 @@ CompileTimeErrorCode:
   concreteClassWithAbstractMember:
     type: compileTimeError
     parameters:
-      String p0: the name of the abstract method
-      String p1: the name of the enclosing class
-    problemMessage: "'#p0' must have a method body because '#p1' isn't abstract."
-    correctionMessage: "Try making '#p1' abstract, or adding a body to '#p0'."
+      String methodName: the name of the abstract method
+      String enclosingClass: the name of the enclosing class
+    problemMessage: "'#methodName' must have a method body because '#enclosingClass' isn't abstract."
+    correctionMessage: "Try making '#enclosingClass' abstract, or adding a body to '#methodName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -5401,10 +5401,10 @@ CompileTimeErrorCode:
   enumWithAbstractMember:
     type: compileTimeError
     parameters:
-      String p0: the name of the abstract method
-      String p1: the name of the enclosing enum
-    problemMessage: "'#p0' must have a method body because '#p1' is an enum."
-    correctionMessage: "Try adding a body to '#p0'."
+      String methodName: the name of the abstract method
+      String enclosingClass: the name of the enclosing enum
+    problemMessage: "'#methodName' must have a method body because '#enclosingClass' is an enum."
+    correctionMessage: "Try adding a body to '#methodName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description

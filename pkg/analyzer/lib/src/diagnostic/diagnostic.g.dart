@@ -1558,10 +1558,13 @@ const DiagnosticWithoutArguments concreteClassHasEnumSuperinterface =
     );
 
 /// Parameters:
-/// String p0: the name of the abstract method
-/// String p1: the name of the enclosing class
+/// String methodName: the name of the abstract method
+/// String enclosingClass: the name of the enclosing class
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String methodName,
+    required String enclosingClass,
+  })
 >
 concreteClassWithAbstractMember = DiagnosticWithArguments(
   name: 'concrete_class_with_abstract_member',
@@ -4253,10 +4256,13 @@ const DiagnosticWithoutArguments enumMixinWithInstanceVariable =
     );
 
 /// Parameters:
-/// String p0: the name of the abstract method
-/// String p1: the name of the enclosing enum
+/// String methodName: the name of the abstract method
+/// String enclosingClass: the name of the enclosing enum
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String methodName,
+    required String enclosingClass,
+  })
 >
 enumWithAbstractMember = DiagnosticWithArguments(
   name: 'enum_with_abstract_member',
@@ -18075,12 +18081,12 @@ LocatableDiagnostic _withArgumentsCompoundImplementsFinalizable({
 }
 
 LocatableDiagnostic _withArgumentsConcreteClassWithAbstractMember({
-  required String p0,
-  required String p1,
+  required String methodName,
+  required String enclosingClass,
 }) {
   return LocatableDiagnosticImpl(diag.concreteClassWithAbstractMember, [
-    p0,
-    p1,
+    methodName,
+    enclosingClass,
   ]);
 }
 
@@ -18635,10 +18641,13 @@ LocatableDiagnostic _withArgumentsEmptyStruct({
 }
 
 LocatableDiagnostic _withArgumentsEnumWithAbstractMember({
-  required String p0,
-  required String p1,
+  required String methodName,
+  required String enclosingClass,
 }) {
-  return LocatableDiagnosticImpl(diag.enumWithAbstractMember, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.enumWithAbstractMember, [
+    methodName,
+    enclosingClass,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsExpectedInstead({required String string}) {
