@@ -190,7 +190,13 @@ const char* StackFrame::ToCString() const {
         start = bytecode.PayloadStart();
       }
     }
+#else
+    UNREACHABLE();
 #endif  // defined(DART_DYNAMIC_MODULES)
+  } else if (IsEntryFrame()) {
+    name = "[Stub] Entry frame";
+  } else if (IsExitFrame()) {
+    name = "[Stub] Exit frame";
   } else {
     const Code& code = Code::Handle(zone, GetCodeObject());
     if (code.IsNull()) {
