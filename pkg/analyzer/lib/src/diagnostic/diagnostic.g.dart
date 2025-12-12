@@ -1338,10 +1338,13 @@ caseExpressionTypeImplementsEquals = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the type of the case expression
-/// Type p1: the type of the switch expression
+/// Type caseExpressionType: the type of the case expression
+/// Type scrutineeType: the type of the switch expression
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType caseExpressionType,
+    required DartType scrutineeType,
+  })
 >
 caseExpressionTypeIsNotSwitchExpressionSubtype = DiagnosticWithArguments(
   name: 'case_expression_type_is_not_switch_expression_subtype',
@@ -6148,11 +6151,14 @@ forInOfInvalidElementType = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the type of the iterable expression.
-/// String p1: the sequence type -- Iterable for `for` or Stream for `await
-///            for`.
+/// Type expressionType: the type of the iterable expression.
+/// String expectedType: the sequence type -- Iterable for `for` or Stream for
+///                      `await for`.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required String p1})
+  LocatableDiagnostic Function({
+    required DartType expressionType,
+    required String expectedType,
+  })
 >
 forInOfInvalidType = DiagnosticWithArguments(
   name: 'for_in_of_invalid_type',
@@ -7087,9 +7093,9 @@ const DiagnosticWithoutArguments inconsistentLanguageVersionOverride =
     );
 
 /// Parameters:
-/// String p0: the name of the pattern variable
+/// String name: the name of the pattern variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 inconsistentPatternVariableLogicalOr = DiagnosticWithArguments(
   name: 'inconsistent_pattern_variable_logical_or',
@@ -13190,10 +13196,13 @@ patternNeverMatchesValueType = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the matched type
-/// Type p1: the required type
+/// Type matchedType: the matched type
+/// Type requiredType: the required type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType matchedType,
+    required DartType requiredType,
+  })
 >
 patternTypeMismatchInIrrefutableContext = DiagnosticWithArguments(
   name: 'pattern_type_mismatch_in_irrefutable_context',
@@ -14090,14 +14099,14 @@ refutablePatternInIrrefutableContext = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Type p0: the operand type
-/// Type p1: the parameter type of the invoked operator
-/// String p2: the name of the invoked operator
+/// Type operandType: the operand type
+/// Type parameterType: the parameter type of the invoked operator
+/// String operator: the name of the invoked operator
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required DartType p0,
-    required DartType p1,
-    required String p2,
+    required DartType operandType,
+    required DartType parameterType,
+    required String operator,
   })
 >
 relationalPatternOperandTypeNotAssignable = DiagnosticWithArguments(
@@ -18007,12 +18016,12 @@ LocatableDiagnostic _withArgumentsCaseExpressionTypeImplementsEquals({
 
 LocatableDiagnostic
 _withArgumentsCaseExpressionTypeIsNotSwitchExpressionSubtype({
-  required DartType p0,
-  required DartType p1,
+  required DartType caseExpressionType,
+  required DartType scrutineeType,
 }) {
   return LocatableDiagnosticImpl(
     diag.caseExpressionTypeIsNotSwitchExpressionSubtype,
-    [p0, p1],
+    [caseExpressionType, scrutineeType],
   );
 }
 
@@ -18921,10 +18930,13 @@ LocatableDiagnostic _withArgumentsForInOfInvalidElementType({
 }
 
 LocatableDiagnostic _withArgumentsForInOfInvalidType({
-  required DartType p0,
-  required String p1,
+  required DartType expressionType,
+  required String expectedType,
 }) {
-  return LocatableDiagnosticImpl(diag.forInOfInvalidType, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.forInOfInvalidType, [
+    expressionType,
+    expectedType,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsGenericStructSubclass({
@@ -19140,10 +19152,10 @@ LocatableDiagnostic _withArgumentsInconsistentInheritanceGetterAndMethod({
 }
 
 LocatableDiagnostic _withArgumentsInconsistentPatternVariableLogicalOr({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(diag.inconsistentPatternVariableLogicalOr, [
-    p0,
+    name,
   ]);
 }
 
@@ -20299,12 +20311,12 @@ LocatableDiagnostic _withArgumentsPatternNeverMatchesValueType({
 }
 
 LocatableDiagnostic _withArgumentsPatternTypeMismatchInIrrefutableContext({
-  required DartType p0,
-  required DartType p1,
+  required DartType matchedType,
+  required DartType requiredType,
 }) {
   return LocatableDiagnosticImpl(diag.patternTypeMismatchInIrrefutableContext, [
-    p0,
-    p1,
+    matchedType,
+    requiredType,
   ]);
 }
 
@@ -20501,13 +20513,13 @@ LocatableDiagnostic _withArgumentsReferencedBeforeDeclaration({
 }
 
 LocatableDiagnostic _withArgumentsRelationalPatternOperandTypeNotAssignable({
-  required DartType p0,
-  required DartType p1,
-  required String p2,
+  required DartType operandType,
+  required DartType parameterType,
+  required String operator,
 }) {
   return LocatableDiagnosticImpl(
     diag.relationalPatternOperandTypeNotAssignable,
-    [p0, p1, p2],
+    [operandType, parameterType, operator],
   );
 }
 

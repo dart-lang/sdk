@@ -2432,9 +2432,9 @@ CompileTimeErrorCode:
   caseExpressionTypeIsNotSwitchExpressionSubtype:
     type: compileTimeError
     parameters:
-      Type p0: the type of the case expression
-      Type p1: the type of the switch expression
-    problemMessage: "The switch case expression type '#p0' must be a subtype of the switch expression type '#p1'."
+      Type caseExpressionType: the type of the case expression
+      Type scrutineeType: the type of the switch expression
+    problemMessage: "The switch case expression type '#caseExpressionType' must be a subtype of the switch expression type '#scrutineeType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -7601,9 +7601,9 @@ CompileTimeErrorCode:
   forInOfInvalidType:
     type: compileTimeError
     parameters:
-      Type p0: the type of the iterable expression.
-      String p1: the sequence type -- Iterable for `for` or Stream for `await for`.
-    problemMessage: "The type '#p0' used in the 'for' loop must implement '#p1'."
+      Type expressionType: the type of the iterable expression.
+      String expectedType: the sequence type -- Iterable for `for` or Stream for `await for`.
+    problemMessage: "The type '#expressionType' used in the 'for' loop must implement '#expectedType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -8510,8 +8510,8 @@ CompileTimeErrorCode:
   inconsistentPatternVariableLogicalOr:
     type: compileTimeError
     parameters:
-      String p0: the name of the pattern variable
-    problemMessage: "The variable '#p0' has a different type and/or finality in this branch of the logical-or pattern."
+      String name: the name of the pattern variable
+    problemMessage: "The variable '#name' has a different type and/or finality in this branch of the logical-or pattern."
     correctionMessage: Try declaring the variable pattern with the same type and finality in both branches.
     hasPublishedDocs: true
     documentation: |-
@@ -14402,9 +14402,9 @@ CompileTimeErrorCode:
   patternTypeMismatchInIrrefutableContext:
     type: compileTimeError
     parameters:
-      Type p0: the matched type
-      Type p1: the required type
-    problemMessage: "The matched value of type '#p0' isn't assignable to the required type '#p1'."
+      Type matchedType: the matched type
+      Type requiredType: the required type
+    problemMessage: "The matched value of type '#matchedType' isn't assignable to the required type '#requiredType'."
     correctionMessage: "Try changing the required type of the pattern, or the matched value type."
     hasPublishedDocs: true
     documentation: |-
@@ -15870,10 +15870,10 @@ CompileTimeErrorCode:
   relationalPatternOperandTypeNotAssignable:
     type: compileTimeError
     parameters:
-      Type p0: the operand type
-      Type p1: the parameter type of the invoked operator
-      String p2: the name of the invoked operator
-    problemMessage: "The constant expression type '#p0' is not assignable to the parameter type '#p1' of the '#p2' operator."
+      Type operandType: the operand type
+      Type parameterType: the parameter type of the invoked operator
+      String operator: the name of the invoked operator
+    problemMessage: "The constant expression type '#operandType' is not assignable to the parameter type '#parameterType' of the '#operator' operator."
     hasPublishedDocs: true
     documentation: |-
       #### Description

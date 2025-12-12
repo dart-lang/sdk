@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/listener.dart';
@@ -42,10 +43,13 @@ class SharedTypeAnalyzerErrors
     required SharedTypeView scrutineeType,
     required SharedTypeView caseExpressionType,
   }) {
-    _diagnosticReporter.atNode(
-      caseExpression,
-      diag.caseExpressionTypeIsNotSwitchExpressionSubtype,
-      arguments: [caseExpressionType, scrutineeType],
+    _diagnosticReporter.report(
+      diag.caseExpressionTypeIsNotSwitchExpressionSubtype
+          .withArguments(
+            caseExpressionType: caseExpressionType.unwrapTypeView<TypeImpl>(),
+            scrutineeType: scrutineeType.unwrapTypeView<TypeImpl>(),
+          )
+          .at(caseExpression),
     );
   }
 
@@ -110,10 +114,14 @@ class SharedTypeAnalyzerErrors
     required PromotableElementImpl variable,
     required PromotableElementImpl component,
   }) {
-    _diagnosticReporter.atElement2(
-      component,
-      diag.inconsistentPatternVariableLogicalOr,
-      arguments: [variable.name!],
+    // Local variables are never synthetic.
+    assert(identical(component.nonSynthetic, component));
+    var offset = component.firstFragment.nameOffset ?? 0;
+    var length = component.name?.length ?? 1;
+    _diagnosticReporter.report(
+      diag.inconsistentPatternVariableLogicalOr
+          .withArguments(name: variable.name!)
+          .atOffset(offset: offset, length: length),
     );
   }
 
@@ -155,10 +163,13 @@ class SharedTypeAnalyzerErrors
     required Expression expression,
     required SharedTypeView expressionType,
   }) {
-    _diagnosticReporter.atNode(
-      expression,
-      diag.forInOfInvalidType,
-      arguments: [expressionType, 'Iterable'],
+    _diagnosticReporter.report(
+      diag.forInOfInvalidType
+          .withArguments(
+            expressionType: expressionType.unwrapTypeView<TypeImpl>(),
+            expectedType: 'Iterable',
+          )
+          .at(expression),
     );
   }
 
@@ -169,10 +180,13 @@ class SharedTypeAnalyzerErrors
     required SharedTypeView matchedType,
     required SharedTypeView requiredType,
   }) {
-    _diagnosticReporter.atNode(
-      pattern,
-      diag.patternTypeMismatchInIrrefutableContext,
-      arguments: [matchedType, requiredType],
+    _diagnosticReporter.report(
+      diag.patternTypeMismatchInIrrefutableContext
+          .withArguments(
+            matchedType: matchedType.unwrapTypeView<TypeImpl>(),
+            requiredType: requiredType.unwrapTypeView<TypeImpl>(),
+          )
+          .at(pattern),
     );
   }
 
@@ -192,10 +206,14 @@ class SharedTypeAnalyzerErrors
     required SharedTypeView operandType,
     required SharedTypeView parameterType,
   }) {
-    _diagnosticReporter.atNode(
-      pattern.operand,
-      diag.relationalPatternOperandTypeNotAssignable,
-      arguments: [operandType, parameterType, pattern.operator.lexeme],
+    _diagnosticReporter.report(
+      diag.relationalPatternOperandTypeNotAssignable
+          .withArguments(
+            operandType: operandType.unwrapTypeView<TypeImpl>(),
+            parameterType: parameterType.unwrapTypeView<TypeImpl>(),
+            operator: pattern.operator.lexeme,
+          )
+          .at(pattern.operand),
     );
   }
 
