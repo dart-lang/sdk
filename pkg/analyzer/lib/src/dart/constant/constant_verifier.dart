@@ -1092,10 +1092,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       if (!featureSet.isEnabled(Feature.patterns)) {
         var expressionType = expressionValue.type;
         if (!expressionValue.hasPrimitiveEquality(featureSet)) {
-          _diagnosticReporter.atNode(
-            expression,
-            diag.caseExpressionTypeImplementsEquals,
-            arguments: [expressionType],
+          _diagnosticReporter.report(
+            diag.caseExpressionTypeImplementsEquals
+                .withArguments(type: expressionType)
+                .at(expression),
           );
         }
       }

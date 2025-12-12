@@ -1000,10 +1000,10 @@ CompileTimeErrorCode:
   ambiguousExport:
     type: compileTimeError
     parameters:
-      String p0: the name of the ambiguous element
-      Uri p1: the name of the first library in which the type is found
-      Uri p2: the name of the second library in which the type is found
-    problemMessage: "The name '#p0' is defined in the libraries '#p1' and '#p2'."
+      String name: the name of the ambiguous element
+      Uri firstUri: the name of the first library in which the type is found
+      Uri secondUri: the name of the second library in which the type is found
+    problemMessage: "The name '#name' is defined in the libraries '#firstUri' and '#secondUri'."
     correctionMessage: Try removing the export of one of the libraries, or explicitly hiding the name in one of the export directives.
     hasPublishedDocs: true
     documentation: |-
@@ -1055,11 +1055,11 @@ CompileTimeErrorCode:
   ambiguousExtensionMemberAccessTwo:
     type: compileTimeError
     parameters:
-      String p0: the name of the member
-      Element p1: the name of the first declaring extension
-      Element p2: the names of the second declaring extension
+      String name: the name of the member
+      Element firstExtension: the name of the first declaring extension
+      Element secondExtension: the names of the second declaring extension
     sharedName: ambiguousExtensionMemberAccess
-    problemMessage: "A member named '#p0' is defined in '#p1' and '#p2', and neither is more specific."
+    problemMessage: "A member named '#name' is defined in '#firstExtension' and '#secondExtension', and neither is more specific."
     correctionMessage: Try using an extension override to specify the extension you want to be chosen.
     hasPublishedDocs: true
     documentation: |-
@@ -1120,18 +1120,18 @@ CompileTimeErrorCode:
   ambiguousExtensionMemberAccessThreeOrMore:
     type: compileTimeError
     parameters:
-      String p0: the name of the member
-      String p1: the names of the declaring extensions
+      String name: the name of the member
+      String extensions: the names of the declaring extensions
     sharedName: ambiguousExtensionMemberAccess
-    problemMessage: "A member named '#p0' is defined in #p1, and none are more specific."
+    problemMessage: "A member named '#name' is defined in #extensions, and none are more specific."
     correctionMessage: Try using an extension override to specify the extension you want to be chosen.
     hasPublishedDocs: true
   ambiguousImport:
     type: compileTimeError
     parameters:
-      String p0: the name of the ambiguous type
-      String p1: the names of the libraries that the type is found
-    problemMessage: "The name '#p0' is defined in the libraries #p1."
+      String name: the name of the ambiguous type
+      String libraries: the names of the libraries that the type is found
+    problemMessage: "The name '#name' is defined in the libraries #libraries."
     correctionMessage: "Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports."
     hasPublishedDocs: true
     documentation: |-
@@ -1489,9 +1489,9 @@ CompileTimeErrorCode:
   assignmentToFinal:
     type: compileTimeError
     parameters:
-      String p0: the name of the final variable
-    problemMessage: "'#p0' can't be used as a setter because it's final."
-    correctionMessage: "Try finding a different setter, or making '#p0' non-final."
+      String variableName: the name of the final variable
+    problemMessage: "'#variableName' can't be used as a setter because it's final."
+    correctionMessage: "Try finding a different setter, or making '#variableName' non-final."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1531,9 +1531,9 @@ CompileTimeErrorCode:
   assignmentToFinalLocal:
     type: compileTimeError
     parameters:
-      String p0: the name of the variable
-    problemMessage: "The final variable '#p0' can only be set once."
-    correctionMessage: "Try making '#p0' non-final."
+      String variableName: the name of the variable
+    problemMessage: "The final variable '#variableName' can only be set once."
+    correctionMessage: "Try making '#variableName' non-final."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1569,9 +1569,9 @@ CompileTimeErrorCode:
   assignmentToFinalNoSetter:
     type: compileTimeError
     parameters:
-      String p0: the name of the reference
-      String p1: the name of the class
-    problemMessage: "There isn't a setter named '#p0' in class '#p1'."
+      String variableName: the name of the reference
+      String className: the name of the class
+    problemMessage: "There isn't a setter named '#variableName' in class '#className'."
     correctionMessage: Try correcting the name to reference an existing setter, or declare the setter.
     hasPublishedDocs: true
     documentation: |-
@@ -1810,26 +1810,26 @@ CompileTimeErrorCode:
   augmentationModifierExtra:
     type: compileTimeError
     parameters:
-      Object p0: the lexeme of the modifier.
+      Object modifier: the lexeme of the modifier.
     experiment: augmentations
-    problemMessage: The augmentation has the '#p0' modifier that the declaration doesn't have.
-    correctionMessage: Try removing the '#p0' modifier, or adding it to the declaration.
+    problemMessage: The augmentation has the '#modifier' modifier that the declaration doesn't have.
+    correctionMessage: Try removing the '#modifier' modifier, or adding it to the declaration.
     hasPublishedDocs: false
   augmentationModifierMissing:
     type: compileTimeError
     parameters:
-      Object p0: the lexeme of the modifier.
+      Object modifier: the lexeme of the modifier.
     experiment: augmentations
-    problemMessage: The augmentation is missing the '#p0' modifier that the declaration has.
-    correctionMessage: Try adding the '#p0' modifier, or removing it from the declaration.
+    problemMessage: The augmentation is missing the '#modifier' modifier that the declaration has.
+    correctionMessage: Try adding the '#modifier' modifier, or removing it from the declaration.
     hasPublishedDocs: false
   augmentationOfDifferentDeclarationKind:
     type: compileTimeError
     parameters:
-      Object p0: the name of the declaration kind.
-      Object p1: the name of the augmentation kind.
+      Object declarationKind: the name of the declaration kind.
+      Object augmentationKind: the name of the augmentation kind.
     experiment: augmentations
-    problemMessage: "Can't augment a #p0 with a #p1."
+    problemMessage: "Can't augment a #declarationKind with a #augmentationKind."
     correctionMessage: Try changing the augmentation to match the declaration kind.
     hasPublishedDocs: false
   augmentationTypeParameterBound:
@@ -1877,9 +1877,9 @@ CompileTimeErrorCode:
   augmentedExpressionNotOperator:
     type: compileTimeError
     parameters:
-      Object p0: the lexeme of the operator.
+      Object operator: the lexeme of the operator.
     experiment: augmentations
-    problemMessage: The enclosing augmentation doesn't augment the operator '#p0'.
+    problemMessage: The enclosing augmentation doesn't augment the operator '#operator'.
     correctionMessage: Try augmenting or invoking the correct operator.
     hasPublishedDocs: false
   awaitInLateLocalVariableInitializer:
@@ -2185,8 +2185,8 @@ CompileTimeErrorCode:
   builtInIdentifierAsType:
     type: compileTimeError
     parameters:
-      String p0: the built-in identifier that is being used
-    problemMessage: The built-in identifier '#p0' can't be used as a type.
+      String token: the built-in identifier that is being used
+    problemMessage: The built-in identifier '#token' can't be used as a type.
     correctionMessage: Try correcting the name to match an existing type.
     hasPublishedDocs: true
     documentation: |-
@@ -2329,8 +2329,8 @@ CompileTimeErrorCode:
   caseExpressionTypeImplementsEquals:
     type: compileTimeError
     parameters:
-      Type p0: the this of the switch case expression
-    problemMessage: "The switch case expression type '#p0' can't override the '==' operator."
+      Type type: the type of the switch case expression
+    problemMessage: "The switch case expression type '#type' can't override the '==' operator."
     hasPublishedDocs: true
     documentation: |-
       #### Description

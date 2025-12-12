@@ -127,32 +127,32 @@ class ExtensionMemberResolver {
 
     // The most specific extension is ambiguous.
     if (mostSpecific.length == 2) {
-      _diagnosticReporter.atEntity(
-        nameEntity,
-        diag.ambiguousExtensionMemberAccessTwo,
-        arguments: [
-          name.name,
-          mostSpecific[0].extension,
-          mostSpecific[1].extension,
-        ],
+      _diagnosticReporter.report(
+        diag.ambiguousExtensionMemberAccessTwo
+            .withArguments(
+              name: name.name,
+              firstExtension: mostSpecific[0].extension,
+              secondExtension: mostSpecific[1].extension,
+            )
+            .at(nameEntity),
       );
     } else {
       var extensions = mostSpecific.map((e) => e.extension).toList();
-      _diagnosticReporter.atEntity(
-        nameEntity,
-        diag.ambiguousExtensionMemberAccessThreeOrMore,
-        arguments: [
-          name.name,
-          mostSpecific.map((e) {
-            var name = e.extension.name;
-            if (name != null) {
-              return "extension '$name'";
-            }
-            var type = e.extendedType.getDisplayString();
-            return "unnamed extension on '$type'";
-          }).commaSeparatedWithAnd,
-        ],
-        contextMessages: convertTypeNames(<Object>[...extensions]),
+      _diagnosticReporter.report(
+        diag.ambiguousExtensionMemberAccessThreeOrMore
+            .withArguments(
+              name: name.name,
+              extensions: mostSpecific.map((e) {
+                var name = e.extension.name;
+                if (name != null) {
+                  return "extension '$name'";
+                }
+                var type = e.extendedType.getDisplayString();
+                return "unnamed extension on '$type'";
+              }).commaSeparatedWithAnd,
+            )
+            .withContextMessages(convertTypeNames(<Object>[...extensions]))
+            .at(nameEntity),
       );
     }
     return ExtensionResolutionError.ambiguous;

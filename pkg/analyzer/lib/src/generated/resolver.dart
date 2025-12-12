@@ -1393,10 +1393,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
       } else {
         if (!flow.isUnassigned(element)) {
-          diagnosticReporter.atToken(
-            node.name,
-            diag.assignmentToFinalLocal,
-            arguments: [node.name.lexeme],
+          diagnosticReporter.report(
+            diag.assignmentToFinalLocal
+                .withArguments(variableName: node.name.lexeme)
+                .at(node.name),
           );
         }
       }

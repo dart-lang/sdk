@@ -51,11 +51,10 @@ class FastaErrorReporter {
         );
         return;
       case PseudoSharedCode.builtInIdentifierAsType:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.builtInIdentifierAsType,
-          arguments: [lexeme()],
+        diagnosticReporter?.report(
+          diag.builtInIdentifierAsType
+              .withArguments(token: lexeme())
+              .atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.constConstructorWithBody:

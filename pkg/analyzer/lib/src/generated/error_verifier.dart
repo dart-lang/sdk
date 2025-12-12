@@ -1951,10 +1951,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var element = definedNames[name]!;
       var prevElement = libraryContext._exportedElements[name];
       if (prevElement != null && prevElement != element) {
-        diagnosticReporter.atNode(
-          directive.uri,
-          diag.ambiguousExport,
-          arguments: [name, prevElement.library!.uri, element.library!.uri],
+        diagnosticReporter.report(
+          diag.ambiguousExport
+              .withArguments(
+                name: name,
+                firstUri: prevElement.library!.uri,
+                secondUri: element.library!.uri,
+              )
+              .at(directive.uri),
         );
         return;
       } else {
@@ -1977,10 +1981,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         growable: false,
       );
       libraryNames.sort();
-      diagnosticReporter.atToken(
-        name,
-        diag.ambiguousImport,
-        arguments: [name.lexeme, libraryNames.quotedAndCommaSeparatedWithAnd],
+      diagnosticReporter.report(
+        diag.ambiguousImport
+            .withArguments(
+              name: name.lexeme,
+              libraries: libraryNames.quotedAndCommaSeparatedWithAnd,
+            )
+            .at(name),
       );
     }
   }
@@ -2016,16 +2023,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (variable.isConst) {
         diagnosticReporter.report(diag.assignmentToConst.at(expression));
       } else if (variable is FieldElement && variable.isOriginGetterSetter) {
-        diagnosticReporter.atNode(
-          highlightedNode,
-          diag.assignmentToFinalNoSetter,
-          arguments: [variable.name!, variable.enclosingElement.displayName],
+        diagnosticReporter.report(
+          diag.assignmentToFinalNoSetter
+              .withArguments(
+                variableName: variable.name!,
+                className: variable.enclosingElement.displayName,
+              )
+              .at(highlightedNode),
         );
       } else {
-        diagnosticReporter.atNode(
-          highlightedNode,
-          diag.assignmentToFinal,
-          arguments: [variable.name!],
+        diagnosticReporter.report(
+          diag.assignmentToFinal
+              .withArguments(variableName: variable.name!)
+              .at(highlightedNode),
         );
       }
     } else if (element is LocalFunctionElement ||

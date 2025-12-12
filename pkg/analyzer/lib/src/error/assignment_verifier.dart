@@ -70,16 +70,19 @@ class AssignmentVerifier {
       if (variable.isConst) {
         _diagnosticReporter.report(diag.assignmentToConst.at(node));
       } else if (variable is FieldElement && variable.isOriginGetterSetter) {
-        _diagnosticReporter.atNode(
-          node,
-          diag.assignmentToFinalNoSetter,
-          arguments: [variableName, variable.enclosingElement.displayName],
+        _diagnosticReporter.report(
+          diag.assignmentToFinalNoSetter
+              .withArguments(
+                variableName: variableName,
+                className: variable.enclosingElement.displayName,
+              )
+              .at(node),
         );
       } else {
-        _diagnosticReporter.atNode(
-          node,
-          diag.assignmentToFinal,
-          arguments: [variableName],
+        _diagnosticReporter.report(
+          diag.assignmentToFinal
+              .withArguments(variableName: variableName)
+              .at(node),
         );
       }
     } else if (recovery is MultiplyDefinedElementImpl) {
