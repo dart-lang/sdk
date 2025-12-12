@@ -2958,10 +2958,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     String loopNamedType = awaitKeyword != null ? 'Stream' : 'Iterable';
 
     if (iterableType is DynamicType && strictCasts) {
-      diagnosticReporter.atNode(
-        node.iterable,
-        diag.forInOfInvalidType,
-        arguments: [iterableType, loopNamedType],
+      diagnosticReporter.report(
+        diag.forInOfInvalidType
+            .withArguments(
+              expressionType: iterableType,
+              expectedType: loopNamedType,
+            )
+            .at(node.iterable),
       );
       return false;
     }
@@ -2997,10 +3000,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       requiredSequenceType,
       strictCasts: strictCasts,
     )) {
-      diagnosticReporter.atNode(
-        node.iterable,
-        diag.forInOfInvalidType,
-        arguments: [iterableType, loopNamedType],
+      diagnosticReporter.report(
+        diag.forInOfInvalidType
+            .withArguments(
+              expressionType: iterableType,
+              expectedType: loopNamedType,
+            )
+            .at(node.iterable),
       );
       return false;
     }

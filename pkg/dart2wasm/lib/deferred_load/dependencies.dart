@@ -2,14 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/library_index.dart';
 
 import '../modules.dart';
+import 'devirtualization_oracle.dart';
 
 class DependenciesCollector {
   final CoreTypes _coreTypes;
+  final ClosedWorldClassHierarchy _classHierarchy;
+  final DevirtualizionOracle _devirtualizionOracle;
   final DeferredModuleLoadingMap _loadingMap;
 
   late final _checkLibraryIsLoadedFromLoadId = _coreTypes.index.getProcedure(
@@ -17,7 +21,8 @@ class DependenciesCollector {
       LibraryIndex.topLevel,
       'checkLibraryIsLoadedFromLoadId');
 
-  DependenciesCollector(this._coreTypes, this._loadingMap);
+  DependenciesCollector(this._coreTypes, this._classHierarchy,
+      this._devirtualizionOracle, this._loadingMap);
 
   /// Returns the set of constants referred to by the (possibly composed)
   /// [constant].
@@ -38,7 +43,11 @@ class DependenciesCollector {
     }
 
     final collector = _ReferenceDependenciesCollector._(
-        _recognizeDeferredLoadingGuard, reference, deps);
+        _recognizeDeferredLoadingGuard,
+        _classHierarchy,
+        _devirtualizionOracle,
+        reference,
+        deps);
     if (node is Procedure) {
       node.accept(collector);
       return deps;
@@ -90,8 +99,7 @@ class DependenciesCollector {
     return null;
   }
 
-  static void _enqueueInstanceMembers(
-      Class klass, DirectReferenceDependencies deps) {
+  void _enqueueInstanceMembers(Class klass, DirectReferenceDependencies deps) {
     final superReference = klass.superclass?.reference;
     if (superReference != null) {
       deps.references.add(superReference);
@@ -99,10 +107,23 @@ class DependenciesCollector {
     for (final m in klass.members) {
       if (m.isInstanceMember) {
         if (m is Field) {
-          deps.references.add(m.fieldReference);
+          if (!_devirtualizionOracle
+              .isAlwaysStaticallyDispatchedTo(m.getterReference)) {
+            deps.references.add(m.getterReference);
+          }
+          if (m.hasSetter) {
+            if (!_devirtualizionOracle
+                .isAlwaysStaticallyDispatchedTo(m.setterReference!)) {
+              deps.references.add(m.setterReference!);
+            }
+          }
           continue;
         }
-        deps.references.add(m.reference);
+        assert(m is Procedure);
+        if (!_devirtualizionOracle
+            .isAlwaysStaticallyDispatchedTo(m.reference)) {
+          deps.references.add(m.reference);
+        }
       }
     }
   }
@@ -120,13 +141,19 @@ class _ConstantDependenciesCollector extends RecursiveVisitor {
 
 class _ReferenceDependenciesCollector extends RecursiveVisitor {
   final LibraryDependency? Function(Let node) recognizeDeferredLoadingGuard;
+  final DevirtualizionOracle _devirtualizionOracle;
+  final ClosedWorldClassHierarchy _classHierarchy;
 
   final Reference reference;
   final DirectReferenceDependencies deps;
   final List<LibraryDependency> _activeLoadGuards = [];
 
   _ReferenceDependenciesCollector._(
-      this.recognizeDeferredLoadingGuard, this.reference, this.deps);
+      this.recognizeDeferredLoadingGuard,
+      this._classHierarchy,
+      this._devirtualizionOracle,
+      this.reference,
+      this.deps);
 
   @override
   void visitLet(Let node) {
@@ -141,6 +168,42 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
       final last = _activeLoadGuards.removeLast();
       assert(guard == last);
     }
+  }
+
+  @override
+  void visitSuperPropertyGet(SuperPropertyGet node) {
+    _addSuperTargetReference(node.interfaceTarget, setter: false);
+  }
+
+  @override
+  void visitSuperPropertySet(SuperPropertySet node) {
+    _addSuperTargetReference(node.interfaceTarget, setter: true);
+  }
+
+  @override
+  void visitSuperMethodInvocation(SuperMethodInvocation node) {
+    _addSuperTargetReference(node.interfaceTarget, setter: false);
+  }
+
+  @override
+  void visitInstanceGet(InstanceGet node) {
+    super.visitInstanceGet(node);
+    final target = _devirtualizionOracle.staticDispatchTargetForGet(node);
+    if (target != null) addReference(target);
+  }
+
+  @override
+  void visitInstanceSet(InstanceSet node) {
+    super.visitInstanceSet(node);
+    final target = _devirtualizionOracle.staticDispatchTargetForSet(node);
+    if (target != null) addReference(target);
+  }
+
+  @override
+  void visitInstanceInvocation(InstanceInvocation node) {
+    super.visitInstanceInvocation(node);
+    final target = _devirtualizionOracle.staticDispatchTargetForCall(node);
+    if (target != null) addReference(target);
   }
 
   @override
@@ -254,6 +317,19 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
         return;
       }
       deps.deferredConstants[used] = {_activeLoadGuards.last};
+    }
+  }
+
+  void _addSuperTargetReference(Member interfaceTarget,
+      {required bool setter}) {
+    final member = _classHierarchy.getDispatchTarget(
+        (reference.asMember).enclosingClass!.superclass!, interfaceTarget.name,
+        setter: setter)!;
+    if (setter) {
+      addReference(
+          member is Field ? member.setterReference! : member.reference);
+    } else {
+      addReference(member is Field ? member.getterReference : member.reference);
     }
   }
 }

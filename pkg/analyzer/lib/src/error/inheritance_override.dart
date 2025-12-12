@@ -743,12 +743,15 @@ class _ClassVerifier {
       String displayName,
     ) {
       if (memberName == name) {
-        reporter.atNode(
-          member,
-          classElement is EnumElement
-              ? diag.enumWithAbstractMember
-              : diag.concreteClassWithAbstractMember,
-          arguments: [displayName, classElement.name ?? ''],
+        reporter.report(
+          (classElement is EnumElement
+                  ? diag.enumWithAbstractMember
+                  : diag.concreteClassWithAbstractMember)
+              .withArguments(
+                methodName: displayName,
+                enclosingClass: classElement.name ?? '',
+              )
+              .at(member),
         );
         return true;
       } else {

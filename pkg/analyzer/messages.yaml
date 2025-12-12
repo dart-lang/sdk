@@ -262,7 +262,7 @@ AnalysisOptionsWarningCode:
           - annotate_overrides
       ```
     comment: |-
-      A warning code indicating reference to a deprecated lint.
+      A hint code indicating reference to a deprecated lint.
   deprecatedLintWithReplacement:
     type: staticWarning
     parameters:
@@ -272,7 +272,7 @@ AnalysisOptionsWarningCode:
     correctionMessage: "Try replacing '#deprecatedRuleName' with '#replacementRuleName'."
     hasPublishedDocs: false
     comment: |-
-      A warning code indicating reference to a deprecated lint.
+      A hint code indicating reference to a deprecated lint.
   duplicateRule:
     type: staticWarning
     parameters:
@@ -2432,9 +2432,9 @@ CompileTimeErrorCode:
   caseExpressionTypeIsNotSwitchExpressionSubtype:
     type: compileTimeError
     parameters:
-      Type p0: the type of the case expression
-      Type p1: the type of the switch expression
-    problemMessage: "The switch case expression type '#p0' must be a subtype of the switch expression type '#p1'."
+      Type caseExpressionType: the type of the case expression
+      Type scrutineeType: the type of the switch expression
+    problemMessage: "The switch case expression type '#caseExpressionType' must be a subtype of the switch expression type '#scrutineeType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2554,9 +2554,9 @@ CompileTimeErrorCode:
   classInstantiationAccessToInstanceMember:
     type: compileTimeError
     parameters:
-      String p0: the name of the member
+      String name: the name of the member
     sharedName: classInstantiationAccessToMember
-    problemMessage: "The instance member '#p0' can't be accessed on a class instantiation."
+    problemMessage: "The instance member '#name' can't be accessed on a class instantiation."
     correctionMessage: Try changing the member name to the name of a constructor.
     hasPublishedDocs: false
   classInstantiationAccessToUnknownMember:
@@ -2571,9 +2571,9 @@ CompileTimeErrorCode:
   classInstantiationAccessToStaticMember:
     type: compileTimeError
     parameters:
-      String p0: the name of the member
+      String name: the name of the member
     sharedName: classInstantiationAccessToMember
-    problemMessage: "The static member '#p0' can't be accessed on a class instantiation."
+    problemMessage: "The static member '#name' can't be accessed on a class instantiation."
     correctionMessage: Try removing the type arguments from the class name, or changing the member name to the name of a constructor.
     hasPublishedDocs: false
   nonConstGenerativeEnumConstructor:
@@ -2855,10 +2855,10 @@ CompileTimeErrorCode:
   concreteClassWithAbstractMember:
     type: compileTimeError
     parameters:
-      String p0: the name of the abstract method
-      String p1: the name of the enclosing class
-    problemMessage: "'#p0' must have a method body because '#p1' isn't abstract."
-    correctionMessage: "Try making '#p1' abstract, or adding a body to '#p0'."
+      String methodName: the name of the abstract method
+      String enclosingClass: the name of the enclosing class
+    problemMessage: "'#methodName' must have a method body because '#enclosingClass' isn't abstract."
+    correctionMessage: "Try making '#enclosingClass' abstract, or adding a body to '#methodName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -5401,10 +5401,10 @@ CompileTimeErrorCode:
   enumWithAbstractMember:
     type: compileTimeError
     parameters:
-      String p0: the name of the abstract method
-      String p1: the name of the enclosing enum
-    problemMessage: "'#p0' must have a method body because '#p1' is an enum."
-    correctionMessage: "Try adding a body to '#p0'."
+      String methodName: the name of the abstract method
+      String enclosingClass: the name of the enclosing enum
+    problemMessage: "'#methodName' must have a method body because '#enclosingClass' is an enum."
+    correctionMessage: "Try adding a body to '#methodName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -7601,9 +7601,9 @@ CompileTimeErrorCode:
   forInOfInvalidType:
     type: compileTimeError
     parameters:
-      Type p0: the type of the iterable expression.
-      String p1: the sequence type -- Iterable for `for` or Stream for `await for`.
-    problemMessage: "The type '#p0' used in the 'for' loop must implement '#p1'."
+      Type expressionType: the type of the iterable expression.
+      String expectedType: the sequence type -- Iterable for `for` or Stream for `await for`.
+    problemMessage: "The type '#expressionType' used in the 'for' loop must implement '#expectedType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -8510,8 +8510,8 @@ CompileTimeErrorCode:
   inconsistentPatternVariableLogicalOr:
     type: compileTimeError
     parameters:
-      String p0: the name of the pattern variable
-    problemMessage: "The variable '#p0' has a different type and/or finality in this branch of the logical-or pattern."
+      String name: the name of the pattern variable
+    problemMessage: "The variable '#name' has a different type and/or finality in this branch of the logical-or pattern."
     correctionMessage: Try declaring the variable pattern with the same type and finality in both branches.
     hasPublishedDocs: true
     documentation: |-
@@ -14402,9 +14402,9 @@ CompileTimeErrorCode:
   patternTypeMismatchInIrrefutableContext:
     type: compileTimeError
     parameters:
-      Type p0: the matched type
-      Type p1: the required type
-    problemMessage: "The matched value of type '#p0' isn't assignable to the required type '#p1'."
+      Type matchedType: the matched type
+      Type requiredType: the required type
+    problemMessage: "The matched value of type '#matchedType' isn't assignable to the required type '#requiredType'."
     correctionMessage: "Try changing the required type of the pattern, or the matched value type."
     hasPublishedDocs: true
     documentation: |-
@@ -15870,10 +15870,10 @@ CompileTimeErrorCode:
   relationalPatternOperandTypeNotAssignable:
     type: compileTimeError
     parameters:
-      Type p0: the operand type
-      Type p1: the parameter type of the invoked operator
-      String p2: the name of the invoked operator
-    problemMessage: "The constant expression type '#p0' is not assignable to the parameter type '#p1' of the '#p2' operator."
+      Type operandType: the operand type
+      Type parameterType: the parameter type of the invoked operator
+      String operator: the name of the invoked operator
+    problemMessage: "The constant expression type '#operandType' is not assignable to the parameter type '#parameterType' of the '#operator' operator."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -22336,6 +22336,276 @@ FfiCode:
     problemMessage: "The class '#subclassName' can't mix in '#superclassName' because '#superclassName' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
     correctionMessage: "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly."
     hasPublishedDocs: true
+HintCode:
+  deprecatedColonForDefaultValue:
+    type: hint
+    parameters: none
+    problemMessage: Using a colon as the separator before a default value is deprecated and will not be supported in language version 3.0 and later.
+    correctionMessage: Try replacing the colon with an equal sign.
+    hasPublishedDocs: true
+    comment: |-
+      Note: Since this diagnostic is only produced in pre-3.0 code, we do not
+      plan to go through the exercise of converting it to a Warning.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a colon (`:`) is used as the
+      separator before the default value of an optional named parameter.
+      While this syntax is allowed, it is deprecated in favor of
+      using an equal sign (`=`).
+
+      #### Example
+
+      The following code produces this diagnostic because a colon is being used
+      before the default value of the optional parameter `i`:
+
+      ```dart
+      void f({int i [!:!] 0}) {}
+      ```
+
+      #### Common fixes
+
+      Replace the colon with an equal sign.
+
+      ```dart
+      void f({int i = 0}) {}
+      ```
+  deprecatedMemberUse:
+    type: hint
+    parameters:
+      String p0: the name of the member
+    problemMessage: "'#p0' is deprecated and shouldn't be used."
+    correctionMessage: Try replacing the use of the deprecated member with the replacement.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a deprecated library or class
+      member is used in a different package.
+
+      #### Example
+
+      If the method `m` in the class `C` is annotated with `@deprecated`, then
+      the following code produces this diagnostic:
+
+      ```dart
+      void f(C c) {
+        c.[!m!]();
+      }
+      ```
+
+      #### Common fixes
+
+      The documentation for declarations that are annotated with `@deprecated`
+      should indicate what code to use in place of the deprecated code.
+  deprecatedMemberUseWithMessage:
+    type: hint
+    parameters:
+      String p0: the name of the member
+      String p1: message details
+    sharedName: deprecatedMemberUse
+    problemMessage: "'#p0' is deprecated and shouldn't be used. #p1"
+    correctionMessage: Try replacing the use of the deprecated member with the replacement.
+    hasPublishedDocs: true
+  divisionOptimization:
+    type: hint
+    parameters: none
+    removedIn: "3.5"
+    problemMessage: The operator x ~/ y is more efficient than (x / y).toInt().
+    correctionMessage: "Try re-writing the expression to use the '~/' operator."
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the result of dividing two
+      numbers is converted to an integer using `toInt`. Dart has a built-in
+      integer division operator that is both more efficient and more concise.
+
+      #### Example
+
+      The following code produces this diagnostic because the result of dividing
+      `x` and `y` is converted to an integer using `toInt`:
+
+      ```dart
+      int divide(int x, int y) => [!(x / y).toInt()!];
+      ```
+
+      #### Common fixes
+
+      Use the integer division operator (`~/`):
+
+      ```dart
+      int divide(int x, int y) => x ~/ y;
+      ```
+  importDeferredLibraryWithLoadFunction:
+    type: hint
+    parameters: none
+    problemMessage: "The imported library defines a top-level function named 'loadLibrary' that is hidden by deferring this library."
+    correctionMessage: Try changing the import to not be deferred, or rename the function in the imported library.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a library that declares a
+      function named `loadLibrary` is imported using a deferred import. A
+      deferred import introduces an implicit function named `loadLibrary`. This
+      function is used to load the contents of the deferred library, and the
+      implicit function hides the explicit declaration in the deferred library.
+
+      For more information, check out
+      [Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
+
+      #### Example
+
+      Given a file `a.dart` that defines a function named `loadLibrary`:
+
+      ```dart
+      %uri="lib/a.dart"
+      void loadLibrary(Library library) {}
+
+      class Library {}
+      ```
+
+      The following code produces this diagnostic because the implicit
+      declaration of `a.loadLibrary` is hiding the explicit declaration of
+      `loadLibrary` in `a.dart`:
+
+      ```dart
+      [!import 'a.dart' deferred as a;!]
+
+      void f() {
+        a.Library();
+      }
+      ```
+
+      #### Common fixes
+
+      If the imported library isn't required to be deferred, then remove the
+      keyword `deferred`:
+
+      ```dart
+      import 'a.dart' as a;
+
+      void f() {
+        a.Library();
+      }
+      ```
+
+      If the imported library is required to be deferred and you need to
+      reference the imported function, then rename the function in the imported
+      library:
+
+      ```dart
+      void populateLibrary(Library library) {}
+
+      class Library {}
+      ```
+
+      If the imported library is required to be deferred and you don't need to
+      reference the imported function, then add a `hide` clause:
+
+      ```dart
+      import 'a.dart' deferred as a hide loadLibrary;
+
+      void f() {
+        a.Library();
+      }
+      ```
+  importOfLegacyLibraryIntoNullSafe:
+    type: hint
+    parameters:
+      Object p0: the name of the library
+    removedIn: "3.0"
+    problemMessage: "The library '#p0' is legacy, and shouldn't be imported into a null safe library."
+    correctionMessage: Try migrating the imported library.
+    hasPublishedDocs: true
+    comment: |-
+      https://github.com/dart-lang/sdk/issues/44063
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a library that is null safe
+      imports a library that isn't null safe.
+
+      #### Example
+
+      Given a file `a.dart` that contains the following:
+
+      ```dart
+      %uri="lib/a.dart"
+      // @dart = 2.9
+
+      class A {}
+      ```
+
+      The following code produces this diagnostic because a library that null
+      safe is importing a library that isn't null safe:
+
+      ```dart
+      import [!'a.dart'!];
+
+      A? f() => null;
+      ```
+
+      #### Common fixes
+
+      If you can migrate the imported library to be null safe, then migrate it
+      and update or remove the migrated library's language version.
+
+      If you can't migrate the imported library, then the importing library
+      needs to have a language version that is before 2.12, when null safety was
+      enabled by default.
+  unnecessaryImport:
+    type: hint
+    parameters:
+      String p0: the URI that is not necessary
+      String p1: the URI that makes it unnecessary
+    problemMessage: "The import of '#p0' is unnecessary because all of the used elements are also provided by the import of '#p1'."
+    correctionMessage: Try removing the import directive.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an import isn't needed because
+      all of the names that are imported and referenced within the importing
+      library are also visible through another import.
+
+      #### Example
+
+      Given a file `a.dart` that contains the following:
+
+      ```dart
+      %uri="lib/a.dart"
+      class A {}
+      ```
+
+      And, given a file `b.dart` that contains the following:
+
+      ```dart
+      %uri="lib/b.dart"
+      export 'a.dart';
+
+      class B {}
+      ```
+
+      The following code produces this diagnostic because the class `A`, which is
+      imported from `a.dart`, is also imported from `b.dart`. Removing the import
+      of `a.dart` leaves the semantics unchanged:
+
+      ```dart
+      import [!'a.dart'!];
+      import 'b.dart';
+
+      void f(A a, B b) {}
+      ```
+
+      #### Common fixes
+
+      If the import isn't needed, then remove it.
+
+      If some of the names imported by this import are intended to be used but
+      aren't yet, and if those names aren't imported by other imports, then add
+      the missing references to those names.
 ManifestWarningCode:
   cameraPermissionsIncompatible:
     type: staticWarning
@@ -24924,39 +25194,6 @@ WarningCode:
         }
       }
       ```
-  deprecatedColonForDefaultValue:
-    type: staticWarning
-    parameters: none
-    problemMessage: Using a colon as the separator before a default value is deprecated and will not be supported in language version 3.0 and later.
-    correctionMessage: Try replacing the colon with an equal sign.
-    hasPublishedDocs: true
-    comment: |-
-      Note: Since this diagnostic is only produced in pre-3.0 code, we do not
-      plan to go through the exercise of converting it to a Warning.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a colon (`:`) is used as the
-      separator before the default value of an optional named parameter.
-      While this syntax is allowed, it is deprecated in favor of
-      using an equal sign (`=`).
-
-      #### Example
-
-      The following code produces this diagnostic because a colon is being used
-      before the default value of the optional parameter `i`:
-
-      ```dart
-      void f({int i [!:!] 0}) {}
-      ```
-
-      #### Common fixes
-
-      Replace the colon with an equal sign.
-
-      ```dart
-      void f({int i = 0}) {}
-      ```
   deprecatedExportUse:
     type: staticWarning
     parameters:
@@ -25188,43 +25425,6 @@ WarningCode:
       #### Common fixes
 
       Follow any directions found in the `Deprecation.instantiate` annotation.
-  deprecatedMemberUse:
-    type: staticWarning
-    parameters:
-      String p0: the name of the member
-    problemMessage: "'#p0' is deprecated and shouldn't be used."
-    correctionMessage: Try replacing the use of the deprecated member with the replacement.
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a deprecated library or class
-      member is used in a different package.
-
-      #### Example
-
-      If the method `m` in the class `C` is annotated with `@deprecated`, then
-      the following code produces this diagnostic:
-
-      ```dart
-      void f(C c) {
-        c.[!m!]();
-      }
-      ```
-
-      #### Common fixes
-
-      The documentation for declarations that are annotated with `@deprecated`
-      should indicate what code to use in place of the deprecated code.
-  deprecatedMemberUseWithMessage:
-    type: staticWarning
-    parameters:
-      String p0: the name of the member
-      String p1: message details
-    sharedName: deprecatedMemberUse
-    problemMessage: "'#p0' is deprecated and shouldn't be used. #p1"
-    correctionMessage: Try replacing the use of the deprecated member with the replacement.
-    hasPublishedDocs: true
   deprecatedMixin:
     type: staticWarning
     parameters:
@@ -25429,36 +25629,6 @@ WarningCode:
 
       ```dart
       class D {}
-      ```
-  divisionOptimization:
-    type: staticWarning
-    parameters: none
-    removedIn: "3.5"
-    problemMessage: The operator x ~/ y is more efficient than (x / y).toInt().
-    correctionMessage: "Try re-writing the expression to use the '~/' operator."
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the result of dividing two
-      numbers is converted to an integer using `toInt`. Dart has a built-in
-      integer division operator that is both more efficient and more concise.
-
-      #### Example
-
-      The following code produces this diagnostic because the result of dividing
-      `x` and `y` is converted to an integer using `toInt`:
-
-      ```dart
-      int divide(int x, int y) => [!(x / y).toInt()!];
-      ```
-
-      #### Common fixes
-
-      Use the integer division operator (`~/`):
-
-      ```dart
-      int divide(int x, int y) => x ~/ y;
       ```
   docDirectiveHasExtraArguments:
     type: staticWarning
@@ -25972,124 +26142,6 @@ WarningCode:
       String member: the name of the member
     problemMessage: "'#member' is experimental and could be removed or changed at any time."
     hasPublishedDocs: false
-  importDeferredLibraryWithLoadFunction:
-    type: staticWarning
-    parameters: none
-    problemMessage: "The imported library defines a top-level function named 'loadLibrary' that is hidden by deferring this library."
-    correctionMessage: Try changing the import to not be deferred, or rename the function in the imported library.
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a library that declares a
-      function named `loadLibrary` is imported using a deferred import. A
-      deferred import introduces an implicit function named `loadLibrary`. This
-      function is used to load the contents of the deferred library, and the
-      implicit function hides the explicit declaration in the deferred library.
-
-      For more information, check out
-      [Lazily loading a library](https://dart.dev/language/libraries#lazily-loading-a-library).
-
-      #### Example
-
-      Given a file `a.dart` that defines a function named `loadLibrary`:
-
-      ```dart
-      %uri="lib/a.dart"
-      void loadLibrary(Library library) {}
-
-      class Library {}
-      ```
-
-      The following code produces this diagnostic because the implicit
-      declaration of `a.loadLibrary` is hiding the explicit declaration of
-      `loadLibrary` in `a.dart`:
-
-      ```dart
-      [!import 'a.dart' deferred as a;!]
-
-      void f() {
-        a.Library();
-      }
-      ```
-
-      #### Common fixes
-
-      If the imported library isn't required to be deferred, then remove the
-      keyword `deferred`:
-
-      ```dart
-      import 'a.dart' as a;
-
-      void f() {
-        a.Library();
-      }
-      ```
-
-      If the imported library is required to be deferred and you need to
-      reference the imported function, then rename the function in the imported
-      library:
-
-      ```dart
-      void populateLibrary(Library library) {}
-
-      class Library {}
-      ```
-
-      If the imported library is required to be deferred and you don't need to
-      reference the imported function, then add a `hide` clause:
-
-      ```dart
-      import 'a.dart' deferred as a hide loadLibrary;
-
-      void f() {
-        a.Library();
-      }
-      ```
-  importOfLegacyLibraryIntoNullSafe:
-    type: staticWarning
-    parameters:
-      Object p0: the name of the library
-    removedIn: "3.0"
-    problemMessage: "The library '#p0' is legacy, and shouldn't be imported into a null safe library."
-    correctionMessage: Try migrating the imported library.
-    hasPublishedDocs: true
-    comment: |-
-      https://github.com/dart-lang/sdk/issues/44063
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a library that is null safe
-      imports a library that isn't null safe.
-
-      #### Example
-
-      Given a file `a.dart` that contains the following:
-
-      ```dart
-      %uri="lib/a.dart"
-      // @dart = 2.9
-
-      class A {}
-      ```
-
-      The following code produces this diagnostic because a library that null
-      safe is importing a library that isn't null safe:
-
-      ```dart
-      import [!'a.dart'!];
-
-      A? f() => null;
-      ```
-
-      #### Common fixes
-
-      If you can migrate the imported library to be null safe, then migrate it
-      and update or remove the migrated library's language version.
-
-      If you can't migrate the imported library, then the importing library
-      needs to have a language version that is before 2.12, when null safety was
-      enabled by default.
   inferenceFailureOnCollectionLiteral:
     type: staticWarning
     parameters:
@@ -29895,57 +29947,6 @@ WarningCode:
         B(super.value);
       }
       ```
-  unnecessaryImport:
-    type: staticWarning
-    parameters:
-      String p0: the URI that is not necessary
-      String p1: the URI that makes it unnecessary
-    problemMessage: "The import of '#p0' is unnecessary because all of the used elements are also provided by the import of '#p1'."
-    correctionMessage: Try removing the import directive.
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an import isn't needed because
-      all of the names that are imported and referenced within the importing
-      library are also visible through another import.
-
-      #### Example
-
-      Given a file `a.dart` that contains the following:
-
-      ```dart
-      %uri="lib/a.dart"
-      class A {}
-      ```
-
-      And, given a file `b.dart` that contains the following:
-
-      ```dart
-      %uri="lib/b.dart"
-      export 'a.dart';
-
-      class B {}
-      ```
-
-      The following code produces this diagnostic because the class `A`, which is
-      imported from `a.dart`, is also imported from `b.dart`. Removing the import
-      of `a.dart` leaves the semantics unchanged:
-
-      ```dart
-      import [!'a.dart'!];
-      import 'b.dart';
-
-      void f(A a, B b) {}
-      ```
-
-      #### Common fixes
-
-      If the import isn't needed, then remove it.
-
-      If some of the names imported by this import are intended to be used but
-      aren't yet, and if those names aren't imported by other imports, then add
-      the missing references to those names.
   unnecessaryNanComparisonFalse:
     type: staticWarning
     parameters: none

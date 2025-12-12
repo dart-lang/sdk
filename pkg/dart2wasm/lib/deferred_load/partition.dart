@@ -4,11 +4,13 @@
 
 import 'dart:collection';
 
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 
 import '../modules.dart' show DeferredModuleLoadingMap;
 import 'dependencies.dart';
+import 'devirtualization_oracle.dart';
 import 'import_set.dart';
 
 export 'import_set.dart' show Part;
@@ -23,7 +25,11 @@ Partitioning partitionAppplication(CoreTypes coreTypes, Component component,
       }
     }
   }
-  final depsCollector = DependenciesCollector(coreTypes, loadingMap);
+  final classHierarchy =
+      ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy;
+  final devirtualizionOracle = DevirtualizionOracle(component);
+  final depsCollector = DependenciesCollector(
+      coreTypes, classHierarchy, devirtualizionOracle, loadingMap);
   final algorithm = _Algorithm(component, depsCollector, allDeferredImports);
   return algorithm.run(roots);
 }
