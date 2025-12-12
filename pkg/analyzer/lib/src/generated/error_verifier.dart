@@ -36,6 +36,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/const_argument_verifier.dart';
 import 'package:analyzer/src/error/constructor_fields_verifier.dart';
 import 'package:analyzer/src/error/correct_override.dart';
@@ -2152,9 +2153,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [diag.builtInIdentifierAsTypeName],
   /// [diag.builtInIdentifierAsTypeParameterName], and
   /// [diag.builtInIdentifierAsTypedefName].
-  void _checkForBuiltInIdentifierAsName(Token token, DiagnosticCode code) {
+  void _checkForBuiltInIdentifierAsName(
+    Token token,
+    DiagnosticWithArguments<
+      LocatableDiagnostic Function({required String name})
+    >
+    code,
+  ) {
     if (token.type.isKeyword && token.keyword?.isPseudo != true) {
-      diagnosticReporter.atToken(token, code, arguments: [token.lexeme]);
+      diagnosticReporter.report(
+        code.withArguments(name: token.lexeme).at(token),
+      );
     }
   }
 

@@ -1172,9 +1172,9 @@ breakOutsideOfLoop = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the built-in identifier that is being used
+/// String name: the built-in identifier that is being used
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 builtInIdentifierAsExtensionName = DiagnosticWithArguments(
   name: 'built_in_identifier_in_declaration',
@@ -1189,9 +1189,9 @@ builtInIdentifierAsExtensionName = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the built-in identifier that is being used
+/// String name: the built-in identifier that is being used
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 builtInIdentifierAsExtensionTypeName = DiagnosticWithArguments(
   name: 'built_in_identifier_in_declaration',
@@ -1206,9 +1206,9 @@ builtInIdentifierAsExtensionTypeName = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the built-in identifier that is being used
+/// String name: the built-in identifier that is being used
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 builtInIdentifierAsPrefixName = DiagnosticWithArguments(
   name: 'built_in_identifier_in_declaration',
@@ -1239,9 +1239,9 @@ builtInIdentifierAsType = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the built-in identifier that is being used
+/// String name: the built-in identifier that is being used
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 builtInIdentifierAsTypedefName = DiagnosticWithArguments(
   name: 'built_in_identifier_in_declaration',
@@ -1256,9 +1256,9 @@ builtInIdentifierAsTypedefName = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the built-in identifier that is being used
+/// String name: the built-in identifier that is being used
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 builtInIdentifierAsTypeName = DiagnosticWithArguments(
   name: 'built_in_identifier_in_declaration',
@@ -1272,9 +1272,9 @@ builtInIdentifierAsTypeName = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the built-in identifier that is being used
+/// String name: the built-in identifier that is being used
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 builtInIdentifierAsTypeParameterName = DiagnosticWithArguments(
   name: 'built_in_identifier_in_declaration',
@@ -17927,23 +17927,23 @@ LocatableDiagnostic _withArgumentsBodyMightCompleteNormallyNullable({
 }
 
 LocatableDiagnostic _withArgumentsBuiltInIdentifierAsExtensionName({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.builtInIdentifierAsExtensionName, [p0]);
+  return LocatableDiagnosticImpl(diag.builtInIdentifierAsExtensionName, [name]);
 }
 
 LocatableDiagnostic _withArgumentsBuiltInIdentifierAsExtensionTypeName({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(diag.builtInIdentifierAsExtensionTypeName, [
-    p0,
+    name,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsBuiltInIdentifierAsPrefixName({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.builtInIdentifierAsPrefixName, [p0]);
+  return LocatableDiagnosticImpl(diag.builtInIdentifierAsPrefixName, [name]);
 }
 
 LocatableDiagnostic _withArgumentsBuiltInIdentifierAsType({
@@ -17953,22 +17953,22 @@ LocatableDiagnostic _withArgumentsBuiltInIdentifierAsType({
 }
 
 LocatableDiagnostic _withArgumentsBuiltInIdentifierAsTypedefName({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.builtInIdentifierAsTypedefName, [p0]);
+  return LocatableDiagnosticImpl(diag.builtInIdentifierAsTypedefName, [name]);
 }
 
 LocatableDiagnostic _withArgumentsBuiltInIdentifierAsTypeName({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.builtInIdentifierAsTypeName, [p0]);
+  return LocatableDiagnosticImpl(diag.builtInIdentifierAsTypeName, [name]);
 }
 
 LocatableDiagnostic _withArgumentsBuiltInIdentifierAsTypeParameterName({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(diag.builtInIdentifierAsTypeParameterName, [
-    p0,
+    name,
   ]);
 }
 
