@@ -398,10 +398,10 @@ class AssignmentExpressionShared {
             }
           } else {
             if (isForEachIdentifier || !unassigned) {
-              _errorReporter.atNode(
-                left,
-                diag.assignmentToFinalLocal,
-                arguments: [element.name!],
+              _errorReporter.report(
+                diag.assignmentToFinalLocal
+                    .withArguments(variableName: element.name!)
+                    .at(left),
               );
             }
           }

@@ -1896,7 +1896,7 @@ void SampleBlockProcessor::Init() {
 void SampleBlockProcessor::Startup() {
   ASSERT(initialized_);
   ASSERT(processor_thread_id_ == OSThread::kInvalidThreadJoinId);
-  MonitorLocker startup_ml(monitor_);
+  SafepointMonitorLocker startup_ml(monitor_);
   OSThread::Start("Dart Profiler SampleBlockProcessor", ThreadMain, 0);
   while (!thread_running_) {
     startup_ml.Wait();
@@ -1906,7 +1906,7 @@ void SampleBlockProcessor::Startup() {
 
 void SampleBlockProcessor::Cleanup(bool drain /* = false */) {
   {
-    MonitorLocker shutdown_ml(monitor_);
+    SafepointMonitorLocker shutdown_ml(monitor_);
     if (shutdown_) {
       // Already shutdown.
       return;

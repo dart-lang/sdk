@@ -36,6 +36,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/const_argument_verifier.dart';
 import 'package:analyzer/src/error/constructor_fields_verifier.dart';
 import 'package:analyzer/src/error/correct_override.dart';
@@ -1950,10 +1951,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var element = definedNames[name]!;
       var prevElement = libraryContext._exportedElements[name];
       if (prevElement != null && prevElement != element) {
-        diagnosticReporter.atNode(
-          directive.uri,
-          diag.ambiguousExport,
-          arguments: [name, prevElement.library!.uri, element.library!.uri],
+        diagnosticReporter.report(
+          diag.ambiguousExport
+              .withArguments(
+                name: name,
+                firstUri: prevElement.library!.uri,
+                secondUri: element.library!.uri,
+              )
+              .at(directive.uri),
         );
         return;
       } else {
@@ -1976,10 +1981,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         growable: false,
       );
       libraryNames.sort();
-      diagnosticReporter.atToken(
-        name,
-        diag.ambiguousImport,
-        arguments: [name.lexeme, libraryNames.quotedAndCommaSeparatedWithAnd],
+      diagnosticReporter.report(
+        diag.ambiguousImport
+            .withArguments(
+              name: name.lexeme,
+              libraries: libraryNames.quotedAndCommaSeparatedWithAnd,
+            )
+            .at(name),
       );
     }
   }
@@ -2015,16 +2023,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (variable.isConst) {
         diagnosticReporter.report(diag.assignmentToConst.at(expression));
       } else if (variable is FieldElement && variable.isOriginGetterSetter) {
-        diagnosticReporter.atNode(
-          highlightedNode,
-          diag.assignmentToFinalNoSetter,
-          arguments: [variable.name!, variable.enclosingElement.displayName],
+        diagnosticReporter.report(
+          diag.assignmentToFinalNoSetter
+              .withArguments(
+                variableName: variable.name!,
+                className: variable.enclosingElement.displayName,
+              )
+              .at(highlightedNode),
         );
       } else {
-        diagnosticReporter.atNode(
-          highlightedNode,
-          diag.assignmentToFinal,
-          arguments: [variable.name!],
+        diagnosticReporter.report(
+          diag.assignmentToFinal
+              .withArguments(variableName: variable.name!)
+              .at(highlightedNode),
         );
       }
     } else if (element is LocalFunctionElement ||
@@ -2152,9 +2163,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [diag.builtInIdentifierAsTypeName],
   /// [diag.builtInIdentifierAsTypeParameterName], and
   /// [diag.builtInIdentifierAsTypedefName].
-  void _checkForBuiltInIdentifierAsName(Token token, DiagnosticCode code) {
+  void _checkForBuiltInIdentifierAsName(
+    Token token,
+    DiagnosticWithArguments<
+      LocatableDiagnostic Function({required String name})
+    >
+    code,
+  ) {
     if (token.type.isKeyword && token.keyword?.isPseudo != true) {
-      diagnosticReporter.atToken(token, code, arguments: [token.lexeme]);
+      diagnosticReporter.report(
+        code.withArguments(name: token.lexeme).at(token),
+      );
     }
   }
 

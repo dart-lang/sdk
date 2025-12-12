@@ -251,14 +251,14 @@ addressReceiver = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the ambiguous element
-/// Uri p1: the name of the first library in which the type is found
-/// Uri p2: the name of the second library in which the type is found
+/// String name: the name of the ambiguous element
+/// Uri firstUri: the name of the first library in which the type is found
+/// Uri secondUri: the name of the second library in which the type is found
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required Uri p1,
-    required Uri p2,
+    required String name,
+    required Uri firstUri,
+    required Uri secondUri,
   })
 >
 ambiguousExport = DiagnosticWithArguments(
@@ -275,10 +275,13 @@ ambiguousExport = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the member
-/// String p1: the names of the declaring extensions
+/// String name: the name of the member
+/// String extensions: the names of the declaring extensions
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String name,
+    required String extensions,
+  })
 >
 ambiguousExtensionMemberAccessThreeOrMore = DiagnosticWithArguments(
   name: 'ambiguous_extension_member_access',
@@ -295,14 +298,14 @@ ambiguousExtensionMemberAccessThreeOrMore = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the member
-/// Element p1: the name of the first declaring extension
-/// Element p2: the names of the second declaring extension
+/// String name: the name of the member
+/// Element firstExtension: the name of the first declaring extension
+/// Element secondExtension: the names of the second declaring extension
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required Element p1,
-    required Element p2,
+    required String name,
+    required Element firstExtension,
+    required Element secondExtension,
   })
 >
 ambiguousExtensionMemberAccessTwo = DiagnosticWithArguments(
@@ -325,10 +328,13 @@ ambiguousExtensionMemberAccessTwo = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the ambiguous type
-/// String p1: the names of the libraries that the type is found
+/// String name: the name of the ambiguous type
+/// String libraries: the names of the libraries that the type is found
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String name,
+    required String libraries,
+  })
 >
 ambiguousImport = DiagnosticWithArguments(
   name: 'ambiguous_import',
@@ -695,9 +701,9 @@ assignmentToConst = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the final variable
+/// String variableName: the name of the final variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String variableName})
 >
 assignmentToFinal = DiagnosticWithArguments(
   name: 'assignment_to_final',
@@ -712,9 +718,9 @@ assignmentToFinal = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the variable
+/// String variableName: the name of the variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String variableName})
 >
 assignmentToFinalLocal = DiagnosticWithArguments(
   name: 'assignment_to_final_local',
@@ -728,10 +734,13 @@ assignmentToFinalLocal = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the reference
-/// String p1: the name of the class
+/// String variableName: the name of the reference
+/// String className: the name of the class
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String variableName,
+    required String className,
+  })
 >
 assignmentToFinalNoSetter = DiagnosticWithArguments(
   name: 'assignment_to_final_no_setter',
@@ -827,9 +836,9 @@ augmentationExtendsClauseAlreadyPresent = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Object p0: the lexeme of the modifier.
+/// Object modifier: the lexeme of the modifier.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required Object modifier})
 >
 augmentationModifierExtra = DiagnosticWithArguments(
   name: 'augmentation_modifier_extra',
@@ -845,9 +854,9 @@ augmentationModifierExtra = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Object p0: the lexeme of the modifier.
+/// Object modifier: the lexeme of the modifier.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required Object modifier})
 >
 augmentationModifierMissing = DiagnosticWithArguments(
   name: 'augmentation_modifier_missing',
@@ -862,10 +871,13 @@ augmentationModifierMissing = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Object p0: the name of the declaration kind.
-/// Object p1: the name of the augmentation kind.
+/// Object declarationKind: the name of the declaration kind.
+/// Object augmentationKind: the name of the augmentation kind.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0, required Object p1})
+  LocatableDiagnostic Function({
+    required Object declarationKind,
+    required Object augmentationKind,
+  })
 >
 augmentationOfDifferentDeclarationKind = DiagnosticWithArguments(
   name: 'augmentation_of_different_declaration_kind',
@@ -961,9 +973,9 @@ augmentedExpressionIsSetter = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Object p0: the lexeme of the operator.
+/// Object operator: the lexeme of the operator.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required Object operator})
 >
 augmentedExpressionNotOperator = DiagnosticWithArguments(
   name: 'augmented_expression_not_operator',
@@ -1172,9 +1184,9 @@ breakOutsideOfLoop = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the built-in identifier that is being used
+/// String name: the built-in identifier that is being used
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 builtInIdentifierAsExtensionName = DiagnosticWithArguments(
   name: 'built_in_identifier_in_declaration',
@@ -1189,9 +1201,9 @@ builtInIdentifierAsExtensionName = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the built-in identifier that is being used
+/// String name: the built-in identifier that is being used
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 builtInIdentifierAsExtensionTypeName = DiagnosticWithArguments(
   name: 'built_in_identifier_in_declaration',
@@ -1206,9 +1218,9 @@ builtInIdentifierAsExtensionTypeName = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the built-in identifier that is being used
+/// String name: the built-in identifier that is being used
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 builtInIdentifierAsPrefixName = DiagnosticWithArguments(
   name: 'built_in_identifier_in_declaration',
@@ -1223,9 +1235,9 @@ builtInIdentifierAsPrefixName = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the built-in identifier that is being used
+/// String token: the built-in identifier that is being used
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String token})
 >
 builtInIdentifierAsType = DiagnosticWithArguments(
   name: 'built_in_identifier_as_type',
@@ -1239,9 +1251,9 @@ builtInIdentifierAsType = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the built-in identifier that is being used
+/// String name: the built-in identifier that is being used
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 builtInIdentifierAsTypedefName = DiagnosticWithArguments(
   name: 'built_in_identifier_in_declaration',
@@ -1256,9 +1268,9 @@ builtInIdentifierAsTypedefName = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the built-in identifier that is being used
+/// String name: the built-in identifier that is being used
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 builtInIdentifierAsTypeName = DiagnosticWithArguments(
   name: 'built_in_identifier_in_declaration',
@@ -1272,9 +1284,9 @@ builtInIdentifierAsTypeName = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the built-in identifier that is being used
+/// String name: the built-in identifier that is being used
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 builtInIdentifierAsTypeParameterName = DiagnosticWithArguments(
   name: 'built_in_identifier_in_declaration',
@@ -1310,9 +1322,9 @@ cameraPermissionsIncompatible = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Type p0: the this of the switch case expression
+/// Type type: the type of the switch case expression
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0})
+  LocatableDiagnostic Function({required DartType type})
 >
 caseExpressionTypeImplementsEquals = DiagnosticWithArguments(
   name: 'case_expression_type_implements_equals',
@@ -17743,40 +17755,44 @@ LocatableDiagnostic _withArgumentsAbstractSuperMemberReference({
 }
 
 LocatableDiagnostic _withArgumentsAmbiguousExport({
-  required String p0,
-  required Uri p1,
-  required Uri p2,
+  required String name,
+  required Uri firstUri,
+  required Uri secondUri,
 }) {
-  return LocatableDiagnosticImpl(diag.ambiguousExport, [p0, p1, p2]);
+  return LocatableDiagnosticImpl(diag.ambiguousExport, [
+    name,
+    firstUri,
+    secondUri,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsAmbiguousExtensionMemberAccessThreeOrMore({
-  required String p0,
-  required String p1,
+  required String name,
+  required String extensions,
 }) {
   return LocatableDiagnosticImpl(
     diag.ambiguousExtensionMemberAccessThreeOrMore,
-    [p0, p1],
+    [name, extensions],
   );
 }
 
 LocatableDiagnostic _withArgumentsAmbiguousExtensionMemberAccessTwo({
-  required String p0,
-  required Element p1,
-  required Element p2,
+  required String name,
+  required Element firstExtension,
+  required Element secondExtension,
 }) {
   return LocatableDiagnosticImpl(diag.ambiguousExtensionMemberAccessTwo, [
-    p0,
-    p1,
-    p2,
+    name,
+    firstExtension,
+    secondExtension,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsAmbiguousImport({
-  required String p0,
-  required String p1,
+  required String name,
+  required String libraries,
 }) {
-  return LocatableDiagnosticImpl(diag.ambiguousImport, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.ambiguousImport, [name, libraries]);
 }
 
 LocatableDiagnostic _withArgumentsAnalysisOptionDeprecated({
@@ -17837,47 +17853,56 @@ LocatableDiagnostic _withArgumentsAssignmentOfDoNotStore({required String p0}) {
   return LocatableDiagnosticImpl(diag.assignmentOfDoNotStore, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsAssignmentToFinal({required String p0}) {
-  return LocatableDiagnosticImpl(diag.assignmentToFinal, [p0]);
+LocatableDiagnostic _withArgumentsAssignmentToFinal({
+  required String variableName,
+}) {
+  return LocatableDiagnosticImpl(diag.assignmentToFinal, [variableName]);
 }
 
-LocatableDiagnostic _withArgumentsAssignmentToFinalLocal({required String p0}) {
-  return LocatableDiagnosticImpl(diag.assignmentToFinalLocal, [p0]);
+LocatableDiagnostic _withArgumentsAssignmentToFinalLocal({
+  required String variableName,
+}) {
+  return LocatableDiagnosticImpl(diag.assignmentToFinalLocal, [variableName]);
 }
 
 LocatableDiagnostic _withArgumentsAssignmentToFinalNoSetter({
-  required String p0,
-  required String p1,
+  required String variableName,
+  required String className,
 }) {
-  return LocatableDiagnosticImpl(diag.assignmentToFinalNoSetter, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.assignmentToFinalNoSetter, [
+    variableName,
+    className,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsAugmentationModifierExtra({
-  required Object p0,
+  required Object modifier,
 }) {
-  return LocatableDiagnosticImpl(diag.augmentationModifierExtra, [p0]);
+  return LocatableDiagnosticImpl(diag.augmentationModifierExtra, [modifier]);
 }
 
 LocatableDiagnostic _withArgumentsAugmentationModifierMissing({
-  required Object p0,
+  required Object modifier,
 }) {
-  return LocatableDiagnosticImpl(diag.augmentationModifierMissing, [p0]);
+  return LocatableDiagnosticImpl(diag.augmentationModifierMissing, [modifier]);
 }
 
 LocatableDiagnostic _withArgumentsAugmentationOfDifferentDeclarationKind({
-  required Object p0,
-  required Object p1,
+  required Object declarationKind,
+  required Object augmentationKind,
 }) {
   return LocatableDiagnosticImpl(diag.augmentationOfDifferentDeclarationKind, [
-    p0,
-    p1,
+    declarationKind,
+    augmentationKind,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsAugmentedExpressionNotOperator({
-  required Object p0,
+  required Object operator,
 }) {
-  return LocatableDiagnosticImpl(diag.augmentedExpressionNotOperator, [p0]);
+  return LocatableDiagnosticImpl(diag.augmentedExpressionNotOperator, [
+    operator,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsBaseClassImplementedOutsideOfLibrary({
@@ -17927,55 +17952,57 @@ LocatableDiagnostic _withArgumentsBodyMightCompleteNormallyNullable({
 }
 
 LocatableDiagnostic _withArgumentsBuiltInIdentifierAsExtensionName({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.builtInIdentifierAsExtensionName, [p0]);
+  return LocatableDiagnosticImpl(diag.builtInIdentifierAsExtensionName, [name]);
 }
 
 LocatableDiagnostic _withArgumentsBuiltInIdentifierAsExtensionTypeName({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(diag.builtInIdentifierAsExtensionTypeName, [
-    p0,
+    name,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsBuiltInIdentifierAsPrefixName({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.builtInIdentifierAsPrefixName, [p0]);
+  return LocatableDiagnosticImpl(diag.builtInIdentifierAsPrefixName, [name]);
 }
 
 LocatableDiagnostic _withArgumentsBuiltInIdentifierAsType({
-  required String p0,
+  required String token,
 }) {
-  return LocatableDiagnosticImpl(diag.builtInIdentifierAsType, [p0]);
+  return LocatableDiagnosticImpl(diag.builtInIdentifierAsType, [token]);
 }
 
 LocatableDiagnostic _withArgumentsBuiltInIdentifierAsTypedefName({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.builtInIdentifierAsTypedefName, [p0]);
+  return LocatableDiagnosticImpl(diag.builtInIdentifierAsTypedefName, [name]);
 }
 
 LocatableDiagnostic _withArgumentsBuiltInIdentifierAsTypeName({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.builtInIdentifierAsTypeName, [p0]);
+  return LocatableDiagnosticImpl(diag.builtInIdentifierAsTypeName, [name]);
 }
 
 LocatableDiagnostic _withArgumentsBuiltInIdentifierAsTypeParameterName({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(diag.builtInIdentifierAsTypeParameterName, [
-    p0,
+    name,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsCaseExpressionTypeImplementsEquals({
-  required DartType p0,
+  required DartType type,
 }) {
-  return LocatableDiagnosticImpl(diag.caseExpressionTypeImplementsEquals, [p0]);
+  return LocatableDiagnosticImpl(diag.caseExpressionTypeImplementsEquals, [
+    type,
+  ]);
 }
 
 LocatableDiagnostic
