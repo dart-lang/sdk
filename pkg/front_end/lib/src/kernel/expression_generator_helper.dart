@@ -99,7 +99,8 @@ abstract class ExpressionGeneratorHelper {
 
   Expression_Generator_Initializer finishSend(
     Object receiver,
-    List<TypeBuilder>? typeArguments,
+    List<TypeBuilder>? typeArgumentBuilders,
+    TypeArguments? typeArguments,
     ArgumentsImpl arguments,
     int offset, {
     bool isTypeArgumentsInForest = false,
@@ -130,6 +131,7 @@ abstract class ExpressionGeneratorHelper {
 
   Expression buildStaticInvocation({
     required Procedure target,
+    required TypeArguments? typeArguments,
     required ArgumentsImpl arguments,
     required int fileOffset,
   });
@@ -154,6 +156,7 @@ abstract class ExpressionGeneratorHelper {
   Expression buildMethodInvocation(
     Expression receiver,
     Name name,
+    TypeArguments? typeArguments,
     ArgumentsImpl arguments,
     int offset, {
     bool isConstantExpression = false,
@@ -162,6 +165,7 @@ abstract class ExpressionGeneratorHelper {
 
   Expression buildSuperInvocation(
     Name name,
+    TypeArguments? typeArguments,
     ArgumentsImpl arguments,
     int offset, {
     bool isConstantExpression = false,
@@ -175,11 +179,12 @@ abstract class ExpressionGeneratorHelper {
     Token nameLastToken,
     ArgumentsImpl arguments,
     String name,
-    List<TypeBuilder>? typeArguments,
+    List<TypeBuilder>? typeArgumentBuilders,
+    TypeArguments? typeArguments,
     int charOffset,
     Constness constness, {
-    bool isTypeArgumentsInForest = false,
-    TypeDeclarationBuilder? typeAliasBuilder,
+    required bool isTypeArgumentsInForest,
+    TypeAliasBuilder? typeAliasBuilder,
     required UnresolvedKind unresolvedKind,
   });
 

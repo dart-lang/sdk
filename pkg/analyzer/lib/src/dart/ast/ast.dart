@@ -26169,8 +26169,7 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
   @override
   List<AstNode> get sortedCommentAndAnnotations {
     var comment = _documentationComment;
-    return <AstNode>[if (comment != null) comment, ..._metadata]
-      ..sort(AstNode.LEXICAL_ORDER);
+    return <AstNode>[?comment, ..._metadata]..sort(AstNode.LEXICAL_ORDER);
   }
 
   @override

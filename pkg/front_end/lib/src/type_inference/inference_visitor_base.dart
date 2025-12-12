@@ -1680,6 +1680,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType typeContext,
     int offset,
     InvocationTargetType invocationTargetType,
+    TypeArguments? typeArguments,
     ArgumentsImpl arguments, {
     List<VariableDeclaration>? hoistedExpressions,
     bool isSpecialCasedBinaryOperator = false,
@@ -1691,12 +1692,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Member? staticTarget,
   }) {
     FunctionType calleeType = invocationTargetType
-        .computeFunctionTypeForInference(arguments);
+        .computeFunctionTypeForInference(typeArguments?.types, arguments);
     return _inferInvocation(
       visitor,
       typeContext,
       offset,
       calleeType,
+      typeArguments,
       arguments,
       hoistedExpressions,
       isSpecialCasedBinaryOperator: isSpecialCasedBinaryOperator,
@@ -1716,6 +1718,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType typeContext,
     int offset,
     FunctionType calleeType,
+    TypeArguments? typeArguments,
     ArgumentsImpl arguments,
     List<VariableDeclaration>? hoistedExpressions, {
     bool isSpecialCasedBinaryOperator = false,
@@ -1750,7 +1753,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       calleeTypeParameters = fresh.freshTypeParameters;
     }
 
-    List<DartType>? explicitTypeArguments = arguments.explicitTypeArguments;
+    List<DartType>? explicitTypeArguments = typeArguments?.types;
 
     bool inferenceNeeded =
         !skipTypeArgumentInference &&
@@ -1893,7 +1896,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               );
         }
       }
-      return visitor.inferExpression(argumentExpression, inferredFormalType);
+      return visitor.inferExpression(
+        argumentExpression,
+        inferredFormalType,
+        isVoidAllowed: true,
+      );
     }
 
     List<ExpressionInfo<SharedTypeView>?>? identicalInfo =
@@ -2060,14 +2067,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (isSpecialCasedBinaryOperator || isSpecialCasedTernaryOperator) {
       LocatedMessage? argMessage = problemReporting.checkArgumentsForType(
         function: calleeType,
+        explicitTypeArguments: typeArguments,
         arguments: arguments,
         fileUri: fileUri,
         fileOffset: offset,
       );
       if (argMessage != null) {
         return new WrapInProblemInferenceResult(
-          const InvalidType(),
-          const InvalidType(),
           argMessage,
           problemReporting,
           compilerContext,
@@ -2262,8 +2268,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         calleeTypeParameters,
         inferredTypes,
       );
-      arguments.types.clear();
-      arguments.types.addAll(inferredTypes);
       if (dataForTesting != null) {
         // Coverage-ignore-block(suite): Not run.
         assert(arguments.fileOffset != TreeNode.noOffset);
@@ -2274,14 +2278,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     LocatedMessage? argMessage = problemReporting.checkArgumentsForType(
       function: calleeType,
+      explicitTypeArguments: typeArguments,
       arguments: arguments,
       fileUri: fileUri,
       fileOffset: offset,
     );
     if (argMessage != null) {
       return new WrapInProblemInferenceResult(
-        const InvalidType(),
-        const InvalidType(),
         argMessage,
         problemReporting,
         compilerContext,
@@ -2336,6 +2339,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return new SuccessfulInferenceResult(
       inferredType,
       calleeType,
+      inferredTypes ?? explicitTypeArguments ?? [],
       hoistedArguments: localHoistedExpressions,
       inferredReceiverType: receiverType,
     );
@@ -2607,6 +2611,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     int fileOffset,
     ObjectAccessTarget target,
     Expression receiver,
+    List<DartType> explicitOrInferredTypeArguments,
     ArgumentsImpl arguments,
   ) {
     assert(
@@ -2619,7 +2624,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Arguments extensionInvocationArguments = new Arguments(
       [receiver, ...arguments.positional],
       named: arguments.named,
-      types: [...target.receiverTypeArguments, ...arguments.types],
+      types: [
+        ...target.receiverTypeArguments,
+        ...explicitOrInferredTypeArguments,
+      ],
     )..fileOffset = arguments.fileOffset;
     return createStaticInvocation(
       procedure,
@@ -2633,6 +2641,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     int fileOffset,
     Expression receiver,
     Name name,
+    TypeArguments? typeArguments,
     ArgumentsImpl arguments,
     DartType typeContext,
     List<VariableDeclaration>? hoistedExpressions, {
@@ -2643,6 +2652,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       typeContext,
       fileOffset,
       const InvocationTargetDynamicType(),
+      typeArguments,
       arguments,
       hoistedExpressions: hoistedExpressions,
       receiverType: const DynamicType(),
@@ -2654,7 +2664,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             DynamicAccessKind.Dynamic,
             receiver,
             name,
-            arguments,
+            createArgumentsFromInternalNode(result.typeArguments, arguments),
           )
           ..isImplicitCall = isImplicitCall
           ..fileOffset = fileOffset;
@@ -2670,6 +2680,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression receiver,
     DartType receiverType,
     Name name,
+    TypeArguments? typeArguments,
     ArgumentsImpl arguments,
     DartType typeContext,
     List<VariableDeclaration>? hoistedExpressions, {
@@ -2680,6 +2691,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       typeContext,
       fileOffset,
       const InvocationTargetNeverType(),
+      typeArguments,
       arguments,
       hoistedExpressions: hoistedExpressions,
       receiverType: receiverType,
@@ -2690,7 +2702,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DynamicAccessKind.Never,
       receiver,
       name,
-      arguments,
+      createArgumentsFromInternalNode(result.typeArguments, arguments),
     )..fileOffset = fileOffset;
     return new ExpressionInferenceResult(
       const NeverType.nonNullable(),
@@ -2705,6 +2717,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType receiverType,
     ObjectAccessTarget target,
     Name name,
+    TypeArguments? typeArguments,
     ArgumentsImpl arguments,
     DartType typeContext,
     List<VariableDeclaration>? hoistedExpressions, {
@@ -2718,7 +2731,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       receiverType,
       name,
       receiver: receiver,
-      arguments: arguments,
+      arguments: createArgumentsFromInternalNode(
+        typeArguments?.types ?? [],
+        arguments,
+      ),
       isExpressionInvocation: isExpressionInvocation,
       implicitInvocationPropertyName: implicitInvocationPropertyName,
       extensionAccessCandidates: target.isAmbiguous ? target.candidates : null,
@@ -2728,6 +2744,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       typeContext,
       fileOffset,
       const InvocationTargetInvalidType(),
+      typeArguments,
       arguments,
       hoistedExpressions: hoistedExpressions,
       receiverType: receiverType,
@@ -2746,6 +2763,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType receiverType,
     ObjectAccessTarget target,
     Name name,
+    TypeArguments? typeArguments,
     ArgumentsImpl arguments,
     DartType typeContext,
     List<VariableDeclaration>? hoistedExpressions, {
@@ -2765,6 +2783,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         fileOffset,
         target,
         receiver,
+        [],
         new ArgumentsImpl.empty(),
       );
       ExpressionInferenceResult result = inferMethodInvocation(
@@ -2773,6 +2792,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         staticInvocation,
         calleeType,
         callName,
+        typeArguments,
         arguments,
         typeContext,
         hoistedExpressions: hoistedExpressions,
@@ -2811,6 +2831,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         typeContext,
         fileOffset,
         invocationTargetType,
+        typeArguments,
         arguments,
         hoistedExpressions: hoistedExpressions,
         receiverType: receiverType,
@@ -2823,15 +2844,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         typeEnvironment: typeSchemaEnvironment,
         fileUri: fileUri,
         fileOffset: fileOffset,
-        explicitTypeArguments: arguments.hasExplicitTypeArguments,
+        hasInferredTypeArguments: typeArguments == null,
         typeParameters: target.getTypeParameters(),
-        typeArguments: arguments.types,
+        explicitOrInferredTypeArguments: result.typeArguments,
       );
 
       StaticInvocation staticInvocation = createExtensionInvocation(
         fileOffset,
         target,
         receiver,
+        result.typeArguments,
         arguments,
       );
 
@@ -2897,6 +2919,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression receiver,
     DartType receiverType,
     ObjectAccessTarget target,
+    TypeArguments? typeArguments,
     ArgumentsImpl arguments,
     DartType typeContext,
     List<VariableDeclaration>? hoistedExpressions, {
@@ -2909,6 +2932,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       typeContext,
       fileOffset,
       invocationTargetType,
+      typeArguments,
       arguments,
       hoistedExpressions: hoistedExpressions,
       receiverType: receiverType,
@@ -2924,7 +2948,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       expression = new FunctionInvocation(
         FunctionAccessKind.Inapplicable,
         receiver,
-        arguments,
+        createArgumentsFromInternalNode(result.typeArguments, arguments),
         functionType: null,
       )..fileOffset = fileOffset;
     } else if (receiver is VariableGet) {
@@ -2938,7 +2962,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         localName = variable.cosmeticName!;
         expression = new LocalFunctionInvocation(
           variable as VariableDeclaration,
-          arguments,
+          createArgumentsFromInternalNode(result.typeArguments, arguments),
           functionType: inferredFunctionType as FunctionType,
         )..fileOffset = receiver.fileOffset;
       }
@@ -2948,7 +2972,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           ? FunctionAccessKind.Nullable
           : invocationTargetType.functionAccessKind,
       receiver,
-      arguments,
+      createArgumentsFromInternalNode(result.typeArguments, arguments),
       functionType: switch (invocationTargetType) {
         InvocationTargetFunctionType() => inferredFunctionType as FunctionType,
         _ => null,
@@ -2956,10 +2980,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     )..fileOffset = fileOffset;
 
     _checkBoundsInFunctionInvocation(
-      invocationTargetType.computeFunctionTypeForInference(arguments),
+      invocationTargetType.computeFunctionTypeForInference(
+        result.typeArguments,
+        arguments,
+      ),
       localName,
+      result.typeArguments,
       arguments,
       fileOffset,
+      hasInferredTypeArguments: typeArguments == null,
     );
 
     Expression replacement = result.applyResult(expression);
@@ -3008,7 +3037,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   FunctionType _computeFunctionTypeForArguments(
-    Arguments arguments,
+    ArgumentsImpl arguments,
     DartType type,
   ) {
     return new FunctionType(
@@ -3028,7 +3057,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression receiver,
     DartType receiverType,
     ObjectAccessTarget target,
-    Arguments arguments,
+    TypeArguments? typeArguments,
+    ArgumentsImpl arguments,
     DartType typeContext,
     List<VariableDeclaration>? hoistedExpressions, {
     required bool isImplicitCall,
@@ -3084,7 +3114,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       typeContext,
       fileOffset,
       invocationTargetType,
-      arguments as ArgumentsImpl,
+      typeArguments,
+      arguments,
       hoistedExpressions: hoistedExpressions,
       receiverType: receiverType,
       isImplicitCall: isImplicitCall,
@@ -3102,7 +3133,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               DynamicAccessKind.Dynamic,
               receiver,
               methodName,
-              arguments,
+              createArgumentsFromInternalNode(result.typeArguments, arguments),
             )
             ..isImplicitCall = isImplicitCall
             ..fileOffset = fileOffset;
@@ -3113,7 +3144,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         InstanceAccessKind.Inapplicable,
         receiver,
         methodName,
-        arguments,
+        createArgumentsFromInternalNode(result.typeArguments, arguments),
         functionType: _computeFunctionTypeForArguments(
           arguments,
           const InvalidType(),
@@ -3146,7 +3177,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         kind,
         receiver,
         methodName,
-        arguments,
+        createArgumentsFromInternalNode(result.typeArguments, arguments),
         functionType: inferredFunctionType as FunctionType,
         interfaceTarget: method!,
       )..fileOffset = fileOffset;
@@ -3167,8 +3198,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       receiverType,
       calleeType,
       methodName,
+      result.typeArguments,
       arguments,
       fileOffset,
+      hasInferredTypeArguments: typeArguments == null,
     );
 
     replacement = result.applyResult(replacement);
@@ -3226,6 +3259,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression receiver,
     DartType receiverType,
     ObjectAccessTarget target,
+    TypeArguments? typeArguments,
     ArgumentsImpl arguments,
     DartType typeContext,
     List<VariableDeclaration>? hoistedExpressions, {
@@ -3325,6 +3359,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       propertyGet,
       calleeType,
       callName,
+      typeArguments,
       arguments,
       typeContext,
       hoistedExpressions: hoistedExpressions,
@@ -3452,6 +3487,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression receiver,
     DartType receiverType,
     ObjectAccessTarget target,
+    TypeArguments? typeArguments,
     ArgumentsImpl arguments,
     DartType typeContext,
     List<VariableDeclaration>? hoistedExpressions, {
@@ -3555,6 +3591,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       propertyGet,
       calleeType,
       callName,
+      typeArguments,
       arguments,
       typeContext,
       isExpressionInvocation: false,
@@ -3661,6 +3698,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression receiver,
     DartType receiverType,
     Name name,
+    TypeArguments? typeArguments,
     ArgumentsImpl arguments,
     DartType typeContext, {
     required bool isExpressionInvocation,
@@ -3707,6 +3745,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               receiver,
               receiverType,
               target,
+              typeArguments,
               arguments,
               typeContext,
               hoistedExpressions,
@@ -3721,6 +3760,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               receiver,
               receiverType,
               target,
+              typeArguments,
               arguments,
               typeContext,
               hoistedExpressions,
@@ -3737,6 +3777,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             receiver,
             receiverType,
             target,
+            typeArguments,
             arguments,
             typeContext,
             hoistedExpressions,
@@ -3751,6 +3792,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           receiver,
           receiverType,
           target,
+          typeArguments,
           arguments,
           typeContext,
           hoistedExpressions,
@@ -3767,6 +3809,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           receiverType,
           target,
           name,
+          typeArguments,
           arguments,
           typeContext,
           hoistedExpressions,
@@ -3781,6 +3824,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           receiverType,
           target,
           name,
+          typeArguments,
           arguments,
           typeContext,
           hoistedExpressions,
@@ -3795,6 +3839,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           fileOffset,
           receiver,
           name,
+          typeArguments,
           arguments,
           typeContext,
           hoistedExpressions,
@@ -3807,6 +3852,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           receiver,
           receiverType,
           name,
+          typeArguments,
           arguments,
           typeContext,
           hoistedExpressions,
@@ -3848,6 +3894,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           readResult.expression,
           readResult.inferredType,
           callName,
+          typeArguments,
           arguments,
           typeContext,
           isExpressionInvocation: false,
@@ -3898,6 +3945,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           readResult.expression,
           readResult.inferredType,
           callName,
+          typeArguments,
           arguments,
           typeContext,
           isExpressionInvocation: false,
@@ -3954,6 +4002,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           readResult.expression,
           readResult.inferredType,
           callName,
+          typeArguments,
           arguments,
           typeContext,
           isExpressionInvocation: false,
@@ -3968,9 +4017,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType receiverType,
     DartType calleeType,
     Name methodName,
+    List<DartType> typeArguments,
     ArgumentsImpl arguments,
-    int fileOffset,
-  ) {
+    int fileOffset, {
+    required bool hasInferredTypeArguments,
+  }) {
     // If [arguments] were inferred, check them.
 
     // [actualReceiverType], [interfaceTarget], and [actualMethodName] below
@@ -4003,9 +4054,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       membersHierarchy: membersBuilder,
       name: actualMethodName,
       interfaceTarget: interfaceTarget,
+      explicitOrInferredTypeArguments: typeArguments,
       arguments: arguments,
       fileUri: fileUri,
       fileOffset: fileOffset,
+      hasInferredTypeArguments: hasInferredTypeArguments,
     );
   }
 
@@ -4022,19 +4075,21 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       libraryFeatures: libraryFeatures,
       typeEnvironment: typeSchemaEnvironment,
       functionType: functionType,
-      typeArguments: arguments,
+      explicitOrInferredTypeArguments: arguments,
       fileUri: fileUri,
       fileOffset: fileOffset,
-      inferred: inferred,
+      hasInferredTypeArguments: inferred,
     );
   }
 
   void _checkBoundsInFunctionInvocation(
     FunctionType functionType,
     String? localName,
+    List<DartType> explicitOrInferredTypeArguments,
     ArgumentsImpl arguments,
-    int fileOffset,
-  ) {
+    int fileOffset, {
+    required bool hasInferredTypeArguments,
+  }) {
     // If [arguments] were inferred, check them.
     problemReporting.checkBoundsInFunctionInvocation(
       problemReportingHelper: problemReportingHelper,
@@ -4042,9 +4097,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       typeEnvironment: typeSchemaEnvironment,
       functionType: functionType,
       localName: localName,
+      explicitOrInferredTypeArguments: explicitOrInferredTypeArguments,
       arguments: arguments,
       fileUri: fileUri,
       fileOffset: fileOffset,
+      hasInferredTypeArguments: hasInferredTypeArguments,
     );
   }
 
@@ -4052,6 +4109,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   ExpressionInferenceResult inferSuperMethodInvocation(
     InferenceVisitor visitor, {
     required Name name,
+    required TypeArguments? typeArguments,
     required ArgumentsImpl arguments,
     required DartType typeContext,
     required Procedure procedure,
@@ -4100,6 +4158,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       typeContext,
       fileOffset,
       invocationTargetType,
+      typeArguments,
       arguments,
       isSpecialCasedBinaryOperator: isSpecialCasedBinaryOperator,
       receiverType: receiverType,
@@ -4113,8 +4172,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       receiverType,
       calleeType,
       name,
+      result.typeArguments,
       arguments,
       fileOffset,
+      hasInferredTypeArguments: typeArguments == null,
     );
     return new ExpressionInferenceResult(
       inferredType,
@@ -4122,7 +4183,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         createSuperMethodInvocation(
           name,
           procedure,
-          arguments,
+          createArgumentsFromInternalNode(result.typeArguments, arguments),
           fileOffset: fileOffset,
         ),
       ),
@@ -5533,6 +5594,21 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       fileOffset: charOffset,
       length: length,
     );
+  }
+
+  /// Creates [Arguments] from [node].
+  ///
+  /// This records the relation which data for testing.
+  Arguments createArgumentsFromInternalNode(
+    List<DartType> typeArguments,
+    ArgumentsImpl node,
+  ) {
+    Arguments arguments = node.toArguments(typeArguments);
+    if (dataForTesting != null) {
+      // Coverage-ignore-block(suite): Not run.
+      dataForTesting!.externalToInternalNodeMap[arguments] = node;
+    }
+    return arguments;
   }
 
   /// The client of type inference should call this method after asking

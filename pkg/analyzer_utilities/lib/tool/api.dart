@@ -168,14 +168,14 @@ class ApiDescription {
           }
         }
         if (optionalParams.isNotEmpty) {
-          params.add(optionalParams.separate(prefix: '[', suffix: ']'));
+          params.add(optionalParams._separated(prefix: '[', suffix: ']'));
         }
         if (namedParams.isNotEmpty) {
           params.add(
             namedParams.entries
                 .sortedBy((e) => e.key)
                 .map((e) => [...e.value, ' ${e.key}'])
-                .separate(prefix: '{', suffix: '}'),
+                ._separated(prefix: '{', suffix: '}'),
           );
         }
         return <Object?>[
@@ -184,9 +184,9 @@ class ApiDescription {
           if (typeParameters.isNotEmpty)
             ...typeParameters
                 .map(_describeTypeParameter)
-                .separate(prefix: '<', suffix: '>'),
+                ._separated(prefix: '<', suffix: '>'),
           '(',
-          ...params.separate(),
+          ...params._separated(),
           ')',
           suffix,
         ];
@@ -197,7 +197,7 @@ class ApiDescription {
           if (typeArguments.isNotEmpty)
             ...typeArguments
                 .map(_describeType)
-                .separate(prefix: '<', suffix: '>'),
+                ._separated(prefix: '<', suffix: '>'),
           suffix,
         ];
       case RecordType(:var positionalFields, :var namedFields):
@@ -217,8 +217,8 @@ class ApiDescription {
               namedFields
                   .sortedBy((f) => f.name)
                   .map((f) => [..._describeType(f.type), ' ', f.name])
-                  .separate(prefix: '{', suffix: '}'),
-          ].separate(prefix: '(', suffix: ')'),
+                  ._separated(prefix: '{', suffix: '}'),
+          ]._separated(prefix: '(', suffix: ')'),
           suffix,
         ];
       case TypeParameterType(:var element):
@@ -262,7 +262,7 @@ class ApiDescription {
           description.addAll(
             typeParameters
                 .map(_describeTypeParameter)
-                .separate(prefix: '<', suffix: '>'),
+                ._separated(prefix: '<', suffix: '>'),
           );
         }
         description.addAll([' for ', ..._describeType(aliasedType)]);
@@ -286,7 +286,7 @@ class ApiDescription {
               instanceDescription.addAll(
                 typeParameters
                     .map(_describeTypeParameter)
-                    .separate(prefix: '<', suffix: '>'),
+                    ._separated(prefix: '<', suffix: '>'),
               );
             }
             if (element is! EnumElement && supertype != null) {
@@ -300,12 +300,14 @@ class ApiDescription {
               instanceDescription.addAll(
                 element.superclassConstraints
                     .map(_describeType)
-                    .separate(prefix: ' on '),
+                    ._separated(prefix: ' on '),
               );
             }
             if (interfaces.isNotEmpty) {
               instanceDescription.addAll(
-                interfaces.map(_describeType).separate(prefix: ' implements '),
+                interfaces
+                    .map(_describeType)
+                    ._separated(prefix: ' implements '),
               );
             }
             parentheticals.add(instanceDescription);
@@ -414,7 +416,7 @@ class ApiDescription {
     }
 
     if (parentheticals.isNotEmpty) {
-      node.text.addAll(parentheticals.separate(prefix: ' (', suffix: ')'));
+      node.text.addAll(parentheticals._separated(prefix: ' (', suffix: ')'));
     }
     if (node.childNodes.isNotEmpty) {
       node.text.add(':');
@@ -629,7 +631,7 @@ class UriSortKey implements Comparable<UriSortKey> {
 extension on Iterable<Iterable<Object?>> {
   /// Forms a list containing [prefix], followed by the elements of `this`
   /// (separated by [separator]), followed by [suffix].
-  List<Object?> separate({
+  List<Object?> _separated({
     String separator = ', ',
     String prefix = '',
     String suffix = '',

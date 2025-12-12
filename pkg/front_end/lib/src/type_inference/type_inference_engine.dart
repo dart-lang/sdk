@@ -416,6 +416,11 @@ class InferenceDataForTesting
 
   final TypeInferenceResultForTesting typeInferenceResult =
       new TypeInferenceResultForTesting();
+
+  /// Map from external nodes to their corresponding internal nodes.
+  ///
+  /// This is only maintained for nodes used in tests.
+  final Map<Node, Node> externalToInternalNodeMap = {};
 }
 
 /// The result of performing flow analysis on a unit.

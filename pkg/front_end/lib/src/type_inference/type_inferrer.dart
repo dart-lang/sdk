@@ -315,6 +315,7 @@ class TypeInferrerImpl implements TypeInferrer {
       typeContext,
       fileOffset,
       new InvocationTargetFunctionType(targetType),
+      null,
       targetInvocationArguments,
       staticTarget: target,
     );

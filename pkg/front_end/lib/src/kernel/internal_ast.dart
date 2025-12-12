@@ -264,7 +264,7 @@ abstract class InternalExpression extends AuxiliaryExpression {
 
 // Coverage-ignore(suite): Not run.
 /// Common base class for internal initializers.
-abstract class InternalInitializer extends AuxiliaryInitializer {
+sealed class InternalInitializer extends AuxiliaryInitializer {
   @override
   void visitChildren(Visitor<dynamic> v) =>
       unsupported("${runtimeType}.visitChildren", -1, null);
@@ -280,8 +280,25 @@ abstract class InternalInitializer extends AuxiliaryInitializer {
   InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor);
 }
 
+// TODO(johnniwinther): Add offsets. Maybe add `isExplicit` property, since this
+// is currently used to pass converted/computed type arguments for type alias
+// constructor invocation.
+class TypeArguments {
+  final List<DartType> types;
+
+  TypeArguments(this.types);
+
+  // Coverage-ignore(suite): Not run.
+  void toText(AstPrinter printer) {
+    printer.writeTypeArguments(types);
+  }
+}
+
 /// Front end specific implementation of [Argument].
-class ArgumentsImpl extends Arguments {
+class ArgumentsImpl extends TreeNode with InternalTreeNode {
+  final List<Expression> positional;
+  List<NamedExpression> named;
+
   bool _hasExplicitTypeArguments;
 
   List<Object?>? argumentsOriginalOrder;
@@ -298,35 +315,64 @@ class ArgumentsImpl extends Arguments {
   Set<String>? namedSuperParameterNames;
 
   ArgumentsImpl(
-    List<Expression> positional, {
+    this.positional, {
+    List<DartType>? types,
     List<NamedExpression>? named,
     this.argumentsOriginalOrder,
   }) : _hasExplicitTypeArguments = false,
-       super(positional, named: named);
+       this.named = named ?? [];
 
-  ArgumentsImpl.empty() : _hasExplicitTypeArguments = false, super.empty();
+  ArgumentsImpl.empty()
+    : _hasExplicitTypeArguments = false,
+      this.positional = [],
+      this.named = [];
 
-  List<DartType>? get explicitTypeArguments =>
-      _hasExplicitTypeArguments ? types : null;
-
-  void setExplicitTypeArguments(List<DartType> types) {
-    assert(this.types.isEmpty);
-    assert(!_hasExplicitTypeArguments);
-    this.types.clear();
-    this.types.addAll(types);
-    _hasExplicitTypeArguments = types.isNotEmpty;
-  }
-
-  void resetExplicitTypeArguments() {
-    types.clear();
-    _hasExplicitTypeArguments = false;
-  }
-
+  @deprecated
+  // Coverage-ignore(suite): Not run.
   bool get hasExplicitTypeArguments => _hasExplicitTypeArguments;
+
+  Arguments toArguments(List<DartType> typeArguments) {
+    return new Arguments(positional, types: typeArguments, named: named)
+      ..fileOffset = fileOffset;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('(');
+    for (int index = 0; index < positional.length; index++) {
+      if (index > 0) {
+        printer.write(', ');
+      }
+      printer.writeExpression(positional[index]);
+    }
+    if (named.isNotEmpty) {
+      if (positional.isNotEmpty) {
+        printer.write(', ');
+      }
+      for (int index = 0; index < named.length; index++) {
+        if (index > 0) {
+          printer.write(', ');
+        }
+        printer.writeNamedExpression(named[index]);
+      }
+    }
+    printer.write(')');
+  }
 
   @override
   String toString() {
     return "ArgumentsImpl(${toStringInternal()})";
+  }
+
+  @override
+  R accept<R>(TreeVisitor<R> v) {
+    throw new UnimplementedError('${runtimeType}.accept');
+  }
+
+  @override
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
+    throw new UnimplementedError('${runtimeType}.accept1');
   }
 }
 
@@ -452,6 +498,7 @@ abstract class ExpressionJudgment extends AuxiliaryExpression {
 class FactoryConstructorInvocation extends InternalExpression {
   bool hasBeenInferred = false;
   final Procedure target;
+  final TypeArguments? typeArguments;
   ArgumentsImpl arguments;
 
   /// If `true`, this invocation is constant, either explicit or inferred.
@@ -459,6 +506,7 @@ class FactoryConstructorInvocation extends InternalExpression {
 
   FactoryConstructorInvocation(
     this.target,
+    this.typeArguments,
     this.arguments, {
     required this.isConst,
   }) {
@@ -487,12 +535,12 @@ class FactoryConstructorInvocation extends InternalExpression {
       printer.write('new ');
     }
     printer.writeClassName(target.enclosingClass?.reference);
-    printer.writeTypeArguments(arguments.types);
+    typeArguments?.toText(printer);
     if (target.name.text.isNotEmpty) {
       printer.write('.');
       printer.write(target.name.text);
     }
-    printer.writeArguments(arguments, includeTypeArguments: false);
+    arguments.toTextInternal(printer);
   }
 }
 
@@ -501,12 +549,14 @@ class TypeAliasedConstructorInvocation extends InternalExpression {
   bool hasBeenInferred = false;
   final TypeAliasBuilder typeAliasBuilder;
   final Constructor target;
+  final TypeArguments? typeArguments;
   ArgumentsImpl arguments;
   final bool isConst;
 
   TypeAliasedConstructorInvocation(
     this.typeAliasBuilder,
     this.target,
+    this.typeArguments,
     this.arguments, {
     this.isConst = false,
   }) {
@@ -535,12 +585,12 @@ class TypeAliasedConstructorInvocation extends InternalExpression {
       printer.write('new ');
     }
     printer.writeTypedefName(typeAliasBuilder.typedef.reference);
-    printer.writeTypeArguments(arguments.types);
+    typeArguments?.toText(printer);
     if (target.name.text.isNotEmpty) {
       printer.write('.');
       printer.write(target.name.text);
     }
-    printer.writeArguments(arguments, includeTypeArguments: false);
+    arguments.toTextInternal(printer);
   }
 }
 
@@ -549,6 +599,7 @@ class TypeAliasedFactoryInvocation extends InternalExpression {
   bool hasBeenInferred = false;
   final TypeAliasBuilder typeAliasBuilder;
   final Procedure target;
+  final TypeArguments? typeArguments;
   ArgumentsImpl arguments;
 
   /// If `true`, this invocation is constant, either explicit or inferred.
@@ -557,6 +608,7 @@ class TypeAliasedFactoryInvocation extends InternalExpression {
   TypeAliasedFactoryInvocation(
     this.typeAliasBuilder,
     this.target,
+    this.typeArguments,
     this.arguments, {
     required this.isConst,
   }) {
@@ -585,12 +637,12 @@ class TypeAliasedFactoryInvocation extends InternalExpression {
       printer.write('new ');
     }
     printer.writeTypedefName(typeAliasBuilder.typedef.reference);
-    printer.writeTypeArguments(arguments.types);
+    typeArguments?.toText(printer);
     if (target.name.text.isNotEmpty) {
       printer.write('.');
       printer.write(target.name.text);
     }
-    printer.writeArguments(arguments, includeTypeArguments: false);
+    arguments.toTextInternal(printer);
   }
 }
 
@@ -750,9 +802,10 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
 
 class ExpressionInvocation extends InternalExpression {
   Expression expression;
+  final TypeArguments? typeArguments;
   ArgumentsImpl arguments;
 
-  ExpressionInvocation(this.expression, this.arguments) {
+  ExpressionInvocation(this.expression, this.typeArguments, this.arguments) {
     expression.parent = this;
     arguments.parent = this;
   }
@@ -774,7 +827,8 @@ class ExpressionInvocation extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(expression);
-    printer.writeArguments(arguments);
+    typeArguments?.toText(printer);
+    arguments.toTextInternal(printer);
   }
 }
 
@@ -1395,7 +1449,7 @@ class LoadLibraryImpl extends LoadLibrary {
     printer.write(import.name!);
     printer.write('.loadLibrary');
     if (arguments != null) {
-      printer.writeArguments(arguments!);
+      arguments!.toTextInternal(printer);
     } else {
       printer.write('()');
     }
@@ -2706,7 +2760,7 @@ class ExtensionIndexGet extends InternalExpression {
 
   /// The explicit type arguments for the type parameters declared in
   /// [extension].
-  final List<DartType>? explicitTypeArguments;
+  final TypeArguments? explicitTypeArguments;
 
   /// The receiver of the extension access.
   Expression receiver;
@@ -2734,7 +2788,8 @@ class ExtensionIndexGet extends InternalExpression {
     required this.extensionTypeArgumentOffset,
   }) : assert(
          explicitTypeArguments == null ||
-             explicitTypeArguments.length == extension.typeParameters.length,
+             explicitTypeArguments.types.length ==
+                 extension.typeParameters.length,
        ) {
     receiver.parent = this;
     index.parent = this;
@@ -2758,7 +2813,7 @@ class ExtensionIndexGet extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.write(extension.name);
     if (explicitTypeArguments != null) {
-      printer.writeTypeArguments(explicitTypeArguments!);
+      printer.writeTypeArguments(explicitTypeArguments!.types);
     }
     printer.write('(');
     printer.writeExpression(receiver);
@@ -2794,7 +2849,7 @@ class ExtensionIndexSet extends InternalExpression {
 
   /// The explicit type arguments for the type parameters declared in
   /// [extension].
-  final List<DartType>? explicitTypeArguments;
+  final TypeArguments? explicitTypeArguments;
 
   /// The receiver of the extension access.
   Expression receiver;
@@ -2830,7 +2885,8 @@ class ExtensionIndexSet extends InternalExpression {
     required this.extensionTypeArgumentOffset,
   }) : assert(
          explicitTypeArguments == null ||
-             explicitTypeArguments.length == extension.typeParameters.length,
+             explicitTypeArguments.types.length ==
+                 extension.typeParameters.length,
        ) {
     receiver.parent = this;
     index.parent = this;
@@ -2855,7 +2911,7 @@ class ExtensionIndexSet extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.write(extension.name);
     if (explicitTypeArguments != null) {
-      printer.writeTypeArguments(explicitTypeArguments!);
+      printer.writeTypeArguments(explicitTypeArguments!.types);
     }
     printer.write('(');
     printer.writeExpression(receiver);
@@ -3387,7 +3443,7 @@ class ExtensionCompoundIndexSet extends InternalExpression {
 
   /// The explicit type arguments for the type parameters declared in
   /// [extension], if provided.
-  final List<DartType>? explicitTypeArguments;
+  final TypeArguments? explicitTypeArguments;
 
   /// The receiver used for the read/write operations.
   Expression receiver;
@@ -3447,7 +3503,8 @@ class ExtensionCompoundIndexSet extends InternalExpression {
     required this.extensionTypeArgumentOffset,
   }) : assert(
          explicitTypeArguments == null ||
-             explicitTypeArguments.length == extension.typeParameters.length,
+             explicitTypeArguments.types.length ==
+                 extension.typeParameters.length,
        ) {
     receiver.parent = this;
     index.parent = this;
@@ -3468,7 +3525,7 @@ class ExtensionCompoundIndexSet extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.write(extension.name);
     if (explicitTypeArguments != null) {
-      printer.writeTypeArguments(explicitTypeArguments!);
+      printer.writeTypeArguments(explicitTypeArguments!.types);
     }
     printer.write('(');
     printer.writeExpression(receiver);
@@ -3811,6 +3868,9 @@ class ExtensionMethodInvocation extends InternalExpression {
   /// The extension method called for the assignment.
   Procedure method;
 
+  /// The type arguments provided to the method, if any.
+  final TypeArguments? typeArguments;
+
   /// The arguments provided to the method.
   ArgumentsImpl arguments;
 
@@ -3831,12 +3891,14 @@ class ExtensionMethodInvocation extends InternalExpression {
     required Expression thisAccess,
     required Name name,
     required Procedure target,
+    required TypeArguments? typeArguments,
     required ArgumentsImpl arguments,
   }) : this._(
          extension,
          thisAccess,
          name,
          target,
+         typeArguments,
          arguments,
          isExplicit: false,
          knownTypeArguments: thisTypeArguments,
@@ -3849,6 +3911,7 @@ class ExtensionMethodInvocation extends InternalExpression {
     required Expression receiver,
     required Name name,
     required Procedure target,
+    required TypeArguments? typeArguments,
     required ArgumentsImpl arguments,
     required List<DartType>? explicitTypeArguments,
     required int? extensionTypeArgumentOffset,
@@ -3858,6 +3921,7 @@ class ExtensionMethodInvocation extends InternalExpression {
          receiver,
          name,
          target,
+         typeArguments,
          arguments,
          isExplicit: true,
          knownTypeArguments: explicitTypeArguments,
@@ -3870,6 +3934,7 @@ class ExtensionMethodInvocation extends InternalExpression {
     this.receiver,
     this.name,
     this.method,
+    this.typeArguments,
     this.arguments, {
     required this.knownTypeArguments,
     required bool isExplicit,
@@ -3912,7 +3977,8 @@ class ExtensionMethodInvocation extends InternalExpression {
     }
     printer.write('.');
     printer.writeName(name);
-    printer.writeArguments(arguments);
+    typeArguments?.toText(printer);
+    arguments.toTextInternal(printer);
   }
 
   @override
@@ -3949,6 +4015,9 @@ class ExtensionGetterInvocation extends InternalExpression {
   /// The extension getter called for the assignment.
   Procedure getter;
 
+  /// The type arguments provided to the getter, if any.
+  final TypeArguments? typeArguments;
+
   /// The arguments provided to the getter.
   ArgumentsImpl arguments;
 
@@ -3969,12 +4038,14 @@ class ExtensionGetterInvocation extends InternalExpression {
     required Expression thisAccess,
     required Name name,
     required Procedure target,
+    required TypeArguments? typeArguments,
     required ArgumentsImpl arguments,
   }) : this._(
          extension,
          thisAccess,
          name,
          target,
+         typeArguments,
          arguments,
          isExplicit: false,
          knownTypeArguments: thisTypeArguments,
@@ -3987,6 +4058,7 @@ class ExtensionGetterInvocation extends InternalExpression {
     required Expression receiver,
     required Name name,
     required Procedure target,
+    required TypeArguments? typeArguments,
     required ArgumentsImpl arguments,
     required List<DartType>? explicitTypeArguments,
     required int? extensionTypeArgumentOffset,
@@ -3996,6 +4068,7 @@ class ExtensionGetterInvocation extends InternalExpression {
          receiver,
          name,
          target,
+         typeArguments,
          arguments,
          isExplicit: true,
          knownTypeArguments: explicitTypeArguments,
@@ -4008,6 +4081,7 @@ class ExtensionGetterInvocation extends InternalExpression {
     this.receiver,
     this.name,
     this.getter,
+    this.typeArguments,
     this.arguments, {
     required this.knownTypeArguments,
     required bool isExplicit,
@@ -4050,7 +4124,8 @@ class ExtensionGetterInvocation extends InternalExpression {
     }
     printer.write('.');
     printer.writeName(name);
-    printer.writeArguments(arguments);
+    typeArguments?.toText(printer);
+    arguments.toTextInternal(printer);
   }
 
   @override
@@ -4377,6 +4452,9 @@ class MethodInvocation extends InternalExpression {
   /// The name of the invoked method or property.
   Name name;
 
+  /// The type arguments applied at the invocation, if any.
+  final TypeArguments? typeArguments;
+
   /// The arguments applied at the invocation.
   ArgumentsImpl arguments;
 
@@ -4386,6 +4464,7 @@ class MethodInvocation extends InternalExpression {
   MethodInvocation(
     this.receiver,
     this.name,
+    this.typeArguments,
     this.arguments, {
     required this.isNullAware,
   }) {
@@ -4419,7 +4498,8 @@ class MethodInvocation extends InternalExpression {
     }
     printer.write('.');
     printer.writeName(name);
-    printer.writeArguments(arguments);
+    typeArguments?.toText(printer);
+    arguments.toTextInternal(printer);
   }
 }
 
@@ -4543,10 +4623,13 @@ class PropertySet extends InternalExpression {
 class AugmentSuperInvocation extends InternalExpression {
   final Member target;
 
+  final TypeArguments? typeArguments;
+
   ArgumentsImpl arguments;
 
   AugmentSuperInvocation(
     this.target,
+    this.typeArguments,
     this.arguments, {
     required int fileOffset,
   }) {
@@ -4573,7 +4656,8 @@ class AugmentSuperInvocation extends InternalExpression {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write('augment super');
-    printer.writeArguments(arguments);
+    typeArguments?.toText(printer);
+    arguments.toTextInternal(printer);
   }
 }
 
@@ -4733,6 +4817,10 @@ class ExtensionTypeRedirectingInitializer extends InternalInitializer {
   Reference targetReference;
   ArgumentsImpl arguments;
 
+  /// Redirecting initializers are encoded as calls to top-level functions.
+  /// The type arguments for this call are inferred.
+  List<DartType> inferredTypeArguments = [];
+
   ExtensionTypeRedirectingInitializer(Procedure target, ArgumentsImpl arguments)
     : this.byReference(
         // Getter vs setter doesn't matter for procedures.
@@ -4768,7 +4856,7 @@ class ExtensionTypeRedirectingInitializer extends InternalInitializer {
       printer.write('.');
       printer.write(target.name.text);
     }
-    printer.writeArguments(arguments, includeTypeArguments: false);
+    arguments.toTextInternal(printer);
   }
 
   @override
@@ -4853,6 +4941,7 @@ class DotShorthand extends InternalExpression {
 class DotShorthandInvocation extends InternalExpression {
   final Name name;
   final int nameOffset;
+  final TypeArguments? typeArguments;
   final ArgumentsImpl arguments;
 
   /// If `true`, this invocation is constant, either explicit or inferred.
@@ -4860,6 +4949,7 @@ class DotShorthandInvocation extends InternalExpression {
 
   DotShorthandInvocation(
     this.name,
+    this.typeArguments,
     this.arguments, {
     required this.nameOffset,
     required this.isConst,
@@ -4886,7 +4976,8 @@ class DotShorthandInvocation extends InternalExpression {
     }
     printer.write('.');
     printer.writeName(name);
-    printer.writeArguments(arguments);
+    typeArguments?.toText(printer);
+    arguments.toTextInternal(printer);
   }
 }
 
@@ -4933,11 +5024,13 @@ class DotShorthandPropertyGet extends InternalExpression {
 
 class InternalConstructorInvocation extends InternalExpression {
   final Constructor target;
+  final TypeArguments? typeArguments;
   final ArgumentsImpl arguments;
   final bool isConst;
 
   InternalConstructorInvocation(
     this.target,
+    this.typeArguments,
     this.arguments, {
     required this.isConst,
   }) {
@@ -4961,12 +5054,12 @@ class InternalConstructorInvocation extends InternalExpression {
       printer.write('new ');
     }
     printer.writeClassName(target.enclosingClass.reference);
-    printer.writeTypeArguments(arguments.types);
+    typeArguments?.toText(printer);
     if (target.name.text.isNotEmpty) {
       printer.write('.');
       printer.write(target.name.text);
     }
-    arguments.toTextInternal(printer, includeTypeArguments: false);
+    arguments.toTextInternal(printer);
   }
 
   @override
@@ -4978,9 +5071,15 @@ class InternalConstructorInvocation extends InternalExpression {
 class InternalStaticInvocation extends InternalExpression {
   final Name name;
   final Procedure target;
+  final TypeArguments? typeArguments;
   final ArgumentsImpl arguments;
 
-  InternalStaticInvocation(this.name, this.target, this.arguments) {
+  InternalStaticInvocation(
+    this.name,
+    this.target,
+    this.typeArguments,
+    this.arguments,
+  ) {
     arguments.parent = this;
   }
 
@@ -4996,6 +5095,7 @@ class InternalStaticInvocation extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeName(name);
+    typeArguments?.toText(printer);
     arguments.toTextInternal(printer);
   }
 
@@ -5008,9 +5108,15 @@ class InternalStaticInvocation extends InternalExpression {
 class InternalSuperMethodInvocation extends InternalExpression {
   final Name name;
   final Procedure target;
+  final TypeArguments? typeArguments;
   final ArgumentsImpl arguments;
 
-  InternalSuperMethodInvocation(this.name, this.arguments, this.target) {
+  InternalSuperMethodInvocation(
+    this.name,
+    this.typeArguments,
+    this.arguments,
+    this.target,
+  ) {
     arguments.parent = this;
   }
 
@@ -5027,6 +5133,7 @@ class InternalSuperMethodInvocation extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.write('super.');
     printer.writeName(name);
+    typeArguments?.toText(printer);
     arguments.toTextInternal(printer);
   }
 
@@ -5057,7 +5164,7 @@ class InternalRedirectingInitializer extends InternalInitializer {
       printer.write('.');
       printer.write(target.name.text);
     }
-    printer.writeArguments(arguments, includeTypeArguments: false);
+    arguments.toTextInternal(printer);
   }
 
   @override
@@ -5094,7 +5201,7 @@ class InternalSuperInitializer extends InternalInitializer {
       printer.write('.');
       printer.write(target.name.text);
     }
-    printer.writeArguments(arguments, includeTypeArguments: false);
+    arguments.toTextInternal(printer);
   }
 
   @override

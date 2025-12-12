@@ -111,6 +111,9 @@ abstract class InvocationInferenceResult {
 
   DartType get functionType;
 
+  /// The explicit or inferred type arguments.
+  List<DartType> get typeArguments;
+
   /// Applies the result of the inference to the expression being inferred.
   ///
   /// A successful result leaves [expression] intact, and an error detected
@@ -152,13 +155,17 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
   @override
   final FunctionType functionType;
 
+  @override
+  final List<DartType> typeArguments;
+
   final List<VariableDeclaration>? hoistedArguments;
 
   final DartType? inferredReceiverType;
 
   SuccessfulInferenceResult(
     this.inferredType,
-    this.functionType, {
+    this.functionType,
+    this.typeArguments, {
     required this.hoistedArguments,
     this.inferredReceiverType,
   });
@@ -278,12 +285,6 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
 }
 
 class WrapInProblemInferenceResult implements InvocationInferenceResult {
-  @override
-  final DartType inferredType;
-
-  @override
-  final DartType functionType;
-
   final LocatedMessage message;
 
   final ProblemReporting problemReporting;
@@ -296,14 +297,21 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
   final List<VariableDeclaration>? hoistedArguments;
 
   WrapInProblemInferenceResult(
-    this.inferredType,
-    this.functionType,
     this.message,
     this.problemReporting,
     this.compilerContext, {
     required this.isInapplicable,
     required this.hoistedArguments,
   });
+
+  @override
+  DartType get inferredType => const InvalidType();
+
+  @override
+  DartType get functionType => const InvalidType();
+
+  @override
+  List<DartType> get typeArguments => [];
 
   @override
   Expression applyResult(
