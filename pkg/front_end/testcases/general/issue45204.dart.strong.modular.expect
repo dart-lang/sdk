@@ -150,7 +150,7 @@ Try removing the extra positional arguments.
         ^" in self::S|test(4, 5, 6);
   invalid-expression "pkg/front_end/testcases/general/issue45204.dart:17:5: Error: Expected 0 type arguments.
   5.test<int>(6);
-    ^" in self::S|test<core::int>(5, 6);
+    ^" in self::S|test(5, 6);
   invalid-expression "pkg/front_end/testcases/general/issue45204.dart:19:10: Error: Too few positional arguments: 1 required, 0 given.
   3.test2();
          ^" in self::S2|test2<dynamic>(3);
@@ -160,21 +160,21 @@ Try removing the extra positional arguments.
          ^" in self::S2|test2<dynamic>(4, 5, 6);
   invalid-expression "pkg/front_end/testcases/general/issue45204.dart:21:5: Error: Expected 0 type arguments.
   5.test2<int>(6);
-    ^" in self::S2|test2<dynamic, core::int>(5, 6);
+    ^" in self::S2|test2<dynamic>(5, 6);
   invalid-expression "pkg/front_end/testcases/general/issue45204.dart:23:10: Error: Too few positional arguments: 1 required, 0 given.
   3.test3();
-         ^" in self::S2|test3<dynamic, dynamic>(3);
+         ^" in self::S2|test3<dynamic>(3);
   invalid-expression "pkg/front_end/testcases/general/issue45204.dart:24:10: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
   4.test3(5, 6);
-         ^" in self::S2|test3<dynamic, core::int>(4, 5, 6);
+         ^" in self::S2|test3<dynamic>(4, 5, 6);
   self::S2|test3<dynamic, core::int>(5, 6);
   invalid-expression "pkg/front_end/testcases/general/issue45204.dart:26:5: Error: Expected 1 type arguments.
   6.test3<int, int>(7);
-    ^" in self::S2|test3<dynamic, core::int, core::int>(6, 7);
+    ^" in self::S2|test3<dynamic>(6, 7);
   invalid-expression "pkg/front_end/testcases/general/issue45204.dart:27:5: Error: Expected 1 type arguments.
   7.test3<int, int, int>(8);
-    ^" in self::S2|test3<dynamic, core::int, core::int, core::int>(7, 8);
+    ^" in self::S2|test3<dynamic>(7, 8);
   invalid-expression "pkg/front_end/testcases/general/issue45204.dart:29:12: Error: Too few positional arguments: 1 required, 0 given.
   S(3).test();
            ^";

@@ -325,16 +325,17 @@ class EnumElementDeclaration
       new IntLiteral(elementIndex),
       new StringLiteral(constant),
     ];
-    List<DartType>? typeArguments;
+    TypeArguments? typeArguments;
     List<TypeBuilder>? typeArgumentBuilders =
         _fragment.constructorReferenceBuilder?.typeArguments;
     if (typeArgumentBuilders != null) {
-      typeArguments = <DartType>[];
+      List<DartType> types = [];
       for (TypeBuilder typeBuilder in typeArgumentBuilders) {
-        typeArguments.add(
+        types.add(
           typeBuilder.build(libraryBuilder, TypeUse.constructorTypeArgument),
         );
       }
+      typeArguments = new TypeArguments(types);
     }
     if (result != null && result.isInvalidLookup) {
       assert(

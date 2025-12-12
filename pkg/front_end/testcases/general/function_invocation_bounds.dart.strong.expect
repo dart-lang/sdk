@@ -43,7 +43,7 @@ static method test() → dynamic {
   local<core::int>(throw ""){(core::int) → core::int};
   invalid-expression "pkg/front_end/testcases/general/function_invocation_bounds.dart:13:8: Error: Expected 1 type arguments.
   local<int, String>(throw '');
-       ^" in local{<inapplicable>}.<core::int, core::String>(throw "");
+       ^" in local{<inapplicable>}.(throw "");
   <T extends core::num>(T) → T f = local;
   f<core::num>(invalid-expression "pkg/front_end/testcases/general/function_invocation_bounds.dart:15:5: Error: The argument type 'String' can't be assigned to the parameter type 'num'.
   f(\"\");
@@ -53,6 +53,6 @@ static method test() → dynamic {
   f<core::int>(throw ""){(core::int) → core::int};
   invalid-expression "pkg/front_end/testcases/general/function_invocation_bounds.dart:19:4: Error: Expected 1 type arguments.
   f<int, String>(throw '');
-   ^" in f{<inapplicable>}.<core::int, core::String>(throw "");
+   ^" in f{<inapplicable>}.(throw "");
 }
 static method main() → dynamic {}

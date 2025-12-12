@@ -140,7 +140,7 @@ Try removing the extra positional arguments.
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:46:8: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
     f2a(0); // error
-       ^" in f2a{<inapplicable>}.<core::num>(0);
+       ^" in f2a{<inapplicable>}.(0);
     f2a<core::String>(){() → self::A};
   };
   dynamic f2b = #C2;
@@ -163,7 +163,7 @@ Try removing the extra positional arguments.
        ^" in f3a{<inapplicable>}.(0);
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:66:8: Error: Expected 0 type arguments.
     f3a<String>(); // error
-       ^" in f3a{<inapplicable>}.<core::String>();
+       ^" in f3a{<inapplicable>}.();
   };
   dynamic f3b = #C4;
   dynamic c3b = f3b{dynamic}();
@@ -189,7 +189,7 @@ Try removing the extra positional arguments.
        ^" in f3c{<inapplicable>}.(0, 0);
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:87:8: Error: Expected 0 type arguments.
     f3c<String>(0); // error
-       ^" in f3c{<inapplicable>}.<core::String>(0);
+       ^" in f3c{<inapplicable>}.(0);
   };
   dynamic f3d = #C6;
   dynamic c3d = f3d{dynamic}(42);
@@ -215,7 +215,7 @@ Try removing the extra positional arguments.
        ^" in f3e{<inapplicable>}.(0);
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:109:8: Error: Expected 0 type arguments.
     f3e<String>(0, ''); // error
-       ^" in f3e{<inapplicable>}.<core::String>(0, "");
+       ^" in f3e{<inapplicable>}.(0, "");
   };
   dynamic f3f = #C8;
   dynamic c3f = f3f{dynamic}(42, "foo");
@@ -237,7 +237,7 @@ Try removing the extra positional arguments.
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:130:8: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
     f4a(0); // error
-       ^" in f4a{<inapplicable>}.<core::num>(0);
+       ^" in f4a{<inapplicable>}.(0);
     f4a<core::String>(){() → self::B<core::String>};
   };
   dynamic f4b = #C9;
@@ -260,10 +260,10 @@ Try removing the extra positional arguments.
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:152:8: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
     f5a(0); // error
-       ^" in f5a{<inapplicable>}.<core::num, core::String>(0);
+       ^" in f5a{<inapplicable>}.(0);
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:153:8: Error: Expected 2 type arguments.
     f5a<String>(); // error
-       ^" in f5a{<inapplicable>}.<core::String>();
+       ^" in f5a{<inapplicable>}.();
     f5a<core::String, core::String>(){() → self::B<core::String>};
     f5a<core::num, core::num>(){() → self::B<core::num>};
   };

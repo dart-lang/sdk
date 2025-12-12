@@ -158,8 +158,8 @@ library;
 //   void Function(List<T12>) t12d, // Error
 //                      ^
 //
-// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:63:7: Error: A generic function type can't be used as a type argument.
-// Try using a non-generic function type.
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:63:7: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
+// Try providing a non-generic function type explicitly.
 //   new T7(0); // Error
 //       ^
 //
@@ -172,6 +172,11 @@ library;
 //  - 'List' is from 'dart:core'.
 //   new T7(0); // Error
 //          ^
+//
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:63:7: Error: A generic function type can't be used as a type argument.
+// Try using a non-generic function type.
+//   new T7(0); // Error
+//       ^
 //
 // pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:60:4: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
 // Try providing a non-generic function type explicitly.

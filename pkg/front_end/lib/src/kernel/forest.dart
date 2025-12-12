@@ -751,9 +751,10 @@ class Forest {
   Expression createExpressionInvocation(
     int fileOffset,
     Expression expression,
+    TypeArguments? typeArguments,
     ArgumentsImpl arguments,
   ) {
-    return new ExpressionInvocation(expression, arguments)
+    return new ExpressionInvocation(expression, typeArguments, arguments)
       ..fileOffset = fileOffset;
   }
 
@@ -761,12 +762,14 @@ class Forest {
     int fileOffset,
     Expression expression,
     Name name,
+    TypeArguments? typeArguments,
     ArgumentsImpl arguments, {
     required bool isNullAware,
   }) {
     return new MethodInvocation(
       expression,
       name,
+      typeArguments,
       arguments,
       isNullAware: isNullAware,
     )..fileOffset = fileOffset;
@@ -776,10 +779,15 @@ class Forest {
     int fileOffset,
     Name name,
     Procedure procedure,
+    TypeArguments? typeArguments,
     ArgumentsImpl arguments,
   ) {
-    return new InternalSuperMethodInvocation(name, arguments, procedure)
-      ..fileOffset = fileOffset;
+    return new InternalSuperMethodInvocation(
+      name,
+      typeArguments,
+      arguments,
+      procedure,
+    )..fileOffset = fileOffset;
   }
 
   NullCheck createNullCheck(int fileOffset, Expression expression) {
@@ -1147,12 +1155,14 @@ class Forest {
   DotShorthandInvocation createDotShorthandInvocation(
     int fileOffset,
     Name name,
+    TypeArguments? typeArguments,
     ArgumentsImpl arguments, {
     required int nameOffset,
     required bool isConst,
   }) {
     return new DotShorthandInvocation(
       name,
+      typeArguments,
       arguments,
       nameOffset: nameOffset,
       isConst: isConst,

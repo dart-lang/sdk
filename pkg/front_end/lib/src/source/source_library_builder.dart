@@ -1485,7 +1485,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             typeEnvironment: typeEnvironment,
             fileUri: pendingBoundsCheck.fileUri,
             fileOffset: pendingBoundsCheck.charOffset,
-            inferred: pendingBoundsCheck.inferred,
+            hasInferredTypeArguments: pendingBoundsCheck.inferred,
             allowSuperBounded: true,
           );
           break;
@@ -1503,7 +1503,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             typeEnvironment: typeEnvironment,
             fileUri: pendingBoundsCheck.fileUri,
             fileOffset: pendingBoundsCheck.charOffset,
-            inferred: pendingBoundsCheck.inferred,
+            hasInferredTypeArguments: pendingBoundsCheck.inferred,
             allowSuperBounded: false,
           );
           break;
@@ -1516,7 +1516,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             typeEnvironment: typeEnvironment,
             fileUri: pendingBoundsCheck.fileUri,
             fileOffset: pendingBoundsCheck.charOffset,
-            inferred: pendingBoundsCheck.inferred,
+            hasInferredTypeArguments: pendingBoundsCheck.inferred,
             allowSuperBounded: true,
           );
           break;

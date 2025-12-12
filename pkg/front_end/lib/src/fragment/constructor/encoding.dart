@@ -802,8 +802,10 @@ class _ExtensionTypeInitializerToStatementConverter
         new ExpressionStatement(
           new VariableSet(
             thisVariable,
-            new StaticInvocation(node.target, node.arguments.toArguments())
-              ..fileOffset = node.fileOffset,
+            new StaticInvocation(
+              node.target,
+              node.arguments.toArguments(node.inferredTypeArguments),
+            )..fileOffset = node.fileOffset,
           )..fileOffset = node.fileOffset,
         )..fileOffset = node.fileOffset,
       );

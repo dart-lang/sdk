@@ -92,7 +92,7 @@ Try removing the extra positional arguments.
   () → Null {
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:62:8: Error: Expected 1 type arguments.
     f4a<int, String>(); // error
-       ^" in f4a{<inapplicable>}.<core::int, core::String>();
+       ^" in f4a{<inapplicable>}.();
   };
   () → mai::Class4<core::int> f4b = f4a<core::int>;
   mai::Class4<core::int> c4c = f4b(){() → mai::Class4<core::int>};
@@ -101,7 +101,7 @@ Try removing the extra positional arguments.
   () → Null {
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:70:8: Error: Expected 0 type arguments.
     f4b<int>(); // error
-       ^" in f4b{<inapplicable>}.<core::int>();
+       ^" in f4b{<inapplicable>}.();
   };
   dynamic f4c = #C5;
   dynamic c4d = f4c{dynamic}();
@@ -118,7 +118,7 @@ Try removing the extra positional arguments.
   () → Null {
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:87:8: Error: Expected 1 type arguments.
     f4d<int, String>(); // error
-       ^" in f4d{<inapplicable>}.<core::int, core::String>();
+       ^" in f4d{<inapplicable>}.();
   };
   () → mai::Class4<core::int> f4e = f4d<core::int>;
   mai::Class4<core::int> c4g = f4e(){() → mai::Class4<core::int>};
@@ -127,7 +127,7 @@ Try removing the extra positional arguments.
   () → Null {
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:95:8: Error: Expected 0 type arguments.
     f4e<int>(); // error
-       ^" in f4e{<inapplicable>}.<core::int>();
+       ^" in f4e{<inapplicable>}.();
   };
   dynamic f4f = #C6;
   dynamic c4h = f4f{dynamic}();
@@ -145,7 +145,7 @@ Try removing the extra positional arguments.
     f5a<core::String>(){() → mai::Class5<core::String>};
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:113:8: Error: Expected 1 type arguments.
     f5a<int, String>(); // error
-       ^" in f5a{<inapplicable>}.<core::int, core::String>();
+       ^" in f5a{<inapplicable>}.();
   };
   dynamic f5b = #C7;
   dynamic c5c = f5b{dynamic}();

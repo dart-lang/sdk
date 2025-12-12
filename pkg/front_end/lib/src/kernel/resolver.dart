@@ -145,7 +145,7 @@ class Resolver {
     required Token? token,
     required List<Expression> enumSyntheticArguments,
     required int enumTypeParameterCount,
-    required List<DartType>? typeArguments,
+    required TypeArguments? typeArguments,
     required MemberBuilder? constructorBuilder,
     required Uri fileUri,
     required int fileOffset,
@@ -186,13 +186,6 @@ class Resolver {
     } else {
       arguments = new ArgumentsImpl(enumSyntheticArguments);
     }
-    if (typeArguments != null) {
-      arguments.setExplicitTypeArguments(typeArguments);
-    } else if (enumTypeParameterCount != 0) {
-      arguments.types.addAll(
-        new List<DartType>.filled(enumTypeParameterCount, const UnknownType()),
-      );
-    }
     setParents(enumSyntheticArguments, arguments);
     Expression initializer;
     DartType? fieldType;
@@ -212,9 +205,11 @@ class Resolver {
         libraryFeatures: libraryFeatures,
         typeEnvironment: context.typeEnvironment,
         target: constructorBuilder.invokeTarget,
+        typeArguments: typeArguments,
         arguments: arguments,
         fileUri: fileUri,
         fileOffset: fileOffset,
+        hasInferredTypeArguments: false,
       );
       ExpressionInferenceResult inferenceResult = context.typeInferrer
           .inferFieldInitializer(
@@ -823,13 +818,16 @@ class Resolver {
     required LibraryFeatures libraryFeatures,
     required TypeEnvironment typeEnvironment,
     required Member target,
+    required TypeArguments? typeArguments,
     required ArgumentsImpl arguments,
     required Uri fileUri,
     required int fileOffset,
+    required bool hasInferredTypeArguments,
   }) {
     Expression? result = problemReporting.checkStaticArguments(
       compilerContext: compilerContext,
       target: target,
+      explicitTypeArguments: typeArguments,
       arguments: arguments,
       fileOffset: fileOffset,
       fileUri: fileUri,
@@ -850,17 +848,21 @@ class Resolver {
       }
       Expression node = new InternalConstructorInvocation(
         target,
+        typeArguments,
         arguments,
         isConst: true,
       )..fileOffset = fileOffset;
-      problemReporting.checkBoundsInConstructorInvocation(
-        libraryFeatures: libraryFeatures,
-        constructor: target,
-        typeArguments: arguments.types,
-        typeEnvironment: typeEnvironment,
-        fileUri: fileUri,
-        fileOffset: fileOffset,
-      );
+      if (typeArguments != null) {
+        problemReporting.checkBoundsInConstructorInvocation(
+          libraryFeatures: libraryFeatures,
+          constructor: target,
+          explicitOrInferredTypeArguments: typeArguments.types,
+          typeEnvironment: typeEnvironment,
+          fileUri: fileUri,
+          fileOffset: fileOffset,
+          hasInferredTypeArguments: hasInferredTypeArguments,
+        );
+      }
       return node;
     } else {
       // Coverage-ignore-block(suite): Not run.
@@ -876,18 +878,21 @@ class Resolver {
       }
       FactoryConstructorInvocation node = new FactoryConstructorInvocation(
         target,
+        typeArguments,
         arguments,
         isConst: true,
       )..fileOffset = fileOffset;
-      problemReporting.checkBoundsInFactoryInvocation(
-        libraryFeatures: libraryFeatures,
-        factory: target,
-        typeArguments: arguments.types,
-        typeEnvironment: typeEnvironment,
-        fileUri: fileUri,
-        fileOffset: fileOffset,
-        inferred: !arguments.hasExplicitTypeArguments,
-      );
+      if (typeArguments != null) {
+        problemReporting.checkBoundsInFactoryInvocation(
+          libraryFeatures: libraryFeatures,
+          factory: target,
+          explicitOrInferredTypeArguments: typeArguments.types,
+          typeEnvironment: typeEnvironment,
+          fileUri: fileUri,
+          fileOffset: fileOffset,
+          hasInferredTypeArguments: hasInferredTypeArguments,
+        );
+      }
       return node;
     }
   }
@@ -1410,6 +1415,7 @@ class Resolver {
           needsImplicitSuperInitializer = false;
         } else if (problemReporting.checkArgumentsForFunction(
               function: superTarget.function,
+              explicitTypeArguments: null,
               arguments: arguments,
               fileOffset: bodyBuilderContext.memberNameOffset,
               fileUri: fileUri,

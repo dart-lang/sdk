@@ -311,7 +311,7 @@ Future<void> main() async {
     );
     check(
       "InvocationSelector(offset: 4, name: bar, arguments: (\"arg\"))",
-      new InvocationSelector(helper, token, name, null, arguments),
+      new InvocationSelector(helper, token, name, null, null, arguments),
     );
     check(
       "PropertySelector(offset: 4, name: bar)",

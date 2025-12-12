@@ -647,6 +647,7 @@ void _testFactoryConstructorInvocation() {
   testExpression(
     new FactoryConstructorInvocation(
       factoryConstructor,
+      null,
       new ArgumentsImpl([]),
       isConst: false,
     ),
@@ -659,6 +660,7 @@ new library test:dummy::Class()''',
   testExpression(
     new FactoryConstructorInvocation(
       factoryConstructor,
+      null,
       new ArgumentsImpl([]),
       isConst: true,
     ),
@@ -671,10 +673,11 @@ const library test:dummy::Class()''',
   testExpression(
     new FactoryConstructorInvocation(
       factoryConstructor,
+      new TypeArguments([const VoidType()]),
       new ArgumentsImpl(
         [new IntLiteral(0)],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      )..setExplicitTypeArguments([const VoidType()]),
+      ),
       isConst: false,
     ),
     '''
@@ -687,10 +690,11 @@ new library test:dummy::Class<void>(0, bar: 1)''',
   testExpression(
     new FactoryConstructorInvocation(
       factoryConstructor,
+      new TypeArguments([const VoidType()]),
       new ArgumentsImpl(
         [new IntLiteral(0)],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      )..setExplicitTypeArguments([const VoidType()]),
+      ),
       isConst: false,
     ),
     '''
@@ -741,6 +745,7 @@ void _testTypeAliasedConstructorInvocation(CompilerContext c) {
     new TypeAliasedConstructorInvocation(
       typeAliasBuilder,
       constructor,
+      null,
       new ArgumentsImpl([]),
     ),
     '''
@@ -753,10 +758,11 @@ new library test:dummy::Typedef()''',
     new TypeAliasedConstructorInvocation(
       typeAliasBuilder,
       constructor,
+      new TypeArguments([const VoidType()]),
       new ArgumentsImpl(
         [new IntLiteral(0)],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      )..setExplicitTypeArguments([const VoidType()]),
+      ),
     ),
     '''
 new Typedef<void>(0, bar: 1)''',
@@ -769,10 +775,11 @@ new library test:dummy::Typedef<void>(0, bar: 1)''',
     new TypeAliasedConstructorInvocation(
       typeAliasBuilder,
       constructor,
+      new TypeArguments([const VoidType()]),
       new ArgumentsImpl(
         [new IntLiteral(0)],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      )..setExplicitTypeArguments([const VoidType()]),
+      ),
     ),
     '''
 new Typedef<void>.foo(0, bar: 1)''',
@@ -785,10 +792,11 @@ new library test:dummy::Typedef<void>.foo(0, bar: 1)''',
     new TypeAliasedConstructorInvocation(
       typeAliasBuilder,
       constructor,
+      new TypeArguments([const VoidType()]),
       new ArgumentsImpl(
         [new IntLiteral(0)],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      )..setExplicitTypeArguments([const VoidType()]),
+      ),
       isConst: true,
     ),
     '''
@@ -840,6 +848,7 @@ void _testTypeAliasedFactoryInvocation(CompilerContext c) {
     new TypeAliasedFactoryInvocation(
       typeAliasBuilder,
       factoryConstructor,
+      null,
       new ArgumentsImpl([]),
       isConst: false,
     ),
@@ -853,10 +862,11 @@ new library test:dummy::Typedef()''',
     new TypeAliasedFactoryInvocation(
       typeAliasBuilder,
       factoryConstructor,
+      new TypeArguments([const VoidType()]),
       new ArgumentsImpl(
         [new IntLiteral(0)],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      )..setExplicitTypeArguments([const VoidType()]),
+      ),
       isConst: false,
     ),
     '''
@@ -870,10 +880,11 @@ new library test:dummy::Typedef<void>(0, bar: 1)''',
     new TypeAliasedFactoryInvocation(
       typeAliasBuilder,
       factoryConstructor,
+      new TypeArguments([const VoidType()]),
       new ArgumentsImpl(
         [new IntLiteral(0)],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      )..setExplicitTypeArguments([const VoidType()]),
+      ),
       isConst: false,
     ),
     '''
@@ -887,10 +898,11 @@ new library test:dummy::Typedef<void>.foo(0, bar: 1)''',
     new TypeAliasedFactoryInvocation(
       typeAliasBuilder,
       factoryConstructor,
+      new TypeArguments([const VoidType()]),
       new ArgumentsImpl(
         [new IntLiteral(0)],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      )..setExplicitTypeArguments([const VoidType()]),
+      ),
       isConst: true,
     ),
     '''
@@ -930,6 +942,7 @@ void _testInternalMethodInvocation() {
     new MethodInvocation(
       new IntLiteral(0),
       new Name('boz'),
+      null,
       new ArgumentsImpl([]),
       isNullAware: false,
     ),
@@ -940,13 +953,14 @@ void _testInternalMethodInvocation() {
     new MethodInvocation(
       new IntLiteral(0),
       new Name('boz'),
+      new TypeArguments([const VoidType(), const DynamicType()]),
       new ArgumentsImpl(
         [new IntLiteral(1)],
         named: [
           new NamedExpression('foo', new IntLiteral(2)),
           new NamedExpression('bar', new IntLiteral(3)),
         ],
-      )..setExplicitTypeArguments([const VoidType(), const DynamicType()]),
+      ),
       isNullAware: false,
     ),
     '''
@@ -956,6 +970,7 @@ void _testInternalMethodInvocation() {
     new MethodInvocation(
       new IntLiteral(0),
       new Name('boz'),
+      null,
       new ArgumentsImpl([]),
       isNullAware: true,
     ),
@@ -966,13 +981,14 @@ void _testInternalMethodInvocation() {
     new MethodInvocation(
       new IntLiteral(0),
       new Name('boz'),
+      new TypeArguments([const VoidType(), const DynamicType()]),
       new ArgumentsImpl(
         [new IntLiteral(1)],
         named: [
           new NamedExpression('foo', new IntLiteral(2)),
           new NamedExpression('bar', new IntLiteral(3)),
         ],
-      )..setExplicitTypeArguments([const VoidType(), const DynamicType()]),
+      ),
       isNullAware: true,
     ),
     '''
@@ -1024,20 +1040,21 @@ void _testPropertySet() {
 
 void _testExpressionInvocation() {
   testExpression(
-    new ExpressionInvocation(new IntLiteral(0), new ArgumentsImpl([])),
+    new ExpressionInvocation(new IntLiteral(0), null, new ArgumentsImpl([])),
     '''
 0()''',
   );
   testExpression(
     new ExpressionInvocation(
       new IntLiteral(0),
+      new TypeArguments([const VoidType(), const DynamicType()]),
       new ArgumentsImpl(
         [new IntLiteral(1)],
         named: [
           new NamedExpression('foo', new IntLiteral(2)),
           new NamedExpression('bar', new IntLiteral(3)),
         ],
-      )..setExplicitTypeArguments([const VoidType(), const DynamicType()]),
+      ),
     ),
     '''
 0<void, dynamic>(1, foo: 2, bar: 3)''',
@@ -1049,6 +1066,7 @@ void _testMethodInvocation() {
     new MethodInvocation(
       new IntLiteral(0),
       new Name('foo'),
+      null,
       new ArgumentsImpl([]),
       isNullAware: false,
     ),
@@ -1060,6 +1078,7 @@ void _testMethodInvocation() {
     new MethodInvocation(
       new IntLiteral(0),
       new Name('foo'),
+      null,
       new ArgumentsImpl([]),
       isNullAware: true,
     ),
@@ -1824,7 +1843,7 @@ Extension(0)?[1]''',
   testExpression(
     new ExtensionIndexGet(
       extension,
-      [const VoidType()],
+      new TypeArguments([const VoidType()]),
       new IntLiteral(0),
       getter,
       new IntLiteral(1),
@@ -1838,7 +1857,7 @@ Extension<void>(0)[1]''',
   testExpression(
     new ExtensionIndexGet(
       extension,
-      [const VoidType()],
+      new TypeArguments([const VoidType()]),
       new IntLiteral(0),
       getter,
       new IntLiteral(1),
@@ -1901,7 +1920,7 @@ Extension(0)?[1] = 2''',
   testExpression(
     new ExtensionIndexSet(
       extension,
-      [const VoidType()],
+      new TypeArguments([const VoidType()]),
       new IntLiteral(0),
       setter,
       new IntLiteral(1),
@@ -1917,7 +1936,7 @@ Extension<void>(0)[1] = 2''',
   testExpression(
     new ExtensionIndexSet(
       extension,
-      [const VoidType()],
+      new TypeArguments([const VoidType()]),
       new IntLiteral(0),
       setter,
       new IntLiteral(1),
@@ -2432,7 +2451,7 @@ Extension(0)?[1]++''',
   testExpression(
     new ExtensionCompoundIndexSet(
       extension: extension,
-      explicitTypeArguments: [const VoidType()],
+      explicitTypeArguments: new TypeArguments([const VoidType()]),
       receiver: new IntLiteral(0),
       getter: getter,
       setter: setter,
@@ -2454,7 +2473,7 @@ Extension<void>(0)[1] += 2''',
   testExpression(
     new ExtensionCompoundIndexSet(
       extension: extension,
-      explicitTypeArguments: [const VoidType()],
+      explicitTypeArguments: new TypeArguments([const VoidType()]),
       receiver: new IntLiteral(0),
       getter: getter,
       setter: setter,
@@ -2476,7 +2495,7 @@ Extension<void>(0)?[1] -= 2''',
   testExpression(
     new ExtensionCompoundIndexSet(
       extension: extension,
-      explicitTypeArguments: [const VoidType()],
+      explicitTypeArguments: new TypeArguments([const VoidType()]),
       receiver: new IntLiteral(0),
       getter: getter,
       setter: setter,
@@ -2498,7 +2517,7 @@ Extension<void>(0)[1]++''',
   testExpression(
     new ExtensionCompoundIndexSet(
       extension: extension,
-      explicitTypeArguments: [const VoidType()],
+      explicitTypeArguments: new TypeArguments([const VoidType()]),
       receiver: new IntLiteral(0),
       getter: getter,
       setter: setter,
@@ -2634,6 +2653,7 @@ void _testExtensionGetterInvocation() {
       receiver: new IntLiteral(0),
       name: name,
       target: method,
+      typeArguments: null,
       arguments: new ArgumentsImpl([new IntLiteral(1)]),
       isNullAware: false,
     ),
@@ -2649,6 +2669,7 @@ Extension(0).foo(1)''',
       receiver: new IntLiteral(0),
       name: name,
       target: method,
+      typeArguments: null,
       arguments: new ArgumentsImpl([new IntLiteral(1)]),
       isNullAware: true,
     ),
@@ -2664,6 +2685,7 @@ Extension(0)?.foo(1)''',
       receiver: new IntLiteral(0),
       name: name,
       target: method,
+      typeArguments: null,
       arguments: new ArgumentsImpl([new IntLiteral(1)]),
       isNullAware: false,
     ),
@@ -2679,6 +2701,7 @@ Extension<void>(0).foo(1)''',
       receiver: new IntLiteral(0),
       name: name,
       target: method,
+      typeArguments: null,
       arguments: new ArgumentsImpl([new IntLiteral(1)]),
       isNullAware: true,
     ),
@@ -2698,6 +2721,7 @@ Extension<void>(0)?.foo(1)''',
       thisAccess: new IntLiteral(0),
       name: name,
       target: method,
+      typeArguments: null,
       arguments: new ArgumentsImpl([new IntLiteral(1)]),
     ),
     '''
@@ -2730,6 +2754,7 @@ void _testExtensionMethodInvocation() {
       receiver: new IntLiteral(0),
       name: name,
       target: method,
+      typeArguments: null,
       arguments: new ArgumentsImpl([new IntLiteral(1)]),
       isNullAware: false,
     ),
@@ -2745,6 +2770,7 @@ Extension(0).foo(1)''',
       receiver: new IntLiteral(0),
       name: name,
       target: method,
+      typeArguments: null,
       arguments: new ArgumentsImpl([new IntLiteral(1)]),
       isNullAware: true,
     ),
@@ -2760,6 +2786,7 @@ Extension(0)?.foo(1)''',
       receiver: new IntLiteral(0),
       name: name,
       target: method,
+      typeArguments: null,
       arguments: new ArgumentsImpl([new IntLiteral(1)]),
       isNullAware: false,
     ),
@@ -2775,6 +2802,7 @@ Extension<void>(0).foo(1)''',
       receiver: new IntLiteral(0),
       name: name,
       target: method,
+      typeArguments: null,
       arguments: new ArgumentsImpl([new IntLiteral(1)]),
       isNullAware: true,
     ),
@@ -2794,6 +2822,7 @@ Extension<void>(0)?.foo(1)''',
       thisAccess: new IntLiteral(0),
       name: name,
       target: method,
+      typeArguments: null,
       arguments: new ArgumentsImpl([new IntLiteral(1)]),
     ),
     '''
