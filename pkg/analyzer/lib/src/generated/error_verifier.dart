@@ -1731,7 +1731,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       );
       _checkForClassUsedAsMixin(withClause);
       _checkForSealedSupertypeOutsideOfLibrary([
-        if (superclass != null) superclass,
+        ?superclass,
         ...?withClause?.mixinTypes,
         ...?implementsClause?.interfaces,
       ]);

@@ -449,7 +449,7 @@ class JsonErrorFormatter extends ErrorFormatter {
           if (error.correctionMessage != null)
             'correctionMessage': error.correctionMessage,
           if (contextMessages.isNotEmpty) 'contextMessages': contextMessages,
-          if (url != null) 'documentation': url,
+          'documentation': ?url,
         });
       }
     }

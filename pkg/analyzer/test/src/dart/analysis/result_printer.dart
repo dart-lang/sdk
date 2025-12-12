@@ -1585,7 +1585,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
       element.libraryUri,
       element.kind.name,
       element.topLevelName,
-      if (element.memberName case var memberName?) memberName,
+      ?element.memberName,
     ];
     var idStr = idProvider.manifestId(element.id);
     sink.writeln('(${parts.join(', ')}) $idStr');

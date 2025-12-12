@@ -1538,13 +1538,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             _usesMixinNew(mixin.classNode)
                 ? _runtimeCall('mixinNew')
                 : _constructorName(''),
-            [if (mixinRti != null) mixinRti],
+            [?mixinRti],
           ]);
         }
 
         var name = ctor.name.text;
         var ctorBody = [
-          if (mixinCtor != null) mixinCtor,
+          ?mixinCtor,
           if (name != '' || hasUnnamedSuper)
             _emitSuperConstructorCall(
               ctor,
@@ -2279,10 +2279,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         var initializer = js.statement('#.#.call(this, #);', [
           className,
           _constructorName(init.target.name.text),
-          [
-            if (rtiParam != null) rtiParam,
-            ..._emitArgumentList(init.arguments, types: false),
-          ],
+          [?rtiParam, ..._emitArgumentList(init.arguments, types: false)],
         ]);
         jsInitializers.add(initializer);
       }
@@ -2311,10 +2308,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var rti = _requiresRtiForInstantiation(ctor.enclosingClass)
           ? js_ast.LiteralNull()
           : null;
-      args = [
-        if (rti != null) rti,
-        ..._emitArgumentList(superInit.arguments, types: true),
-      ];
+      args = [?rti, ..._emitArgumentList(superInit.arguments, types: true)];
 
       _currentTypeEnvironment = savedTypeEnvironment;
     }
@@ -7444,7 +7438,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           )
         : null;
     var result = js_ast.New(_emitConstructorName(node.constructedType, ctor), [
-      if (rti != null) rti,
+      ?rti,
       ..._emitArgumentList(args, types: false, target: ctor),
     ]);
     return node.isConst ? _canonicalizeConstObject(result) : result;
@@ -7513,7 +7507,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         ? _emitType(type, emitJSInteropGenericClassTypeParametersAsAny: false)
         : null;
     var result = js_ast.Call(_emitConstructorName(type, ctor), [
-      if (rti != null) rti,
+      ?rti,
       ..._emitArgumentList(args, types: false),
     ]);
     return node.isConst ? _canonicalizeConstObject(result) : result;
