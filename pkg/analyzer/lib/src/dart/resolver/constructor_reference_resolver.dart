@@ -68,10 +68,8 @@ class ConstructorReferenceResolver {
           var error = method.isStatic
               ? diag.classInstantiationAccessToStaticMember
               : diag.classInstantiationAccessToInstanceMember;
-          _resolver.diagnosticReporter.atNode(
-            node,
-            error,
-            arguments: [name.name],
+          _resolver.diagnosticReporter.report(
+            error.withArguments(name: name.name).at(node),
           );
         } else if (!name.isSynthetic) {
           _resolver.diagnosticReporter.atNode(

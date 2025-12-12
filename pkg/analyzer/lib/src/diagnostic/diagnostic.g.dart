@@ -1448,9 +1448,9 @@ const DiagnosticWithoutArguments classInClass = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the member
+/// String name: the name of the member
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 classInstantiationAccessToInstanceMember = DiagnosticWithArguments(
   name: 'class_instantiation_access_to_member',
@@ -1465,9 +1465,9 @@ classInstantiationAccessToInstanceMember = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the member
+/// String name: the name of the member
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 classInstantiationAccessToStaticMember = DiagnosticWithArguments(
   name: 'class_instantiation_access_to_member',
@@ -18036,19 +18036,19 @@ LocatableDiagnostic _withArgumentsCastToNonType({required String p0}) {
 }
 
 LocatableDiagnostic _withArgumentsClassInstantiationAccessToInstanceMember({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(
     diag.classInstantiationAccessToInstanceMember,
-    [p0],
+    [name],
   );
 }
 
 LocatableDiagnostic _withArgumentsClassInstantiationAccessToStaticMember({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(diag.classInstantiationAccessToStaticMember, [
-    p0,
+    name,
   ]);
 }
 

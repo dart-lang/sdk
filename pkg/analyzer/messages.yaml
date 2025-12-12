@@ -2554,9 +2554,9 @@ CompileTimeErrorCode:
   classInstantiationAccessToInstanceMember:
     type: compileTimeError
     parameters:
-      String p0: the name of the member
+      String name: the name of the member
     sharedName: classInstantiationAccessToMember
-    problemMessage: "The instance member '#p0' can't be accessed on a class instantiation."
+    problemMessage: "The instance member '#name' can't be accessed on a class instantiation."
     correctionMessage: Try changing the member name to the name of a constructor.
     hasPublishedDocs: false
   classInstantiationAccessToUnknownMember:
@@ -2571,9 +2571,9 @@ CompileTimeErrorCode:
   classInstantiationAccessToStaticMember:
     type: compileTimeError
     parameters:
-      String p0: the name of the member
+      String name: the name of the member
     sharedName: classInstantiationAccessToMember
-    problemMessage: "The static member '#p0' can't be accessed on a class instantiation."
+    problemMessage: "The static member '#name' can't be accessed on a class instantiation."
     correctionMessage: Try removing the type arguments from the class name, or changing the member name to the name of a constructor.
     hasPublishedDocs: false
   nonConstGenerativeEnumConstructor:
