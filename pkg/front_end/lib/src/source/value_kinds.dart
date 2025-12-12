@@ -37,6 +37,7 @@ import '../kernel/body_builder.dart'
         JumpTarget,
         Label;
 import '../kernel/expression_generator.dart' as type;
+import '../kernel/internal_ast.dart' as type;
 import 'outline_builder.dart' as type;
 
 class ValueKinds {
@@ -44,9 +45,10 @@ class ValueKinds {
       const SingleValueKind<List<type.Expression>>();
   static const ValueKind AnnotationListOrNull =
       const SingleValueKind<List<type.Expression>>(NullValues.Metadata);
-  static const ValueKind Arguments = const SingleValueKind<type.Arguments>();
+  static const ValueKind Arguments =
+      const SingleValueKind<type.ArgumentsImpl>();
   static const ValueKind ArgumentsOrNull =
-      const SingleValueKind<type.Arguments>(NullValues.Arguments);
+      const SingleValueKind<type.ArgumentsImpl>(NullValues.Arguments);
   static const ValueKind ArgumentsTokenOrNull =
       const SingleValueKind<type.Token>(NullValues.Arguments);
   static const ValueKind AssignedVariablesNodeInfo =

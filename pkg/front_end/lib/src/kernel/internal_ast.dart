@@ -264,7 +264,7 @@ abstract class InternalExpression extends AuxiliaryExpression {
 
 // Coverage-ignore(suite): Not run.
 /// Common base class for internal initializers.
-abstract class InternalInitializer extends AuxiliaryInitializer {
+sealed class InternalInitializer extends AuxiliaryInitializer {
   @override
   void visitChildren(Visitor<dynamic> v) =>
       unsupported("${runtimeType}.visitChildren", -1, null);
@@ -281,7 +281,11 @@ abstract class InternalInitializer extends AuxiliaryInitializer {
 }
 
 /// Front end specific implementation of [Argument].
-class ArgumentsImpl extends Arguments {
+class ArgumentsImpl extends TreeNode with InternalTreeNode {
+  final List<DartType> types;
+  final List<Expression> positional;
+  List<NamedExpression> named;
+
   bool _hasExplicitTypeArguments;
 
   List<Object?>? argumentsOriginalOrder;
@@ -298,13 +302,19 @@ class ArgumentsImpl extends Arguments {
   Set<String>? namedSuperParameterNames;
 
   ArgumentsImpl(
-    List<Expression> positional, {
+    this.positional, {
+    List<DartType>? types,
     List<NamedExpression>? named,
     this.argumentsOriginalOrder,
   }) : _hasExplicitTypeArguments = false,
-       super(positional, named: named);
+       this.types = types ?? [],
+       this.named = named ?? [];
 
-  ArgumentsImpl.empty() : _hasExplicitTypeArguments = false, super.empty();
+  ArgumentsImpl.empty()
+    : _hasExplicitTypeArguments = false,
+      this.types = [],
+      this.positional = [],
+      this.named = [];
 
   List<DartType>? get explicitTypeArguments =>
       _hasExplicitTypeArguments ? types : null;
@@ -324,9 +334,51 @@ class ArgumentsImpl extends Arguments {
 
   bool get hasExplicitTypeArguments => _hasExplicitTypeArguments;
 
+  Arguments toArguments() {
+    return new Arguments(positional, types: types, named: named)
+      ..fileOffset = fileOffset;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer, {bool includeTypeArguments = true}) {
+    if (includeTypeArguments) {
+      printer.writeTypeArguments(types);
+    }
+    printer.write('(');
+    for (int index = 0; index < positional.length; index++) {
+      if (index > 0) {
+        printer.write(', ');
+      }
+      printer.writeExpression(positional[index]);
+    }
+    if (named.isNotEmpty) {
+      if (positional.isNotEmpty) {
+        printer.write(', ');
+      }
+      for (int index = 0; index < named.length; index++) {
+        if (index > 0) {
+          printer.write(', ');
+        }
+        printer.writeNamedExpression(named[index]);
+      }
+    }
+    printer.write(')');
+  }
+
   @override
   String toString() {
     return "ArgumentsImpl(${toStringInternal()})";
+  }
+
+  @override
+  R accept<R>(TreeVisitor<R> v) {
+    throw new UnimplementedError('${runtimeType}.accept');
+  }
+
+  @override
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
+    throw new UnimplementedError('${runtimeType}.accept1');
   }
 }
 
@@ -492,7 +544,7 @@ class FactoryConstructorInvocation extends InternalExpression {
       printer.write('.');
       printer.write(target.name.text);
     }
-    printer.writeArguments(arguments, includeTypeArguments: false);
+    arguments.toTextInternal(printer, includeTypeArguments: false);
   }
 }
 
@@ -540,7 +592,7 @@ class TypeAliasedConstructorInvocation extends InternalExpression {
       printer.write('.');
       printer.write(target.name.text);
     }
-    printer.writeArguments(arguments, includeTypeArguments: false);
+    arguments.toTextInternal(printer, includeTypeArguments: false);
   }
 }
 
@@ -590,7 +642,7 @@ class TypeAliasedFactoryInvocation extends InternalExpression {
       printer.write('.');
       printer.write(target.name.text);
     }
-    printer.writeArguments(arguments, includeTypeArguments: false);
+    arguments.toTextInternal(printer, includeTypeArguments: false);
   }
 }
 
@@ -774,7 +826,7 @@ class ExpressionInvocation extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(expression);
-    printer.writeArguments(arguments);
+    arguments.toTextInternal(printer);
   }
 }
 
@@ -1395,7 +1447,7 @@ class LoadLibraryImpl extends LoadLibrary {
     printer.write(import.name!);
     printer.write('.loadLibrary');
     if (arguments != null) {
-      printer.writeArguments(arguments!);
+      arguments!.toTextInternal(printer);
     } else {
       printer.write('()');
     }
@@ -3912,7 +3964,7 @@ class ExtensionMethodInvocation extends InternalExpression {
     }
     printer.write('.');
     printer.writeName(name);
-    printer.writeArguments(arguments);
+    arguments.toTextInternal(printer);
   }
 
   @override
@@ -4050,7 +4102,7 @@ class ExtensionGetterInvocation extends InternalExpression {
     }
     printer.write('.');
     printer.writeName(name);
-    printer.writeArguments(arguments);
+    arguments.toTextInternal(printer);
   }
 
   @override
@@ -4419,7 +4471,7 @@ class MethodInvocation extends InternalExpression {
     }
     printer.write('.');
     printer.writeName(name);
-    printer.writeArguments(arguments);
+    arguments.toTextInternal(printer);
   }
 }
 
@@ -4573,7 +4625,7 @@ class AugmentSuperInvocation extends InternalExpression {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write('augment super');
-    printer.writeArguments(arguments);
+    arguments.toTextInternal(printer);
   }
 }
 
@@ -4768,7 +4820,7 @@ class ExtensionTypeRedirectingInitializer extends InternalInitializer {
       printer.write('.');
       printer.write(target.name.text);
     }
-    printer.writeArguments(arguments, includeTypeArguments: false);
+    arguments.toTextInternal(printer, includeTypeArguments: false);
   }
 
   @override
@@ -4886,7 +4938,7 @@ class DotShorthandInvocation extends InternalExpression {
     }
     printer.write('.');
     printer.writeName(name);
-    printer.writeArguments(arguments);
+    arguments.toTextInternal(printer);
   }
 }
 
@@ -5057,7 +5109,7 @@ class InternalRedirectingInitializer extends InternalInitializer {
       printer.write('.');
       printer.write(target.name.text);
     }
-    printer.writeArguments(arguments, includeTypeArguments: false);
+    arguments.toTextInternal(printer, includeTypeArguments: false);
   }
 
   @override
@@ -5094,7 +5146,7 @@ class InternalSuperInitializer extends InternalInitializer {
       printer.write('.');
       printer.write(target.name.text);
     }
-    printer.writeArguments(arguments, includeTypeArguments: false);
+    arguments.toTextInternal(printer, includeTypeArguments: false);
   }
 
   @override

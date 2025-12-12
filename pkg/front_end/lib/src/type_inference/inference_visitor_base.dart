@@ -1893,7 +1893,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               );
         }
       }
-      return visitor.inferExpression(argumentExpression, inferredFormalType);
+      return visitor.inferExpression(
+        argumentExpression,
+        inferredFormalType,
+        isVoidAllowed: true,
+      );
     }
 
     List<ExpressionInfo<SharedTypeView>?>? identicalInfo =
@@ -2654,7 +2658,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             DynamicAccessKind.Dynamic,
             receiver,
             name,
-            arguments,
+            createArgumentsFromInternalNode(arguments),
           )
           ..isImplicitCall = isImplicitCall
           ..fileOffset = fileOffset;
@@ -2690,7 +2694,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DynamicAccessKind.Never,
       receiver,
       name,
-      arguments,
+      createArgumentsFromInternalNode(arguments),
     )..fileOffset = fileOffset;
     return new ExpressionInferenceResult(
       const NeverType.nonNullable(),
@@ -2718,7 +2722,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       receiverType,
       name,
       receiver: receiver,
-      arguments: arguments,
+      arguments: createArgumentsFromInternalNode(arguments),
       isExpressionInvocation: isExpressionInvocation,
       implicitInvocationPropertyName: implicitInvocationPropertyName,
       extensionAccessCandidates: target.isAmbiguous ? target.candidates : null,
@@ -2924,7 +2928,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       expression = new FunctionInvocation(
         FunctionAccessKind.Inapplicable,
         receiver,
-        arguments,
+        createArgumentsFromInternalNode(arguments),
         functionType: null,
       )..fileOffset = fileOffset;
     } else if (receiver is VariableGet) {
@@ -2938,7 +2942,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         localName = variable.cosmeticName!;
         expression = new LocalFunctionInvocation(
           variable as VariableDeclaration,
-          arguments,
+          createArgumentsFromInternalNode(arguments),
           functionType: inferredFunctionType as FunctionType,
         )..fileOffset = receiver.fileOffset;
       }
@@ -2948,7 +2952,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           ? FunctionAccessKind.Nullable
           : invocationTargetType.functionAccessKind,
       receiver,
-      arguments,
+      createArgumentsFromInternalNode(arguments),
       functionType: switch (invocationTargetType) {
         InvocationTargetFunctionType() => inferredFunctionType as FunctionType,
         _ => null,
@@ -3008,7 +3012,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   FunctionType _computeFunctionTypeForArguments(
-    Arguments arguments,
+    ArgumentsImpl arguments,
     DartType type,
   ) {
     return new FunctionType(
@@ -3028,7 +3032,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression receiver,
     DartType receiverType,
     ObjectAccessTarget target,
-    Arguments arguments,
+    ArgumentsImpl arguments,
     DartType typeContext,
     List<VariableDeclaration>? hoistedExpressions, {
     required bool isImplicitCall,
@@ -3084,7 +3088,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       typeContext,
       fileOffset,
       invocationTargetType,
-      arguments as ArgumentsImpl,
+      arguments,
       hoistedExpressions: hoistedExpressions,
       receiverType: receiverType,
       isImplicitCall: isImplicitCall,
@@ -3102,7 +3106,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               DynamicAccessKind.Dynamic,
               receiver,
               methodName,
-              arguments,
+              createArgumentsFromInternalNode(arguments),
             )
             ..isImplicitCall = isImplicitCall
             ..fileOffset = fileOffset;
@@ -3113,7 +3117,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         InstanceAccessKind.Inapplicable,
         receiver,
         methodName,
-        arguments,
+        createArgumentsFromInternalNode(arguments),
         functionType: _computeFunctionTypeForArguments(
           arguments,
           const InvalidType(),
@@ -3146,7 +3150,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         kind,
         receiver,
         methodName,
-        arguments,
+        createArgumentsFromInternalNode(arguments),
         functionType: inferredFunctionType as FunctionType,
         interfaceTarget: method!,
       )..fileOffset = fileOffset;
@@ -4122,7 +4126,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         createSuperMethodInvocation(
           name,
           procedure,
-          arguments,
+          createArgumentsFromInternalNode(arguments),
           fileOffset: fileOffset,
         ),
       ),
@@ -5533,6 +5537,18 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       fileOffset: charOffset,
       length: length,
     );
+  }
+
+  /// Creates [Arguments] from [node].
+  ///
+  /// This records the relation which data for testing.
+  Arguments createArgumentsFromInternalNode(ArgumentsImpl node) {
+    Arguments arguments = node.toArguments();
+    if (dataForTesting != null) {
+      // Coverage-ignore-block(suite): Not run.
+      dataForTesting!.externalToInternalNodeMap[arguments] = node;
+    }
+    return arguments;
   }
 
   /// The client of type inference should call this method after asking

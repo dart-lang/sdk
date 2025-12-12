@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/text/ast_to_text.dart';
+import 'package:kernel/src/printer.dart';
 
 import '../base/combinator.dart';
 import '../base/configuration.dart';
@@ -51,12 +52,11 @@ const String exportDynamicSentinel = '<dynamic>';
 const String exportNeverSentinel = '<Never>';
 
 // Coverage-ignore(suite): Not run.
-void printNodeOn(Node? node, StringSink sink, {NameSystem? syntheticNames}) {
+void printNodeOn(Node? node, StringSink sink) {
   if (node == null) {
     sink.write("null");
   } else {
-    syntheticNames ??= new NameSystem();
-    new Printer(sink, syntheticNames: syntheticNames).writeNode(node);
+    sink.write(node.toText(defaultAstTextStrategy));
   }
 }
 

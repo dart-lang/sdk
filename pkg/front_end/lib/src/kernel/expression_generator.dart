@@ -29,7 +29,6 @@ import 'package:kernel/names.dart'
         rightShiftName,
         tripleShiftName;
 import 'package:kernel/src/unaliasing.dart';
-import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../base/compiler_context.dart';
@@ -565,9 +564,8 @@ class VariableUseGenerator extends Generator {
   @override
   // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
-    NameSystem syntheticNames = new NameSystem();
     sink.write(", variable: ");
-    printNodeOn(variable, sink, syntheticNames: syntheticNames);
+    printNodeOn(variable, sink);
   }
 }
 
@@ -673,9 +671,8 @@ class PropertyAccessGenerator extends Generator {
   @override
   // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
-    NameSystem syntheticNames = new NameSystem();
     sink.write(", receiver: ");
-    printNodeOn(receiver, sink, syntheticNames: syntheticNames);
+    printNodeOn(receiver, sink);
     sink.write(", name: ");
     sink.write(name.text);
   }
@@ -1204,9 +1201,8 @@ class NullAwarePropertyAccessGenerator extends Generator {
   @override
   // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
-    NameSystem syntheticNames = new NameSystem();
     sink.write(", receiver: ");
-    printNodeOn(receiver, sink, syntheticNames: syntheticNames);
+    printNodeOn(receiver, sink);
     sink.write(", name: ");
     sink.write(name.text);
   }
@@ -1575,11 +1571,10 @@ class IndexedAccessGenerator extends Generator {
   @override
   // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
-    NameSystem syntheticNames = new NameSystem();
     sink.write(", receiver: ");
-    printNodeOn(receiver, sink, syntheticNames: syntheticNames);
+    printNodeOn(receiver, sink);
     sink.write(", index: ");
-    printNodeOn(index, sink, syntheticNames: syntheticNames);
+    printNodeOn(index, sink);
     sink.write(", isNullAware: ${isNullAware}");
   }
 
@@ -1753,9 +1748,8 @@ class ThisIndexedAccessGenerator extends Generator {
   @override
   // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
-    NameSystem syntheticNames = new NameSystem();
     sink.write(", index: ");
-    printNodeOn(index, sink, syntheticNames: syntheticNames);
+    printNodeOn(index, sink);
   }
 }
 
@@ -1930,9 +1924,8 @@ class SuperIndexedAccessGenerator extends Generator {
   @override
   // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
-    NameSystem syntheticNames = new NameSystem();
     sink.write(", index: ");
-    printNodeOn(index, sink, syntheticNames: syntheticNames);
+    printNodeOn(index, sink);
     sink.write(", getter: ");
     printQualifiedNameOn(getter, sink);
     sink.write(", setter: ");
@@ -3347,9 +3340,8 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
   @override
   // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
-    NameSystem syntheticNames = new NameSystem();
     sink.write(", index: ");
-    printNodeOn(index, sink, syntheticNames: syntheticNames);
+    printNodeOn(index, sink);
     sink.write(", readTarget: ");
     printQualifiedNameOn(readTarget, sink);
     sink.write(", writeTarget: ");
@@ -4931,9 +4923,8 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
   @override
   // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
-    NameSystem syntheticNames = new NameSystem();
     sink.write(", expression: ");
-    printNodeOn(expression, sink, syntheticNames: syntheticNames);
+    printNodeOn(expression, sink);
     sink.write(", plainNameForRead: ");
     sink.write(targetName);
     sink.write(", kind: ");
@@ -4946,7 +4937,6 @@ abstract class ErroneousExpressionGenerator extends Generator {
     : super(helper, token);
 
   InvalidExpression buildError({
-    Arguments? arguments,
     required UnresolvedKind kind,
     int? charOffset,
     bool errorHasBeenReported = false,
@@ -4972,11 +4962,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
     ArgumentsImpl arguments, {
     bool isTypeArgumentsInForest = false,
   }) {
-    return buildError(
-      arguments: arguments,
-      charOffset: offset,
-      kind: UnresolvedKind.Method,
-    );
+    return buildError(charOffset: offset, kind: UnresolvedKind.Method);
   }
 
   @override
@@ -5016,12 +5002,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    return buildError(
-      arguments: _forest.createArguments(fileOffset, <Expression>[
-        _forest.createIntLiteral(operatorOffset, 1),
-      ]),
-      kind: UnresolvedKind.Getter,
-    )..fileOffset = operatorOffset;
+    return buildError(kind: UnresolvedKind.Getter)..fileOffset = operatorOffset;
   }
 
   @override
@@ -5030,12 +5011,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    return buildError(
-      arguments: _forest.createArguments(fileOffset, <Expression>[
-        _forest.createIntLiteral(operatorOffset, 1),
-      ]),
-      kind: UnresolvedKind.Getter,
-    )..fileOffset = operatorOffset;
+    return buildError(kind: UnresolvedKind.Getter)..fileOffset = operatorOffset;
   }
 
   @override
@@ -5085,17 +5061,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
     Constness constness, {
     required bool inImplicitCreationContext,
   }) {
-    if (typeArguments != null) {
-      assert(arguments.types.isEmpty);
-      arguments.setExplicitTypeArguments(
-        _helper.buildDartTypeArguments(
-          typeArguments,
-          TypeUse.constructorTypeArgument,
-          allowPotentiallyConstantType: false,
-        ),
-      );
-    }
-    return buildError(arguments: arguments, kind: UnresolvedKind.Constructor);
+    return buildError(kind: UnresolvedKind.Constructor);
   }
 
   @override
@@ -5156,7 +5122,6 @@ class DuplicateDeclarationGenerator extends ErroneousExpressionGenerator {
 
   @override
   InvalidExpression buildError({
-    Arguments? arguments,
     required UnresolvedKind kind,
     int? charOffset,
     bool errorHasBeenReported = false,
@@ -5279,7 +5244,6 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
     bool isTypeArgumentsInForest = false,
   }) {
     return buildError(
-      arguments: arguments,
       charOffset: charOffset,
       kind: UnresolvedKind.Method,
       errorHasBeenReported: errorHasBeenReported,
@@ -5288,7 +5252,6 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
 
   @override
   InvalidExpression buildError({
-    Arguments? arguments,
     required UnresolvedKind kind,
     int? charOffset,
     bool errorHasBeenReported = false,
@@ -6683,7 +6646,6 @@ class IncompleteErrorGenerator extends ErroneousExpressionGenerator {
 
   @override
   InvalidExpression buildError({
-    Arguments? arguments,
     required UnresolvedKind kind,
     String? name,
     int? charOffset,

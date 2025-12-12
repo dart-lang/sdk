@@ -112,7 +112,7 @@ extension CheckHelper on ProblemReporting {
 
   LocatedMessage? checkArgumentsForFunction({
     required FunctionNode function,
-    required Arguments arguments,
+    required ArgumentsImpl arguments,
     required int fileOffset,
     required Uri fileUri,
     required List<TypeParameter> typeParameters,
@@ -184,7 +184,7 @@ extension CheckHelper on ProblemReporting {
 
   LocatedMessage? checkArgumentsForType({
     required FunctionType function,
-    required Arguments arguments,
+    required ArgumentsImpl arguments,
     required Uri fileUri,
     required int fileOffset,
   }) {
@@ -698,7 +698,7 @@ extension CheckHelper on ProblemReporting {
   Expression? checkStaticArguments({
     required CompilerContext compilerContext,
     required Member target,
-    required Arguments arguments,
+    required ArgumentsImpl arguments,
     required int fileOffset,
     required Uri fileUri,
   }) {

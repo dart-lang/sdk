@@ -914,7 +914,7 @@ class BodyBuilderImpl extends StackListenerImpl
       ]),
     );
     debugEvent("Metadata");
-    Arguments? arguments = pop() as Arguments?;
+    ArgumentsImpl? arguments = pop() as ArgumentsImpl?;
     pushQualifiedReference(
       beginToken.next!,
       periodBeforeName,

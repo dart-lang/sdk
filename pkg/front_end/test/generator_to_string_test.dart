@@ -239,7 +239,7 @@ Future<void> main() async {
       new DelayedPostfixIncrement(helper, token, generator, binaryOperator),
     );
     check(
-      "VariableUseGenerator(offset: 4, variable: dynamic #t1;\n)",
+      "VariableUseGenerator(offset: 4, variable: dynamic #0;)",
       new VariableUseGenerator(helper, token, variable),
     );
     check(

@@ -59,6 +59,7 @@ class InferredTypeArgumentDataComputer
     member.accept(
       new TypeConstraintGenerationDataExtractor(
         testResultData.compilerResult,
+        memberBuilder.dataForTesting!.inferenceData.externalToInternalNodeMap,
         memberBuilder.dataForTesting!.inferenceData.typeInferenceResult,
         actualMap,
       ),
@@ -68,10 +69,12 @@ class InferredTypeArgumentDataComputer
 
 class TypeConstraintGenerationDataExtractor
     extends CfeDataExtractor<List<GeneratedTypeConstraint>> {
+  final Map<Node, Node> externalToInternalNodeMap;
   final TypeInferenceResultForTesting typeInferenceResult;
 
   TypeConstraintGenerationDataExtractor(
     InternalCompilerResult compilerResult,
+    this.externalToInternalNodeMap,
     this.typeInferenceResult,
     Map<Id, ActualData<List<GeneratedTypeConstraint>>> actualMap,
   ) : super(compilerResult, actualMap);
@@ -82,7 +85,8 @@ class TypeConstraintGenerationDataExtractor
         node is ListLiteral ||
         node is SetLiteral ||
         node is MapLiteral) {
-      return typeInferenceResult.generatedTypeConstraints[node];
+      return typeInferenceResult
+          .generatedTypeConstraints[externalToInternalNodeMap[node] ?? node];
     }
     return null;
   }
