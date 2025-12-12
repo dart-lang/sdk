@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:developer';
 
-import '../../server.dart';
+import '../server.dart';
 
 /// With synchronous execution the nesting between spans is naturally induced
 /// by the callstack. Consider:
