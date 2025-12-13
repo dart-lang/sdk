@@ -50,6 +50,9 @@
 - Fixes to the 'Extract Widget' refactoring.
 - (Thanks [@FMorschel](https://github.com/FMorschel) and
   [@DanTup](https://github.com/DanTup) for many of the above enhancements!)
+- The `avoid_null_checks_in_equality_operators` lint rule is now deprecated.
+- The `prefer_final_parameters` lint rule is now deprecated.
+- The `use_if_null_to_convert_nulls_to_bools` lint rule is now deprecated.
 
 #### Pub
 
