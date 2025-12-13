@@ -529,8 +529,142 @@ extension type JSBoolean._(JSBooleanRepType _jsBoolean) implements JSAny {}
 /// A JavaScript string.
 extension type JSString._(JSStringRepType _jsString) implements JSAny {}
 
+@JS('Symbol')
+external JSSymbol _constructSymbol([String? description]);
+
 /// A JavaScript `Symbol`.
-extension type JSSymbol._(JSSymbolRepType _jsSymbol) implements JSAny {}
+@JS('Symbol')
+extension type JSSymbol._(JSSymbolRepType _jsSymbol) implements JSAny {
+  // TODO(srujzs): See if this can be made `const` so it can be used in similar
+  // situations to a Dart symbol literal.
+  /// Creates a new, unique JavaScript `Symbol`.
+  ///
+  /// If [description] is provided, it's used for debugging but not to access
+  /// the symbol itself.
+  @Since('3.11')
+  JSSymbol([String? description])
+    : _jsSymbol =
+          (description == null
+                  ? _constructSymbol()
+                  : _constructSymbol(description))
+              ._jsSymbol;
+
+  /// Searches for an existing symbol in a runtime-wide symbol registry with the
+  /// given key and returns it if found.
+  ///
+  /// Otherwise, creates a new symbol with this key, adds it to the global
+  /// registry, and returns it.
+  @Since('3.11')
+  @JS('for')
+  external static JSSymbol forKey(String key);
+
+  /// `Symbol.asyncDispose` from the ECMAScript [explicit resource management]
+  /// feature.
+  ///
+  /// [explicit resource management]: https://github.com/tc39/proposal-explicit-resource-management
+  @Since('3.11')
+  external static JSSymbol get asyncDispose;
+
+  /// See [`Symbol.asyncIterator`].
+  ///
+  /// [`Symbol.asyncIterator`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/asyncIterator
+  @Since('3.11')
+  external static JSSymbol get asyncIterator;
+
+  /// `Symbol.dispose` from the ECMAScript [explicit resource management]
+  /// feature.
+  ///
+  /// [explicit resource management]: https://github.com/tc39/proposal-explicit-resource-management
+  @Since('3.11')
+  external static JSSymbol get dispose;
+
+  /// See [`Symbol.hasInstance`].
+  ///
+  /// [`Symbol.hasInstance`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/hasInstance
+  @Since('3.11')
+  external static JSSymbol get hasInstance;
+
+  /// See [`Symbol.isConcatSpreadable`].
+  ///
+  /// [`Symbol.isConcatSpreadable`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/isConcatSpreadable
+  @Since('3.11')
+  external static JSSymbol get isConcatSpreadable;
+
+  /// See [`Symbol.iterator`].
+  ///
+  /// [`Symbol.iterator`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/iterator
+  @Since('3.11')
+  external static JSSymbol get iterator;
+
+  /// See [`Symbol.match`].
+  ///
+  /// [`Symbol.match`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/match
+  @Since('3.11')
+  external static JSSymbol get match;
+
+  /// See [`Symbol.matchAll`].
+  ///
+  /// [`Symbol.matchAll`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/matchAll
+  @Since('3.11')
+  external static JSSymbol get matchAll;
+
+  /// See [`Symbol.replace`].
+  ///
+  /// [`Symbol.replace`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/replace
+  @Since('3.11')
+  external static JSSymbol get replace;
+
+  /// See [`Symbol.search`].
+  ///
+  /// [`Symbol.search`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/search
+  @Since('3.11')
+  external static JSSymbol get search;
+
+  /// See [`Symbol.species`].
+  ///
+  /// [`Symbol.species`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/species
+  @Since('3.11')
+  external static JSSymbol get species;
+
+  /// See [`Symbol.split`].
+  ///
+  /// [`Symbol.split`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/split
+  @Since('3.11')
+  external static JSSymbol get split;
+
+  /// See [`Symbol.toPrimitive`].
+  ///
+  /// [`Symbol.toPrimitive`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toPrimitive
+  @Since('3.11')
+  external static JSSymbol get toPrimitive;
+
+  /// See [`Symbol.toStringTag`].
+  ///
+  /// [`Symbol.toStringTag`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toStringTag
+  @Since('3.11')
+  external static JSSymbol get toStringTag;
+
+  /// See [`Symbol.unscopables`].
+  ///
+  /// [`Symbol.unscopables`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/unscopables
+  @Since('3.11')
+  external static JSSymbol get unscopables;
+
+  @Since('3.11')
+  @JS('keyFor')
+  external static String? _keyFor(JSSymbol symbol);
+
+  /// Returns the shared symbol key from the global symbol registry for this
+  /// symbol (as registered with [forKey]), if this symbol was created with
+  /// [Symbol.forKey].
+  @Since('3.11')
+  String? get key => _keyFor(this);
+
+  /// A string containing the description of the symbol, as passed to [new
+  /// Symbol].
+  @Since('3.11')
+  external String get description;
+}
 
 /// A JavaScript `BigInt`.
 extension type JSBigInt._(JSBigIntRepType _jsBigInt) implements JSAny {}
