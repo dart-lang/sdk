@@ -1,7 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
-Future<void> main() async {
+Future<void> main(List<String> args) async {
+  // CLI: `hytopia init`
+  if (args.isNotEmpty && args.first == 'init') {
+    await _performInit();
+    return;
+  }
+
   final ip = InternetAddress.anyIPv4;
   final port = int.tryParse(Platform.environment['HYTOPIA_PORT'] ?? '8080') ?? 8080;
 
@@ -31,6 +37,28 @@ Future<void> main() async {
       _internalError(request, e.toString());
     }
   }
+}
+
+Future<void> _performInit() async {
+  final baseDir = Directory('tools/hytopia_server/.hytopia');
+  if (!baseDir.existsSync()) {
+    baseDir.createSync(recursive: true);
+  }
+
+  final configFile = File('${baseDir.path}/config.json');
+  if (configFile.existsSync()) {
+    print('Hytopia already initialized at ${baseDir.path}');
+    return;
+  }
+
+  final defaultConfig = {
+    'port': 8080,
+    'createdAt': DateTime.now().toUtc().toIso8601String(),
+    'welcomeMessage': 'Welcome Shadow Army!'
+  };
+
+  await configFile.writeAsString(const JsonEncoder.withIndent('  ').convert(defaultConfig));
+  print('Initialized Hytopia config at ${configFile.path}');
 }
 
 void _setDefaultHeaders(HttpRequest request) {
