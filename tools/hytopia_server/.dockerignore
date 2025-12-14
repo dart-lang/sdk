@@ -1,0 +1,10 @@
+**/.git
+**/.gitignore
+**/.hytopia
+**/build
+**/.dart_tool
+**/packages
+**/pubspec.lock
+node_modules
+*.log
+*.tmp
