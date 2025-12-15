@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
+import 'package:_fe_analyzer_shared/src/base/source_range.dart';
 
 /// Interface representing a syntactic entity (either a token or an AST node)
 /// which has a location and extent in the source file.
@@ -22,4 +23,8 @@ abstract class SyntacticEntity {
   /// Return the offset from the beginning of the file to the first character in
   /// the syntactic entity.
   int get offset;
+
+  /// Returns a [SourceRange] object describing the range of characters spanned
+  /// by this syntactic entity.
+  SourceRange get sourceRange => new SourceRange(offset, length);
 }
