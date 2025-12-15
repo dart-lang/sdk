@@ -41,12 +41,24 @@ suggestions
 ''');
   }
 
-  Future<void> test_afterType_beforeEof() async {
+  Future<void> test_afterType_beforeEof_primaryConstructorsDisabled() async {
+    await computeSuggestions('''
+// @dart=3.10
+extension type ^
+''');
+    assertResponse(r'''
+suggestions
+''');
+  }
+
+  Future<void> test_afterType_beforeEof_primaryConstructorsEnabled() async {
     await computeSuggestions('''
 extension type ^
 ''');
     assertResponse(r'''
 suggestions
+  const
+    kind: keyword
 ''');
   }
 
@@ -126,9 +138,10 @@ suggestions
 ''');
   }
 
-  Future<void> test_name_withBody() async {
+  Future<void> test_name_withBody_primaryConstructorsDisabled() async {
     allowedIdentifiers = {'Test', 'Test {}'};
     await computeSuggestions('''
+// @dart=3.10
 extension type ^ {}
 ''');
     assertResponse(r'''
@@ -138,15 +151,17 @@ suggestions
 ''');
   }
 
-  Future<void> test_name_withoutBody() async {
+  Future<void> test_name_withBody_primaryConstructorsEnabled() async {
     allowedIdentifiers = {'Test', 'Test {}'};
     await computeSuggestions('''
-extension type ^
+extension type ^ {}
 ''');
     assertResponse(r'''
 suggestions
-  Test {^}
+  Test
     kind: identifier
+  const
+    kind: keyword
 ''');
   }
 

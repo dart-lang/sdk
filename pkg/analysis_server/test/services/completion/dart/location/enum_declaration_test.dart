@@ -353,9 +353,10 @@ suggestions
 ''');
   }
 
-  Future<void> test_name_withBody() async {
+  Future<void> test_name_withBody_primaryConstructorsDisabled() async {
     allowedIdentifiers = {'Test', 'Test {}'};
     await computeSuggestions('''
+// @dart=3.10
 enum ^ {}
 ''');
     assertResponse(r'''
@@ -365,7 +366,36 @@ suggestions
 ''');
   }
 
-  Future<void> test_name_withoutBody() async {
+  @FailingTest(reason: 'https://github.com/dart-lang/sdk/issues/61702')
+  Future<void> test_name_withBody_primaryConstructorsEnabled() async {
+    allowedIdentifiers = {'Test', 'Test {}'};
+    await computeSuggestions('''
+enum ^ {}
+''');
+    assertResponse(r'''
+suggestions
+  Test
+    kind: identifier
+  const
+    kind: keyword
+''');
+  }
+
+  Future<void> test_name_withoutBody_primaryConstructorsDisabled() async {
+    allowedIdentifiers = {'Test', 'Test {}'};
+    await computeSuggestions('''
+// @dart=3.10
+enum ^
+''');
+    assertResponse(r'''
+suggestions
+  Test {^}
+    kind: identifier
+''');
+  }
+
+  @FailingTest(reason: 'https://github.com/dart-lang/sdk/issues/61702')
+  Future<void> test_name_withoutBody_primaryConstructorsEnabled() async {
     allowedIdentifiers = {'Test', 'Test {}'};
     await computeSuggestions('''
 enum ^
@@ -374,6 +404,8 @@ enum ^
 suggestions
   Test {^}
     kind: identifier
+  const
+    kind: keyword
 ''');
   }
 
