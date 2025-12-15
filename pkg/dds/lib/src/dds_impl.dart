@@ -230,6 +230,8 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
       throw DartDevelopmentServiceException.connectionIssue(errorMessage);
     }
     _server = tmpServer;
+    // Allow for DevTools to be embedded in iframes.
+    _server.defaultResponseHeaders.remove('x-frame-options', 'SAMEORIGIN');
 
     final tmpUri = Uri(
       scheme: 'http',
