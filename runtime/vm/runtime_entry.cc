@@ -4927,6 +4927,11 @@ DEFINE_RUNTIME_ENTRY(ResumeInterpreter, 3) {
 #endif  // defined(DART_DYNAMIC_MODULES)
 }
 
+DEFINE_RUNTIME_ENTRY(FatalError, 1) {
+  const String& message = String::CheckedHandle(zone, arguments.ArgAt(0));
+  FATAL("%s", message.ToCString());
+}
+
 extern "C" void DLRT_EnterSafepoint() {
   CHECK_STACK_ALIGNMENT;
   TRACE_RUNTIME_CALL("%s", "EnterSafepoint");

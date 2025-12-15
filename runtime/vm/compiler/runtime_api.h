@@ -1216,6 +1216,7 @@ class Thread : public AllStatic {
   static word jump_to_frame_entry_point_offset();
 
   static word AllocateArray_entry_point_offset();
+  static word DeoptimizeCopyFrame_entry_point_offset();
   static word write_barrier_code_offset();
   static word array_write_barrier_code_offset();
   static word fix_callers_target_code_offset();
