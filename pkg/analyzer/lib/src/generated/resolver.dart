@@ -74,6 +74,7 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
 import 'package:analyzer/src/error/base_or_final_type_verifier.dart';
 import 'package:analyzer/src/error/bool_expression_verifier.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/error/listener.dart';
@@ -573,9 +574,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
       }
 
-      DiagnosticCode diagnosticCode;
+      LocatableDiagnostic locatableDiagnostic;
       if (typeSystem.isPotentiallyNonNullable(returnType)) {
-        diagnosticCode = diag.bodyMightCompleteNormally;
+        locatableDiagnostic = diag.bodyMightCompleteNormally.withArguments(
+          returnType: returnType,
+        );
       } else {
         var returnTypeBase = typeSystem.futureOrBase(returnType);
         if (returnTypeBase is DynamicType ||
@@ -585,28 +588,17 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             returnTypeBase.isDartCoreNull) {
           return;
         } else {
-          diagnosticCode = diag.bodyMightCompleteNormallyNullable;
+          locatableDiagnostic = diag.bodyMightCompleteNormallyNullable
+              .withArguments(returnType: returnType);
         }
       }
-      if (errorNode is ConstructorDeclaration) {
-        diagnosticReporter.atConstructorDeclaration(
-          errorNode,
-          diagnosticCode,
-          arguments: [returnType],
-        );
-      } else if (errorNode is BlockFunctionBody) {
-        diagnosticReporter.atToken(
-          errorNode.block.leftBracket,
-          diagnosticCode,
-          arguments: [returnType],
-        );
-      } else if (errorNode is Token) {
-        diagnosticReporter.atToken(
-          errorNode,
-          diagnosticCode,
-          arguments: [returnType],
-        );
-      }
+      diagnosticReporter.report(
+        locatableDiagnostic.atSourceRange(switch (errorNode) {
+          ConstructorDeclaration() => errorNode.errorRange,
+          BlockFunctionBody() => errorNode.block.leftBracket.sourceRange,
+          _ => errorNode.sourceRange,
+        }),
+      );
     }
   }
 
