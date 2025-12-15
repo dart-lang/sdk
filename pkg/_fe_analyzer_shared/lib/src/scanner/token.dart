@@ -830,7 +830,7 @@ class LanguageVersionToken extends CommentToken {
 @AnalyzerPublicApi(
   message: 'exposed by CommentToken.parent and StringToken (superclass)',
 )
-class SimpleToken implements Token {
+class SimpleToken extends SyntacticEntity implements Token {
   /**
    * The type of the token.
    */

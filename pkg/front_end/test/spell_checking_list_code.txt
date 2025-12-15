@@ -1753,6 +1753,7 @@ sortable
 sourcemap
 sourcemaps
 spaced
+spanned
 spans
 sparse
 spawn

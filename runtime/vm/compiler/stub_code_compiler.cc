@@ -91,7 +91,7 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final,
 
   __ EnterStubFrame();
 
-  if (FLAG_experimental_shared_data && is_shared) {
+  if (is_shared) {
     // Since initialization of shared fields has to be guarded by
     // a mutex, do the initialization in the runtime.
     __ PushObject(NullObject());  // Make room for the result

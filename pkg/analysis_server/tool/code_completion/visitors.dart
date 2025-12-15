@@ -879,7 +879,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
-class _SyntacticEntity implements SyntacticEntity {
+class _SyntacticEntity extends SyntacticEntity {
   @override
   final int offset;
 

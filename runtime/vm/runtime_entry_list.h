@@ -88,7 +88,8 @@ namespace dart {
   V(InterpretedInstanceCallMissHandler)                                        \
   V(InvokeNoSuchMethod)                                                        \
   V(ResumeInterpreter)                                                         \
-  V(InitializeSharedField)
+  V(InitializeSharedField)                                                     \
+  V(FatalError)
 
 // Note: Leaf runtime function have C linkage, so they cannot pass C++ struct
 // values like ObjectPtr.

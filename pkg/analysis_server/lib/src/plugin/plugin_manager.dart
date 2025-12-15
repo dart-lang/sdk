@@ -165,58 +165,62 @@ class PluginManager {
     required bool isLegacyPlugin,
   }) async {
     var pluginIsolate = _pluginMap[path];
-    var isNew = false;
-    if (pluginIsolate == null) {
-      isNew = true;
-      PluginFiles pluginFiles;
-      try {
-        pluginFiles = filesFor(path, isLegacyPlugin: isLegacyPlugin);
-      } catch (exception, stackTrace) {
-        pluginIsolate = PluginIsolate(
-          path,
-          null,
-          null,
-          _notificationManager,
-          instrumentationService,
-          sessionLogger,
-          isLegacy: isLegacyPlugin,
-        );
-        pluginIsolate.reportException(CaughtException(exception, stackTrace));
-        _pluginMap[path] = pluginIsolate;
-        return;
-      }
+    if (pluginIsolate != null) {
+      pluginIsolate.addContextRoot(contextRoot);
+      return;
+    }
+
+    var startedSuccessfully = true;
+    PluginFiles pluginFiles;
+    try {
+      pluginFiles = filesFor(path, isLegacyPlugin: isLegacyPlugin);
+    } catch (exception, stackTrace) {
       pluginIsolate = PluginIsolate(
         path,
-        pluginFiles.execution.path,
-        pluginFiles.packageConfig.path,
+        null,
+        null,
         _notificationManager,
         instrumentationService,
         sessionLogger,
         isLegacy: isLegacyPlugin,
       );
+      pluginIsolate.reportException(CaughtException(exception, stackTrace));
       _pluginMap[path] = pluginIsolate;
-      try {
-        instrumentationService.logInfo('Starting plugin "$pluginIsolate"');
-        var session = await pluginIsolate.start(_byteStorePath, _sdkPath);
-        unawaited(
-          session?.onDone.then((_) {
-            if (_pluginMap[path] == pluginIsolate) {
-              _pluginMap.remove(path);
-              _notifyPluginsChanged();
-            }
-          }),
-        );
-      } catch (exception, stackTrace) {
-        // Record the exception (for debugging purposes) and record the fact
-        // that we should not try to communicate with the plugin.
-        pluginIsolate.reportException(CaughtException(exception, stackTrace));
-        isNew = false;
-      }
-
-      _notifyPluginsChanged();
+      return;
     }
+    pluginIsolate = PluginIsolate(
+      path,
+      pluginFiles.execution.path,
+      pluginFiles.packageConfig.path,
+      _notificationManager,
+      instrumentationService,
+      sessionLogger,
+      isLegacy: isLegacyPlugin,
+    );
+    try {
+      instrumentationService.logInfo('Starting plugin "$pluginIsolate"');
+      var session = await pluginIsolate.start(_byteStorePath, _sdkPath);
+      unawaited(
+        session?.onDone.then((_) {
+          if (_pluginMap[path] == pluginIsolate) {
+            _pluginMap.remove(path);
+            _notifyPluginsChanged();
+          }
+        }),
+      );
+    } catch (exception, stackTrace) {
+      // Record the exception (for debugging purposes) and record the fact
+      // that we should not try to communicate with the plugin.
+      pluginIsolate.reportException(CaughtException(exception, stackTrace));
+      startedSuccessfully = false;
+    }
+
+    _pluginMap[path] = pluginIsolate;
+
+    _notifyPluginsChanged();
+
     pluginIsolate.addContextRoot(contextRoot);
-    if (isNew) {
+    if (startedSuccessfully) {
       var analysisSetSubscriptionsParams = _analysisSetSubscriptionsParams;
       if (analysisSetSubscriptionsParams != null) {
         pluginIsolate.sendRequest(analysisSetSubscriptionsParams);
