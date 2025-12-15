@@ -891,14 +891,12 @@ final class JSUint8ArrayImpl extends JSIntegerArrayBase
 
   @override
   JSUint8ArrayImpl sublist(int start, [int? end]) {
-    final newOffset = offsetInBytes + start;
-    final newEnd = RangeErrorUtils.checkValidRange(
-      newOffset,
-      end,
-      lengthInBytes,
+    final newEnd = RangeErrorUtils.checkValidRange(start, end, length);
+    final newOffsetInBytes = offsetInBytes + start;
+    final newLengthInBytes = newEnd - start;
+    return JSUint8ArrayImpl._(
+      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
-    final newLength = newEnd - newOffset;
-    return JSUint8ArrayImpl._(buffer.cloneAsDataView(newOffset, newLength));
   }
 
   @override
@@ -999,14 +997,12 @@ final class JSInt8ArrayImpl extends JSIntegerArrayBase
 
   @override
   JSInt8ArrayImpl sublist(int start, [int? end]) {
-    final newOffset = offsetInBytes + start;
-    final newEnd = RangeErrorUtils.checkValidRange(
-      newOffset,
-      end,
-      lengthInBytes,
+    final newEnd = RangeErrorUtils.checkValidRange(start, end, length);
+    final newOffsetInBytes = offsetInBytes + start;
+    final newLengthInBytes = newEnd - start;
+    return JSInt8ArrayImpl._(
+      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
-    final newLength = newEnd - newOffset;
-    return JSInt8ArrayImpl._(buffer.cloneAsDataView(newOffset, newLength));
   }
 
   @override
@@ -1109,15 +1105,11 @@ final class JSUint8ClampedArrayImpl extends JSIntegerArrayBase
 
   @override
   JSUint8ClampedArrayImpl sublist(int start, [int? end]) {
-    final newOffset = offsetInBytes + start;
-    final newEnd = RangeErrorUtils.checkValidRange(
-      newOffset,
-      end,
-      lengthInBytes,
-    );
-    final newLength = newEnd - newOffset;
+    final newEnd = RangeErrorUtils.checkValidRange(start, end, length);
+    final newOffsetInBytes = offsetInBytes + start;
+    final newLengthInBytes = newEnd - start;
     return JSUint8ClampedArrayImpl._(
-      buffer.cloneAsDataView(newOffset, newLength),
+      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
   }
 
@@ -1211,15 +1203,12 @@ final class JSUint16ArrayImpl extends JSIntegerArrayBase
 
   @override
   JSUint16ArrayImpl sublist(int start, [int? end]) {
-    final int newOffset = offsetInBytes + (start * 2);
-    final int newEnd = end == null ? lengthInBytes : end * 2;
-    final int newLength = newEnd - newOffset;
-    RangeErrorUtils.checkValidRange(
-      newOffset ~/ 2,
-      newEnd ~/ 2,
-      lengthInBytes ~/ 2,
+    final newEnd = RangeErrorUtils.checkValidRange(start, end, length);
+    final newOffsetInBytes = offsetInBytes + 2 * start;
+    final newLengthInBytes = 2 * (newEnd - start);
+    return JSUint16ArrayImpl._(
+      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
-    return JSUint16ArrayImpl._(buffer.cloneAsDataView(newOffset, newLength));
   }
 
   @override
@@ -1327,15 +1316,12 @@ final class JSInt16ArrayImpl extends JSIntegerArrayBase
 
   @override
   JSInt16ArrayImpl sublist(int start, [int? end]) {
-    final int newOffset = offsetInBytes + (start * 2);
-    final int newEnd = end == null ? lengthInBytes : end * 2;
-    final int newLength = newEnd - newOffset;
-    RangeErrorUtils.checkValidRange(
-      newOffset ~/ 2,
-      newEnd ~/ 2,
-      lengthInBytes ~/ 2,
+    final newEnd = RangeErrorUtils.checkValidRange(start, end, length);
+    final newOffsetInBytes = offsetInBytes + 2 * start;
+    final newLengthInBytes = 2 * (newEnd - start);
+    return JSInt16ArrayImpl._(
+      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
-    return JSInt16ArrayImpl._(buffer.cloneAsDataView(newOffset, newLength));
   }
 
   @override
@@ -1443,15 +1429,12 @@ final class JSUint32ArrayImpl extends JSIntegerArrayBase
 
   @override
   JSUint32ArrayImpl sublist(int start, [int? end]) {
-    final int newOffset = offsetInBytes + (start * 4);
-    final int newEnd = end == null ? lengthInBytes : end * 4;
-    final int newLength = newEnd - newOffset;
-    RangeErrorUtils.checkValidRange(
-      newOffset ~/ 4,
-      newEnd ~/ 4,
-      lengthInBytes ~/ 4,
+    final newEnd = RangeErrorUtils.checkValidRange(start, end, length);
+    final newOffsetInBytes = offsetInBytes + 4 * start;
+    final newLengthInBytes = 4 * (newEnd - start);
+    return JSUint32ArrayImpl._(
+      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
-    return JSUint32ArrayImpl._(buffer.cloneAsDataView(newOffset, newLength));
   }
 
   @override
@@ -1559,15 +1542,12 @@ final class JSInt32ArrayImpl extends JSIntegerArrayBase
 
   @override
   JSInt32ArrayImpl sublist(int start, [int? end]) {
-    final int newOffset = offsetInBytes + (start * 4);
-    final int newEnd = end == null ? lengthInBytes : end * 4;
-    final int newLength = newEnd - newOffset;
-    RangeErrorUtils.checkValidRange(
-      newOffset ~/ 4,
-      newEnd ~/ 4,
-      lengthInBytes ~/ 4,
+    final newEnd = RangeErrorUtils.checkValidRange(start, end, length);
+    final newOffsetInBytes = offsetInBytes + 4 * start;
+    final newLengthInBytes = 4 * (newEnd - start);
+    return JSInt32ArrayImpl._(
+      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
-    return JSInt32ArrayImpl._(buffer.cloneAsDataView(newOffset, newLength));
   }
 
   @override
@@ -1756,15 +1736,12 @@ final class JSBigUint64ArrayImpl extends JSIntegerArrayBase
 
   @override
   JSBigUint64ArrayImpl sublist(int start, [int? end]) {
-    final int newOffset = offsetInBytes + (start * 8);
-    final int newEnd = end == null ? lengthInBytes : end * 8;
-    final int newLength = newEnd - newOffset;
-    RangeErrorUtils.checkValidRange(
-      newOffset ~/ 8,
-      newEnd ~/ 8,
-      lengthInBytes ~/ 8,
+    final newEnd = RangeErrorUtils.checkValidRange(start, end, length);
+    final newOffsetInBytes = offsetInBytes + 8 * start;
+    final newLengthInBytes = 8 * (newEnd - start);
+    return JSBigUint64ArrayImpl._(
+      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
-    return JSBigUint64ArrayImpl._(buffer.cloneAsDataView(newOffset, newLength));
   }
 
   @override
@@ -1860,15 +1837,12 @@ final class JSBigInt64ArrayImpl extends JSIntegerArrayBase
 
   @override
   JSBigInt64ArrayImpl sublist(int start, [int? end]) {
-    final int newOffset = offsetInBytes + (start * 8);
-    final int newEnd = end == null ? lengthInBytes : end * 8;
-    final int newLength = newEnd - newOffset;
-    RangeErrorUtils.checkValidRange(
-      newOffset ~/ 8,
-      newEnd ~/ 8,
-      lengthInBytes ~/ 8,
+    final newEnd = RangeErrorUtils.checkValidRange(start, end, length);
+    final newOffsetInBytes = offsetInBytes + 8 * start;
+    final newLengthInBytes = 8 * (newEnd - start);
+    return JSBigInt64ArrayImpl._(
+      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
-    return JSBigInt64ArrayImpl._(buffer.cloneAsDataView(newOffset, newLength));
   }
 
   @override
@@ -2321,15 +2295,12 @@ final class JSFloat32ArrayImpl extends JSFloatArrayBase
 
   @override
   JSFloat32ArrayImpl sublist(int start, [int? end]) {
-    final int newOffset = offsetInBytes + (start * 4);
-    final int newEnd = end == null ? lengthInBytes : end * 4;
-    final int newLength = newEnd - newOffset;
-    RangeErrorUtils.checkValidRange(
-      newOffset ~/ 4,
-      newEnd ~/ 4,
-      lengthInBytes ~/ 4,
+    final newEnd = RangeErrorUtils.checkValidRange(start, end, length);
+    final newOffsetInBytes = offsetInBytes + 4 * start;
+    final newLengthInBytes = 4 * (newEnd - start);
+    return JSFloat32ArrayImpl._(
+      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
-    return JSFloat32ArrayImpl._(buffer.cloneAsDataView(newOffset, newLength));
   }
 
   @override
@@ -2438,15 +2409,12 @@ final class JSFloat64ArrayImpl extends JSFloatArrayBase
 
   @override
   JSFloat64ArrayImpl sublist(int start, [int? end]) {
-    final int newOffset = offsetInBytes + (start * 8);
-    final int newEnd = end == null ? lengthInBytes : end * 8;
-    final int newLength = newEnd - newOffset;
-    RangeErrorUtils.checkValidRange(
-      newOffset ~/ 8,
-      newEnd ~/ 8,
-      lengthInBytes ~/ 8,
+    final newEnd = RangeErrorUtils.checkValidRange(start, end, length);
+    final newOffsetInBytes = offsetInBytes + 8 * start;
+    final newLengthInBytes = 8 * (newEnd - start);
+    return JSFloat64ArrayImpl._(
+      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
-    return JSFloat64ArrayImpl._(buffer.cloneAsDataView(newOffset, newLength));
   }
 
   @override
