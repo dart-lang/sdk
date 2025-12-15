@@ -146,14 +146,14 @@ class BinaryExpressionResolver {
     );
 
     void reportNullComparison(SyntacticEntity start, SyntacticEntity end) {
-      var errorCode = notEqual
+      var diagnosticCode = notEqual
           ? diag.unnecessaryNullComparisonAlwaysNullFalse
           : diag.unnecessaryNullComparisonAlwaysNullTrue;
       var offset = start.offset;
       _diagnosticReporter.atOffset(
         offset: offset,
         length: end.end - offset,
-        diagnosticCode: errorCode,
+        diagnosticCode: diagnosticCode,
       );
     }
 

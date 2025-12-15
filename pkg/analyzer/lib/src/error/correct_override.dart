@@ -106,7 +106,7 @@ class CovariantParametersVerifier {
       _thisMember = thisMember;
 
   void verify({
-    required DiagnosticReporter errorReporter,
+    required DiagnosticReporter diagnosticReporter,
     required SyntacticEntity errorEntity,
   }) {
     var superParameters = _superParameters();
@@ -122,7 +122,7 @@ class CovariantParametersVerifier {
           // always named, so we can safely assume
           // `_thisMember.enclosingElement3.name` and
           // `superMember.enclosingElement3.name` are non-`null`.
-          errorReporter.atEntity(
+          diagnosticReporter.atEntity(
             errorEntity,
             diag.invalidOverride,
             arguments: [

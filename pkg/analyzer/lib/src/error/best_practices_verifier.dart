@@ -50,7 +50,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// `@doNotStore`.
   bool _inDoNotStoreMember = false;
 
-  /// The error reporter by which diagnostics will be reported.
+  /// The diagnostic reporter by which diagnostics will be reported.
   final DiagnosticReporter _diagnosticReporter;
 
   /// The type [Null].
@@ -1030,12 +1030,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Generate hints related to duplicate elements (keys) in sets (maps).
+  /// Generates hints related to duplicate elements (keys) in sets (maps).
   void _checkForDuplications(SetOrMapLiteral node) {
     // This only checks for top-level elements. If, for, and spread elements
     // that contribute duplicate values are not detected.
     if (node.isConst) {
-      // This case is covered by the ErrorVerifier.
+      // This case is covered by the DiagnosticVerifier.
       return;
     }
     var expressions = node.isSet
@@ -1047,10 +1047,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (constEvaluation != null && constEvaluation.diagnostics.isEmpty) {
         var value = constEvaluation.value;
         if (value != null && !alreadySeen.add(value)) {
-          var errorCode = node.isSet
+          var diagnosticCode = node.isSet
               ? diag.equalElementsInSet
               : diag.equalKeysInMap;
-          _diagnosticReporter.atNode(expression, errorCode);
+          _diagnosticReporter.atNode(expression, diagnosticCode);
         }
       }
     }
@@ -1263,11 +1263,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForInvariantNullComparison(BinaryExpression node) {
-    DiagnosticCode errorCode;
+    DiagnosticCode diagnosticCode;
     if (node.operator.type == TokenType.BANG_EQ) {
-      errorCode = diag.unnecessaryNullComparisonNeverNullTrue;
+      diagnosticCode = diag.unnecessaryNullComparisonNeverNullTrue;
     } else if (node.operator.type == TokenType.EQ_EQ) {
-      errorCode = diag.unnecessaryNullComparisonNeverNullFalse;
+      diagnosticCode = diag.unnecessaryNullComparisonNeverNullFalse;
     } else {
       return;
     }
@@ -1279,7 +1279,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _diagnosticReporter.atOffset(
           offset: offset,
           length: node.operator.end - offset,
-          diagnosticCode: errorCode,
+          diagnosticCode: diagnosticCode,
         );
       }
     }
@@ -1291,7 +1291,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _diagnosticReporter.atOffset(
           offset: offset,
           length: node.rightOperand.end - offset,
-          diagnosticCode: errorCode,
+          diagnosticCode: diagnosticCode,
         );
       }
     }
@@ -1343,14 +1343,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Check that the imported library does not define a loadLibrary function.
-  /// The import has already been determined to be deferred when this is called.
+  /// Checks that the imported library does not define a `loadLibrary` function.
   ///
-  /// @param node the import directive to evaluate
-  /// @param importElement the [LibraryImport] retrieved from the node
-  /// @return `true` if and only if an error code is generated on the passed
-  ///         node
-  /// See [diag.importDeferredLibraryWithLoadFunction].
+  /// Only call this for a deferred [importElement].
+  ///
+  /// Returns whether an error code is generated on [node].
   bool _checkForLoadLibraryFunction(
     ImportDirective node,
     LibraryImport importElement,
@@ -1753,7 +1750,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 class _InvalidAccessVerifier {
   static final _templateExtension = '.template';
 
-  final DiagnosticReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
   final LibraryElement _library;
   final WorkspacePackageImpl? _workspacePackage;
 
@@ -1763,7 +1760,7 @@ class _InvalidAccessVerifier {
   InterfaceElement? _enclosingClass;
 
   _InvalidAccessVerifier(
-    this._errorReporter,
+    this._diagnosticReporter,
     CompilationUnit unit,
     this._library,
     this._workspacePackage,
@@ -1837,7 +1834,7 @@ class _InvalidAccessVerifier {
         }
       }
 
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         operator,
         diag.invalidUseOfVisibleForOverridingMember,
         arguments: [operator.type.lexeme],
@@ -1854,7 +1851,7 @@ class _InvalidAccessVerifier {
       // `stringValue` is if its string contains an interpolation, in which case
       // the element would never have resolved in the first place.  So we can
       // safely assume `node.uri.stringValue` is non-`null`.
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node,
         diag.invalidUseOfInternalMember,
         arguments: [node.uri.stringValue!],
@@ -1907,7 +1904,7 @@ class _InvalidAccessVerifier {
       }
       var errorEntity = node.errorEntity;
 
-      _errorReporter.atEntity(
+      _diagnosticReporter.atEntity(
         errorEntity,
         diag.invalidUseOfInternalMember,
         arguments: [element.displayName],
@@ -1926,7 +1923,7 @@ class _InvalidAccessVerifier {
     if (element != null &&
         element.isInternal &&
         !_isLibraryInWorkspacePackage(element.library)) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node,
         diag.invalidUseOfInternalMember,
         arguments: [element.name!],
@@ -1960,7 +1957,7 @@ class _InvalidAccessVerifier {
     }
 
     var (name, errorEntity) = _getIdentifierNameAndErrorEntity(node, element);
-    _errorReporter.atOffset(
+    _diagnosticReporter.atOffset(
       offset: errorEntity.offset,
       length: errorEntity.length,
       diagnosticCode: diag.invalidUseOfDoNotSubmitMember,
@@ -2005,7 +2002,7 @@ class _InvalidAccessVerifier {
             argument,
             element,
           );
-          _errorReporter.atOffset(
+          _diagnosticReporter.atOffset(
             offset: errorEntity.offset,
             length: errorEntity.length,
             diagnosticCode: diag.invalidUseOfDoNotSubmitMember,
@@ -2013,7 +2010,7 @@ class _InvalidAccessVerifier {
           );
         } else {
           // For positional arguments.
-          _errorReporter.atNode(
+          _diagnosticReporter.atNode(
             argument,
             diag.invalidUseOfDoNotSubmitMember,
             arguments: [element.displayName],
@@ -2042,7 +2039,7 @@ class _InvalidAccessVerifier {
         node = nameToken;
       }
 
-      _errorReporter.atEntity(
+      _diagnosticReporter.atEntity(
         node,
         diag.invalidUseOfInternalMember,
         arguments: [name],
@@ -2099,7 +2096,7 @@ class _InvalidAccessVerifier {
     }
 
     if (hasProtected) {
-      _errorReporter.atEntity(
+      _diagnosticReporter.atEntity(
         errorEntity,
         diag.invalidUseOfProtectedMember,
         arguments: [name, definingClass.displayName],
@@ -2107,7 +2104,7 @@ class _InvalidAccessVerifier {
     }
 
     if (isVisibleForTemplateApplied) {
-      _errorReporter.atEntity(
+      _diagnosticReporter.atEntity(
         errorEntity,
         diag.invalidUseOfVisibleForTemplateMember,
         arguments: [name, definingClass.library!.uri],
@@ -2115,7 +2112,7 @@ class _InvalidAccessVerifier {
     }
 
     if (hasVisibleForTesting) {
-      _errorReporter.atEntity(
+      _diagnosticReporter.atEntity(
         errorEntity,
         diag.invalidUseOfVisibleForTestingMember,
         arguments: [name, definingClass.library!.uri],
@@ -2123,7 +2120,7 @@ class _InvalidAccessVerifier {
     }
 
     if (hasVisibleForOverriding) {
-      _errorReporter.atEntity(
+      _diagnosticReporter.atEntity(
         errorEntity,
         diag.invalidUseOfVisibleForOverridingMember,
         arguments: [name],

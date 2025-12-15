@@ -1123,10 +1123,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (asyncState.isGuarded) return;
 
       if (asyncState == AsyncState.asynchronous) {
-        var errorCode = asyncStateTracker.hasUnrelatedMountedCheck
+        var diagnosticCode = asyncStateTracker.hasUnrelatedMountedCheck
             ? diag.useBuildContextSynchronouslyWrongMounted
             : diag.useBuildContextSynchronouslyAsyncUse;
-        rule.reportAtNode(node, diagnosticCode: errorCode);
+        rule.reportAtNode(node, diagnosticCode: diagnosticCode);
         return;
       }
 

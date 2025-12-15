@@ -70,7 +70,7 @@ class WidgetPreviewVerifier {
     }
 
     var visitor = _InvalidWidgetPreviewArgumentDetectorVisitor(
-      errorReporter: _diagnosticReporter,
+      diagnosticReporter: _diagnosticReporter,
     );
     node.arguments!.accept(visitor);
   }
@@ -214,10 +214,12 @@ class WidgetPreviewVerifier {
 }
 
 class _InvalidWidgetPreviewArgumentDetectorVisitor extends RecursiveAstVisitor {
-  final DiagnosticReporter errorReporter;
+  final DiagnosticReporter diagnosticReporter;
 
   NamedExpression? rootArgument;
-  _InvalidWidgetPreviewArgumentDetectorVisitor({required this.errorReporter});
+  _InvalidWidgetPreviewArgumentDetectorVisitor({
+    required this.diagnosticReporter,
+  });
 
   @override
   void visitArgumentList(ArgumentList node) {
@@ -239,7 +241,7 @@ class _InvalidWidgetPreviewArgumentDetectorVisitor extends RecursiveAstVisitor {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (Identifier.isPrivateName(node.name)) {
-      errorReporter.atNode(
+      diagnosticReporter.atNode(
         rootArgument!,
         diag.invalidWidgetPreviewPrivateArgument,
         arguments: [node.name, node.name.replaceFirst(RegExp('_*'), '')],

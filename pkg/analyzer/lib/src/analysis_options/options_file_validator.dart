@@ -33,7 +33,7 @@ List<Diagnostic> analyzeAnalysisOptions(
   VersionConstraint? sdkVersionConstraint,
   ResourceProvider resourceProvider,
 ) {
-  List<Diagnostic> errors = [];
+  List<Diagnostic> diagnostics = [];
   Source initialSource = source;
   SourceSpan? initialIncludeSpan;
   AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider(
@@ -46,21 +46,21 @@ List<Diagnostic> analyzeAnalysisOptions(
   // functions, and should be refactored to a class maintaining state, with less
   // variable shadowing.
   void addDirectErrorOrIncludedError(
-    List<Diagnostic> validationErrors,
+    List<Diagnostic> validationDiagnostics,
     Source source, {
     required bool isSourcePrimary,
   }) {
     if (!isSourcePrimary) {
-      // [source] is an included file, and we should only report errors in
+      // [source] is an included file, and we should only report diagnostics in
       // [initialSource], noting that the included file has warnings.
-      for (Diagnostic error in validationErrors) {
+      for (Diagnostic diagnostic in validationDiagnostics) {
         var args = [
           source.fullName,
-          error.offset.toString(),
-          (error.offset + error.length - 1).toString(),
-          error.message,
+          diagnostic.offset.toString(),
+          (diagnostic.offset + diagnostic.length - 1).toString(),
+          diagnostic.message,
         ];
-        errors.add(
+        diagnostics.add(
           Diagnostic.tmp(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
@@ -71,9 +71,9 @@ List<Diagnostic> analyzeAnalysisOptions(
         );
       }
     } else {
-      // [source] is the options file for [contextRoot]. Report all errors
+      // [source] is the options file for [contextRoot]. Report all diagnostics
       // directly.
-      errors.addAll(validationErrors);
+      diagnostics.addAll(validationDiagnostics);
     }
   }
 
@@ -123,7 +123,7 @@ List<Diagnostic> analyzeAnalysisOptions(
 
       var includedSource = sourceFactory.resolveUri(source, includeUri);
       if (includedSource == initialSource) {
-        errors.add(
+        diagnostics.add(
           Diagnostic.tmp(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
@@ -135,7 +135,7 @@ List<Diagnostic> analyzeAnalysisOptions(
         return;
       }
       if (includedSource == null || !includedSource.exists()) {
-        errors.add(
+        diagnostics.add(
           Diagnostic.tmp(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
@@ -148,7 +148,7 @@ List<Diagnostic> analyzeAnalysisOptions(
       }
       var spanInChain = includeChain[includedSource];
       if (spanInChain != null) {
-        errors.add(
+        diagnostics.add(
           Diagnostic.tmp(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
@@ -190,9 +190,9 @@ List<Diagnostic> analyzeAnalysisOptions(
           e.span!.end.offset.toString(),
           e.message,
         ];
-        // Report errors for included option files on the `include` directive
+        // Report diagnostics for included option files on the `include` directive
         // located in the initial options file.
-        errors.add(
+        diagnostics.add(
           Diagnostic.tmp(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
@@ -227,7 +227,7 @@ List<Diagnostic> analyzeAnalysisOptions(
     validate(source, options, contextRoot: contextRoot);
   } on OptionsFormatException catch (e) {
     SourceSpan span = e.span!;
-    errors.add(
+    diagnostics.add(
       Diagnostic.tmp(
         source: source,
         offset: span.start.offset,
@@ -237,7 +237,7 @@ List<Diagnostic> analyzeAnalysisOptions(
       ),
     );
   }
-  return errors;
+  return diagnostics;
 }
 
 /// Returns the name of the first legacy plugin, if one is specified in
