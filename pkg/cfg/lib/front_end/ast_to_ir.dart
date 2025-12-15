@@ -94,7 +94,9 @@ class AstToIr extends ast.RecursiveVisitor {
         _buildImplicitSetter(member as ast.Field);
       case FieldInitializerFunction():
         _translateNode((member as ast.Field).initializer!);
-        builder.addReturn();
+        if (builder.hasOpenBlock) {
+          builder.addReturn();
+        }
       case RegularFunction() || GetterFunction() || SetterFunction():
         _translateNode(member.function?.body);
       case GenerativeConstructor():
@@ -900,8 +902,11 @@ class AstToIr extends ast.RecursiveVisitor {
 
     _translateNode(node.body);
 
-    final done = builder.newJoinBlock();
-    builder.addGoto(done);
+    JoinBlock? done;
+    if (builder.hasOpenBlock) {
+      done = builder.newJoinBlock();
+      builder.addGoto(done);
+    }
     builder.leaveTryBlock();
 
     builder.startBlock(catchBlock);
@@ -950,7 +955,10 @@ class AstToIr extends ast.RecursiveVisitor {
 
       _translateNode(catchClause.body);
 
-      builder.addGoto(done);
+      if (builder.hasOpenBlock) {
+        done ??= builder.newJoinBlock();
+        builder.addGoto(done);
+      }
 
       if (next != null) {
         builder.startBlock(next);
@@ -964,7 +972,9 @@ class AstToIr extends ast.RecursiveVisitor {
       builder.addRethrow();
     }
 
-    builder.startBlock(done);
+    if (done != null) {
+      builder.startBlock(done);
+    }
   }
 
   @override

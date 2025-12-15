@@ -97,8 +97,78 @@ B2 = CatchBlock() idom:B0
   DirectCall print(v20)
   Throw(v22)
 
+--- unreachableTryEnd
+B0 = EntryBlock() dominates:(B2, B1)
+  v4 = Constant(1)
+  v6 = Constant("Bye-bye")
+  v8 = Constant(null)
+  v13 = Constant(3)
+  TryEntry(try-body: B1, catch-block: B2)
+B1 = TargetBlock() exception-handler:B2 idom:B0
+  DirectCall print(v4)
+  Throw(v6)
+B2 = CatchBlock() idom:B0
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v13)
+  Return(v8)
+
+--- unreachableCatchEnd
+B0 = EntryBlock() dominates:(B2, B1)
+  v4 = Constant(1)
+  v12 = Constant(2)
+  v14 = Constant("Bye-bye")
+  v16 = Constant(null)
+  TryEntry(try-body: B1, catch-block: B2)
+B1 = TargetBlock() exception-handler:B2 idom:B0
+  DirectCall print(v4)
+  Return(v16)
+B2 = CatchBlock() idom:B0
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v12)
+  Throw(v14)
+
+--- unreachableBothTryEndAndCatchEnd
+B0 = EntryBlock() dominates:(B2, B1)
+  v4 = Constant(1)
+  v6 = Constant("Bye")
+  Constant(null)
+  v13 = Constant(3)
+  v15 = Constant("Bye-bye")
+  TryEntry(try-body: B1, catch-block: B2)
+B1 = TargetBlock() exception-handler:B2 idom:B0
+  DirectCall print(v4)
+  Throw(v6)
+B2 = CatchBlock() idom:B0
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v13)
+  Throw(v15)
+
 --- main
 B0 = EntryBlock()
   v1 = Constant(null)
   Return(v1)
+
+--- getter unreachableFieldInitializer
+B0 = EntryBlock()
+  v1 = LoadStaticField(unreachableFieldInitializer)
+  Return(v1)
+
+--- setter unreachableFieldInitializer
+B0 = EntryBlock()
+  v4 = Constant(null)
+  v1 = Parameter(#value)
+  StoreStaticField(unreachableFieldInitializer, v1)
+  Return(v4)
+
+--- field-init unreachableFieldInitializer
+B0 = EntryBlock()
+  Constant(10)
+  Constant(1)
+  v4 = Constant("Bye")
+  Constant(null)
+  TypeArguments(<num>)
+  Throw(v4)
 
