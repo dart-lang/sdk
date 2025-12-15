@@ -1330,7 +1330,7 @@ void ddcDeferredLoading(bool enable) {
 }
 
 @notNull
-bool _ddcNewLoadLibraryTiming = false;
+bool _ddcNewLoadLibraryTiming = true;
 
 /// Makes DDC return non-sync Futures from `loadLibrary` calls.
 ///
