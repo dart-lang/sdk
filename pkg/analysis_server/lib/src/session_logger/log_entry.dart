@@ -82,5 +82,7 @@ extension type Message(JsonMap map) {
   JsonMap? get params => map['params'] as Map<String, Object?>?;
 
   /// If [method] is null, this should be non-null.
-  JsonMap? get result => map['result'] as Map<String, Object?>?;
+  ///
+  /// Could be any valid type for a result, which is dependent on the [method].
+  Object? get result => map['result'];
 }

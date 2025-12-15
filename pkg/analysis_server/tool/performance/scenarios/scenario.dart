@@ -16,10 +16,11 @@ final dartSdkRoot = p.dirname(p.dirname(Platform.resolvedExecutable));
 /// A [Scenario] represents a combination of a [project] and a [logFile] to
 /// replay in that project.
 class Scenario {
+  final String name;
   final File logFile;
   final ProjectGenerator project;
 
-  Scenario({required this.logFile, required this.project});
+  Scenario({required this.name, required this.logFile, required this.project});
 
   Future<void> run() async {
     var watch = Stopwatch()..start();

@@ -27,6 +27,9 @@ class Log {
   /// Each entry in [replacements] is all occurences of the key replaced with
   /// the value.
   factory Log.fromString(String logContent, Map<String, String> replacements) {
+    for (var entry in replacements.entries) {
+      logContent = logContent.replaceAll(entry.key, entry.value);
+    }
     var lines = const LineSplitter().convert(logContent);
     return Log._([
       for (var line in lines) LogEntry(json.decode(line) as JsonMap),
