@@ -1324,7 +1324,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     }
 
     currentContainer = oldContainer;
-    pushStatement(result);
+    if (body.statements.isNotEmpty) {
+      pushStatement(result);
+    }
     return true;
   }
 

@@ -212,7 +212,10 @@ abstract class LoopHandler {
           'loop',
           isBreakTarget: true,
         );
-        SubGraph labelGraph = SubGraph(conditionBlock, builder.current!);
+        SubGraph labelGraph = SubGraph(
+          conditionBlock,
+          bodyBlock ?? conditionEndBlock,
+        );
         HLabeledBlockInformation labelInfo = HLabeledBlockInformation(
           HSubGraphBlockInformation(labelGraph),
           <LabelDefinition>[label],
