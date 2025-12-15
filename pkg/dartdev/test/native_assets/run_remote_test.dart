@@ -48,52 +48,43 @@ void main() async {
     final result = await _runDartdev(
       fromDartdevSource,
       'run',
-      ['--help'],
+      ['--help', '-v'],
       null,
       {},
     );
+    print(result.stdout);
     expect(
       result.stdout,
-      stringContainsInOrder(
-        [
-          '''Run a Dart program from a file, a local package, or a remote package.
-
-Usage: dart [vm-options] run [arguments] [<dart-file>|<local-package>|<remote-executable> [args]]
-''',
-          '''
-<remote-executable>
-  An executable from a remote package. This can be from a hosted package server
-  (like pub.dev) or a git repository.
-
-  When running a remote executable, all other command-line flags are disabled,
-  except for the options for remote executables. `dart run <remote-executable>`
-  uses `dart install` under the hood and compiles the app into a standalone
-  executable, preventing passing VM options.
-
-  From a hosted package server:
-    <hosted-url>/<package>[@<version>][:<executable>]
-
-    Downloads the package from a hosted package server and runs the specified
-    executable.
-    If a version is provided, the specified version is downloaded.
-    If an executable is not specified, the package name is used.
-    For example, `https://pub.dev/dcli@1.0.0:dcli_complete` runs the
-    `dcli_complete` executable from version 1.0.0 of the `dcli` package.
-
-  From a git repository:
-    <git-url>[:<executable>]
-
-    Clones the git repository and runs the specified executable from it.
-    If an executable is not specified, the package name from the cloned
-    repository's pubspec.yaml is used.
-    The git url can be any valid git url.
-''',
-          '''
-Options for remote executables:
-    --git-path                               Path of git package in repository. Only applies when using a git url for <remote-executable>.
-    --git-ref                                Git branch or commit to be retrieved. Only applies when using a git url for <remote-executable>.
-'''
-        ],
+      contains(
+        '''
+    --enable-experiment-remote-run                     Enables running executables from remote packages.
+                                                       
+                                                         When running a remote executable, all other command-line flags are disabled,
+                                                         except for the options for remote executables. `dart run <remote-executable>`
+                                                         uses `dart install` under the hood and compiles the app into a standalone
+                                                         executable, preventing passing VM options.
+                                                       
+                                                         (Syntax is expected to change in the future.)
+                                                       
+                                                         From a hosted package server:
+                                                           <hosted-url>/<package>[@<version>][:<executable>]
+                                                       
+                                                           Downloads the package from a hosted package server and runs the specified
+                                                           executable.
+                                                           If a version is provided, the specified version is downloaded.
+                                                           If an executable is not specified, the package name is used.
+                                                           For example, `https://pub.dev/dcli@1.0.0:dcli_complete` runs the
+                                                           `dcli_complete` executable from version 1.0.0 of the `dcli` package.
+                                                       
+                                                         From a git repository:
+                                                           <git-url>[:<executable>]
+                                                       
+                                                           Clones the git repository and runs the specified executable from it.
+                                                           If an executable is not specified, the package name from the cloned
+                                                           repository's pubspec.yaml is used.
+                                                           The git url can be any valid git url.
+    --git-path                                         Path of git package in repository. Only applies when using a git url for <remote-executable>.
+    --git-ref                                          Git branch or commit to be retrieved. Only applies when using a git url for <remote-executable>.''',
       ),
     );
   });
@@ -117,6 +108,7 @@ Options for remote executables:
           fromDartdevSource,
           'run',
           [
+            '--enable-experiment-remote-run',
             'https://pub.dev/$_packageForTest$version:$_cliToolForTest',
             // Make sure to pass arguments that influence stdout.
             'compare',
@@ -153,6 +145,7 @@ Options for remote executables:
         final (gitUri, gitRef) = await _setupSimpleGitRepo(tempUri);
         final gitPath = './';
         final arguments = [
+          '--enable-experiment-remote-run',
           if (testArguments.contains('--git-path')) ...[
             '--git-path',
             gitPath,
@@ -199,22 +192,34 @@ Options for remote executables:
 
   final errorArgumentss = [
     (
-      ['https://pub.dev/this_package_does_not_exist_12345'],
+      [
+        '--enable-experiment-remote-run',
+        'https://pub.dev/this_package_does_not_exist_12345'
+      ],
       'could not find package this_package_does_not_exist_12345 at',
       errorExitCode,
     ),
     (
-      ['--git-path', 'foo/', 'https://pub.dev/vm_snapshot_analysis'],
+      [
+        '--enable-experiment-remote-run',
+        '--git-path',
+        'foo/',
+        'https://pub.dev/vm_snapshot_analysis'
+      ],
       'git-path',
       usageExitCode,
     ),
     (
-      ['--enable-asserts', 'https://pub.dev/vm_snapshot_analysis'],
+      [
+        '--enable-experiment-remote-run',
+        '--enable-asserts',
+        'https://pub.dev/vm_snapshot_analysis'
+      ],
       'enable-asserts',
       usageExitCode,
     ),
     (
-      ['--git-path', 'foo/'],
+      ['--enable-experiment-remote-run', '--git-path', 'foo/'],
       'git-path',
       usageExitCode,
     ),
@@ -292,7 +297,10 @@ void main(List<String> args) async {
       final runResult = await _runDartdev(
         fromDartdevSource,
         'run',
-        ['${gitUri.toFilePath()}:$packageName'],
+        [
+          '--enable-experiment-remote-run',
+          '${gitUri.toFilePath()}:$packageName'
+        ],
         null,
         environment,
         expectedExitCode: errorExitCode,
@@ -309,6 +317,7 @@ void main(List<String> args) async {
       final (gitUri, gitRef) = await _setupSimpleGitRepo(tempUri);
 
       final arguments = [
+        '--enable-experiment-remote-run',
         '--git-ref',
         gitRef,
         '${gitUri.toFilePath()}:$_gitPackageForTest',
@@ -368,6 +377,7 @@ void main(List<String> args) async {
         );
 
         final arguments = [
+          '--enable-experiment-remote-run',
           if (verbosityError) '--verbosity=error',
           '--git-ref',
           gitRef,
