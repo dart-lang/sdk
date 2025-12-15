@@ -89,9 +89,11 @@ void main() async {
     );
   });
 
-  for (final withVersion in [false, true]) {
-    test('dart run hosted package${withVersion ? ' with version' : ''}',
-        timeout: longTimeout, () async {
+  for (final version in ['', '@$_packageVersion', '@']) {
+    final testName = version == ''
+        ? 'no version'
+        : (version == '@' ? 'empty version' : 'with version');
+    test('dart run hosted package $testName', timeout: longTimeout, () async {
       await inTempDir((tempUri) async {
         final dartDataHome = tempUri.resolve('dart_home/');
         await Directory.fromUri(dartDataHome).create();
@@ -103,7 +105,6 @@ void main() async {
               '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
         };
 
-        var version = withVersion ? '@$_packageVersion' : '';
         final runResult = await _runDartdev(
           fromDartdevSource,
           'run',

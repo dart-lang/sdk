@@ -558,9 +558,7 @@ class Translator with KernelNodes {
   Map<ModuleMetadata, w.Module> translate(
       Uri Function(String moduleName)? sourceMapUrlGenerator) {
     _initModules(sourceMapUrlGenerator);
-    initFunction = mainModule.functions
-        .define(typesBuilder.defineFunction(const [], const []), "#init");
-    mainModule.startFunction = initFunction;
+    initFunction = mainModule.startFunction;
 
     closureLayouter.collect();
     classInfoCollector.collect();
@@ -587,7 +585,6 @@ class Translator with KernelNodes {
     constructorClosures.clear();
     dispatchTable.output();
     staticTablesPerType.outputTables();
-    initFunction.body.end();
 
     for (ConstantInfo info in constants.constantInfo.values) {
       info.printInitializer((function) {

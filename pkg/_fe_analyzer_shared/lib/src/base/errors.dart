@@ -251,7 +251,7 @@ abstract class DiagnosticCode {
   /// diagnostic. The correction should indicate how the user can fix the
   /// diagnostic.
   String? get correctionMessage =>
-      customizedCorrections[uniqueName] ?? _correctionMessage;
+      customizedCorrections[lowerCaseUniqueName] ?? _correctionMessage;
 
   @Deprecated("Use 'diagnosticSeverity' instead")
   DiagnosticSeverity get errorSeverity => severity;
@@ -290,7 +290,7 @@ abstract class DiagnosticCode {
   /// diagnostic. The problem message should indicate what is wrong and why it
   /// is wrong.
   String get problemMessage =>
-      customizedMessages[uniqueName] ?? _problemMessage;
+      customizedMessages[lowerCaseUniqueName] ?? _problemMessage;
 
   /// The severity of the diagnostic.
   DiagnosticSeverity get severity;

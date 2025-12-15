@@ -827,45 +827,86 @@ class DispatchTable {
   void output() {
     final Map<w.BaseFunction, w.BaseFunction> wrappedDynamicSubmoduleImports =
         {};
-    for (int i = 0; i < _table.length; i++) {
-      Reference? target = _table[i];
-      if (target != null) {
-        w.BaseFunction? fun = translator.functions.getExistingFunction(target);
-        // Any call to the dispatch table is guaranteed to hit a target.
-        //
-        // If a target is in a deferred module and that deferred module hasn't
-        // been loaded yet, then the entry is `null`.
-        //
-        // Though we can only hit a target if that target's class has been
-        // allocated. In order for the class to be allocated, the deferred
-        // module must've been loaded to call the constructor.
-        if (fun != null) {
-          final targetModule = fun.enclosingModule;
-          final targetModuleBuilder =
-              translator.moduleToBuilder[fun.enclosingModule]!;
-          if (targetModule == _definedWasmTable.enclosingModule) {
-            if (isDynamicSubmoduleTable &&
-                targetModuleBuilder == translator.dynamicSubmodule &&
-                fun is w.ImportedFunction) {
-              // Functions imported into submodules may need to be wrapped to
-              // match the updated dispatch table signature.
-              fun = wrappedDynamicSubmoduleImports[fun] ??=
-                  _wrapDynamicSubmoduleFunction(target, fun);
-            }
+    int start = 0;
+    while (start < _table.length) {
+      Reference? target = _table[start];
+      if (target == null) {
+        start++;
+        continue;
+      }
+      w.BaseFunction? fun = translator.functions.getExistingFunction(target);
+      if (fun == null) {
+        start++;
+        continue;
+      }
+
+      // Any call to the dispatch table is guaranteed to hit a target.
+      //
+      // If a target is in a deferred module and that deferred module hasn't
+      // been loaded yet, then the entry is `null`.
+      //
+      // Though we can only hit a target if that target's class has been
+      // allocated. In order for the class to be allocated, the deferred
+      // module must've been loaded to call the constructor.
+      int end = start + 1;
+      while (end < _table.length && _table[end] == target) {
+        end++;
+      }
+      final strideWidth = end - start;
+
+      // If the stride of the current function is more than this (i.e. the table
+      // contains a large subsection with identical function entries) we
+      // initialize that section in #start function.
+      const strideElementTableLimit = 100;
+
+      final targetModule = fun.enclosingModule;
+      final targetModuleBuilder =
+          translator.moduleToBuilder[fun.enclosingModule]!;
+      if (targetModule == _definedWasmTable.enclosingModule) {
+        if (isDynamicSubmoduleTable &&
+            targetModuleBuilder == translator.dynamicSubmodule &&
+            fun is w.ImportedFunction) {
+          // Functions imported into submodules may need to be wrapped to
+          // match the updated dispatch table signature.
+          fun = wrappedDynamicSubmoduleImports[fun] ??=
+              _wrapDynamicSubmoduleFunction(target, fun);
+        }
+
+        if (strideWidth < strideElementTableLimit) {
+          for (int i = start; i < end; ++i) {
             _definedWasmTable.moduleBuilder.elements
                 .activeFunctionSegmentBuilderFor(_definedWasmTable)
                 .setFunctionAt(i, fun);
-          } else {
-            // This will generate the imported table if it doesn't already
-            // exist.
-            final importedTable =
-                getWasmTable(targetModuleBuilder) as w.ImportedTable;
+          }
+        } else {
+          targetModuleBuilder.elements.declarativeSegmentBuilder.declare(fun);
+          final b = targetModuleBuilder.startFunction.body;
+          b.i32_const(start);
+          b.ref_func(fun);
+          b.i32_const(strideWidth);
+          b.table_fill(_definedWasmTable);
+        }
+      } else {
+        // This will generate the imported table if it doesn't already
+        // exist.
+        final importedTable =
+            getWasmTable(targetModuleBuilder) as w.ImportedTable;
+        if (strideWidth < strideElementTableLimit) {
+          for (int i = start; i < end; ++i) {
             targetModuleBuilder.elements
                 .activeFunctionSegmentBuilderFor(importedTable)
                 .setFunctionAt(i, fun);
           }
+        } else {
+          targetModuleBuilder.elements.declarativeSegmentBuilder.declare(fun);
+          final b = targetModuleBuilder.startFunction.body;
+          b.i32_const(start);
+          b.ref_func(fun);
+          b.i32_const(strideWidth);
+          b.table_fill(importedTable);
         }
       }
+      start += strideWidth;
     }
   }
 

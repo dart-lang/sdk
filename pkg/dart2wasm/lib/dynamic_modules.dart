@@ -425,8 +425,7 @@ class DynamicModuleInfo {
   DynamicModuleInfo(this.translator, this.metadata);
 
   void initSubmodule() {
-    submodule.startFunction = initFunction = submodule.functions.define(
-        translator.typesBuilder.defineFunction(const [], const []), "#init");
+    initFunction = submodule.startFunction;
 
     // Make sure the exception tag is exported from the main module.
     translator.getExceptionTag(submodule);
@@ -653,8 +652,6 @@ class DynamicModuleInfo {
   void finishDynamicModule() {
     _registerModuleRefs(
         isSubmodule ? initFunction.body : translator.initFunction.body);
-
-    initFunction.body.end();
   }
 
   void _registerModuleRefs(w.InstructionsBuilder b) {
