@@ -245,6 +245,8 @@ class InstructionsBuilder with Builder<ir.Instructions> {
 
   bool get recordSourceMaps => _sourceMappings != null;
 
+  bool get isEmpty => _instructions.isEmpty;
+
   void collectUsedTypes(Set<ir.DefType> usedTypes) {
     for (final local in locals) {
       final localDefType = local.type.containedDefType;
@@ -921,6 +923,14 @@ class InstructionsBuilder with Builder<ir.Instructions> {
         trace: ['table.set', table.name]));
     assert(table.enclosingModule == module);
     _add(ir.TableSet(table));
+  }
+
+  /// Emit a `table.size` instruction.
+  void table_fill(ir.Table table) {
+    assert(_verifyTypes([ir.NumType.i32, table.type, ir.NumType.i32], const [],
+        trace: ['table.fill', table.name]));
+    assert(table.enclosingModule == module);
+    _add(ir.TableFill(table));
   }
 
   /// Emit a `table.size` instruction.

@@ -554,6 +554,8 @@ abstract class Instruction implements Serializable {
               return I64TruncSatF64U.deserialize(d);
             case 0x10:
               return TableSize.deserialize(d, tables);
+            case 0x11:
+              return TableFill.deserialize(d, tables);
             default:
               throw "Invalid instruction byte: 0xFC $opcode";
           }
@@ -1477,6 +1479,32 @@ class TableGet extends Instruction {
 
   @override
   String get name => 'table.get';
+
+  @override
+  void printTo(IrPrinter p) {
+    p.write(name);
+    p.writeTableReference(table);
+  }
+}
+
+class TableFill extends Instruction {
+  final Table table;
+
+  TableFill(this.table);
+
+  static TableFill deserialize(Deserializer d, Tables tables) {
+    return TableFill(tables[d.readUnsigned()]);
+  }
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFC);
+    s.writeByte(0x11);
+    s.writeUnsigned(table.index);
+  }
+
+  @override
+  String get name => 'table.fill';
 
   @override
   void printTo(IrPrinter p) {
