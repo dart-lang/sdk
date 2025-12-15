@@ -1593,7 +1593,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   int get port {
     if (localAddress.type == InternetAddressType.unix) return 0;
     if (localPort != 0) return localPort;
-    if (isClosing || isClosed) throw const SocketException.closed();
+    _ensureNotClosingOrClosed();
     var result = _nativeGetPort();
     if (result is OSError) {
       throw result;
@@ -1603,14 +1603,14 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
 
   int get remotePort {
     if (localAddress.type == InternetAddressType.unix) return 0;
-    if (isClosing || isClosed) throw const SocketException.closed();
+    _ensureNotClosingOrClosed();
     return _nativeGetRemotePeer()[1];
   }
 
   InternetAddress get address => localAddress;
 
   InternetAddress get remoteAddress {
-    if (isClosing || isClosed) throw const SocketException.closed();
+    _ensureNotClosingOrClosed();
     var result = _nativeGetRemotePeer();
     var addr = result[0] as List<Object?>;
     var type = InternetAddressType._from(addr[0] as int);
@@ -1951,6 +1951,8 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   }
 
   dynamic getOption(SocketOption option) {
+    _ensureNotClosingOrClosed();
+
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(option, "option");
     var result = _nativeGetOption(option._value, address.type._value);
@@ -1959,6 +1961,8 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   }
 
   bool setOption(SocketOption option, value) {
+    _ensureNotClosingOrClosed();
+
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(option, "option");
     _nativeSetOption(option._value, address.type._value, value);
@@ -1966,6 +1970,8 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   }
 
   Uint8List getRawOption(RawSocketOption option) {
+    _ensureNotClosingOrClosed();
+
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(option, "option");
     ArgumentError.checkNotNull(option.value, "option.value");
@@ -1974,6 +1980,8 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   }
 
   void setRawOption(RawSocketOption option) {
+    _ensureNotClosingOrClosed();
+
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(option, "option");
     ArgumentError.checkNotNull(option.value, "option.value");
@@ -2009,6 +2017,8 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   }
 
   void joinMulticast(InternetAddress addr, NetworkInterface? interface) {
+    _ensureNotClosingOrClosed();
+
     final interfaceAddr =
         multicastAddress(addr, interface) as _InternetAddress?;
     var interfaceIndex = interface == null ? 0 : interface.index;
@@ -2020,6 +2030,8 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   }
 
   void leaveMulticast(InternetAddress addr, NetworkInterface? interface) {
+    _ensureNotClosingOrClosed();
+
     final interfaceAddr =
         multicastAddress(addr, interface) as _InternetAddress?;
     var interfaceIndex = interface == null ? 0 : interface.index;
@@ -2032,6 +2044,12 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
 
   bool hasPendingWrite() {
     return Platform.isWindows && _nativeHasPendingWrite();
+  }
+
+  // Native methods are not guarding against closed sockets, which can
+  // lead to crashes.
+  void _ensureNotClosingOrClosed() {
+    if (isClosing || isClosed) throw const SocketException.closed();
   }
 
   @pragma("vm:external-name", "Socket_SetSocketId")
