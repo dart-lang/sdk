@@ -107,7 +107,10 @@ MappedMemory* File::Map(File::MapType type,
   if (addr == nullptr) {
     addr = VirtualAlloc(nullptr, length, MEM_COMMIT | MEM_RESERVE, prot_alloc);
     if (addr == nullptr) {
-      Syslog::PrintErr("VirtualAlloc failed %d\n", GetLastError());
+      int error = GetLastError();
+      char buffer[1024];
+      Syslog::PrintErr("VirtualAlloc failed %d (%s)\n", error,
+                       Utils::StrError(error, buffer, sizeof(buffer)));
       return nullptr;
     }
   }
@@ -115,7 +118,10 @@ MappedMemory* File::Map(File::MapType type,
   const int64_t remaining_length = Length() - position;
   SetPosition(position);
   if (!ReadFully(addr, Utils::Minimum(length, remaining_length))) {
-    Syslog::PrintErr("ReadFully failed %d\n", GetLastError());
+    int error = GetLastError();
+    char buffer[1024];
+    Syslog::PrintErr("ReadFully failed %d (%s)\n", error,
+                     Utils::StrError(error, buffer, sizeof(buffer)));
     if (start == nullptr) {
       VirtualFree(addr, 0, MEM_RELEASE);
     }
@@ -132,7 +138,10 @@ MappedMemory* File::Map(File::MapType type,
   DWORD old_prot;
   bool result = VirtualProtect(addr, length, prot_final, &old_prot);
   if (!result) {
-    Syslog::PrintErr("VirtualProtect failed %d\n", GetLastError());
+    int error = GetLastError();
+    char buffer[1024];
+    Syslog::PrintErr("VirtualProtect failed %d (%s)\n", error,
+                     Utils::StrError(error, buffer, sizeof(buffer)));
     if (start == nullptr) {
       VirtualFree(addr, 0, MEM_RELEASE);
     }

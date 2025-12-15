@@ -101,7 +101,10 @@ const ThreadJoinId OSThread::kInvalidThreadJoinId = nullptr;
 ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
   ThreadLocalKey key = TlsAlloc();
   if (key == kUnsetThreadLocalKey) {
-    FATAL("TlsAlloc failed %d", GetLastError());
+    int error = GetLastError();
+    char buffer[1024];
+    FATAL("TlsAlloc failed %d (%s)\n", error,
+          Utils::StrError(error, buffer, sizeof(buffer)));
   }
   ThreadLocalData::AddThreadLocal(key, destructor);
   return key;
@@ -111,7 +114,10 @@ void OSThread::DeleteThreadLocal(ThreadLocalKey key) {
   ASSERT(key != kUnsetThreadLocalKey);
   BOOL result = TlsFree(key);
   if (!result) {
-    FATAL("TlsFree failed %d", GetLastError());
+    int error = GetLastError();
+    char buffer[1024];
+    FATAL("TlsFree failed %d (%s)\n", error,
+          Utils::StrError(error, buffer, sizeof(buffer)));
   }
   ThreadLocalData::RemoveThreadLocal(key);
 }
@@ -197,7 +203,10 @@ void OSThread::SetThreadLocal(ThreadLocalKey key, uword value) {
   ASSERT(key != kUnsetThreadLocalKey);
   BOOL result = TlsSetValue(key, reinterpret_cast<void*>(value));
   if (!result) {
-    FATAL("TlsSetValue failed %d", GetLastError());
+    int error = GetLastError();
+    char buffer[1024];
+    FATAL("TlsSetValue failed %d (%s)\n", error,
+          Utils::StrError(error, buffer, sizeof(buffer)));
   }
 }
 

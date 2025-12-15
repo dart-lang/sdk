@@ -237,7 +237,10 @@ void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
   DWORD old_prot = 0;
   if (VirtualProtect(reinterpret_cast<void*>(page_address),
                      end_address - page_address, prot, &old_prot) == 0) {
-    FATAL("VirtualProtect failed %d\n", GetLastError());
+    int error = GetLastError();
+    char buffer[1024];
+    FATAL("VirtualProtect failed %d (%s)\n", error,
+          Utils::StrError(error, buffer, sizeof(buffer)));
   }
 }
 
