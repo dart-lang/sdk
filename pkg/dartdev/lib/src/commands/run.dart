@@ -707,6 +707,9 @@ Enables running executables from remote packages.
                 ?.split(_colonButNoSlashes)
                 .first ??
             'any';
+        if (versionConstraint.isEmpty) {
+          versionConstraint = 'any';
+        }
       case RemoteSourceKind.path:
         throw StateError('Unreachable');
     }
