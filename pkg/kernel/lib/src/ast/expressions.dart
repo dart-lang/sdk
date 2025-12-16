@@ -310,7 +310,7 @@ class VariableSet extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write(printer.getVariableName(variable));
+    printer.write(printer.getVariableName(expressionVariable));
     printer.write(' = ');
     printer.writeExpression(value);
   }

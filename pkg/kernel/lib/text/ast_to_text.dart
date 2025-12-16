@@ -146,6 +146,8 @@ class NameSystem {
       new NormalNamer<StructuralParameter>('#T');
   final Namer<TreeNode> labels = new NormalNamer<TreeNode>('#L');
   final Namer<Constant> constants = new ConstantNamer('#C');
+  final Namer<VariableContext> contexts =
+      new NormalNamer<VariableContext>('#ctx');
   final Disambiguator<Reference, CanonicalName> prefixes =
       new Disambiguator<Reference, CanonicalName>();
 
@@ -157,6 +159,7 @@ class NameSystem {
   String nameSwitchCase(SwitchCase node) => labels.getName(node);
   String nameLabeledStatement(LabeledStatement node) => labels.getName(node);
   String nameConstant(Constant node) => constants.getName(node);
+  String nameVariableContext(VariableContext node) => contexts.getName(node);
 
   final RegExp pathSeparator = new RegExp('[\\/]');
 
@@ -744,6 +747,14 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeTypeParameterList(function.typeParameters);
     writeParameterList(function.positionalParameters, function.namedParameters,
         function.requiredParameterCount);
+    if (function.contexts case List<VariableContext> contexts) {
+      ensureSpace();
+      writeWord('/*');
+      for (VariableContext context in contexts) {
+        writeWord(syntheticNames.nameVariableContext(context));
+      }
+      writeWord('*/');
+    }
     writeReturnType(
         function.returnType, annotator?.annotateReturn(this, function));
     if (initializers != null && initializers.isNotEmpty) {
@@ -1109,6 +1120,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   void writeVariableContext(VariableContext context, {String separator = ','}) {
     writeIndentation();
+    writeWord('${syntheticNames.nameVariableContext(context)}:');
     switch (context.captureKind) {
       case CaptureKind.captured:
         writeWord('captured');

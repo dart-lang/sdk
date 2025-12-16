@@ -9,19 +9,21 @@ abstract class ContextAllocationStrategy {
   // TODO(cstefantsova): Replace this flag by implementing the default strategy.
   bool isClosureContextLoweringEnabled;
 
+  final LocalStack<TreeNode> _scopeProviderOrSubstituteStack =
+      new LocalStack<TreeNode>(<TreeNode>[]);
+
+  final Map<TreeNode, Scope> _scopeBySubstitute = {};
+
+  bool _enableDebugLogging = true;
+  StringBuffer? _debugLog;
+
   ContextAllocationStrategy({required this.isClosureContextLoweringEnabled});
 
-  LocalStack<ScopeProvider> _scopeProviderStack = new LocalStack<ScopeProvider>(
-    <ScopeProvider>[],
-  );
-  ScopeProvider? get _currentScopeProvider => _scopeProviderStack.currentOrNull;
-
-  bool _enableDebugLogging = false;
-  StringBuffer? _debugLog;
+  TreeNode? get _currentScopeProviderOrSubstitute =>
+      _scopeProviderOrSubstituteStack.currentOrNull;
 
   void _writeDebugLine(String line) {
     if (_enableDebugLogging) {
-      // Coverage-ignore-block(suite): Not run.
       (_debugLog ??= new StringBuffer()).writeln(line);
     }
   }
@@ -40,7 +42,7 @@ abstract class ContextAllocationStrategy {
         );
         return true;
       }());
-      _scopeProviderStack.push(scopeProvider);
+      _scopeProviderOrSubstituteStack.push(scopeProvider);
     }
   }
 
@@ -54,22 +56,65 @@ abstract class ContextAllocationStrategy {
         return true;
       }());
       assert(
-        identical(_currentScopeProvider, scopeProvider),
+        identical(_currentScopeProviderOrSubstitute, scopeProvider),
         "Expected the current scope provider "
         "to be identical to the exited one: "
-        "current=${_currentScopeProvider.runtimeType}, "
+        "current=${_currentScopeProviderOrSubstitute.runtimeType}, "
         "exited=${scopeProvider.runtimeType}."
         "\nDebug log:\n${_readDebugLog()}",
       );
-      _scopeProviderStack.pop();
+      _scopeProviderOrSubstituteStack.pop();
+    }
+  }
+
+  void enterScopeProviderSubstitute(TreeNode substitute) {
+    if (isClosureContextLoweringEnabled) {
+      assert(() {
+        _writeDebugLine(
+          "Entered ${substitute.runtimeType} "
+          "(id=${identityHashCode(substitute)}).",
+        );
+        return true;
+      }());
+      _scopeProviderOrSubstituteStack.push(substitute);
+    }
+  }
+
+  void exitScopeProviderSubstitute(TreeNode substitute) {
+    if (isClosureContextLoweringEnabled) {
+      assert(() {
+        _writeDebugLine(
+          "Exited ${substitute.runtimeType} "
+          "(id=${identityHashCode(substitute)}).",
+        );
+        return true;
+      }());
+      assert(
+        identical(_currentScopeProviderOrSubstitute, substitute),
+        "Expected the current scope provider substitute "
+        "to be identical to the exited one: "
+        "current=${_currentScopeProviderOrSubstitute.runtimeType}, "
+        "exited=${substitute.runtimeType}."
+        "\nDebug log:\n${_readDebugLog()}",
+      );
+      _scopeProviderOrSubstituteStack.pop();
+    }
+  }
+
+  Scope _ensureCurrentScope() {
+    assert(_currentScopeProviderOrSubstitute != null);
+    if (_currentScopeProviderOrSubstitute case ScopeProvider scopeProvider) {
+      return scopeProvider.scope ??= new Scope(contexts: []);
+    } else {
+      return _scopeBySubstitute[_currentScopeProviderOrSubstitute!] ??=
+          new Scope(contexts: []);
     }
   }
 
   VariableContext _ensureVariableContextInCurrentScope({
     required CaptureKind captureKind,
   }) {
-    assert(_currentScopeProvider != null);
-    Scope scope = _currentScopeProvider!.scope ??= new Scope(contexts: []);
+    Scope scope = _ensureCurrentScope();
     for (VariableContext context in scope.contexts) {
       // Coverage-ignore-block(suite): Not run.
       if (context.captureKind == captureKind) {
@@ -84,10 +129,20 @@ abstract class ContextAllocationStrategy {
     return context;
   }
 
+  void transferScope(TreeNode from, ScopeProvider to) {
+    to.scope = _scopeBySubstitute[from];
+    _scopeBySubstitute.remove(from);
+  }
+
   void handleDeclarationOfVariable(
     ExpressionVariable variable, {
     required CaptureKind captureKind,
   });
+
+  void handleVariablesCapturedByNode(
+    FunctionNode node,
+    List<Variable> variables,
+  );
 }
 
 class TrivialContextAllocationStrategy extends ContextAllocationStrategy {
@@ -101,10 +156,23 @@ class TrivialContextAllocationStrategy extends ContextAllocationStrategy {
     required CaptureKind captureKind,
   }) {
     if (isClosureContextLoweringEnabled) {
-      assert(_currentScopeProvider != null);
+      assert(_currentScopeProviderOrSubstitute != null);
       _ensureVariableContextInCurrentScope(
         captureKind: captureKind,
       ).addVariable(variable);
+    }
+  }
+
+  @override
+  void handleVariablesCapturedByNode(
+    FunctionNode node,
+    List<Variable> variables,
+  ) {
+    if (isClosureContextLoweringEnabled) {
+      Set<VariableContext> contexts = {
+        for (Variable variable in variables) variable.context,
+      };
+      (node.contexts ??= []).addAll(contexts);
     }
   }
 }
