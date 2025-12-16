@@ -13,10 +13,13 @@ This is a patch release that:
   [dart-lang/sdk#62168])
 - Fixes code completion for dot shorthands and the `!=` operator. (issue
   [dart-lang/sdk#62216])
+- Fixes a bug in JS typed data `sublist()` implementation on dart2wasm backend.
+  (issue [flutter/flutter#179853])
 
 [dart-lang/sdk#62013]: https://github.com/dart-lang/sdk/issues/62013
 [dart-lang/sdk#62168]: https://github.com/dart-lang/sdk/issues/62168
 [dart-lang/sdk#62216]: https://github.com/dart-lang/sdk/issues/62216
+[flutter/flutter#179853]: https://github.com/flutter/flutter/issues/179853
 
 ## 3.10.4
 
