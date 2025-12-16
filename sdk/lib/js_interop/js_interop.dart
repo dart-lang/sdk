@@ -558,25 +558,11 @@ extension type JSSymbol._(JSSymbolRepType _jsSymbol) implements JSAny {
   @JS('for')
   external static JSSymbol forKey(String key);
 
-  /// `Symbol.asyncDispose` from the ECMAScript [explicit resource management]
-  /// feature.
-  ///
-  /// [explicit resource management]: https://github.com/tc39/proposal-explicit-resource-management
-  @Since('3.11')
-  external static JSSymbol get asyncDispose;
-
   /// See [`Symbol.asyncIterator`].
   ///
   /// [`Symbol.asyncIterator`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/asyncIterator
   @Since('3.11')
   external static JSSymbol get asyncIterator;
-
-  /// `Symbol.dispose` from the ECMAScript [explicit resource management]
-  /// feature.
-  ///
-  /// [explicit resource management]: https://github.com/tc39/proposal-explicit-resource-management
-  @Since('3.11')
-  external static JSSymbol get dispose;
 
   /// See [`Symbol.hasInstance`].
   ///
@@ -656,12 +642,12 @@ extension type JSSymbol._(JSSymbolRepType _jsSymbol) implements JSAny {
 
   /// Returns the shared symbol key from the global symbol registry for this
   /// symbol (as registered with [forKey]), if this symbol was created with
-  /// [Symbol.forKey].
+  /// [JSSymbol.forKey].
   @Since('3.11')
   String? get key => _keyFor(this);
 
   /// A string containing the description of the symbol, as passed to [new
-  /// Symbol].
+  /// JSSymbol].
   @Since('3.11')
   external String get description;
 }

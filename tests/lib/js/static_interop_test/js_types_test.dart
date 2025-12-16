@@ -541,9 +541,7 @@ void syncTests() {
   Expect.notEquals(JSSymbol.forKey('foo'), symbol);
   Expect.equals(JSSymbol.forKey('foo'), JSSymbol.forKey('foo'));
   Expect.equals(JSSymbol.forKey('foo').key, 'foo');
-  Expect.isTrue(JSSymbol.asyncDispose is JSSymbol);
   Expect.isTrue(JSSymbol.asyncIterator is JSSymbol);
-  Expect.isTrue(JSSymbol.dispose is JSSymbol);
   Expect.isTrue(JSSymbol.hasInstance is JSSymbol);
   Expect.isTrue(JSSymbol.isConcatSpreadable is JSSymbol);
   Expect.isTrue(JSSymbol.iterator is JSSymbol);

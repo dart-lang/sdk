@@ -4,8 +4,8 @@
   (type $BoxedInt (sub final $#Top (struct
     (field $field0 i32)
     (field $value i64))))
-  (func $"dart2wasm._274 (import)" (import "dart2wasm" "_274") (param externref) (result externref))
-  (func $"dart2wasm._275 (import)" (import "dart2wasm" "_275") (param externref) (result externref))
+  (func $"dart2wasm._294 (import)" (import "dart2wasm" "_294") (param externref) (result externref))
+  (func $"dart2wasm._295 (import)" (import "dart2wasm" "_295") (param externref) (result externref))
   (global $"intValue initialized" (mut i32) <...>)
   (global $"intValueNullable initialized" (mut i32) <...>)
   (global $"ktrue initialized" (mut i32) <...>)
@@ -21,7 +21,7 @@
     (local $var0 externref)
     i64.const 1
     call $jsifyInt
-    call $"dart2wasm._274 (import)"
+    call $"dart2wasm._294 (import)"
     local.tee $var0
     call $isDartNull
     if (result i64)
@@ -36,7 +36,7 @@
   (func $"testIntConstantNullable <noInline>"
     (local $var0 externref)
     ref.null noextern
-    call $"dart2wasm._275 (import)"
+    call $"dart2wasm._295 (import)"
     local.tee $var0
     call $isDartNull
     if (result (ref null $BoxedInt))
@@ -58,7 +58,7 @@
       call $"intValue implicit getter"
     end
     call $jsifyInt
-    call $"dart2wasm._274 (import)"
+    call $"dart2wasm._294 (import)"
     local.tee $var0
     call $isDartNull
     if (result i64)
@@ -107,7 +107,7 @@
       local.get $var0
       call $jsifyRaw
     end
-    call $"dart2wasm._275 (import)"
+    call $"dart2wasm._295 (import)"
     local.tee $var1
     call $isDartNull
     if (result (ref null $BoxedInt))
