@@ -45,9 +45,18 @@ The features are listed roughly in dependency order.
 - [ ] Constant evaluation
 - [ ] Index and search
 - [ ] Warnings (annotation-based, unused\*, strict-mode-based, a few others)
-  - [ ] `OverrideVerifier` and `InheritanceOverrideVerifier` (report errors and warnings related to overrides)
+  - [ ] `OverrideVerifier` and `InheritanceOverrideVerifier` (report errors and
+    warnings related to overrides)
   - [ ] `ErrorVerifier` (report other errors and warnings)
   - [ ] `FfiVerifier` (report errors and warnings related to FFI)
-  - [ ] Unused elements warnings
+  - [ ] Unused local elements warnings (unused local variable, unused element,
+    unused field, unused parameter)
+  - [ ] Unused imports and related warnings, like duplicate imports, shown
+    names, etc.
+  - [ ] `BestPracticesVerifier`, including all of the verifiers which that
+    defers to.
+  - [ ] `strict-casts: true` warnings
+  - [ ] `strict-inference: true` warnings
+  - [ ] `strict-raw-types: true` warnings
 - [ ] ExitDetector
 - [ ] NodeLintRegistry
