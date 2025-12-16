@@ -73,6 +73,19 @@ class A<T> {
 ''');
   }
 
+  test_class_getterSetter_isUsed_assignmentExpression_compound() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get _foo => 0;
+  set _foo(int _) {}
+
+  void f() {
+    _foo += 2;
+  }
+}
+''');
+  }
+
   test_class_isUsed_exposedViaTypeAlias() async {
     await assertNoErrorsInCode(r'''
 class _A {}
@@ -304,20 +317,7 @@ print(x) {}
     );
   }
 
-  test_classGetterSetter_isUsed_assignmentExpression_compound() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  int get _foo => 0;
-  set _foo(int _) {}
-
-  void f() {
-    _foo += 2;
-  }
-}
-''');
-  }
-
-  test_classSetter_isUsed_assignmentExpression_simple() async {
+  test_class_setter_isUsed_assignmentExpression_simple() async {
     await assertNoErrorsInCode(r'''
 class A {
   set _foo(int _) {}
@@ -402,6 +402,26 @@ class B extends A {
 ''',
       [error(diag.unusedElement, 87, 6)],
     );
+  }
+
+  test_constructorFactory_notUsed_multiple() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  factory A._factory() => A();
+  A();
+}
+''',
+      [error(diag.unusedElement, 22, 8)],
+    );
+  }
+
+  test_constructorFactory_notUsed_single() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  factory A._factory() => throw 0;
+}
+''');
   }
 
   test_constructorPublic_privateClass_exposedViaTypeAlias() async {
@@ -638,26 +658,6 @@ extension type _E(int i) {
 }
 typedef _A = _E;
 typedef B = _A;
-''');
-  }
-
-  test_factoryConstructor_notUsed_multiple() async {
-    await assertErrorsInCode(
-      r'''
-class A {
-  factory A._factory() => A();
-  A();
-}
-''',
-      [error(diag.unusedElement, 22, 8)],
-    );
-  }
-
-  test_factoryConstructor_notUsed_single() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  factory A._factory() => throw 0;
-}
 ''');
   }
 
@@ -1603,7 +1603,7 @@ mixin _M {}
     );
   }
 
-  test_optionalParameter_isUsed_constructor() async {
+  test_parameter_isUsed_constructor() async {
     await assertNoErrorsInCode(r'''
 class _A {
   _A([int a = 0]);
@@ -1612,7 +1612,58 @@ f() => _A(0);
 ''');
   }
 
-  test_optionalParameter_isUsed_functionTearoff() async {
+  test_parameter_isUsed_fieldFormal_constructorInvocation() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+}
+f() => _A(0);
+''');
+  }
+
+  test_parameter_isUsed_fieldFormal_factoryRedirect() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+  factory _A.named([int? a]) = _A;
+}
+f() => _A.named(0);
+''');
+  }
+
+  test_parameter_isUsed_fieldFormal_superInvocation() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? e;
+  _A([this.e]);
+}
+
+class _B extends _A {
+  _B(int e) : super(e);
+}
+
+var b = _B(1);
+''');
+  }
+
+  test_parameter_isUsed_fieldFormal_superParameter() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? e;
+  _A([this.e]);
+}
+
+class _B extends _A {
+  _B(super.e);
+}
+
+var b = _B(2);
+''');
+  }
+
+  test_parameter_isUsed_functionTearoff() async {
     await assertNoErrorsInCode(r'''
 f() {
   void _m([int? a]) {}
@@ -1621,7 +1672,7 @@ f() {
 ''');
   }
 
-  test_optionalParameter_isUsed_genericConstructor() async {
+  test_parameter_isUsed_genericConstructor() async {
     await assertNoErrorsInCode('''
 class C<T> {
   C._([int? x]);
@@ -1632,7 +1683,7 @@ void foo() {
 ''');
   }
 
-  test_optionalParameter_isUsed_genericFunction() async {
+  test_parameter_isUsed_genericFunction() async {
     await assertNoErrorsInCode('''
 void _f<T>([int? x]) {}
 void foo() {
@@ -1641,7 +1692,7 @@ void foo() {
 ''');
   }
 
-  test_optionalParameter_isUsed_genericMethod() async {
+  test_parameter_isUsed_genericMethod() async {
     await assertNoErrorsInCode('''
 class C {
   void _m<T>([int? x]) {}
@@ -1652,7 +1703,7 @@ void foo() {
 ''');
   }
 
-  test_optionalParameter_isUsed_local() async {
+  test_parameter_isUsed_local() async {
     await assertNoErrorsInCode(r'''
 f() {
   void _m([int? a]) {}
@@ -1661,7 +1712,7 @@ f() {
 ''');
   }
 
-  test_optionalParameter_isUsed_methodTearoff() async {
+  test_parameter_isUsed_methodTearoff() async {
     await assertNoErrorsInCode(r'''
 class A {
   void _m([int? a]) {}
@@ -1670,7 +1721,7 @@ f() => A()._m;
 ''');
   }
 
-  test_optionalParameter_isUsed_named() async {
+  test_parameter_isUsed_named() async {
     await assertNoErrorsInCode(r'''
 class A {
   void _m({int a = 0}) {}
@@ -1679,7 +1730,80 @@ f() => A()._m(a: 0);
 ''');
   }
 
-  test_optionalParameter_isUsed_overridden() async {
+  test_parameter_isUsed_named_fieldFormal() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+}
+f() => _A(f: 1);
+''');
+  }
+
+  test_parameter_isUsed_named_fieldFormal_constructorInvocation() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+}
+f() => _A(f: 0);
+''');
+  }
+
+  test_parameter_isUsed_named_fieldFormal_factoryRedirect() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+  factory _A.named({int? f}) = _A;
+}
+f() => _A.named(f: 0);
+''');
+  }
+
+  test_parameter_isUsed_named_fieldFormal_superInvocation() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? e;
+  _A({this.e});
+}
+
+class _B extends _A {
+  _B([int? e]) : super(e: 1);
+}
+
+var b = _B(1);
+''');
+  }
+
+  test_parameter_isUsed_named_fieldFormal_superParameter() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? e;
+  _A({this.e});
+}
+
+class _B extends _A {
+  _B({super.e});
+}
+
+var b = _B(e: 2);
+''');
+  }
+
+  test_parameter_isUsed_named_superFormal() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A({int? a});
+}
+
+class B extends _A {
+  B({super.a});
+}
+''');
+  }
+
+  test_parameter_isUsed_overridden() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -1697,7 +1821,7 @@ f() {
     );
   }
 
-  test_optionalParameter_isUsed_override() async {
+  test_parameter_isUsed_override() async {
     await assertNoErrorsInCode(r'''
 class A {
   void _m([int? a]) {}
@@ -1710,7 +1834,7 @@ f() => A()._m(0);
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
-  test_optionalParameter_isUsed_override_inAugmentation() async {
+  test_parameter_isUsed_override_inAugmentation() async {
     await assertNoErrorsInCode(r'''
 class A {
   void _m([int? a]) {}
@@ -1724,7 +1848,7 @@ f() => A()._m(0);
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
-  test_optionalParameter_isUsed_override_ofAugmentation() async {
+  test_parameter_isUsed_override_ofAugmentation() async {
     await assertNoErrorsInCode(r'''
 class A {
 }
@@ -1738,7 +1862,7 @@ f() => A()._m(0);
 ''');
   }
 
-  test_optionalParameter_isUsed_override_renamed() async {
+  test_parameter_isUsed_override_renamed() async {
     await assertNoErrorsInCode(r'''
 class A {
   void _m([int? a]) {}
@@ -1750,7 +1874,7 @@ f() => A()._m(0);
 ''');
   }
 
-  test_optionalParameter_isUsed_overrideRequired() async {
+  test_parameter_isUsed_overrideRequired() async {
     await assertNoErrorsInCode(r'''
 class A {
   void _m(int a) {}
@@ -1762,7 +1886,7 @@ f() => A()._m(0);
 ''');
   }
 
-  test_optionalParameter_isUsed_overrideRequiredNamed() async {
+  test_parameter_isUsed_overrideRequiredNamed() async {
     await assertNoErrorsInCode(r'''
 class A {
   void _m({required int a}) {}
@@ -1774,7 +1898,7 @@ f() => A()._m(a: 0);
 ''');
   }
 
-  test_optionalParameter_isUsed_positional() async {
+  test_parameter_isUsed_positional() async {
     await assertNoErrorsInCode(r'''
 class A {
   void _m([int? a]) {}
@@ -1783,7 +1907,7 @@ f() => A()._m(0);
 ''');
   }
 
-  test_optionalParameter_isUsed_publicMethod() async {
+  test_parameter_isUsed_publicMethod() async {
     await assertNoErrorsInCode(r'''
 class A {
   void m([int? a]) {}
@@ -1792,7 +1916,7 @@ f() => A().m();
 ''');
   }
 
-  test_optionalParameter_isUsed_publicMethod_extension() async {
+  test_parameter_isUsed_publicMethod_extension() async {
     await assertNoErrorsInCode(r'''
 extension E on String {
   void m([int? a]) {}
@@ -1801,7 +1925,7 @@ f() => "hello".m();
 ''');
   }
 
-  test_optionalParameter_isUsed_requiredPositional() async {
+  test_parameter_isUsed_requiredPositional() async {
     await assertNoErrorsInCode(r'''
 class A {
   void _m(int a) {}
@@ -1810,7 +1934,33 @@ f() => A()._m(0);
 ''');
   }
 
-  test_optionalParameter_notUsed_constructor_named() async {
+  test_parameter_isUsed_superFormal() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A([int? a]);
+}
+
+class B extends _A {
+  B([super.a]);
+}
+''');
+  }
+
+  test_parameter_isUsed_topLevel() async {
+    await assertNoErrorsInCode(r'''
+void _m([int? a]) {}
+f() => _m(1);
+''');
+  }
+
+  test_parameter_isUsed_topLevelPublic() async {
+    await assertNoErrorsInCode(r'''
+void m([int? a]) {}
+f() => m();
+''');
+  }
+
+  test_parameter_notUsed_constructor_named() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -1822,7 +1972,7 @@ f() => A._();
     );
   }
 
-  test_optionalParameter_notUsed_constructor_unnamed() async {
+  test_parameter_notUsed_constructor_unnamed() async {
     await assertErrorsInCode(
       r'''
 class _A {
@@ -1834,7 +1984,7 @@ f() => _A();
     );
   }
 
-  test_optionalParameter_notUsed_extension() async {
+  test_parameter_notUsed_extension() async {
     await assertErrorsInCode(
       r'''
 extension E on String {
@@ -1846,8 +1996,35 @@ f() => "hello"._m();
     );
   }
 
+  test_parameter_notUsed_fieldFormal() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+}
+f() => _A();
+''',
+      [error(diag.unusedElementParameter, 38, 1)],
+    );
+  }
+
+  test_parameter_notUsed_fieldFormal_factoryRedirect() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+  factory _A.named() = _A;
+}
+f() => _A.named();
+''',
+      [error(diag.unusedElementParameter, 38, 1)],
+    );
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
-  test_optionalParameter_notUsed_genericConstructor() async {
+  test_parameter_notUsed_genericConstructor() async {
     // TODO(srawlins): Change to assertErrorsInCode when this is fixed.
     addTestFile('''
 class C<T> {
@@ -1862,7 +2039,7 @@ void foo() {
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
-  test_optionalParameter_notUsed_genericFunction() async {
+  test_parameter_notUsed_genericFunction() async {
     // TODO(srawlins): Change to assertErrorsInCode when this is fixed.
     addTestFile('''
 void _f<T>([int? x]) {}
@@ -1875,7 +2052,7 @@ void foo() {
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
-  test_optionalParameter_notUsed_genericMethod() async {
+  test_parameter_notUsed_genericMethod() async {
     // TODO(srawlins): Change to assertErrorsInCode when this is fixed.
     addTestFile('''
 class C {
@@ -1889,7 +2066,7 @@ void foo() {
     expect(result.diagnostics, isNotEmpty);
   }
 
-  test_optionalParameter_notUsed_named() async {
+  test_parameter_notUsed_named() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -1901,7 +2078,34 @@ f() => A()._m();
     );
   }
 
-  test_optionalParameter_notUsed_override_added() async {
+  test_parameter_notUsed_named_fieldFormal() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  final int? f;
+  _A({this.f});
+}
+f() => _A();
+''',
+      [error(diag.unusedElementParameter, 38, 1)],
+    );
+  }
+
+  test_parameter_notUsed_named_fieldFormal_factoryRedirect() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  final int? f;
+  _A({this.f});
+  factory _A.named() = _A;
+}
+f() => _A.named();
+''',
+      [error(diag.unusedElementParameter, 38, 1)],
+    );
+  }
+
+  test_parameter_notUsed_override_added() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -1916,7 +2120,7 @@ f() => A()._m();
     );
   }
 
-  test_optionalParameter_notUsed_overrideRequired() async {
+  test_parameter_notUsed_overrideRequired() async {
     await assertNoErrorsInCode(r'''
 class A {
   A({required this.a, required this.b});
@@ -1932,7 +2136,7 @@ var foo = _B(a: 'a');
 ''');
   }
 
-  test_optionalParameter_notUsed_positional() async {
+  test_parameter_notUsed_positional() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -1944,7 +2148,7 @@ f() => A()._m();
     );
   }
 
-  test_optionalParameter_notUsed_publicMethod_privateExtension() async {
+  test_parameter_notUsed_publicMethod_privateExtension() async {
     await assertErrorsInCode(
       r'''
 extension _E on String {
@@ -1956,7 +2160,7 @@ f() => "hello".m();
     );
   }
 
-  test_optionalParameter_notUsed_publicMethod_unnamedExtension() async {
+  test_parameter_notUsed_publicMethod_unnamedExtension() async {
     await assertErrorsInCode(
       r'''
 extension on String {
@@ -1968,7 +2172,7 @@ f() => "hello".m();
     );
   }
 
-  test_optionalParameter_static_notUsed() async {
+  test_parameter_notUsed_static() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -1980,7 +2184,7 @@ f() => A._m();
     );
   }
 
-  test_optionalParameter_staticPublic_notUsed_privateClass() async {
+  test_parameter_notUsed_staticPublic_privateClass() async {
     await assertErrorsInCode(
       r'''
 class _A {
@@ -1992,14 +2196,7 @@ f() => _A.m();
     );
   }
 
-  test_optionalParameter_topLevel_isUsed() async {
-    await assertNoErrorsInCode(r'''
-void _m([int? a]) {}
-f() => _m(1);
-''');
-  }
-
-  test_optionalParameter_topLevel_notUsed() async {
+  test_parameter_notUsed_topLevel() async {
     await assertErrorsInCode(
       r'''
 void _m([int? a]) {}
@@ -2007,203 +2204,6 @@ f() => _m();
 ''',
       [error(diag.unusedElementParameter, 14, 1)],
     );
-  }
-
-  test_optionalParameter_topLevelPublic_isUsed() async {
-    await assertNoErrorsInCode(r'''
-void m([int? a]) {}
-f() => m();
-''');
-  }
-
-  test_parameter_optionalNamed_fieldFormal_isUsed() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? f;
-  _A({this.f});
-}
-f() => _A(f: 1);
-''');
-  }
-
-  test_parameter_optionalNamed_fieldFormal_isUsed_constructorInvocation() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? f;
-  _A({this.f});
-}
-f() => _A(f: 0);
-''');
-  }
-
-  test_parameter_optionalNamed_fieldFormal_isUsed_factoryRedirect() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? f;
-  _A({this.f});
-  factory _A.named({int? f}) = _A;
-}
-f() => _A.named(f: 0);
-''');
-  }
-
-  test_parameter_optionalNamed_fieldFormal_isUsed_superInvocation() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? e;
-  _A({this.e});
-}
-
-class _B extends _A {
-  _B([int? e]) : super(e: 1);
-}
-
-var b = _B(1);
-''');
-  }
-
-  test_parameter_optionalNamed_fieldFormal_isUsed_superParameter() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? e;
-  _A({this.e});
-}
-
-class _B extends _A {
-  _B({super.e});
-}
-
-var b = _B(e: 2);
-''');
-  }
-
-  test_parameter_optionalNamed_fieldFormal_notUsed() async {
-    await assertErrorsInCode(
-      r'''
-class _A {
-  final int? f;
-  _A({this.f});
-}
-f() => _A();
-''',
-      [error(diag.unusedElementParameter, 38, 1)],
-    );
-  }
-
-  test_parameter_optionalNamed_fieldFormal_notUsed_factoryRedirect() async {
-    await assertErrorsInCode(
-      r'''
-class _A {
-  final int? f;
-  _A({this.f});
-  factory _A.named() = _A;
-}
-f() => _A.named();
-''',
-      [error(diag.unusedElementParameter, 38, 1)],
-    );
-  }
-
-  test_parameter_optionalNamed_isUsed_superFormal() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  _A({int? a});
-}
-
-class B extends _A {
-  B({super.a});
-}
-''');
-  }
-
-  test_parameter_optionalPositional_fieldFormal_isUsed_constructorInvocation() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? f;
-  _A([this.f]);
-}
-f() => _A(0);
-''');
-  }
-
-  test_parameter_optionalPositional_fieldFormal_isUsed_factoryRedirect() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? f;
-  _A([this.f]);
-  factory _A.named([int? a]) = _A;
-}
-f() => _A.named(0);
-''');
-  }
-
-  test_parameter_optionalPositional_fieldFormal_isUsed_superInvocation() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? e;
-  _A([this.e]);
-}
-
-class _B extends _A {
-  _B(int e) : super(e);
-}
-
-var b = _B(1);
-''');
-  }
-
-  test_parameter_optionalPositional_fieldFormal_isUsed_superParameter() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? e;
-  _A([this.e]);
-}
-
-class _B extends _A {
-  _B(super.e);
-}
-
-var b = _B(2);
-''');
-  }
-
-  test_parameter_optionalPositional_fieldFormal_notUsed() async {
-    await assertErrorsInCode(
-      r'''
-class _A {
-  final int? f;
-  _A([this.f]);
-}
-f() => _A();
-''',
-      [error(diag.unusedElementParameter, 38, 1)],
-    );
-  }
-
-  test_parameter_optionalPositional_fieldFormal_notUsed_factoryRedirect() async {
-    await assertErrorsInCode(
-      r'''
-class _A {
-  final int? f;
-  _A([this.f]);
-  factory _A.named() = _A;
-}
-f() => _A.named();
-''',
-      [error(diag.unusedElementParameter, 38, 1)],
-    );
-  }
-
-  test_parameter_optionalPositional_isUsed_superFormal() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  _A([int? a]);
-}
-
-class B extends _A {
-  B([super.a]);
-}
-''');
   }
 
   test_privateEnum_privateConstructor_isUsed_redirect() async {
