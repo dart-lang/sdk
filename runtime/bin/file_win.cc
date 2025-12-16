@@ -86,26 +86,23 @@ MappedMemory* File::Map(File::MapType type,
                         int64_t position,
                         int64_t length,
                         void* start) {
-  DWORD prot_alloc;
-  DWORD prot_final;
+  DWORD prot = PAGE_NOACCESS;
   switch (type) {
     case File::kReadOnly:
-      prot_alloc = PAGE_READWRITE;
-      prot_final = PAGE_READONLY;
+      prot = PAGE_READONLY;
       break;
     case File::kReadExecute:
-      prot_alloc = PAGE_EXECUTE_READWRITE;
-      prot_final = PAGE_EXECUTE_READ;
+      prot = PAGE_EXECUTE_READ;
       break;
     case File::kReadWrite:
-      prot_alloc = PAGE_READWRITE;
-      prot_final = PAGE_READWRITE;
+      prot = PAGE_READWRITE;
       break;
   }
 
   void* addr = start;
   if (addr == nullptr) {
-    addr = VirtualAlloc(nullptr, length, MEM_COMMIT | MEM_RESERVE, prot_alloc);
+    addr =
+        VirtualAlloc(nullptr, length, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
     if (addr == nullptr) {
       int error = GetLastError();
       char buffer[1024];
@@ -136,7 +133,7 @@ MappedMemory* File::Map(File::MapType type,
   }
 
   DWORD old_prot;
-  bool result = VirtualProtect(addr, length, prot_final, &old_prot);
+  bool result = VirtualProtect(addr, length, prot, &old_prot);
   if (!result) {
     int error = GetLastError();
     char buffer[1024];
