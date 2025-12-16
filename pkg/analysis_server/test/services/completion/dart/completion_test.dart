@@ -4327,8 +4327,6 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
-  final
-    kind: keyword
 ''');
   }
 
@@ -4346,8 +4344,6 @@ suggestions
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  final
     kind: keyword
 ''');
   }
@@ -4825,8 +4821,6 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
-  final
-    kind: keyword
 ''');
   }
 
@@ -4844,8 +4838,6 @@ suggestions
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  final
     kind: keyword
 ''');
   }

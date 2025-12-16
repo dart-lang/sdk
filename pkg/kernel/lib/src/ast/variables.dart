@@ -1333,7 +1333,7 @@ class Scope extends TreeNode {
 
 /// The root of the sealed hierarchy of the nodes that provide a scope, such as
 /// loops, functions, and blocks.
-sealed class ScopeProvider {
+sealed class ScopeProvider implements TreeNode {
   /// The scope of the [ScopeProvider].
   ///
   /// It's represented as nullable due to the experimental status of the

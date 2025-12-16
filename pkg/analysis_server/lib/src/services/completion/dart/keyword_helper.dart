@@ -440,14 +440,11 @@ class KeywordHelper {
     required bool suggestRequired,
     required bool suggestVariableName,
     bool suggestCovariant = true,
+    bool suggestFinalOrVar = true,
     bool suggestThis = true,
-    bool suggestFinal = true,
   }) {
     if (suggestCovariant) {
       addKeyword(Keyword.COVARIANT);
-    }
-    if (suggestFinal) {
-      addKeyword(Keyword.FINAL);
     }
     if (suggestRequired && parameterList.inNamedGroup(offset)) {
       addKeyword(Keyword.REQUIRED);
@@ -464,14 +461,12 @@ class KeywordHelper {
         addKeyword(Keyword.THIS);
       }
     } else if (parent is PrimaryConstructorDeclaration) {
-      if (suggestCovariant || suggestFinal) {
+      if (suggestFinalOrVar) {
         if (featureSet.isEnabled(Feature.super_parameters)) {
           addKeyword(Keyword.SUPER);
         }
+        addKeyword(Keyword.FINAL);
         addKeyword(Keyword.THIS);
-      }
-      if (suggestFinal) {
-        // The flag should probably be renamed to `suggestFinalAndVar`
         addKeyword(Keyword.VAR);
       }
     }

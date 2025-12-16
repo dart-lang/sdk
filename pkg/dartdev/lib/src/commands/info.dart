@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:perf_witness/recorder.dart';
 import 'package:yaml/yaml.dart';
 
 import '../core.dart';
@@ -15,13 +16,28 @@ import '../utils.dart';
 class InfoCommand extends DartdevCommand {
   static const String cmdName = 'info';
 
+  static const String cmdDescription = _DumpCommand.cmdDescription;
+
+  @override
+  CommandCategory get commandCategory => CommandCategory.tools;
+
+  InfoCommand({bool verbose = false})
+      : super(cmdName, cmdDescription, verbose) {
+    addSubcommand(_DumpCommand(verbose: verbose), isDefault: true);
+    addSubcommand(_RecordPerformanceCommand(verbose: verbose));
+  }
+}
+
+class _DumpCommand extends DartdevCommand {
+  static const String cmdName = 'dump';
+
   static const String cmdDescription =
       'Show diagnostic information about the installed tooling.';
 
   @override
   CommandCategory get commandCategory => CommandCategory.tools;
 
-  InfoCommand({bool verbose = false})
+  _DumpCommand({bool verbose = false})
       : super(cmdName, cmdDescription, verbose) {
     argParser.addFlag(
       removeFilePathsFlag,
@@ -48,8 +64,10 @@ class InfoCommand extends DartdevCommand {
     print('#### General info');
     print('');
     print('- Dart ${Platform.version}');
-    print('- on ${Platform.operatingSystem} / '
-        '${Platform.operatingSystemVersion}');
+    print(
+      '- on ${Platform.operatingSystem} / '
+      '${Platform.operatingSystemVersion}',
+    );
     print('- locale is ${Platform.localeName}');
 
     // project information
@@ -67,8 +85,9 @@ class InfoCommand extends DartdevCommand {
     }
 
     // process information
-    var processInfo =
-        ProcessInfo.getProcessInfo(elideFilePaths: elideFilePaths);
+    var processInfo = ProcessInfo.getProcessInfo(
+      elideFilePaths: elideFilePaths,
+    );
     if (processInfo != null) {
       print('');
       print('#### Process info');
@@ -101,6 +120,27 @@ class InfoCommand extends DartdevCommand {
       }
     }
 
+    return 0;
+  }
+}
+
+class _RecordPerformanceCommand extends DartdevCommand {
+  static const String cmdName = 'record-performance';
+
+  static const String cmdDescription =
+      'Record performance data of running Dart tooling processes.';
+
+  @override
+  CommandCategory get commandCategory => CommandCategory.tools;
+
+  _RecordPerformanceCommand({bool verbose = false})
+      : super(cmdName, cmdDescription, verbose) {
+    PerfWitnessRecorderConfig.configureArgParser(argParser);
+  }
+
+  @override
+  FutureOr<int> run() async {
+    await record(PerfWitnessRecorderConfig.fromParsedArgs(argResults!));
     return 0;
   }
 }

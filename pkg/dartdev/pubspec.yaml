@@ -37,6 +37,7 @@ dependencies:
   meta: any
   package_config: any
   path: any
+  perf_witness: any
   pub: any
   pub_formats: any
   unified_analytics: any

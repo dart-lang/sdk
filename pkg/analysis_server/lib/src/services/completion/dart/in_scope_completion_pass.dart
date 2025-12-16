@@ -2556,7 +2556,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       keywordHelper.addFormalParameterKeywords(
         formalParameters,
         suggestCovariant: false,
-        suggestFinal: false,
+        suggestFinalOrVar: false,
         suggestRequired: true,
         suggestVariableName: true,
       );
@@ -2831,7 +2831,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     bool suggestThis = true;
     bool suggestVoid = true;
     bool suggestDynamic = true;
-    bool suggestFinal = true;
     bool suggestRequired = true;
     if (name != null && node.isSingleIdentifier) {
       collector.completionLocation = 'FormalParameterList_parameter';
@@ -2843,7 +2842,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       );
       suggestCovariant = false;
       suggestThis = false;
-      suggestFinal = false;
       suggestRequired = false;
       _forTypeAnnotation(
         node,
@@ -2899,7 +2897,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             suggestVariableName: name.coversOffset(offset),
             suggestCovariant: suggestCovariant,
             suggestThis: suggestThis,
-            suggestFinal: suggestFinal,
           );
         }
         _forTypeAnnotation(

@@ -47,6 +47,8 @@ class FunctionNode extends TreeNode implements ScopeProvider {
   @override
   Scope? scope;
 
+  List<VariableContext>? contexts;
+
   /// The emitted value of non-sync functions
   ///
   /// For `async` functions [emittedValueType] is the future value type, that

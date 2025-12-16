@@ -33,8 +33,6 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
-  final
-    kind: keyword
   super
     kind: keyword
 ''');
@@ -53,8 +51,6 @@ suggestions
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  final
     kind: keyword
   super
     kind: keyword
@@ -77,8 +73,6 @@ suggestions
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  final
     kind: keyword
 ''');
   }
@@ -117,8 +111,6 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
-  final
-    kind: keyword
 ''');
   }
 
@@ -142,8 +134,6 @@ suggestions
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  final
     kind: keyword
   super
     kind: keyword
@@ -206,8 +196,6 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
-  final
-    kind: keyword
   super
     kind: keyword
 ''');
@@ -233,8 +221,6 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
-  final
-    kind: keyword
 ''');
   }
 
@@ -247,8 +233,6 @@ suggestions
   void
     kind: keyword
   dynamic
-    kind: keyword
-  final
     kind: keyword
   required
     kind: keyword
@@ -266,8 +250,6 @@ suggestions
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  final
     kind: keyword
 ''');
   }
@@ -350,8 +332,6 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
-  final
-    kind: keyword
 ''');
   }
 
@@ -366,8 +346,6 @@ suggestions
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  final
     kind: keyword
 ''');
   }
