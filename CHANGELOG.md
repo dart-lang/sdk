@@ -1,5 +1,7 @@
 ## 3.10.5
 
+**Released on:** 2025-12-16
+
 This is a patch release that:
 
 - Fixes several issues with elements that are deprecated with one of the new
