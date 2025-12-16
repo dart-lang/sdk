@@ -769,13 +769,13 @@ class DynamicModuleInfo {
       // Whether we use checked+unchecked (or normal) we'll have the same
       // class-id ranges - only the actual target `Reference` may be a unchecked
       // or checked one.
-      assert(uncheckedTargets.targetRanges.length ==
-          checkedTargets.targetRanges.length);
+      assert(uncheckedTargets.allTargetRanges.length ==
+          checkedTargets.allTargetRanges.length);
 
       // NOTE: Keep this in sync with
       // `code_generator.dart:AstCodeGenerator._virtualCall`.
-      final bool noTarget = checkedTargets.targetRanges.isEmpty;
-      final bool directCall = checkedTargets.targetRanges.length == 1;
+      final bool noTarget = checkedTargets.allTargetRanges.isEmpty;
+      final bool directCall = checkedTargets.allTargetRanges.length == 1;
       final callPolymorphicDispatcher =
           !directCall && checkedTargets.staticDispatchRanges.isNotEmpty;
       // disabled for dyn overridable selectors atm
@@ -791,7 +791,7 @@ class DynamicModuleInfo {
       final w.FunctionType localSignature;
       final ParameterInfo localParamInfo;
       if (directCall) {
-        final target = checkedTargets.targetRanges.single.target;
+        final target = checkedTargets.allTargetRanges.single.target;
         localSignature = translator.signatureForDirectCall(target);
         localParamInfo = translator.paramInfoForDirectCall(target);
       } else {
@@ -864,11 +864,12 @@ class DynamicModuleInfo {
 
       if (directCall) {
         if (!localSelector.useMultipleEntryPoints) {
-          final target = checkedTargets.targetRanges.single.target;
+          final target = checkedTargets.allTargetRanges.single.target;
           ib.invoke(translator.directCallTarget(target));
         } else {
-          final uncheckedTarget = uncheckedTargets.targetRanges.single.target;
-          final checkedTarget = checkedTargets.targetRanges.single.target;
+          final uncheckedTarget =
+              uncheckedTargets.allTargetRanges.single.target;
+          final checkedTarget = checkedTargets.allTargetRanges.single.target;
           // Check if the invocation is checked or unchecked and use the
           // appropriate offset.
           ib.local_get(ib.locals[function.type.inputs.length - 1]);
@@ -965,7 +966,8 @@ class DynamicModuleInfo {
             buildSelectorBranch(interfaceTarget, mainModuleSelector),
         buildSubmoduleMatch:
             buildSelectorBranch(interfaceTarget, mainModuleSelector),
-        skipSubmodule: selector.targets(unchecked: false).targetRanges.isEmpty);
+        skipSubmodule:
+            selector.targets(unchecked: false).allTargetRanges.isEmpty);
     translator.convertType(
         b, generalizedSignature.outputs.single, localSignature.outputs.single);
   }

@@ -13,7 +13,7 @@
   (type $Object <...>)
   (type $_FunctionType <...>)
   (type $_TopType <...>)
-  (func $print (import "module0" "func5") (param (ref null $#Top)) (result (ref null $#Top)))
+  (func $print (import "module0" "func3") (param (ref null $#Top)) (result (ref null $#Top)))
   (global $"C1 WasmArray<_Type>[0]" (import "module0" "global1") (ref $Array<_Type>))
   (global $"C314 WasmArray<_NamedParameter>[0]" (import "module0" "global4") (ref $Array<_NamedParameter>))
   (global $"C339 _TopType" (import "module0" "global2") (ref $_TopType))

@@ -208,7 +208,7 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
     final ranges = selectors
         .expand((selector) => selector
             .targets(unchecked: false)
-            .targetRanges
+            .allTargetRanges
             .map((r) => (range: r.range, value: r.target)))
         .toList();
     ranges.sort((a, b) => a.range.start.compareTo(b.range.start));
@@ -275,7 +275,7 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
     final ranges = selectors
         .expand((selector) => selector
             .targets(unchecked: false)
-            .targetRanges
+            .allTargetRanges
             .map((r) => (range: r.range, value: r.target)))
         .toList();
     ranges.sort((a, b) => a.range.start.compareTo(b.range.start));
@@ -418,7 +418,7 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
       // Accumulates all class ID ranges that have the same target.
       final Map<Reference, List<Range>> targets = {};
       for (final (:range, :target)
-          in selector.targets(unchecked: false).targetRanges) {
+          in selector.targets(unchecked: false).allTargetRanges) {
         targets.putIfAbsent(target, () => []).add(range);
       }
 
@@ -537,7 +537,7 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
     final getterValueLocal = b.addLocal(translator.topType);
     void handleGetterSelector(SelectorInfo selector) {
       for (final (:range, :target)
-          in selector.targets(unchecked: false).targetRanges) {
+          in selector.targets(unchecked: false).allTargetRanges) {
         final targetMember = target.asMember;
         // This loop checks getters and fields. Methods are considered in the
         // previous loop, skip them here.
@@ -972,7 +972,7 @@ void generateNoSuchMethodCall(
   final signature = noSuchMethodSelector.signature;
 
   final targetRanges =
-      noSuchMethodSelector.targets(unchecked: false).targetRanges;
+      noSuchMethodSelector.targets(unchecked: false).allTargetRanges;
   final staticDispatchRanges =
       noSuchMethodSelector.targets(unchecked: false).staticDispatchRanges;
 

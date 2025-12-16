@@ -25,17 +25,10 @@
     (global.get $".Foo0.doitDispatch(")
     (struct.new $JSStringImpl))
   (global $"C8 \")\"" (ref $JSStringImpl) <...>)
-  (global $"runtimeTrue initialized" (mut i32) <...>)
   (global $baseObj (mut (ref null $FooBase)) <...>)
   (global $foo1Obj (mut (ref null $Foo1)) <...>)
-  (global $runtimeTrue (mut i32) <...>)
   (func $"foo0 <noInline>"
-    global.get $"runtimeTrue initialized"
-    if (result i32)
-      global.get $runtimeTrue
-    else
-      call $"runtimeTrue implicit getter"
-    end
+    call $"runtimeTrue implicit getter"
     if (result (ref $FooBase))
       i32.const 116
       i32.const 0
@@ -44,12 +37,7 @@
       call $Foo1
     end
     global.set $baseObj
-    global.get $"runtimeTrue initialized"
-    if (result i32)
-      global.get $runtimeTrue
-    else
-      call $"runtimeTrue implicit getter"
-    end
+    call $"runtimeTrue implicit getter"
     drop
     call $Foo1
     global.set $foo1Obj
@@ -57,9 +45,6 @@
     i32.const 0
     call_indirect $static0-0 (result (ref null $#Top))
     drop
-  )
-  (func $"foo1Obj implicit getter" (export "func2") (result (ref null $Foo1))
-    global.get $foo1Obj
   )
   (func $runtimeTrue implicit getter (result i32) <...>)
   (func $Foo0.doitDispatch (param $var0 (ref $FooBase)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
@@ -78,7 +63,7 @@
     ref.null none
   )
   (func $Foo1 (result (ref $Foo1)) <...>)
-  (func $Foo1.doitDispatch (export "func3") (param $var0 (ref $FooBase)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
+  (func $Foo1.doitDispatch (export "func1") (param $var0 (ref $FooBase)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
     (local $var2 (ref $Foo1))
     local.get $var0
     ref.cast $Foo1

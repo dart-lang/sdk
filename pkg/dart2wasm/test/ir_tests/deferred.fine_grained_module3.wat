@@ -8,7 +8,7 @@
   (func $JSStringImpl._interpolate3 (import "module0" "func10") (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl)))
   (func $print (import "module0" "func9") (param (ref null $#Top)) (result (ref null $#Top)))
   (global $".FooConst2(" (import "" "FooConst2(") (ref extern))
-  (global $"C345 2" (import "module0" "global11") (ref $BoxedInt))
+  (global $"C345 2" (import "module0" "global12") (ref $BoxedInt))
   (global $"C8 \")\"" (import "module0" "global4") (ref $JSStringImpl))
   (global $"C512 FooConst2" (ref $FooConst2)
     (i32.const 118)

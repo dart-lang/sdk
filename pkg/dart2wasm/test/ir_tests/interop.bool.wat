@@ -7,12 +7,8 @@
   (func $"dart2wasm._275 (import)" (import "dart2wasm" "_275") (param externref) (result externref))
   (global $"C2 false" (ref $#Top) <...>)
   (global $"C40 true" (ref $#Top) <...>)
-  (global $"boolValue initialized" (mut i32) <...>)
   (global $"boolValueNullable initialized" (mut i32) <...>)
-  (global $"ktrue initialized" (mut i32) <...>)
-  (global $boolValue (mut i32) <...>)
   (global $boolValueNullable (mut (ref null $#Top)) <...>)
-  (global $ktrue (mut i32) <...>)
   (func $_throwArgumentNullError <noInline>  <...>)
   (func $boolValue implicit getter (result i32) <...>)
   (func $ktrue implicit getter (result i32) <...>)
@@ -53,12 +49,7 @@
   )
   (func $"testBoolValue <noInline>"
     (local $var0 externref)
-    global.get $"boolValue initialized"
-    if (result i32)
-      global.get $boolValue
-    else
-      call $"boolValue implicit getter"
-    end
+    call $"boolValue implicit getter"
     call $"dart2wasm._150 (import)"
     call $"dart2wasm._274 (import)"
     local.tee $var0
@@ -78,21 +69,11 @@
     global.get $"boolValueNullable initialized"
     i32.eqz
     if
-      global.get $"ktrue initialized"
-      if (result i32)
-        global.get $ktrue
-      else
-        call $"ktrue implicit getter"
-      end
+      call $"ktrue implicit getter"
       if (result (ref null $#Top))
         global.get $"C40 true"
         global.get $"C2 false"
-        global.get $"boolValue initialized"
-        if (result i32)
-          global.get $boolValue
-        else
-          call $"boolValue implicit getter"
-        end
+        call $"boolValue implicit getter"
         select (ref $#Top)
       else
         ref.null none

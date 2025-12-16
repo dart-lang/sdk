@@ -299,6 +299,7 @@ Future<CompilationResult> _runCfePhase(
     }
     ..explicitExperimentalFlags = options.feExperimentalFlags
     ..verbose = false
+    ..embedSourceText = options.translatorOptions.enableAsserts
     ..onDiagnostic = diagnosticMessageHandler
     ..fileSystem = fileSystem;
 

@@ -6,15 +6,10 @@
   (type $type0 <...>)
   (table $static0-0 (export "static0-0") 1 (ref null $type0))
   (global $"C414 _InterfaceType" (ref $_InterfaceType) <...>)
-  (global $_loaded (mut (ref null $DefaultSet)) <...>)
   (func $_loaded implicit getter (result (ref $DefaultSet)) <...>)
   (func $"useFoo <noInline>"
     call $"useFooAsType <noInline>"
-    block $label0 (result (ref $DefaultSet))
-      global.get $_loaded
-      br_on_non_null $label0
-      call $"_loaded implicit getter"
-    end $label0
+    call $"_loaded implicit getter"
     call $_DefaultSet&_HashFieldBase&SetMixin&_HashBase&_OperatorEqualsAndHashCode&_LinkedHashSetMixin.contains
     i32.eqz
     if
