@@ -508,6 +508,10 @@ void OS::DebugBreak() {
   UNIMPLEMENTED();
 }
 
+void OS::NotifyBeforeGC() {}
+
+void OS::NotifyAfterGC() {}
+
 DART_NOINLINE uintptr_t OS::GetProgramCounter() {
   return reinterpret_cast<uintptr_t>(
       __builtin_extract_return_addr(__builtin_return_address(0)));

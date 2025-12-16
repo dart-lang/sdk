@@ -167,6 +167,12 @@ constexpr bool FLAG_support_il_printer = false;
   R(pause_isolates_on_exit, false, bool, false, "Pause isolates exiting.")     \
   R(pause_isolates_on_unhandled_exceptions, false, bool, false,                \
     "Pause isolates on unhandled exceptions.")                                 \
+  P(perf_ctl_fd, int, -1, "Perf --control file descriptor (ctl-fifo).")        \
+  P(perf_ctl_fd_ack, int, -1,                                                  \
+    "Perf --control ack file descriptor (ack-fifo).")                          \
+  P(perf_ctl_usage, int, -1,                                                   \
+    "Controls when perf --control is signaled (1: pause on GC; 2: start on "   \
+    "GC; other values ignored.)")                                              \
   P(polymorphic_with_deopt, bool, true,                                        \
     "Polymorphic calls with deoptimization / megamorphic call")                \
   P(precompiled_mode, bool, false, "Precompilation compiler mode")             \

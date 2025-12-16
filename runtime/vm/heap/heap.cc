@@ -1017,6 +1017,7 @@ static void RecordRSS() {
 }
 
 void Heap::RecordBeforeGC(GCType type, GCReason reason) {
+  OS::NotifyBeforeGC();
   stats_.num_++;
   stats_.type_ = type;
   stats_.reason_ = reason;
@@ -1055,6 +1056,8 @@ void Heap::RecordAfterGC(GCType type) {
         /*at_safepoint=*/true);
   }
 #endif  // !PRODUCT
+
+  OS::NotifyAfterGC();
 }
 
 void Heap::PrintStats() {
