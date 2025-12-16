@@ -451,6 +451,7 @@ class Translator with KernelNodes {
   final Map<w.ModuleBuilder, ModuleMetadata> _builderToOutput = {};
   final Map<w.Module, w.ModuleBuilder> moduleToBuilder = {};
   bool get hasMultipleModules => _moduleOutputData.hasMultipleModules;
+  final Map<w.ModuleBuilder, w.Global> _thisModuleGlobals = {};
 
   DynamicModuleInfo? dynamicModuleInfo;
   bool get dynamicModuleSupportEnabled => dynamicModuleInfo != null;
@@ -545,7 +546,27 @@ class Translator with KernelNodes {
       _outputToBuilder[outputModule] = builder;
       _builderToOutput[builder] = outputModule;
       moduleToBuilder[builder.module] = builder;
+      final thisModuleSetter = builder.functions.define(
+          typesBuilder.defineFunction(
+              const [w.RefType.extern(nullable: false)], const []),
+          "setThisModule");
+      builder.exports.export("\$setThisModule", thisModuleSetter);
+      final ib = thisModuleSetter.body;
+      ib.local_get(thisModuleSetter.locals[0]);
+      ib.global_set(getThisModuleGlobal(builder));
+      ib.end();
     }
+  }
+
+  w.Global getThisModuleGlobal(w.ModuleBuilder module) {
+    return _thisModuleGlobals.putIfAbsent(module, () {
+      final global =
+          module.globals.define(w.GlobalType(w.RefType.extern(nullable: true)));
+      final ib = global.initializer;
+      ib.ref_null(w.HeapType.extern);
+      ib.end();
+      return global;
+    });
   }
 
   void drainCompletionQueue() {

@@ -1301,6 +1301,8 @@ class DeclarationHelper {
         case FunctionExpression():
           _visitParameterList(currentNode.parameters);
           _visitTypeParameterList(currentNode.typeParameters);
+        case GuardedPattern():
+          _visitPattern(currentNode.pattern);
         case IfElement():
           _visitIfElement(currentNode);
         case IfStatement():

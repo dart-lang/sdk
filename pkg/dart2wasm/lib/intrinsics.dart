@@ -401,10 +401,6 @@ class Intrinsifier {
       op == '_le_u' ||
       op == '_lt_u';
 
-  final Map<w.ModuleBuilder, w.ImportedFunction> _thisModuleGlobals = {};
-  late final w.FunctionType _thisModuleType = translator.typesBuilder
-      .defineFunction(const [], const [w.RefType.extern(nullable: false)]);
-
   Intrinsifier(this.codeGen);
 
   /// Generate inline code for an [InstanceGet] if the member is an inlined
@@ -841,13 +837,9 @@ class Intrinsifier {
 
     if (target.enclosingLibrary.name == 'dart._js_helper') {
       if (target.name.text == 'thisModule') {
-        final resultType = w.RefType.extern(nullable: false);
-        final func = _thisModuleGlobals.putIfAbsent(b.moduleBuilder, () {
-          return b.moduleBuilder.functions
-              .import("\$moduleHelpers", "this", _thisModuleType);
-        });
-        b.call(func);
-        return resultType;
+        final global = translator.getThisModuleGlobal(b.moduleBuilder);
+        b.global_get(global);
+        return global.type.type;
       }
     }
 
