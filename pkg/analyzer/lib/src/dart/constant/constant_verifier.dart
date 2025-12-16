@@ -1270,11 +1270,11 @@ class _ConstLiteralVerifier {
     if (notPotentiallyConstants.isEmpty) return true;
 
     for (var notConst in notPotentiallyConstants) {
-      DiagnosticCode errorCode;
+      DiagnosticCode diagnosticCode;
       if (listElementType != null) {
-        errorCode = diag.nonConstantListElement;
+        diagnosticCode = diag.nonConstantListElement;
       } else if (mapConfig != null) {
-        errorCode = diag.nonConstantMapElement;
+        diagnosticCode = diag.nonConstantMapElement;
         for (
           AstNode? parent = notConst;
           parent != null;
@@ -1282,19 +1282,19 @@ class _ConstLiteralVerifier {
         ) {
           if (parent is MapLiteralEntry) {
             if (parent.key == notConst) {
-              errorCode = diag.nonConstantMapKey;
+              diagnosticCode = diag.nonConstantMapKey;
             } else {
-              errorCode = diag.nonConstantMapValue;
+              diagnosticCode = diag.nonConstantMapValue;
             }
             break;
           }
         }
       } else if (setConfig != null) {
-        errorCode = diag.nonConstantSetElement;
+        diagnosticCode = diag.nonConstantSetElement;
       } else {
         throw UnimplementedError();
       }
-      verifier._diagnosticReporter.atNode(notConst, errorCode);
+      verifier._diagnosticReporter.atNode(notConst, diagnosticCode);
     }
 
     return false;

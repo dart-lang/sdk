@@ -544,17 +544,17 @@ class MemberDuplicateDefinitionVerifier {
         case _ScopeEntryElement(
           element: PropertyAccessorElementImpl staticMember2,
         ):
-          DiagnosticCode errorCode;
+          DiagnosticCode diagnosticCode;
           if (staticMember2.isOriginVariable) {
-            errorCode = diag.conflictingConstructorAndStaticField;
+            diagnosticCode = diag.conflictingConstructorAndStaticField;
           } else if (staticMember2 is GetterElementImpl) {
-            errorCode = diag.conflictingConstructorAndStaticGetter;
+            diagnosticCode = diag.conflictingConstructorAndStaticGetter;
           } else {
-            errorCode = diag.conflictingConstructorAndStaticSetter;
+            diagnosticCode = diag.conflictingConstructorAndStaticSetter;
           }
           _diagnosticReporter.atElement2(
             constructor.asElement2,
-            errorCode,
+            diagnosticCode,
             arguments: [name],
           );
         case _ScopeEntryElement(element: MethodElementImpl()):

@@ -1103,9 +1103,9 @@ binaryOperatorWrittenOut = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the name of the return type
+/// Type returnType: the name of the return type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0})
+  LocatableDiagnostic Function({required DartType returnType})
 >
 bodyMightCompleteNormally = DiagnosticWithArguments(
   name: 'body_might_complete_normally',
@@ -1140,9 +1140,9 @@ bodyMightCompleteNormallyCatchError = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the name of the declared return type
+/// Type returnType: the name of the declared return type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0})
+  LocatableDiagnostic Function({required DartType returnType})
 >
 bodyMightCompleteNormallyNullable = DiagnosticWithArguments(
   name: 'body_might_complete_normally_nullable',
@@ -17947,9 +17947,9 @@ LocatableDiagnostic _withArgumentsBinaryOperatorWrittenOut({
 }
 
 LocatableDiagnostic _withArgumentsBodyMightCompleteNormally({
-  required DartType p0,
+  required DartType returnType,
 }) {
-  return LocatableDiagnosticImpl(diag.bodyMightCompleteNormally, [p0]);
+  return LocatableDiagnosticImpl(diag.bodyMightCompleteNormally, [returnType]);
 }
 
 LocatableDiagnostic _withArgumentsBodyMightCompleteNormallyCatchError({
@@ -17961,9 +17961,11 @@ LocatableDiagnostic _withArgumentsBodyMightCompleteNormallyCatchError({
 }
 
 LocatableDiagnostic _withArgumentsBodyMightCompleteNormallyNullable({
-  required DartType p0,
+  required DartType returnType,
 }) {
-  return LocatableDiagnosticImpl(diag.bodyMightCompleteNormallyNullable, [p0]);
+  return LocatableDiagnosticImpl(diag.bodyMightCompleteNormallyNullable, [
+    returnType,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsBuiltInIdentifierAsExtensionName({

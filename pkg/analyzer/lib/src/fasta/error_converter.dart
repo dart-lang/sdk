@@ -378,13 +378,13 @@ class FastaErrorReporter {
   void reportMessage(Message message, int offset, int length) {
     Code code = message.code;
     if (code.sharedCode case var sharedCode?) {
-      var errorCode = sharedAnalyzerCodes[sharedCode.index];
+      var diagnosticCode = sharedAnalyzerCodes[sharedCode.index];
       diagnosticReporter!.reportError(
         Diagnostic.tmp(
           source: diagnosticReporter!.source,
           offset: offset,
           length: length,
-          diagnosticCode: errorCode,
+          diagnosticCode: diagnosticCode,
           arguments: message.arguments.values.toList(),
         ),
       );
@@ -394,14 +394,14 @@ class FastaErrorReporter {
   }
 
   void reportScannerError(
-    DiagnosticCode errorCode,
+    DiagnosticCode code,
     int offset,
     List<Object>? arguments,
   ) {
     // TODO(danrubel): update client to pass length in addition to offset.
     int length = 1;
     diagnosticReporter?.atOffset(
-      diagnosticCode: errorCode,
+      diagnosticCode: code,
       offset: offset,
       length: length,
       arguments: arguments ?? const [],

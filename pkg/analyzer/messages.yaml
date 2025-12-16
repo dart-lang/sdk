@@ -2048,8 +2048,8 @@ CompileTimeErrorCode:
   bodyMightCompleteNormally:
     type: compileTimeError
     parameters:
-      Type p0: the name of the return type
-    problemMessage: The body might complete normally, causing 'null' to be returned, but the return type, '#p0', is a potentially non-nullable type.
+      Type returnType: the name of the return type
+    problemMessage: The body might complete normally, causing 'null' to be returned, but the return type, '#returnType', is a potentially non-nullable type.
     correctionMessage: Try adding either a return or a throw statement at the end.
     hasPublishedDocs: true
     documentation: |-
@@ -24853,8 +24853,8 @@ WarningCode:
   bodyMightCompleteNormallyNullable:
     type: staticWarning
     parameters:
-      Type p0: the name of the declared return type
-    problemMessage: "This function has a nullable return type of '#p0', but ends without returning a value."
+      Type returnType: the name of the declared return type
+    problemMessage: "This function has a nullable return type of '#returnType', but ends without returning a value."
     correctionMessage: "Try adding a return statement, or if no value is ever returned, try changing the return type to 'void'."
     hasPublishedDocs: true
     documentation: |-

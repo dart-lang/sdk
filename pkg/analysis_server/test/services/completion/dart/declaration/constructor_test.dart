@@ -143,6 +143,118 @@ suggestions
 ''');
   }
 
+  Future<void> test_primaryConstructor_named_const() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class const A0.b0(final int i) {}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+A Function(int) v = A^;
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  A0.b0
+    kind: constructorInvocation
+  A0
+    kind: class
+  false
+    kind: keyword
+''');
+  }
+
+  Future<void> test_primaryConstructor_named_const_inConst() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class const A0.b0(final int i) {}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+const A Function(int) v = A^;
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  A0.b0
+    kind: constructorInvocation
+  A0
+    kind: class
+  false
+    kind: keyword
+''');
+  }
+
+  Future<void> test_primaryConstructor_named_nonConst() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A0.b0(int i) {}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+A Function(int) v = A^;
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  A0.b0
+    kind: constructorInvocation
+  A0
+    kind: class
+  false
+    kind: keyword
+''');
+  }
+
+  Future<void> test_primaryConstructor_named_nonConst_inConst() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A0.b0(int i) {}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+const A Function(int) v = A^;
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  A0.b0
+    kind: constructorInvocation
+  A0
+    kind: class
+  false
+    kind: keyword
+''');
+  }
+
+  Future<void> test_primaryConstructor_unnamed_nonConst() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A0(int i) {}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+void f() {
+  A Function(int) v = A^;
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  A0
+    kind: constructorInvocation
+  A0
+    kind: class
+  false
+    kind: keyword
+''');
+  }
+
   Future<void> test_sealed_library() async {
     newFile('$testPackageLibPath/a.dart', '''
 sealed class S0 {}

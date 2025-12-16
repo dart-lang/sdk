@@ -117,9 +117,10 @@ suggestions
 ''');
   }
 
-  Future<void> test_name_withBody() async {
+  Future<void> test_name_withBody_primaryConstructorsDisabled() async {
     allowedIdentifiers = {'Test', 'Test {}'};
     await computeSuggestions('''
+// @dart=3.10
 class ^ {}
 ''');
     assertResponse(r'''
@@ -129,7 +130,34 @@ suggestions
 ''');
   }
 
-  Future<void> test_name_withoutBody() async {
+  Future<void> test_name_withBody_primaryConstructorsEnabled() async {
+    allowedIdentifiers = {'Test', 'Test {}'};
+    await computeSuggestions('''
+class ^ {}
+''');
+    assertResponse(r'''
+suggestions
+  Test
+    kind: identifier
+  const
+    kind: keyword
+''');
+  }
+
+  Future<void> test_name_withoutBody_primaryConstructorsDisabled() async {
+    allowedIdentifiers = {'Test', 'Test {}'};
+    await computeSuggestions('''
+// @dart=3.10
+class ^
+''');
+    assertResponse(r'''
+suggestions
+  Test {^}
+    kind: identifier
+''');
+  }
+
+  Future<void> test_name_withoutBody_primaryConstructorsEnabled() async {
     allowedIdentifiers = {'Test', 'Test {}'};
     await computeSuggestions('''
 class ^
@@ -138,6 +166,8 @@ class ^
 suggestions
   Test {^}
     kind: identifier
+  const
+    kind: keyword
 ''');
   }
 

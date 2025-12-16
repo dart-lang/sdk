@@ -463,6 +463,17 @@ class KeywordHelper {
       if (suggestThis) {
         addKeyword(Keyword.THIS);
       }
+    } else if (parent is PrimaryConstructorDeclaration) {
+      if (suggestCovariant || suggestFinal) {
+        if (featureSet.isEnabled(Feature.super_parameters)) {
+          addKeyword(Keyword.SUPER);
+        }
+        addKeyword(Keyword.THIS);
+      }
+      if (suggestFinal) {
+        // The flag should probably be renamed to `suggestFinalAndVar`
+        addKeyword(Keyword.VAR);
+      }
     }
   }
 
