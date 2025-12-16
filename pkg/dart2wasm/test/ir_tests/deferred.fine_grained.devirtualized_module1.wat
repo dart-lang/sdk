@@ -4,17 +4,17 @@
   (type $Foo1 <...>)
   (type $FooBase <...>)
   (type $JSStringImpl <...>)
-  (func $"_TypeError._throwNullCheckErrorWithCurrentStack <noInline>" (import "module0" "func1") (result (ref none)))
-  (func $"baseObj implicit getter" (import "module0" "func0") (result (ref null $FooBase)))
-  (func $"foo1Obj implicit getter" (import "module0" "func2") (result (ref null $Foo1)))
-  (func $Foo1.doitDispatch (import "module0" "func3") (param (ref $FooBase) (ref null $#Top)) (result (ref null $#Top)))
-  (func $JSStringImpl._interpolate3 (import "module0" "func4") (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl)))
-  (func $print (import "module0" "func5") (param (ref null $#Top)) (result (ref null $#Top)))
+  (func $"_TypeError._throwNullCheckErrorWithCurrentStack <noInline>" (import "module0" "func0") (result (ref none)))
+  (func $Foo1.doitDispatch (import "module0" "func1") (param (ref $FooBase) (ref null $#Top)) (result (ref null $#Top)))
+  (func $JSStringImpl._interpolate3 (import "module0" "func2") (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl)))
+  (func $print (import "module0" "func3") (param (ref null $#Top)) (result (ref null $#Top)))
   (global $".Foo1.doitDevirt(" (import "" "Foo1.doitDevirt(") (ref extern))
-  (global $"C312 1" (import "module0" "global0") (ref $BoxedInt))
-  (global $"C341 2" (import "module0" "global1") (ref $BoxedInt))
-  (global $"C380 \"FooBase(\"" (import "module0" "global3") (ref $JSStringImpl))
-  (global $"C8 \")\"" (import "module0" "global2") (ref $JSStringImpl))
+  (global $"C312 1" (import "module0" "global1") (ref $BoxedInt))
+  (global $"C341 2" (import "module0" "global3") (ref $BoxedInt))
+  (global $"C380 \"FooBase(\"" (import "module0" "global5") (ref $JSStringImpl))
+  (global $"C8 \")\"" (import "module0" "global4") (ref $JSStringImpl))
+  (global $baseObj (import "module0" "global0") (ref null $FooBase))
+  (global $foo1Obj (import "module0" "global2") (ref null $Foo1))
   (table $module0.dispatch0 (import "module0" "dispatch0") 751 funcref)
   (global $"C499 \"Foo1.doitDevirt(\"" (ref $JSStringImpl)
     (i32.const 4)
@@ -27,7 +27,7 @@
     (local $var2 (ref $Foo1))
     block $label0
       block $label1 (result (ref $FooBase))
-        call $"baseObj implicit getter"
+        global.get $baseObj
         br_on_non_null $label1
         br $label0
       end $label1
@@ -40,7 +40,7 @@
       call_indirect $module0.dispatch0 (param (ref $FooBase) (ref null $#Top)) (result (ref null $#Top))
       drop
       block $label2 (result (ref $Foo1))
-        call $"foo1Obj implicit getter"
+        global.get $foo1Obj
         br_on_non_null $label2
         br $label0
       end $label2
@@ -48,14 +48,14 @@
       call $Foo1.doitDispatch
       drop
       block $label3 (result (ref $Foo1))
-        call $"foo1Obj implicit getter"
+        global.get $foo1Obj
         br_on_non_null $label3
         br $label0
       end $label3
       local.set $var1
       call $Foo1.doitDevirt
       block $label4 (result (ref $Foo1))
-        call $"foo1Obj implicit getter"
+        global.get $foo1Obj
         br_on_non_null $label4
         br $label0
       end $label4

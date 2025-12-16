@@ -21,10 +21,7 @@
   (table $dtable0 745 funcref)
   (global $"C319 _TopType" (ref $_TopType) <...>)
   (global $"C66 WasmArray<WasmArray<_Type>>[729]" (ref $Array<WasmArray<_Type>>) <...>)
-  (global $"ktrue initialized" (mut i32) <...>)
   (global $"numValueNullable initialized" (mut i32) <...>)
-  (global $ktrue (mut i32) <...>)
-  (global $numValue (mut (ref null $#Top)) <...>)
   (global $numValueNullable (mut (ref null $#Top)) <...>)
   (elem $dtable0 <...>)
   (func $_throwArgumentNullError <noInline>  <...>)
@@ -82,11 +79,7 @@
   )
   (func $"testNumValue <noInline>"
     (local $var0 externref)
-    block $label0 (result (ref $#Top))
-      global.get $numValue
-      br_on_non_null $label0
-      call $"numValue implicit getter"
-    end $label0
+    call $"numValue implicit getter"
     call $jsifyNum
     call $"dart2wasm._274 (import)"
     local.tee $var0
@@ -110,18 +103,9 @@
     global.get $"numValueNullable initialized"
     i32.eqz
     if
-      global.get $"ktrue initialized"
-      if (result i32)
-        global.get $ktrue
-      else
-        call $"ktrue implicit getter"
-      end
+      call $"ktrue implicit getter"
       if (result (ref null $#Top))
-        block $label0 (result (ref $#Top))
-          global.get $numValue
-          br_on_non_null $label0
-          call $"numValue implicit getter"
-        end $label0
+        call $"numValue implicit getter"
       else
         ref.null none
       end
@@ -135,34 +119,34 @@
     if (result externref)
       ref.null noextern
     else
-      block $label1 (result externref)
+      block $label0 (result externref)
         ref.null noextern
         local.get $var1
         ref.is_null
-        br_if $label1
+        br_if $label0
         drop
-        block $label2 (result i32)
+        block $label1 (result i32)
           i32.const 1
           local.get $var1
           struct.get $#Top $field0
           local.tee $var0
           i32.const 65
           i32.eq
-          br_if $label2
+          br_if $label1
           drop
           i32.const 1
           local.get $var0
           i32.const 84
           i32.eq
-          br_if $label2
+          br_if $label1
           drop
           i32.const 0
-        end $label2
+        end $label1
         if
           local.get $var1
           ref.as_non_null
           call $jsifyNum
-          br $label1
+          br $label0
         end
         local.get $var1
         struct.get $#Top $field0
@@ -171,14 +155,14 @@
         i32.const 10
         i32.ge_u
         if
-          block $label3 (result i32)
+          block $label2 (result i32)
             i32.const 1
             local.get $var1
             struct.get $#Top $field0
             local.tee $var0
             i32.const 70
             i32.eq
-            br_if $label3
+            br_if $label2
             drop
             i32.const 1
             local.get $var0
@@ -186,10 +170,10 @@
             i32.sub
             i32.const 10
             i32.lt_u
-            br_if $label3
+            br_if $label2
             drop
             i32.const 0
-          end $label3
+          end $label2
           i32.eqz
           if
             local.get $var1
@@ -214,7 +198,7 @@
             else
               global.get $"C319 _TopType"
               local.set $var3
-              block $label4 (result i32)
+              block $label3 (result i32)
                 local.get $var2
                 local.get $var2
                 struct.get $#Top $field0
@@ -232,7 +216,7 @@
                   local.get $var3
                   ref.null none
                   call $_TypeUniverse.isSubtype
-                  br $label4
+                  br $label3
                 end
                 global.get $"C66 WasmArray<WasmArray<_Type>>[729]"
                 local.get $var0
@@ -245,7 +229,7 @@
                 local.get $var3
                 ref.null none
                 call $_TypeUniverse.isSubtype
-              end $label4
+              end $label3
             end
             if
               unreachable
@@ -259,7 +243,7 @@
               else
                 local.get $var2
                 extern.externalize
-                br $label1
+                br $label0
               end
               unreachable
             end
@@ -267,7 +251,7 @@
           end
         end
         ref.null noextern
-      end $label1
+      end $label0
     end
     call $"dart2wasm._275 (import)"
     local.tee $var5

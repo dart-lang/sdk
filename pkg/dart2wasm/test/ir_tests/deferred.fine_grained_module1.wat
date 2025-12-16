@@ -11,7 +11,6 @@
   (type $FooConstBase <...>)
   (type $GrowableList <...>)
   (type $JSStringImpl <...>)
-  (type $Object <...>)
   (type $_InterfaceType <...>)
   (type $_Type <...>)
   (type $type0 <...>)
@@ -20,7 +19,7 @@
   (type $type4 <...>)
   (type $type6 <...>)
   (type $type8 <...>)
-  (func $"WasmListBase.[]" (import "module0" "func13") (param (ref $Object) i64) (result (ref null $#Top)))
+  (func $"_throwIndexError <noInline>" (import "module0" "func13") (param i64 i64 (ref null $JSStringImpl)) (result (ref none)))
   (func $"foo0Code <noInline>" (import "module0" "func12") (param (ref null $#Top)) (result (ref null $#Top)))
   (func $"fooGlobal0 implicit getter" (import "module0" "func11") (result (ref $#Top)))
   (func $FooConstBase.doit (import "module0" "func14") (param (ref $FooConstBase) (ref null $#Top)) (result (ref null $#Top)))
@@ -28,8 +27,9 @@
   (func $JSStringImpl._interpolate3 (import "module0" "func10") (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl)))
   (func $print (import "module0" "func9") (param (ref null $#Top)) (result (ref null $#Top)))
   (global $".FooConst5(" (import "" "FooConst5(") (ref extern))
+  (global $"C310 \"[]\"" (import "module0" "global6") (ref $JSStringImpl))
   (global $"C386 5" (import "module0" "global5") (ref $BoxedInt))
-  (global $"C388 FooConst0" (import "module0" "global6") (ref $FooConst0))
+  (global $"C388 FooConst0" (import "module0" "global7") (ref $FooConst0))
   (global $"C8 \")\"" (import "module0" "global4") (ref $JSStringImpl))
   (table $module0.dispatch0 (import "module0" "dispatch0") 793 funcref)
   (table $module0.static1-0 (import "module0" "static1-0") 4 (ref null $type2))
@@ -55,7 +55,9 @@
     (ref.null none))
   (elem $module0.dispatch0 <...>)
   (func $"foo5Code <noInline>" (param $var0 (ref $#Top))
-    (local $var1 (ref $FooConstBase))
+    (local $var1 (ref $GrowableList))
+    (local $var2 (ref $FooConstBase))
+    (local $var3 i64)
     global.get $"C507 FooConst5"
     call $print
     drop
@@ -110,16 +112,25 @@
       global.get $allFooConstants
       ref.as_non_null
     end $label0
-    i64.const 0
-    call $"WasmListBase.[]"
-    ref.cast $FooConstBase
     local.tee $var1
-    block $label1 (result (ref $#Top))
-      global.get $fooGlobal5
-      br_on_non_null $label1
-      call $"fooGlobal5 implicit getter"
-    end $label1
+    struct.get $GrowableList $_length
+    local.tee $var3
+    i64.eqz
+    if
+      i64.const 0
+      local.get $var3
+      global.get $"C310 \"[]\""
+      call $"_throwIndexError <noInline>"
+      unreachable
+    end
     local.get $var1
+    struct.get $GrowableList $_data
+    i32.const 0
+    array.get $Array<Object?>
+    ref.cast $FooConstBase
+    local.tee $var2
+    call $"fooGlobal5 implicit getter"
+    local.get $var2
     struct.get $FooConstBase $field0
     i32.const 413
     i32.add

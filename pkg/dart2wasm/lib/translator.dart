@@ -725,10 +725,9 @@ class Translator with KernelNodes {
   /// beneficial.
   List<w.ValueType> callReference(
       Reference reference, w.InstructionsBuilder b) {
-    final targetModule = moduleForReference(reference);
-    final isLocalModuleCall = targetModule == b.moduleBuilder;
-    if (isLocalModuleCall) {
-      return b.invoke(directCallTarget(reference));
+    final callTarget = directCallTarget(reference);
+    if (callTarget.supportsInlining && callTarget.shouldInline) {
+      return b.inlineCallTo(callTarget);
     }
     return callFunction(functions.getFunction(reference), b);
   }
@@ -1893,7 +1892,21 @@ class Translator with KernelNodes {
     if (getPragma<bool>(member, "wasm:prefer-inline", true) == true) {
       return true;
     }
-    if (member is Field) return true;
+    if (member is Field) {
+      // Implicit getter/setter for instance fields are just loads/stores.
+      if (member.isInstanceMember) return true;
+
+      // Implicit setter for static fields are just stores.
+      if (target == member.setterReference) return true;
+
+      // Implicit getter for static fields may invoke lazy static initializer.
+      if (globals.getConstantInitializer(member) != null) {
+        // This global will get it's initializer eagerly set, so no lazy init
+        // function to be called.
+        return true;
+      }
+      return false;
+    }
     if (target.isInitializerReference) return true;
 
     final function = member.function!;

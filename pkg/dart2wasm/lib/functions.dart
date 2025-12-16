@@ -292,6 +292,9 @@ class FunctionCollector {
       if (target.isImplicitSetter) {
         return '$memberName= implicit setter';
       }
+      if (target.isFieldInitializer) {
+        return '$memberName field initializer';
+      }
       return '$memberName implicit getter';
     }
 

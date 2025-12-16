@@ -20,12 +20,8 @@
   (func $"dart2wasm._275 (import)" (import "dart2wasm" "_275") (param externref) (result externref))
   (global $"C319 _TopType" (ref $_TopType) <...>)
   (global $"C66 WasmArray<WasmArray<_Type>>[729]" (ref $Array<WasmArray<_Type>>) <...>)
-  (global $"doubleValue initialized" (mut i32) <...>)
   (global $"doubleValueNullable initialized" (mut i32) <...>)
-  (global $"ktrue initialized" (mut i32) <...>)
-  (global $doubleValue (mut f64) <...>)
   (global $doubleValueNullable (mut (ref null $BoxedDouble)) <...>)
-  (global $ktrue (mut i32) <...>)
   (func $_throwArgumentNullError <noInline>  <...>)
   (func $doubleValue implicit getter (result f64) <...>)
   (func $ktrue implicit getter (result i32) <...>)
@@ -64,12 +60,7 @@
   )
   (func $"testDoubleValue <noInline>"
     (local $var0 externref)
-    global.get $"doubleValue initialized"
-    if (result f64)
-      global.get $doubleValue
-    else
-      call $"doubleValue implicit getter"
-    end
+    call $"doubleValue implicit getter"
     call $"dart2wasm._274 (import)"
     local.tee $var0
     call $isDartNull
@@ -92,20 +83,10 @@
     global.get $"doubleValueNullable initialized"
     i32.eqz
     if
-      global.get $"ktrue initialized"
-      if (result i32)
-        global.get $ktrue
-      else
-        call $"ktrue implicit getter"
-      end
+      call $"ktrue implicit getter"
       if (result (ref null $BoxedDouble))
         i32.const 84
-        global.get $"doubleValue initialized"
-        if (result f64)
-          global.get $doubleValue
-        else
-          call $"doubleValue implicit getter"
-        end
+        call $"doubleValue implicit getter"
         struct.new $BoxedDouble
       else
         ref.null none
