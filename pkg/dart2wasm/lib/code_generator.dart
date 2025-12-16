@@ -1919,7 +1919,8 @@ abstract class AstCodeGenerator
     pushReceiver(signature);
 
     final targets = selector.targets(unchecked: useUncheckedEntry);
-    List<({Range range, Reference target})> targetRanges = targets.targetRanges;
+    List<({Range range, Reference target})> targetRanges =
+        targets.allTargetRanges;
     List<({Range range, Reference target})> staticDispatchRanges =
         targets.staticDispatchRanges;
 

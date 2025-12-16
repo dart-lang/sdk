@@ -2925,7 +2925,8 @@ class PolymorphicDispatchers {
   CallTarget getPolymorphicDispatcher(SelectorInfo selector,
       {required bool useUncheckedEntry}) {
     assert(
-        selector.targets(unchecked: useUncheckedEntry).targetRanges.length > 1);
+        selector.targets(unchecked: useUncheckedEntry).allTargetRanges.length >
+            1);
     return (useUncheckedEntry && selector.useMultipleEntryPoints
             ? uncheckedCache
             : cache)
@@ -2945,7 +2946,11 @@ class PolymorphicDispatcherCallTarget extends CallTarget {
   PolymorphicDispatcherCallTarget(this.translator, this.selector,
       this.callingModule, this.useUncheckedEntry)
       : assert(!selector.isDynamicSubmoduleOverridable),
-        super(selector.signature);
+        super(
+          translator.typesBuilder.defineFunction(
+              [w.NumType.i32, ...selector.signature.inputs],
+              selector.signature.outputs),
+        );
 
   @override
   String get name => '${selector.name} (polymorphic dispatcher)';
@@ -2967,10 +2972,7 @@ class PolymorphicDispatcherCallTarget extends CallTarget {
 
   @override
   late final w.BaseFunction function = (() {
-    final function = callingModule.functions.define(
-        translator.typesBuilder.defineFunction(
-            [w.NumType.i32, ...signature.inputs], signature.outputs),
-        name);
+    final function = callingModule.functions.define(signature, name);
     translator.compilationQueue.add(CompilationTask(function, inliningCodeGen));
     return function;
   })();
@@ -2997,7 +2999,7 @@ class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
         .toList();
 
     final bool needFallback =
-        targets.targetRanges.length > targets.staticDispatchRanges.length;
+        targets.allTargetRanges.length > targets.staticDispatchRanges.length;
 
     // First parameter to the dispatcher is the class id.
     const int classIdParameterOffset = 1;

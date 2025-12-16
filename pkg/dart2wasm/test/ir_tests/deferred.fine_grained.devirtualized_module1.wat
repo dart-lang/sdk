@@ -15,7 +15,7 @@
   (global $"C341 2" (import "module0" "global1") (ref $BoxedInt))
   (global $"C380 \"FooBase(\"" (import "module0" "global3") (ref $JSStringImpl))
   (global $"C8 \")\"" (import "module0" "global2") (ref $JSStringImpl))
-  (table $module0.dispatch0 (import "module0" "dispatch0") 753 funcref)
+  (table $module0.dispatch0 (import "module0" "dispatch0") 751 funcref)
   (global $"C499 \"Foo1.doitDevirt(\"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
@@ -35,7 +35,7 @@
       global.get $"C312 1"
       local.get $var0
       struct.get $FooBase $field0
-      i32.const 378
+      i32.const 476
       i32.add
       call_indirect $module0.dispatch0 (param (ref $FooBase) (ref null $#Top)) (result (ref null $#Top))
       drop

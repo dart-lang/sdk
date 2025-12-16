@@ -311,7 +311,7 @@ class FunctionCollector {
         useUncheckedEntry ? _calledUncheckedSelectors : _calledSelectors;
     if (set.add(selector.id)) {
       for (final (:range, :target)
-          in selector.targets(unchecked: useUncheckedEntry).targetRanges) {
+          in selector.targets(unchecked: useUncheckedEntry).allTargetRanges) {
         for (int classId = range.start; classId <= range.end; ++classId) {
           recordClassTargetUse(classId, target);
         }
