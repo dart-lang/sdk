@@ -15,6 +15,13 @@ import 'package:collection/collection.dart';
 import 'log.dart';
 import 'server_driver.dart';
 
+/// Some messages from the analysis server should just be ignored.
+bool _shouldSkip(Message message) =>
+    // The server always sends this but we don't record it.
+    message.method == 'workspace/configuration' ||
+    // This is the response to the initialize request.
+    message.id == 0;
+
 /// An object used to play back the messages in a log.
 ///
 /// A reasonable attempt is made to retain the same timing of messages as was
@@ -33,7 +40,10 @@ class LogPlayer {
   /// options from command line arguments.
   final driverArgParser = Driver.createArgParser();
 
-  LogPlayer({required this.log});
+  /// How long to wait for expected analyzer logs to come back.
+  final Duration timeout;
+
+  LogPlayer({required this.log, this.timeout = const Duration(seconds: 5)});
 
   /// Plays the log.
   Future<void> play() async {
@@ -73,7 +83,7 @@ class LogPlayer {
                   actualServerMessageIds[foundMessage.id] = message.id;
                 }
                 pendingServerMessageExpectations.remove(foundMessage);
-              } else {
+              } else if (!_shouldSkip(message)) {
                 stderr.writeln(
                   'Unexpected message from analysis server:\n'
                   '${jsonEncode(message)}',
@@ -171,7 +181,7 @@ receiver: ${entry.receiver}
   ) async {
     if (pendingServerMessageExpectations.isEmpty) return;
     var watch = Stopwatch()..start();
-    while (watch.elapsed < const Duration(seconds: 5)) {
+    while (watch.elapsed < timeout) {
       if (pendingServerMessageExpectations.isEmpty) {
         return;
       }
