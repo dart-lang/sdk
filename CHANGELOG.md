@@ -1,5 +1,7 @@
 ## 3.10.6
 
+**Released on:** 2025-12-16
+
 This is a patch release that:
 
 - Fixes a bug in JS typed data `sublist()` implementation on dart2wasm backend.
