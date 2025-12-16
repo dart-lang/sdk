@@ -3010,7 +3010,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitSwitchExpressionCase(SwitchExpressionCase node) {
-    if (node.arrow.isSynthetic) {
+    if (node.arrow.isSynthetic || node.arrow.offset >= offset) {
       // The user is completing in the pattern.
       collector.completionLocation = 'SwitchExpression_body';
       _forPattern(node);
@@ -3021,7 +3021,18 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (endToken == expression.beginToken || endToken.isSynthetic) {
       // The user is completing in the expression.
       collector.completionLocation = 'SwitchExpressionCase_expression';
-      _forExpression(node.expression);
+      var type =
+          _computeContextType(node.expression) ?? DynamicTypeImpl.instance;
+      _forExpression(
+        node.expression,
+        canBeBool: _canBeBool(type),
+        canBeNull: _canBeNull(type),
+        // TODO(FMorschel): Determine if the parameter type has a constant
+        //  constructor.
+        // Function tear-offs and closures cannot have the `const` keyword
+        // before it
+        canSuggestConst: !type.isDartCoreFunction && type is! FunctionType,
+      );
     }
   }
 
