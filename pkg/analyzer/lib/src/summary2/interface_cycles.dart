@@ -79,8 +79,6 @@ class _ImplementsNode extends graph.Node<_ImplementsNode> {
       case MixinElementImpl element:
         element.superclassConstraints = [typeProvider.objectType];
         element.interfaces = [];
-      default:
-        throw UnimplementedError('${element.runtimeType}');
     }
   }
 }

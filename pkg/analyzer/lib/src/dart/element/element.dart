@@ -193,10 +193,14 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
               } else {
                 return null;
               }
-            case EnumElement _:
+            case EnumElementImpl _:
               result.add(elementThis);
-            case MixinElement _:
+            case MixinElementImpl _:
               return null;
+            case ExtensionTypeElementImpl():
+              // This should never happen because extension types can't be
+              // sealed.
+              assert(false);
           }
         }
         return result;
@@ -4133,7 +4137,7 @@ class HideElementCombinatorImpl implements HideElementCombinator {
 }
 
 @elementClass
-abstract class InstanceElementImpl extends ElementImpl
+sealed class InstanceElementImpl extends ElementImpl
     with DeferredMembersReadingMixin, DeferredResolutionReadingMixin
     implements InstanceElement, TypeParameterizedElement {
   List<FieldElementImpl> _fields = [];
@@ -4692,7 +4696,7 @@ abstract class InstanceFragmentImpl extends FragmentImpl
 }
 
 @elementClass
-abstract class InterfaceElementImpl extends InstanceElementImpl
+sealed class InterfaceElementImpl extends InstanceElementImpl
     implements InterfaceElement {
   /// The non-nullable instance of this element, without alias.
   /// Should be used only when the element has no type parameters.

@@ -1140,8 +1140,6 @@ class _Element2Writer extends _AbstractElementWriter {
           );
           expect(e.mixins, isEmpty);
           _elementPrinter.writeTypeList('interfaces', e.interfaces);
-        default:
-          throw UnimplementedError('${e.runtimeType}');
       }
 
       if (configuration.withAllSupertypes && e is InterfaceElementImpl) {
