@@ -21,16 +21,11 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 class DuplicateDefinitionVerifier {
   final LibraryElementImpl _currentLibrary;
   final DiagnosticReporter _diagnosticReporter;
-  final DuplicationDefinitionContext context;
 
   final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
   final Set<Token> _reportedTokens = Set.identity();
 
-  DuplicateDefinitionVerifier(
-    this._currentLibrary,
-    this._diagnosticReporter,
-    this.context,
-  );
+  DuplicateDefinitionVerifier(this._currentLibrary, this._diagnosticReporter);
 
   /// Check that the exception and stack trace parameters have different names.
   void checkCatchClause(CatchClause node) {

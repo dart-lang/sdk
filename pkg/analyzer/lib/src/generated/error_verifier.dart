@@ -317,7 +317,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
        _duplicateDefinitionVerifier = DuplicateDefinitionVerifier(
          _currentLibrary,
          diagnosticReporter,
-         libraryContext.duplicationDefinitionContext,
        ) {
     _isInSystemLibrary = _currentLibrary.uri.isScheme('dart');
     _isInStaticVariableDeclaration = false;
