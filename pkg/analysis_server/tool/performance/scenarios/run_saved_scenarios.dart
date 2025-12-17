@@ -23,7 +23,7 @@ void main(List<String> args) async {
     if (scenarioNames.isNotEmpty && !scenarioNames.contains(scenario.name)) {
       continue;
     }
-    await scenario.run();
+    await scenario.run(Duration(seconds: int.parse(parsed.option('timeout')!)));
   }
 }
 
@@ -37,6 +37,12 @@ final argParser = ArgParser()
     abbr: 's',
     help: 'The name(s) of specific scenario(s) to run',
     allowed: scenarios.map((s) => s.name).toList(),
+  )
+  ..addOption(
+    'timeout',
+    abbr: 't',
+    help: 'Number of seconds to wait for analyzer responses',
+    defaultsTo: '5',
   )
   ..addFlag('help');
 
@@ -52,7 +58,11 @@ final List<Scenario> scenarios = () {
       logFile: fileSystem.getFile(
         logsRoot.resolve('sdk_rename_driver_class.json').toFilePath(),
       ),
-      project: GitWorktreeProjectGenerator(Directory.fromUri(sdkRoot), 'main'),
+      project: GitWorktreeProjectGenerator(
+        Directory.fromUri(sdkRoot),
+        'main',
+        isSdkRepo: true,
+      ),
     ),
     Scenario(
       name: 'initialize',
@@ -67,4 +77,4 @@ final List<Scenario> scenarios = () {
   ];
 }();
 
-final sdkRoot = analysisServerRoot.resolve('../../');
+final sdkRoot = analysisServerRoot.resolve('../../../');

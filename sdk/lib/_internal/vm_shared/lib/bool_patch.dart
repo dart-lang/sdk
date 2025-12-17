@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal" show patch, checkNotNullable;
+import "dart:_internal" show patch;
 
 @patch
 @pragma('vm:deeply-immutable')
@@ -27,8 +27,6 @@ class bool {
 
   @patch
   static bool parse(String source, {bool caseSensitive = true}) {
-    checkNotNullable(source, "source");
-    checkNotNullable(caseSensitive, "caseSensitive");
     if (caseSensitive) {
       return source == "true" ||
           source != "false" &&
@@ -42,8 +40,6 @@ class bool {
 
   @patch
   static bool? tryParse(String source, {bool caseSensitive = true}) {
-    checkNotNullable(source, "source");
-    checkNotNullable(caseSensitive, "caseSensitive");
     if (caseSensitive) {
       return source == "true"
           ? true
