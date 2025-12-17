@@ -302,8 +302,10 @@ static int SetOsErrorMessage(
   const int kMaxMessageLength = 256;
   wchar_t message[kMaxMessageLength];
   FormatMessageIntoBuffer(error_code, message, kMaxMessageLength);
-  os_error_message->reset(Utils::SCreate(
-      "%ls (at %s:%d)", message, location.file_name(), location.line()));
+  WideToUtf8Scope utf8_message(message);
+  os_error_message->reset(Utils::SCreate("%s (at %s:%d)", utf8_message.utf8(),
+                                         location.file_name(),
+                                         location.line()));
   return error_code;
 }
 

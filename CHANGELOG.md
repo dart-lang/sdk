@@ -1,3 +1,11 @@
+## 3.10.7
+
+This is a patch release that:
+
+- Fixes a bug in OS error reporting on Windows. (issue [dart-lang/sdk#62252])
+
+[dart-lang/sdk#62252]: https://github.com/dart-lang/sdk/issues/62252
+
 ## 3.10.6
 
 **Released on:** 2025-12-16
