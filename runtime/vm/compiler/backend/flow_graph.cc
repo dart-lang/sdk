@@ -2673,6 +2673,36 @@ void FlowGraph::ExtractNonInternalTypedDataPayloads() {
   }
 }
 
+void FlowGraph::AddAsanMsanInstrumentation() {
+  if (!FLAG_target_address_sanitizer && !FLAG_target_memory_sanitizer) return;
+
+  for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
+       block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+      if (LoadIndexedInstr* load = current->AsLoadIndexed()) {
+        if (load->sanitize()) {
+          auto* san_read = new (Z) SanReadWriteIndexedInstr(
+              SanReadWriteIndexedInstr::Kind::kRead, load->array()->Copy(Z),
+              load->index()->Copy(Z), load->index_unboxed(),
+              load->index_scale(), load->class_id(), load->source());
+          InsertBefore(load, san_read, /*env=*/nullptr, kEffect);
+        }
+      } else if (StoreIndexedInstr* store = current->AsStoreIndexed()) {
+        if (store->sanitize()) {
+          auto* san_write = new (Z) SanReadWriteIndexedInstr(
+              SanReadWriteIndexedInstr::Kind::kWrite, store->array()->Copy(Z),
+              store->index()->Copy(Z), store->index_unboxed(),
+              store->index_scale(), store->class_id(), store->source());
+          InsertBefore(store, san_write, /*env=*/nullptr, kEffect);
+        }
+      }
+    }
+  }
+}
+
 void FlowGraph::AddTsanInstrumentation() {
   if (!FLAG_target_thread_sanitizer) return;
 
@@ -2686,35 +2716,35 @@ void FlowGraph::AddTsanInstrumentation() {
       if (LoadFieldInstr* load = current->AsLoadField()) {
         if (!load->slot().is_no_sanitize_thread() &&
             load->memory_order() == compiler::Assembler::kRelaxedNonAtomic) {
-          auto* tsan_read = new (Z)
-              TsanReadWriteInstr(TsanReadWriteInstr::Kind::kRead, load->slot(),
-                                 load->instance()->Copy(Z), load->source());
-          InsertBefore(load, tsan_read, /*env=*/nullptr, kEffect);
+          auto* san_read = new (Z)
+              SanReadWriteInstr(SanReadWriteInstr::Kind::kRead, load->slot(),
+                                load->instance()->Copy(Z), load->source());
+          InsertBefore(load, san_read, /*env=*/nullptr, kEffect);
           needs_entry_exit = true;
         }
       } else if (StoreFieldInstr* store = current->AsStoreField()) {
         if (!store->slot().is_no_sanitize_thread() &&
             store->memory_order() == compiler::Assembler::kRelaxedNonAtomic) {
-          auto* tsan_write = new (Z) TsanReadWriteInstr(
-              TsanReadWriteInstr::Kind::kWrite, store->slot(),
-              store->instance()->Copy(Z), store->source());
-          InsertBefore(store, tsan_write, /*env=*/nullptr, kEffect);
+          auto* san_write = new (Z)
+              SanReadWriteInstr(SanReadWriteInstr::Kind::kWrite, store->slot(),
+                                store->instance()->Copy(Z), store->source());
+          InsertBefore(store, san_write, /*env=*/nullptr, kEffect);
           needs_entry_exit = true;
         }
 
       } else if (LoadIndexedInstr* load = current->AsLoadIndexed()) {
-        auto* tsan_read = new (Z) TsanReadWriteIndexedInstr(
-            TsanReadWriteIndexedInstr::Kind::kRead, load->array()->Copy(Z),
+        auto* san_read = new (Z) SanReadWriteIndexedInstr(
+            SanReadWriteIndexedInstr::Kind::kRead, load->array()->Copy(Z),
             load->index()->Copy(Z), load->index_unboxed(), load->index_scale(),
             load->class_id(), load->source());
-        InsertBefore(load, tsan_read, /*env=*/nullptr, kEffect);
+        InsertBefore(load, san_read, /*env=*/nullptr, kEffect);
         needs_entry_exit = true;
       } else if (StoreIndexedInstr* store = current->AsStoreIndexed()) {
-        auto* tsan_write = new (Z) TsanReadWriteIndexedInstr(
-            TsanReadWriteIndexedInstr::Kind::kWrite, store->array()->Copy(Z),
+        auto* san_write = new (Z) SanReadWriteIndexedInstr(
+            SanReadWriteIndexedInstr::Kind::kWrite, store->array()->Copy(Z),
             store->index()->Copy(Z), store->index_unboxed(),
             store->index_scale(), store->class_id(), store->source());
-        InsertBefore(store, tsan_write, /*env=*/nullptr, kEffect);
+        InsertBefore(store, san_write, /*env=*/nullptr, kEffect);
         needs_entry_exit = true;
       } else if (current->CanCallDart() || current->MayThrow() ||
                  current->IsBox() || current->IsBoxLanes()) {

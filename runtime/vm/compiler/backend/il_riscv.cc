@@ -1993,8 +1993,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   auto const rep =
       RepresentationUtils::RepresentationOfArrayElement(class_id());
 
-  if (!compiler->is_optimizing() && FLAG_target_thread_sanitizer) {
-    EmitTsanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
+  if (!compiler->is_optimizing() && sanitize()) {
+    EmitSanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
       if (index.IsRegister()) {
         __ ComputeElementAddressForRegIndex(A0, IsUntagged(), class_id(),
                                             index_scale(), index_unboxed_,
@@ -2006,15 +2006,15 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       switch (RepresentationUtils::ValueSize(rep)) {
         case 1:
-          return kTsanRead1RuntimeEntry;
+          return kSanRead1RuntimeEntry;
         case 2:
-          return kTsanRead2RuntimeEntry;
+          return kSanRead2RuntimeEntry;
         case 4:
-          return kTsanRead4RuntimeEntry;
+          return kSanRead4RuntimeEntry;
         case 8:
-          return kTsanRead8RuntimeEntry;
+          return kSanRead8RuntimeEntry;
         case 16:
-          return kTsanRead16RuntimeEntry;
+          return kSanRead16RuntimeEntry;
         default:
           UNREACHABLE();
       }
@@ -2265,8 +2265,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   auto const rep =
       RepresentationUtils::RepresentationOfArrayElement(class_id());
 
-  if (!compiler->is_optimizing() && FLAG_target_thread_sanitizer) {
-    EmitTsanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
+  if (!compiler->is_optimizing() && sanitize()) {
+    EmitSanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
       if (index.IsRegister()) {
         __ ComputeElementAddressForRegIndex(A0, IsUntagged(), class_id(),
                                             index_scale(), index_unboxed_,
@@ -2278,15 +2278,15 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       switch (RepresentationUtils::ValueSize(rep)) {
         case 1:
-          return kTsanWrite1RuntimeEntry;
+          return kSanWrite1RuntimeEntry;
         case 2:
-          return kTsanWrite2RuntimeEntry;
+          return kSanWrite2RuntimeEntry;
         case 4:
-          return kTsanWrite4RuntimeEntry;
+          return kSanWrite4RuntimeEntry;
         case 8:
-          return kTsanWrite8RuntimeEntry;
+          return kSanWrite8RuntimeEntry;
         case 16:
-          return kTsanWrite16RuntimeEntry;
+          return kSanWrite16RuntimeEntry;
         default:
           UNREACHABLE();
       }
@@ -2430,10 +2430,6 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   } else {
     UNREACHABLE();
-  }
-
-  if (FLAG_target_memory_sanitizer) {
-    UNIMPLEMENTED();
   }
 }
 

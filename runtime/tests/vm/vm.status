@@ -17,6 +17,8 @@ cc/MutatorMarkerRace_ReleaseHeader: Pass, Fail # Comparison to demonstrate race,
 cc/TTS_STC_ManyAsserts: Pass, Slow # Generates 10k classes that are put into an STC via assert checks.
 cc/TypeArguments_Cache_ManyInstantiations: Pass, Slow
 dart/analyze_snapshot_binary_test: Pass, Slow # Runs various subprocesses for testing AOT.
+dart/asan/read_test/none: SkipByDesign
+dart/asan/write_test/none: SkipByDesign
 dart/async_igoto_threshold_flag_test: Pass, Slow
 dart/b162922506_test: Pass, Slow # Generated very large program
 dart/boxmint_test: Pass, Slow # Uses slow path
@@ -32,6 +34,7 @@ dart/incompatible_loading_unit_test: Pass, Slow # Spawns several subprocesses
 dart/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
 dart/isolates/fast_object_copy_test: Pass, Slow # Slow due to doing a lot of transitive object copies.
 dart/minimal_kernel_test: Pass, Slow # Spawns several subprocesses
+dart/msan/read_test/none: SkipByDesign
 dart/print_object_layout_test: Pass, Slow # Spawns several subprocesses
 dart/regress32619_test: Pass, Slow
 dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
@@ -156,7 +159,28 @@ dart/symbolized_dart_crash_test: Skip # Stack dump code excluded from product mo
 [ $sanitizer == asan ]
 dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
 
+[ $sanitizer != asan ]
+dart/asan/*: SkipByDesign
+
+[ $sanitizer != msan ]
+dart/msan/*: SkipByDesign
+
 [ $sanitizer != none ]
+cc/AllocationSinking_Arrays: SkipByDesign # Sanitizers build different flow graphs
+cc/AllocationSinking_Records: SkipByDesign # Sanitizers build different flow graphs
+cc/CheckStackOverflowElimination_NoInterruptsPragma: SkipByDesign # Sanitizers build different flow graphs
+cc/DelayAllocations_DelayAcrossCalls: SkipByDesign # Sanitizers build different flow graphs
+cc/FlowGraph_PhiUnboxingHeuristic_Double: SkipByDesign # Sanitizers build different flow graphs
+cc/FlowGraph_PhiUnboxingHeuristic_Float32x4: SkipByDesign # Sanitizers build different flow graphs
+cc/FlowGraph_PhiUnboxingHeuristic_Float64x2: SkipByDesign # Sanitizers build different flow graphs
+cc/FlowGraph_PhiUnboxingHeuristic_Int32x4: SkipByDesign # Sanitizers build different flow graphs
+cc/IRTest_*: SkipByDesign # Sanitizers build different flow graphs
+cc/Inliner_List_generate: SkipByDesign # Sanitizers build different flow graphs
+cc/LoadOptimizer_RedundantInitializingStoreAOT: SkipByDesign # Sanitizers build different flow graphs
+cc/LoadOptimizer_RedundantStaticFieldInitialization: SkipByDesign # Sanitizers build different flow graphs
+cc/LoadOptimizer_RedundantStoreAOT: SkipByDesign # Sanitizers build different flow graphs
+cc/TypePropagator_NonNullableLoadStaticField: SkipByDesign # Sanitizers build different flow graphs
+cc/TypePropagator_RecordFieldAccess: SkipByDesign # Sanitizers build different flow graphs
 dart/exported_symbols_test: SkipByDesign # Sanitizers add extra symbols.
 
 [ $sanitizer == tsan ]

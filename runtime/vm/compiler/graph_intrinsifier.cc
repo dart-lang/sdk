@@ -281,6 +281,9 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
 #define DEFINE_ARRAY_SETTER_INTRINSIC(enum_name)                               \
   bool GraphIntrinsifier::Build_##enum_name##SetIndexed(                       \
       FlowGraph* flow_graph) {                                                 \
+    if (FLAG_target_address_sanitizer) return false;                           \
+    if (FLAG_target_memory_sanitizer) return false;                            \
+    if (FLAG_target_thread_sanitizer) return false;                            \
     return IntrinsifyArraySetIndexed(                                          \
         flow_graph, MethodRecognizer::MethodKindToReceiverCid(                 \
                         MethodRecognizer::k##enum_name##SetIndexed));          \
@@ -303,6 +306,9 @@ DEFINE_ARRAY_SETTER_INTRINSIC(Uint64Array)
 #define DEFINE_FLOAT_ARRAY_SETTER_INTRINSIC(enum_name)                         \
   bool GraphIntrinsifier::Build_##enum_name##SetIndexed(                       \
       FlowGraph* flow_graph) {                                                 \
+    if (FLAG_target_address_sanitizer) return false;                           \
+    if (FLAG_target_memory_sanitizer) return false;                            \
+    if (FLAG_target_thread_sanitizer) return false;                            \
     return IntrinsifyArraySetIndexed(                                          \
         flow_graph, MethodRecognizer::MethodKindToReceiverCid(                 \
                         MethodRecognizer::k##enum_name##SetIndexed));          \

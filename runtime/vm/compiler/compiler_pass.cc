@@ -562,6 +562,7 @@ COMPILER_PASS(TestILSerialization, {
 
 COMPILER_PASS(LoweringAfterCodeMotionDisabled, {
   flow_graph->ExtractNonInternalTypedDataPayloads();
+  flow_graph->AddAsanMsanInstrumentation();
   flow_graph->AddTsanInstrumentation();
 });
 

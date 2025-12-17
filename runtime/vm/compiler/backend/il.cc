@@ -4687,21 +4687,21 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->is_optimizing() && FLAG_target_thread_sanitizer &&
       !slot().is_no_sanitize_thread() &&
       memory_order() == compiler::Assembler::kRelaxedNonAtomic) {
-    EmitTsanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
+    EmitSanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
       intptr_t tag = slot().has_untagged_instance() ? 0 : kHeapObjectTag;
       __ AddImmediate(CallingConventions::ArgumentRegisters[0], instance_reg,
                       slot().offset_in_bytes() - tag);
       switch (RepresentationUtils::ValueSize(rep)) {
         case 1:
-          return kTsanRead1RuntimeEntry;
+          return kSanRead1RuntimeEntry;
         case 2:
-          return kTsanRead2RuntimeEntry;
+          return kSanRead2RuntimeEntry;
         case 4:
-          return kTsanRead4RuntimeEntry;
+          return kSanRead4RuntimeEntry;
         case 8:
-          return kTsanRead8RuntimeEntry;
+          return kSanRead8RuntimeEntry;
         case 16:
-          return kTsanRead16RuntimeEntry;
+          return kSanRead16RuntimeEntry;
         default:
           UNREACHABLE();
       }
@@ -7321,11 +7321,11 @@ static LocationSummary* MakeTsanLocationSummary(Zone* zone,
   return result;
 }
 
-static void EmitTsanCall(FlowGraphCompiler* compiler,
-                         Instruction* instr,
-                         RegisterSet spill_set,
-                         Register saved_sp,
-                         std::function<const RuntimeEntry&()> move_parameters) {
+static void EmitSanCall(FlowGraphCompiler* compiler,
+                        Instruction* instr,
+                        RegisterSet spill_set,
+                        Register saved_sp,
+                        std::function<const RuntimeEntry&()> move_parameters) {
   ASSERT(IsCalleeSavedRegister(saved_sp));
   ASSERT(IsCalleeSavedRegister(THR));
 #if defined(TARGET_ARCH_X64)
@@ -7356,6 +7356,7 @@ static void EmitTsanCall(FlowGraphCompiler* compiler,
   __ Load(TMP, compiler::Address(THR, entry.OffsetFromThread()));
   __ Store(TMP,
            compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
+  __ Comment("Leaf runtime call: %s", entry.name());
   __ CallCFunction(TMP);
   compiler->AddCurrentDescriptor(UntaggedPcDescriptors::kOther, DeoptId::kNone,
                                  instr->source());
@@ -7372,16 +7373,16 @@ static void EmitTsanCall(FlowGraphCompiler* compiler,
   __ PopRegisters(spill_set);
 }
 
-static void EmitTsanCall(FlowGraphCompiler* compiler,
-                         Instruction* instr,
-                         std::function<const RuntimeEntry&()> move_parameters) {
-  EmitTsanCall(compiler, instr, RegisterSet(), instr->locs()->temp(0).reg(),
-               move_parameters);
+static void EmitSanCall(FlowGraphCompiler* compiler,
+                        Instruction* instr,
+                        std::function<const RuntimeEntry&()> move_parameters) {
+  EmitSanCall(compiler, instr, RegisterSet(), instr->locs()->temp(0).reg(),
+              move_parameters);
 }
 
-void EmitTsanCallUnopt(FlowGraphCompiler* compiler,
-                       Instruction* instr,
-                       std::function<const RuntimeEntry&()> move_parameters) {
+void EmitSanCallUnopt(FlowGraphCompiler* compiler,
+                      Instruction* instr,
+                      std::function<const RuntimeEntry&()> move_parameters) {
   intptr_t cpu_reg_mask = 0;
   intptr_t fpu_reg_mask = 0;
   LocationSummary* locs = instr->locs();
@@ -7392,8 +7393,8 @@ void EmitTsanCallUnopt(FlowGraphCompiler* compiler,
       fpu_reg_mask |= 1 << locs->in(i).fpu_reg();
     }
   }
-  EmitTsanCall(compiler, instr, RegisterSet(cpu_reg_mask, fpu_reg_mask),
-               CALLEE_SAVED_TEMP, move_parameters);
+  EmitSanCall(compiler, instr, RegisterSet(cpu_reg_mask, fpu_reg_mask),
+              CALLEE_SAVED_TEMP, move_parameters);
 }
 
 LocationSummary* TsanFuncEntryExitInstr::MakeLocationSummary(Zone* zone,
@@ -7404,7 +7405,7 @@ LocationSummary* TsanFuncEntryExitInstr::MakeLocationSummary(Zone* zone,
 void TsanFuncEntryExitInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->flow_graph().graph_entry()->NeedsFrame()) return;
 
-  EmitTsanCall(compiler, this, [&]() -> const RuntimeEntry& {
+  EmitSanCall(compiler, this, [&]() -> const RuntimeEntry& {
     if (kind_ == kEntry) {
       __ Load(
           CallingConventions::ArgumentRegisters[0],
@@ -7418,13 +7419,13 @@ void TsanFuncEntryExitInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   });
 }
 
-LocationSummary* TsanReadWriteInstr::MakeLocationSummary(Zone* zone,
-                                                         bool opt) const {
+LocationSummary* SanReadWriteInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
   return MakeTsanLocationSummary(zone, /*num_inputs=*/1);
 }
 
-void TsanReadWriteInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  EmitTsanCall(compiler, this, [&]() -> const RuntimeEntry& {
+void SanReadWriteInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  EmitSanCall(compiler, this, [&]() -> const RuntimeEntry& {
     const Register instance_reg = locs()->in(0).reg();
     intptr_t tag = slot().has_untagged_instance() ? 0 : kHeapObjectTag;
     __ AddImmediate(CallingConventions::ArgumentRegisters[0], instance_reg,
@@ -7434,30 +7435,30 @@ void TsanReadWriteInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (kind_ == Kind::kRead) {
       switch (size) {
         case 1:
-          return kTsanRead1RuntimeEntry;
+          return kSanRead1RuntimeEntry;
         case 2:
-          return kTsanRead2RuntimeEntry;
+          return kSanRead2RuntimeEntry;
         case 4:
-          return kTsanRead4RuntimeEntry;
+          return kSanRead4RuntimeEntry;
         case 8:
-          return kTsanRead8RuntimeEntry;
+          return kSanRead8RuntimeEntry;
         case 16:
-          return kTsanRead16RuntimeEntry;
+          return kSanRead16RuntimeEntry;
         default:
           UNREACHABLE();
       }
     } else if (kind_ == kWrite) {
       switch (size) {
         case 1:
-          return kTsanWrite1RuntimeEntry;
+          return kSanWrite1RuntimeEntry;
         case 2:
-          return kTsanWrite2RuntimeEntry;
+          return kSanWrite2RuntimeEntry;
         case 4:
-          return kTsanWrite4RuntimeEntry;
+          return kSanWrite4RuntimeEntry;
         case 8:
-          return kTsanWrite8RuntimeEntry;
+          return kSanWrite8RuntimeEntry;
         case 16:
-          return kTsanWrite16RuntimeEntry;
+          return kSanWrite16RuntimeEntry;
         default:
           UNREACHABLE();
       }
@@ -7466,14 +7467,13 @@ void TsanReadWriteInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   });
 }
 
-LocationSummary* TsanReadWriteIndexedInstr::MakeLocationSummary(
-    Zone* zone,
-    bool opt) const {
+LocationSummary* SanReadWriteIndexedInstr::MakeLocationSummary(Zone* zone,
+                                                               bool opt) const {
   return MakeTsanLocationSummary(zone, /*num_inputs=*/2);
 }
 
-void TsanReadWriteIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  EmitTsanCall(compiler, this, [&]() -> const RuntimeEntry& {
+void SanReadWriteIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  EmitSanCall(compiler, this, [&]() -> const RuntimeEntry& {
     const Register array_reg = locs()->in(kArrayPos).reg();
     Register index_reg = locs()->in(kIndexPos).reg();
 
@@ -7522,30 +7522,30 @@ void TsanReadWriteIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (kind_ == Kind::kRead) {
       switch (size) {
         case 1:
-          return kTsanRead1RuntimeEntry;
+          return kSanRead1RuntimeEntry;
         case 2:
-          return kTsanRead2RuntimeEntry;
+          return kSanRead2RuntimeEntry;
         case 4:
-          return kTsanRead4RuntimeEntry;
+          return kSanRead4RuntimeEntry;
         case 8:
-          return kTsanRead8RuntimeEntry;
+          return kSanRead8RuntimeEntry;
         case 16:
-          return kTsanRead16RuntimeEntry;
+          return kSanRead16RuntimeEntry;
         default:
           UNREACHABLE();
       }
     } else if (kind_ == kWrite) {
       switch (size) {
         case 1:
-          return kTsanWrite1RuntimeEntry;
+          return kSanWrite1RuntimeEntry;
         case 2:
-          return kTsanWrite2RuntimeEntry;
+          return kSanWrite2RuntimeEntry;
         case 4:
-          return kTsanWrite4RuntimeEntry;
+          return kSanWrite4RuntimeEntry;
         case 8:
-          return kTsanWrite8RuntimeEntry;
+          return kSanWrite8RuntimeEntry;
         case 16:
-          return kTsanWrite16RuntimeEntry;
+          return kSanWrite16RuntimeEntry;
         default:
           UNREACHABLE();
       }
@@ -7644,20 +7644,6 @@ void NativeCallInstr::SetupNative() {
   set_is_auto_scope(auto_setup_scope);
   set_native_c_function(native_function);
 }
-
-#if !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_ARM64) &&                \
-    !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
-
-LocationSummary* BitCastInstr::MakeLocationSummary(Zone* zone, bool opt) const {
-  UNREACHABLE();
-}
-
-void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
-}
-
-#endif  // !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_ARM64) &&         \
-        // !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
 
 Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
   if (idx < TargetAddressIndex()) {
@@ -8085,21 +8071,21 @@ void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->is_optimizing() && FLAG_target_thread_sanitizer &&
       !slot().is_no_sanitize_thread() &&
       memory_order() == compiler::Assembler::kRelaxedNonAtomic) {
-    EmitTsanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
+    EmitSanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
       intptr_t tag = slot().has_untagged_instance() ? 0 : kHeapObjectTag;
       __ AddImmediate(CallingConventions::ArgumentRegisters[0], instance_reg,
                       slot().offset_in_bytes() - tag);
       switch (RepresentationUtils::ValueSize(rep)) {
         case 1:
-          return kTsanWrite1RuntimeEntry;
+          return kSanWrite1RuntimeEntry;
         case 2:
-          return kTsanWrite2RuntimeEntry;
+          return kSanWrite2RuntimeEntry;
         case 4:
-          return kTsanWrite4RuntimeEntry;
+          return kSanWrite4RuntimeEntry;
         case 8:
-          return kTsanWrite8RuntimeEntry;
+          return kSanWrite8RuntimeEntry;
         case 16:
-          return kTsanWrite16RuntimeEntry;
+          return kSanWrite16RuntimeEntry;
         default:
           UNREACHABLE();
       }
