@@ -596,19 +596,23 @@ void OS::DebugBreak() {
 namespace {
 void PerfCtrlDisable() {
   if (FLAG_perf_ctl_fd > 0 && FLAG_perf_ctl_fd_ack > 0) {
-    write(FLAG_perf_ctl_fd, "disable", 7);
+    ssize_t result = write(FLAG_perf_ctl_fd, "disable", 7);
+    ASSERT_EQUAL(result, 7);
     char ack[5];
     // We'll just assume this returns "ack\n\0";
-    read(FLAG_perf_ctl_fd_ack, ack, 5);
+    result = read(FLAG_perf_ctl_fd_ack, ack, 5);
+    ASSERT_EQUAL(result, 5);
   }
 }
 
 void PerfCtrlEnable() {
   if (FLAG_perf_ctl_fd > 0 && FLAG_perf_ctl_fd_ack > 0) {
-    write(FLAG_perf_ctl_fd, "enable", 6);
+    ssize_t result = write(FLAG_perf_ctl_fd, "enable", 6);
+    ASSERT_EQUAL(result, 6);
     char ack[5];
     // We'll just assume this returns "ack\n\0";
-    read(FLAG_perf_ctl_fd_ack, ack, 5);
+    result = read(FLAG_perf_ctl_fd_ack, ack, 5);
+    ASSERT_EQUAL(result, 5);
   }
 }
 }  // namespace
