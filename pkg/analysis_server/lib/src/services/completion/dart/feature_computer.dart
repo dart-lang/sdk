@@ -1434,6 +1434,8 @@ extension on ArgumentList {
       if (parent.parent case EnumConstantDeclaration enumConstantDeclaration) {
         return enumConstantDeclaration.constructorElement?.type;
       }
+    } else if (parent case Annotation(:ExecutableElement element)) {
+      return element.type;
     }
     return null;
   }

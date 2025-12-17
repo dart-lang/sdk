@@ -17,6 +17,26 @@ class DotShorthandPropertyAccessTest extends AbstractCompletionDriverTest
     with DotShorthandPropertyAccessTestCases {}
 
 mixin DotShorthandPropertyAccessTestCases on AbstractCompletionDriverTest {
+  Future<void> test_annotationArgumentList() async {
+    allowedIdentifiers = {'one', 'two'};
+    await computeSuggestions('''
+enum E { one, two }
+
+@C(.^)
+class C {
+  final E e;
+  const C(this.e);
+}
+''');
+    assertResponse(r'''
+suggestions
+  one
+    kind: enumConstant
+  two
+    kind: enumConstant
+''');
+  }
+
   Future<void> test_class() async {
     allowedIdentifiers = {'getter', 'notStatic'};
     await computeSuggestions('''

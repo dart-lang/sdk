@@ -505,6 +505,18 @@ void f() {
 ''', 'String');
   }
 
+  Future<void> test_dotShorthand_annotation() async {
+    await assertContextType('''
+enum E { one, two }
+
+@C(.^)
+class C {
+  final E e;
+  const C(this.e);
+}
+''', 'E');
+  }
+
   Future<void> test_dotShorthand_difference() async {
     await assertContextType('''
 enum E { a }
