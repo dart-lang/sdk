@@ -33,6 +33,9 @@
 * Deprecate `LibraryElement.isSynthetic`, use `isOriginNotExistingFile` instead.
 * Document that the class `SyntacticEntity` is not intended to be subclassed by
   clients.
+* Deprecate `DiagnosticCode.name` and `DiagnosticCode.uniqueName`. Use
+  `DiagnosticCode.lowerCaseName` and `DiagnosticCode.lowerCaseUniqueName`
+  instead.
 
 ## 9.0.0
 * Remove deprecated field `Diagnostic.data`.

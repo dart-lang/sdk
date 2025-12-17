@@ -311,23 +311,31 @@ extension on InterfaceElementImpl {
         return element.isBase;
       case MixinElementImpl element:
         return element.isBase;
+      case EnumElementImpl():
+      case ExtensionTypeElementImpl():
+        return false;
     }
-    return false;
   }
 
   bool get isFinal {
     switch (this) {
       case ClassElementImpl element:
         return element.isFinal;
+      case EnumElementImpl():
+      case ExtensionTypeElementImpl():
+      case MixinElementImpl():
+        return false;
     }
-    return false;
   }
 
   bool get isSealed {
     switch (this) {
       case ClassElementImpl element:
         return element.isSealed;
+      case EnumElementImpl():
+      case ExtensionTypeElementImpl():
+      case MixinElementImpl():
+        return false;
     }
-    return false;
   }
 }

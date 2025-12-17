@@ -5998,6 +5998,14 @@ void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+LocationSummary* BitCastInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+  UNREACHABLE();
+}
+
+void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
+}
+
 void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   BlockEntryInstr* entry = normal_entry();
   if (entry != nullptr) {

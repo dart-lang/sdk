@@ -287,7 +287,8 @@ class ArgumentAllocator : public ValueObject {
                   offset, Utils::Minimum<intptr_t>(size, offset + 8)))) {
             const intptr_t reg_index = FirstFreeFpuRegisterIndex(kQuadFpuReg);
             AllocateFpuRegisterAtIndex(kQuadFpuReg, reg_index);
-            const auto& type = *new (zone_) NativePrimitiveType(kDouble);
+            const auto& type = *new (zone_) NativePrimitiveType(
+                size - offset == 4 ? kFloat : kDouble);
             multiple_locations.Add(new (zone_) NativeFpuRegistersLocation(
                 type, type, kQuadFpuReg, reg_index));
           } else {

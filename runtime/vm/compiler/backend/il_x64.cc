@@ -1846,20 +1846,20 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   auto const rep =
       RepresentationUtils::RepresentationOfArrayElement(class_id());
 
-  if (!compiler->is_optimizing() && FLAG_target_thread_sanitizer) {
-    EmitTsanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
+  if (!compiler->is_optimizing() && sanitize()) {
+    EmitSanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
       __ leaq(CallingConventions::ArgumentRegisters[0], element_address);
       switch (RepresentationUtils::ValueSize(rep)) {
         case 1:
-          return kTsanRead1RuntimeEntry;
+          return kSanRead1RuntimeEntry;
         case 2:
-          return kTsanRead2RuntimeEntry;
+          return kSanRead2RuntimeEntry;
         case 4:
-          return kTsanRead4RuntimeEntry;
+          return kSanRead4RuntimeEntry;
         case 8:
-          return kTsanRead8RuntimeEntry;
+          return kSanRead8RuntimeEntry;
         case 16:
-          return kTsanRead16RuntimeEntry;
+          return kSanRead16RuntimeEntry;
         default:
           UNREACHABLE();
       }
@@ -2052,20 +2052,20 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   auto const rep =
       RepresentationUtils::RepresentationOfArrayElement(class_id());
 
-  if (!compiler->is_optimizing() && FLAG_target_thread_sanitizer) {
-    EmitTsanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
+  if (!compiler->is_optimizing() && sanitize()) {
+    EmitSanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
       __ leaq(CallingConventions::ArgumentRegisters[0], element_address);
       switch (RepresentationUtils::ValueSize(rep)) {
         case 1:
-          return kTsanWrite1RuntimeEntry;
+          return kSanWrite1RuntimeEntry;
         case 2:
-          return kTsanWrite2RuntimeEntry;
+          return kSanWrite2RuntimeEntry;
         case 4:
-          return kTsanWrite4RuntimeEntry;
+          return kSanWrite4RuntimeEntry;
         case 8:
-          return kTsanWrite8RuntimeEntry;
+          return kSanWrite8RuntimeEntry;
         case 16:
-          return kTsanWrite16RuntimeEntry;
+          return kSanWrite16RuntimeEntry;
         default:
           UNREACHABLE();
       }
@@ -2136,13 +2136,6 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   } else {
     UNREACHABLE();
-  }
-
-  if (FLAG_target_memory_sanitizer) {
-    __ leaq(TMP, element_address);
-    const intptr_t length_in_bytes = RepresentationUtils::ValueSize(
-        RepresentationUtils::RepresentationOfArrayElement(class_id()));
-    __ MsanUnpoison(TMP, length_in_bytes);
   }
 }
 
@@ -6354,6 +6347,45 @@ void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(from() == kUnboxedInt32);
       __ movsxd(out, value);
     }
+  } else {
+    UNREACHABLE();
+  }
+}
+
+LocationSummary* BitCastInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, InputCount(),
+                                 /*temp_count=*/0, LocationSummary::kNoCall);
+  switch (from()) {
+    case kUnboxedInt32:
+      summary->set_in(0, Location::RequiresRegister());
+      break;
+      break;
+    case kUnboxedFloat:
+      summary->set_in(0, Location::RequiresFpuRegister());
+      break;
+    default:
+      UNREACHABLE();
+  }
+
+  switch (to()) {
+    case kUnboxedInt32:
+      summary->set_out(0, Location::RequiresRegister());
+      break;
+    case kUnboxedFloat:
+      summary->set_out(0, Location::RequiresFpuRegister());
+      break;
+    default:
+      UNREACHABLE();
+  }
+  return summary;
+}
+
+void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (from() == kUnboxedFloat && to() == kUnboxedInt32) {
+    __ movl(locs()->out(0).reg(), locs()->in(0).fpu_reg());
+  } else if (from() == kUnboxedInt32 && to() == kUnboxedFloat) {
+    __ movd(locs()->out(0).fpu_reg(), locs()->in(0).reg());
   } else {
     UNREACHABLE();
   }

@@ -215,11 +215,9 @@ abstract class DiagnosticCode {
   /// Regular expression for identifying positional arguments in error messages.
   static final RegExp _positionalArgumentRegExp = new RegExp(r'\{(\d+)\}');
 
-  /// The name of the error code.
-  final String name;
+  final String _name;
 
-  /// The unique name of this error code.
-  final String uniqueName;
+  final String _uniqueName;
 
   final String _problemMessage;
 
@@ -240,10 +238,12 @@ abstract class DiagnosticCode {
     String? correctionMessage,
     this.hasPublishedDocs = false,
     this.isUnresolvedIdentifier = false,
-    required this.name,
+    required String name,
     required String problemMessage,
-    required this.uniqueName,
-  }) : _correctionMessage = correctionMessage,
+    required String uniqueName,
+  }) : _name = name,
+       _uniqueName = uniqueName,
+       _correctionMessage = correctionMessage,
        _problemMessage = problemMessage;
 
   /// The template used to create the correction to be displayed for this
@@ -261,16 +261,17 @@ abstract class DiagnosticCode {
   bool get isIgnorable => severity != DiagnosticSeverity.ERROR;
 
   /// The name of the error code, converted to all lower case.
-  ///
-  /// This should be used instead of [name] to ensure that diagnostic codes are
-  /// matched in case-insensitive fashion.
-  String get lowerCaseName => name.toLowerCase();
+  String get lowerCaseName => _name.toLowerCase();
 
   /// The unique name of this error code, converted to all lower case.
+  String get lowerCaseUniqueName => _uniqueName.toLowerCase();
+
+  /// The name of the error code.
   ///
-  /// This should be used instead of [uniqueName] to ensure that diagnostic
-  /// codes are matched in case-insensitive fashion.
-  String get lowerCaseUniqueName => uniqueName.toLowerCase();
+  /// Deprecated. Please use [lowerCaseName] instead so that names are matched
+  /// in a case insensitive fashion.
+  @Deprecated('Please use lowerCaseName')
+  String get name => _name;
 
   int get numParameters {
     int result = 0;
@@ -297,6 +298,13 @@ abstract class DiagnosticCode {
 
   /// The type of the error.
   DiagnosticType get type;
+
+  /// The unique name of this error code.
+  ///
+  /// Deprecated. Please use [lowerCaseUniqueName] instead so that names are
+  /// matched in a case insensitive fashion.
+  @Deprecated('Please use lowerCaseUniqueName')
+  String get uniqueName => _uniqueName;
 
   /// Return a URL that can be used to access documentation for diagnostics with
   /// this code, or `null` if there is no published documentation.

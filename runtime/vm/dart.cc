@@ -313,6 +313,12 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   if (!Flags::Initialized()) {
     return Utils::StrDup("VM initialization failed-VM Flags not initialized.");
   }
+  if (((FLAG_target_address_sanitizer ? 1 : 0) +
+       (FLAG_target_memory_sanitizer ? 1 : 0) +
+       (FLAG_target_thread_sanitizer ? 1 : 0)) > 1) {
+    return Utils::StrDup("Can only target one sanitizer at a time");
+  }
+
   if (vm_isolate_ != nullptr) {
     return Utils::StrDup("VM initialization is in an inconsistent state.");
   }

@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "platform/address_sanitizer.h"
 #include "platform/globals.h"
 #include "platform/memory_sanitizer.h"
 #include "platform/thread_sanitizer.h"
@@ -5247,7 +5248,38 @@ DEFINE_RUNTIME_ENTRY(InitializeSharedField, 1) {
   arguments.SetReturn(result);
 }
 
-#if !defined(USING_MEMORY_SANITIZER)
+#if defined(USING_MEMORY_SANITIZER)
+extern "C" void dart_msan_read1(void* addr) {
+  __msan_check_mem_is_initialized(addr, 1);
+}
+extern "C" void dart_msan_read2(void* addr) {
+  __msan_check_mem_is_initialized(addr, 2);
+}
+extern "C" void dart_msan_read4(void* addr) {
+  __msan_check_mem_is_initialized(addr, 4);
+}
+extern "C" void dart_msan_read8(void* addr) {
+  __msan_check_mem_is_initialized(addr, 8);
+}
+extern "C" void dart_msan_read16(void* addr) {
+  __msan_check_mem_is_initialized(addr, 16);
+}
+extern "C" void dart_msan_write1(void* addr) {
+  __msan_unpoison(addr, 1);
+}
+extern "C" void dart_msan_write2(void* addr) {
+  __msan_unpoison(addr, 2);
+}
+extern "C" void dart_msan_write4(void* addr) {
+  __msan_unpoison(addr, 4);
+}
+extern "C" void dart_msan_write8(void* addr) {
+  __msan_unpoison(addr, 8);
+}
+extern "C" void dart_msan_write16(void* addr) {
+  __msan_unpoison(addr, 16);
+}
+#else
 extern "C" void __msan_unpoison(const volatile void*, size_t) {
   UNREACHABLE();
 }
@@ -5337,37 +5369,62 @@ dart_tsan_func_entry(void* pc) {
 }
 #endif
 
-// These runtime entries are defined even when not using MSAN / TSAN to keep
-// offsets on Thread consistent.
+// These runtime entries are defined even when not using ASAN / MSAN / TSAN to
+// keep offsets on Thread consistent.
 DEFINE_LEAF_RUNTIME_ENTRY(MsanUnpoison, 2, __msan_unpoison);
 DEFINE_LEAF_RUNTIME_ENTRY(MsanUnpoisonParam, 1, __msan_unpoison_param);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic32Load, 2, __tsan_atomic32_load);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic32Store, 3, __tsan_atomic32_store);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic64Load, 2, __tsan_atomic64_load);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic64Store, 3, __tsan_atomic64_store);
+#if defined(USING_ADDRESS_SANITIZER)
+DEFINE_LEAF_RUNTIME_ENTRY(SanRead1, 1, __asan_load1);
+DEFINE_LEAF_RUNTIME_ENTRY(SanRead2, 1, __asan_load2);
+DEFINE_LEAF_RUNTIME_ENTRY(SanRead4, 1, __asan_load4);
+DEFINE_LEAF_RUNTIME_ENTRY(SanRead8, 1, __asan_load8);
+DEFINE_LEAF_RUNTIME_ENTRY(SanRead16, 1, __asan_load16);
+DEFINE_LEAF_RUNTIME_ENTRY(SanWrite1, 1, __asan_store1);
+DEFINE_LEAF_RUNTIME_ENTRY(SanWrite2, 1, __asan_store2);
+DEFINE_LEAF_RUNTIME_ENTRY(SanWrite4, 1, __asan_store4);
+DEFINE_LEAF_RUNTIME_ENTRY(SanWrite8, 1, __asan_store8);
+DEFINE_LEAF_RUNTIME_ENTRY(SanWrite16, 1, __asan_store16);
+#elif defined(USING_MEMORY_SANITIZER)
+DEFINE_LEAF_RUNTIME_ENTRY(SanRead1, 1, dart_msan_read1);
+DEFINE_LEAF_RUNTIME_ENTRY(SanRead2, 1, dart_msan_read2);
+DEFINE_LEAF_RUNTIME_ENTRY(SanRead4, 1, dart_msan_read4);
+DEFINE_LEAF_RUNTIME_ENTRY(SanRead8, 1, dart_msan_read8);
+DEFINE_LEAF_RUNTIME_ENTRY(SanRead16, 1, dart_msan_read16);
+DEFINE_LEAF_RUNTIME_ENTRY(SanWrite1, 1, dart_msan_write1);
+DEFINE_LEAF_RUNTIME_ENTRY(SanWrite2, 1, dart_msan_write2);
+DEFINE_LEAF_RUNTIME_ENTRY(SanWrite4, 1, dart_msan_write4);
+DEFINE_LEAF_RUNTIME_ENTRY(SanWrite8, 1, dart_msan_write8);
+DEFINE_LEAF_RUNTIME_ENTRY(SanWrite16, 1, dart_msan_write16);
+#elif defined(USING_THREAD_SANITIZER) && !defined(DART_PRECOMPILED_RUNTIME)
+DEFINE_LEAF_RUNTIME_ENTRY(SanRead1, 1, dart_tsan_read1);
+DEFINE_LEAF_RUNTIME_ENTRY(SanRead2, 1, dart_tsan_read2);
+DEFINE_LEAF_RUNTIME_ENTRY(SanRead4, 1, dart_tsan_read4);
+DEFINE_LEAF_RUNTIME_ENTRY(SanRead8, 1, dart_tsan_read8);
+DEFINE_LEAF_RUNTIME_ENTRY(SanRead16, 1, dart_tsan_read16);
+DEFINE_LEAF_RUNTIME_ENTRY(SanWrite1, 1, dart_tsan_write1);
+DEFINE_LEAF_RUNTIME_ENTRY(SanWrite2, 1, dart_tsan_write2);
+DEFINE_LEAF_RUNTIME_ENTRY(SanWrite4, 1, dart_tsan_write4);
+DEFINE_LEAF_RUNTIME_ENTRY(SanWrite8, 1, dart_tsan_write8);
+DEFINE_LEAF_RUNTIME_ENTRY(SanWrite16, 1, dart_tsan_write16);
+#else
+DEFINE_LEAF_RUNTIME_ENTRY(SanRead1, 1, __tsan_read1);
+DEFINE_LEAF_RUNTIME_ENTRY(SanRead2, 1, __tsan_read2);
+DEFINE_LEAF_RUNTIME_ENTRY(SanRead4, 1, __tsan_read4);
+DEFINE_LEAF_RUNTIME_ENTRY(SanRead8, 1, __tsan_read8);
+DEFINE_LEAF_RUNTIME_ENTRY(SanRead16, 1, __tsan_read16);
+DEFINE_LEAF_RUNTIME_ENTRY(SanWrite1, 1, __tsan_write1);
+DEFINE_LEAF_RUNTIME_ENTRY(SanWrite2, 1, __tsan_write2);
+DEFINE_LEAF_RUNTIME_ENTRY(SanWrite4, 1, __tsan_write4);
+DEFINE_LEAF_RUNTIME_ENTRY(SanWrite8, 1, __tsan_write8);
+DEFINE_LEAF_RUNTIME_ENTRY(SanWrite16, 1, __tsan_write16);
+#endif
 #if defined(USING_THREAD_SANITIZER) && !defined(DART_PRECOMPILED_RUNTIME)
-DEFINE_LEAF_RUNTIME_ENTRY(TsanRead1, 1, dart_tsan_read1);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanRead2, 1, dart_tsan_read2);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanRead4, 1, dart_tsan_read4);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanRead8, 1, dart_tsan_read8);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanRead16, 1, dart_tsan_read16);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite1, 1, dart_tsan_write1);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite2, 1, dart_tsan_write2);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite4, 1, dart_tsan_write4);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite8, 1, dart_tsan_write8);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite16, 1, dart_tsan_write16);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanFuncEntry, 1, dart_tsan_func_entry);
 #else
-DEFINE_LEAF_RUNTIME_ENTRY(TsanRead1, 1, __tsan_read1);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanRead2, 1, __tsan_read2);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanRead4, 1, __tsan_read4);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanRead8, 1, __tsan_read8);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanRead16, 1, __tsan_read16);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite1, 1, __tsan_write1);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite2, 1, __tsan_write2);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite4, 1, __tsan_write4);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite8, 1, __tsan_write8);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite16, 1, __tsan_write16);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanFuncEntry, 1, __tsan_func_entry);
 #endif
 DEFINE_LEAF_RUNTIME_ENTRY(TsanFuncExit, 0, __tsan_func_exit);
