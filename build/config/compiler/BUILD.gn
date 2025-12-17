@@ -38,6 +38,13 @@ config("default_include_dirs") {
   ]
 }
 
+if (is_win && is_asan) {
+  copy("copy_sanitizer_runtime") {
+    sources = [ "//buildtools/win-x64/clang/lib/clang/22/lib/x86_64-pc-windows-msvc/clang_rt.asan_dynamic.dll" ]
+    outputs = [ "$root_out_dir/{{source_file_part}}" ]
+  }
+}
+
 # compiler ---------------------------------------------------------------------
 #
 # Base compiler configuration.
@@ -107,11 +114,38 @@ config("compiler") {
       ldflags += [ "-Wl,--fix-cortex-a53-843419" ]
     }
 
-    # Common options for AddressSanitizer, LeakSanitizer, ThreadSanitizer and
-    # MemorySanitizer
+    if (use_custom_libcxx) {
+      cflags_cc += [ "-nostdinc++" ]
+      include_dirs = [
+        "//buildtools/third_party/libc++/trunk/include",
+        "//buildtools/third_party/libc++abi/trunk/include",
+      ]
+    }
+  }
+
+  # Common options for AddressSanitizer, LeakSanitizer, ThreadSanitizer and
+  # MemorySanitizer
+  if (is_clang || !is_win) {
     if (is_asan) {
       cflags += [ "-fsanitize=address" ]
-      ldflags += [ "-fsanitize=address" ]
+      if (is_win) {
+        # Windows directly calls link.exe instead of the compiler driver when
+        # linking.  Hence, pass the runtime libraries instead of -fsanitize=address
+        # or -fsanitize=fuzzer.
+        _clang_lib_dir =
+            "//buildtools/win-x64/clang/lib/clang/22/lib/x86_64-pc-windows-msvc"
+        libs = [ "$_clang_lib_dir/clang_rt.asan_dynamic.lib" ]
+        ldflags += [ "-libpath:" + rebase_path("$_clang_lib_dir") ]
+        if (is_shared_library) {
+          ldflags += [ "-wholearchive:clang_rt.asan_dynamic_runtime_thunk.lib" ]
+          libs += [ "$_clang_lib_dir/clang_rt.asan_dynamic_runtime_thunk.lib" ]
+        } else {
+          ldflags += [ "-wholearchive:clang_rt.asan_static_runtime_thunk.lib" ]
+          libs += [ "$_clang_lib_dir/clang_rt.asan_static_runtime_thunk.lib" ]
+        }
+      } else {
+        ldflags += [ "-fsanitize=address" ]
+      }
     }
     if (is_hwasan && is_android && current_cpu == "arm64") {
       cflags += [ "-fsanitize=hwaddress" ]
@@ -154,14 +188,6 @@ config("compiler") {
         # Back from xcodebuild/ReleaseTSAN/dart-sdk/bin/dart
         "-rpath",
         "@loader_path/../../../../buildtools/mac-$host_cpu/clang/lib/clang/22/lib/darwin",
-      ]
-    }
-
-    if (use_custom_libcxx) {
-      cflags_cc += [ "-nostdinc++" ]
-      include_dirs = [
-        "//buildtools/third_party/libc++/trunk/include",
-        "//buildtools/third_party/libc++abi/trunk/include",
       ]
     }
   }
@@ -814,6 +840,12 @@ if (is_win) {
     # Warning: This changes C/C++ semantics of function pointer comparison.
     "/OPT:ICF",
   ]
+  if (is_clang) {
+    common_optimize_on_ldflags += [
+      # This interferes with ODR violation checks in ASAN.
+      "/OPT:NOLLDTAILMERGE",
+    ]
+  }
 } else {
   common_optimize_on_cflags = [
     # Don't emit the GCC version ident directives, they just end up in the

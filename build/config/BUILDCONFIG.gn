@@ -525,6 +525,12 @@ foreach(_target_type,
             ]
           }
         }
+        if (is_win && is_asan) {
+          if (!defined(data_deps)) {
+            data_deps = []
+          }
+          data_deps += [ "//build/config/compiler:copy_sanitizer_runtime" ]
+        }
       }
     }
   } else {
