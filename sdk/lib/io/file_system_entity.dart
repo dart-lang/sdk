@@ -894,8 +894,6 @@ abstract class FileSystemEntity {
 
   // TODO(bkonyi): find a way to do this with raw paths.
   static String _trimTrailingPathSeparators(String path) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(path, "path");
     if (Platform.isWindows) {
       // "C:" and "C:\" are semantically different on Windows and only "C:\" is an
       // absolute path.
