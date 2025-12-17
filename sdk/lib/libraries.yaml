@@ -527,6 +527,11 @@ dartdevc:
       uri: "developer/developer.dart"
       patches: "_internal/js_dev_runtime/patch/developer_patch.dart"
 
+    ffi:
+      uri: "ffi/ffi.dart"
+      patches: "_internal/js_dev_runtime/patch/ffi_patch.dart"
+      supported: false
+
     io:
       uri: "io/io.dart"
       patches: "_internal/js_dev_runtime/patch/io_patch.dart"

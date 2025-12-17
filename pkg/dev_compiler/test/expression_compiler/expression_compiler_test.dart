@@ -97,11 +97,13 @@ void runTests(SetupCompilerOptions setup) {
       import 'dart:io' show Directory;
       import 'dart:io' as p;
       import 'dart:convert' as p;
+      import 'dart:ffi' as ffi;
 
       main() {
         print(Directory.systemTemp);
         print(p.Directory.systemTemp);
         print(p.utf8.decoder);
+        print(ffi.Abi.current());
       }
 
       void foo() {
@@ -145,6 +147,14 @@ void runTests(SetupCompilerOptions setup) {
         );
       },
     );
+
+    test('expression referencing dart:ffi', () async {
+      await driver.check(
+        scope: <String, String>{},
+        expression: 'ffi.Abi.current()',
+        expectedResult: contains('return ffi.Abi.current();'),
+      );
+    });
   });
   group('Expression compiler package: import tests', () {
     var source = '''
