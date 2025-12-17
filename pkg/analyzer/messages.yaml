@@ -2048,8 +2048,8 @@ CompileTimeErrorCode:
   bodyMightCompleteNormally:
     type: compileTimeError
     parameters:
-      Type p0: the name of the return type
-    problemMessage: The body might complete normally, causing 'null' to be returned, but the return type, '#p0', is a potentially non-nullable type.
+      Type returnType: the name of the return type
+    problemMessage: The body might complete normally, causing 'null' to be returned, but the return type, '#returnType', is a potentially non-nullable type.
     correctionMessage: Try adding either a return or a throw statement at the end.
     hasPublishedDocs: true
     documentation: |-
@@ -2432,9 +2432,9 @@ CompileTimeErrorCode:
   caseExpressionTypeIsNotSwitchExpressionSubtype:
     type: compileTimeError
     parameters:
-      Type p0: the type of the case expression
-      Type p1: the type of the switch expression
-    problemMessage: "The switch case expression type '#p0' must be a subtype of the switch expression type '#p1'."
+      Type caseExpressionType: the type of the case expression
+      Type scrutineeType: the type of the switch expression
+    problemMessage: "The switch case expression type '#caseExpressionType' must be a subtype of the switch expression type '#scrutineeType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2554,9 +2554,9 @@ CompileTimeErrorCode:
   classInstantiationAccessToInstanceMember:
     type: compileTimeError
     parameters:
-      String p0: the name of the member
+      String name: the name of the member
     sharedName: classInstantiationAccessToMember
-    problemMessage: "The instance member '#p0' can't be accessed on a class instantiation."
+    problemMessage: "The instance member '#name' can't be accessed on a class instantiation."
     correctionMessage: Try changing the member name to the name of a constructor.
     hasPublishedDocs: false
   classInstantiationAccessToUnknownMember:
@@ -2571,9 +2571,9 @@ CompileTimeErrorCode:
   classInstantiationAccessToStaticMember:
     type: compileTimeError
     parameters:
-      String p0: the name of the member
+      String name: the name of the member
     sharedName: classInstantiationAccessToMember
-    problemMessage: "The static member '#p0' can't be accessed on a class instantiation."
+    problemMessage: "The static member '#name' can't be accessed on a class instantiation."
     correctionMessage: Try removing the type arguments from the class name, or changing the member name to the name of a constructor.
     hasPublishedDocs: false
   nonConstGenerativeEnumConstructor:
@@ -2855,10 +2855,10 @@ CompileTimeErrorCode:
   concreteClassWithAbstractMember:
     type: compileTimeError
     parameters:
-      String p0: the name of the abstract method
-      String p1: the name of the enclosing class
-    problemMessage: "'#p0' must have a method body because '#p1' isn't abstract."
-    correctionMessage: "Try making '#p1' abstract, or adding a body to '#p0'."
+      String methodName: the name of the abstract method
+      String enclosingClass: the name of the enclosing class
+    problemMessage: "'#methodName' must have a method body because '#enclosingClass' isn't abstract."
+    correctionMessage: "Try making '#enclosingClass' abstract, or adding a body to '#methodName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -5401,10 +5401,10 @@ CompileTimeErrorCode:
   enumWithAbstractMember:
     type: compileTimeError
     parameters:
-      String p0: the name of the abstract method
-      String p1: the name of the enclosing enum
-    problemMessage: "'#p0' must have a method body because '#p1' is an enum."
-    correctionMessage: "Try adding a body to '#p0'."
+      String methodName: the name of the abstract method
+      String enclosingClass: the name of the enclosing enum
+    problemMessage: "'#methodName' must have a method body because '#enclosingClass' is an enum."
+    correctionMessage: "Try adding a body to '#methodName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -7601,9 +7601,9 @@ CompileTimeErrorCode:
   forInOfInvalidType:
     type: compileTimeError
     parameters:
-      Type p0: the type of the iterable expression.
-      String p1: the sequence type -- Iterable for `for` or Stream for `await for`.
-    problemMessage: "The type '#p0' used in the 'for' loop must implement '#p1'."
+      Type expressionType: the type of the iterable expression.
+      String expectedType: the sequence type -- Iterable for `for` or Stream for `await for`.
+    problemMessage: "The type '#expressionType' used in the 'for' loop must implement '#expectedType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -8510,8 +8510,8 @@ CompileTimeErrorCode:
   inconsistentPatternVariableLogicalOr:
     type: compileTimeError
     parameters:
-      String p0: the name of the pattern variable
-    problemMessage: "The variable '#p0' has a different type and/or finality in this branch of the logical-or pattern."
+      String name: the name of the pattern variable
+    problemMessage: "The variable '#name' has a different type and/or finality in this branch of the logical-or pattern."
     correctionMessage: Try declaring the variable pattern with the same type and finality in both branches.
     hasPublishedDocs: true
     documentation: |-
@@ -14402,9 +14402,9 @@ CompileTimeErrorCode:
   patternTypeMismatchInIrrefutableContext:
     type: compileTimeError
     parameters:
-      Type p0: the matched type
-      Type p1: the required type
-    problemMessage: "The matched value of type '#p0' isn't assignable to the required type '#p1'."
+      Type matchedType: the matched type
+      Type requiredType: the required type
+    problemMessage: "The matched value of type '#matchedType' isn't assignable to the required type '#requiredType'."
     correctionMessage: "Try changing the required type of the pattern, or the matched value type."
     hasPublishedDocs: true
     documentation: |-
@@ -15870,10 +15870,10 @@ CompileTimeErrorCode:
   relationalPatternOperandTypeNotAssignable:
     type: compileTimeError
     parameters:
-      Type p0: the operand type
-      Type p1: the parameter type of the invoked operator
-      String p2: the name of the invoked operator
-    problemMessage: "The constant expression type '#p0' is not assignable to the parameter type '#p1' of the '#p2' operator."
+      Type operandType: the operand type
+      Type parameterType: the parameter type of the invoked operator
+      String operator: the name of the invoked operator
+    problemMessage: "The constant expression type '#operandType' is not assignable to the parameter type '#parameterType' of the '#operator' operator."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -24853,8 +24853,8 @@ WarningCode:
   bodyMightCompleteNormallyNullable:
     type: staticWarning
     parameters:
-      Type p0: the name of the declared return type
-    problemMessage: "This function has a nullable return type of '#p0', but ends without returning a value."
+      Type returnType: the name of the declared return type
+    problemMessage: "This function has a nullable return type of '#returnType', but ends without returning a value."
     correctionMessage: "Try adding a return statement, or if no value is ever returned, try changing the return type to 'void'."
     hasPublishedDocs: true
     documentation: |-

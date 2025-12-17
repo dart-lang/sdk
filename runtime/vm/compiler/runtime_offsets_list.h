@@ -233,6 +233,7 @@
   FIELD(SuspendState, pc_offset)                                               \
   FIELD(SuspendState, then_callback_offset)                                    \
   FIELD(Thread, AllocateArray_entry_point_offset)                              \
+  FIELD(Thread, DeoptimizeCopyFrame_entry_point_offset)                        \
   FIELD(Thread, active_exception_offset)                                       \
   FIELD(Thread, active_stacktrace_offset)                                      \
   FIELD(Thread, array_write_barrier_entry_point_offset)                        \
@@ -497,7 +498,8 @@
   PAYLOAD_SIZEOF(SuspendState, InstanceSize, HeaderSize)                       \
   PAYLOAD_SIZEOF(TypedData, InstanceSize, HeaderSize)                          \
   ENUM(StubCode, StubCode::StubNames)                                          \
-  ENUM(RuntimeEntry, RuntimeEntry::RuntimeEntryNames)
+  ENUM(RuntimeEntry, RuntimeEntry::RuntimeEntryNames)                          \
+  ENUM(LeafRuntimeEntry, RuntimeEntry::LeafRuntimeEntryNames)
 
 #define JIT_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF, PAYLOAD_SIZEOF,   \
                          RANGE, CONSTANT, ENUM)                                \

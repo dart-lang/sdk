@@ -1919,7 +1919,8 @@ abstract class AstCodeGenerator
     pushReceiver(signature);
 
     final targets = selector.targets(unchecked: useUncheckedEntry);
-    List<({Range range, Reference target})> targetRanges = targets.targetRanges;
+    List<({Range range, Reference target})> targetRanges =
+        targets.allTargetRanges;
     List<({Range range, Reference target})> staticDispatchRanges =
         targets.staticDispatchRanges;
 
@@ -5066,18 +5067,23 @@ extension MacroAssembler on w.InstructionsBuilder {
 
   List<w.ValueType> invoke(CallTarget target, {bool forceInline = false}) {
     if (target.supportsInlining && (target.shouldInline || forceInline)) {
-      final List<w.Local> inlinedLocals =
-          target.signature.inputs.map((t) => addLocal(t)).toList();
-      for (w.Local local in inlinedLocals.reversed) {
-        local_set(local);
-      }
-      final w.Label callBlock = block(const [], target.signature.outputs);
-      comment('Inlined ${target.name}');
-      target.inliningCodeGen.generate(this, inlinedLocals, callBlock);
-    } else {
-      comment('Direct call to ${target.name}');
-      call(target.function);
+      return inlineCallTo(target);
     }
+    comment('Direct call to ${target.name}');
+    call(target.function);
+    return emitUnreachableIfNoResult(target.signature.outputs);
+  }
+
+  List<w.ValueType> inlineCallTo(CallTarget target) {
+    assert(target.supportsInlining);
+    final List<w.Local> inlinedLocals =
+        target.signature.inputs.map((t) => addLocal(t)).toList();
+    for (w.Local local in inlinedLocals.reversed) {
+      local_set(local);
+    }
+    final w.Label callBlock = block(const [], target.signature.outputs);
+    comment('Inlined ${target.name}');
+    target.inliningCodeGen.generate(this, inlinedLocals, callBlock);
     return emitUnreachableIfNoResult(target.signature.outputs);
   }
 

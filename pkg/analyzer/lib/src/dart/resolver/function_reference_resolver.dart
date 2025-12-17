@@ -92,22 +92,22 @@ class FunctionReferenceResolver {
     TypeArgumentList typeArgumentList,
     String? name,
     List<TypeParameterElement> typeParameters,
-    DiagnosticCode errorCode,
+    DiagnosticCode diagnosticCode,
   ) {
     if (typeArgumentList.arguments.length != typeParameters.length) {
       if (name == null &&
-          errorCode == diag.wrongNumberOfTypeArgumentsFunction) {
-        errorCode = diag.wrongNumberOfTypeArgumentsAnonymousFunction;
+          diagnosticCode == diag.wrongNumberOfTypeArgumentsFunction) {
+        diagnosticCode = diag.wrongNumberOfTypeArgumentsAnonymousFunction;
         _diagnosticReporter.atNode(
           typeArgumentList,
-          errorCode,
+          diagnosticCode,
           arguments: [typeParameters.length, typeArgumentList.arguments.length],
         );
       } else {
         assert(name != null);
         _diagnosticReporter.atNode(
           typeArgumentList,
-          errorCode,
+          diagnosticCode,
           arguments: [
             name!,
             typeParameters.length,

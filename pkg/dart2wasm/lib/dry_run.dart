@@ -169,7 +169,7 @@ class DryRunSummarizer {
             if (errorCode != null) {
               errors.add(_DryRunError(
                   errorCode,
-                  '${diagnostic.diagnosticCode.name} lint violation: '
+                  '${diagnostic.diagnosticCode.lowerCaseName} lint violation: '
                   '${diagnostic.message}',
                   errorSourceUri: uri,
                   errorLocation: component.getLocation(

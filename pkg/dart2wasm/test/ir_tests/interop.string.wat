@@ -4,13 +4,10 @@
   (type $JSStringImpl (sub final $#Top (struct
     (field $field0 i32)
     (field $_ref externref))))
-  (func $"dart2wasm._294 (import)" (import "dart2wasm" "_294") (param externref) (result externref))
-  (func $"dart2wasm._295 (import)" (import "dart2wasm" "_295") (param externref) (result externref))
+  (func $"dart2wasm._292 (import)" (import "dart2wasm" "_292") (param externref) (result externref))
+  (func $"dart2wasm._293 (import)" (import "dart2wasm" "_293") (param externref) (result externref))
   (global $.a (import "" "a") (ref extern))
-  (global $"ktrue initialized" (mut i32) <...>)
   (global $"stringValueNullable initialized" (mut i32) <...>)
-  (global $ktrue (mut i32) <...>)
-  (global $stringValue (mut (ref null $JSStringImpl)) <...>)
   (global $stringValueNullable (mut (ref null $JSStringImpl)) <...>)
   (func $_throwArgumentNullError <noInline>  <...>)
   (func $ktrue implicit getter (result i32) <...>)
@@ -21,7 +18,7 @@
   (func $"testStringConstant <noInline>"
     (local $var0 externref)
     global.get $.a
-    call $"dart2wasm._294 (import)"
+    call $"dart2wasm._292 (import)"
     local.tee $var0
     call $isDartNull
     if (result (ref $JSStringImpl))
@@ -36,7 +33,7 @@
   (func $"testStringConstantNullable <noInline>"
     (local $var0 externref)
     ref.null noextern
-    call $"dart2wasm._295 (import)"
+    call $"dart2wasm._293 (import)"
     local.tee $var0
     call $isDartNull
     if (result (ref null $JSStringImpl))
@@ -49,13 +46,9 @@
   )
   (func $"testStringValue <noInline>"
     (local $var0 externref)
-    block $label0 (result (ref $JSStringImpl))
-      global.get $stringValue
-      br_on_non_null $label0
-      call $"stringValue implicit getter"
-    end $label0
+    call $"stringValue implicit getter"
     struct.get $JSStringImpl $_ref
-    call $"dart2wasm._294 (import)"
+    call $"dart2wasm._292 (import)"
     local.tee $var0
     call $isDartNull
     if (result (ref $JSStringImpl))
@@ -73,18 +66,9 @@
     global.get $"stringValueNullable initialized"
     i32.eqz
     if
-      global.get $"ktrue initialized"
-      if (result i32)
-        global.get $ktrue
-      else
-        call $"ktrue implicit getter"
-      end
+      call $"ktrue implicit getter"
       if (result (ref null $JSStringImpl))
-        block $label0 (result (ref $JSStringImpl))
-          global.get $stringValue
-          br_on_non_null $label0
-          call $"stringValue implicit getter"
-        end $label0
+        call $"stringValue implicit getter"
       else
         ref.null none
       end
@@ -101,7 +85,7 @@
       local.get $var0
       call $jsifyRaw
     end
-    call $"dart2wasm._295 (import)"
+    call $"dart2wasm._293 (import)"
     local.tee $var1
     call $isDartNull
     if (result (ref null $JSStringImpl))

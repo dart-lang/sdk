@@ -3990,6 +3990,9 @@ class EquivalenceStrategy {
     if (!checkFunctionNode_scope(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkFunctionNode_contexts(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkFunctionNode_emittedValueType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -8384,6 +8387,12 @@ class EquivalenceStrategy {
   bool checkFunctionNode_scope(
       EquivalenceVisitor visitor, FunctionNode node, FunctionNode other) {
     return visitor.checkNodes(node.scope, other.scope, 'scope');
+  }
+
+  bool checkFunctionNode_contexts(
+      EquivalenceVisitor visitor, FunctionNode node, FunctionNode other) {
+    return visitor.checkLists(
+        node.contexts, other.contexts, visitor.checkNodes, 'contexts');
   }
 
   bool checkFunctionNode_emittedValueType(

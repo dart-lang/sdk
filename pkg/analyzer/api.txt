@@ -1943,6 +1943,7 @@ package:analyzer/dart/ast/syntactic_entity.dart:
     end (getter: int)
     length (getter: int)
     offset (getter: int)
+    sourceRange (getter: SourceRange)
 package:analyzer/dart/ast/token.dart:
   CommentToken (class extends StringToken):
     new (constructor: CommentToken Function(TokenType, String, int))
@@ -5069,7 +5070,7 @@ package:_fe_analyzer_shared/src/scanner/token.dart:
     pseudo (static getter: KeywordStyle)
     reserved (static getter: KeywordStyle)
     values (static getter: List<KeywordStyle>)
-  SimpleToken (class extends Object implements Token):
+  SimpleToken (class extends SyntacticEntity implements Token):
     new (constructor: SimpleToken Function(TokenType, int, [CommentToken?]))
     beforeSynthetic (getter: Token?)
     beforeSynthetic= (setter: Token?)

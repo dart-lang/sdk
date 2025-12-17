@@ -64,8 +64,8 @@ class Scanner {
 
   /// Initialize a newly created scanner to scan characters from the given
   /// [source]. The given character [reader] will be used to read the characters
-  /// in the source. The given [_diagnosticListener] will be informed of any errors
-  /// that are found.
+  /// in the source. The given [_diagnosticListener] will be informed of any
+  /// errors that are found.
   factory Scanner(
     Source source,
     CharacterReader reader,
@@ -128,7 +128,7 @@ class Scanner {
   }
 
   void reportError(
-    DiagnosticCode errorCode,
+    DiagnosticCode diagnosticCode,
     int offset,
     List<Object?>? arguments,
   ) {
@@ -137,7 +137,7 @@ class Scanner {
         source: source,
         offset: offset,
         length: 1,
-        diagnosticCode: errorCode,
+        diagnosticCode: diagnosticCode,
         arguments: arguments ?? const [],
       ),
     );

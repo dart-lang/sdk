@@ -56,6 +56,15 @@
 - Fixes to the 'Extract Widget' refactoring.
 - (Thanks [@FMorschel](https://github.com/FMorschel) and
   [@DanTup](https://github.com/DanTup) for many of the above enhancements!)
+- The `avoid_null_checks_in_equality_operators` lint rule is now deprecated.
+- The `prefer_final_parameters` lint rule is now deprecated.
+- The `use_if_null_to_convert_nulls_to_bools` lint rule is now deprecated.
+
+#### Dart Development Compiler (dartdevc)
+- The async timing of the `Future` returned by `deferred_prefix.loadLibrary()`
+  is now consistent regardless if proper deferred imports are supported in the
+  runtime environment or not. This makes the timing more consistent with dart2js
+  where the loads are always an async operation.
 
 #### Pub
 

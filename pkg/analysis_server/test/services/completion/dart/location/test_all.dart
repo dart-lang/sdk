@@ -65,6 +65,8 @@ import 'parameter_list_test.dart' as parameter_list;
 import 'parenthesized_pattern_test.dart' as parenthesized_pattern;
 import 'pattern_assignment_test.dart' as pattern_assignment;
 import 'pattern_variable_declaration_test.dart' as pattern_variable_declaration;
+import 'primary_constructor_declaration_test.dart'
+    as primary_constructor_declaration;
 import 'property_access_expression_test.dart' as property_access_expression;
 import 'record_literal_test.dart' as record_literal;
 import 'record_pattern_test.dart' as record_pattern;
@@ -150,6 +152,7 @@ void main() {
     parenthesized_pattern.main();
     pattern_assignment.main();
     pattern_variable_declaration.main();
+    primary_constructor_declaration.main();
     property_access_expression.main();
     record_literal.main();
     record_pattern.main();

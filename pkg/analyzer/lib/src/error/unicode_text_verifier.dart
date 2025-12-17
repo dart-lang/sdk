@@ -23,7 +23,7 @@ class UnicodeTextVerifier {
         // If it's not in a string literal, we assume we're in a comment.
         // This can potentially over-report on syntactically incorrect sources
         // (where Unicode is outside a string or comment).
-        var errorCode =
+        var diagnosticCode =
             node is SimpleStringLiteral || node is InterpolationString
             ? diag.textDirectionCodePointInLiteral
             : diag.textDirectionCodePointInComment;
@@ -31,7 +31,7 @@ class UnicodeTextVerifier {
         _diagnosticReporter.atOffset(
           offset: offset,
           length: 1,
-          diagnosticCode: errorCode,
+          diagnosticCode: diagnosticCode,
           arguments: [code],
         );
       }

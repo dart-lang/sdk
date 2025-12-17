@@ -75,7 +75,8 @@ class SelectorInfo {
 
   SelectorTargets targets({required bool unchecked}) {
     if (useMultipleEntryPoints) {
-      assert(_checked!.targetRanges.length == _unchecked!.targetRanges.length);
+      assert(_checked!.allTargetRanges.length ==
+          _unchecked!.allTargetRanges.length);
       return unchecked ? _unchecked! : _checked!;
     }
     assert(_checked == null && _unchecked == null);
@@ -165,7 +166,7 @@ class SelectorInfo {
     List<Set<w.ValueType>> outputSets = List.generate(returnCount, (_) => {});
     List<bool> ensureBoxed = List.filled(1 + paramInfo.paramCount, false);
     Iterable<({Reference target, Range range})> targetRanges =
-        targets(unchecked: false).targetRanges;
+        targets(unchecked: false).allTargetRanges;
     for (final (range: _, :target) in targetRanges) {
       Member member = target.asMember;
       DartType receiver =
@@ -303,16 +304,59 @@ class SelectorInfo {
   bool containsTarget(Reference target) => _targetSet.contains(target);
 }
 
+/// The set of possible targets for a given selector.
+///
+/// Will have an entry for all concrete classes (i.e. classes that are
+/// allocated according to TFA) that respond to this selector.
+///
+/// We group (class-id, target) entries with consecutive class ids together if
+/// they have the same entry.
+///
+/// A call site will dispatch in different ways to these targets:
+///
+///   * dynamic call sites will use a dynamic invocation forwarder function
+///   which loads the receiver class id, switches on the class id and emit direct
+///   calls to the targets (it uses [allTargetRanges] for this).
+///
+///   * an interface call will
+///
+///       * call the target directly if there's only one possible target
+///
+///       * call a polymorphic dispatcher function (if some of the targets are
+///         marked via `@pragma('wasm:static-dispatch')` - which will emit
+///         direct calls to targets based on the [staticDispatchRanges] and
+///         fallback to the dispatch table call (if there's target ranges not
+///         covered in [staticDispatchRanges])
+///
+///       * call the dispatch table entry (if there's more than one possible
+///       target and [staticDispatchRanges] is empty)
+///
+///
+/// * [_dispatchTableRanges] contains the target ranges we call indirectly
+///   via the dispatch table
+///
+/// * [staticDispatchRanges] contains the target ranges we call directly via
+///   class id checks + calls (directly or via [PolymorphicDispatchers])
+///
 class SelectorTargets {
-  /// Targets for all concrete classes implementing this selector.
+  /// All targets of this selector.
   ///
-  /// As a subclass hierarchy often inherits the same target, we associate the
-  /// target with a range of class ids. The ranges are non-empty,
-  /// non-overlapping and sorted in ascending order.
-  final List<({Range range, Reference target})> targetRanges;
+  /// This set is split up in the disjoint [_dispatchTableRanges] and
+  /// [staticDispatchRanges].
+  final List<({Range range, Reference target})> allTargetRanges;
 
-  /// Targets that a interface call will check & directly call before falling
+  /// All targets of this selector that are invoked via the dispatch table (if
+  /// any).
+  ///
+  /// This is a subset of [allTargetRanges]. These need entries in the
+  /// dispatch table.
+  final List<({Range range, Reference target})> _dispatchTableRanges;
+
+  /// Targets that an interface call will check & directly call before falling
   /// back to dispatch table calls.
+  ///
+  /// This is a subset of [allTargetRanges]. These don't need entries in the
+  /// dispatch table.
   ///
   /// The targets in here are mainly the ones annotated with
   /// `@pragma('wasm:static-dispatch')`. The compiler will generate then code
@@ -322,19 +366,40 @@ class SelectorTargets {
 
   /// Offset of the selector in the dispatch table.
   ///
-  /// For a class in [targetRanges], `class ID + offset` gives the offset of the
-  /// class member for this selector.
+  /// For a class in [_dispatchTableRanges], `class ID + offset` gives the
+  /// offset of the class member for this selector.
   int? offset;
 
-  SelectorTargets(this.targetRanges, this.staticDispatchRanges);
+  SelectorTargets(this.allTargetRanges, this._dispatchTableRanges,
+      this.staticDispatchRanges) {
+    assert(allTargetRanges.length ==
+        (_dispatchTableRanges.length + staticDispatchRanges.length));
+    assert((() {
+      int d = 0;
+      int s = 0;
+      for (int i = 0; i < allTargetRanges.length; ++i) {
+        final e = allTargetRanges[i];
+        if (d < _dispatchTableRanges.length && _dispatchTableRanges[d] == e) {
+          d++;
+          continue;
+        }
+        if (s < staticDispatchRanges.length && staticDispatchRanges[s] == e) {
+          s++;
+          continue;
+        }
+        return false;
+      }
+      return true;
+    })());
+  }
 
   late final Set<Reference> _targetSet =
-      targetRanges.map((e) => e.target).toSet();
+      allTargetRanges.map((e) => e.target).toSet();
 
   void serialize(DataSerializer sink) {
     sink.writeInt(offset == null ? 0 : offset! + 1);
-    sink.writeInt(targetRanges.length);
-    for (final (:range, :target) in targetRanges) {
+    sink.writeInt(_dispatchTableRanges.length);
+    for (final (:range, :target) in _dispatchTableRanges) {
       range.serialize(sink);
       sink.writeReference(target);
     }
@@ -347,12 +412,12 @@ class SelectorTargets {
 
   factory SelectorTargets.deserialize(DataDeserializer source) {
     final offset = source.readInt();
-    final targetRangesLength = source.readInt();
-    final targetRanges = <({Range range, Reference target})>[];
-    for (int i = 0; i < targetRangesLength; i++) {
+    final dispatchTableRangesLength = source.readInt();
+    final dispatchTableRanges = <({Range range, Reference target})>[];
+    for (int i = 0; i < dispatchTableRangesLength; i++) {
       final range = Range.deserialize(source);
       final target = source.readReference();
-      targetRanges.add((range: range, target: target));
+      dispatchTableRanges.add((range: range, target: target));
     }
     final staticDispatchRangesLength = source.readInt();
     final staticDispatchRanges = <({Range range, Reference target})>[];
@@ -361,7 +426,27 @@ class SelectorTargets {
       final target = source.readReference();
       staticDispatchRanges.add((range: range, target: target));
     }
-    return SelectorTargets(targetRanges, staticDispatchRanges)
+    final allTargetRanges = <({Range range, Reference target})>[];
+    int s = 0;
+    int d = 0;
+    while (s < staticDispatchRangesLength || d < dispatchTableRangesLength) {
+      final se =
+          (s < staticDispatchRangesLength) ? staticDispatchRanges[s] : null;
+      final de =
+          (d < dispatchTableRangesLength) ? dispatchTableRanges[d] : null;
+      if (se != null) {
+        if (de == null || se.range.start < de.range.start) {
+          allTargetRanges.add(se);
+          s++;
+          continue;
+        }
+      }
+      assert(de != null && (se == null || de.range.start < se.range.start));
+      allTargetRanges.add(de!);
+      d++;
+    }
+    return SelectorTargets(
+        allTargetRanges, dispatchTableRanges, staticDispatchRanges)
       ..offset = offset == 0 ? null : offset - 1;
   }
 }
@@ -658,7 +743,7 @@ class DispatchTable {
 
       if (!selectorTargets.containsKey(selector)) {
         // There are no concrete implementations for the given [selector].
-        selector._normal = SelectorTargets([], []);
+        selector._normal = SelectorTargets([], [], []);
         selector.useMultipleEntryPoints = false;
         selector._useSentinelForOptionalParameters = true;
         selector.paramInfo = _parameterInfoFromReferences(
@@ -733,14 +818,24 @@ class DispatchTable {
 
       // Split up [ranges] into those that are statically dispatched to and
       // those are used via dispatch table.
-      final staticDispatchRanges = selector.isDynamicSubmoduleOverridable
-          ? const <({Range range, Reference target})>[]
-          : (translator.options.polymorphicSpecialization || ranges.length == 1)
-              ? ranges
-              : ranges
-                  .where(
-                      (range) => staticDispatchPragmas.contains(range.target))
-                  .toList();
+      final tableDispatchRanges = <({Range range, Reference target})>[];
+      final staticDispatchRanges = <({Range range, Reference target})>[];
+      if (selector.isDynamicSubmoduleOverridable) {
+        tableDispatchRanges.addAll(ranges);
+      } else {
+        if (ranges.length == 1) {
+          staticDispatchRanges.add(ranges.single);
+        } else {
+          for (final range in ranges) {
+            if (translator.options.polymorphicSpecialization ||
+                staticDispatchPragmas.contains(range.target)) {
+              staticDispatchRanges.add(range);
+            } else {
+              tableDispatchRanges.add(range);
+            }
+          }
+        }
+      }
       if (selector.useMultipleEntryPoints) {
         ({Range range, Reference target}) getChecked(
           ({Range range, Reference target}) targetRange,
@@ -753,16 +848,19 @@ class DispatchTable {
             );
         final checkedTargets = SelectorTargets(
           ranges.map((r) => getChecked(r, false)).toList(),
+          tableDispatchRanges.map((r) => getChecked(r, false)).toList(),
           staticDispatchRanges.map((r) => getChecked(r, false)).toList(),
         );
         final uncheckedTargets = SelectorTargets(
           ranges.map((r) => getChecked(r, true)).toList(),
+          tableDispatchRanges.map((r) => getChecked(r, true)).toList(),
           staticDispatchRanges.map((r) => getChecked(r, true)).toList(),
         );
         selector._checked = checkedTargets;
         selector._unchecked = uncheckedTargets;
       } else {
-        final normalTargets = SelectorTargets(ranges, staticDispatchRanges);
+        final normalTargets =
+            SelectorTargets(ranges, tableDispatchRanges, staticDispatchRanges);
         selector._normal = normalTargets;
       }
     });
@@ -802,10 +900,10 @@ class DispatchTable {
       }
 
       if (selector.useMultipleEntryPoints) {
-        rows.add(buildRow((selector._checked!.targetRanges)));
-        rows.add(buildRow((selector._unchecked!.targetRanges)));
+        rows.add(buildRow((selector._checked!._dispatchTableRanges)));
+        rows.add(buildRow((selector._unchecked!._dispatchTableRanges)));
       } else {
-        rows.add(buildRow((selector._normal!.targetRanges)));
+        rows.add(buildRow((selector._normal!._dispatchTableRanges)));
       }
     }
 
@@ -827,45 +925,86 @@ class DispatchTable {
   void output() {
     final Map<w.BaseFunction, w.BaseFunction> wrappedDynamicSubmoduleImports =
         {};
-    for (int i = 0; i < _table.length; i++) {
-      Reference? target = _table[i];
-      if (target != null) {
-        w.BaseFunction? fun = translator.functions.getExistingFunction(target);
-        // Any call to the dispatch table is guaranteed to hit a target.
-        //
-        // If a target is in a deferred module and that deferred module hasn't
-        // been loaded yet, then the entry is `null`.
-        //
-        // Though we can only hit a target if that target's class has been
-        // allocated. In order for the class to be allocated, the deferred
-        // module must've been loaded to call the constructor.
-        if (fun != null) {
-          final targetModule = fun.enclosingModule;
-          final targetModuleBuilder =
-              translator.moduleToBuilder[fun.enclosingModule]!;
-          if (targetModule == _definedWasmTable.enclosingModule) {
-            if (isDynamicSubmoduleTable &&
-                targetModuleBuilder == translator.dynamicSubmodule &&
-                fun is w.ImportedFunction) {
-              // Functions imported into submodules may need to be wrapped to
-              // match the updated dispatch table signature.
-              fun = wrappedDynamicSubmoduleImports[fun] ??=
-                  _wrapDynamicSubmoduleFunction(target, fun);
-            }
+    int start = 0;
+    while (start < _table.length) {
+      Reference? target = _table[start];
+      if (target == null) {
+        start++;
+        continue;
+      }
+      w.BaseFunction? fun = translator.functions.getExistingFunction(target);
+      if (fun == null) {
+        start++;
+        continue;
+      }
+
+      // Any call to the dispatch table is guaranteed to hit a target.
+      //
+      // If a target is in a deferred module and that deferred module hasn't
+      // been loaded yet, then the entry is `null`.
+      //
+      // Though we can only hit a target if that target's class has been
+      // allocated. In order for the class to be allocated, the deferred
+      // module must've been loaded to call the constructor.
+      int end = start + 1;
+      while (end < _table.length && _table[end] == target) {
+        end++;
+      }
+      final strideWidth = end - start;
+
+      // If the stride of the current function is more than this (i.e. the table
+      // contains a large subsection with identical function entries) we
+      // initialize that section in #start function.
+      const strideElementTableLimit = 100;
+
+      final targetModule = fun.enclosingModule;
+      final targetModuleBuilder =
+          translator.moduleToBuilder[fun.enclosingModule]!;
+      if (targetModule == _definedWasmTable.enclosingModule) {
+        if (isDynamicSubmoduleTable &&
+            targetModuleBuilder == translator.dynamicSubmodule &&
+            fun is w.ImportedFunction) {
+          // Functions imported into submodules may need to be wrapped to
+          // match the updated dispatch table signature.
+          fun = wrappedDynamicSubmoduleImports[fun] ??=
+              _wrapDynamicSubmoduleFunction(target, fun);
+        }
+
+        if (strideWidth < strideElementTableLimit) {
+          for (int i = start; i < end; ++i) {
             _definedWasmTable.moduleBuilder.elements
                 .activeFunctionSegmentBuilderFor(_definedWasmTable)
                 .setFunctionAt(i, fun);
-          } else {
-            // This will generate the imported table if it doesn't already
-            // exist.
-            final importedTable =
-                getWasmTable(targetModuleBuilder) as w.ImportedTable;
+          }
+        } else {
+          targetModuleBuilder.elements.declarativeSegmentBuilder.declare(fun);
+          final b = targetModuleBuilder.startFunction.body;
+          b.i32_const(start);
+          b.ref_func(fun);
+          b.i32_const(strideWidth);
+          b.table_fill(_definedWasmTable);
+        }
+      } else {
+        // This will generate the imported table if it doesn't already
+        // exist.
+        final importedTable =
+            getWasmTable(targetModuleBuilder) as w.ImportedTable;
+        if (strideWidth < strideElementTableLimit) {
+          for (int i = start; i < end; ++i) {
             targetModuleBuilder.elements
                 .activeFunctionSegmentBuilderFor(importedTable)
                 .setFunctionAt(i, fun);
           }
+        } else {
+          targetModuleBuilder.elements.declarativeSegmentBuilder.declare(fun);
+          final b = targetModuleBuilder.startFunction.body;
+          b.i32_const(start);
+          b.ref_func(fun);
+          b.i32_const(strideWidth);
+          b.table_fill(importedTable);
         }
       }
+      start += strideWidth;
     }
   }
 
@@ -933,20 +1072,7 @@ bool _isUsedViaDispatchTableCall(SelectorInfo selector) {
   }
 
   final targets = selector.targets(unchecked: false);
-
-  //  If there's 0 or 1 target than the call sites will either emit an
-  //  unreachable or a direct call, so no call site goes via dispatch table, so
-  //  we don't need a row in the table.
-  if (targets.targetRanges.length <= 1) return false;
-
-  // If all targets are dispatched to via static polymorphic dispatchers,
-  // then no callsite will emit a dispatch table call, so we don't need a row in
-  // the table.
-  if (targets.staticDispatchRanges.length == targets.targetRanges.length) {
-    return false;
-  }
-
-  return true;
+  return targets._dispatchTableRanges.isNotEmpty;
 }
 
 ParameterInfo _parameterInfoFromReferences(

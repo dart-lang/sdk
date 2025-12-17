@@ -953,9 +953,16 @@ word Thread::OffsetFromThread(const dart::Object& object) {
 
 intptr_t Thread::OffsetFromThread(const dart::RuntimeEntry* runtime_entry) {
   auto host_offset = dart::Thread::OffsetFromThread(runtime_entry);
-  return AllocateArray_entry_point_offset() +
-         TranslateOffsetInWords(
-             host_offset - dart::Thread::AllocateArray_entry_point_offset());
+  if (runtime_entry->is_leaf()) {
+    return DeoptimizeCopyFrame_entry_point_offset() +
+           TranslateOffsetInWords(
+               host_offset -
+               dart::Thread::DeoptimizeCopyFrame_entry_point_offset());
+  } else {
+    return AllocateArray_entry_point_offset() +
+           TranslateOffsetInWords(
+               host_offset - dart::Thread::AllocateArray_entry_point_offset());
+  }
 }
 
 bool CanLoadFromThread(const dart::Object& object,

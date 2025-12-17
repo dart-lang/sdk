@@ -5,6 +5,7 @@
 // TODO(jensj): Probably all `_createVariableGet(result)` needs their offset
 // "nulled out".
 
+import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/null_shorting.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
@@ -3437,6 +3438,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       null,
       isAsync: node.isAsync,
     );
+    ExpressionVariable astVariable =
+        result.variable is InternalExpressionVariable
+        ? (result.variable as InternalExpressionVariable).astVariable
+        : result.variable;
+    node.expressionVariable = astVariable..parent = node;
+    _contextAllocationStrategy.handleDeclarationOfVariable(
+      astVariable,
+      captureKind: _captureKindForVariable(astVariable),
+    );
 
     StatementInferenceResult bodyResult = inferStatement(node.body);
 
@@ -3455,11 +3465,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         body,
       );
     }
-    ExpressionVariable astVariable =
-        result.variable is InternalExpressionVariable
-        ? (result.variable as InternalExpressionVariable).astVariable
-        : result.variable;
-    node.expressionVariable = astVariable..parent = node;
     node.iterable = result.iterable..parent = node;
     node.body = body..parent = node;
     _contextAllocationStrategy.exitScopeProvider(node);
@@ -3652,6 +3657,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     FunctionExpression node,
     DartType typeContext,
   ) {
+    _contextAllocationStrategy.handleVariablesCapturedByNode(
+      node.function,
+      _capturedVariablesForNode(node),
+    );
+
     bool oldInTryOrLocalFunction = _inTryOrLocalFunction;
     _inTryOrLocalFunction = true;
     flowAnalysis.functionExpression_begin(node);
@@ -4444,6 +4454,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Map<TreeNode, DartType> inferredSpreadTypes,
     Map<Expression, DartType> inferredConditionTypes,
   ) {
+    _contextAllocationStrategy.enterScopeProviderSubstitute(element);
     ForInResult result;
     if (element.expressionVariable.cosmeticName == null) {
       result = handleForInWithoutVariable(
@@ -4469,6 +4480,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ? (result.variable as InternalExpressionVariable).astVariable
         : result.variable;
     element.expressionVariable = astVariable..parent = element;
+    _contextAllocationStrategy.handleDeclarationOfVariable(
+      astVariable,
+      captureKind: _captureKindForVariable(astVariable),
+    );
     element.iterable = result.iterable..parent = element;
     // TODO(johnniwinther): Use ?.. here instead.
     element.syntheticAssignment = result.syntheticAssignment;
@@ -4496,6 +4511,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // This is matched by the call to [forEach_bodyBegin] in
     // [handleForInWithoutVariable] or [handleForInDeclaringVariable].
     flowAnalysis.forEach_end();
+    _contextAllocationStrategy.exitScopeProviderSubstitute(element);
     return new ExpressionInferenceResult(bodyResult.inferredType, element);
   }
 
@@ -5310,12 +5326,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       loopBody,
       isAsync: element.isAsync,
     );
-    _contextAllocationStrategy.enterScopeProvider(loop);
-    _contextAllocationStrategy.handleDeclarationOfVariable(
-      element.expressionVariable,
-      captureKind: _captureKindForVariable(element.expressionVariable),
-    );
-    _contextAllocationStrategy.exitScopeProvider(loop);
+    _contextAllocationStrategy.transferScope(element, loop);
     libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(element, loop);
@@ -5916,12 +5927,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       loopBody,
       isAsync: entry.isAsync,
     );
-    _contextAllocationStrategy.enterScopeProvider(loop);
-    _contextAllocationStrategy.handleDeclarationOfVariable(
-      entry.expressionVariable,
-      captureKind: _captureKindForVariable(entry.expressionVariable),
-    );
-    _contextAllocationStrategy.exitScopeProvider(loop);
+    _contextAllocationStrategy.transferScope(entry, loop);
     libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(entry, loop);
@@ -7585,6 +7591,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Map<Expression, DartType> inferredConditionTypes,
     _MapLiteralEntryOffsets offsets,
   ) {
+    _contextAllocationStrategy.enterScopeProviderSubstitute(entry);
     ForInResult result;
     if (entry.expressionVariable.cosmeticName == null) {
       result = handleForInWithoutVariable(
@@ -7612,6 +7619,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           // Coverage-ignore(suite): Not run.
           result.variable;
     entry.expressionVariable = astVariable..parent = entry;
+    _contextAllocationStrategy.handleDeclarationOfVariable(
+      astVariable,
+      captureKind: _captureKindForVariable(astVariable),
+    );
     entry.iterable = result.iterable..parent = entry;
     // TODO(johnniwinther): Use ?.. here instead.
     entry.syntheticAssignment = result.syntheticAssignment;
@@ -7645,6 +7656,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // This is matched by the call to [forEach_bodyBegin] in
     // [handleForInWithoutVariable] or [handleForInDeclaringVariable].
     flowAnalysis.forEach_end();
+    _contextAllocationStrategy.exitScopeProviderSubstitute(entry);
     return entry;
   }
 
@@ -16673,6 +16685,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             assignedVariables.anywhere.readCaptured.contains(variableKey))
         ? CaptureKind.captured
         : CaptureKind.notCaptured;
+  }
+
+  List<Variable> _capturedVariablesForNode(LocalFunction node) {
+    List<Variable> capturedVariables = [];
+    AssignedVariablesNodeInfo nodeInfo = assignedVariables.getInfoForNode(node);
+    for (int variableKey in nodeInfo.read) {
+      capturedVariables.add(
+        assignedVariables.promotionKeyStore.variableForKey(variableKey)!,
+      );
+    }
+    for (int variableKey in nodeInfo.written) {
+      capturedVariables.add(
+        assignedVariables.promotionKeyStore.variableForKey(variableKey)!,
+      );
+    }
+    return capturedVariables;
   }
 
   @override

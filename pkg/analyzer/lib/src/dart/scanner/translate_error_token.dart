@@ -16,7 +16,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
   int charOffset = token.charOffset;
   // TODO(paulberry): why is endOffset sometimes null?
   int endOffset = token.endOffset ?? charOffset;
-  void makeError(DiagnosticCode errorCode, List<Object>? arguments) {
+  void makeError(DiagnosticCode code, List<Object>? arguments) {
     if (_isAtEnd(token, charOffset)) {
       // Analyzer never generates an error message past the end of the input,
       // since such an error would not be visible in an editor.
@@ -24,7 +24,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
       // in cfe, or move it elsewhere in analyzer?
       charOffset--;
     }
-    reportError(errorCode, charOffset, arguments);
+    reportError(code, charOffset, arguments);
   }
 
   Code errorCode = token.errorCode;
@@ -111,11 +111,11 @@ bool _isAtEnd(Token token, int charOffset) {
 }
 
 /// Used to report a scan error at the given offset.
-/// The [errorCode] is the error code indicating the nature of the error.
+/// The [diagnosticCode] is the error code indicating the nature of the error.
 /// The [arguments] are any arguments needed to complete the error message.
 typedef ReportError =
     void Function(
-      DiagnosticCode errorCode,
+      DiagnosticCode diagnosticCode,
       int offset,
       List<Object>? arguments,
     );

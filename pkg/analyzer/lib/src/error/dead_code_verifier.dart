@@ -376,7 +376,7 @@ class NullSafetyDeadCodeVerifier {
     var verifier = _CatchClausesVerifier(_typeSystem, (
       first,
       last,
-      errorCode,
+      diagnosticCode,
       arguments,
     ) {
       var offset = first.offset;
@@ -384,7 +384,7 @@ class NullSafetyDeadCodeVerifier {
       _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
-        diagnosticCode: errorCode,
+        diagnosticCode: diagnosticCode,
         arguments: arguments,
       );
       _deadCatchClauseRanges.add(SourceRange(offset, length));
@@ -543,7 +543,7 @@ class _CatchClausesVerifier {
     var currentType = catchClause.exceptionType?.type;
 
     // Found catch clause that doesn't have an exception type.
-    // Generate an error on any following catch clauses.
+    // Generate a diagnostic on any following catch clauses.
     if (currentType == null || currentType.isDartCoreObject) {
       if (catchClause != catchClauses.last) {
         var index = catchClauses.indexOf(catchClause);

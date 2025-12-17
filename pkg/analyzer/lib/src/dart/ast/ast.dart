@@ -11,6 +11,7 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
+import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
@@ -1339,7 +1340,7 @@ abstract final class AstNode implements SyntacticEntity {
   void visitChildren(AstVisitor visitor);
 }
 
-sealed class AstNodeImpl implements AstNode {
+sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   AstNode? _parent;
 
   @override

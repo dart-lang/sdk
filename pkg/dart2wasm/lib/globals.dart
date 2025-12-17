@@ -21,6 +21,7 @@ class Globals {
   /// this maps the global to the getter function defined and exported in
   /// the defining module.
   final Map<w.Global, w.BaseFunction> _globalGetters = {};
+  final Map<w.Global, w.BaseFunction> _globalSetters = {};
 
   final Map<Field, w.Global> _globalInitializedFlag = {};
   final WasmGlobalImporter _globalsModuleMap;
@@ -28,7 +29,7 @@ class Globals {
   Globals(this.translator)
       : _globalsModuleMap = WasmGlobalImporter(translator, 'global');
 
-  Constant? _getConstantInitializer(Field variable) {
+  Constant? getConstantInitializer(Field variable) {
     Expression? init = variable.initializer;
     if (init == null || init is NullLiteral) return NullConstant();
     if (init is IntLiteral) return IntConstant(init.value);
@@ -82,12 +83,17 @@ class Globals {
       final importedGlobal = _globalsModuleMap.get(global, callingModule);
       b.global_set(importedGlobal);
     } else {
-      // NOTE: Currently unused but we can support this just like in
-      // [readGlobal] via an indirect call to a setter function that's installed
-      // by the global-owning module.
-      throw UnsupportedError(
-          'Currently we can only write to globals in the main module or in the '
-          'local module in which the write happens.');
+      final setter = _globalSetters.putIfAbsent(global, () {
+        final setterType =
+            owningModule.types.defineFunction([global.type.type], const []);
+        final setterFunction = owningModule.functions.define(setterType);
+        final setterBody = setterFunction.body;
+        setterBody.local_get(setterFunction.locals.single);
+        setterBody.global_set(global);
+        setterBody.end();
+        return setterFunction;
+      });
+      translator.callFunction(setter, b);
     }
   }
 
@@ -102,7 +108,7 @@ class Globals {
 
       // Maybe we can emit the initialization in the globals section. If so,
       // then that's preferred as we can make the global as non-mutable.
-      final Constant? init = _getConstantInitializer(field);
+      final Constant? init = getConstantInitializer(field);
       if (init != null &&
           translator.constants
               .tryInstantiateEagerlyFrom(module, init, fieldType)) {

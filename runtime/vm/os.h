@@ -81,6 +81,12 @@ class OS {
   // Debug break.
   static void DebugBreak();
 
+  // Call just before GC starts.
+  static void NotifyBeforeGC();
+
+  // Called just after GC finished.
+  static void NotifyAfterGC();
+
   // Returns the current program counter.
   static uintptr_t GetProgramCounter();
 

@@ -417,7 +417,7 @@ class _ClassVerifier {
     if (mixinIndex == -1) {
       CovariantParametersVerifier(
         thisMember: member,
-      ).verify(errorReporter: reporter, errorEntity: node);
+      ).verify(diagnosticReporter: reporter, errorEntity: node);
     }
   }
 
@@ -743,12 +743,15 @@ class _ClassVerifier {
       String displayName,
     ) {
       if (memberName == name) {
-        reporter.atNode(
-          member,
-          classElement is EnumElement
-              ? diag.enumWithAbstractMember
-              : diag.concreteClassWithAbstractMember,
-          arguments: [displayName, classElement.name ?? ''],
+        reporter.report(
+          (classElement is EnumElement
+                  ? diag.enumWithAbstractMember
+                  : diag.concreteClassWithAbstractMember)
+              .withArguments(
+                methodName: displayName,
+                enclosingClass: classElement.name ?? '',
+              )
+              .at(member),
         );
         return true;
       } else {
@@ -832,7 +835,7 @@ class _ClassVerifier {
 
       var elementName = element.displayName;
       var enclosingElement = element.enclosingElement!;
-      var enclosingName = enclosingElement.displayString();
+      var enclosingName = enclosingElement.displayName;
       var description = "$prefix$enclosingName.$elementName";
 
       descriptions.add(description);

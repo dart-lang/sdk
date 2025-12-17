@@ -2958,10 +2958,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     String loopNamedType = awaitKeyword != null ? 'Stream' : 'Iterable';
 
     if (iterableType is DynamicType && strictCasts) {
-      diagnosticReporter.atNode(
-        node.iterable,
-        diag.forInOfInvalidType,
-        arguments: [iterableType, loopNamedType],
+      diagnosticReporter.report(
+        diag.forInOfInvalidType
+            .withArguments(
+              expressionType: iterableType,
+              expectedType: loopNamedType,
+            )
+            .at(node.iterable),
       );
       return false;
     }
@@ -2997,10 +3000,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       requiredSequenceType,
       strictCasts: strictCasts,
     )) {
-      diagnosticReporter.atNode(
-        node.iterable,
-        diag.forInOfInvalidType,
-        arguments: [iterableType, loopNamedType],
+      diagnosticReporter.report(
+        diag.forInOfInvalidType
+            .withArguments(
+              expressionType: iterableType,
+              expectedType: loopNamedType,
+            )
+            .at(node.iterable),
       );
       return false;
     }
@@ -3922,17 +3928,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Check to see whether the given function [body] has a modifier associated
   /// with it, and report it as an error if it does.
-  void _checkForInvalidModifierOnBody(
-    FunctionBody body,
-    DiagnosticCode errorCode,
-  ) {
+  void _checkForInvalidModifierOnBody(FunctionBody body, DiagnosticCode code) {
     var keyword = body.keyword;
     if (keyword != null) {
-      diagnosticReporter.atToken(
-        keyword,
-        errorCode,
-        arguments: [keyword.lexeme],
-      );
+      diagnosticReporter.atToken(keyword, code, arguments: [keyword.lexeme]);
     }
   }
 

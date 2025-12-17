@@ -1728,6 +1728,7 @@ LinterLintCode:
     correctionMessage: "Try removing the comparison."
     state:
       stable: "2.0"
+      deprecated: "3.11"
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-

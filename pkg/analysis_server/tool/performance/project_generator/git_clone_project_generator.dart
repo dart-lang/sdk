@@ -27,6 +27,7 @@ class GitCloneProjectGenerator implements ProjectGenerator {
     await runGitCommand(['clone', repo, '.'], outputDir);
     await runGitCommand(['fetch', 'origin', ref], outputDir);
     await runGitCommand(['checkout', ref], outputDir);
+    await runPubGet(outputDir);
     return [outputDir];
   }
 
