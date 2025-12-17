@@ -44,6 +44,7 @@ import 'package:analyzer/src/error/duplicate_definition_verifier.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/error/literal_element_verifier.dart';
+import 'package:analyzer/src/error/member_duplicate_definition_verifier.dart';
 import 'package:analyzer/src/error/required_parameters_verifier.dart';
 import 'package:analyzer/src/error/return_type_verifier.dart';
 import 'package:analyzer/src/error/super_formal_parameters_verifier.dart';
