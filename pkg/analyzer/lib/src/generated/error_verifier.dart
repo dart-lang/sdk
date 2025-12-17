@@ -720,6 +720,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitEnumConstantDeclaration(
     covariant EnumConstantDeclarationImpl node,
   ) {
+    _checkEnumConstantSameAsEnclosing(node);
     _requiredParametersVerifier.visitEnumConstantDeclaration(node);
     _typeArgumentsVerifier.checkEnumConstantDeclaration(node);
     super.visitEnumConstantDeclaration(node);
@@ -735,6 +736,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var element = declaredFragment.element;
       _enclosingClass = element;
 
+      _checkForEnumWithNameValues(node);
       _checkForBuiltInIdentifierAsName(
         node.namePart.typeName,
         diag.builtInIdentifierAsTypeName,
@@ -1756,6 +1758,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           );
         }
       }
+    }
+  }
+
+  void _checkEnumConstantSameAsEnclosing(EnumConstantDeclarationImpl node) {
+    if (node.name.lexeme == _enclosingClass?.name) {
+      diagnosticReporter.report(
+        diag.enumConstantSameNameAsEnclosing.at(node.name),
+      );
     }
   }
 
@@ -3109,6 +3119,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           ),
         );
       }
+    }
+  }
+
+  void _checkForEnumWithNameValues(EnumDeclarationImpl node) {
+    if (node.namePart.typeName.lexeme == 'values') {
+      diagnosticReporter.report(
+        diag.enumWithNameValues.at(node.namePart.typeName),
+      );
     }
   }
 

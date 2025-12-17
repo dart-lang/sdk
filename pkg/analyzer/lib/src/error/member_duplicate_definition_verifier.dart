@@ -294,17 +294,11 @@ class MemberDuplicateDefinitionVerifier {
   void _checkEnum(EnumDeclarationImpl node) {
     var fragment = node.declaredFragment!;
     var firstFragment = fragment.element.firstFragment;
-    var declarationName = firstFragment.name;
 
     var elementContext = _getElementContext(firstFragment);
     var staticScope = elementContext.staticScope;
 
     for (var constant in node.body.constants) {
-      if (constant.name.lexeme == declarationName) {
-        _diagnosticReporter.report(
-          diag.enumConstantSameNameAsEnclosing.at(constant.name),
-        );
-      }
       var constantFragment = constant.declaredFragment!;
       var constantGetter = constantFragment.element.getter!;
       _checkDuplicateIdentifier(
@@ -317,12 +311,6 @@ class MemberDuplicateDefinitionVerifier {
     }
 
     _checkClassMembers(fragment, node.body.members);
-
-    if (declarationName == 'values') {
-      _diagnosticReporter.report(
-        diag.enumWithNameValues.at(node.namePart.typeName),
-      );
-    }
 
     for (var accessor in fragment.accessors) {
       if (accessor.isStatic) {
