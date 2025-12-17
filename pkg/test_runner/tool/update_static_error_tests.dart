@@ -303,7 +303,7 @@ Future<List<StaticError>> _runAnalyzerOnFile(
         case Severity.error:
         case Severity.warning
             when AnalyzerError.isValidatedWarning(
-                diagnostic.diagnosticCode.name):
+                diagnostic.diagnosticCode.lowerCaseName):
           errors.add(
               _convertAnalysisError(context, errorsResult.path, diagnostic));
         default:
@@ -327,7 +327,7 @@ StaticError _convertAnalysisError(
   var errorLocation = fileResult.lineInfo.getLocation(error.offset);
 
   var staticError = StaticError(ErrorSource.analyzer,
-      '${error.diagnosticCode.type.name}.${error.diagnosticCode.name}',
+      '${error.diagnosticCode.type.name}.${error.diagnosticCode.lowerCaseName}',
       path: containingFile,
       line: errorLocation.lineNumber,
       column: errorLocation.columnNumber,

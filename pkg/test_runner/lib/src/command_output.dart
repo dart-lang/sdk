@@ -454,7 +454,7 @@ class AnalyzerError implements Comparable<AnalyzerError> {
   /// test runner. Tests often have unused local variables, dead code, etc. and
   /// we don't want to clutter up the test expectations with those.
   static bool isValidatedWarning(String code) =>
-      _validatedWarnings.contains(code.toLowerCase());
+      _validatedWarnings.contains(code);
 
   /// The set of hints which must be expected in a test. Any hint not specified
   /// here which is reported by the analyzer does not need to be expected, and
