@@ -986,6 +986,7 @@ Target? createFrontEndTarget(
   String targetName, {
   bool trackWidgetCreation = false,
   bool supportMirrors = true,
+  bool includeUnsupportedPlatformLibraryStubs = false,
   bool? constKeepLocalsIndicator,
   bool isClosureContextLoweringEnabled = false,
 }) {
@@ -995,6 +996,8 @@ Target? createFrontEndTarget(
   final TargetFlags targetFlags = new TargetFlags(
     trackWidgetCreation: trackWidgetCreation,
     supportMirrors: supportMirrors,
+    includeUnsupportedPlatformLibraryStubs:
+        includeUnsupportedPlatformLibraryStubs,
     constKeepLocalsIndicator: constKeepLocalsIndicator,
     isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
   );

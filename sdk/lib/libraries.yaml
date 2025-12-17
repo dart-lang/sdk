@@ -268,7 +268,7 @@ wasm_common:
     io:
       uri: io/io.dart
       patches: _internal/wasm/lib/io_patch.dart
-      supported: false
+      support_conditional_import: false
     isolate:
       uri: isolate/isolate.dart
       patches:
@@ -355,12 +355,12 @@ _dart2js_common:
     io:
       uri: "io/io.dart"
       patches: "_internal/js_runtime/lib/io_patch.dart"
-      supported: false
+      support_conditional_import: false
 
     isolate:
       uri: "isolate/isolate.dart"
       patches: "_internal/js_runtime/lib/isolate_patch.dart"
-      supported: false
+      support_conditional_import: false
 
     js:
       uri: "js/js.dart"
@@ -530,17 +530,18 @@ dartdevc:
     ffi:
       uri: "ffi/ffi.dart"
       patches: "_internal/js_dev_runtime/patch/ffi_patch.dart"
-      supported: false
+      support_direct_import: with_flag
+      support_conditional_import: false
 
     io:
       uri: "io/io.dart"
       patches: "_internal/js_dev_runtime/patch/io_patch.dart"
-      supported: false
+      support_conditional_import: false
 
     isolate:
       uri: "isolate/isolate.dart"
       patches: "_internal/js_dev_runtime/patch/isolate_patch.dart"
-      supported: false
+      support_conditional_import: false
 
     math:
       uri: "math/math.dart"

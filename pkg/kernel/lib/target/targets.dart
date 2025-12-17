@@ -27,11 +27,16 @@ class TargetFlags {
   /// Targets can overwrite based on other things.
   final bool? constKeepLocalsIndicator;
 
+  /// Whether the backends should include stubs for core libraries not supported
+  /// by their target platform.
+  final bool includeUnsupportedPlatformLibraryStubs;
+
   const TargetFlags(
       {this.trackWidgetCreation = false,
       this.supportMirrors = true,
       this.isClosureContextLoweringEnabled = false,
-      this.constKeepLocalsIndicator});
+      this.constKeepLocalsIndicator,
+      this.includeUnsupportedPlatformLibraryStubs = false});
 
   @override
   bool operator ==(other) {
@@ -39,6 +44,8 @@ class TargetFlags {
     return other is TargetFlags &&
         trackWidgetCreation == other.trackWidgetCreation &&
         supportMirrors == other.supportMirrors &&
+        includeUnsupportedPlatformLibraryStubs ==
+            other.includeUnsupportedPlatformLibraryStubs &&
         constKeepLocalsIndicator == other.constKeepLocalsIndicator;
   }
 
@@ -47,6 +54,8 @@ class TargetFlags {
     int hash = 485786;
     hash = 0x3fffffff & (hash * 31 + (hash ^ trackWidgetCreation.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ supportMirrors.hashCode));
+    hash = 0x3fffffff &
+        (hash * 31 + (hash ^ includeUnsupportedPlatformLibraryStubs.hashCode));
     hash =
         0x3fffffff & (hash * 31 + (hash ^ constKeepLocalsIndicator.hashCode));
     return hash;
@@ -203,7 +212,7 @@ abstract class DartLibrarySupport {
   static bool isDartLibrarySupported(String libraryName,
       {required bool libraryExists,
       required bool isSynthetic,
-      required bool isUnsupported,
+      required bool conditionalImportSupported,
       required DartLibrarySupport dartLibrarySupport}) {
     // A `dart:` library can be unsupported for several reasons:
     // * If the library doesn't exist from source or from dill, it is not
@@ -219,7 +228,8 @@ abstract class DartLibrarySupport {
     //   `dart:mirrors` as unsupported in AOT. The platform dill is shared with
     //   JIT, so the library exists and is marked as supported, but for AOT
     //   compilation it is still unsupported.
-    bool isSupported = libraryExists && !isSynthetic && !isUnsupported;
+    bool isSupported =
+        libraryExists && !isSynthetic && conditionalImportSupported;
     isSupported = dartLibrarySupport.computeDartLibrarySupport(libraryName,
         isSupportedBySpec: isSupported);
     return isSupported;

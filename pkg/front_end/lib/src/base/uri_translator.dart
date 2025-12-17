@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
-    show TargetLibrariesSpecification;
+    show Importability, TargetLibrariesSpecification;
 import 'package:package_config/package_config.dart';
 
 import '../codes/cfe_codes.dart';
@@ -48,7 +48,15 @@ class UriTranslator {
   }
 
   bool isLibrarySupported(String libraryName) {
-    return dartLibraries.libraryInfoFor(libraryName)?.isSupported ?? false;
+    return dartLibraries
+            .libraryInfoFor(libraryName)
+            ?.supportConditionalImport ??
+        false;
+  }
+
+  Importability isLibraryImportable(String libraryName) {
+    return dartLibraries.libraryInfoFor(libraryName)?.importability ??
+        Importability.never;
   }
 
   Uri? _translateDartUri(Uri uri) {

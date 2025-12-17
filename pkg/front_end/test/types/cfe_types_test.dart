@@ -32,9 +32,7 @@ void main() {
         ..packagesFileUri = Uri.base.resolve(".dart_tool/package_config.json"),
     ),
   );
-  final Uri uri = Uri.parse("dart:core");
-  final TypeParserEnvironment environment = new TypeParserEnvironment(uri, uri);
-  final Component sdk = parseSdk(uri, environment);
+  final (Component sdk, TypeParserEnvironment environment) = parseSdk();
   Future<void> doIt(_) async {
     DillTarget target = new DillTarget(
       context,
