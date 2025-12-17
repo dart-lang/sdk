@@ -78,6 +78,7 @@ cc/ChainInduction: SkipByDesign # Building flow graph is not supported from byte
 cc/CheckStackOverflowElimination_NoInterruptsPragma: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/CompileFunction*: SkipByDesign # JIT compilation is not supported from bytecode.
 cc/ConstantFold_bitLength: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/CreateMirrorSystem: SkipByDesign # dart:mirrors is not supported.
 cc/DelayAllocations_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/DeoptimizeFramesWhenSettingBreakpoint: SkipByDesign # JIT compilation is not supported from bytecode.
 cc/DerivedInduction: SkipByDesign # Building flow graph is not supported from bytecode.
@@ -87,6 +88,7 @@ cc/IRTest_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/Inliner_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/IsolateReload_EnumWithSet: SkipByDesign # Bytecode doesn't support KernelProgramInfo.
 cc/IsolateReload_RegressB179030011: SkipByDesign # Bytecode doesn't support concatenated kernel programs.
+cc/IsolateReload_TypeIdentityParameter: SkipByDesign # dart:mirrors is not supported.
 cc/LICM_Deopt_*: SkipByDesign # JIT compilation is not supported from bytecode.
 cc/LoadOptimizer_Redundant*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/NonStrictCondition*: SkipByDesign # Building flow graph is not supported from bytecode.
