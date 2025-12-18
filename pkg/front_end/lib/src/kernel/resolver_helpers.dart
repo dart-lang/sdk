@@ -167,3 +167,163 @@ class _ResolverContext {
     libraryBuilder.checkPendingBoundsChecks(typeEnvironment);
   }
 }
+
+class _InitializerBuilder {
+  SuperInitializer? superInitializer;
+
+  RedirectingInitializer? redirectingInitializer;
+
+  List<Initializer> _initializers = [];
+
+  void _injectInvalidInitializer(
+    CompilerContext compilerContext,
+    ProblemReporting problemReporting,
+    Message message,
+    Uri fileUri,
+    int fileOffset,
+    int length,
+  ) {
+    Initializer lastInitializer = _initializers.removeLast();
+    assert(
+      lastInitializer == superInitializer ||
+          lastInitializer == redirectingInitializer,
+    );
+    Initializer error = createInvalidInitializer(
+      problemReporting.buildProblem(
+        compilerContext: compilerContext,
+        message: message,
+        fileUri: fileUri,
+        fileOffset: fileOffset,
+        length: length,
+      ),
+    );
+    _initializers.add(error);
+    _initializers.add(lastInitializer);
+  }
+
+  bool addInitializer(
+    CompilerContext compilerContext,
+    ProblemReporting problemReporting,
+    BodyBuilderContext bodyBuilderContext,
+    InitializerInferenceResult inferenceResult, {
+    required Uri fileUri,
+  }) {
+    Initializer initializer = inferenceResult.initializer;
+    if (initializer is SuperInitializer) {
+      if (superInitializer != null) {
+        _injectInvalidInitializer(
+          compilerContext,
+          problemReporting,
+          codeMoreThanOneSuperInitializer,
+          fileUri,
+          initializer.fileOffset,
+          "super".length,
+        );
+        return false;
+      } else if (redirectingInitializer != null) {
+        _injectInvalidInitializer(
+          compilerContext,
+          problemReporting,
+          codeRedirectingConstructorWithSuperInitializer,
+          fileUri,
+          initializer.fileOffset,
+          "super".length,
+        );
+        return false;
+      } else {
+        inferenceResult.applyResult(_initializers, null);
+        superInitializer = initializer;
+        _initializers.add(initializer);
+        return true;
+      }
+    } else if (initializer
+        case RedirectingInitializer() ||
+            ExtensionTypeRedirectingInitializer()) {
+      if (superInitializer != null) {
+        // Point to the existing super initializer.
+        _injectInvalidInitializer(
+          compilerContext,
+          problemReporting,
+          codeRedirectingConstructorWithSuperInitializer,
+          fileUri,
+          superInitializer!.fileOffset,
+          "super".length,
+        );
+        bodyBuilderContext.markAsErroneous();
+        return false;
+      } else if (redirectingInitializer != null) {
+        _injectInvalidInitializer(
+          compilerContext,
+          problemReporting,
+          codeRedirectingConstructorWithMultipleRedirectInitializers,
+          fileUri,
+          initializer.fileOffset,
+          noLength,
+        );
+        bodyBuilderContext.markAsErroneous();
+        return false;
+      } else if (_initializers.isNotEmpty) {
+        // Error on all previous ones.
+        for (int i = 0; i < _initializers.length; i++) {
+          Initializer initializer = _initializers[i];
+          int length = noLength;
+          if (initializer is AssertInitializer) length = "assert".length;
+          Initializer error = createInvalidInitializer(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: codeRedirectingConstructorWithAnotherInitializer,
+              fileUri: fileUri,
+              fileOffset: initializer.fileOffset,
+              length: length,
+            ),
+          );
+          _initializers[i] = error;
+        }
+        inferenceResult.applyResult(_initializers, null);
+        _initializers.add(initializer);
+        if (initializer is RedirectingInitializer) {
+          redirectingInitializer = initializer;
+        }
+        bodyBuilderContext.markAsErroneous();
+        return false;
+      } else {
+        inferenceResult.applyResult(_initializers, null);
+        if (initializer is RedirectingInitializer) {
+          redirectingInitializer = initializer;
+        }
+        _initializers.add(initializer);
+        return true;
+      }
+    } else if (redirectingInitializer != null) {
+      int length = noLength;
+      if (initializer is AssertInitializer) length = "assert".length;
+      _injectInvalidInitializer(
+        compilerContext,
+        problemReporting,
+        codeRedirectingConstructorWithAnotherInitializer,
+        fileUri,
+        initializer.fileOffset,
+        length,
+      );
+      bodyBuilderContext.markAsErroneous();
+      return false;
+    } else if (superInitializer != null) {
+      _injectInvalidInitializer(
+        compilerContext,
+        problemReporting,
+        codeSuperInitializerNotLast,
+        fileUri,
+        initializer.fileOffset,
+        noLength,
+      );
+      bodyBuilderContext.markAsErroneous();
+      return false;
+    } else {
+      inferenceResult.applyResult(_initializers, null);
+      _initializers.add(initializer);
+      return true;
+    }
+  }
+
+  List<Initializer> get initializers => _initializers;
+}

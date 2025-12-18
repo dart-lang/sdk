@@ -38,6 +38,7 @@ import '../source/check_helper.dart';
 import '../source/offset_map.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart';
+import '../type_inference/external_ast_helper.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart'
     show ExpressionEvaluationHelper;
@@ -426,7 +427,7 @@ class Resolver {
     BuildInitializersResult result = bodyBuilder.buildInitializers(
       beginInitializers: beginInitializers,
     );
-    List<Initializer>? initializers = result.initializers;
+    List<Initializer> initializers = result.initializers;
     bool needsImplicitSuperInitializer = result.needsImplicitSuperInitializer;
     if (isConst) {
       List<FormalParameterBuilder>? formals = bodyBuilderContext.formals;
@@ -460,7 +461,7 @@ class Resolver {
     context.performBacklog(result.annotations);
   }
 
-  List<Initializer>? buildInitializersUnfinished({
+  List<Initializer> buildInitializersUnfinished({
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required ExtensionScope extensionScope,
@@ -626,7 +627,7 @@ class Resolver {
         fileUri: fileUri,
         bodyBuilderContext: bodyBuilderContext,
         thisVariable: functionBodyBuildingContext.thisVariable,
-        initializers: null,
+        initializers: result.initializers,
         constantContext: constantContext,
         needsImplicitSuperInitializer: bodyBuilderContext
             .needsImplicitSuperInitializer(_coreTypes),
@@ -1049,131 +1050,27 @@ class Resolver {
     }
   }
 
-  void _finishConstructor({
-    required _ResolverContext context,
+  void _finishInitializers({
     required CompilerContext compilerContext,
     required ProblemReporting problemReporting,
     required SourceLibraryBuilder libraryBuilder,
     required LibraryFeatures libraryFeatures,
     required BodyBuilderContext bodyBuilderContext,
-    required AsyncMarker asyncModifier,
-    required Statement? body,
-    required List<Object /* Expression | NamedExpression */>?
-    superParametersAsArguments,
+    required TypeInferrer typeInferrer,
     required Uri fileUri,
+    required List<Initializer> initializers,
+    required Set<String>? namedSuperParameterNames,
+    required List<Expression>? positionalSuperParametersAsArguments,
+    required List<NamedExpression>? namedSuperParametersAsArguments,
+    required List<Object>? superParametersAsArguments,
     required bool needsImplicitSuperInitializer,
-    required ConstantContext constantContext,
-    required List<Initializer>? initializers,
+    required AsyncMarker asyncModifier,
+    required int? asyncModifierFileOffset,
   }) {
-    const Forest forest = const Forest();
-    AssignedVariables assignedVariables = context.assignedVariables;
-
-    /// Quotes below are from [Dart Programming Language Specification, 4th
-    /// Edition](
-    /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf).
-    assert(
-      () {
-        if (superParametersAsArguments == null) {
-          return true;
-        }
-        for (Object superParameterAsArgument in superParametersAsArguments) {
-          if (superParameterAsArgument is! Expression &&
-              superParameterAsArgument is! NamedExpression) {
-            return false;
-          }
-        }
-        return true;
-      }(),
-      "Expected 'superParametersAsArguments' "
-      "to contain nothing but Expressions and NamedExpressions.",
-    );
-    assert(
-      () {
-        if (superParametersAsArguments == null) {
-          return true;
-        }
-        int previousOffset = -1;
-        for (Object superParameterAsArgument in superParametersAsArguments) {
-          int offset;
-          if (superParameterAsArgument is Expression) {
-            offset = superParameterAsArgument.fileOffset;
-          } else if (superParameterAsArgument is NamedExpression) {
-            offset = superParameterAsArgument.value.fileOffset;
-          } else {
-            return false;
-          }
-          if (previousOffset > offset) {
-            return false;
-          }
-          previousOffset = offset;
-        }
-        return true;
-      }(),
-      "Expected 'superParametersAsArguments' "
-      "to be sorted by occurrence in file.",
-    );
-
     FunctionNode function = bodyBuilderContext.function;
+    _InitializerBuilder initializerBuilder = new _InitializerBuilder();
 
-    Set<String>? namedSuperParameterNames;
-    List<Expression>? positionalSuperParametersAsArguments;
-    List<NamedExpression>? namedSuperParametersAsArguments;
-    List<FormalParameterBuilder>? formals = bodyBuilderContext.formals;
-    if (superParametersAsArguments != null) {
-      for (Object superParameterAsArgument in superParametersAsArguments) {
-        if (superParameterAsArgument is Expression) {
-          (positionalSuperParametersAsArguments ??= <Expression>[]).add(
-            superParameterAsArgument,
-          );
-        } else {
-          NamedExpression namedSuperParameterAsArgument =
-              superParameterAsArgument as NamedExpression;
-          (namedSuperParametersAsArguments ??= <NamedExpression>[]).add(
-            namedSuperParameterAsArgument,
-          );
-          (namedSuperParameterNames ??= <String>{}).add(
-            namedSuperParameterAsArgument.name,
-          );
-        }
-      }
-    } else if (formals != null) {
-      for (FormalParameterBuilder formal in formals) {
-        if (formal.isSuperInitializingFormal) {
-          // Coverage-ignore-block(suite): Not run.
-          if (formal.isNamed) {
-            NamedExpression superParameterAsArgument = new NamedExpression(
-              formal.name,
-              _createVariableGet(
-                assignedVariables: assignedVariables,
-                variable: formal.variable as VariableDeclarationImpl,
-                fileOffset: formal.fileOffset,
-              ),
-            )..fileOffset = formal.fileOffset;
-            (namedSuperParametersAsArguments ??= <NamedExpression>[]).add(
-              superParameterAsArgument,
-            );
-            (namedSuperParameterNames ??= <String>{}).add(formal.name);
-            (superParametersAsArguments ??= <Object>[]).add(
-              superParameterAsArgument,
-            );
-          } else {
-            Expression superParameterAsArgument = _createVariableGet(
-              assignedVariables: assignedVariables,
-              variable: formal.variable as VariableDeclarationImpl,
-              fileOffset: formal.fileOffset,
-            );
-            (positionalSuperParametersAsArguments ??= <Expression>[]).add(
-              superParameterAsArgument,
-            );
-            (superParametersAsArguments ??= <Object>[]).add(
-              superParameterAsArgument,
-            );
-          }
-        }
-      }
-    }
-
-    if (initializers != null && initializers.isNotEmpty) {
+    if (initializers.isNotEmpty) {
       if (bodyBuilderContext.isMixinClass) {
         // Report an error if a mixin class has a constructor with an
         // initializer.
@@ -1260,7 +1157,7 @@ class Resolver {
           new List<InitializerInferenceResult>.generate(
             initializers.length,
             (index) => bodyBuilderContext.inferInitializer(
-              typeInferrer: context.typeInferrer,
+              typeInferrer: typeInferrer,
               fileUri: fileUri,
               initializer: initializers[index],
             ),
@@ -1269,11 +1166,12 @@ class Resolver {
 
       if (!bodyBuilderContext.isExternalConstructor) {
         for (InitializerInferenceResult result in inferenceResults) {
-          if (!bodyBuilderContext.addInferredInitializer(
+          if (!initializerBuilder.addInitializer(
             compilerContext,
             problemReporting,
+            bodyBuilderContext,
             result,
-            fileUri,
+            fileUri: fileUri,
           )) {
             // Erroneous initializer, implicit super call is not needed.
             needsImplicitSuperInitializer = false;
@@ -1283,19 +1181,16 @@ class Resolver {
     }
 
     if (asyncModifier != AsyncMarker.Sync) {
-      bodyBuilderContext.addInitializer(
-        compilerContext,
-        problemReporting,
+      initializers.add(
         _buildInvalidInitializer(
           problemReporting.buildProblem(
             compilerContext: compilerContext,
             message: codeConstructorNotSync,
             fileUri: fileUri,
-            fileOffset: body!.fileOffset,
+            fileOffset: asyncModifierFileOffset!,
             length: noLength,
           ),
         ),
-        fileUri,
       );
       needsImplicitSuperInitializer = false;
     }
@@ -1350,6 +1245,7 @@ class Resolver {
         argumentsOffset = bodyBuilderContext.memberNameOffset;
       }
 
+      const Forest forest = const Forest();
       if (positionalArguments != null || namedArguments != null) {
         arguments = forest.createArguments(
           argumentsOffset,
@@ -1378,7 +1274,7 @@ class Resolver {
           initializer = _buildInvalidInitializer(
             LookupResult.createDuplicateExpression(
               result,
-              context: libraryBuilder.loader.target.context,
+              context: compilerContext,
               name: '',
               fileUri: fileUri,
               fileOffset: bodyBuilderContext.memberNameOffset,
@@ -1539,20 +1435,163 @@ class Resolver {
       }
       InitializerInferenceResult inferenceResult = bodyBuilderContext
           .inferInitializer(
-            typeInferrer: context.typeInferrer,
+            typeInferrer: typeInferrer,
             fileUri: fileUri,
             initializer: initializer,
           );
-      if (!bodyBuilderContext.addInferredInitializer(
+      if (!initializerBuilder.addInitializer(
         compilerContext,
         problemReporting,
+        bodyBuilderContext,
         inferenceResult,
-        fileUri,
+        fileUri: fileUri,
       )) {
         // Erroneous initializer, implicit super call is not needed.
         needsImplicitSuperInitializer = false;
       }
     }
+    bodyBuilderContext.registerInitializers(initializerBuilder.initializers);
+  }
+
+  void _finishConstructor({
+    required _ResolverContext context,
+    required CompilerContext compilerContext,
+    required ProblemReporting problemReporting,
+    required SourceLibraryBuilder libraryBuilder,
+    required LibraryFeatures libraryFeatures,
+    required BodyBuilderContext bodyBuilderContext,
+    required AsyncMarker asyncModifier,
+    required Statement? body,
+    required List<Object /* Expression | NamedExpression */>?
+    superParametersAsArguments,
+    required Uri fileUri,
+    required bool needsImplicitSuperInitializer,
+    required ConstantContext constantContext,
+    required List<Initializer> initializers,
+  }) {
+    AssignedVariables assignedVariables = context.assignedVariables;
+
+    /// Quotes below are from [Dart Programming Language Specification, 4th
+    /// Edition](
+    /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf).
+    assert(
+      () {
+        if (superParametersAsArguments == null) {
+          return true;
+        }
+        for (Object superParameterAsArgument in superParametersAsArguments) {
+          if (superParameterAsArgument is! Expression &&
+              superParameterAsArgument is! NamedExpression) {
+            return false;
+          }
+        }
+        return true;
+      }(),
+      "Expected 'superParametersAsArguments' "
+      "to contain nothing but Expressions and NamedExpressions.",
+    );
+    assert(
+      () {
+        if (superParametersAsArguments == null) {
+          return true;
+        }
+        int previousOffset = -1;
+        for (Object superParameterAsArgument in superParametersAsArguments) {
+          int offset;
+          if (superParameterAsArgument is Expression) {
+            offset = superParameterAsArgument.fileOffset;
+          } else if (superParameterAsArgument is NamedExpression) {
+            offset = superParameterAsArgument.value.fileOffset;
+          } else {
+            return false;
+          }
+          if (previousOffset > offset) {
+            return false;
+          }
+          previousOffset = offset;
+        }
+        return true;
+      }(),
+      "Expected 'superParametersAsArguments' "
+      "to be sorted by occurrence in file.",
+    );
+
+    Set<String>? namedSuperParameterNames;
+    List<Expression>? positionalSuperParametersAsArguments;
+    List<NamedExpression>? namedSuperParametersAsArguments;
+    List<FormalParameterBuilder>? formals = bodyBuilderContext.formals;
+    if (superParametersAsArguments != null) {
+      for (Object superParameterAsArgument in superParametersAsArguments) {
+        if (superParameterAsArgument is Expression) {
+          (positionalSuperParametersAsArguments ??= <Expression>[]).add(
+            superParameterAsArgument,
+          );
+        } else {
+          NamedExpression namedSuperParameterAsArgument =
+              superParameterAsArgument as NamedExpression;
+          (namedSuperParametersAsArguments ??= <NamedExpression>[]).add(
+            namedSuperParameterAsArgument,
+          );
+          (namedSuperParameterNames ??= <String>{}).add(
+            namedSuperParameterAsArgument.name,
+          );
+        }
+      }
+    } else if (formals != null) {
+      for (FormalParameterBuilder formal in formals) {
+        if (formal.isSuperInitializingFormal) {
+          // Coverage-ignore-block(suite): Not run.
+          if (formal.isNamed) {
+            NamedExpression superParameterAsArgument = new NamedExpression(
+              formal.name,
+              _createVariableGet(
+                assignedVariables: assignedVariables,
+                variable: formal.variable as VariableDeclarationImpl,
+                fileOffset: formal.fileOffset,
+              ),
+            )..fileOffset = formal.fileOffset;
+            (namedSuperParametersAsArguments ??= <NamedExpression>[]).add(
+              superParameterAsArgument,
+            );
+            (namedSuperParameterNames ??= <String>{}).add(formal.name);
+            (superParametersAsArguments ??= <Object>[]).add(
+              superParameterAsArgument,
+            );
+          } else {
+            Expression superParameterAsArgument = _createVariableGet(
+              assignedVariables: assignedVariables,
+              variable: formal.variable as VariableDeclarationImpl,
+              fileOffset: formal.fileOffset,
+            );
+            (positionalSuperParametersAsArguments ??= <Expression>[]).add(
+              superParameterAsArgument,
+            );
+            (superParametersAsArguments ??= <Object>[]).add(
+              superParameterAsArgument,
+            );
+          }
+        }
+      }
+    }
+    _finishInitializers(
+      compilerContext: compilerContext,
+      problemReporting: problemReporting,
+      libraryBuilder: libraryBuilder,
+      libraryFeatures: libraryFeatures,
+      bodyBuilderContext: bodyBuilderContext,
+      typeInferrer: context.typeInferrer,
+      fileUri: fileUri,
+      initializers: initializers,
+      namedSuperParameterNames: namedSuperParameterNames,
+      positionalSuperParametersAsArguments:
+          positionalSuperParametersAsArguments,
+      namedSuperParametersAsArguments: namedSuperParametersAsArguments,
+      superParametersAsArguments: superParametersAsArguments,
+      needsImplicitSuperInitializer: needsImplicitSuperInitializer,
+      asyncModifier: asyncModifier,
+      asyncModifierFileOffset: body?.fileOffset,
+    );
+
     if (body == null && !bodyBuilderContext.isExternalConstructor) {
       /// >If a generative constructor c is not a redirecting constructor
       /// >and no body is provided, then c implicitly has an empty body {}.
@@ -1587,7 +1626,7 @@ class Resolver {
     required Uri fileUri,
     required BodyBuilderContext bodyBuilderContext,
     required VariableDeclaration? thisVariable,
-    required List<Initializer>? initializers,
+    required List<Initializer> initializers,
     required ConstantContext constantContext,
     required bool needsImplicitSuperInitializer,
   }) {

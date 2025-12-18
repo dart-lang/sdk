@@ -1,0 +1,14 @@
+library;
+import self as self;
+
+extension type ET(void _) {
+  abstract extension-type-member representation-field get _() → void;
+  constructor • = self::ET|constructor#;
+  constructor tearoff • = self::ET|constructor#_#new#tearOff;
+}
+static extension-type-member method ET|constructor#(void _) → self::ET% /* erasure=void, declared=! */ {
+  lowered final self::ET% /* erasure=void, declared=! */ #this = _;
+  return #this;
+}
+static extension-type-member synthetic method ET|constructor#_#new#tearOff(void _) → self::ET% /* erasure=void, declared=! */
+  return self::ET|constructor#(_);

@@ -489,7 +489,7 @@ class MultiTargetAnnotations {
 }
 
 class BuildInitializersResult {
-  final List<Initializer>? initializers;
+  final List<Initializer> initializers;
   final bool needsImplicitSuperInitializer;
   final PendingAnnotations? annotations;
 
@@ -522,16 +522,21 @@ class BuildFieldsResult {
 
 class BuildPrimaryConstructorResult {
   final FormalParameters? formals;
+  final List<Initializer> initializers;
   final PendingAnnotations? annotations;
 
-  BuildPrimaryConstructorResult(this.formals, this.annotations);
+  BuildPrimaryConstructorResult(
+    this.formals,
+    this.initializers,
+    this.annotations,
+  );
 }
 
 class BuildFunctionBodyResult {
   final FormalParameters? formals;
   final AsyncMarker asyncModifier;
   final Statement? body;
-  final List<Initializer>? initializers;
+  final List<Initializer> initializers;
   final bool needsImplicitSuperInitializer;
   final PendingAnnotations? annotations;
 

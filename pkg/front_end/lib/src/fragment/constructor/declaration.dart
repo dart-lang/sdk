@@ -57,6 +57,8 @@ abstract class ConstructorDeclaration {
 
   List<Initializer> get initializers;
 
+  void registerInitializers(List<Initializer> initializers);
+
   void createEncoding({
     required ProblemReporting problemReporting,
     required SourceLoader loader,
@@ -703,6 +705,11 @@ mixin _ConstructorEncodingMixin
         _ConstructorDeclarationMixin,
         ConstructorFragmentDeclaration {
   ConstructorEncoding get _encoding;
+
+  @override
+  void registerInitializers(List<Initializer> initializers) {
+    _encoding.registerInitializers(initializers);
+  }
 
   String? get _nativeMethodName;
 
@@ -1459,6 +1466,13 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
   Constructor get _constructor;
 
   Procedure? get _constructorTearOff;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void registerInitializers(List<Initializer> initializers) {
+    _constructor.initializers.addAll(initializers);
+    setParents(initializers, _constructor);
+  }
 
   @override
   // Coverage-ignore(suite): Not run.
