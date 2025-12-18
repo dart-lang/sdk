@@ -1,15 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/general/supported_libraries/main.dart:7:8: Error: Dart library 'dart:unsupported.by.target' is not available on this platform.
-// import 'dart:unsupported.by.target';
-//        ^
-//
-// pkg/front_end/testcases/general/supported_libraries/main.dart:8:8: Error: Dart library 'dart:unsupported.not.importable' is not available on this platform.
-// import 'dart:unsupported.not.importable';
-//        ^
-//
 import self as self;
 import "dart:supported.by.spec" as spec;
 import "dart:_supported.by.target" as by_;
@@ -23,7 +12,6 @@ import "dart:core" as core;
 import "dart:supported.by.spec";
 import "dart:unsupported.by.spec";
 import "dart:unsupported.by.target";
-import "dart:unsupported.not.importable";
 import "org-dartlang-testcase:///import_supported.by.spec_lib.dart" as from_supported_by_spec_first;
 import "org-dartlang-testcase:///import_supported.by.target_lib.dart" as from_supported_by_target;
 import "org-dartlang-testcase:///import_supported.by.spec_lib.dart" as from_supported_by_spec_last;
@@ -42,7 +30,6 @@ static method main() → dynamic {
   self::expect(false, #C2);
   self::expect(false, #C2);
   self::expect(false, #C2);
-  self::expect(false, #C2);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
@@ -58,7 +45,7 @@ export "dart:_supported.by.target";
 
 static method supportedBySpec() → void {}
 
-library dart.unsupported.by.spec /*!conditionalImportSupported*/;
+library dart.unsupported.by.spec /*isUnsupported*/;
 import self as spec2;
 import "dart:_unsupported.by.spec_internal" as spe;
 additionalExports = (spe::unsupportedBySpecInternal)
@@ -72,11 +59,6 @@ import self as tar;
 
 static method unsupportedByTarget() → void {}
 
-library dart.unsupported.not.importable /*!conditionalImportSupported*/;
-import self as self2;
-
-static method unsupportedNotImportable() → void {}
-
 library;
 import self as spe2;
 import "dart:core" as core;
@@ -89,12 +71,12 @@ import "dart:core" as core;
 
 static field core::String field = "supported.by.target";
 
-library dart._supported.by_target /*!conditionalImportSupported*/;
+library dart._supported.by_target /*isUnsupported*/;
 import self as by_;
 
 static method supportedByTarget() → void {}
 
-library dart._unsupported.by.spec_internal /*!conditionalImportSupported*/;
+library dart._unsupported.by.spec_internal /*isUnsupported*/;
 import self as spe;
 
 static method unsupportedBySpecInternal() → void {}

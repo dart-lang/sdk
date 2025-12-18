@@ -10,18 +10,11 @@
       },
       "unsupported.by.spec": {
         "uri": "unsupported.by.spec_lib.dart",
-        "support_conditional_import": false,
-        "support_direct_import": "always"
+        "supported": false
       },
       "unsupported.by.target": {
         "uri": "unsupported.by.target_lib.dart",
-        "support_conditional_import": true,
-        "support_direct_import": "always"
-      },
-      "unsupported.not.importable": {
-        "uri": "unsupported.not.importable_lib.dart",
-        "support_conditional_import": false,
-        "support_direct_import": "never"
+        "supported": true
       },
       "_unsupported.by.spec_internal": {
         "uri": "unsupported.by.spec_internal_lib.dart"

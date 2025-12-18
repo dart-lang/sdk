@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dev_compiler/src/compiler/module_builder.dart';
-import 'package:dev_compiler/src/kernel/target.dart';
-import 'package:kernel/target/targets.dart';
 import 'package:test/test.dart';
 
 import '../shared_test_options.dart';
@@ -99,11 +97,13 @@ void runTests(SetupCompilerOptions setup) {
       import 'dart:io' show Directory;
       import 'dart:io' as p;
       import 'dart:convert' as p;
+      import 'dart:ffi' as ffi;
 
       main() {
         print(Directory.systemTemp);
         print(p.Directory.systemTemp);
         print(p.utf8.decoder);
+        print(ffi.Abi.current());
       }
 
       void foo() {
@@ -147,33 +147,6 @@ void runTests(SetupCompilerOptions setup) {
         );
       },
     );
-  });
-
-  group('Expression compiler dart: platform import tests', () {
-    var source = '''
-      import 'dart:ffi' as ffi;
-
-      main() {
-        print(ffi.Abi.current());
-      }
-
-      void foo() {
-        // Breakpoint
-      }
-      ''';
-
-    late ExpressionCompilerTestDriver driver;
-
-    setUp(() {
-      driver = ExpressionCompilerTestDriver(setup, source)
-        ..setup.options.target = DevCompilerTarget(
-          TargetFlags(includeUnsupportedPlatformLibraryStubs: true),
-        );
-    });
-
-    tearDown(() {
-      driver.delete();
-    });
 
     test('expression referencing dart:ffi', () async {
       await driver.check(
@@ -183,7 +156,6 @@ void runTests(SetupCompilerOptions setup) {
       );
     });
   });
-
   group('Expression compiler package: import tests', () {
     var source = '''
       import 'package:a/a.dart' show topLevelMethod;

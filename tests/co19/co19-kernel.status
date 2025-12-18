@@ -28,7 +28,6 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t01: SkipSlow # Issue 43036
 [ $compiler == dart2bytecode || $runtime == dart_precompiled ]
 Language/Classes/Instance_Methods/Operators/unary_minus_t01: SkipByDesign # dart:mirrors is not supported.
 Language/Expressions/Constants/Constant_Contexts/constant_context_A02_t01: SkipByDesign # dart:mirrors is not supported.
-LanguageFeatures/Constructor-tear-offs/unnamed_constructor_A06_t01: SkipByDesign # dart:mirrors is not supported.
 LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported.
 
 # It makes no sense to run any test that uses spawnURI under the simulator

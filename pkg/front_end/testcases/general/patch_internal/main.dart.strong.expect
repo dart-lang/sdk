@@ -24,7 +24,7 @@ class Class extends core::Object {
     return new _te::ClassImpl::•();
 }
 
-library /*!conditionalImportSupported*/;
+library /*isUnsupported*/;
 import self as _te;
 import "dart:core" as core;
 import "dart:test" as self2;

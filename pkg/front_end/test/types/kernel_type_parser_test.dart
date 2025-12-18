@@ -1,8 +1,6 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
-    show Importability;
 
 import "package:expect/expect.dart" show Expect;
 import "package:kernel/ast.dart" show Component, DartType, Library;
@@ -135,22 +133,23 @@ extension type NonNullableNestedGenericExtensionType<T extends self::Object>(sel
 }
 """;
 
-(Component, TypeParserEnvironment) parseSdk() {
-  Uri uri = Uri.parse("dart:core");
-  TypeParserEnvironment environment = new TypeParserEnvironment(uri, uri);
-  Library library =
-      parseLibrary(uri, mockSdk + testSdk, environment: environment)
-        ..conditionalImportSupported = true
-        ..importability = Importability.always;
+Component parseSdk(Uri uri, TypeParserEnvironment environment) {
+  Library library = parseLibrary(
+    uri,
+    mockSdk + testSdk,
+    environment: environment,
+  );
   StringBuffer sb = new StringBuffer();
   Printer printer = new Printer(sb);
   printer.writeLibraryFile(library);
   Expect.stringEquals(expectedSdk, "$sb");
-  return (new Component(libraries: <Library>[library]), environment);
+  return new Component(libraries: <Library>[library]);
 }
 
 void main() {
-  var (Component component, TypeParserEnvironment environment) = parseSdk();
+  Uri uri = Uri.parse("dart:core");
+  TypeParserEnvironment environment = new TypeParserEnvironment(uri, uri);
+  Component component = parseSdk(uri, environment);
   CoreTypes coreTypes = new CoreTypes(component);
   ClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes);
   new KernelSubtypeTest(coreTypes, hierarchy, environment).run();

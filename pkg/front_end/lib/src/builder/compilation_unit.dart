@@ -4,8 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
-import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
-    show Importability;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart' show Annotatable, Library, Version;
 import 'package:kernel/reference_from_index.dart';
@@ -44,22 +42,9 @@ sealed class CompilationUnit {
 
   bool get isSynthetic;
 
-  /// If false, the library is not supported through the 'dart.library.*' value
+  /// If true, the library is not supported through the 'dart.library.*' value
   /// used in conditional imports and `bool.fromEnvironment` constants.
-  bool get conditionalImportSupported;
-
-  /// Specifies when the library is importable on the target platform.
-  ///
-  /// If [importability] is [Importability.always], or is
-  /// [Importability.withFlag] when the
-  /// `--include-unsupported-platform-library-stubs` flag is specified, the
-  /// library can be imported.
-  ///
-  /// If [importability] is [Importability.never], or is
-  /// [Importability.withFlag] when
-  /// `--include-unsupported-platform-library-stubs` is not specified, imports
-  /// of this library will result in a compilation error.
-  Importability get importability;
+  bool get isUnsupported;
 
   Loader get loader;
 
@@ -79,12 +64,6 @@ sealed class CompilationUnit {
   /// through import or export.
   Iterable<Uri> get dependencies;
 
-  /// Returns the set of imports and exports of this library from other
-  /// libraries.
-  Iterable<LibraryAccess> get accessors;
-
-  /// Records the location of an import or export of this library from
-  /// [accessor].
   void recordAccess(
     CompilationUnit accessor,
     int charOffset,
@@ -295,6 +274,8 @@ abstract class SourceCompilationUnit
   /// Reports [message] on all compilation units that access this compilation
   /// unit.
   void addProblemAtAccessors(Message message);
+
+  Iterable<LibraryAccess> get accessors;
 
   /// Non-null if this library causes an error upon access, that is, there was
   /// an error reading its source.

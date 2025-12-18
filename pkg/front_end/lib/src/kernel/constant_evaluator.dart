@@ -2571,7 +2571,7 @@ class ConstantEvaluator
             library.importUri.path,
             libraryExists: true,
             isSynthetic: library.isSynthetic,
-            conditionalImportSupported: library.conditionalImportSupported,
+            isUnsupported: library.isUnsupported,
             dartLibrarySupport: dartLibrarySupport,
           ))
         (DartLibrarySupport.dartLibraryPrefix + library.importUri.path): "true",

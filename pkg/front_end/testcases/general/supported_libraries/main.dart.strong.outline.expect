@@ -4,7 +4,6 @@ import self as self;
 import "dart:supported.by.spec";
 import "dart:unsupported.by.spec";
 import "dart:unsupported.by.target";
-import "dart:unsupported.not.importable";
 import "org-dartlang-testcase:///import_supported.by.spec_lib.dart" as from_supported_by_spec_first;
 import "org-dartlang-testcase:///import_supported.by.target_lib.dart" as from_supported_by_target;
 import "org-dartlang-testcase:///import_supported.by.spec_lib.dart" as from_supported_by_spec_last;
@@ -24,7 +23,7 @@ export "dart:_supported.by.target";
 static method supportedBySpec() → void
   ;
 
-library dart.unsupported.by.spec /*!conditionalImportSupported*/;
+library dart.unsupported.by.spec /*isUnsupported*/;
 import self as self3;
 import "dart:_unsupported.by.spec_internal" as spe;
 additionalExports = (spe::unsupportedBySpecInternal)
@@ -40,11 +39,11 @@ import self as self4;
 static method unsupportedByTarget() → void
   ;
 
-library dart.unsupported.not.importable /*!conditionalImportSupported*/;
+library;
 import self as self5;
+import "dart:core" as core;
 
-static method unsupportedNotImportable() → void
-  ;
+static field core::String field;
 
 library;
 import self as self6;
@@ -52,19 +51,13 @@ import "dart:core" as core;
 
 static field core::String field;
 
-library;
-import self as self7;
-import "dart:core" as core;
-
-static field core::String field;
-
-library dart._supported.by_target /*!conditionalImportSupported*/;
+library dart._supported.by_target /*isUnsupported*/;
 import self as by_;
 
 static method supportedByTarget() → void
   ;
 
-library dart._unsupported.by.spec_internal /*!conditionalImportSupported*/;
+library dart._unsupported.by.spec_internal /*isUnsupported*/;
 import self as spe;
 
 static method unsupportedBySpecInternal() → void
