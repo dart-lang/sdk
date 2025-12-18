@@ -589,8 +589,13 @@ base mixin DiagnosticWithoutArguments on DiagnosticCodeImpl
       atOffset(offset: span.start.offset, length: span.length);
 
   @override
-  LocatableDiagnostic withContextMessages(List<DiagnosticMessage> messages) =>
-      new LocatableDiagnosticImpl(code, arguments, contextMessages: messages);
+  LocatableDiagnostic withContextMessages(
+    Iterable<DiagnosticMessage> messages,
+  ) => new LocatableDiagnosticImpl(
+    code,
+    arguments,
+    contextMessages: [...messages],
+  );
 }
 
 /// Concrete implementation of [DiagnosticWithoutArguments], used for diagnostic
@@ -674,7 +679,7 @@ abstract final class LocatableDiagnostic {
   ///     .withContextMessages(messages)
   ///     .at(astNode));
   /// ```
-  LocatableDiagnostic withContextMessages(List<DiagnosticMessage> messages);
+  LocatableDiagnostic withContextMessages(Iterable<DiagnosticMessage> messages);
 }
 
 /// Concrete implementation of [LocatableDiagnostic].
@@ -711,12 +716,13 @@ final class LocatableDiagnosticImpl implements LocatableDiagnostic {
       atOffset(offset: span.start.offset, length: span.length);
 
   @override
-  LocatableDiagnostic withContextMessages(List<DiagnosticMessage> messages) =>
-      new LocatableDiagnosticImpl(
-        code,
-        arguments,
-        contextMessages: [...contextMessages, ...messages],
-      );
+  LocatableDiagnostic withContextMessages(
+    Iterable<DiagnosticMessage> messages,
+  ) => new LocatableDiagnosticImpl(
+    code,
+    arguments,
+    contextMessages: [...contextMessages, ...messages],
+  );
 }
 
 /// A diagnostic that does not have any unfilled template parameters, and has
