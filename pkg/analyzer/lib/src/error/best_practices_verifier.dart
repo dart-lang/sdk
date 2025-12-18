@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -30,6 +28,7 @@ import 'package:analyzer/src/error/doc_comment_verifier.dart';
 import 'package:analyzer/src/error/element_usage_frontier_detector.dart';
 import 'package:analyzer/src/error/error_handler_verifier.dart';
 import 'package:analyzer/src/error/experimental_member_use_verifier.dart';
+import 'package:analyzer/src/error/immutable_verifier.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/error/must_call_super_verifier.dart';
 import 'package:analyzer/src/error/null_safe_api_verifier.dart';
@@ -69,6 +68,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   final List<ElementUsageFrontierDetector> _elementUsageFrontierDetectors;
 
   final ErrorHandlerVerifier _errorHandlerVerifier;
+
+  late final ImmutableVerifier _immutableVerifier = ImmutableVerifier(
+    _diagnosticReporter,
+  );
 
   final _InvalidAccessVerifier _invalidAccessVerifier;
 
@@ -236,7 +239,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     try {
-      _checkForImmutable(node, nameToken: node.namePart.typeName);
+      _immutableVerifier.checkDeclaration(
+        node,
+        nameToken: node.namePart.typeName,
+      );
       _checkForInvalidSealedSuperclass(node);
       super.visitClassDeclaration(node);
     } finally {
@@ -251,7 +257,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
-    _checkForImmutable(node, nameToken: node.name);
+    _immutableVerifier.checkDeclaration(node, nameToken: node.name);
     _checkForInvalidSealedSuperclass(node);
     _deprecatedFunctionalityVerifier.classTypeAlias(node);
     for (var v in _elementUsageFrontierDetectors) {
@@ -790,7 +796,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     try {
-      _checkForImmutable(node, nameToken: node.name);
+      _immutableVerifier.checkDeclaration(node, nameToken: node.name);
       _checkForInvalidSealedSuperclass(node);
       super.visitMixinDeclaration(node);
     } finally {
@@ -1052,95 +1058,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               : diag.equalKeysInMap;
           _diagnosticReporter.atNode(expression, diagnosticCode);
         }
-      }
-    }
-  }
-
-  /// Checks whether [node] violates the rules of [immutable].
-  ///
-  /// If [node] is marked with [immutable] or inherits from a class or mixin
-  /// marked with [immutable], this function searches the fields of [node] and
-  /// its superclasses, reporting a warning if any non-final instance fields are
-  /// found.
-  void _checkForImmutable(
-    CompilationUnitMember node, {
-    required Token nameToken,
-  }) {
-    /// Return `true` if the given class [element] or any superclass of it is
-    /// annotated with the `@immutable` annotation.
-    bool isOrInheritsImmutable(
-      InterfaceElement element,
-      Set<InterfaceElement> visited,
-    ) {
-      if (visited.add(element)) {
-        if (element.metadata.hasImmutable) {
-          return true;
-        }
-        for (InterfaceType interface in element.mixins) {
-          if (isOrInheritsImmutable(interface.element, visited)) {
-            return true;
-          }
-        }
-        for (InterfaceType mixin in element.interfaces) {
-          if (isOrInheritsImmutable(mixin.element, visited)) {
-            return true;
-          }
-        }
-        if (element.supertype != null) {
-          return isOrInheritsImmutable(element.supertype!.element, visited);
-        }
-      }
-      return false;
-    }
-
-    Iterable<String> nonFinalInstanceFields(InterfaceElement element) {
-      return element.fields
-          .where((field) {
-            if (field.isStatic || field.isFinal) {
-              return false;
-            }
-            return field.isOriginDeclaration;
-          })
-          .map((FieldElement field) => '${element.name}.${field.name}');
-    }
-
-    Iterable<String> definedOrInheritedNonFinalInstanceFields(
-      InterfaceElement element,
-      Set<InterfaceElement> visited,
-    ) {
-      Iterable<String> nonFinalFields = [];
-      if (visited.add(element)) {
-        nonFinalFields = nonFinalInstanceFields(element);
-        nonFinalFields = nonFinalFields.followedBy(
-          element.mixins.expand(
-            (InterfaceType mixin) => nonFinalInstanceFields(mixin.element),
-          ),
-        );
-        if (element.supertype != null) {
-          nonFinalFields = nonFinalFields.followedBy(
-            definedOrInheritedNonFinalInstanceFields(
-              element.supertype!.element,
-              visited,
-            ),
-          );
-        }
-      }
-      return nonFinalFields;
-    }
-
-    var element = node.declaredFragment!.element as InterfaceElement;
-    if (isOrInheritsImmutable(element, HashSet<InterfaceElement>())) {
-      Iterable<String> nonFinalFields =
-          definedOrInheritedNonFinalInstanceFields(
-            element,
-            HashSet<InterfaceElement>(),
-          );
-      if (nonFinalFields.isNotEmpty) {
-        _diagnosticReporter.atToken(
-          nameToken,
-          diag.mustBeImmutable,
-          arguments: [nonFinalFields.join(', ')],
-        );
       }
     }
   }

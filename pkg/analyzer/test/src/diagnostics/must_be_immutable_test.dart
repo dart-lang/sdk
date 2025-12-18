@@ -34,6 +34,17 @@ class A {
     );
   }
 
+  test_directAnnotation_declaredInPrimaryConstructor() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+@immutable
+class A(var int x);
+''',
+      [error(diag.mustBeImmutable, 50, 1)],
+    );
+  }
+
   test_directMixinAnnotation() async {
     await assertErrorsInCode(
       r'''
