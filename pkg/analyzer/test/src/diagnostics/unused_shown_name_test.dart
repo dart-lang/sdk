@@ -153,6 +153,25 @@ A a = A();
     );
   }
 
+  test_unreferenced_dotShorthand() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+
+void f(A a) {}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'a.dart' show A, f;
+
+void g() {
+  f(.new());
+}
+''',
+      [error(diag.unusedShownName, 21, 1)],
+    );
+  }
+
   test_unresolved() async {
     await assertErrorsInCode(
       r'''
