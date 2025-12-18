@@ -5,10 +5,10 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 import 'package:wasm_builder/wasm_builder.dart';
 
-import 'self_compile_test.dart' show expectEqualBytes;
 import 'util.dart';
 
 Future main() async {
@@ -30,7 +30,7 @@ Future main() async {
       wasmFilename,
     ]);
     final wasmBytes = wasmFile.readAsBytesSync();
-    expectEqualBytes(wasmBytes, readWrite(wasmBytes));
+    Expect.listEquals(wasmBytes, readWrite(wasmBytes));
     // Temporary files will be deleted when returning to [withTempDir].
   });
 }

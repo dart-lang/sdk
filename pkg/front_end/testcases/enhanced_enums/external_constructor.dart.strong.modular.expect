@@ -24,11 +24,7 @@ class E extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E a = invalid-expression "External constructors can't be evaluated in constant expressions.";
   final field core::int x;
   static const field core::List<self::E> values = invalid-expression "External constructors can't be evaluated in constant expressions.";
-  external const constructor •(core::int #index, core::String #name, core::int x) → self::E
-    : invalid-initializer "pkg/front_end/testcases/enhanced_enums/external_constructor.dart:9:25: Error: An external constructor can't initialize fields.
-Try removing the field initializers, or removing the keyword 'external'.
-  external const E(this.x);
-                        ^";
+  external const constructor •(core::int #index, core::String #name, core::int x) → self::E;
   method core::_enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
 }

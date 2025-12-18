@@ -1633,7 +1633,7 @@ class RepresentationFieldEncoding implements FieldEncoding {
     return new ExtensionTypeRepresentationFieldInitializer(
       _getter,
       new NullLiteral(),
-    );
+    )..fileOffset = _fragment.nameOffset;
   }
 
   @override

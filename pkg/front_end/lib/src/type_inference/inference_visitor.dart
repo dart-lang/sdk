@@ -3081,11 +3081,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ExpressionInferenceResult initializerResult = inferExpression(
       node.value,
       fieldType,
+      isVoidAllowed: true,
     );
     Expression initializer = ensureAssignableResult(
       fieldType,
       initializerResult,
       fileOffset: node.fileOffset,
+      isVoidAllowed: true,
     ).expression;
     node.value = initializer..parent = node;
     return new SuccessfulInitializerInferenceResult(node);
@@ -12461,11 +12463,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ExpressionInferenceResult initializerResult = inferExpression(
       node.value,
       fieldType,
+      isVoidAllowed: true,
     );
     Expression initializer = ensureAssignableResult(
       fieldType,
       initializerResult,
       fileOffset: node.fileOffset,
+      isVoidAllowed: true,
     ).expression;
     node.value = initializer..parent = node;
     return new SuccessfulInitializerInferenceResult(node);

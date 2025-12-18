@@ -12,7 +12,6 @@ class C1 extends self::S1 {
   field core::int i1;
   field core::int i2;
   constructor •(core::int i1, core::int s1, core::int x, [core::int s2 = 42]) → self::C1
-    : self::C1::i1 = i1
     ;
 }
 class S2 extends core::Object {
@@ -38,4 +37,4 @@ static method main() → dynamic
 Extra constant evaluation status:
 Evaluated: ListLiteral @ org-dartlang-testcase:///issue48142.dart:19:43 -> ListConstant(const <String>["six"])
 Evaluated: ListLiteral @ org-dartlang-testcase:///issue48142.dart:28:27 -> ListConstant(const <String>["six"])
-Extra constant evaluation: evaluated: 3, effectively constant: 2
+Extra constant evaluation: evaluated: 2, effectively constant: 2

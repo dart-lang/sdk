@@ -50,6 +50,8 @@ abstract class ConstructorEncoding {
 
   List<TypeParameter>? get thisTypeParameters;
 
+  void registerInitializers(List<Initializer> initializers);
+
   /// Mark the constructor as erroneous.
   ///
   /// This is used during the compilation phase to set the appropriate flag on
@@ -148,6 +150,12 @@ class RegularConstructorEncoding implements ConstructorEncoding {
 
   @override
   List<Initializer> get initializers => _constructor.initializers;
+
+  @override
+  void registerInitializers(List<Initializer> initializers) {
+    _constructor.initializers.addAll(initializers);
+    setParents(initializers, _constructor);
+  }
 
   @override
   bool get isRedirecting {
@@ -346,10 +354,6 @@ class RegularConstructorEncoding implements ConstructorEncoding {
     // Note: this method clears both initializers from the target Kernel node
     // and internal state associated with parsing initializers.
     _constructor.initializers = [];
-    // TODO(johnniwinther): Can these be moved here from the
-    //  [SourceConstructorBuilder]?
-    //redirectingInitializer = null;
-    //superInitializer = null;
   }
 
   @override
@@ -492,6 +496,11 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
 
   @override
   List<Initializer> get initializers => _initializers;
+
+  @override
+  void registerInitializers(List<Initializer> initializers) {
+    this.initializers.addAll(initializers);
+  }
 
   @override
   void registerFunctionBody(Statement value) {

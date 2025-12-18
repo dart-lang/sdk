@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'dart:typed_data';
 
+import 'package:expect/expect.dart' show Expect;
 import 'package:path/path.dart' as path;
 
 import 'util.dart';
@@ -42,17 +42,6 @@ Future main() async {
     final wasmBytes = outFile.readAsBytesSync();
     outFile.renameSync(outDart2WasmFilename);
 
-    expectEqualBytes(vmBytes, wasmBytes);
+    Expect.listEquals(vmBytes, wasmBytes);
   });
-}
-
-void expectEqualBytes(Uint8List a, Uint8List b) {
-  if (a.length != b.length) {
-    throw 'Mismatch in length ${a.length} vs ${b.length}';
-  }
-  for (int i = 0; i < a.length; ++i) {
-    if (a[i] != b[i]) {
-      throw 'Mismatch at offset $i ${a[i]} vs ${b[i]}';
-    }
-  }
 }

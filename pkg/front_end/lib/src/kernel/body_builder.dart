@@ -120,7 +120,7 @@ part 'body_builder_helpers.dart';
 abstract class BodyBuilder {
   BuildInitializersResult buildInitializers({required Token beginInitializers});
 
-  List<Initializer>? buildInitializersUnfinished({
+  List<Initializer> buildInitializersUnfinished({
     required Token beginInitializers,
   });
 
@@ -304,7 +304,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
   Link<bool> _localInitializerState = const Link<bool>().prepend(false);
 
-  List<Initializer>? _initializers;
+  List<Initializer> _initializers = [];
 
   bool inCatchClause = false;
 
@@ -1093,7 +1093,7 @@ class BodyBuilderImpl extends StackListenerImpl
     assert(checkState(closeBrace, [ValueKinds.StatementOrNull]));
   }
 
-  void prepareInitializers() {
+  void _prepareInitializers() {
     _localScopes.push(
       _context.computeFormalParameterInitializerScope(_localScope),
     );
@@ -1119,22 +1119,12 @@ class BodyBuilderImpl extends StackListenerImpl
                 formal.name,
                 formal.fileOffset,
                 formal.fileOffset,
-                new VariableGet(formal.variable!),
+                new VariableGet(formal.variable!)
+                  ..fileOffset = formal.fileOffset,
                 formal: formal,
               );
             }
-            for (Initializer initializer in initializers) {
-              if (!_context.addInitializer(
-                compilerContext,
-                problemReporting,
-                initializer,
-                uri,
-              )) {
-                // Coverage-ignore-block(suite): Not run.
-                // Erroneous initializer, implicit super call is not needed.
-                _needsImplicitSuperInitializer = false;
-              }
-            }
+            _initializers.addAll(initializers);
           }
         }
       }
@@ -1145,7 +1135,7 @@ class BodyBuilderImpl extends StackListenerImpl
   void handleNoInitializers() {
     debugEvent("NoInitializers");
     if (functionNestingLevel == 0) {
-      prepareInitializers();
+      _prepareInitializers();
       _localScopes.push(
         formalParameterScope ??
             new FixedLocalScope(kind: LocalScopeKind.initializers),
@@ -1157,7 +1147,7 @@ class BodyBuilderImpl extends StackListenerImpl
   void beginInitializers(Token token) {
     debugEvent("beginInitializers");
     if (functionNestingLevel == 0) {
-      prepareInitializers();
+      _prepareInitializers();
     }
     inConstructorInitializer = true;
   }
@@ -1238,8 +1228,7 @@ class BodyBuilderImpl extends StackListenerImpl
       ];
     }
 
-    _initializers ??= <Initializer>[];
-    _initializers!.addAll(initializers);
+    _initializers.addAll(initializers);
   }
 
   void checkAsyncReturnType(
@@ -1298,7 +1287,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
   }
 
-  List<Initializer>? parseInitializers(Token token) {
+  List<Initializer> parseInitializers(Token token) {
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
@@ -9972,30 +9961,31 @@ class BodyBuilderImpl extends StackListenerImpl
           )..fileOffset = assignmentOffset,
         ];
       } else {
+        _context.registerInitializedField(builder);
         if (formal != null && formal.type is! OmittedTypeBuilder) {
           DartType formalType = formal.variable!.type;
           DartType fieldType = _context.substituteFieldType(builder.fieldType);
           if (!typeEnvironment.isSubtypeOf(formalType, fieldType)) {
-            libraryBuilder.addProblem(
-              cfe.codeInitializingFormalTypeMismatch.withArgumentsOld(
-                name,
-                formalType,
-                builder.fieldType,
-              ),
-              assignmentOffset,
-              noLength,
-              uri,
-              context: [
-                cfe.codeInitializingFormalTypeMismatchField.withLocation(
-                  builder.fileUri,
-                  builder.fileOffset,
-                  noLength,
+            return [
+              buildInvalidInitializer(
+                buildProblem(
+                  message: cfe.codeInitializingFormalTypeMismatch
+                      .withArgumentsOld(name, formalType, builder.fieldType),
+                  fileOffset: assignmentOffset,
+                  length: noLength,
+                  fileUri: uri,
+                  context: [
+                    cfe.codeInitializingFormalTypeMismatchField.withLocation(
+                      builder.fileUri,
+                      builder.fileOffset,
+                      noLength,
+                    ),
+                  ],
                 ),
-              ],
-            );
+              ),
+            ];
           }
         }
-        _context.registerInitializedField(builder);
         return builder.buildInitializer(
           assignmentOffset,
           expression,
@@ -11125,7 +11115,7 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  List<Initializer>? buildInitializersUnfinished({
+  List<Initializer> buildInitializersUnfinished({
     required Token beginInitializers,
   }) {
     return parseInitializers(beginInitializers);
@@ -11195,6 +11185,7 @@ class BodyBuilderImpl extends StackListenerImpl
     checkEmpty(token.charOffset);
     return new BuildPrimaryConstructorResult(
       formals,
+      _initializers,
       _takePendingAnnotations(),
     );
   }

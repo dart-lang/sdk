@@ -35,7 +35,6 @@ class B extends core::Object {
 class C extends self::B {
   final field core::int z;
   constructor •(core::int x, wildcard core::int _#wc5#formal, wildcard core::int _#wc6#formal, core::int z) → self::C
-    : self::C::z = z
     ;
 }
 static method main() → dynamic
