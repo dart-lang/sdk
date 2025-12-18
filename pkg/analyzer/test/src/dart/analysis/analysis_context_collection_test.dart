@@ -335,7 +335,7 @@ contexts
         workspacePackage_0_0
       /home/test/lib/nestedNoYaml/a.dart
         uri: package:test/nestedNoYaml/a.dart
-        analysisOptions_1
+        analysisOptions_0
         workspacePackage_0_0
   /home/test/lib/nested
     packagesFile: /home/test/lib/nested/.dart_tool/package_config.json
@@ -344,12 +344,11 @@ contexts
     analyzedFiles
       /home/test/lib/nested/lib/c.dart
         uri: package:nested/c.dart
-        analysisOptions_2
+        analysisOptions_1
         workspacePackage_1_0
 analysisOptions
   analysisOptions_0: /home/test/lib/analysis_options.yaml
   analysisOptions_1: /home/test/lib/analysis_options.yaml
-  analysisOptions_2: /home/test/lib/analysis_options.yaml
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/test

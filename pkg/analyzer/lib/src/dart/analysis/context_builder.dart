@@ -204,15 +204,16 @@ class ContextBuilderImpl {
     }
 
     var optionsMappings = contextRoot.optionsFileMap.entries;
-    for (var entry in optionsMappings) {
-      var file = entry.value;
+    for (var MapEntry(key: file, value: folders) in optionsMappings) {
       var options = AnalysisOptionsImpl.fromYaml(
         optionsMap: provider.getOptionsFromFile(file),
         file: file,
         resourceProvider: resourceProvider,
       );
 
-      _optionsMap.add(entry.key, options);
+      for (var folder in folders) {
+        _optionsMap.add(folder, options);
+      }
     }
 
     _optionsMap.forEachOptionsObject(updateOptions);
