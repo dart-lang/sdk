@@ -646,8 +646,8 @@ extension type JSSymbol._(JSSymbolRepType _jsSymbol) implements JSAny {
   @Since('3.11')
   String? get key => _keyFor(this);
 
-  /// A string containing the description of the symbol, as passed to [new
-  /// JSSymbol].
+  /// A string containing the description of the symbol, as passed to
+  /// [JSSymbol.new].
   @Since('3.11')
   external String get description;
 }
