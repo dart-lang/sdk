@@ -575,6 +575,37 @@ int x = 0;
     );
   }
 
+  void test_constructor_class() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.constructor})
+class A {
+  const A();
+}
+
+@A()
+class C {}
+''',
+      [error(diag.invalidAnnotationTarget, 100, 1)],
+    );
+  }
+
+  void test_constructor_classWithPrimaryConstructor() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.constructor})
+class A {
+  const A();
+}
+
+@A()
+class C(final int i);
+''');
+  }
+
   void test_constructor_constructor() async {
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
@@ -587,6 +618,36 @@ class A {
 class C {
   @A() C();
 }
+''');
+  }
+
+  void test_constructor_enumWithPrimaryConstructor() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.constructor})
+class A {
+  const A();
+}
+
+@A()
+enum C(int i) {
+  a(1), b(2), c(3);
+}
+''');
+  }
+
+  void test_constructor_extensionType() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.constructor})
+class A {
+  const A();
+}
+
+@A()
+extension type C(int i);
 ''');
   }
 
