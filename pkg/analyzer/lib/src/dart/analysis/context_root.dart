@@ -33,7 +33,7 @@ class ContextRootImpl implements ContextRoot {
   final File? optionsFile;
 
   /// Maintains a mapping of folders to associated analysis options files.
-  final Map<Folder, File> optionsFileMap = {};
+  final Map<File, Set<Folder>> optionsFileMap = {};
 
   @override
   final File? packagesFile;

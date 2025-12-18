@@ -45,8 +45,11 @@ class TargetKind {
 
   /// Indicates that an annotation is valid on any constructor declaration, both
   /// factory and generative constructors, whether it's in a class, enum, or
-  /// extension type. Extension type primary constructors are not supported,
-  /// because there is no way to annotate a primary constructor.
+  /// extension type.
+  ///
+  /// Said annotation is also valid on a class, enum, or extension type
+  /// declaration with a primary constructor, and is understood to apply to the
+  /// primary constructor.
   static const constructor = TargetKind._('constructors', 'constructor');
 
   /// Indicates that an annotation is valid on any directive in a library or

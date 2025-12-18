@@ -725,12 +725,22 @@ class AnnotationVerifier {
       }
     }
 
+    if (kinds.contains(TargetKind.constructor)) {
+      if (target is ConstructorDeclaration) return true;
+
+      if (target
+          case ClassDeclaration(namePart: PrimaryConstructorDeclaration()) ||
+              EnumDeclaration(namePart: PrimaryConstructorDeclaration()) ||
+              ExtensionTypeDeclaration()) {
+        return true;
+      }
+    }
+
     return switch (target) {
       ClassDeclaration() =>
         kinds.contains(TargetKind.classType) || kinds.contains(TargetKind.type),
       ClassTypeAlias() =>
         kinds.contains(TargetKind.classType) || kinds.contains(TargetKind.type),
-      ConstructorDeclaration() => kinds.contains(TargetKind.constructor),
       Directive() =>
         kinds.contains(TargetKind.directive) ||
             (target.parent as CompilationUnit).directives.first == target &&

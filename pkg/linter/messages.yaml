@@ -1488,9 +1488,10 @@ LinterLintCode:
       Future<void>? m() {...}
       ```
 
-      **This rule is experimental.** It is being evaluated, and it may be changed
-      or removed. Feedback on its behavior is welcome! The main issue is here:
-      https://github.com/dart-lang/sdk/issues/59232.
+      **This rule is experimental.**
+      It is being evaluated, and it might be changed or removed.
+      Feedback on its behavior is welcome! The primary relevant issue is
+      [dart-lang/sdk#59292](https://github.com/dart-lang/sdk/issues/59232).
   avoidImplementingValueTypes:
     type: lint
     parameters: none
@@ -7742,12 +7743,15 @@ LinterLintCode:
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
-      Don't type annotate initialized local variables when the type is [obvious](https://dart.dev/resources/glossary#obviously-typed).
+      Don't type annotate initialized local variables when
+      the type is [obvious](https://dart.dev/glossary/obviously-typed).
 
-      Local variables, especially in modern code where functions tend to be small,
-      have very little scope. Omitting the type focuses the reader's attention on the
-      more important *name* of the variable and its initialized value. Hence, local
-      variable type annotations that are [obvious](https://dart.dev/resources/glossary#obviously-typed) should be omitted.
+      Local variables, especially in modern code where functions
+      tend to be small, have very little scope.
+      Omitting the type focuses the reader's attention on the
+      more important *name* of the variable and its initialized value.
+      Hence, local variable type annotations that are
+      [obvious](https://dart.dev/glossary/obviously-typed) should be omitted.
 
       **BAD:**
       ```dart
@@ -7802,9 +7806,10 @@ LinterLintCode:
       }
       ```
 
-      **This rule is experimental.** It is being evaluated, and it may be changed
-      or removed. Feedback on its behavior is welcome! The main issue is here:
-      https://github.com/dart-lang/sdk/issues/58773.
+      **This rule is experimental.**
+      It is being evaluated, and it might be changed or removed.
+      Feedback on its behavior is welcome! The primary relevant issue is
+      [dart-lang/sdk#58773](https://github.com/dart-lang/sdk/issues/58773).
   omitObviousPropertyTypes:
     type: lint
     parameters: none
@@ -7815,8 +7820,8 @@ LinterLintCode:
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
-      Don't type annotate initialized top-level or static variables when the type is
-      [obvious](https://dart.dev/resources/glossary#obviously-typed).
+      Don't type annotate initialized top-level or static variables when
+      the type is [obvious](https://dart.dev/glossary/obviously-typed).
 
       **BAD:**
       ```dart
@@ -7855,9 +7860,10 @@ LinterLintCode:
       }
       ```
 
-      **This rule is experimental.** It is being evaluated, and it may be changed
-      or removed. Feedback on its behavior is welcome! The main issue is here:
-      https://github.com/dart-lang/sdk/issues/59550.
+      **This rule is experimental.**
+      It is being evaluated, and it might be changed or removed.
+      Feedback on its behavior is welcome! The primary relevant issue is
+      [dart-lang/sdk#59550](https://github.com/dart-lang/sdk/issues/59550).
   oneMemberAbstracts:
     type: lint
     parameters:
@@ -11935,7 +11941,8 @@ LinterLintCode:
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
-      Do type annotate initialized local variables when the type is non-obvious.
+      Do type annotate initialized local variables when
+      the type is [non-obvious](https://dart.dev/glossary/obviously-typed).
 
       Type annotations on local variables can serve as a request for type inference,
       documenting the expected outcome of the type inference step, and declaratively
@@ -11948,28 +11955,6 @@ LinterLintCode:
       subsequent lines of code with known good information about the type of the
       given variable (which may not be immediately evident by looking at the
       initializing expression).
-
-      An expression is considered to have a non-obvious type when it does not
-      have an obvious type.
-
-      An expression e has an obvious type in the following cases:
-
-      - e is a non-collection literal. For instance, 1, true, 'Hello, $name!'.
-      - e is a collection literal with actual type arguments. For instance,
-        <int, bool>{}.
-      - e is a list literal or a set literal where at least one element has an
-        obvious type, and all elements have the same type. For instance, [1, 2] and
-        { [true, false], [] }, but not [1, 1.5].
-      - e is a map literal where all key-value pair have a key with an obvious type
-        and a value with an obvious type, and all keys have the same type, and all
-        values have the same type. For instance, { #a: <int>[] }, but not
-        {1: 1, 2: true}.
-      - e is an instance creation expression whose class part is not raw. For
-        instance C(14) if C is a non-generic class, or C<int>(14) if C accepts one
-        type argument, but not C(14) if C accepts one or more type arguments.
-      - e is a cascade whose target has an obvious type. For instance,
-        1..isEven..isEven has an obvious type because 1 has an obvious type.
-      - e is a type cast. For instance, myComplexExpression as int.
 
       **BAD:**
       ```dart
@@ -12006,9 +11991,10 @@ LinterLintCode:
       const List<List<Ingredient>> cookbook = ...;
       ```
 
-      **This rule is experimental.** It is being evaluated, and it may be changed
-      or removed. Feedback on its behavior is welcome! The main issue is here:
-      https://github.com/dart-lang/sdk/issues/58773.
+      **This rule is experimental.**
+      It is being evaluated, and it might be changed or removed.
+      Feedback on its behavior is welcome! The primary relevant issue is
+      [dart-lang/sdk#58773](https://github.com/dart-lang/sdk/issues/58773).
   specifyNonobviousPropertyTypes:
     type: lint
     parameters: none
@@ -12019,8 +12005,8 @@ LinterLintCode:
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
-      Do type annotate initialized top-level or static variables when the type is
-      [non-obvious](https://dart.dev/resources/glossary#obviously-typed).
+      Do type annotate initialized top-level or static variables when
+      the type is [non-obvious](https://dart.dev/glossary/obviously-typed).
 
       Type annotations on top-level or static variables can serve as a request for
       type inference, documenting the expected outcome of the type inference step,
@@ -12056,9 +12042,10 @@ LinterLintCode:
       }
       ```
 
-      **This rule is experimental.** It is being evaluated, and it may be changed
-      or removed. Feedback on its behavior is welcome! The main issue is here:
-      https://github.com/dart-lang/sdk/issues/59550.
+      **This rule is experimental.**
+      It is being evaluated, and it might be changed or removed.
+      Feedback on its behavior is welcome! The primary relevant issue is
+      [dart-lang/sdk#59550](https://github.com/dart-lang/sdk/issues/59550).
   strictTopLevelInferenceAddType:
     type: lint
     parameters: none

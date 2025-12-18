@@ -371,7 +371,7 @@ class ContextLocatorImpl {
       packagesFile: packagesFile,
     );
     if (optionsFile != null) {
-      root.optionsFileMap[rootFolder] = optionsFile;
+      root.optionsFileMap.putIfAbsent(optionsFile, () => {}).add(rootFolder);
     }
 
     root.excludedGlobs.addAll(_getExcludedGlobs(optionsFile, workspace));
@@ -471,7 +471,9 @@ class ContextLocatorImpl {
     }
 
     if (optionsFileToUse != null) {
-      containingRoot.optionsFileMap[folder] = optionsFileToUse;
+      containingRoot.optionsFileMap
+          .putIfAbsent(optionsFileToUse, () => {})
+          .add(folder);
       if (optionsFileToUse != optionsFileFromParentInSameRoot) {
         // Add excluded globs only if we found a new options file.
         var excludes = _getExcludedGlobs(
