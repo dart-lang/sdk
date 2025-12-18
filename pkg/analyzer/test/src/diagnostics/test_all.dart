@@ -929,6 +929,8 @@ import 'unreachable_switch_default_test.dart' as unreachable_switch_default;
 import 'unused_catch_clause_test.dart' as unused_catch_clause;
 import 'unused_catch_stack_test.dart' as unused_catch_stack;
 import 'unused_element_test.dart' as unused_element;
+import 'unused_field_from_primary_constructor_test.dart'
+    as unused_field_from_primary_constructor;
 import 'unused_field_test.dart' as unused_field;
 import 'unused_import_test.dart' as unused_import;
 import 'unused_label_test.dart' as unused_label;
@@ -1564,6 +1566,7 @@ main() {
     unused_catch_stack.main();
     unused_element.main();
     unused_field.main();
+    unused_field_from_primary_constructor.main();
     unused_import.main();
     unused_label.main();
     unused_local_variable.main();

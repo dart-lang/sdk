@@ -712,6 +712,34 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    // Do not report a field declared in a primary constructor which is declared
+    // in an extension type, since it cannot be removed, and renaming it to be
+    // public is not an improvement.
+    if (node.parent is! ExtensionTypeDeclaration) {
+      for (var parameter in node.formalParameters.parameters) {
+        var fragment = parameter.declaredFragment;
+        var element = fragment!.element;
+        if (element is! FieldFormalParameterElement) continue;
+        var field = element.field;
+        if (field == null) continue;
+        if (!_isReadMember(field)) {
+          var keyword = switch (parameter.notDefault) {
+            SimpleFormalParameter p => p.keyword!.lexeme,
+            _ => '',
+          };
+          _reportDiagnosticForElement(
+            diag.unusedFieldFromPrimaryConstructor,
+            element,
+            [field.displayName, keyword],
+          );
+        }
+      }
+    }
+    super.visitPrimaryConstructorDeclaration(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       var element = node.element;

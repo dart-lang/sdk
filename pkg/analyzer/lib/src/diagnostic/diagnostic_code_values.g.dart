@@ -1079,6 +1079,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.unusedElement,
   diag.unusedElementParameter,
   diag.unusedField,
+  diag.unusedFieldFromPrimaryConstructor,
   diag.unusedImport,
   diag.unusedLabel,
   diag.unusedLocalVariable,

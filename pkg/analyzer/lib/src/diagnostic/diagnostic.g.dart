@@ -16907,9 +16907,9 @@ unusedElementParameter = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Object p0: the name of the unused field
+/// Object fieldName: the name of the unused field
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required Object fieldName})
 >
 unusedField = DiagnosticWithArguments(
   name: 'unused_field',
@@ -16920,6 +16920,27 @@ unusedField = DiagnosticWithArguments(
   uniqueName: 'unused_field',
   withArguments: _withArgumentsUnusedField,
   expectedTypes: [ExpectedType.object],
+);
+
+/// Parameters:
+/// Object fieldName: the name of the unused field
+/// Object keyword: the keyword to remove
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required Object fieldName,
+    required Object keyword,
+  })
+>
+unusedFieldFromPrimaryConstructor = DiagnosticWithArguments(
+  name: 'unused_field_from_primary_constructor',
+  problemMessage: "The value of the field '{0}' isn't used.",
+  correctionMessage:
+      "Try removing the '{1}' keyword to avoid declaring a field, or try "
+      "using the field, or removing it.",
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'unused_field_from_primary_constructor',
+  withArguments: _withArgumentsUnusedFieldFromPrimaryConstructor,
+  expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
 
 /// Parameters:
@@ -21180,8 +21201,18 @@ LocatableDiagnostic _withArgumentsUnusedElementParameter({required Object p0}) {
   return LocatableDiagnosticImpl(diag.unusedElementParameter, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsUnusedField({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.unusedField, [p0]);
+LocatableDiagnostic _withArgumentsUnusedField({required Object fieldName}) {
+  return LocatableDiagnosticImpl(diag.unusedField, [fieldName]);
+}
+
+LocatableDiagnostic _withArgumentsUnusedFieldFromPrimaryConstructor({
+  required Object fieldName,
+  required Object keyword,
+}) {
+  return LocatableDiagnosticImpl(diag.unusedFieldFromPrimaryConstructor, [
+    fieldName,
+    keyword,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsUnusedImport({required String p0}) {
