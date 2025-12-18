@@ -422,9 +422,8 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       writeWord(name);
     }
     List<String> flags = [];
-    if (!library.conditionalImportSupported &&
-        library.importUri.isScheme('dart')) {
-      flags.add('!conditionalImportSupported');
+    if (library.isUnsupported) {
+      flags.add('isUnsupported');
     }
     if (flags.isNotEmpty) {
       writeWord('/*${flags.join(',')}*/');

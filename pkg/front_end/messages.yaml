@@ -4565,15 +4565,6 @@ unavailableDartLibrary:
   script: |
     import "dart:non_existing_library";
 
-unsupportedPlatformDartLibraryImport:
-  parameters:
-    Uri uri: undocumented
-  problemMessage: |
-    Using stub implementations for APIs in platform-specific Dart library
-    '#uri', which will throw 'UnsupportedError' if invoked.
-  severity: WARNING
-  external: test/unsupported_platform_dart_library_import_test.dart
-
 importChainContext:
   parameters:
     Uri uri: undocumented

@@ -62,7 +62,7 @@ abstract class M1<T extends core::Object? = dynamic> extends core::Object /*isMi
 }
 
 
-library /*!conditionalImportSupported*/;
+library;
 import self as self;
 import "file:pkg/vm/testcases/transformations/mixin_deduplication/multiple_libraries_shared_helper.dart" as mul;
 import "dart:core" as core;

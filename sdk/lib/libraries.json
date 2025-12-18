@@ -328,7 +328,7 @@
       "io": {
         "uri": "io/io.dart",
         "patches": "_internal/wasm/lib/io_patch.dart",
-        "support_conditional_import": false
+        "supported": false
       },
       "isolate": {
         "uri": "isolate/isolate.dart",
@@ -434,12 +434,12 @@
       "io": {
         "uri": "io/io.dart",
         "patches": "_internal/js_runtime/lib/io_patch.dart",
-        "support_conditional_import": false
+        "supported": false
       },
       "isolate": {
         "uri": "isolate/isolate.dart",
         "patches": "_internal/js_runtime/lib/isolate_patch.dart",
-        "support_conditional_import": false
+        "supported": false
       },
       "js": {
         "uri": "js/js.dart",
@@ -614,18 +614,17 @@
       "ffi": {
         "uri": "ffi/ffi.dart",
         "patches": "_internal/js_dev_runtime/patch/ffi_patch.dart",
-        "support_direct_import": "with_flag",
-        "support_conditional_import": false
+        "supported": false
       },
       "io": {
         "uri": "io/io.dart",
         "patches": "_internal/js_dev_runtime/patch/io_patch.dart",
-        "support_conditional_import": false
+        "supported": false
       },
       "isolate": {
         "uri": "isolate/isolate.dart",
         "patches": "_internal/js_dev_runtime/patch/isolate_patch.dart",
-        "support_conditional_import": false
+        "supported": false
       },
       "math": {
         "uri": "math/math.dart",

@@ -6,8 +6,6 @@
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show Token, scanString;
-import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
-    show Importability;
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/base/constant_context.dart';
@@ -109,10 +107,9 @@ Future<void> main() async {
       referenceIsPartOwner: null,
       forPatchLibrary: false,
       isAugmenting: false,
-      conditionalImportSupported: true,
+      isUnsupported: false,
       loader: loader,
       mayImplementRestrictedTypes: false,
-      importability: Importability.always,
     );
     SourceLibraryBuilder libraryBuilder = new SourceLibraryBuilder(
       compilationUnit: compilationUnit,
@@ -124,7 +121,7 @@ Future<void> main() async {
         defaultLanguageVersion,
       ),
       loader: loader,
-      conditionalImportSupported: true,
+      isUnsupported: false,
       isAugmentation: false,
       isPatch: false,
       importNameSpace: new ComputedMutableNameSpace(),

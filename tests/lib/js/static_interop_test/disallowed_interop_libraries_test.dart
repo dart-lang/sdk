@@ -13,9 +13,7 @@ import 'dart:js_util';
 // [web] Dart library 'dart:js_util' is not available on this platform.
 
 import 'dart:ffi';
-// [error line 15, column 1]
+// [error column 1]
 // [web] 'dart:ffi' can't be imported when compiling to Wasm.
-// [error line 15, column 8]
-// [web] Dart library 'dart:ffi' is not available on this platform.
 
 void main() {}

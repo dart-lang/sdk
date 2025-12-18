@@ -5,7 +5,6 @@
 import 'dart:supported.by.spec';
 import 'dart:unsupported.by.spec';
 import 'dart:unsupported.by.target';
-import 'dart:unsupported.not.importable';
 
 import 'import_default_lib.dart'
     if (dart.library.supported.by.spec) 'import_supported.by.spec_lib.dart'
@@ -13,7 +12,6 @@ import 'import_default_lib.dart'
     if (dart.library.unsupported.by.target) 'import_unsupported.by.target_lib.dart'
     if (dart.library.unsupported.by.spec) 'import_unsupported.by.spec_lib.dart'
     if (dart.library._unsupported.by.spec_internal) 'import_unsupported.by.spec_internal_lib.dart'
-    if (dart.library.unsupported.not.importable) 'import_unsupported.not.importable_lib.dart'
     as from_supported_by_spec_first;
 
 import 'import_default_lib.dart'
@@ -22,14 +20,12 @@ import 'import_default_lib.dart'
     if (dart.library._unsupported.by.spec_internal) 'import_unsupported.by.spec_internal_lib.dart'
     if (dart.library._supported.by.target) 'import_supported.by.target_lib.dart'
     if (dart.library.supported.by.spec) 'import_supported.by.spec_lib.dart'
-    if (dart.library.unsupported.not.importable) 'import_unsupported.not.importable_lib.dart'
     as from_supported_by_target;
 
 import 'import_default_lib.dart'
     if (dart.library.unsupported.by.spec) 'import_unsupported.by.spec_lib.dart'
     if (dart.library.unsupported.by.target) 'import_unsupported.by.target_lib.dart'
     if (dart.library._unsupported.by.spec_internal) 'import_unsupported.by.spec_internal_lib.dart'
-    if (dart.library.unsupported.not.importable) 'import_unsupported.not.importable_lib.dart'
     if (dart.library.supported.by.spec) 'import_supported.by.spec_lib.dart'
     if (dart.library._supported.by.target) 'import_supported.by.target_lib.dart'
     as from_supported_by_spec_last;
@@ -60,9 +56,6 @@ main() {
   // supported by the libraries specification.
   expect(false,
       const bool.fromEnvironment('dart.library._unsupported.by.spec_internal'));
-  // `dart:unsupported.not.importable` is not supported by the spec or target.
-  expect(false,
-      const bool.fromEnvironment('dart.library.unsupported.not.importable'));
 }
 
 expect(expected, actual) {

@@ -5,8 +5,6 @@
 import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
     show ClassMemberParser;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
-import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
-    show Importability;
 import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 import 'package:kernel/reference_from_index.dart' show IndexedLibrary;
 
@@ -169,10 +167,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   final bool isAugmenting;
 
   @override
-  final bool conditionalImportSupported;
-
-  @override
-  final Importability importability;
+  final bool isUnsupported;
 
   late final LookupScope _compilationUnitScope;
 
@@ -199,8 +194,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     required bool? referenceIsPartOwner,
     required bool forPatchLibrary,
     required bool isAugmenting,
-    required bool conditionalImportSupported,
-    required Importability importability,
+    required bool isUnsupported,
     required SourceLoader loader,
     required bool mayImplementRestrictedTypes,
   }) {
@@ -226,8 +220,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       referenceIsPartOwner: referenceIsPartOwner,
       forPatchLibrary: forPatchLibrary,
       isAugmenting: isAugmenting,
-      conditionalImportSupported: conditionalImportSupported,
-      importability: importability,
+      isUnsupported: isUnsupported,
       loader: loader,
       mayImplementRestrictedTypes: mayImplementRestrictedTypes,
     );
@@ -251,8 +244,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     required bool? referenceIsPartOwner,
     required this.forPatchLibrary,
     required this.isAugmenting,
-    required this.conditionalImportSupported,
-    required this.importability,
+    required this.isUnsupported,
     required this.loader,
     required this.mayImplementRestrictedTypes,
   }) : _languageVersion = packageLanguageVersion,
@@ -665,7 +657,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           target: library,
           indexedLibrary: indexedLibrary,
           referenceIsPartOwner: _referenceIsPartOwner,
-          conditionalImportSupported: conditionalImportSupported,
+          isUnsupported: isUnsupported,
           isAugmentation: forAugmentationLibrary,
           isPatch: forPatchLibrary,
           parentScope: _parentScope,

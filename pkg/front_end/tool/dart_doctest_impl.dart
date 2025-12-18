@@ -21,8 +21,6 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
-import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
-    show Importability;
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
@@ -1118,7 +1116,7 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
           ),
           loader: loader,
           resolveInLibrary: libraryBuilder,
-          conditionalImportSupported: true,
+          isUnsupported: false,
           forAugmentationLibrary: false,
           isAugmenting: false,
           forPatchLibrary: false,
@@ -1127,7 +1125,6 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
           indexedLibrary: null,
           augmentationRoot: null,
           mayImplementRestrictedTypes: false,
-          importability: Importability.always,
         );
 
     if (libraryBuilder is DillLibraryBuilder) {

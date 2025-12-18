@@ -74,7 +74,7 @@ class SC3<T extends core::Object?> extends mix::_MixinApplication5&B3&M2<self::S
 static method main() → dynamic {}
 
 
-library /*!conditionalImportSupported*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "file:pkg/vm/testcases/transformations/mixin_deduplication/generic.dart" as #lib;

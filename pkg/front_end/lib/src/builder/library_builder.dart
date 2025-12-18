@@ -4,8 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
-import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
-    show Importability;
 import 'package:kernel/ast.dart' show Library, Version;
 
 import '../base/export.dart' show Export;
@@ -24,7 +22,6 @@ import '../base/messages.dart'
 import '../base/name_space.dart';
 import '../base/problems.dart' show internalProblem;
 import '../source/name_scheme.dart';
-import '../source/source_library_builder.dart';
 import 'builder.dart';
 import 'compilation_unit.dart';
 import 'constructor_builder.dart';
@@ -42,10 +39,6 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   ComputedNameSpace get exportNameSpace;
 
   List<Export> get exporters;
-
-  /// Returns the set of imports and exports of this library from other
-  /// libraries.
-  Iterable<LibraryAccess> get accessors;
 
   LibraryBuilder? get partOfLibrary;
 
@@ -77,22 +70,9 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   /// Returns the language [Version] used for this library.
   Version get languageVersion;
 
-  /// If false, the library is not supported through the 'dart.library.*' value
+  /// If true, the library is not supported through the 'dart.library.*' value
   /// used in conditional imports and `bool.fromEnvironment` constants.
-  bool get conditionalImportSupported;
-
-  /// Specifies when the library is importable on the target platform.
-  ///
-  /// If [importability] is [Importability.always], or is
-  /// [Importability.withFlag] when the
-  /// `--include-unsupported-platform-library-stubs` flag is specified, the
-  /// library can be imported.
-  ///
-  /// If [importability] is [Importability.never], or is
-  /// [Importability.withFlag] when
-  /// `--include-unsupported-platform-library-stubs` is not specified, imports
-  /// of this library will result in a compilation error.
-  Importability get importability;
+  bool get isUnsupported;
 
   /// [Iterator] for all declarations declared in this library of type [T].
   ///
@@ -125,8 +105,6 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   /// If no member is found an internal problem is reported.
   NamedBuilder lookupRequiredLocalMember(String name);
 
-  /// Records the location of an import or export of this library from
-  /// [accessor].
   void recordAccess(
     CompilationUnit accessor,
     int charOffset,
@@ -183,9 +161,6 @@ abstract class LibraryBuilderImpl extends BuilderImpl
 
   @override
   Uri get importUri;
-
-  @override
-  final List<LibraryAccess> accessors = <LibraryAccess>[];
 
   @override
   FormattedMessage? addProblem(
@@ -290,9 +265,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     int charOffset,
     int length,
     Uri fileUri,
-  ) {
-    accessors.add(new LibraryAccess(accessor, fileUri, charOffset, length));
-  }
+  ) {}
 
   @override
   String toString() {

@@ -278,34 +278,28 @@ void main() {
       );
     });
 
-    test('support_conditional_import entry must be bool', () async {
+    test('supported entry must be bool', () async {
       var jsonString = '''
       {
-        "vm":
+        "vm": 
         {
-          "libraries":
+          "libraries": 
           {
             "core": {
-              "uri": "main.dart",
-              "support_conditional_import": 3
+              "uri": "main.dart", 
+              "supported": 3
             }
           }
         }
       }''';
       expect(
         () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-        throwsA(
-          checkException(
-            messagePropertyIsNotABool('support_conditional_import', 3),
-          ),
-        ),
+        throwsA(checkException(messageSupportedIsNotABool(3))),
       );
     });
 
-    test(
-      'support_conditional_import entry is copied correctly when parsing',
-      () async {
-        var jsonString = '''
+    test('supported entry is copied correctly when parsing', () async {
+      var jsonString = '''
       {
         "vm": {
           "libraries": {
@@ -315,14 +309,15 @@ void main() {
                   "a/p1.dart",
                   "a/p2.dart"
                 ],
-                "support_conditional_import": false
+                "supported": false
+
               },
               "bar" : {
                 "uri": "b/main.dart",
                 "patches": [
                   "b/p3.dart"
                 ],
-                "support_conditional_import": true
+                "supported": true
               },
               "baz" : {
                 "uri": "b/main.dart",
@@ -334,117 +329,24 @@ void main() {
         }
       }
       ''';
-        var uri = Uri.parse('org-dartlang-test:///one/two/f.json');
-        var spec = await LibrariesSpecification.load(
-          uri,
-          read({uri: jsonString}),
-        );
-        expect(
-          spec
-              .specificationFor('vm')
-              .libraryInfoFor('foo')!
-              .supportConditionalImport,
-          false,
-        );
-        expect(
-          spec
-              .specificationFor('vm')
-              .libraryInfoFor('bar')!
-              .supportConditionalImport,
-          true,
-        );
-        expect(
-          spec
-              .specificationFor('vm')
-              .libraryInfoFor('baz')!
-              .supportConditionalImport,
-          true,
-        );
-      },
-    );
-
-    test('support_direct_import entry must be Importable', () async {
-      var jsonString = '''
-      {
-        "vm":
-        {
-          "libraries":
-          {
-            "core": {
-              "uri": "main.dart",
-              "support_direct_import": 3
-            }
-          }
-        }
-      }''';
+      var uri = Uri.parse('org-dartlang-test:///one/two/f.json');
+      var spec = await LibrariesSpecification.load(
+        uri,
+        read({uri: jsonString}),
+      );
       expect(
-        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-        throwsA(checkException(messageSupportDirectImportIsNotValidValue(3))),
+        spec.specificationFor('vm').libraryInfoFor('foo')!.isSupported,
+        false,
+      );
+      expect(
+        spec.specificationFor('vm').libraryInfoFor('bar')!.isSupported,
+        true,
+      );
+      expect(
+        spec.specificationFor('vm').libraryInfoFor('baz')!.isSupported,
+        true,
       );
     });
-
-    test(
-      'support_direct_import entry is copied correctly when parsing',
-      () async {
-        var jsonString = '''
-      {
-        "vm": {
-          "libraries": {
-              "foo" : {
-                "uri": "a/main.dart",
-                "patches": [
-                  "a/p1.dart",
-                  "a/p2.dart"
-                ],
-                "support_direct_import": "always"
-              },
-              "bar" : {
-                "uri": "b/main.dart",
-                "patches": [
-                  "b/p3.dart"
-                ],
-                "support_direct_import": "with_flag"
-              },
-              "baz" : {
-                "uri": "b/main.dart",
-                "patches": [
-                  "b/p3.dart"
-                ],
-                "support_direct_import": "never"
-              },
-              "foobar" : {
-                "uri": "b/main.dart",
-                "patches": [
-                  "b/p3.dart"
-                ]
-              }
-          }
-        }
-      }
-      ''';
-        var uri = Uri.parse('org-dartlang-test:///one/two/f.json');
-        var spec = await LibrariesSpecification.load(
-          uri,
-          read({uri: jsonString}),
-        );
-        expect(
-          spec.specificationFor('vm').libraryInfoFor('foo')!.importability,
-          Importability.always,
-        );
-        expect(
-          spec.specificationFor('vm').libraryInfoFor('bar')!.importability,
-          Importability.withFlag,
-        );
-        expect(
-          spec.specificationFor('vm').libraryInfoFor('baz')!.importability,
-          Importability.never,
-        );
-        expect(
-          spec.specificationFor('vm').libraryInfoFor('foobar')!.importability,
-          Importability.always,
-        );
-      },
-    );
   });
 
   group('nested', () {
@@ -899,27 +801,9 @@ void main() {
                   "a/p1.dart",
                   "a/p2.dart"
                 ],
-                "support_conditional_import": false
+                "supported": false
               },
               "bar" : {
-                "uri": "a/main.dart",
-                "patches": [
-                  "a/p1.dart",
-                  "a/p2.dart"
-                ],
-                "support_conditional_import": false,
-                "support_direct_import": "never"
-              },
-              "baz" : {
-                "uri": "a/main.dart",
-                "patches": [
-                  "a/p1.dart",
-                  "a/p2.dart"
-                ],
-                "support_conditional_import": false,
-                "support_direct_import": "with_flag"
-              },
-              "foobaz" : {
                 "uri": "b/main.dart",
                 "patches": [
                   "b/p3.dart"

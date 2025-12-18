@@ -138,7 +138,6 @@ strict
 stringokempty
 struct<#name
 structs
-stub
 super.namedconstructor
 superinterface
 supermixin
@@ -156,7 +155,6 @@ typeof
 u
 unavailable
 unsound
-unsupportederror
 v
 wasm:export
 wasm:import
