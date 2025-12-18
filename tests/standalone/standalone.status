@@ -49,6 +49,7 @@ deferred_transitive_import_error_test: Skip
 
 [ $compiler == dart2bytecode ]
 io/http_redirect_test: SkipByDesign # dart:mirrors is not supported.
+io/issue_46436_test: SkipByDesign # dart:mirrors is not supported.
 
 [ $compiler == dartkp ]
 lazy_async_stack_test: Skip # Flaky.

@@ -3305,6 +3305,9 @@ sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
   /// Either or both of the [comment] and [metadata] can be `null` if the member
   /// doesn't have the corresponding attribute.
   ClassMemberImpl({required super.comment, required super.metadata});
+
+  /// The `augment` keyword, or `null` if the keyword was absent.
+  Token? get augmentKeyword;
 }
 
 /// The name of a class, enum, or extension type declaration.
@@ -19634,6 +19637,9 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
     this.initializers._initialize(this, initializers);
     _becomeParentOf(body);
   }
+
+  @override
+  Token? get augmentKeyword => null;
 
   @generated
   @override

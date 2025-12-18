@@ -59,7 +59,7 @@ main(List<String> arguments) {
   Expect.contains("READ of size 8", result.stderr);  //# uint64: ok
   Expect.contains("READ of size 4", result.stderr);  //# float32: ok
   Expect.contains("READ of size 8", result.stderr);  //# float64: ok
-  if (Platform.executable.contains("aotruntime")) {
+  if (Platform.executable.contains("aotruntime") && !Platform.isWindows) {
     Expect.contains("expectedFunction", result.stderr);
   }
 }

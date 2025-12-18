@@ -156,8 +156,17 @@ class _Visitor extends RecursiveAstVisitor<void> {
       if (variable.isConst) {
         var value = variable.computeConstantValue();
         if (value == null) return null;
+        // Note that accessing the private name `_uniqueName` is brittle, since
+        // it will not be obvious that this code needs to be changed if the
+        // private name changes. It would be better if we could call
+        // `DiagnosticCode.lowerCaseUniqueName` on the constant, but the
+        // analyzer's constant evaluation engine isn't sophisticated enough to
+        // provide that capability. In practice the brittleness is of little
+        // consequence because this script is exclusively for the use of the
+        // analyzer developers during the transition period to the literate
+        // diagnostic reporting API.
         var uniqueName = value
-            .superAwareGetField('uniqueName')
+            .superAwareGetField('_uniqueName')
             ?.toStringValue();
         return diagnosticTables.diagnosticsByAnalyzerUniqueName[uniqueName] ??
             (throw 'Diagnostic not found: $uniqueName');
