@@ -63,7 +63,7 @@ final class LspMessage extends ScheduledMessage {
   String get id {
     var msg = message;
     return switch (msg) {
-      RequestMessage() => '${msg.method}: ${msg.id}',
+      RequestMessage() => '${msg.method}:${msg.id}',
       NotificationMessage() => '${msg.method}',
       ResponseMessage() => 'ResponseMessage:${msg.id}',
       Message() => 'Message',

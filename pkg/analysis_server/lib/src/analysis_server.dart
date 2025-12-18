@@ -46,6 +46,8 @@ import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manage
 import 'package:analysis_server/src/services/user_prompts/survey_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/status/performance_logger.dart';
+import 'package:analysis_server/src/status/utilities/report_data.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server/src/utilities/file_string_sink.dart';
@@ -203,6 +205,9 @@ abstract class AnalysisServer {
   /// A client for making requests to the pub.dev API.
   final PubApi pubApi;
 
+  /// The performance logger.
+  final PerformanceLogger? performanceLogger;
+
   /// A service for fetching pub.dev package details.
   late final PubPackageService pubPackageService;
 
@@ -304,6 +309,7 @@ abstract class AnalysisServer {
     this.providedByteStore,
     PluginManager? pluginManager,
     MessageSchedulerListener? messageSchedulerListener,
+    this.performanceLogger,
   }) : resourceProvider = OverlayResourceProvider(baseResourceProvider),
        pubApi = PubApi(
          instrumentationService,
@@ -313,7 +319,7 @@ abstract class AnalysisServer {
        messageScheduler = MessageScheduler(
          listener:
              messageSchedulerListener ??
-             SchedulerTrackingListener(analyticsManager),
+             SchedulerTrackingListener(analyticsManager, performanceLogger),
        ) {
     messageScheduler.server = this;
     // Set the default URI converter. This uses the resource providers path
@@ -944,6 +950,11 @@ abstract class AnalysisServer {
   /// Report analytics data related to the number and size of files that were
   /// analyzed.
   void reportAnalysisAnalytics() {
+    if (performanceLogger != null) {
+      Map<String, Object?> collectedData = {};
+      collectContextData(collectedData, this);
+      performanceLogger!.logMap(collectedData);
+    }
     if (!analyticsManager.needsAnslysisCompleteCall()) {
       return;
     }
@@ -1131,6 +1142,7 @@ abstract class AnalysisServer {
 
   @mustCallSuper
   Future<void> shutdown() async {
+    await performanceLogger?.shutdown();
     completeLspUninitialization();
 
     await analysisDriverSchedulerEventsSubscription?.cancel();

@@ -12,6 +12,7 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/status/performance_logger.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -60,6 +61,9 @@ class SocketServer implements AbstractSocketServer {
   @override
   LegacyAnalysisServer? analysisServer;
 
+  /// The performance logger.
+  final PerformanceLogger? performanceLogger;
+
   SocketServer(
     this.analysisServerOptions,
     this.sdkManager,
@@ -70,6 +74,7 @@ class SocketServer implements AbstractSocketServer {
     this.diagnosticServer,
     this.analyticsManager,
     this.detachableFileSystemManager,
+    this.performanceLogger,
   );
 
   /// Create an analysis server which will communicate with the client using the
@@ -106,6 +111,7 @@ class SocketServer implements AbstractSocketServer {
       diagnosticServer: diagnosticServer,
       detachableFileSystemManager: detachableFileSystemManager,
       enableBlazeWatcher: true,
+      performanceLogger: performanceLogger,
     );
     detachableFileSystemManager?.setAnalysisServer(server);
   }
