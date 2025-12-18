@@ -601,7 +601,6 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.invalidUseOfVisibleForTemplateMember,
   diag.invalidUseOfVisibleForTestingMember,
   diag.invalidVisibilityAnnotation,
-  diag.invalidVisibleForOverridingAnnotation,
   diag.invalidVisibleOutsideTemplateAnnotation,
   diag.invalidWidgetPreviewApplication,
   diag.invalidWidgetPreviewPrivateArgument,

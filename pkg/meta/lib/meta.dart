@@ -817,16 +817,28 @@ class _Virtual {
   const _Virtual();
 }
 
-// TODO(srawlins): Enforce with `TargetKind.method`, `TargetKind.getter`,
-// `TargetKind.setter`, `TargetKind.field`.
+@Target({
+  TargetKind.overridableMember,
+})
 class _VisibleForOverriding {
   const _VisibleForOverriding();
 }
 
-// TODO(srawlins): Enforce with `TargetKind.constructor`, `TargetKind.function`,
-// `TargetKind.method`, `TargetKind.getter`, `TargetKind.setter`,
-// `TargetKind.field`, `TargetKind.parameter`, `TargetKind.typedef`,
-// `TargetKind.type`.
+@Target({
+  TargetKind.constructor,
+  TargetKind.enumValue,
+  TargetKind.extension,
+  TargetKind.extensionType,
+  TargetKind.field,
+  TargetKind.function,
+  TargetKind.getter,
+  TargetKind.method,
+  TargetKind.parameter,
+  TargetKind.setter,
+  TargetKind.typedefType,
+  TargetKind.type,
+  TargetKind.topLevelVariable,
+})
 class _VisibleForTesting {
   const _VisibleForTesting();
 }

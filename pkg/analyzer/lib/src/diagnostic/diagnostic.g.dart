@@ -9291,19 +9291,6 @@ invalidVisibilityAnnotation = DiagnosticWithArguments(
 
 /// No parameters.
 const DiagnosticWithoutArguments
-invalidVisibleForOverridingAnnotation = DiagnosticWithoutArgumentsImpl(
-  name: 'invalid_visible_for_overriding_annotation',
-  problemMessage:
-      "The annotation 'visibleForOverriding' can only be applied to a public "
-      "instance member that can be overridden.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'invalid_visible_for_overriding_annotation',
-  expectedTypes: [],
-);
-
-/// No parameters.
-const DiagnosticWithoutArguments
 invalidVisibleOutsideTemplateAnnotation = DiagnosticWithoutArgumentsImpl(
   name: 'invalid_visible_outside_template_annotation',
   problemMessage:

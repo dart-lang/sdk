@@ -3709,8 +3709,6 @@ invalid_widget_preview_private_argument:
   status: needsEvaluation
 invalid_visibility_annotation:
   status: hasFix
-invalid_visible_for_overriding_annotation:
-  status: hasFix
 invalid_visible_outside_template_annotation:
   status: needsEvaluation
 missing_override_of_must_be_overridden_one:
