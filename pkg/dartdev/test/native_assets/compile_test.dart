@@ -69,19 +69,6 @@ void main() async {
 
       final actualRecordedUsages = recordedUsages.readAsStringSync();
       final expectedRecordedUsages = '''{
-  "metadata": {
-    "comment": "Resources referenced by annotated resource identifiers",
-    "AppTag": "TBD",
-    "environment": {
-      "dart.web.assertions_enabled": "false",
-      "dart.tool.dart2js": "true",
-      "dart.tool.dart2js.minify": "false",
-      "dart.tool.dart2js.disable_rti_optimization": "false",
-      "dart.tool.dart2js.primitives:trust": "false",
-      "dart.tool.dart2js.types:trust": "false"
-    },
-    "version": "0.4.0"
-  },
   "constants": [
     {
       "type": "int",
@@ -97,26 +84,39 @@ void main() async {
       "uri": "bin/drop_data_asset_calls.dart"
     }
   ],
+  "metadata": {
+    "comment": "Resources referenced by annotated resource identifiers",
+    "AppTag": "TBD",
+    "environment": {
+      "dart.web.assertions_enabled": "false",
+      "dart.tool.dart2js": "true",
+      "dart.tool.dart2js.minify": "false",
+      "dart.tool.dart2js.disable_rti_optimization": "false",
+      "dart.tool.dart2js.primitives:trust": "false",
+      "dart.tool.dart2js.types:trust": "false"
+    },
+    "version": "0.4.0"
+  },
   "recordings": [
     {
-      "definition": {
-        "identifier": {
-          "uri": "package:drop_data_asset/src/drop_data_asset.dart",
-          "scope": "MyMath",
-          "name": "add"
-        }
-      },
       "calls": [
         {
-          "type": "with_arguments",
+          "@": 0,
+          "loading_unit": "out.js",
           "positional": [
             0,
             1
           ],
-          "loading_unit": "out.js",
-          "@": 0
+          "type": "with_arguments"
         }
-      ]
+      ],
+      "definition": {
+        "identifier": {
+          "name": "add",
+          "scope": "MyMath",
+          "uri": "package:drop_data_asset/src/drop_data_asset.dart"
+        }
+      }
     }
   ]
 }''';
