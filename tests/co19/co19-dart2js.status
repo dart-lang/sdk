@@ -53,6 +53,12 @@ LanguageFeatures/Abstract-external-fields/static_analysis_external_A05_t03: Skip
 LanguageFeatures/Abstract-external-fields/syntax_A01_t03: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Abstract-external-fields/syntax_A02_t03: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Augmentations/augmenting_functions_A08_t03: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/augmenting_variables_getters_setters_A01_t09: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/augmenting_variables_getters_setters_A01_t10: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/augmenting_variables_getters_setters_A01_t11: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/augmenting_variables_getters_setters_A03_t09: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/augmenting_variables_getters_setters_A03_t10: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/augmenting_variables_getters_setters_A03_t11: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Enhanced-Enum/grammar_A07_t01: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Extension-methods/syntax_member_declarations_t04: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Extension-types/static_analysis_extension_types_A28_t01: SkipByDesign # Non-JS-interop external members are not supported
