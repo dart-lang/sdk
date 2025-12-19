@@ -52,7 +52,7 @@ class SB3 extends mix::_MixinApplication3&B2&M2 {
 static method main() → dynamic {}
 
 
-library;
+library /*!conditionalImportSupported*/;
 import self as self;
 import "file:pkg/vm/testcases/transformations/mixin_deduplication/non_generic.dart" as #lib;
 import "dart:core" as core;

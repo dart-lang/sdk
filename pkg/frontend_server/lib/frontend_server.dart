@@ -60,6 +60,10 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       help: 'Whether dart:mirrors is supported. By default dart:mirrors is '
           'supported when --aot and --minimal-kernel are not used.',
       defaultsTo: null)
+  ..addFlag('include-unsupported-platform-library-stubs',
+      help: 'Whether platform specific dart:* libraries should be importable '
+          'from unsupported runtimes.',
+      hide: true)
   ..addFlag('compact-async', help: 'Obsolete, ignored.', hide: true)
   ..addFlag('tfa',
       help: 'Enable global type flow analysis and related transformations '
@@ -631,6 +635,8 @@ class FrontendCompiler implements CompilerInterface {
       options['target'],
       trackWidgetCreation: options['track-widget-creation'],
       supportMirrors: options['support-mirrors'] ?? !(aot || minimalKernel),
+      includeUnsupportedPlatformLibraryStubs:
+          options['include-unsupported-platform-library-stubs'],
       constKeepLocalsIndicator: !(aot || minimalKernel),
     );
     if (compilerOptions.target == null) {
