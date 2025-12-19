@@ -9015,12 +9015,51 @@ final class ExtensionTypeDeclarationImpl
   @Deprecated('Use primaryConstructor instead')
   @override
   RepresentationDeclarationImpl get representation {
-    var formal = primaryConstructor.formalParameters.parameters.first;
-    formal as SimpleFormalParameterImpl;
+    Token syntheticName() {
+      return StringToken(TokenType.IDENTIFIER, '', 0);
+    }
+
+    TypeAnnotationImpl syntheticType() {
+      return NamedTypeImpl(
+        importPrefix: null,
+        name: StringToken(TokenType.IDENTIFIER, 'InvalidType', 0),
+        question: null,
+        typeArguments: null,
+      );
+    }
+
+    var parameters = primaryConstructor.formalParameters.parameters;
+    var formal = parameters.firstOrNull;
+    if (formal is DefaultFormalParameterImpl) {
+      formal = formal.parameter;
+    }
 
     var representation = _representation;
     if (representation == null) {
       var constructorName = primaryConstructor.constructorName;
+
+      if (formal is DefaultFormalParameterImpl) {
+        formal = formal.parameter;
+      }
+
+      TypeAnnotationImpl fieldType;
+      Token fieldName;
+      List<AnnotationImpl> fieldMetadata;
+
+      if (formal is SimpleFormalParameterImpl) {
+        fieldType = formal.type ?? syntheticType();
+        fieldName = formal.name ?? syntheticName();
+        fieldMetadata = formal.metadata;
+      } else if (formal is FieldFormalParameterImpl) {
+        fieldType = formal.type ?? syntheticType();
+        fieldName = formal.name;
+        fieldMetadata = formal.metadata;
+      } else {
+        fieldType = syntheticType();
+        fieldName = formal?.name ?? syntheticName();
+        fieldMetadata = formal?.metadata ?? const [];
+      }
+
       representation = RepresentationDeclarationImpl(
         constructorName: constructorName != null
             ? RepresentationConstructorNameImpl(
@@ -9029,19 +9068,19 @@ final class ExtensionTypeDeclarationImpl
               )
             : null,
         leftParenthesis: primaryConstructor.formalParameters.leftParenthesis,
-        fieldMetadata: formal.metadata,
-        fieldType: formal.type!,
-        fieldName: formal.name!,
+        fieldMetadata: fieldMetadata,
+        fieldType: fieldType,
+        fieldName: fieldName,
         rightParenthesis: primaryConstructor.formalParameters.rightParenthesis,
       );
       _representation = _becomeParentOf(representation);
     }
-    representation.fieldFragment =
-        (formal.declaredFragment as FieldFormalParameterFragmentImpl?)
-            ?.element
-            .field
-            ?.firstFragment;
-    representation.constructorFragment = declaredFragment?.constructors.first;
+    representation.constructorFragment = primaryConstructor.declaredFragment;
+    if (declaredFragment case var declaredFragment?) {
+      representation.fieldFragment = declaredFragment.fields
+          .where((f) => !f.isStatic)
+          .firstOrNull;
+    }
     return representation;
   }
 

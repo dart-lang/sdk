@@ -1161,6 +1161,7 @@ main() {
     extension_type_implements_representation_not_supertype.main();
     extension_type_inherited_member_conflict.main();
     extension_type_representation_depends_on_itself.main();
+
     extension_type_representation_type_bottom.main();
     extension_type_with_abstract_member.main();
     external_field_constructor_initializer.main();

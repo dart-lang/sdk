@@ -1592,48 +1592,12 @@ class AstBuilder extends StackListener {
 
     if (enableInlineClass) {
       var builder = _classLikeBuilder as _ExtensionTypeDeclarationBuilder;
-      if (primaryConstructorBuilder == null) {
-        var leftParenthesis = parser.rewriter.insertParens(builder.name, true);
-        var typeName = leftParenthesis.next!;
-        var rightParenthesis = leftParenthesis.endGroup!;
-        var fieldName = parser.rewriter.insertSyntheticIdentifier(typeName);
-        primaryConstructorBuilder = _PrimaryConstructorBuilder(
-          constKeyword: constKeyword,
-          constructorName: null,
-          formalParameterList: FormalParameterListImpl(
-            leftParenthesis: leftParenthesis,
-            parameters: [
-              SimpleFormalParameterImpl(
-                comment: null,
-                metadata: [],
-                covariantKeyword: null,
-                requiredKeyword: null,
-                keyword: null,
-                type: NamedTypeImpl(
-                  importPrefix: null,
-                  name: typeName,
-                  question: null,
-                  typeArguments: null,
-                ),
-                name: fieldName,
-              ),
-            ],
-            leftDelimiter: null,
-            rightDelimiter: null,
-            rightParenthesis: rightParenthesis,
-          ),
-        );
-      }
-      // Check for extension type name conflict.
-      var representationName =
-          (primaryConstructorBuilder.formalParameterList.parameters.first
-                  as SimpleFormalParameterImpl)
-              .name!;
-      if (representationName.lexeme == builder.name.lexeme) {
-        diagnosticReporter.diagnosticReporter?.report(
-          diag.memberWithClassName.at(representationName),
-        );
-      }
+      primaryConstructorBuilder ??= _PrimaryConstructorBuilder(
+        constKeyword: null,
+        constructorName: null,
+        formalParameterList: _syntheticFormalParameterList(builder.name),
+      );
+
       declarations.add(
         builder.build(
           typeKeyword: typeKeyword,
@@ -2794,149 +2758,33 @@ class AstBuilder extends StackListener {
       formalParameterList = _syntheticFormalParameterList(extensionTypeName);
     }
 
-    if (forExtensionType) {
-      var leftParenthesis = formalParameterList.leftParenthesis;
-
-      PrimaryConstructorNameImpl? constructorName;
-      if (hasConstructorName) {
-        var nameIdentifier = pop() as SimpleIdentifierImpl;
-        constructorName = PrimaryConstructorNameImpl(
-          period: beginToken,
-          name: nameIdentifier.token,
-        );
-      }
-
-      List<AnnotationImpl> fieldMetadata;
-      TypeAnnotationImpl fieldType;
-      Token fieldName;
-      var firstFormalParameter = formalParameterList.parameters.firstOrNull;
-      if (firstFormalParameter is SimpleFormalParameterImpl) {
-        fieldMetadata = firstFormalParameter.metadata;
-        switch (firstFormalParameter.type) {
-          case var formalParameterType?:
-            fieldType = formalParameterType;
-          case null:
-            diagnosticReporter.diagnosticReporter?.report(
-              diag.expectedRepresentationType.at(leftParenthesis.next!),
-            );
-            var typeNameToken = parser.rewriter.insertSyntheticIdentifier(
-              leftParenthesis,
-            );
-            fieldType = NamedTypeImpl(
-              importPrefix: null,
-              name: typeNameToken,
-              typeArguments: null,
-              question: null,
-            );
-        }
-        if (firstFormalParameter.keyword case var keyword?) {
-          if (_featureSet.isEnabled(Feature.primary_constructors)) {
-            switch (keyword.keyword) {
-              case Keyword.CONST:
-              case Keyword.FINAL:
-                break;
-              case Keyword.VAR:
-                diagnosticReporter.diagnosticReporter?.report(
-                  diag.representationFieldModifier.at(keyword),
-                );
-            }
-          } else {
-            switch (keyword.keyword) {
-              case Keyword.CONST:
-                break;
-              case Keyword.FINAL:
-              case Keyword.VAR:
-                diagnosticReporter.diagnosticReporter?.report(
-                  diag.representationFieldModifier.at(keyword),
-                );
-            }
-          }
-        }
-        fieldName = firstFormalParameter.name!;
-        // Check for multiple fields.
-        var maybeComma = firstFormalParameter.endToken.next;
-        if (maybeComma != null && maybeComma.type == TokenType.COMMA) {
-          if (formalParameterList.parameters.length == 1) {
-            diagnosticReporter.diagnosticReporter?.report(
-              diag.representationFieldTrailingComma.at(maybeComma),
-            );
-          } else {
-            diagnosticReporter.diagnosticReporter?.report(
-              diag.multipleRepresentationFields.at(maybeComma),
-            );
-          }
-        }
-      } else {
-        diagnosticReporter.diagnosticReporter?.report(
-          diag.expectedRepresentationField.at(leftParenthesis.next!),
-        );
-        fieldMetadata = [];
-        var typeNameToken = parser.rewriter.insertSyntheticIdentifier(
-          leftParenthesis,
-        );
-        fieldType = NamedTypeImpl(
-          importPrefix: null,
-          name: typeNameToken,
-          typeArguments: null,
-          question: null,
-        );
-        fieldName = parser.rewriter.insertSyntheticIdentifier(typeNameToken);
-      }
-
-      push(constKeyword ?? const NullValue("Token"));
-
-      push(
-        _PrimaryConstructorBuilder(
-          constKeyword: constKeyword,
-          constructorName: constructorName,
-          formalParameterList: FormalParameterListImpl(
-            leftParenthesis: leftParenthesis,
-            parameters: [
-              SimpleFormalParameterImpl(
-                comment: null,
-                metadata: fieldMetadata,
-                covariantKeyword: null,
-                requiredKeyword: null,
-                keyword: null,
-                type: fieldType,
-                name: fieldName,
-              ),
-            ],
-            leftDelimiter: null,
-            rightDelimiter: null,
-            rightParenthesis: formalParameterList.rightParenthesis,
-          ),
-        ),
-      );
-    } else {
+    if (!forExtensionType) {
       if (!_featureSet.isEnabled(Feature.primary_constructors)) {
         _reportFeatureNotEnabled(
           feature: Feature.primary_constructors,
           startToken: beginToken,
         );
       }
-
-      PrimaryConstructorNameImpl? constructorName;
-      if (hasConstructorName) {
-        var nameIdentifier = pop() as SimpleIdentifierImpl;
-        constructorName = PrimaryConstructorNameImpl(
-          period: beginToken,
-          name: nameIdentifier.token,
-        );
-      }
-
-      push(constKeyword ?? const NullValue("Token"));
-
-      push(
-        _PrimaryConstructorBuilder(
-          constKeyword: constKeyword,
-          constructorName: constructorName,
-          formalParameterList: formalParameterList,
-        ),
-      );
-
-      return;
     }
+
+    PrimaryConstructorNameImpl? constructorName;
+    if (hasConstructorName) {
+      var nameIdentifier = pop() as SimpleIdentifierImpl;
+      constructorName = PrimaryConstructorNameImpl(
+        period: beginToken,
+        name: nameIdentifier.token,
+      );
+    }
+
+    push(constKeyword ?? const NullValue("Token"));
+
+    push(
+      _PrimaryConstructorBuilder(
+        constKeyword: constKeyword,
+        constructorName: constructorName,
+        formalParameterList: formalParameterList,
+      ),
+    );
   }
 
   @override

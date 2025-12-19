@@ -2876,6 +2876,12 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   @override
   @trackedIncludedInId
+  bool get isOriginExtensionTypeRecoveryRepresentation {
+    return _firstFragment.isOriginExtensionTypeRecoveryRepresentation;
+  }
+
+  @override
+  @trackedIncludedInId
   bool get isPromotable => _firstFragment.isPromotable;
 
   @override
@@ -8186,6 +8192,12 @@ enum Modifier {
   /// Whether the field is the `values` field of an enum.
   ORIGIN_ENUM_VALUES,
 
+  /// Indicates that the element is an extension type representation field,
+  /// created only for recovery purposes, and does not correspond to a formal
+  /// parameter.
+  ORIGIN_EXTENSION_TYPE_RECOVERY_REPRESENTATION,
+
+
   /// Whether the property inducing element is from a getter or setter.
   ORIGIN_GETTER_SETTER,
 
@@ -10612,6 +10624,7 @@ enum _FieldFragmentImplModifiers {
   isEnumConstant,
   isOriginDeclaringFormalParameter,
   isOriginEnumValues,
+  isOriginExtensionTypeRecoveryRepresentation,
   isPromotable,
 }
 

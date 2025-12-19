@@ -1289,6 +1289,10 @@ abstract class FieldElement implements PropertyInducingElement {
   /// and [isOriginDeclaringFormalParameter] are `false`.
   bool get isOriginEnumValues;
 
+  /// Whether the field is an extension type representation field, created only
+  /// for recovery purposes, and does not correspond to a formal parameter.
+  bool get isOriginExtensionTypeRecoveryRepresentation;
+
   /// Whether the field can be type promoted.
   bool get isPromotable;
 }
