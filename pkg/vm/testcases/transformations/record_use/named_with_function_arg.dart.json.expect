@@ -1,8 +1,4 @@
 {
-  "metadata": {
-    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
-    "version": "0.4.0"
-  },
   "constants": [
     {
       "type": "String",
@@ -14,28 +10,32 @@
       "uri": "named_with_function_arg.dart"
     }
   ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "version": "0.4.0"
+  },
   "recordings": [
     {
-      "definition": {
-        "identifier": {
-          "uri": "named_with_function_arg.dart",
-          "name": "Ext|foo"
-        },
-        "loading_unit": "1"
-      },
       "calls": [
         {
-          "type": "with_arguments",
-          "positional": [
-            null
-          ],
+          "@": 0,
+          "loading_unit": "1",
           "named": {
             "s": 0
           },
-          "loading_unit": "1",
-          "@": 0
+          "positional": [
+            null
+          ],
+          "type": "with_arguments"
         }
-      ]
+      ],
+      "definition": {
+        "identifier": {
+          "name": "Ext|foo",
+          "uri": "named_with_function_arg.dart"
+        },
+        "loading_unit": "1"
+      }
     }
   ]
 }

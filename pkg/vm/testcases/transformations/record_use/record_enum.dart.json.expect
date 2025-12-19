@@ -1,8 +1,4 @@
 {
-  "metadata": {
-    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
-    "version": "0.4.0"
-  },
   "constants": [
     {
       "type": "int",
@@ -31,20 +27,24 @@
       "uri": "record_enum.dart"
     }
   ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "version": "0.4.0"
+  },
   "recordings": [
     {
       "definition": {
         "identifier": {
-          "uri": "record_enum.dart",
-          "name": "MyClass"
+          "name": "MyClass",
+          "uri": "record_enum.dart"
         },
         "loading_unit": "1"
       },
       "instances": [
         {
+          "@": 0,
           "constant_index": 3,
-          "loading_unit": "1",
-          "@": 0
+          "loading_unit": "1"
         }
       ]
     }

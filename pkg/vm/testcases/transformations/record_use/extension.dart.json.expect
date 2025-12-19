@@ -1,8 +1,4 @@
 {
-  "metadata": {
-    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
-    "version": "0.4.0"
-  },
   "constants": [
     {
       "type": "String",
@@ -14,25 +10,29 @@
       "uri": "extension.dart"
     }
   ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "version": "0.4.0"
+  },
   "recordings": [
     {
-      "definition": {
-        "identifier": {
-          "uri": "extension.dart",
-          "name": "_extension#0|callWithArgs"
-        },
-        "loading_unit": "1"
-      },
       "calls": [
         {
-          "type": "with_arguments",
+          "@": 0,
+          "loading_unit": "1",
           "positional": [
             0
           ],
-          "loading_unit": "1",
-          "@": 0
+          "type": "with_arguments"
         }
-      ]
+      ],
+      "definition": {
+        "identifier": {
+          "name": "_extension#0|callWithArgs",
+          "uri": "extension.dart"
+        },
+        "loading_unit": "1"
+      }
     }
   ]
 }
