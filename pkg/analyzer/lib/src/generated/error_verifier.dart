@@ -884,6 +884,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         element: declaredElement,
       );
       _checkForExtensionTypeWithAbstractMember(node);
+      _checkForExtensionTypeRepresentationErrorCodes(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
 
       var interface = _inheritanceManager.getInterface(declaredElement);
@@ -1510,6 +1511,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     super.visitSuperFormalParameter(node);
 
     if (_enclosingClass is ExtensionTypeElement) {
+      if (node.parentFormalParameterList.parent
+          is PrimaryConstructorDeclaration) {
+        return;
+      }
       diagnosticReporter.report(
         diag.extensionTypeConstructorWithSuperFormalParameter.at(
           node.superKeyword,
@@ -3376,6 +3381,116 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           node.primaryConstructor.typeName,
         ),
       );
+    }
+  }
+
+  void _checkForExtensionTypeRepresentationErrorCodes(
+    ExtensionTypeDeclarationImpl node,
+  ) {
+    var formalParameterList = node.primaryConstructor.formalParameters;
+    var formalParameters = formalParameterList.parameters;
+
+    if (formalParameters.isEmpty) {
+      diagnosticReporter.atToken(
+        formalParameterList.leftParenthesis.next!,
+        diag.expectedRepresentationField,
+      );
+      return;
+    }
+
+    var first = formalParameters.first;
+    var inner = first.notDefault;
+
+    if (formalParameters.length > 1) {
+      diagnosticReporter.atToken(
+        first.endToken.next!,
+        diag.multipleRepresentationFields,
+      );
+      return;
+    }
+
+    if (inner is FieldFormalParameterImpl) {
+      diagnosticReporter.atToken(
+        inner.thisKeyword,
+        diag.expectedRepresentationField,
+      );
+      return;
+    }
+
+    if (inner is SuperFormalParameterImpl) {
+      diagnosticReporter.atToken(
+        inner.superKeyword,
+        diag.expectedRepresentationField,
+      );
+      return;
+    }
+
+    var nameToken = inner.name;
+    if (nameToken == null) {
+      diagnosticReporter.atNode(inner, diag.expectedRepresentationField);
+      return;
+    }
+
+    if (nameToken.lexeme == node.primaryConstructor.typeName.lexeme) {
+      diagnosticReporter.atToken(nameToken, diag.memberWithClassName);
+    }
+
+    if (_featureSet!.isEnabled(Feature.primary_constructors)) {
+      if (inner is SimpleFormalParameterImpl) {
+        var keyword = inner.keyword;
+        if (keyword != null) {
+          if (keyword.keyword == Keyword.VAR) {
+            diagnosticReporter.atToken(
+              keyword,
+              diag.representationFieldModifier,
+            );
+          }
+        }
+      }
+    } else {
+      if (formalParameterList.leftDelimiter case var leftDelimiter?) {
+        diagnosticReporter.atToken(
+          leftDelimiter,
+          diag.expectedRepresentationField,
+        );
+        return;
+      }
+
+      if (inner is FunctionTypedFormalParameterImpl) {
+        diagnosticReporter.atToken(
+          inner.beginToken,
+          diag.expectedRepresentationField,
+        );
+        return;
+      }
+
+      if (inner is SimpleFormalParameterImpl) {
+        var keyword = inner.keyword;
+        if (keyword != null) {
+          if (keyword.keyword == Keyword.FINAL ||
+              keyword.keyword == Keyword.VAR) {
+            diagnosticReporter.atToken(
+              keyword,
+              diag.representationFieldModifier,
+            );
+          }
+        }
+        if (inner.type == null) {
+          diagnosticReporter.atToken(
+            nameToken,
+            diag.expectedRepresentationType,
+          );
+        }
+      }
+
+      if (first.endToken.next case var maybeComma?) {
+        if (maybeComma.type == TokenType.COMMA) {
+          diagnosticReporter.atToken(
+            maybeComma,
+            diag.representationFieldTrailingComma,
+          );
+        }
+      }
     }
   }
 
@@ -6008,6 +6123,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       // Either [parent] is a static method, in which case `EXTRANEOUS_MODIFIER`
       // is reported by the parser, or [parent] is an instance method, in which
       // case any use of `covariant` is legal.
+      return;
+    }
+
+    if (parent is PrimaryConstructorDeclaration &&
+        parent.parent is ExtensionTypeDeclaration) {
+      // Already reported while checking representation.
       return;
     }
 

@@ -62,9 +62,11 @@ f() {
 
   Future<void> test_representationFieldTrailingComma() async {
     await resolveTestCode('''
+// @dart = 3.10
 extension type A(int i,) {}
 ''');
     await assertHasFix('''
+// @dart = 3.10
 extension type A(int i) {}
 ''');
   }

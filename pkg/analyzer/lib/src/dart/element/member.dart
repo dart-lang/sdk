@@ -472,6 +472,10 @@ class SubstitutedFieldElementImpl extends SubstitutedVariableElementImpl
   bool get isOriginEnumValues => baseElement.isOriginEnumValues;
 
   @override
+  bool get isOriginExtensionTypeRecoveryRepresentation =>
+      baseElement.isOriginExtensionTypeRecoveryRepresentation;
+
+  @override
   bool get isOriginGetterSetter => baseElement.isOriginGetterSetter;
 
   @override

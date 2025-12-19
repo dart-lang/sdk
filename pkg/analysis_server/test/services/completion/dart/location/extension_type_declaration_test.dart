@@ -72,6 +72,20 @@ class C0 {}
 suggestions
   C0
     kind: class
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+  super
+    kind: keyword
+  this
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
 ''');
   }
 

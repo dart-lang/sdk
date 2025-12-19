@@ -260,6 +260,14 @@ mixin _FieldFragmentImplMixin {
     setModifier(Modifier.ORIGIN_ENUM_VALUES, value);
   }
 
+  bool get isOriginExtensionTypeRecoveryRepresentation {
+    return hasModifier(Modifier.ORIGIN_EXTENSION_TYPE_RECOVERY_REPRESENTATION);
+  }
+
+  set isOriginExtensionTypeRecoveryRepresentation(bool value) {
+    setModifier(Modifier.ORIGIN_EXTENSION_TYPE_RECOVERY_REPRESENTATION, value);
+  }
+
   bool get isPromotable {
     return hasModifier(Modifier.PROMOTABLE);
   }

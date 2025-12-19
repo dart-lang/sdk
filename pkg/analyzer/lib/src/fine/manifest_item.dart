@@ -539,6 +539,8 @@ class FieldItem extends VariableItem<FieldElementImpl> {
         flags.isOriginDeclaringFormalParameter ==
             element.isOriginDeclaringFormalParameter &&
         flags.isOriginEnumValues == element.isOriginEnumValues &&
+        flags.isOriginExtensionTypeRecoveryRepresentation ==
+            element.isOriginExtensionTypeRecoveryRepresentation &&
         flags.isOriginGetterSetter == element.isOriginGetterSetter &&
         flags.isPromotable == element.isPromotable;
   }
@@ -1678,6 +1680,7 @@ enum _FieldItemFlag {
   isOriginDeclaration,
   isOriginDeclaringFormalParameter,
   isOriginEnumValues,
+  isOriginExtensionTypeRecoveryRepresentation,
   isOriginGetterSetter,
   isPromotable,
 }
@@ -2026,6 +2029,11 @@ extension type _FieldItemFlags._(int _bits) implements _VariableItemFlags {
     if (element.isOriginEnumValues) {
       bits |= _maskFor(_FieldItemFlag.isOriginEnumValues);
     }
+    if (element.isOriginExtensionTypeRecoveryRepresentation) {
+      bits |= _maskFor(
+        _FieldItemFlag.isOriginExtensionTypeRecoveryRepresentation,
+      );
+    }
     if (element.isOriginGetterSetter) {
       bits |= _maskFor(_FieldItemFlag.isOriginGetterSetter);
     }
@@ -2069,6 +2077,10 @@ extension type _FieldItemFlags._(int _bits) implements _VariableItemFlags {
 
   bool get isOriginEnumValues {
     return _has(_FieldItemFlag.isOriginEnumValues);
+  }
+
+  bool get isOriginExtensionTypeRecoveryRepresentation {
+    return _has(_FieldItemFlag.isOriginExtensionTypeRecoveryRepresentation);
   }
 
   bool get isOriginGetterSetter {

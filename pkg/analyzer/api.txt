@@ -3652,6 +3652,7 @@ package:analyzer/dart/element/element.dart:
     isExternal (getter: bool)
     isOriginDeclaringFormalParameter (getter: bool)
     isOriginEnumValues (getter: bool)
+    isOriginExtensionTypeRecoveryRepresentation (getter: bool)
     isPromotable (getter: bool)
   FieldFormalParameterElement (class extends Object implements FormalParameterElement):
     new (constructor: FieldFormalParameterElement Function())

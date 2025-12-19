@@ -7,6 +7,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -1824,9 +1825,25 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     // Handle declaring formal parameters.
     var formalParameters = node.formalParameters.parameters;
+
+    var isFirstFormalExtensionTypeRepresentation = false;
+    if (parent is ExtensionTypeDeclarationImpl) {
+      var firstFormalParameter = formalParameters.firstOrNull?.notDefault;
+      isFirstFormalExtensionTypeRepresentation =
+          firstFormalParameter is SimpleFormalParameterImpl ||
+          firstFormalParameter is FunctionTypedFormalParameterImpl;
+
+      if (!isFirstFormalExtensionTypeRepresentation) {
+        var fieldFragment = FieldFragmentImpl(name: null);
+        fieldFragment.isAugmentation = isAugmentation;
+        fieldFragment.isFinal = true;
+        fieldFragment.isOriginExtensionTypeRecoveryRepresentation = true;
+        _addChildFragment(fieldFragment);
+      }
+    }
     for (var (i, formalParameter) in formalParameters.indexed) {
       var isExtensionTypeRepresentation =
-          i == 0 && parent is ExtensionTypeDeclarationImpl;
+          i == 0 && isFirstFormalExtensionTypeRepresentation;
       if (formalParameter.hasFinalOrVarKeyword ||
           isExtensionTypeRepresentation) {
         var name = _getFragmentName(formalParameter.name);

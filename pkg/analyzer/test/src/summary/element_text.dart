@@ -590,6 +590,7 @@ class _Element2Writer extends _AbstractElementWriter {
         e.isOriginDeclaration,
         e.isOriginDeclaringFormalParameter,
         e.isOriginEnumValues,
+        e.isOriginExtensionTypeRecoveryRepresentation,
         e.isOriginGetterSetter,
       ]);
       _sink.writeIf(e.isOriginDeclaration, 'isOriginDeclaration ');
@@ -598,6 +599,10 @@ class _Element2Writer extends _AbstractElementWriter {
         'isOriginDeclaringFormalParameter ',
       );
       _sink.writeIf(e.isOriginEnumValues, 'isOriginEnumValues ');
+      _sink.writeIf(
+        e.isOriginExtensionTypeRecoveryRepresentation,
+        'isOriginExtensionTypeRecoveryRepresentation ',
+      );
       _sink.writeIf(e.isOriginGetterSetter, 'isOriginGetterSetter ');
 
       _writeElementName(e);
@@ -671,6 +676,7 @@ class _Element2Writer extends _AbstractElementWriter {
         f.isOriginDeclaration,
         f.isOriginDeclaringFormalParameter,
         f.isOriginEnumValues,
+        f.isOriginExtensionTypeRecoveryRepresentation,
         f.isOriginGetterSetter,
       ]);
       _sink.writeIf(f.isOriginDeclaration, 'isOriginDeclaration ');
@@ -679,6 +685,10 @@ class _Element2Writer extends _AbstractElementWriter {
         'isOriginDeclaringFormalParameter ',
       );
       _sink.writeIf(f.isOriginEnumValues, 'isOriginEnumValues ');
+      _sink.writeIf(
+        f.isOriginExtensionTypeRecoveryRepresentation,
+        'isOriginExtensionTypeRecoveryRepresentation ',
+      );
       _sink.writeIf(f.isOriginGetterSetter, 'isOriginGetterSetter ');
 
       _writeFragmentName(f);
