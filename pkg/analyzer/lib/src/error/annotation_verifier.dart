@@ -527,71 +527,60 @@ class AnnotationVerifier {
     }
   }
 
-  /// Reports a warning at [node] if it is not a valid target for a
-  /// visibility (`visibleForTemplate`, `visibleOutsideTemplate`,
-  /// `visibleForTesting`, `visibleForOverride`) annotation.
+  /// Reports a warning at [node] if it is not a valid target for a visibility
+  /// (`visibleForTemplate`, `visibleOutsideTemplate`, `visibleForTesting`,
+  /// `visibleForOverride`) annotation.
   void _checkVisibility(Annotation node, ElementAnnotation element) {
     var parent = node.parent;
-    if (parent is Declaration) {
-      void reportInvalidAnnotation(String name) {
-        // This method is only called on named elements, so it is safe to
-        // assume that `declaredElement.name` is non-`null`.
-        _diagnosticReporter.atNode(
-          node.name,
-          diag.invalidVisibilityAnnotation,
-          arguments: [name, node.name.name],
-        );
-      }
+    if (parent is! Declaration) {
+      // This is reported by `_checkKinds`.
+      return;
+    }
 
-      void reportInvalidVisibleForOverriding() {
-        _diagnosticReporter.report(
-          diag.invalidVisibleForOverridingAnnotation.at(node.name),
-        );
-      }
+    void reportInvalidAnnotation(String name) {
+      // This method is only called on named elements, so it is safe to
+      // assume that `declaredElement.name` is non-`null`.
+      _diagnosticReporter.atNode(
+        node.name,
+        diag.invalidVisibilityAnnotation,
+        arguments: [name, node.name.name],
+      );
+    }
 
-      if (parent is TopLevelVariableDeclaration) {
-        for (VariableDeclaration variable in parent.variables.variables) {
-          var variableElement = variable.declaredTopLevelVariableElement;
+    if (parent is TopLevelVariableDeclaration) {
+      for (VariableDeclaration variable in parent.variables.variables) {
+        var variableElement = variable.declaredTopLevelVariableElement;
 
-          var variableName = variableElement.name;
-          if (variableName != null && Identifier.isPrivateName(variableName)) {
-            reportInvalidAnnotation(variableName);
-          }
-
-          if (element.isVisibleForOverriding) {
-            // Top-level variables can't be overridden.
-            reportInvalidVisibleForOverriding();
-          }
-        }
-      } else if (parent is FieldDeclaration) {
-        for (VariableDeclaration variable in parent.fields.variables) {
-          var fieldElement = variable.declaredFieldElement;
-          if (parent.isStatic && element.isVisibleForOverriding) {
-            reportInvalidVisibleForOverriding();
-          }
-
-          var fieldName = fieldElement.name;
-          if (fieldName != null && Identifier.isPrivateName(fieldName)) {
-            reportInvalidAnnotation(fieldName);
-          }
-        }
-      } else if (parent.declaredFragment?.element case var declaredElement?) {
-        if (element.isVisibleForOverriding &&
-            (!declaredElement.isInstanceMember ||
-                declaredElement.enclosingElement is ExtensionTypeElement)) {
-          reportInvalidVisibleForOverriding();
-        }
-
-        var name = declaredElement.name;
-        if (name != null && Identifier.isPrivateName(name)) {
-          reportInvalidAnnotation(name);
+        var variableName = variableElement.name;
+        if (variableName != null && Identifier.isPrivateName(variableName)) {
+          reportInvalidAnnotation(variableName);
         }
       }
-    } else {
-      // Something other than a declaration was annotated. Whatever this is,
-      // it probably warrants a Warning, but this has not been specified on
-      // `visibleForTemplate` or `visibleForTesting`, so leave it alone for
-      // now.
+    } else if (parent is FieldDeclaration) {
+      for (VariableDeclaration variable in parent.fields.variables) {
+        var fieldElement = variable.declaredFieldElement;
+        if (parent.isStatic && element.isVisibleForOverriding) {
+          // This is reported by `_checkKinds`.
+          return;
+        }
+
+        var fieldName = fieldElement.name;
+        if (fieldName != null && Identifier.isPrivateName(fieldName)) {
+          reportInvalidAnnotation(fieldName);
+        }
+      }
+    } else if (parent.declaredFragment?.element case var declaredElement?) {
+      if (element.isVisibleForOverriding &&
+          (!declaredElement.isInstanceMember ||
+              declaredElement.enclosingElement is ExtensionTypeElement)) {
+        // This is reported by `_checkKinds`.
+        return;
+      }
+
+      var name = declaredElement.name;
+      if (name != null && Identifier.isPrivateName(name)) {
+        reportInvalidAnnotation(name);
+      }
     }
   }
 

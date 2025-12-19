@@ -975,7 +975,6 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.invalidNonVirtualAnnotation: [RemoveAnnotation.new],
   diag.invalidReopenAnnotation: [RemoveAnnotation.new],
   diag.invalidVisibilityAnnotation: [RemoveAnnotation.new],
-  diag.invalidVisibleForOverridingAnnotation: [RemoveAnnotation.new],
   diag.missingOverrideOfMustBeOverriddenOne: [CreateMissingOverrides.new],
   diag.missingOverrideOfMustBeOverriddenTwo: [CreateMissingOverrides.new],
   diag.missingOverrideOfMustBeOverriddenThreePlus: [CreateMissingOverrides.new],

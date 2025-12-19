@@ -719,6 +719,53 @@ extension type A(int it) {
     }
   }
 
+  Future<void> test_factoryMethod_after() async {
+    var unitOutline = await _computeOutline('''
+class C {
+  factory() => C();
+}
+''');
+    var topOutlines = unitOutline.children!;
+    expect(topOutlines, hasLength(1));
+
+    var outline_C = topOutlines[0];
+    var element_C = outline_C.element;
+    expect(element_C.kind, ElementKind.CLASS);
+    expect(element_C.name, 'C');
+
+    var outlines_C = outline_C.children!;
+    expect(outlines_C, hasLength(1));
+
+    var outline = outlines_C[0];
+    var element = outline.element;
+    expect(element.kind, ElementKind.CONSTRUCTOR);
+    expect(element.name, '<unknown>');
+  }
+
+  Future<void> test_factoryMethod_before() async {
+    var unitOutline = await _computeOutline('''
+// @dart=3.10
+class C {
+  factory() => C();
+}
+''');
+    var topOutlines = unitOutline.children!;
+    expect(topOutlines, hasLength(1));
+
+    var outline_C = topOutlines[0];
+    var element_C = outline_C.element;
+    expect(element_C.kind, ElementKind.CLASS);
+    expect(element_C.name, 'C');
+
+    var outlines_C = outline_C.children!;
+    expect(outlines_C, hasLength(1));
+
+    var outline = outlines_C[0];
+    var element = outline.element;
+    expect(element.kind, ElementKind.METHOD);
+    expect(element.name, 'factory');
+  }
+
   Future<void> test_genericTypeAlias_functionType() async {
     var unitOutline = await _computeOutline('''
 typedef F = void Function();

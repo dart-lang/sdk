@@ -1213,6 +1213,17 @@ void f(@A() int x) {}
     );
   }
 
+  void test_overridableMember_class_visibleForOverride() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta.dart';
+@visibleForOverriding
+class C {}
+''',
+      [error(diag.invalidAnnotationTarget, 34, 20)],
+    );
+  }
+
   void test_overridableMember_constructor() async {
     await assertErrorsInCode(
       '''
@@ -1229,6 +1240,17 @@ class C {
 }
 ''',
       [error(diag.invalidAnnotationTarget, 118, 1)],
+    );
+  }
+
+  void test_overridableMember_extensionType_visibleForOverride() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta.dart';
+@visibleForOverriding
+extension type E(int i) {}
+''',
+      [error(diag.invalidAnnotationTarget, 34, 20)],
     );
   }
 
@@ -1367,6 +1389,26 @@ class C {
 }
 ''',
       [error(diag.invalidAnnotationTarget, 118, 1)],
+    );
+  }
+
+  void test_overridableMember_topLevelField_visibleForOverriding() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+@visibleForOverriding var a = 1, b;
+''',
+      [error(diag.invalidAnnotationTarget, 34, 20)],
+    );
+  }
+
+  void test_overridableMember_topLevelFunction_visibleForOverriding() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+@visibleForOverriding void foo() {}
+''',
+      [error(diag.invalidAnnotationTarget, 34, 20)],
     );
   }
 

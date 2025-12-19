@@ -3709,8 +3709,6 @@ invalid_widget_preview_private_argument:
   status: needsEvaluation
 invalid_visibility_annotation:
   status: hasFix
-invalid_visible_for_overriding_annotation:
-  status: hasFix
 invalid_visible_outside_template_annotation:
   status: needsEvaluation
 missing_override_of_must_be_overridden_one:
@@ -3880,6 +3878,11 @@ unused_element_parameter:
   status: hasFix
 unused_field:
   status: hasFix
+unused_field_from_primary_constructor:
+  status: needsFix
+  notes: |-
+    We can offer a fix to remove the `final` or `var` keyword. We can also offer
+    a fix to remove the parameter wholesale (`RemoveUnusedParameter.new`).
 unused_import:
   status: hasFix
 unused_label:
