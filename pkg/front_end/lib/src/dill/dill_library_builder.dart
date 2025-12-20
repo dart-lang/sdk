@@ -4,6 +4,8 @@
 
 import 'dart:convert' show jsonDecode;
 
+import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
+    show Importability;
 import 'package:kernel/ast.dart';
 
 import '../base/combinator.dart';
@@ -28,6 +30,7 @@ import '../codes/cfe_codes.dart'
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/utils.dart';
 import '../source/name_scheme.dart';
+import '../source/source_library_builder.dart';
 import '../util/reference_map.dart';
 import 'dill_class_builder.dart' show DillClassBuilder;
 import 'dill_extension_builder.dart';
@@ -41,6 +44,9 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
 
   @override
   final List<Export> exporters = <Export>[];
+
+  @override
+  Iterable<LibraryAccess> get accessors => _dillLibraryBuilder.accessors;
 
   DillCompilationUnitImpl(this._dillLibraryBuilder);
 
@@ -96,7 +102,12 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
   bool get isSynthetic => _dillLibraryBuilder.isSynthetic;
 
   @override
-  bool get isUnsupported => _dillLibraryBuilder.isUnsupported;
+  bool get conditionalImportSupported =>
+      _dillLibraryBuilder.conditionalImportSupported;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Importability get importability => _dillLibraryBuilder.importability;
 
   @override
   LibraryBuilder get libraryBuilder => _dillLibraryBuilder;
@@ -382,7 +393,11 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   }
 
   @override
-  bool get isUnsupported => library.isUnsupported;
+  bool get conditionalImportSupported => library.conditionalImportSupported;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Importability get importability => library.importability;
 
   @override
   bool get isSynthetic => library.isSynthetic;

@@ -86,6 +86,11 @@ class ImportsHandler
       var enclosingElement = element.enclosingElement;
       if (enclosingElement is ExtensionElement) {
         element = enclosingElement;
+      } else if (enclosingElement is InterfaceElement &&
+          node.parent is Annotation) {
+        // For annotations we need to reference the class element, not the
+        // constructor element.
+        element = enclosingElement;
       }
 
       var locations = _getImportLocations(library, unit, element, prefixName);

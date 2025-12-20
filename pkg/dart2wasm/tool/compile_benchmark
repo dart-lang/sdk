@@ -55,10 +55,6 @@ DART="$BIN_DIR/dart"
 DART_AOT_RUNTIME="$BIN_DIR/dartaotruntime"
 LIBRARIES_JSON_ARG="--libraries-spec=$SDK_DIR/sdk/lib/libraries.json"
 
-function find_flags {
-  echo -en "$(sed -n "/$1 =/,/end of $1/ p" $SDK_DIR/pkg/dartdev/lib/src/commands/compile.dart  | sed  '1d' | sed '$d' | tr '\n' ' ' | sed 's#\s\+# #g' | sed 's#^\s\+##' | sed 's#\s\+$##')"
-}
-
 RUN_BINARYEN=1
 RUN_SRC=0
 GENERATE_SOURCE_MAP=1

@@ -83,6 +83,8 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
         Variance;
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show demangleMixinApplicationName;
+import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
+    show Importability;
 
 import 'src/extension_type_erasure.dart';
 import 'visitor.dart';

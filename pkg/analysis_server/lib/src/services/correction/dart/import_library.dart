@@ -41,33 +41,32 @@ class ImportLibrary extends MultiCorrectionProducer {
   /// Initialize a newly created instance that will add an import for an
   /// extension.
   ImportLibrary.forExtension({required super.context})
-    : _importKind = _ImportKind.forExtension;
+    : _importKind = .forExtension;
 
   /// Initialize a newly created instance that will add an import for a member
   /// of an extension.
   ImportLibrary.forExtensionMember({required super.context})
-    : _importKind = _ImportKind.forExtensionMember;
+    : _importKind = .forExtensionMember;
 
   /// Initialize a newly created instance that will add an import for an
   /// extension type.
   ImportLibrary.forExtensionType({required super.context})
-    : _importKind = _ImportKind.forExtensionType;
+    : _importKind = .forExtensionType;
 
   /// Initialize a newly created instance that will add an import for a
   /// top-level function.
   ImportLibrary.forFunction({required super.context})
-    : _importKind = _ImportKind.forFunction;
+    : _importKind = .forFunction;
 
   /// Initialize a newly created instance that will add an import for a
   /// top-level variable.
   ImportLibrary.forTopLevelVariable({required super.context})
-    : _importKind = _ImportKind.forTopLevelVariable;
+    : _importKind = .forTopLevelVariable;
 
   /// Initialize a newly created instance that will add an import for a
   /// type-like declaration (class, enum, mixin, typedef), a constructor, a
   /// static member of a declaration, or an enum value.
-  ImportLibrary.forType({required super.context})
-    : _importKind = _ImportKind.forType;
+  ImportLibrary.forType({required super.context}) : _importKind = .forType;
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -94,12 +93,12 @@ class ImportLibrary extends MultiCorrectionProducer {
 
   Future<List<_PrefixedName>> _allPossibleNames() async {
     return switch (_importKind) {
-      _ImportKind.forExtension => _namesForExtension(),
-      _ImportKind.forExtensionMember => await _namesForExtensionMember(),
-      _ImportKind.forExtensionType => _namesForExtensionType(),
-      _ImportKind.forFunction => _namesForFunction(),
-      _ImportKind.forTopLevelVariable => _namesForTopLevelVariable(),
-      _ImportKind.forType => _namesForType(),
+      .forExtension => _namesForExtension(),
+      .forExtensionMember => await _namesForExtensionMember(),
+      .forExtensionType => _namesForExtensionType(),
+      .forFunction => _namesForFunction(),
+      .forTopLevelVariable => _namesForTopLevelVariable(),
+      .forType => _namesForType(),
     };
   }
 
@@ -575,11 +574,6 @@ class ImportLibrary extends MultiCorrectionProducer {
   List<_PrefixedName> _namesForTopLevelVariable() {
     String? prefix;
     var targetNode = node;
-    if (targetNode.parent case PrefixedIdentifier prefixed
-        when prefixed.prefix == node) {
-      targetNode = prefixed.identifier;
-      prefix = prefixed.prefix.name;
-    }
     if (targetNode case Annotation(:var name)) {
       if (name.element == null) {
         if (targetNode.arguments != null) {
@@ -587,6 +581,32 @@ class ImportLibrary extends MultiCorrectionProducer {
         }
         targetNode = name;
       }
+    }
+    if (targetNode case PrefixedIdentifier(:var prefix, :var identifier)) {
+      return [
+        _PrefixedName(
+          prefix: prefix.name,
+          name: identifier.name,
+          producerGenerators: (prefix, name) async {
+            return await _importLibraryForElement(name, const [
+              ElementKind.TOP_LEVEL_VARIABLE,
+            ], prefix: prefix);
+          },
+        ),
+        _PrefixedName(
+          name: prefix.name,
+          producerGenerators: (prefix, name) async {
+            return await _importLibraryForElement(name, const [
+              ElementKind.TOP_LEVEL_VARIABLE,
+            ], prefix: prefix);
+          },
+        ),
+      ];
+    }
+    if (targetNode.parent case PrefixedIdentifier prefixed
+        when prefixed.prefix == targetNode) {
+      targetNode = prefixed.identifier;
+      prefix = prefixed.prefix.name;
     }
     if (targetNode case SimpleIdentifier(:var name)) {
       return [
@@ -614,9 +634,6 @@ class ImportLibrary extends MultiCorrectionProducer {
       ElementKind.MIXIN,
       ElementKind.TYPE_ALIAS,
     ];
-    if (node case SimpleIdentifier(:var name, :var parent)) {
-      return _namesForMethodInvocation(name, parent, kinds);
-    }
     var targetNode = node;
     if (targetNode case Annotation(:var name)) {
       if (name.element == null) {
@@ -626,8 +643,11 @@ class ImportLibrary extends MultiCorrectionProducer {
         targetNode = name;
       }
     }
+    if (targetNode case SimpleIdentifier(:var name, :var parent)) {
+      return _namesForMethodInvocation(name, parent, kinds);
+    }
     String? prefix;
-    if (node case NamedType(:var importPrefix, :var parent)
+    if (targetNode case NamedType(:var importPrefix, :var parent)
         // Makes sure that
         // [ImportLibraryProject1Test.test_withClass_instanceCreation_const_namedConstructor]
         // and
@@ -643,13 +663,21 @@ class ImportLibrary extends MultiCorrectionProducer {
           name: typeName,
           prefix: prefix,
           producerGenerators: (prefix, name) async {
-            return await _importLibraryForElement(
-              typeName,
-              kinds,
-              prefix: prefix,
-            );
+            return await _importLibraryForElement(name, kinds, prefix: prefix);
           },
         ),
+        if (targetNode case PrefixedIdentifier(:var identifier, :var prefix))
+          _PrefixedName(
+            name: identifier.name,
+            prefix: prefix.name,
+            producerGenerators: (prefix, name) async {
+              return await _importLibraryForElement(
+                name,
+                kinds,
+                prefix: prefix,
+              );
+            },
+          ),
       ];
     }
     if (targetNode is SimpleIdentifier &&
@@ -660,7 +688,7 @@ class ImportLibrary extends MultiCorrectionProducer {
           name: typeName,
           prefix: prefix,
           producerGenerators: (prefix, name) async {
-            return await _importLibraryForElement(typeName, const [
+            return await _importLibraryForElement(name, const [
               ElementKind.CLASS,
             ], prefix: prefix);
           },
@@ -944,12 +972,16 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
       SourceRange nodeRange;
       if (targetNode case NamedType(:var importPrefix?)) {
         nodeRange = range.node(importPrefix);
-      } else if (targetNode case PrefixedIdentifier(prefix: var prefixNode)) {
-        nodeRange = range.node(prefixNode);
+      } else if (targetNode case PrefixedIdentifier(
+        prefix: var prefixNode,
+        :var identifier,
+      )) {
+        nodeRange = range.startStart(prefixNode, identifier);
       } else if (targetNode.parent case MethodInvocation(
         :SimpleIdentifier target,
+        :var methodName,
       ) when target.name == _nodePrefix) {
-        nodeRange = range.startOffsetEndOffset(target.offset, target.end + 1);
+        nodeRange = range.startStart(target, methodName);
       } else {
         return;
       }
