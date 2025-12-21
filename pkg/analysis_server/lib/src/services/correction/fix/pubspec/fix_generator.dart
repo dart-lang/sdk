@@ -14,6 +14,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:linter/src/diagnostic.dart' as linter_diag;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/pubspec/validators/missing_dependency_validator.dart';
 import 'package:analyzer/src/util/yaml.dart';
@@ -27,6 +28,7 @@ class PubspecFixGenerator {
   static const List<DiagnosticCode> codesWithFixes = [
     diag.missingDependency,
     diag.missingName,
+    linter_diag.sortPubDependencies,
   ];
 
   /// The resource provider used to access the file system.
@@ -124,6 +126,8 @@ class PubspecFixGenerator {
       // Consider removing the dependency.
     } else if (diagnosticCode == diag.missingDependency) {
       await _addMissingDependency(diagnosticCode);
+    } else if (diagnosticCode == linter_diag.sortPubDependencies) {
+      await _sortPubDependencies();
     }
     return fixes;
   }
@@ -303,6 +307,136 @@ class PubspecFixGenerator {
     _addFixFromBuilder(builder, PubspecFixKind.addName);
   }
 
+  /// Sorts dependencies alphabetically in the section containing the
+  /// diagnostic.
+  Future<void> _sortPubDependencies() async {
+    var rootNode = node;
+    if (rootNode is! YamlMap) {
+      return;
+    }
+
+    // Find the dependency section containing the diagnostic offset.
+    YamlMap? dependencySection;
+    for (var sectionName in [
+      'dependencies',
+      'dev_dependencies',
+      'dependency_overrides',
+    ]) {
+      var section = rootNode[sectionName];
+      if (section is YamlMap) {
+        var sectionStart = section.span.start.offset;
+        var sectionEnd = section.span.end.offset;
+        if (diagnosticOffset >= sectionStart && diagnosticOffset <= sectionEnd) {
+          dependencySection = section;
+          break;
+        }
+      }
+    }
+
+    if (dependencySection == null) {
+      return;
+    }
+
+    // Collect all dependency entries with their text representations.
+    var entries = <_DependencyEntry>[];
+    for (var entry in dependencySection.nodes.entries) {
+      var keyNode = entry.key as YamlNode;
+      var valueNode = entry.value;
+      var keyName = keyNode.value as String;
+
+      // Calculate the start of this entry (including the key).
+      var entryStart = keyNode.span.start.offset;
+      // Calculate the end of this entry (end of value).
+      var entryEnd = valueNode.span.end.offset;
+
+      // Get the full text for this entry from the content.
+      var entryText = content.substring(entryStart, entryEnd);
+
+      entries.add(_DependencyEntry(keyName, entryStart, entryEnd, entryText));
+    }
+
+    if (entries.length < 2) {
+      // Nothing to sort if there's only one or no entries.
+      return;
+    }
+
+    // Sort entries alphabetically by package name.
+    var sortedEntries = List<_DependencyEntry>.from(entries)
+      ..sort((a, b) => a.name.compareTo(b.name));
+
+    // Check if already sorted.
+    var alreadySorted = true;
+    for (var i = 0; i < entries.length; i++) {
+      if (entries[i].name != sortedEntries[i].name) {
+        alreadySorted = false;
+        break;
+      }
+    }
+    if (alreadySorted) {
+      return;
+    }
+
+    // Build the sorted content.
+    // First, find the indentation used for dependencies.
+    var firstEntryLine = lineInfo.getLocation(entries.first.startOffset).lineNumber - 1;
+    var lineStart = lineInfo.lineStarts[firstEntryLine];
+    var indentation = '';
+    for (var i = lineStart; i < entries.first.startOffset; i++) {
+      var char = content[i];
+      if (char == ' ' || char == '\t') {
+        indentation += char;
+      } else {
+        break;
+      }
+    }
+
+    // Build the new sorted section content.
+    var sortedContent = StringBuffer();
+    for (var i = 0; i < sortedEntries.length; i++) {
+      var entry = sortedEntries[i];
+      // Normalize the entry text to use consistent indentation.
+      var normalizedText = _normalizeEntryIndentation(entry.text, indentation);
+      sortedContent.write(normalizedText);
+      if (i < sortedEntries.length - 1) {
+        sortedContent.write(endOfLine);
+      }
+    }
+
+    // Calculate the range to replace (from first entry start to last entry end).
+    var replaceStart = lineStart;
+    var lastEntry = entries.last;
+    var replaceEnd = lastEntry.endOffset;
+
+    var builder = ChangeBuilder(
+      workspace: _NonDartChangeWorkspace(resourceProvider),
+      defaultEol: endOfLine,
+    );
+    await builder.addYamlFileEdit(file, (builder) {
+      builder.addSimpleReplacement(
+        SourceRange(replaceStart, replaceEnd - replaceStart),
+        sortedContent.toString(),
+      );
+    });
+    _addFixFromBuilder(builder, PubspecFixKind.sortDependencies);
+  }
+
+  /// Normalizes the indentation of a dependency entry.
+  String _normalizeEntryIndentation(String text, String indentation) {
+    var lines = text.split(RegExp(r'\r?\n'));
+    var result = StringBuffer();
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      if (i == 0) {
+        // First line gets the base indentation.
+        result.write('$indentation${line.trimLeft()}');
+      } else {
+        // Subsequent lines keep their relative indentation.
+        result.write('$endOfLine$indentation  ${line.trimLeft()}');
+      }
+    }
+    return result.toString();
+  }
+
   (String, int) _getTextAndOffset(
     YamlMap node,
     String sectionName,
@@ -393,4 +527,21 @@ class _Range {
   int endOffset;
 
   _Range(this.startOffset, this.endOffset);
+}
+
+/// Represents a dependency entry in the pubspec.yaml file.
+class _DependencyEntry {
+  /// The package name (the key in the YAML map).
+  final String name;
+
+  /// The start offset of this entry in the file content.
+  final int startOffset;
+
+  /// The end offset of this entry in the file content.
+  final int endOffset;
+
+  /// The full text of this entry (key: value).
+  final String text;
+
+  _DependencyEntry(this.name, this.startOffset, this.endOffset, this.text);
 }

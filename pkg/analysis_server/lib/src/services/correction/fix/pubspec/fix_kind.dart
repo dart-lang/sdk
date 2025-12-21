@@ -16,6 +16,12 @@ abstract final class PubspecFixKind {
     PubspecFixKindPriority._default,
     'Update pubspec with the missing dependencies',
   );
+  // Sorts dependencies alphabetically in the pubspec.yaml file.
+  static const sortDependencies = FixKind(
+    'pubspec.fix.sort.dependencies',
+    PubspecFixKindPriority._default,
+    'Sort dependencies alphabetically',
+  );
 }
 
 abstract final class PubspecFixKindPriority {
