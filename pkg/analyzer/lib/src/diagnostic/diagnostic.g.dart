@@ -12504,18 +12504,19 @@ notAssignedPotentiallyNonNullableLocalVariable = DiagnosticWithArguments(
 
 /// Parameters:
 /// String p0: the name that is not a type
+/// String p1: the kind of element (e.g., 'a setter', 'a function')
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String p0, required String p1})
 >
 notAType = DiagnosticWithArguments(
   name: 'not_a_type',
-  problemMessage: "{0} isn't a type.",
+  problemMessage: "'{0}' is {1}, but a type was expected.",
   correctionMessage: "Try correcting the name to match an existing type.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'not_a_type',
   withArguments: _withArgumentsNotAType,
-  expectedTypes: [ExpectedType.string],
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// Parameters:
@@ -20208,8 +20209,8 @@ _withArgumentsNotAssignedPotentiallyNonNullableLocalVariable({
   );
 }
 
-LocatableDiagnostic _withArgumentsNotAType({required String p0}) {
-  return LocatableDiagnosticImpl(diag.notAType, [p0]);
+LocatableDiagnostic _withArgumentsNotAType({required String p0, required String p1}) {
+  return LocatableDiagnosticImpl(diag.notAType, [p0, p1]);
 }
 
 LocatableDiagnostic _withArgumentsNotBinaryOperator({required String p0}) {

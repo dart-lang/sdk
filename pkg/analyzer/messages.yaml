@@ -13427,7 +13427,8 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String p0: the name that is not a type
-    problemMessage: "#p0 isn't a type."
+      String p1: the kind of element (e.g., 'a setter', 'a function')
+    problemMessage: "'#p0' is #p1, but a type was expected."
     correctionMessage: Try correcting the name to match an existing type.
     hasPublishedDocs: true
     documentation: |-
