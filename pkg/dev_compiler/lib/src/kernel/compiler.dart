@@ -2375,12 +2375,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           : _getSymbol(virtualField);
       var jsInit = _visitInitializer(initializer, f.annotations);
       body.add(
-        jsInit
-            .toAssignExpression(
-              js.call('this.#', [access])
-                ..sourceInformation = _nodeStart(hoverInfo),
-            )
-            .toStatement(),
+        jsInit.toAssignExpression(js.call('this.#', [access])).toStatement()
+          ..sourceInformation = _nodeStart(hoverInfo),
       );
     }
 
