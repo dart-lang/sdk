@@ -1,19 +1,23 @@
 ## 10.0.0-dev
 * Deprecations in `ClassDeclaration`:
-  * Properties `leftBracket`, `members`, `rightBracket` are deprecated, use `body` instead.
-  * Properties `name`, `typeParameters` are deprecated, use `namePart` instead.
+  * Properties `leftBracket`, `members`, `rightBracket` are deprecated; use
+    `body` instead.
+  * Properties `name`, `typeParameters` are deprecated; use `namePart` instead.
 * Deprecations in `EnumDeclaration`:
-  * Properties `leftBracket`, `constants`, `members`, `rightBracket` are deprecated, use `body` instead.
-  * Properties `name`, `typeParameters` are deprecated, use `namePart` instead.
+  * Properties `leftBracket`, `constants`, `members`, `rightBracket` are
+    deprecated; use `body` instead.
+  * Properties `name`, `typeParameters` are deprecated; use `namePart` instead.
 * Deprecations in `ExtensionDeclaration`:
-  * Properties `leftBracket`, `members`, `rightBracket` are deprecated, use `body` instead.
+  * Properties `leftBracket`, `members`, `rightBracket` are deprecated; use
+    `body` instead.
 * Deprecations in `ExtensionTypeDeclaration`:
-  * Properties `leftBracket`, `constants`, `members`, `rightBracket` are deprecated, use `body` instead.
-  * Properties `constKeyword`, `name`, `representation`, `typeParameters` are deprecated,
-    use `primaryConstructor` instead.
-* **Breaking Change:** While the deprecated members mentioned above still exist in the AST,
-  their parent nodes have changed. This means that code relying on specific parent-child
-  relationships for these nodes might break.
+  * Properties `leftBracket`, `constants`, `members`, `rightBracket` are
+    deprecated; use `body` instead.
+  * Properties `constKeyword`, `name`, `representation`, `typeParameters` are
+    deprecated; use `primaryConstructor` instead.
+* **Breaking Change:** While the deprecated members mentioned above still exist
+  in the AST, their parent nodes have changed. This means that code relying on
+  specific parent-child relationships for these nodes might break.
 * **Breaking Change:** Remove deprecated `DiagnosticOrErrorListener` and the
   `DiagnosticOrErrorListenerExtension` extension.
 * **Breaking Change:** Remove deprecated `RecordingDiagnosticListener.onError`
@@ -22,20 +26,27 @@
 * Add `RemovedAnalysisRule` as the preferred way to represent removed lint
   rules. Deprecated `RuleState.removed` (which was the previous way to do so).
 * Deprecate `ConstructorElement.isSynthetic`.
-  Use `isOriginDeclaration`, `isOriginImplicitDefault`, `isOriginMixinApplication` instead.
+  Use `isOriginDeclaration`, `isOriginImplicitDefault`,
+  `isOriginMixinApplication` instead.
 * Deprecate `TopLevelVariableElement.isSynthetic`.
   Use `isOriginDeclaration`, `isOriginGetterSetter`.
 * Deprecate `FieldElement.isSynthetic`.
-  Use `isOriginDeclaration`, `isOriginGetterSetter`, `isOriginDeclaringFormalParameter`, `isOriginEnumValues` instead.
+  Use `isOriginDeclaration`, `isOriginGetterSetter`,
+  `isOriginDeclaringFormalParameter`, `isOriginEnumValues` instead.
 * Deprecate `PropertyAccessorElement.isSynthetic`.
   Use `isOriginDeclaration`, `isOriginInterface`, `isOriginVariable` instead.
-* Deprecate `Element.isSynthetic`, use `isOriginXyz` properties instead.
-* Deprecate `LibraryElement.isSynthetic`, use `isOriginNotExistingFile` instead.
+* Deprecate `Element.isSynthetic`; use `isOriginXyz` properties instead.
+* Deprecate `LibraryElement.isSynthetic`; use `isOriginNotExistingFile` instead.
 * Document that the class `SyntacticEntity` is not intended to be subclassed by
   clients.
 * Deprecate `DiagnosticCode.name` and `DiagnosticCode.uniqueName`. Use
   `DiagnosticCode.lowerCaseName` and `DiagnosticCode.lowerCaseUniqueName`
   instead.
+* **Breaking Change:** Remove `GitPluginSource`, `PathPluginSource`,
+  `PluginConfiguration`, `PluginSource`, `VersionedPluginSource` from the
+  public API.
+* **Breaking Change:** Remove deprecated
+  `AnalysisOptions.pluginConfigurations`.
 
 ## 9.0.0
 * Remove deprecated field `Diagnostic.data`.
