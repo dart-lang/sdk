@@ -329,30 +329,11 @@ package:analyzer/dart/analysis/analysis_options.dart:
     formatterOptions (getter: FormatterOptions)
     lint (getter: bool)
     lintRules (getter: List<AbstractAnalysisRule>)
-    pluginConfigurations (getter: List<PluginConfiguration>, deprecated)
     strictCasts (getter: bool)
     strictInference (getter: bool)
     strictRawTypes (getter: bool)
     warning (getter: bool)
     isLintEnabled (method: bool Function(String))
-  GitPluginSource (class extends Object implements PluginSource):
-    new (constructor: GitPluginSource Function({String? path, String? ref, required String url}))
-    toYaml (method: String Function({required String name}))
-  PathPluginSource (class extends Object implements PluginSource):
-    new (constructor: PathPluginSource Function({required String path}))
-    toYaml (method: String Function({required String name}))
-  PluginConfiguration (class extends Object):
-    new (constructor: PluginConfiguration Function({Map<String, RuleConfig> diagnosticConfigs, bool isEnabled, required String name, required PluginSource source}))
-    diagnosticConfigs (getter: Map<String, RuleConfig>)
-    isEnabled (getter: bool)
-    name (getter: String)
-    source (getter: PluginSource)
-    sourceYaml (method: String Function())
-  PluginSource (class extends Object, sealed (immediate subtypes: GitPluginSource, PathPluginSource, VersionedPluginSource)):
-    toYaml (method: String Function({required String name}))
-  VersionedPluginSource (class extends Object implements PluginSource):
-    new (constructor: VersionedPluginSource Function({required String constraint}))
-    toYaml (method: String Function({required String name}))
 package:analyzer/dart/analysis/code_style_options.dart:
   CodeStyleOptions (class extends Object):
     new (constructor: CodeStyleOptions Function())
@@ -5015,8 +4996,6 @@ package:analyzer/src/dart/resolver/scope.dart:
     definedNames2 (getter: Map<String, Element>)
     get2 (method: Element? Function(String))
     getPrefixed2 (method: Element? Function(String, String))
-package:analyzer/src/lint/config.dart:
-  RuleConfig (non-public)
 package:analyzer/src/workspace/workspace.dart:
   Workspace (non-public)
 package:analyzer/utilities/extensions/element.dart:

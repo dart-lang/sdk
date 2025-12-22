@@ -558,7 +558,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// even if the package does not specify the language version.
   Version get nonPackageLanguageVersion => ExperimentStatus.currentVersion;
 
-  @override
   List<PluginConfiguration> get pluginConfigurations =>
       pluginsOptions.configurations;
 
