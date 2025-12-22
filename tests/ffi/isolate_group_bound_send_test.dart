@@ -20,7 +20,7 @@ import "package:expect/expect.dart";
 
 main() async {
   asyncStart();
-  ReceivePort rp = ReceivePort();
+  final ReceivePort rp = ReceivePort();
   Expect.throws(
     () {
       IsolateGroup.runSync(() {

@@ -4683,24 +4683,21 @@ DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
   arguments.SetReturn(result);
 }
 
-DEFINE_RUNTIME_ENTRY(ThrowIfValueCantBeShared, 2) {
+DEFINE_RUNTIME_ENTRY(CheckedStoreIntoShared, 2) {
   const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
-  const Object& value = Field::CheckedHandle(zone, arguments.ArgAt(1));
+  const Instance& value = Instance::CheckedHandle(zone, arguments.ArgAt(1));
 
-  auto& message = String::Handle(zone);
-  message = String::NewFormatted(
-      "Attempt to place "
-      "non-trivially-shareable value %s in the shared field: %s",
-      value.ToCString(), field.ToCString());
-  const Array& args = Array::Handle(Array::New(1));
-  args.SetAt(0, message);
-  Exceptions::ThrowByType(Exceptions::kUnsupported, args);
+  FfiCallbackMetadata::EnsureTriviallyImmutable(zone, value);
+
+  field.SetStaticValue(value);
+  arguments.SetReturn(field);
 }
 
 DEFINE_RUNTIME_ENTRY(StaticFieldAccessedWithoutIsolateError, 1) {
   const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
   Exceptions::ThrowStaticFieldAccessedWithoutIsolate(
       String::Handle(field.name()));
+  UNREACHABLE();
 }
 
 DEFINE_RUNTIME_ENTRY(LateFieldAlreadyInitializedError, 1) {

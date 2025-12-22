@@ -343,9 +343,7 @@ class FfiCallbackMetadata {
 #error What architecture?
 #endif
 
-  static void EnsureOnlyTriviallyImmutableValuesInClosure(
-      Zone* zone,
-      ClosurePtr closure_ptr);
+  static void EnsureTriviallyImmutable(Zone* zone, const Object& object);
 
   // Visible for testing.
 #if defined(TESTING)

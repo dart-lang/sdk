@@ -42,6 +42,8 @@ main(List<String> args) {
 
   testClosure();
 
+  testFailToAssignClosureWithListToSharedVar();
+
   testFailToPrint();
 
   testFailToIsolateGroupRunSyncThrows();
@@ -246,6 +248,22 @@ void testClosure() {
     return closure();
   });
   Expect.equals(42, result);
+}
+
+///
+@pragma('vm:shared')
+dynamic getList;
+
+void testFailToAssignClosureWithListToSharedVar() {
+  final list = <String>[];
+  Expect.throws(
+    () {
+      getList = () => list;
+    },
+    (e) => e is Error && e.toString().contains("Only trivially-immutable"),
+    "Expect error assigning list to shared variable",
+  );
+  print(getList);
 }
 
 ///

@@ -352,107 +352,94 @@ PersistentHandle* FfiCallbackMetadata::CreatePersistentHandle(
   return handle;
 }
 
-class VisitedScope : public StackResource {
+class WorkSet : public StackResource {
  public:
-  explicit VisitedScope(Thread* thread)
-      : StackResource(thread), thread_(thread) {
+  explicit WorkSet(Thread* thread, Zone* zone)
+      : StackResource(thread),
+        thread_(thread),
+        list_(GrowableObjectArray::Handle(zone)) {
     ASSERT(thread->forward_table_new() == nullptr);
     set_ = new WeakTable();
+    list_ = GrowableObjectArray::New(16);
+    list_pos_ = 0;
     thread->set_forward_table_new(set_);
   }
 
-  ~VisitedScope() { thread_->set_forward_table_new(nullptr); }
+  ~WorkSet() { thread_->set_forward_table_new(nullptr); }
 
-  bool IsMarked(ClosurePtr closure) {
-    return set_->GetValueExclusive(closure) != 0;
+  void Add(const Object& object) {
+    if (!IsMarked(object.ptr())) {
+      Mark(object.ptr());
+      list_.Add(object);
+    }
   }
-  void Mark(ClosurePtr closure) { set_->SetValueExclusive(closure, 1); }
+
+  bool Take(Object* object) {
+    if (list_pos_ >= list_.Length()) {
+      return false;
+    }
+    *object = list_.At(list_pos_++);
+    return true;
+  }
 
  private:
+  bool IsMarked(ObjectPtr object) {
+    return set_->GetValueExclusive(object) != 0;
+  }
+  void Mark(ObjectPtr object) { set_->SetValueExclusive(object, 1); }
+
   Thread* thread_;
   WeakTable* set_;
+  GrowableObjectArray& list_;
+  intptr_t list_pos_;
 };
 
-static void EnsureOnlyTriviallyImmutableValuesInClosureHelper(
-    Zone* zone,
-    ClosurePtr closure_ptr,
-    VisitedScope* visited);
+void FfiCallbackMetadata::EnsureTriviallyImmutable(Zone* zone,
+                                                   const Object& object) {
+  WorkSet workset(Thread::Current(), zone);
+  workset.Add(object);
 
-static void ValidateTriviallyImmutabilityOfAnObject(Zone* zone,
-                                                    Object* p_obj,
-                                                    ObjectPtr object_ptr,
-                                                    VisitedScope* visited) {
-  *p_obj = object_ptr;
-  if (p_obj->IsSmi() || p_obj->IsNull()) {
-    return;
-  }
-  if (p_obj->IsClosure()) {
-    ClosurePtr closure_ptr = Closure::RawCast(p_obj->ptr());
-    if (visited->IsMarked(closure_ptr)) {
-      // Skip circular references
-      return;
-    }
-    visited->Mark(closure_ptr);
-    EnsureOnlyTriviallyImmutableValuesInClosureHelper(zone, closure_ptr,
-                                                      visited);
-    return;
-  }
-  if (p_obj->IsImmutable()) {
-    return;
-  }
-  if (IsTypedDataBaseClassId(p_obj->GetClassId())) {
-    return;
-  }
-  const String& error = String::Handle(
-      zone,
-      String::NewFormatted("Only trivially-immutable values are allowed: %s.",
-                           p_obj->ToCString()));
-  Exceptions::ThrowArgumentError(error);
-  UNREACHABLE();
-}
-
-static void EnsureOnlyTriviallyImmutableValuesInClosureHelper(
-    Zone* zone,
-    ClosurePtr closure_ptr,
-    VisitedScope* visited) {
-  Closure& closure = Closure::Handle(zone, closure_ptr);
-  if (closure.IsNull()) {
-    return;
-  }
+  Object& current = Object::Handle(zone);
+  Function& function = Function::Handle(zone);
   Object& obj = Object::Handle(zone);
-  const auto& function = Function::Handle(closure.function());
-  if (function.IsImplicitClosureFunction()) {
-    ValidateTriviallyImmutabilityOfAnObject(
-        zone, &obj, closure.GetImplicitClosureReceiver(), visited);
-  } else {
-    const Context& context = Context::Handle(zone, closure.GetContext());
-    if (context.IsNull()) {
-      return;
+  while (workset.Take(&current)) {
+    if (current.IsSmi() || current.IsNull() || current.IsCanonical()) {
+      continue;
     }
-    // Iterate through all elements of the context.
-    for (intptr_t i = 0; i < context.num_variables(); i++) {
-      ValidateTriviallyImmutabilityOfAnObject(zone, &obj, context.At(i),
-                                              visited);
+    if (current.IsClosure()) {
+      const Closure& closure = Closure::Cast(current);
+      function = closure.function();
+      if (!function.IsImplicitClosureFunction() &&
+          !function.captures_only_final_not_late_vars()) {
+        Exceptions::ThrowArgumentError(String::Handle(String::New(
+            "Only final not-late variables can be captured by isolate "
+            "group callbacks.")));
+        UNREACHABLE();
+      }
+      obj = closure.RawContext();
+      workset.Add(obj);
+      continue;
     }
-
-    if (!function.captures_only_final_not_late_vars()) {
-      const String& error = String::Handle(
-          zone, String::New(
-                    "Only final not-late variables can be captured by isolate "
-                    "group callbacks."));
-      Exceptions::ThrowArgumentError(error);
-      UNREACHABLE();
+    if (current.IsImmutable()) {
+      continue;
     }
+    if (IsTypedDataBaseClassId(current.GetClassId())) {
+      continue;
+    }
+    if (current.IsContext()) {
+      const Context& context = Context::Cast(current);
+      // Iterate through all elements of the context.
+      for (intptr_t i = 0; i < context.num_variables(); i++) {
+        obj = context.At(i);
+        workset.Add(obj);
+      }
+      continue;
+    }
+    Exceptions::ThrowArgumentError(String::Handle(
+        String::NewFormatted("Only trivially-immutable values are allowed: %s.",
+                             current.ToCString())));
+    UNREACHABLE();
   }
-}
-
-void FfiCallbackMetadata::EnsureOnlyTriviallyImmutableValuesInClosure(
-    Zone* zone,
-    ClosurePtr closure_ptr) {
-  auto thread = Thread::Current();
-  VisitedScope visited(thread);
-  EnsureOnlyTriviallyImmutableValuesInClosureHelper(zone, closure_ptr,
-                                                    &visited);
 }
 
 FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateLocalFfiCallback(
@@ -482,7 +469,7 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateLocalFfiCallback(
 
     if (function.GetFfiCallbackKind() ==
         FfiCallbackKind::kIsolateGroupBoundClosureCallback) {
-      EnsureOnlyTriviallyImmutableValuesInClosure(zone, closure.ptr());
+      EnsureTriviallyImmutable(zone, closure);
     }
 
     handle = CreatePersistentHandle(

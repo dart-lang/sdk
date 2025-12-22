@@ -736,6 +736,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       initializer: functionPointer,
       type: pointerType,
       isSynthesized: true,
+      isFinal: true,
     );
 
     final positionalParameters = [

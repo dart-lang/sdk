@@ -67,7 +67,7 @@ namespace dart {
   V(InitInstanceField)                                                         \
   V(InitStaticField)                                                           \
   V(StaticFieldAccessedWithoutIsolateError)                                    \
-  V(ThrowIfValueCantBeShared)                                                  \
+  V(CheckedStoreIntoShared)                                                    \
   V(LateFieldAlreadyInitializedError)                                          \
   V(LateFieldAssignedDuringInitializationError)                                \
   V(LateFieldNotInitializedError)                                              \

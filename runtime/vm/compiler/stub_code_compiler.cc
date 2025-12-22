@@ -1869,6 +1869,18 @@ void StubCodeCompiler::GenerateDoubleToIntegerStub() {
   __ Ret();
 }
 
+void StubCodeCompiler::GenerateCheckedStoreIntoSharedStub() {
+  __ EnterStubFrame();
+  __ PushObject(NullObject());  // Make room for result.
+  __ PushRegistersInOrder({CheckedStoreIntoSharedStubABI::kFieldReg,
+                           CheckedStoreIntoSharedStubABI::kValueReg});
+  __ CallRuntime(kCheckedStoreIntoSharedRuntimeEntry, /*argument_count=*/2);
+  __ Drop(2);
+  __ PopRegister(CheckedStoreIntoSharedStubABI::kResultReg);
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
 static intptr_t SuspendStateFpOffset() {
   return compiler::target::frame_layout.FrameSlotForVariableIndex(
              SuspendState::kSuspendStateVarIndex) *

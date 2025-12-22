@@ -6401,6 +6401,42 @@ void DoubleToIntegerSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Jump(exit_label());
 }
 
+void CheckedStoreIntoSharedSlowPath::EmitNativeCode(
+    FlowGraphCompiler* compiler) {
+  __ Comment("CheckedStoreIntoSharedSlowPath");
+  __ Bind(entry_label());
+
+  LocationSummary* locs = instruction()->locs();
+  locs->live_registers()->Remove(locs->out(0));
+
+  compiler->SaveLiveRegisters(locs);
+
+  auto slow_path_env =
+      compiler->SlowPathEnvironmentFor(instruction(), /*num_slow_path_args=*/0);
+
+  const Field& original_field =
+      Field::ZoneHandle(instruction()->field().Original());
+  __ LoadObject(CheckedStoreIntoSharedStubABI::kFieldReg, original_field);
+
+#if defined(TARGET_ARCH_IA32)
+  __ MoveRegister(CheckedStoreIntoSharedStubABI::kValueReg, value());
+#else
+  ASSERT(value() == CheckedStoreIntoSharedStubABI::kValueReg);
+#endif
+
+  // CheckedStoreIntoSharedABI::kValueReg has value
+
+  compiler->GenerateStubCall(instruction()->source(),
+                             StubCode::CheckedStoreIntoShared(),
+                             UntaggedPcDescriptors::kOther, locs,
+                             instruction()->deopt_id(), slow_path_env);
+
+  // result goes into CheckedStoreIntoSharedABI::kResultReg
+
+  compiler->RestoreLiveRegisters(instruction()->locs());
+  __ Jump(exit_label());
+}
+
 void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
   const intptr_t box_cid = BoxCid();
   ASSERT(box_cid != kSmiCid);  // Should never reach here with Smi-able ints.

@@ -356,22 +356,12 @@ class FieldAccessErrorSlowPath : public ThrowErrorSlowPathCode {
   }
 };
 
-class ThrowIfValueCantBeSharedSlowPath : public ThrowErrorSlowPathCode {
+class CheckedStoreIntoSharedSlowPath
+    : public TemplateSlowPathCode<StoreStaticFieldInstr> {
  public:
-  explicit ThrowIfValueCantBeSharedSlowPath(Instruction* instruction,
-                                            Register value)
-      : ThrowErrorSlowPathCode(instruction,
-                               kThrowIfValueCantBeSharedRuntimeEntry),
-        value_(value) {
-    ASSERT(instruction->IsStoreStaticField());
-  }
-  virtual const char* name() { return "shared value error"; }
-
-  virtual intptr_t GetNumberOfArgumentsForRuntimeCall() {
-    return 2;  // field, value
-  }
-
-  virtual void PushArgumentsForRuntimeCall(FlowGraphCompiler* compiler);
+  explicit CheckedStoreIntoSharedSlowPath(StoreStaticFieldInstr* instruction,
+                                          Register value)
+      : TemplateSlowPathCode(instruction), value_(value) {}
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
