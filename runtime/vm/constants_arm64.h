@@ -404,6 +404,13 @@ struct DoubleToIntegerStubABI {
   static constexpr Register kResultReg = R0;
 };
 
+// ABI for CheckedStoreIntoSharedStub.
+struct CheckedStoreIntoSharedStubABI {
+  static constexpr Register kFieldReg = R1;
+  static constexpr Register kValueReg = R2;
+  static constexpr Register kResultReg = R0;
+};
+
 // ABI for SuspendStub (AwaitStub, AwaitWithTypeCheckStub, YieldAsyncStarStub,
 // SuspendSyncStarAtStartStub, SuspendSyncStarAtYieldStub).
 struct SuspendStubABI {

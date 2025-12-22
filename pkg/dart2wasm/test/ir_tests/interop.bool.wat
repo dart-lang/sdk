@@ -1,10 +1,10 @@
 (module $module0
   (type $#Top (struct
     (field $field0 i32)))
-  (func $"dart2wasm._149 (import)" (import "dart2wasm" "_149") (param externref) (result i32))
-  (func $"dart2wasm._150 (import)" (import "dart2wasm" "_150") (param i32) (result externref))
-  (func $"dart2wasm._274 (import)" (import "dart2wasm" "_274") (param externref) (result externref))
-  (func $"dart2wasm._275 (import)" (import "dart2wasm" "_275") (param externref) (result externref))
+  (func $"dart2wasm._167 (import)" (import "dart2wasm" "_167") (param externref) (result i32))
+  (func $"dart2wasm._168 (import)" (import "dart2wasm" "_168") (param i32) (result externref))
+  (func $"dart2wasm._292 (import)" (import "dart2wasm" "_292") (param externref) (result externref))
+  (func $"dart2wasm._293 (import)" (import "dart2wasm" "_293") (param externref) (result externref))
   (global $"C2 false" (ref $#Top) <...>)
   (global $"C40 true" (ref $#Top) <...>)
   (global $"boolValueNullable initialized" (mut i32) <...>)
@@ -17,8 +17,8 @@
   (func $"testBoolConstant <noInline>"
     (local $var0 externref)
     i32.const 1
-    call $"dart2wasm._150 (import)"
-    call $"dart2wasm._274 (import)"
+    call $"dart2wasm._168 (import)"
+    call $"dart2wasm._292 (import)"
     local.tee $var0
     call $isDartNull
     if (result i32)
@@ -26,14 +26,14 @@
       unreachable
     else
       local.get $var0
-      call $"dart2wasm._149 (import)"
+      call $"dart2wasm._167 (import)"
     end
     call $"sinkBool <noInline>"
   )
   (func $"testBoolConstantNullable <noInline>"
     (local $var0 externref)
     ref.null noextern
-    call $"dart2wasm._275 (import)"
+    call $"dart2wasm._293 (import)"
     local.tee $var0
     call $isDartNull
     if (result (ref null $#Top))
@@ -42,7 +42,7 @@
       global.get $"C40 true"
       global.get $"C2 false"
       local.get $var0
-      call $"dart2wasm._149 (import)"
+      call $"dart2wasm._167 (import)"
       select (ref $#Top)
     end
     call $"sinkBoolNullable <noInline>"
@@ -50,8 +50,8 @@
   (func $"testBoolValue <noInline>"
     (local $var0 externref)
     call $"boolValue implicit getter"
-    call $"dart2wasm._150 (import)"
-    call $"dart2wasm._274 (import)"
+    call $"dart2wasm._168 (import)"
+    call $"dart2wasm._292 (import)"
     local.tee $var0
     call $isDartNull
     if (result i32)
@@ -59,7 +59,7 @@
       unreachable
     else
       local.get $var0
-      call $"dart2wasm._149 (import)"
+      call $"dart2wasm._167 (import)"
     end
     call $"sinkBool <noInline>"
   )
@@ -91,7 +91,7 @@
       local.get $var0
       call $jsifyRaw
     end
-    call $"dart2wasm._275 (import)"
+    call $"dart2wasm._293 (import)"
     local.tee $var1
     call $isDartNull
     if (result (ref null $#Top))
@@ -100,7 +100,7 @@
       global.get $"C40 true"
       global.get $"C2 false"
       local.get $var1
-      call $"dart2wasm._149 (import)"
+      call $"dart2wasm._167 (import)"
       select (ref $#Top)
     end
     call $"sinkBoolNullable <noInline>"

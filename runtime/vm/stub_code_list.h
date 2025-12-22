@@ -192,6 +192,7 @@ namespace dart {
   V(CloneSuspendState)                                                         \
   V(FfiAsyncCallbackSend)                                                      \
   V(CheckIsolateFieldAccess)                                                   \
+  V(CheckedStoreIntoShared)                                                    \
   V(UnknownDartCode)
 
 }  // namespace dart

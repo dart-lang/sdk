@@ -4,8 +4,8 @@
   (type $JSStringImpl (sub final $#Top (struct
     (field $field0 i32)
     (field $_ref externref))))
-  (func $"dart2wasm._274 (import)" (import "dart2wasm" "_274") (param externref) (result externref))
-  (func $"dart2wasm._275 (import)" (import "dart2wasm" "_275") (param externref) (result externref))
+  (func $"dart2wasm._292 (import)" (import "dart2wasm" "_292") (param externref) (result externref))
+  (func $"dart2wasm._293 (import)" (import "dart2wasm" "_293") (param externref) (result externref))
   (global $.a (import "" "a") (ref extern))
   (global $"stringValueNullable initialized" (mut i32) <...>)
   (global $stringValueNullable (mut (ref null $JSStringImpl)) <...>)
@@ -18,7 +18,7 @@
   (func $"testStringConstant <noInline>"
     (local $var0 externref)
     global.get $.a
-    call $"dart2wasm._274 (import)"
+    call $"dart2wasm._292 (import)"
     local.tee $var0
     call $isDartNull
     if (result (ref $JSStringImpl))
@@ -33,7 +33,7 @@
   (func $"testStringConstantNullable <noInline>"
     (local $var0 externref)
     ref.null noextern
-    call $"dart2wasm._275 (import)"
+    call $"dart2wasm._293 (import)"
     local.tee $var0
     call $isDartNull
     if (result (ref null $JSStringImpl))
@@ -48,7 +48,7 @@
     (local $var0 externref)
     call $"stringValue implicit getter"
     struct.get $JSStringImpl $_ref
-    call $"dart2wasm._274 (import)"
+    call $"dart2wasm._292 (import)"
     local.tee $var0
     call $isDartNull
     if (result (ref $JSStringImpl))
@@ -85,7 +85,7 @@
       local.get $var0
       call $jsifyRaw
     end
-    call $"dart2wasm._275 (import)"
+    call $"dart2wasm._293 (import)"
     local.tee $var1
     call $isDartNull
     if (result (ref null $JSStringImpl))

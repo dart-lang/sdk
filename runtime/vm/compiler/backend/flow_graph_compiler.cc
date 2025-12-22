@@ -3288,17 +3288,6 @@ void FieldAccessErrorSlowPath::PushArgumentsForRuntimeCall(
   __ PushObject(Field::ZoneHandle(OriginalField()));
 }
 
-void ThrowIfValueCantBeSharedSlowPath::PushArgumentsForRuntimeCall(
-    FlowGraphCompiler* compiler) {
-  __ PushObject(Field::ZoneHandle(OriginalField()));
-  __ PushRegister(value());
-}
-
-void ThrowIfValueCantBeSharedSlowPath::EmitNativeCode(
-    FlowGraphCompiler* compiler) {
-  ThrowErrorSlowPathCode::EmitNativeCode(compiler);
-}
-
 void FlowGraphCompiler::EmitNativeMove(
     const compiler::ffi::NativeLocation& destination,
     const compiler::ffi::NativeLocation& source,

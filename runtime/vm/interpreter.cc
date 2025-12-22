@@ -3715,8 +3715,20 @@ SwitchDispatchNoSingleStep:
 
     const intptr_t kArgc = 1;
     InstancePtr value = Instance::RawCast(FrameArguments(FP, kArgc)[0]);
-    thread->shared_field_table_values()[field_id] = value;
-
+    if (FLAG_experimental_shared_data &&
+        (value != Object::null() && !value->IsSmi() &&
+         !value->untag()->IsCanonical() &&
+         (!value->untag()->IsImmutable() || value->IsClosure()))) {
+      ++SP;
+      SP[0] = field;
+      SP[1] = value;
+      SP[2] = 0;  // Unused space for result.
+      Exit(thread, FP, SP + 3, pc);
+      INVOKE_RUNTIME(DRT_CheckedStoreIntoShared,
+                     NativeArguments(thread, 2, SP, SP + 2));
+    } else {
+      thread->shared_field_table_values()[field_id] = value;
+    }
     *++SP = null_value;
     DISPATCH();
   }
