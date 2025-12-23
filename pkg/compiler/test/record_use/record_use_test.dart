@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io' show File, Directory, Platform;
 
 import 'package:compiler/compiler_api.dart' as api show OutputType;
@@ -10,6 +11,7 @@ import 'package:compiler/src/commandline_options.dart' show Flags;
 import 'package:compiler/src/util/memory_compiler.dart';
 import 'package:expect/expect.dart' show Expect;
 import 'package:path/path.dart' as path;
+import 'package:record_use/record_use.dart';
 
 /// Options to pass to the compiler such as
 /// `Flags.disableTypeInference` or `Flags.disableInlining`
@@ -18,24 +20,19 @@ const List<String> compilerOptions = [Flags.writeResources];
 /// Run `dart --define=updateExpectations=true pkg/compiler/test/record_use/record_use_test.dart`
 /// to update.
 Future<void> main() async {
-  final directory = Directory.fromUri(Platform.script.resolve('data'));
-  final testFiles =
-      [
-            ...directory.listSync(),
-            ...Directory(
-              'pkg/vm/testcases/transformations/record_use',
-            ).listSync(),
-          ]
-          .whereType<File>()
-          .where((file) => file.path.endsWith('.dart'))
-          .map(
-            (file) => TestFile(
-              file: file,
-              basename: path.basename(file.path),
-              contents: file.readAsStringSync(),
-              uri: _createUri(path.basename(file.path)),
-            ),
-          );
+  final dataDirectory = Directory.fromUri(Platform.script.resolve('data'));
+  final vmTestCases = Directory('pkg/vm/testcases/transformations/record_use');
+  final testFiles = [...dataDirectory.listSync(), ...vmTestCases.listSync()]
+      .whereType<File>()
+      .where((file) => file.path.endsWith('.dart'))
+      .map(
+        (file) => TestFile(
+          file: file,
+          basename: path.basename(file.path),
+          contents: file.readAsStringSync(),
+          uri: _createUri(path.basename(file.path)),
+        ),
+      );
 
   final allFiles = {for (final file in testFiles) file.uri.path: file.contents};
   for (final testFile in testFiles.where((element) => element.hasMain)) {
@@ -45,6 +42,8 @@ Future<void> main() async {
     );
     final goldenFile = File(
       path.join(
+        // TODO(https://github.com/dart-lang/native/issues/2885): Share test
+        // expectations with the VM.
         Platform.script.resolve('golden').path,
         path.setExtension(testFile.basename, '.json.expect'),
       ),
@@ -54,11 +53,18 @@ Future<void> main() async {
       await goldenFile.create();
       await goldenFile.writeAsString(recordedUsages);
     } else {
-      Expect.stringEquals(
-        recordedUsages.trim(),
-        (await goldenFile.readAsString()).trim(),
-        'Recorded usages for ${testFile.uri} do not match golden file.',
-      );
+      final actual = RecordedUsages.fromJson(jsonDecode(recordedUsages));
+      final goldenContents = await goldenFile.readAsString();
+      final golden = RecordedUsages.fromJson(jsonDecode(goldenContents));
+      final semanticEquals = actual == golden;
+      if (!semanticEquals) {
+        // Print the error message based on string representation.
+        Expect.stringEquals(
+          recordedUsages.trim(),
+          goldenContents.trim(),
+          'Recorded usages for ${testFile.uri} do not match golden file.',
+        );
+      }
     }
   }
 }

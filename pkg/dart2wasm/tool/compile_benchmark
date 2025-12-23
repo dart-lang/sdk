@@ -99,6 +99,12 @@ while [ $# -gt 0 ]; do
       shift
       ;;
 
+    -O* | --optimization-level=*)
+      DART2WASM_ARGS+=("$1")
+      RUN_BINARYEN=1
+      shift
+      ;;
+
     --phases=*)
       PHASES="${1#--phases=}"
       shift

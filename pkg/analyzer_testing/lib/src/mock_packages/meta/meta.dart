@@ -199,6 +199,7 @@ class _MustCallSuper {
   const _MustCallSuper();
 }
 
+@Target({TargetKind.overridableMember})
 class _NonVirtual {
   const _NonVirtual();
 }

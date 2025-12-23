@@ -51,5 +51,6 @@ dev_dependencies:
   expect: any
   lints: any
   pub_semver: any
+  record_use: any
   test: any
   yaml_edit: any
