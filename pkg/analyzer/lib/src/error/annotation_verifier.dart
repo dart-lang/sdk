@@ -408,25 +408,13 @@ class AnnotationVerifier {
   /// `@nonVirtual` annotation.
   void _checkNonVirtual(Annotation node) {
     var parent = node.parent;
-    if (parent is FieldDeclaration) {
-      if (parent.isStatic) {
-        _diagnosticReporter.report(
-          diag.invalidNonVirtualAnnotation.at(node.name),
-        );
-      }
-    } else if (parent is MethodDeclaration) {
-      if (parent.parent?.parent is ExtensionDeclaration ||
-          parent.parent?.parent is ExtensionTypeDeclaration ||
-          parent.isStatic ||
+    if (parent is MethodDeclaration) {
+      if (parent.parent?.parent is ExtensionTypeDeclaration ||
           parent.isAbstract) {
         _diagnosticReporter.report(
           diag.invalidNonVirtualAnnotation.at(node.name),
         );
       }
-    } else {
-      _diagnosticReporter.report(
-        diag.invalidNonVirtualAnnotation.at(node.name),
-      );
     }
   }
 

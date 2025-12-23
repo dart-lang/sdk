@@ -1213,7 +1213,7 @@ void f(@A() int x) {}
     );
   }
 
-  void test_overridableMember_class_visibleForOverride() async {
+  void test_overridableMember_class_visibleForOverriding() async {
     await assertErrorsInCode(
       '''
 import 'package:meta/meta.dart';
@@ -1240,6 +1240,20 @@ class C {
 }
 ''',
       [error(diag.invalidAnnotationTarget, 118, 1)],
+    );
+  }
+
+  void test_overridableMember_enumConstant() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta.dart';
+enum E {
+  @nonVirtual
+  a,
+  b, c
+}
+''',
+      [error(diag.invalidAnnotationTarget, 45, 10)],
     );
   }
 
@@ -1373,6 +1387,25 @@ class C {
 ''');
   }
 
+  void test_overridableMember_staticField() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.overridableMember})
+class A {
+  const A();
+}
+
+class C {
+  @A()
+  static int x = 0;
+}
+''',
+      [error(diag.invalidAnnotationTarget, 118, 1)],
+    );
+  }
+
   void test_overridableMember_staticMethod() async {
     await assertErrorsInCode(
       '''
@@ -1409,6 +1442,41 @@ import 'package:meta/meta.dart';
 @visibleForOverriding void foo() {}
 ''',
       [error(diag.invalidAnnotationTarget, 34, 20)],
+    );
+  }
+
+  void test_overridableMember_topLevelGetter_nonVirtual() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+
+@nonVirtual
+int get a => 1;
+''',
+      [error(diag.invalidAnnotationTarget, 35, 10)],
+    );
+  }
+
+  void test_overridableMember_topLevelSetter_nonVirtual() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+
+@nonVirtual
+set a(int value) {}
+''',
+      [error(diag.invalidAnnotationTarget, 35, 10)],
+    );
+  }
+
+  void test_overridableMember_typedef() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+@nonVirtual
+typedef bool predicate(Object o);
+''',
+      [error(diag.invalidAnnotationTarget, 34, 10)],
     );
   }
 

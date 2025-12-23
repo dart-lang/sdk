@@ -762,8 +762,7 @@ class _MustCallSuper {
   const _MustCallSuper();
 }
 
-// TODO(srawlins): Enforce with `TargetKind.method`, `TargetKind.getter`,
-// `TargetKind.setter`, `TargetKind.field`.
+@Target({TargetKind.overridableMember})
 class _NonVirtual {
   const _NonVirtual();
 }
