@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/summary2/link.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// Builds extension types, in particular representation types. There might be
 /// dependencies between them, so they all should be processed simultaneously.
@@ -84,15 +83,8 @@ class _Node extends graph.Node<_Node> {
   }
 
   void _evaluateWithType(TypeImpl type) {
-    var typeSystem = element.library.typeSystem;
-
     element.representation.type = type;
     element.typeErasure = type.extensionTypeErasure;
-
-    element.interfaces = element.interfaces
-        .whereType<InterfaceType>()
-        .where(typeSystem.isValidExtensionTypeSuperinterface)
-        .toFixedList();
 
     isEvaluated = true;
   }
