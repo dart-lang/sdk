@@ -101,7 +101,6 @@ typedef SharedMatchContext =
       AstNodeImpl,
       ExpressionImpl,
       DartPatternImpl,
-      SharedTypeView,
       PromotableElementImpl
     >;
 

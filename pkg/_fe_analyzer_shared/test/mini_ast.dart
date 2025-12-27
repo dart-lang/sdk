@@ -668,7 +668,7 @@ Pattern wildcard({String? type, String? expectInferredType}) {
 }
 
 typedef SharedMatchContext =
-    shared.MatchContext<Node, Expression, Pattern, SharedTypeView, Var>;
+    shared.MatchContext<Node, Expression, Pattern, Var>;
 
 typedef SharedRecordPatternField = shared.RecordPatternField<Node, Pattern>;
 
@@ -6121,15 +6121,7 @@ enum _LValueDisposition {
 
 class _MiniAstErrors
     implements
-        TypeAnalyzerErrors<
-          Node,
-          Statement,
-          Expression,
-          Var,
-          SharedTypeView,
-          Pattern,
-          void
-        >,
+        TypeAnalyzerErrors<Node, Statement, Expression, Var, Pattern, void>,
         VariableBinderErrors<Node, Var> {
   final Set<String> _accumulatedErrors = {};
 

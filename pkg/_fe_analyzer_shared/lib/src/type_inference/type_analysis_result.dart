@@ -167,7 +167,6 @@ class MatchContext<
   Node extends Object,
   Expression extends Node,
   Pattern extends Node,
-  Type extends Object,
   Variable extends Object
 > {
   /// If non-`null`, the match is being done in an irrefutable context, and this
@@ -211,7 +210,7 @@ class MatchContext<
   /// Returns a modified version of `this`, with [irrefutableContext] set to
   /// `null`.  This is used to suppress cascading errors after reporting
   /// [TypeAnalyzerErrors.refutablePatternInIrrefutableContext].
-  MatchContext<Node, Expression, Pattern, Type, Variable> makeRefutable() =>
+  MatchContext<Node, Expression, Pattern, Variable> makeRefutable() =>
       irrefutableContext == null
       ? this
       : new MatchContext(
@@ -224,7 +223,7 @@ class MatchContext<
 
   /// Returns a modified version of `this`, with a new value of
   /// [patternVariablePromotionKeys].
-  MatchContext<Node, Expression, Pattern, Type, Variable> withPromotionKeys(
+  MatchContext<Node, Expression, Pattern, Variable> withPromotionKeys(
     Map<String, int> patternVariablePromotionKeys,
   ) => new MatchContext(
     irrefutableContext: irrefutableContext,
@@ -238,8 +237,7 @@ class MatchContext<
 
   /// Returns a modified version of `this`, with [switchScrutinee] set to `null`
   /// (because this context is not for a top-level pattern anymore).
-  MatchContext<Node, Expression, Pattern, Type, Variable>
-  withUnnecessaryWildcardKind(
+  MatchContext<Node, Expression, Pattern, Variable> withUnnecessaryWildcardKind(
     UnnecessaryWildcardKind? unnecessaryWildcardKind,
   ) {
     return new MatchContext(

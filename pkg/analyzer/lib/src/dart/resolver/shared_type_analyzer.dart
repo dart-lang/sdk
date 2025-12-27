@@ -25,7 +25,6 @@ class SharedTypeAnalyzerErrors
           StatementImpl,
           ExpressionImpl,
           PromotableElementImpl,
-          SharedTypeView,
           DartPatternImpl,
           void
         > {

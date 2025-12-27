@@ -21,7 +21,6 @@ library;
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/names.dart';
 import 'package:kernel/src/printer.dart';
@@ -34,13 +33,7 @@ import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
 
 typedef SharedMatchContext =
-    shared.MatchContext<
-      TreeNode,
-      Expression,
-      Pattern,
-      SharedTypeView,
-      ExpressionVariable
-    >;
+    shared.MatchContext<TreeNode, Expression, Pattern, ExpressionVariable>;
 
 mixin InternalTreeNode implements TreeNode {
   @override
