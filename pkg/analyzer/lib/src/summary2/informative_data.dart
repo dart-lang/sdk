@@ -295,11 +295,16 @@ class InformativeDataApplier {
 
     DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
-      _applyToConstructors(element.constructors, info.constructors);
-      _applyToFields(element.fields, info.fields);
-      _applyToAccessors(element.getters, info.getters);
-      _applyToAccessors(element.setters, info.setters);
-      _applyToMethods(element.methods, info.methods);
+    });
+
+    _scheduleApplyMembersOffsets(element, () {
+      DeferredResolutionReadingHelper.withoutLoadingResolution(() {
+        _applyToConstructors(element.constructors, info.constructors);
+        _applyToFields(element.fields, info.fields);
+        _applyToAccessors(element.getters, info.getters);
+        _applyToAccessors(element.setters, info.setters);
+        _applyToMethods(element.methods, info.methods);
+      });
     });
 
     element.deferConstantOffsets(info.constantOffsets, (applier) {
@@ -328,10 +333,14 @@ class InformativeDataApplier {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
     });
 
-    _applyToFields(element.fields, info.fields);
-    _applyToAccessors(element.getters, info.getters);
-    _applyToAccessors(element.setters, info.setters);
-    _applyToMethods(element.methods, info.methods);
+    _scheduleApplyMembersOffsets(element, () {
+      DeferredResolutionReadingHelper.withoutLoadingResolution(() {
+        _applyToFields(element.fields, info.fields);
+        _applyToAccessors(element.getters, info.getters);
+        _applyToAccessors(element.setters, info.setters);
+        _applyToMethods(element.methods, info.methods);
+      });
+    });
 
     element.deferConstantOffsets(info.constantOffsets, (applier) {
       applier.applyToMetadata(element.metadata);
@@ -352,12 +361,14 @@ class InformativeDataApplier {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
     });
 
-    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-      _applyToFields(element.fields, info.fields);
-      _applyToConstructors(element.constructors, info.constructors);
-      _applyToAccessors(element.getters, info.getters);
-      _applyToAccessors(element.setters, info.setters);
-      _applyToMethods(element.methods, info.methods);
+    _scheduleApplyMembersOffsets(element, () {
+      DeferredResolutionReadingHelper.withoutLoadingResolution(() {
+        _applyToFields(element.fields, info.fields);
+        _applyToConstructors(element.constructors, info.constructors);
+        _applyToAccessors(element.getters, info.getters);
+        _applyToAccessors(element.setters, info.setters);
+        _applyToMethods(element.methods, info.methods);
+      });
     });
 
     element.deferConstantOffsets(info.constantOffsets, (applier) {
@@ -530,11 +541,16 @@ class InformativeDataApplier {
 
     DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
-      _applyToConstructors(element.constructors, info.constructors);
-      _applyToFields(element.fields, info.fields);
-      _applyToAccessors(element.getters, info.getters);
-      _applyToAccessors(element.setters, info.setters);
-      _applyToMethods(element.methods, info.methods);
+    });
+
+    _scheduleApplyMembersOffsets(element, () {
+      DeferredResolutionReadingHelper.withoutLoadingResolution(() {
+        _applyToConstructors(element.constructors, info.constructors);
+        _applyToFields(element.fields, info.fields);
+        _applyToAccessors(element.getters, info.getters);
+        _applyToAccessors(element.setters, info.setters);
+        _applyToMethods(element.methods, info.methods);
+      });
     });
 
     element.deferConstantOffsets(info.constantOffsets, (applier) {

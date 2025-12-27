@@ -12897,10 +12897,10 @@ library
 ''');
   }
 
-  test_class_lazy_constructors() async {
+  test_class_lazy_all_constructors() async {
     var library = await buildLibrary('''
 class A {
-  A.named();
+  A.foo();
 }
 ''');
 
@@ -12908,7 +12908,7 @@ class A {
     expect(constructors, hasLength(1));
   }
 
-  test_class_lazy_fields() async {
+  test_class_lazy_all_fields() async {
     var library = await buildLibrary('''
 class A {
   int foo = 0;
@@ -12919,7 +12919,7 @@ class A {
     expect(fields, hasLength(1));
   }
 
-  test_class_lazy_getters() async {
+  test_class_lazy_all_getters() async {
     var library = await buildLibrary('''
 class A {
   int foo = 0;
@@ -12930,7 +12930,7 @@ class A {
     expect(getters, hasLength(1));
   }
 
-  test_class_lazy_methods() async {
+  test_class_lazy_all_methods() async {
     var library = await buildLibrary('''
 class A {
   void foo() {}
@@ -12941,7 +12941,7 @@ class A {
     expect(methods, hasLength(1));
   }
 
-  test_class_lazy_setters() async {
+  test_class_lazy_all_setters() async {
     var library = await buildLibrary('''
 class A {
   int foo = 0;
@@ -12950,6 +12950,66 @@ class A {
 
     var setters = library.getClass('A')!.setters;
     expect(setters, hasLength(1));
+  }
+
+  test_class_lazy_byReference_constructor() async {
+    var library = await buildLibrary('''
+class A {
+  A.foo();
+}
+''');
+    // Test ensureReadMembers() in LinkedElementFactory.
+    var A = library.getClass('A')!;
+    var foo = getElementOfReference(A, ['@constructor', 'foo']);
+    expect(foo.name, 'foo');
+  }
+
+  test_class_lazy_byReference_field() async {
+    var library = await buildLibrary('''
+class A {
+  int foo = 0;
+}
+''');
+    // Test ensureReadMembers() in LinkedElementFactory.
+    var A = library.getClass('A')!;
+    var foo = getElementOfReference(A, ['@field', 'foo']);
+    expect(foo.name, 'foo');
+  }
+
+  test_class_lazy_byReference_getter() async {
+    var library = await buildLibrary('''
+class A {
+  int foo = 0;
+}
+''');
+    // Test ensureReadMembers() in LinkedElementFactory.
+    var A = library.getClass('A')!;
+    var foo = getElementOfReference(A, ['@getter', 'foo']);
+    expect(foo.name, 'foo');
+  }
+
+  test_class_lazy_byReference_method() async {
+    var library = await buildLibrary('''
+class A {
+  void foo() {}
+}
+''');
+    // Test ensureReadMembers() in LinkedElementFactory.
+    var A = library.getClass('A')!;
+    var foo = getElementOfReference(A, ['@method', 'foo']);
+    expect(foo.name, 'foo');
+  }
+
+  test_class_lazy_byReference_setter() async {
+    var library = await buildLibrary('''
+class A {
+  int foo = 0;
+}
+''');
+    // Test ensureReadMembers() in LinkedElementFactory.
+    var A = library.getClass('A')!;
+    var foo = getElementOfReference(A, ['@setter', 'foo']);
+    expect(foo.name, 'foo');
   }
 
   test_class_method_abstract() async {

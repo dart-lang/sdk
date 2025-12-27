@@ -148,9 +148,18 @@ class LinkedElementFactory {
     var parentRef = reference.parentNotContainer;
     var parentElement = elementOfReference3(parentRef);
 
-    // Only classes delay creating children.
-    if (parentElement is ClassElementImpl) {
-      parentElement.ensureReadMembers();
+    // Read lazy children.
+    switch (parentElement) {
+      case ClassElementImpl():
+        parentElement.ensureReadMembers();
+      case EnumElementImpl():
+        parentElement.ensureReadMembers();
+      case ExtensionElementImpl():
+        parentElement.ensureReadMembers();
+      case ExtensionTypeElementImpl():
+        parentElement.ensureReadMembers();
+      case MixinElementImpl():
+        parentElement.ensureReadMembers();
     }
 
     var element = reference.element;

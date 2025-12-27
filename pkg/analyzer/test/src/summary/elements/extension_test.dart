@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../dart/resolution/node_text_expectations.dart';
@@ -111,6 +112,98 @@ library
           returnType: int
           variable: <testLibrary>::@extension::E::@field::x
 ''');
+  }
+
+  test_extension_lazy_all_fields() async {
+    var library = await buildLibrary('''
+extension E on int {
+  static int foo = 42;
+}
+''');
+
+    var fields = library.getExtension('E')!.fields;
+    expect(fields, hasLength(1));
+  }
+
+  test_extension_lazy_all_getters() async {
+    var library = await buildLibrary('''
+extension E on int {
+  int get foo => 0;
+}
+''');
+
+    var getters = library.getExtension('E')!.getters;
+    expect(getters, hasLength(1));
+  }
+
+  test_extension_lazy_all_methods() async {
+    var library = await buildLibrary('''
+extension E on int {
+  void foo() {}
+}
+''');
+
+    var methods = library.getExtension('E')!.methods;
+    expect(methods, hasLength(1));
+  }
+
+  test_extension_lazy_all_setters() async {
+    var library = await buildLibrary('''
+extension E on int {
+  set foo(int _) {}
+}
+''');
+
+    var setters = library.getExtension('E')!.setters;
+    expect(setters, hasLength(1));
+  }
+
+  test_extension_lazy_byReference_field() async {
+    var library = await buildLibrary('''
+extension E on int {
+  static int foo = 42;
+}
+''');
+    // Test ensureReadMembers() in LinkedElementFactory.
+    var E = library.getExtension('E')!;
+    var foo = getElementOfReference(E, ['@field', 'foo']);
+    expect(foo.name, 'foo');
+  }
+
+  test_extension_lazy_byReference_getter() async {
+    var library = await buildLibrary('''
+extension E on int {
+  int get foo => 0;
+}
+''');
+    // Test ensureReadMembers() in LinkedElementFactory.
+    var E = library.getExtension('E')!;
+    var foo = getElementOfReference(E, ['@getter', 'foo']);
+    expect(foo.name, 'foo');
+  }
+
+  test_extension_lazy_byReference_method() async {
+    var library = await buildLibrary('''
+extension E on int {
+  void foo() {}
+}
+''');
+    // Test ensureReadMembers() in LinkedElementFactory.
+    var E = library.getExtension('E')!;
+    var foo = getElementOfReference(E, ['@method', 'foo']);
+    expect(foo.name, 'foo');
+  }
+
+  test_extension_lazy_byReference_setter() async {
+    var library = await buildLibrary('''
+extension E on int {
+  set foo(int _) {}
+}
+''');
+    // Test ensureReadMembers() in LinkedElementFactory.
+    var E = library.getExtension('E')!;
+    var foo = getElementOfReference(E, ['@setter', 'foo']);
+    expect(foo.name, 'foo');
   }
 
   test_extension_typeParameters_hasBound() async {

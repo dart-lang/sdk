@@ -22,7 +22,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
-import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
@@ -270,7 +269,6 @@ class LibraryReader {
       element.readModifiers(_reader);
       element.hasNonFinalField = _reader.readBool();
 
-      // Configure for reading members lazily.
       _lazyRead((offset) {
         element.deferReadMembers(() {
           _reader.runAtOffset(offset, () {
@@ -478,23 +476,19 @@ class LibraryReader {
       element.linkFragments(fragments);
       element.readModifiers(_reader);
 
-      // TODO(scheglov): consider reading lazily
-      globalResultRequirements.untracked(
-        reason: 'elementModelReading',
-        operation: () {
-          for (var fragment in element.fragments) {
-            fragment.ensureReadMembers();
-          }
-        },
-      );
-
-      element.fields = _readFieldElements();
-      element.getters = _readGetterElements();
-      element.setters = _readSetterElements();
-      _readVariableGetterSetterLinking();
-      element.constructors = _readConstructorElements();
-      element.methods = _readMethodElements();
-
+      _lazyRead((offset) {
+        element.deferReadMembers(() {
+          _reader.runAtOffset(offset, () {
+            element.ensureReadMembersForFragments();
+            element.fields = _readFieldElements();
+            element.getters = _readGetterElements();
+            element.setters = _readSetterElements();
+            _readVariableGetterSetterLinking();
+            element.constructors = _readConstructorElements();
+            element.methods = _readMethodElements();
+          });
+        });
+      });
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
           reader._addTypeParameters2(element.typeParameters);
@@ -517,12 +511,17 @@ class LibraryReader {
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
 
-          // TODO(scheglov): consider reading lazily
-          fragment.fields = _readFieldFragments();
-          fragment.getters = _readGetterFragments();
-          fragment.setters = _readSetterFragments();
-          fragment.constructors = _readConstructorFragments();
-          fragment.methods = _readMethodFragments();
+          _lazyRead((offset) {
+            fragment.deferReadMembers(() {
+              _reader.runAtOffset(offset, () {
+                fragment.fields = _readFieldFragments();
+                fragment.getters = _readGetterFragments();
+                fragment.setters = _readSetterFragments();
+                fragment.constructors = _readConstructorFragments();
+                fragment.methods = _readMethodFragments();
+              });
+            });
+          });
           return fragment;
         },
         readResolution: (fragment, reader) {
@@ -570,21 +569,18 @@ class LibraryReader {
       element.linkFragments(fragments);
       element.readModifiers(_reader);
 
-      globalResultRequirements.untracked(
-        reason: 'elementModelReading',
-        operation: () {
-          for (var fragment in element.fragments) {
-            fragment.ensureReadMembers();
-          }
-        },
-      );
-
-      // TODO(scheglov): consider reading lazily
-      element.fields = _readFieldElements();
-      element.getters = _readGetterElements();
-      element.setters = _readSetterElements();
-      _readVariableGetterSetterLinking();
-      element.methods = _readMethodElements();
+      _lazyRead((offset) {
+        element.deferReadMembers(() {
+          _reader.runAtOffset(offset, () {
+            element.ensureReadMembersForFragments();
+            element.fields = _readFieldElements();
+            element.getters = _readGetterElements();
+            element.setters = _readSetterElements();
+            _readVariableGetterSetterLinking();
+            element.methods = _readMethodElements();
+          });
+        });
+      });
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
@@ -605,10 +601,17 @@ class LibraryReader {
           var fragment = ExtensionFragmentImpl(name: name);
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
-          fragment.fields = _readFieldFragments();
-          fragment.getters = _readGetterFragments();
-          fragment.setters = _readSetterFragments();
-          fragment.methods = _readMethodFragments();
+
+          _lazyRead((offset) {
+            fragment.deferReadMembers(() {
+              _reader.runAtOffset(offset, () {
+                fragment.fields = _readFieldFragments();
+                fragment.getters = _readGetterFragments();
+                fragment.setters = _readSetterFragments();
+                fragment.methods = _readMethodFragments();
+              });
+            });
+          });
           return fragment;
         },
         readResolution: (fragment, reader) {
@@ -634,22 +637,19 @@ class LibraryReader {
       element.hasRepresentationSelfReference = _reader.readBool();
       element.hasImplementsSelfReference = _reader.readBool();
 
-      // TODO(scheglov): consider reading lazily
-      globalResultRequirements.untracked(
-        reason: 'elementModelReading',
-        operation: () {
-          for (var fragment in element.fragments) {
-            fragment.ensureReadMembers();
-          }
-        },
-      );
-
-      element.fields = _readFieldElements();
-      element.getters = _readGetterElements();
-      element.setters = _readSetterElements();
-      _readVariableGetterSetterLinking();
-      element.constructors = _readConstructorElements();
-      element.methods = _readMethodElements();
+      _lazyRead((offset) {
+        element.deferReadMembers(() {
+          _reader.runAtOffset(offset, () {
+            element.ensureReadMembersForFragments();
+            element.fields = _readFieldElements();
+            element.getters = _readGetterElements();
+            element.setters = _readSetterElements();
+            _readVariableGetterSetterLinking();
+            element.constructors = _readConstructorElements();
+            element.methods = _readMethodElements();
+          });
+        });
+      });
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
@@ -672,12 +672,17 @@ class LibraryReader {
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
 
-          // TODO(scheglov): consider reading lazily
-          fragment.fields = _readFieldFragments();
-          fragment.getters = _readGetterFragments();
-          fragment.setters = _readSetterFragments();
-          fragment.constructors = _readConstructorFragments();
-          fragment.methods = _readMethodFragments();
+          _lazyRead((offset) {
+            fragment.deferReadMembers(() {
+              _reader.runAtOffset(offset, () {
+                fragment.fields = _readFieldFragments();
+                fragment.getters = _readGetterFragments();
+                fragment.setters = _readSetterFragments();
+                fragment.constructors = _readConstructorFragments();
+                fragment.methods = _readMethodFragments();
+              });
+            });
+          });
           return fragment;
         },
         readResolution: (fragment, reader) {
@@ -975,22 +980,19 @@ class LibraryReader {
       element.readModifiers(_reader);
       element.hasNonFinalField = _reader.readBool();
 
-      // TODO(scheglov): consider reading lazily
-      globalResultRequirements.untracked(
-        reason: 'elementModelReading',
-        operation: () {
-          for (var fragment in element.fragments) {
-            fragment.ensureReadMembers();
-          }
-        },
-      );
-
-      element.fields = _readFieldElements();
-      element.getters = _readGetterElements();
-      element.setters = _readSetterElements();
-      _readVariableGetterSetterLinking();
-      element.constructors = _readConstructorElements();
-      element.methods = _readMethodElements();
+      _lazyRead((offset) {
+        element.deferReadMembers(() {
+          _reader.runAtOffset(offset, () {
+            element.ensureReadMembersForFragments();
+            element.fields = _readFieldElements();
+            element.getters = _readGetterElements();
+            element.setters = _readSetterElements();
+            _readVariableGetterSetterLinking();
+            element.constructors = _readConstructorElements();
+            element.methods = _readMethodElements();
+          });
+        });
+      });
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
@@ -1014,12 +1016,17 @@ class LibraryReader {
           fragment.superInvokedNames = _reader.readStringReferenceList();
           fragment.typeParameters = _readTypeParameters();
 
-          // TODO(scheglov): consider reading lazily
-          fragment.fields = _readFieldFragments();
-          fragment.getters = _readGetterFragments();
-          fragment.setters = _readSetterFragments();
-          fragment.constructors = _readConstructorFragments();
-          fragment.methods = _readMethodFragments();
+          _lazyRead((offset) {
+            fragment.deferReadMembers(() {
+              _reader.runAtOffset(offset, () {
+                fragment.fields = _readFieldFragments();
+                fragment.getters = _readGetterFragments();
+                fragment.setters = _readSetterFragments();
+                fragment.constructors = _readConstructorFragments();
+                fragment.methods = _readMethodFragments();
+              });
+            });
+          });
           return fragment;
         },
         readResolution: (fragment, reader) {
