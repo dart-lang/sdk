@@ -264,14 +264,15 @@ class BundleWriter {
       _writeFragments(element.fragments);
       element.writeModifiers(_sink);
 
-      // TODO(scheglov): consider reading lazily
-      _resolutionSink.withTypeParameters(element.typeParameters, () {
-        _writeFieldElements(element.fields);
-        _writeGetterElements(element.getters);
-        _writeSetterElements(element.setters);
-        _writeVariableGetterSetterLinking(element.fields);
-        _writeConstructorElements(element.constructors);
-        _writeMethodElements(element.methods);
+      _writeForLazyRead(() {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeFieldElements(element.fields);
+          _writeGetterElements(element.getters);
+          _writeSetterElements(element.setters);
+          _writeVariableGetterSetterLinking(element.fields);
+          _writeConstructorElements(element.constructors);
+          _writeMethodElements(element.methods);
+        });
       });
 
       _writeElementResolution(() {
@@ -290,12 +291,13 @@ class BundleWriter {
       _writeTypeParameters(fragment.typeParameters, () {
         _resolutionSink._writeMetadata(fragment.metadata);
 
-        // TODO(scheglov): consider reading lazily
-        _sink.writeList(fragment.fields, _writeFieldFragment);
-        _sink.writeList(fragment.getters, _writeGetterFragment);
-        _sink.writeList(fragment.setters, _writeSetterFragment);
-        _sink.writeList(fragment.constructors, _writeConstructorFragment);
-        _sink.writeList(fragment.methods, _writeMethodFragment);
+        _writeForLazyRead(() {
+          _sink.writeList(fragment.fields, _writeFieldFragment);
+          _sink.writeList(fragment.getters, _writeGetterFragment);
+          _sink.writeList(fragment.setters, _writeSetterFragment);
+          _sink.writeList(fragment.constructors, _writeConstructorFragment);
+          _sink.writeList(fragment.methods, _writeMethodFragment);
+        });
       });
     });
   }
@@ -326,13 +328,14 @@ class BundleWriter {
       _writeFragments(element.fragments);
       element.writeModifiers(_sink);
 
-      // TODO(scheglov): consider reading lazily
-      _resolutionSink.withTypeParameters(element.typeParameters, () {
-        _writeFieldElements(element.fields);
-        _writeGetterElements(element.getters);
-        _writeSetterElements(element.setters);
-        _writeVariableGetterSetterLinking(element.fields);
-        _writeMethodElements(element.methods);
+      _writeForLazyRead(() {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeFieldElements(element.fields);
+          _writeGetterElements(element.getters);
+          _writeSetterElements(element.setters);
+          _writeVariableGetterSetterLinking(element.fields);
+          _writeMethodElements(element.methods);
+        });
       });
 
       _writeElementResolution(() {
@@ -347,10 +350,13 @@ class BundleWriter {
     _writeTemplateFragment(fragment, () {
       _writeTypeParameters(fragment.typeParameters, () {
         _resolutionSink._writeMetadata(fragment.metadata);
-        _sink.writeList(fragment.fields, _writeFieldFragment);
-        _sink.writeList(fragment.getters, _writeGetterFragment);
-        _sink.writeList(fragment.setters, _writeSetterFragment);
-        _sink.writeList(fragment.methods, _writeMethodFragment);
+
+        _writeForLazyRead(() {
+          _sink.writeList(fragment.fields, _writeFieldFragment);
+          _sink.writeList(fragment.getters, _writeGetterFragment);
+          _sink.writeList(fragment.setters, _writeSetterFragment);
+          _sink.writeList(fragment.methods, _writeMethodFragment);
+        });
       });
     });
   }
@@ -365,14 +371,15 @@ class BundleWriter {
       _sink.writeBool(element.hasRepresentationSelfReference);
       _sink.writeBool(element.hasImplementsSelfReference);
 
-      // TODO(scheglov): consider reading lazily
-      _resolutionSink.withTypeParameters(element.typeParameters, () {
-        _writeFieldElements(element.fields);
-        _writeGetterElements(element.getters);
-        _writeSetterElements(element.setters);
-        _writeVariableGetterSetterLinking(element.fields);
-        _writeConstructorElements(element.constructors);
-        _writeMethodElements(element.methods);
+      _writeForLazyRead(() {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeFieldElements(element.fields);
+          _writeGetterElements(element.getters);
+          _writeSetterElements(element.setters);
+          _writeVariableGetterSetterLinking(element.fields);
+          _writeConstructorElements(element.constructors);
+          _writeMethodElements(element.methods);
+        });
       });
 
       _writeElementResolution(() {
@@ -390,12 +397,13 @@ class BundleWriter {
       _writeTypeParameters(fragment.typeParameters, () {
         _resolutionSink._writeMetadata(fragment.metadata);
 
-        // TODO(scheglov): consider reading lazily
-        _sink.writeList(fragment.fields, _writeFieldFragment);
-        _sink.writeList(fragment.getters, _writeGetterFragment);
-        _sink.writeList(fragment.setters, _writeSetterFragment);
-        _sink.writeList(fragment.constructors, _writeConstructorFragment);
-        _sink.writeList(fragment.methods, _writeMethodFragment);
+        _writeForLazyRead(() {
+          _sink.writeList(fragment.fields, _writeFieldFragment);
+          _sink.writeList(fragment.getters, _writeGetterFragment);
+          _sink.writeList(fragment.setters, _writeSetterFragment);
+          _sink.writeList(fragment.constructors, _writeConstructorFragment);
+          _sink.writeList(fragment.methods, _writeMethodFragment);
+        });
       });
     });
   }
@@ -570,14 +578,15 @@ class BundleWriter {
       element.writeModifiers(_sink);
       _sink.writeBool(element.hasNonFinalField);
 
-      // TODO(scheglov): consider reading lazily
-      _resolutionSink.withTypeParameters(element.typeParameters, () {
-        _writeFieldElements(element.fields);
-        _writeGetterElements(element.getters);
-        _writeSetterElements(element.setters);
-        _writeVariableGetterSetterLinking(element.fields);
-        _writeConstructorElements(element.constructors);
-        _writeMethodElements(element.methods);
+      _writeForLazyRead(() {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeFieldElements(element.fields);
+          _writeGetterElements(element.getters);
+          _writeSetterElements(element.setters);
+          _writeVariableGetterSetterLinking(element.fields);
+          _writeConstructorElements(element.constructors);
+          _writeMethodElements(element.methods);
+        });
       });
 
       _writeElementResolution(() {
@@ -597,12 +606,13 @@ class BundleWriter {
       _writeTypeParameters(fragment.typeParameters, () {
         _resolutionSink._writeMetadata(fragment.metadata);
 
-        // TODO(scheglov): consider reading lazily
-        _sink.writeList(fragment.fields, _writeFieldFragment);
-        _sink.writeList(fragment.getters, _writeGetterFragment);
-        _sink.writeList(fragment.setters, _writeSetterFragment);
-        _sink.writeList(fragment.constructors, _writeConstructorFragment);
-        _sink.writeList(fragment.methods, _writeMethodFragment);
+        _writeForLazyRead(() {
+          _sink.writeList(fragment.fields, _writeFieldFragment);
+          _sink.writeList(fragment.getters, _writeGetterFragment);
+          _sink.writeList(fragment.setters, _writeSetterFragment);
+          _sink.writeList(fragment.constructors, _writeConstructorFragment);
+          _sink.writeList(fragment.methods, _writeMethodFragment);
+        });
       });
     });
   }

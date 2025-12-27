@@ -1601,6 +1601,98 @@ library
 ''');
   }
 
+  test_mixin_lazy_all_fields() async {
+    var library = await buildLibrary('''
+mixin M {
+  int foo = 0;
+}
+''');
+
+    var fields = library.getMixin('M')!.fields;
+    expect(fields, hasLength(1));
+  }
+
+  test_mixin_lazy_all_getters() async {
+    var library = await buildLibrary('''
+mixin M {
+  int foo = 0;
+}
+''');
+
+    var getters = library.getMixin('M')!.getters;
+    expect(getters, hasLength(1));
+  }
+
+  test_mixin_lazy_all_methods() async {
+    var library = await buildLibrary('''
+mixin M {
+  void foo() {}
+}
+''');
+
+    var methods = library.getMixin('M')!.methods;
+    expect(methods, hasLength(1));
+  }
+
+  test_mixin_lazy_all_setters() async {
+    var library = await buildLibrary('''
+mixin M {
+  int foo = 0;
+}
+''');
+
+    var setters = library.getMixin('M')!.setters;
+    expect(setters, hasLength(1));
+  }
+
+  test_mixin_lazy_byReference_field() async {
+    var library = await buildLibrary('''
+mixin M {
+  int foo = 0;
+}
+''');
+    // Test ensureReadMembers() in LinkedElementFactory.
+    var M = library.getMixin('M')!;
+    var foo = getElementOfReference(M, ['@field', 'foo']);
+    expect(foo.name, 'foo');
+  }
+
+  test_mixin_lazy_byReference_getter() async {
+    var library = await buildLibrary('''
+mixin M {
+  int foo = 0;
+}
+''');
+    // Test ensureReadMembers() in LinkedElementFactory.
+    var M = library.getMixin('M')!;
+    var foo = getElementOfReference(M, ['@getter', 'foo']);
+    expect(foo.name, 'foo');
+  }
+
+  test_mixin_lazy_byReference_method() async {
+    var library = await buildLibrary('''
+mixin M {
+  void foo() {}
+}
+''');
+    // Test ensureReadMembers() in LinkedElementFactory.
+    var M = library.getMixin('M')!;
+    var foo = getElementOfReference(M, ['@method', 'foo']);
+    expect(foo.name, 'foo');
+  }
+
+  test_mixin_lazy_byReference_setter() async {
+    var library = await buildLibrary('''
+mixin M {
+  int foo = 0;
+}
+''');
+    // Test ensureReadMembers() in LinkedElementFactory.
+    var M = library.getMixin('M')!;
+    var foo = getElementOfReference(M, ['@setter', 'foo']);
+    expect(foo.name, 'foo');
+  }
+
   test_mixin_method_invokesSuperSelf() async {
     var library = await buildLibrary(r'''
 mixin M on A {

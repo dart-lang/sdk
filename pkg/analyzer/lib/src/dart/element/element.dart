@@ -2020,14 +2020,7 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
       target: this,
       method: 'fragments',
     );
-    return [
-      for (
-        EnumFragmentImpl? fragment = _firstFragment;
-        fragment != null;
-        fragment = fragment.nextFragment
-      )
-        fragment,
-    ];
+    return _fragments;
   }
 
   @override
@@ -2046,6 +2039,17 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
     return null;
   }
 
+  List<EnumFragmentImpl> get _fragments {
+    return [
+      for (
+        EnumFragmentImpl? fragment = _firstFragment;
+        fragment != null;
+        fragment = fragment.nextFragment
+      )
+        fragment,
+    ];
+  }
+
   @override
   @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -2061,6 +2065,13 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeEnumElement(this);
+  }
+
+  @trackedInternal
+  void ensureReadMembersForFragments() {
+    for (var fragment in _fragments) {
+      fragment.ensureReadMembers();
+    }
   }
 
   @trackedInternal
@@ -2431,14 +2442,7 @@ class ExtensionElementImpl extends InstanceElementImpl
       target: this,
       method: 'fragments',
     );
-    return [
-      for (
-        ExtensionFragmentImpl? fragment = _firstFragment;
-        fragment != null;
-        fragment = fragment.nextFragment
-      )
-        fragment,
-    ];
+    return _fragments;
   }
 
   @override
@@ -2509,6 +2513,17 @@ class ExtensionElementImpl extends InstanceElementImpl
   @trackedIndirectly
   DartType get thisType => extendedType;
 
+  List<ExtensionFragmentImpl> get _fragments {
+    return [
+      for (
+        ExtensionFragmentImpl? fragment = _firstFragment;
+        fragment != null;
+        fragment = fragment.nextFragment
+      )
+        fragment,
+    ];
+  }
+
   @override
   @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -2524,6 +2539,13 @@ class ExtensionElementImpl extends InstanceElementImpl
   @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExtensionElement(this);
+  }
+
+  @trackedInternal
+  void ensureReadMembersForFragments() {
+    for (var fragment in _fragments) {
+      fragment.ensureReadMembers();
+    }
   }
 
   @trackedInternal
@@ -2695,6 +2717,13 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExtensionTypeElement(this);
+  }
+
+  @trackedInternal
+  void ensureReadMembersForFragments() {
+    for (var fragment in _fragments) {
+      fragment.ensureReadMembers();
+    }
   }
 
   @trackedInternal
@@ -6301,7 +6330,7 @@ class LibraryElementImpl extends ElementImpl
 
   @override
   @trackedDirectly
-  EnumElement? getEnum(String name) {
+  EnumElementImpl? getEnum(String name) {
     globalResultRequirements?.record_library_getEnum(element: this, name: name);
 
     return globalResultRequirements.alreadyRecorded(() {
@@ -6319,7 +6348,7 @@ class LibraryElementImpl extends ElementImpl
 
   @override
   @trackedDirectly
-  ExtensionElement? getExtension(String name) {
+  ExtensionElementImpl? getExtension(String name) {
     globalResultRequirements?.record_library_getExtension(
       element: this,
       name: name,
@@ -6358,7 +6387,7 @@ class LibraryElementImpl extends ElementImpl
 
   @override
   @trackedDirectly
-  MixinElement? getMixin(String name) {
+  MixinElementImpl? getMixin(String name) {
     globalResultRequirements?.record_library_getMixin(
       element: this,
       name: name,
@@ -8026,6 +8055,13 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   }
 
   @trackedInternal
+  void ensureReadMembersForFragments() {
+    for (var fragment in _fragments) {
+      fragment.ensureReadMembers();
+    }
+  }
+
+  @trackedInternal
   void linkFragments(List<MixinFragmentImpl> fragments) {
     assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {
@@ -8197,7 +8233,6 @@ enum Modifier {
   /// parameter.
   ORIGIN_EXTENSION_TYPE_RECOVERY_REPRESENTATION,
 
-
   /// Whether the property inducing element is from a getter or setter.
   ORIGIN_GETTER_SETTER,
 
@@ -8222,7 +8257,6 @@ enum Modifier {
 
   /// Whether the constructor is primary.
   PRIMARY,
-
   PROMOTABLE,
 
   /// Indicates whether the type of a [PropertyInducingFragmentImpl] should be

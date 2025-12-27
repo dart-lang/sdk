@@ -56,6 +56,18 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
     }
   }
 
+  /// Returns the child element of [parent].
+  ///
+  /// The [parent] must have a reference, e.g. [ClassElementImpl].
+  ElementImpl getElementOfReference(ElementImpl parent, List<String> path) {
+    var reference = parent.reference!;
+    for (var pathComponent in path) {
+      reference = reference.getChild(pathComponent);
+    }
+    var elementFactory = parent.library!.session.elementFactory;
+    return elementFactory.elementOfReference3(reference);
+  }
+
   Future<LibraryElementImpl> testContextLibrary(String uriStr) async {
     var analysisContext = contextFor(testFile);
     var analysisSession = analysisContext.currentSession;

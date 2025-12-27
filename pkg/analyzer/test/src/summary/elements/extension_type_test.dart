@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../dart/resolution/node_text_expectations.dart';
@@ -1917,6 +1918,117 @@ library
       conflictingGetters
         <testLibrary>::@class::C::@getter::_it
 ''');
+  }
+
+  test_lazy_all_constructors() async {
+    var library = await buildLibrary('''
+extension type E.foo(int _) {}
+''');
+
+    var constructors = library.getExtensionType('E')!.constructors;
+    expect(constructors, hasLength(1));
+  }
+
+  test_lazy_all_fields() async {
+    var library = await buildLibrary('''
+extension type E(int _) {
+  static int foo = 42;
+}
+''');
+
+    var fields = library.getExtensionType('E')!.fields;
+    expect(fields, hasLength(2));
+  }
+
+  test_lazy_all_getters() async {
+    var library = await buildLibrary('''
+extension type E(int _) {
+  int get foo => 0;
+}
+''');
+
+    var getters = library.getExtensionType('E')!.getters;
+    expect(getters, hasLength(2));
+  }
+
+  test_lazy_all_methods() async {
+    var library = await buildLibrary('''
+extension type E(int _) {
+  void foo() {}
+}
+''');
+
+    var methods = library.getExtensionType('E')!.methods;
+    expect(methods, hasLength(1));
+  }
+
+  test_lazy_all_setters() async {
+    var library = await buildLibrary('''
+extension type E(int _) {
+  set foo(int _) {}
+}
+''');
+
+    var setters = library.getExtensionType('E')!.setters;
+    expect(setters, hasLength(1));
+  }
+
+  test_lazy_byReference_constructor() async {
+    var library = await buildLibrary('''
+extension type E.foo(int _) {}
+''');
+    // Test ensureReadMembers() in LinkedElementFactory.
+    var E = library.getExtensionType('E')!;
+    var foo = getElementOfReference(E, ['@constructor', 'foo']);
+    expect(foo.name, 'foo');
+  }
+
+  test_lazy_byReference_field() async {
+    var library = await buildLibrary('''
+extension type E(int _) {
+  static int bar = 42;
+}
+''');
+    // Test ensureReadMembers() in LinkedElementFactory.
+    var E = library.getExtensionType('E')!;
+    var bar = getElementOfReference(E, ['@field', 'bar']);
+    expect(bar.name, 'bar');
+  }
+
+  test_lazy_byReference_getter() async {
+    var library = await buildLibrary('''
+extension type E(int _) {
+  int get foo => 0;
+}
+''');
+    // Test ensureReadMembers() in LinkedElementFactory.
+    var E = library.getExtensionType('E')!;
+    var foo = getElementOfReference(E, ['@getter', 'foo']);
+    expect(foo.name, 'foo');
+  }
+
+  test_lazy_byReference_method() async {
+    var library = await buildLibrary('''
+extension type E(int _) {
+  void foo() {}
+}
+''');
+    // Test ensureReadMembers() in LinkedElementFactory.
+    var E = library.getExtensionType('E')!;
+    var foo = getElementOfReference(E, ['@method', 'foo']);
+    expect(foo.name, 'foo');
+  }
+
+  test_lazy_byReference_setter() async {
+    var library = await buildLibrary('''
+extension type E(int _) {
+  set foo(int _) {}
+}
+''');
+    // Test ensureReadMembers() in LinkedElementFactory.
+    var E = library.getExtensionType('E')!;
+    var foo = getElementOfReference(E, ['@setter', 'foo']);
+    expect(foo.name, 'foo');
   }
 
   test_metadata() async {
