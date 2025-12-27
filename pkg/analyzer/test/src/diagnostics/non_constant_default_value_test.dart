@@ -244,4 +244,24 @@ class C<T> {
 }
 ''');
   }
+
+  test_primaryConstructor_optionalNamed() async {
+    await assertErrorsInCode(
+      r'''
+int y = 0;
+class A({int x = y});
+''',
+      [error(diag.nonConstantDefaultValue, 28, 1)],
+    );
+  }
+
+  test_primaryConstructor_optionalPositional() async {
+    await assertErrorsInCode(
+      r'''
+int y = 0;
+class A([int x = y]);
+''',
+      [error(diag.nonConstantDefaultValue, 28, 1)],
+    );
+  }
 }
