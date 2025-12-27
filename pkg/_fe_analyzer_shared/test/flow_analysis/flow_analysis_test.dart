@@ -4736,29 +4736,39 @@ main() {
   });
 
   group('joinPromotionChains', () {
-    late Type doubleType;
-    late Type intType;
-    late Type numType;
-    late Type objectType;
+    late SharedTypeView doubleType;
+    late SharedTypeView intType;
+    late SharedTypeView numType;
+    late SharedTypeView objectType;
 
     setUp(() {
-      doubleType = Type('double');
-      intType = Type('int');
-      numType = Type('num');
-      objectType = Type('Object');
+      doubleType = SharedTypeView(Type('double'));
+      intType = SharedTypeView(Type('int'));
+      numType = SharedTypeView(Type('num'));
+      objectType = SharedTypeView(Type('Object'));
     });
 
     test('should handle empty promotion chains', () {
       expect(
-        PromotionModel.joinPromotedTypes(<Type>[], <Type>[], h.typeOperations),
+        PromotionModel.joinPromotedTypes(
+          <SharedTypeView>[],
+          <SharedTypeView>[],
+          h.typeOperations,
+        ),
         isEmpty,
       );
       expect(
-        PromotionModel.joinPromotedTypes(<Type>[], [intType], h.typeOperations),
+        PromotionModel.joinPromotedTypes(<SharedTypeView>[], [
+          intType,
+        ], h.typeOperations),
         isEmpty,
       );
       expect(
-        PromotionModel.joinPromotedTypes([intType], <Type>[], h.typeOperations),
+        PromotionModel.joinPromotedTypes(
+          [intType],
+          <SharedTypeView>[],
+          h.typeOperations,
+        ),
         isEmpty,
       );
     });
@@ -4777,24 +4787,16 @@ main() {
     test('should return common prefix if there are common types', () {
       expect(
         PromotionModel.joinPromotedTypes(
-          [SharedTypeView(objectType), SharedTypeView(intType)],
-          [SharedTypeView(objectType), SharedTypeView(doubleType)],
+          [objectType, intType],
+          [objectType, doubleType],
           h.typeOperations,
         ),
         _matchPromotionChain(['Object']),
       );
       expect(
         PromotionModel.joinPromotedTypes(
-          [
-            SharedTypeView(objectType),
-            SharedTypeView(numType),
-            SharedTypeView(intType),
-          ],
-          [
-            SharedTypeView(objectType),
-            SharedTypeView(numType),
-            SharedTypeView(doubleType),
-          ],
+          [objectType, numType, intType],
+          [objectType, numType, doubleType],
           h.typeOperations,
         ),
         _matchPromotionChain(['Object', 'num']),
