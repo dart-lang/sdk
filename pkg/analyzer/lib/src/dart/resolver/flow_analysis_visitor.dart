@@ -92,8 +92,7 @@ class FlowAnalysisHelper {
     AstNodeImpl,
     StatementImpl,
     ExpressionImpl,
-    PromotableElementImpl,
-    SharedTypeView
+    PromotableElementImpl
   >?
   flow;
 
@@ -188,8 +187,7 @@ class FlowAnalysisHelper {
           AstNodeImpl,
           StatementImpl,
           ExpressionImpl,
-          PromotableElementImpl,
-          SharedTypeView
+          PromotableElementImpl
         >(
           typeOperations,
           assignedVariables!,

@@ -100,7 +100,7 @@ class BinaryExpressionResolver {
 
     var flowAnalysis = _resolver.flowAnalysis;
     var flow = flowAnalysis.flow;
-    ExpressionInfo<SharedTypeView>? leftInfo;
+    ExpressionInfo? leftInfo;
     var leftExtensionOverride = left is ExtensionOverride;
     if (!leftExtensionOverride) {
       leftInfo = flow?.equalityOperand_end(left);

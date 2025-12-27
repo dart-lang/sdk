@@ -7,13 +7,12 @@
 /// @docImport '../type_inference/type_analyzer_operations.dart';
 library;
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+
 /// Callback API used by flow analysis to query and manipulate the client's
 /// representation of variables and types.
-abstract interface class FlowAnalysisOperations<
-  Variable extends Object,
-  Type extends Object
->
-    implements FlowAnalysisTypeOperations<Type> {
+abstract interface class FlowAnalysisOperations<Variable extends Object>
+    implements FlowAnalysisTypeOperations {
   /// Whether the given [variable] was declared with the `final` modifier.
   bool isFinal(Variable variable);
 
@@ -28,7 +27,7 @@ abstract interface class FlowAnalysisOperations<
   bool isPropertyPromotable(Object property);
 
   /// Returns the static type of the given [variable].
-  Type variableType(Variable variable);
+  SharedTypeView variableType(Variable variable);
 
   /// Returns additional information about why a given property couldn't be
   /// promoted. [property] will correspond to a `propertyMember` value passed to
@@ -58,21 +57,21 @@ abstract interface class FlowAnalysisOperations<
 
 /// Callback API used by flow analysis to query and manipulate the client's
 /// representation of types.
-abstract interface class FlowAnalysisTypeOperations<Type extends Object> {
+abstract interface class FlowAnalysisTypeOperations {
   /// Returns the client's representation of the type `bool`.
-  Type get boolType;
+  SharedTypeView get boolType;
 
   /// Classifies the given type into one of the three categories defined by
   /// the [TypeClassification] enum.
-  TypeClassification classifyType(Type type);
+  TypeClassification classifyType(SharedTypeView type);
 
   /// If [type] is an extension type, returns the ultimate representation type.
   /// Otherwise returns [type] as is.
-  Type extensionTypeErasure(Type type);
+  SharedTypeView extensionTypeErasure(SharedTypeView type);
 
   /// Returns the "remainder" of [from] when [what] has been removed from
   /// consideration by an instance check.
-  Type factor(Type from, Type what);
+  SharedTypeView factor(SharedTypeView from, SharedTypeView what);
 
   /// Determines whether the given [type] is a bottom type.
   ///
@@ -80,17 +79,17 @@ abstract interface class FlowAnalysisTypeOperations<Type extends Object> {
   /// (a) is the `Never` type itself.
   /// (b) is a type variable that extends `Never`, OR
   /// (c) is a type variable that has been promoted to `Never`
-  bool isBottomType(Type type);
+  bool isBottomType(SharedTypeView type);
 
   /// Return `true` if the [leftType] is a subtype of the [rightType].
-  bool isSubtypeOf(Type leftType, Type rightType);
+  bool isSubtypeOf(SharedTypeView leftType, SharedTypeView rightType);
 
   /// Returns `true` if [type] is a reference to a type parameter.
-  bool isTypeParameterType(Type type);
+  bool isTypeParameterType(SharedTypeView type);
 
   /// Returns `true` if [type] represents the invalid type, i.e. the type of
   /// an invalid expression.
-  bool isInvalidType(Type type);
+  bool isInvalidType(SharedTypeView type);
 
   /// Computes the nullable form of [type], in other words the least upper bound
   /// of [type] and `Null`.
@@ -100,17 +99,17 @@ abstract interface class FlowAnalysisTypeOperations<Type extends Object> {
   /// [TypeAnalyzerOperations.makeNullableInternal] to receive a concrete
   /// implementation of [makeNullable] instead of implementing [makeNullable]
   /// directly.
-  Type makeNullable(Type type);
+  SharedTypeView makeNullable(SharedTypeView type);
 
   /// Returns the non-null promoted version of [type].
   ///
   /// Note that some types don't have a non-nullable version (e.g.
   /// `FutureOr<int?>`), so [type] may be returned even if it is nullable.
-  Type promoteToNonNull(Type type);
+  SharedTypeView promoteToNonNull(SharedTypeView type);
 
   /// Tries to promote to the first type from the second type, and returns the
   /// promoted type if it succeeds, otherwise null.
-  Type? tryPromoteToType(Type to, Type from);
+  SharedTypeView? tryPromoteToType(SharedTypeView to, SharedTypeView from);
 }
 
 /// Possible reasons why a property may not be promotable.

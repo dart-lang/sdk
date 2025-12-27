@@ -279,12 +279,7 @@ mixin TypeAnalyzer<
   TypeDeclarationType extends Object,
   TypeDeclaration extends Object
 >
-    implements
-        TypeAnalysisNullShortingInterface<
-          Expression,
-          Variable,
-          SharedTypeView
-        > {
+    implements TypeAnalysisNullShortingInterface<Expression, Variable> {
   /// Cached context types and their respective dot shorthand nodes.
   ///
   /// The [SharedTypeSchemaView] is used to resolve dot shorthand heads. We
@@ -304,7 +299,7 @@ mixin TypeAnalyzer<
   get errors;
 
   @override
-  FlowAnalysis<Node, Statement, Expression, Variable, SharedTypeView> get flow;
+  FlowAnalysis<Node, Statement, Expression, Variable> get flow;
 
   /// Queries whether the [_dotShorthands] stack is empty, meaning that we have
   /// no cached context types.

@@ -157,13 +157,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   InferenceDataForTesting? get dataForTesting => _inferrer.dataForTesting;
 
-  FlowAnalysis<
-    TreeNode,
-    Statement,
-    Expression,
-    ExpressionVariable,
-    SharedTypeView
-  >
+  FlowAnalysis<TreeNode, Statement, Expression, ExpressionVariable>
   get flowAnalysis => _inferrer.flowAnalysis;
 
   /// Provides access to the [OperationsCfe] object.  This is needed by
@@ -1903,7 +1897,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       );
     }
 
-    List<ExpressionInfo<SharedTypeView>?>? identicalInfo =
+    List<ExpressionInfo?>? identicalInfo =
         isIdentical && arguments.positional.length == 2 ? [] : null;
     int positionalIndex = 0;
     int namedIndex = 0;

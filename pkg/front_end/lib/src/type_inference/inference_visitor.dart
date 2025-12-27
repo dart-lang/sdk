@@ -115,12 +115,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           TypeDeclarationType,
           TypeDeclaration
         >,
-        NullShortingMixin<
-          NullAwareGuard,
-          Expression,
-          ExpressionVariable,
-          SharedTypeView
-        >,
+        NullShortingMixin<NullAwareGuard, Expression, ExpressionVariable>,
         StackChecker,
         ExpressionVisitor1ExperimentExclusionMixin<
           ExpressionInferenceResult,
@@ -10347,8 +10342,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression right, {
     required bool isNot,
   }) {
-    ExpressionInfo<SharedTypeView>? equalityInfo = flowAnalysis
-        .equalityOperand_end(left);
+    ExpressionInfo? equalityInfo = flowAnalysis.equalityOperand_end(left);
 
     // When evaluating exactly a dot shorthand in the RHS, we use the LHS type
     // to provide the context type for the shorthand.
@@ -14315,14 +14309,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  FlowAnalysis<
-    TreeNode,
-    Statement,
-    Expression,
-    ExpressionVariable,
-    SharedTypeView
-  >
-  get flow => flowAnalysis;
+  FlowAnalysis<TreeNode, Statement, Expression, ExpressionVariable> get flow =>
+      flowAnalysis;
 
   @override
   SwitchExpressionMemberInfo<TreeNode, Expression, VariableDeclaration>
