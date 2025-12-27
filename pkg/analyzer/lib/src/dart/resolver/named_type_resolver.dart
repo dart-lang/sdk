@@ -396,6 +396,9 @@ class NamedTypeResolver with ScopeHelpers {
             importPrefixElement.getMethod(name) ??
             importPrefixElement.getSetter(name);
       }
+      var elementKind = element != null
+          ? _ErrorHelper._getElementKindDescription(element)
+          : 'not a type';
       var fragment = element?.firstFragment;
       var source = fragment?.libraryFragment?.source;
       var nameOffset = fragment?.nameOffset;
@@ -403,7 +406,7 @@ class NamedTypeResolver with ScopeHelpers {
         offset: importPrefix.offset,
         length: nameToken.end - importPrefix.offset,
         diagnosticCode: diag.notAType,
-        arguments: ['${importPrefix.name.lexeme}.${nameToken.lexeme}'],
+        arguments: ['${importPrefix.name.lexeme}.${nameToken.lexeme}', elementKind],
         contextMessages: [
           if (source != null && nameOffset != null)
             DiagnosticMessageImpl(
@@ -663,6 +666,7 @@ class _ErrorHelper {
     if (element != null) {
       var errorRange = _getErrorRange(node);
       var name = node.name.lexeme;
+      var elementKind = _getElementKindDescription(element);
       var fragment = element.firstFragment;
       var source = fragment.libraryFragment?.source;
       var nameOffset = fragment.nameOffset;
@@ -670,7 +674,7 @@ class _ErrorHelper {
         offset: errorRange.offset,
         length: errorRange.length,
         diagnosticCode: diag.notAType,
-        arguments: [name],
+        arguments: [name, elementKind],
         contextMessages: [
           if (source != null && nameOffset != null)
             DiagnosticMessageImpl(
@@ -757,5 +761,38 @@ class _ErrorHelper {
   /// Checks if the [node] is an element in a type argument list.
   static bool _isTypeInTypeArgumentList(NamedType node) {
     return node.parent is TypeArgumentList;
+  }
+
+  /// Returns a human-readable description of what kind of element this is.
+  static String _getElementKindDescription(Element element) {
+    if (element is PropertyAccessorElement) {
+      if (element.isSetter) {
+        return 'a setter';
+      } else {
+        return 'a getter';
+      }
+    } else if (element is FunctionElement) {
+      return 'a function';
+    } else if (element is MethodElement) {
+      return 'a method';
+    } else if (element is ConstructorElement) {
+      return 'a constructor';
+    } else if (element is VariableElement) {
+      if (element is FieldElement) {
+        return 'a field';
+      } else if (element is TopLevelVariableElement) {
+        return 'a top-level variable';
+      } else if (element is LocalVariableElement) {
+        return 'a local variable';
+      } else if (element is ParameterElement) {
+        return 'a parameter';
+      }
+      return 'a variable';
+    } else if (element is ExtensionElement) {
+      return 'an extension';
+    } else if (element is PrefixElement) {
+      return 'a prefix';
+    }
+    return 'not a type';
   }
 }
