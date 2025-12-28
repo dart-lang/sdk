@@ -101,7 +101,6 @@ typedef SharedMatchContext =
       AstNodeImpl,
       ExpressionImpl,
       DartPatternImpl,
-      SharedTypeView,
       PromotableElementImpl
     >;
 
@@ -135,12 +134,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           InterfaceTypeImpl,
           InterfaceElementImpl
         >,
-        NullShortingMixin<
-          Null,
-          ExpressionImpl,
-          PromotableElementImpl,
-          SharedTypeView
-        > {
+        NullShortingMixin<Null, ExpressionImpl, PromotableElementImpl> {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
   /// [popRewrite], [pushRewrite], and [replaceExpression] will be printed.
   static const bool _debugRewriteStack = false;
@@ -415,8 +409,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     AstNodeImpl,
     StatementImpl,
     ExpressionImpl,
-    PromotableElementImpl,
-    SharedTypeView
+    PromotableElementImpl
   >
   get flow => flowAnalysis.flow!;
 

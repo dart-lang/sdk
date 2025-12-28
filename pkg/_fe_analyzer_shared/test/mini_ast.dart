@@ -668,7 +668,7 @@ Pattern wildcard({String? type, String? expectInferredType}) {
 }
 
 typedef SharedMatchContext =
-    shared.MatchContext<Node, Expression, Pattern, SharedTypeView, Var>;
+    shared.MatchContext<Node, Expression, Pattern, Var>;
 
 typedef SharedRecordPatternField = shared.RecordPatternField<Node, Pattern>;
 
@@ -1792,8 +1792,7 @@ class Harness {
 
   bool _started = false;
 
-  late final FlowAnalysis<Node, Statement, Expression, Var, SharedTypeView>
-  flow;
+  late final FlowAnalysis<Node, Statement, Expression, Var> flow;
 
   bool? _inferenceUpdate3Enabled;
 
@@ -2037,7 +2036,7 @@ class Harness {
       var visitor = PreVisitor(typeAnalyzer.errors);
       var b = Block._(statements, location: computeLocation());
       b.preVisit(visitor);
-      flow = FlowAnalysis<Node, Statement, Expression, Var, SharedTypeView>(
+      flow = FlowAnalysis<Node, Statement, Expression, Var>(
         operations,
         visitor._assignedVariables,
         typeAnalyzerOptions: computeTypeAnalyzerOptions(),
@@ -6122,15 +6121,7 @@ enum _LValueDisposition {
 
 class _MiniAstErrors
     implements
-        TypeAnalyzerErrors<
-          Node,
-          Statement,
-          Expression,
-          Var,
-          SharedTypeView,
-          Pattern,
-          void
-        >,
+        TypeAnalyzerErrors<Node, Statement, Expression, Var, Pattern, void>,
         VariableBinderErrors<Node, Var> {
   final Set<String> _accumulatedErrors = {};
 
@@ -6410,7 +6401,7 @@ class _MiniAstTypeAnalyzer
           Type,
           String
         >,
-        NullShortingMixin<MiniIRTmp, Expression, Var, SharedTypeView> {
+        NullShortingMixin<MiniIRTmp, Expression, Var> {
   final Harness _harness;
 
   @override
@@ -6438,8 +6429,7 @@ class _MiniAstTypeAnalyzer
   _MiniAstTypeAnalyzer(this._harness, this.typeAnalyzerOptions);
 
   @override
-  FlowAnalysis<Node, Statement, Expression, Var, SharedTypeView> get flow =>
-      _harness.flow;
+  FlowAnalysis<Node, Statement, Expression, Var> get flow => _harness.flow;
 
   Type get nullType => NullType.instance;
 
@@ -6502,7 +6492,7 @@ class _MiniAstTypeAnalyzer
       flow.logicalBinaryOp_begin();
     }
     var leftType = analyzeExpression(lhs, operations.unknownType);
-    ExpressionInfo<SharedTypeView>? leftInfo;
+    ExpressionInfo? leftInfo;
     if (isEquals) {
       leftInfo = flow.equalityOperand_end(lhs);
     } else if (isLogical) {

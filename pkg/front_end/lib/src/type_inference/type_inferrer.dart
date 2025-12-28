@@ -37,13 +37,7 @@ abstract class TypeInferrer {
   ExtensionScope get extensionScope;
 
   /// Returns the [FlowAnalysis] used during inference.
-  FlowAnalysis<
-    TreeNode,
-    Statement,
-    Expression,
-    ExpressionVariable,
-    SharedTypeView
-  >
+  FlowAnalysis<TreeNode, Statement, Expression, ExpressionVariable>
   get flowAnalysis;
 
   AssignedVariables<TreeNode, ExpressionVariable> get assignedVariables;
@@ -112,13 +106,7 @@ class TypeInferrerImpl implements TypeInferrer {
   TypeAnalyzerOptions typeAnalyzerOptions;
 
   @override
-  late final FlowAnalysis<
-    TreeNode,
-    Statement,
-    Expression,
-    ExpressionVariable,
-    SharedTypeView
-  >
+  late final FlowAnalysis<TreeNode, Statement, Expression, ExpressionVariable>
   flowAnalysis = new FlowAnalysis(
     operations,
     assignedVariables,
@@ -411,13 +399,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
       impl.assignedVariables;
 
   @override
-  FlowAnalysis<
-    TreeNode,
-    Statement,
-    Expression,
-    ExpressionVariable,
-    SharedTypeView
-  >
+  FlowAnalysis<TreeNode, Statement, Expression, ExpressionVariable>
   get flowAnalysis => impl.flowAnalysis;
 
   @override
