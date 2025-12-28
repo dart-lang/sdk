@@ -357,6 +357,14 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorDeclaration(
+    covariant PrimaryConstructorDeclarationImpl node,
+  ) {
+    super.visitPrimaryConstructorDeclaration(node);
+    _validateDefaultValues(node.formalParameters);
+  }
+
+  @override
   void visitRecordLiteral(RecordLiteral node) {
     super.visitRecordLiteral(node);
 
