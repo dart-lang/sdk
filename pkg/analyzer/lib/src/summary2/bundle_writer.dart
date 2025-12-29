@@ -1022,29 +1022,11 @@ class ResolutionSink extends BinaryWriter {
   }
 
   /// Write the formal parameter list for a function type annotation.
-  void _writeFormalParameters2(
-    List<InternalFormalParameterElement> parameters, {
-    required bool withAnnotations,
-  }) {
+  void _writeFormalParameters(List<InternalFormalParameterElement> parameters) {
     writeList(parameters, (parameter) {
+      _writeElementName(parameter);
       _writeFormalParameterKind2(parameter);
-      writeBool(parameter.hasImplicitType);
-      writeBool(parameter.isInitializingFormal);
-      _writeTypeParameters2(parameter.typeParameters, () {
-        writeType(parameter.type);
-        _writeElementName(parameter);
-        if (parameter.baseElement
-            case FieldFormalParameterElementImpl fieldFormal) {
-          writeOptionalStringReference(fieldFormal.privateName);
-        }
-        _writeFormalParameters2(
-          parameter.formalParameters.cast(),
-          withAnnotations: withAnnotations,
-        );
-      }, withAnnotations: withAnnotations);
-      if (withAnnotations) {
-        _writeMetadata(parameter.metadata);
-      }
+      writeType(parameter.type);
     });
   }
 
@@ -1055,7 +1037,7 @@ class ResolutionSink extends BinaryWriter {
 
     _writeTypeParameters2(type.typeParameters, () {
       writeType(type.returnType);
-      _writeFormalParameters2(type.formalParameters, withAnnotations: false);
+      _writeFormalParameters(type.formalParameters);
     }, withAnnotations: false);
     _writeNullabilitySuffix(type.nullabilitySuffix);
   }

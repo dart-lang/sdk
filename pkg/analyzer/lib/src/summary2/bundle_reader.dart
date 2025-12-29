@@ -1776,40 +1776,13 @@ class ResolutionReader {
     LibraryFragmentImpl? unitElement,
   ) {
     return readTypedList(() {
-      var kindIndex = _reader.readByte();
-      var kind = _formalParameterKind(kindIndex);
-      var hasImplicitType = _reader.readBool();
-      var isInitializingFormal = _reader.readBool();
-      var typeParameters = _readTypeParameters(unitElement);
-      var type = readRequiredType();
-      var name = _readFragmentName();
-      FormalParameterFragmentImpl element;
-      if (isInitializingFormal) {
-        var privateName = _reader.readOptionalStringReference();
-        element = FieldFormalParameterFragmentImpl(
-          name: name,
-          nameOffset: null,
-          parameterKind: kind,
-          privateName: privateName,
-        );
-        element.element.type = type;
-      } else {
-        element = FormalParameterFragmentImpl(
-          name: name,
-          nameOffset: null,
-          parameterKind: kind,
-        );
-        element.element.type = type;
-      }
-      element.hasImplicitType = hasImplicitType;
-      element.typeParameters = typeParameters;
-      element.formalParameters = _readFormalParameters(unitElement);
-      // TODO(scheglov): reuse for formal parameters
-      _localElements.length -= typeParameters.length;
-      if (unitElement != null) {
-        element.metadata = _readMetadata();
-      }
-      return element;
+      var fragment = FormalParameterFragmentImpl(
+        name: _readFragmentName(),
+        nameOffset: null,
+        parameterKind: _formalParameterKind(_reader.readByte()),
+      );
+      fragment.element.type = readRequiredType();
+      return fragment;
     });
   }
 
