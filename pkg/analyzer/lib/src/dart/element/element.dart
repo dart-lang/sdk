@@ -10148,28 +10148,10 @@ class TypeAliasFragmentImpl extends FragmentImpl
   /// from anywhere except a class element or type parameter bounds.
   bool hasSelfReference = false;
 
-  bool isFunctionTypeAliasBased = false;
-
-  FragmentImpl? _aliasedElement;
-
   @override
   late TypeAliasElementImpl element;
 
   TypeAliasFragmentImpl({required this.name, required super.firstTokenOffset});
-
-  /// If the aliased type has structure, return the corresponding element.
-  /// For example it could be [GenericFunctionTypeElement].
-  ///
-  /// If there is no structure, return `null`.
-  FragmentImpl? get aliasedElement {
-    _ensureReadResolution();
-    return _aliasedElement;
-  }
-
-  set aliasedElement(FragmentImpl? aliasedElement) {
-    _aliasedElement = aliasedElement;
-    aliasedElement?.enclosingFragment = this;
-  }
 
   @override
   List<Fragment> get children => const [];

@@ -787,10 +787,8 @@ class BundleWriter {
 
   void _writeTypeAliasFragment(TypeAliasFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
-      _sink.writeBool(fragment.isFunctionTypeAliasBased);
       _writeTypeParameters(fragment.typeParameters, () {
         _resolutionSink._writeMetadata(fragment.metadata);
-        _resolutionSink._writeAliasedElement(fragment.aliasedElement);
       });
     });
   }
@@ -1015,52 +1013,12 @@ class ResolutionSink extends BinaryWriter {
     }
   }
 
-  void _writeAliasedElement(FragmentImpl? element) {
-    if (element == null) {
-      writeByte(AliasedElementTag.nothing);
-    } else if (element is GenericFunctionTypeFragmentImpl) {
-      writeByte(AliasedElementTag.genericFunctionElement);
-      _writeTypeParameters(element.typeParameters, () {
-        _writeFormalParameters(element.formalParameters, withAnnotations: true);
-        writeType(element.returnType);
-      }, withAnnotations: true);
-    } else {
-      throw UnimplementedError('${element.runtimeType}');
-    }
-  }
-
   void _writeElementList(List<Element> elements) {
     writeList(elements, writeElement);
   }
 
   void _writeElementName(Element element) {
     writeOptionalStringReference(element.name);
-  }
-
-  /// Write the formal parameter list for a function type alias.
-  void _writeFormalParameters(
-    List<FormalParameterFragmentImpl> parameters, {
-    required bool withAnnotations,
-  }) {
-    writeList(parameters, (parameter) {
-      _writeFormalParameterKind(parameter);
-      writeBool(parameter.hasImplicitType);
-      writeBool(parameter.isInitializingFormal);
-      _writeTypeParameters(parameter.typeParameters, () {
-        writeType(parameter.element.type);
-        _writeFragmentName(parameter);
-        if (parameter case FieldFormalParameterElementImpl fieldFormal) {
-          writeOptionalStringReference(fieldFormal.privateName);
-        }
-        _writeFormalParameters(
-          parameter.formalParameters,
-          withAnnotations: withAnnotations,
-        );
-      }, withAnnotations: withAnnotations);
-      if (withAnnotations) {
-        _writeMetadata(parameter.metadata);
-      }
-    });
   }
 
   /// Write the formal parameter list for a function type annotation.
@@ -1088,10 +1046,6 @@ class ResolutionSink extends BinaryWriter {
         _writeMetadata(parameter.metadata);
       }
     });
-  }
-
-  void _writeFragmentName(Fragment fragment) {
-    writeOptionalStringReference(fragment.name);
   }
 
   void _writeFunctionType(FunctionTypeImpl type) {
@@ -1155,24 +1109,6 @@ class ResolutionSink extends BinaryWriter {
 
   void _writeTypeList(List<DartType> types) {
     writeList(types, writeType);
-  }
-
-  void _writeTypeParameters(
-    List<TypeParameterFragmentImpl> typeParameterFragments,
-    void Function() f, {
-    required bool withAnnotations,
-  }) {
-    var typeParameters = typeParameterFragments.map((f) => f.element).toList();
-    localElements.withElements(typeParameters, () {
-      writeList(typeParameterFragments, _writeFragmentName);
-      for (var typeParameter in typeParameterFragments) {
-        writeType(typeParameter.element.bound);
-        if (withAnnotations) {
-          _writeMetadata(typeParameter.metadata);
-        }
-      }
-      f();
-    });
   }
 
   void _writeTypeParameters2(

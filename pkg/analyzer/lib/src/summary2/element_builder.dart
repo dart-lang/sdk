@@ -1554,7 +1554,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       name: name2,
       firstTokenOffset: node.offset,
     );
-    fragment.isFunctionTypeAliasBased = true;
     fragment.metadata = _buildMetadata(node.metadata);
 
     node.declaredFragment = fragment;
@@ -1569,11 +1568,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       node.parameters.accept(this);
     });
 
-    var aliasedElement = GenericFunctionTypeFragmentImpl();
-    aliasedElement.formalParameters = holder.formalParameters;
-
     fragment.typeParameters = holder.typeParameters;
-    fragment.aliasedElement = aliasedElement;
   }
 
   @override
@@ -1669,13 +1664,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       node.typeParameters?.accept(this);
     });
     fragment.typeParameters = holder.typeParameters;
-
-    var typeNode = node.type;
-    typeNode.accept(this);
-
-    if (typeNode is GenericFunctionTypeImpl) {
-      fragment.aliasedElement = typeNode.declaredFragment!;
-    }
+    node.type.accept(this);
   }
 
   @override

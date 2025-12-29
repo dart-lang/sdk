@@ -830,12 +830,21 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     _setOrCreateMetadataElements(fragment, node.metadata);
 
-    _withElementWalker(ElementWalker.forTypedef(fragment), () {
+    var holder = ElementHolder(fragment);
+    _withElementHolder(holder, () {
       _withNameScope(() {
-        _buildTypeParameterElements(node.typeParameters);
-        node.typeParameters?.accept(this);
-        node.returnType?.accept(this);
-        node.parameters.accept(this);
+        // Apply existing type parameter elements to nodes.
+        _withElementWalker(ElementWalker.forTypedef(fragment), () {
+          _buildTypeParameterElements(node.typeParameters);
+          node.typeParameters?.accept(this);
+        });
+
+        // Run without walker to create fresh formal parameter elements.
+        _withElementWalker(null, () {
+          node.returnType?.accept(this);
+          node.parameters.accept(this);
+          fragment.encloseElements(holder.formalParameters);
+        });
       });
     });
   }

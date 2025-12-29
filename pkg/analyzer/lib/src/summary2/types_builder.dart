@@ -300,9 +300,12 @@ class TypesBuilder {
 
   void _functionTypeAlias(FunctionTypeAliasImpl node) {
     var fragment = node.declaredFragment!;
-    var function = fragment.aliasedElement as GenericFunctionTypeFragmentImpl;
-    function.returnType = node.returnType?.type ?? _dynamicType;
-    fragment.element.aliasedType = function.type;
+    fragment.element.aliasedType = _buildFunctionType(
+      null,
+      node.returnType,
+      node.parameters,
+      NullabilitySuffix.none,
+    );
   }
 
   void _functionTypedFormalParameter(FunctionTypedFormalParameterImpl node) {

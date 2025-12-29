@@ -139,9 +139,7 @@ class ElementWalker {
   /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element.
   ElementWalker.forTypedef(TypeAliasFragmentImpl this.fragment)
-    : _parameters = (fragment.aliasedElement as GenericFunctionTypeFragmentImpl)
-          .formalParameters,
-      _typeParameters = fragment.typeParameters;
+    : _typeParameters = fragment.typeParameters;
 
   void consumeLocalElements() {
     _functionIndex = _functions!.length;

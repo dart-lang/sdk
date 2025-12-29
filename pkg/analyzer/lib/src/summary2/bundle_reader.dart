@@ -1330,7 +1330,6 @@ class LibraryReader {
           );
 
           fragment.readModifiers(_reader);
-          fragment.isFunctionTypeAliasBased = _reader.readBool();
           fragment.typeParameters = _readTypeParameters();
           return fragment;
         },
@@ -1341,7 +1340,6 @@ class LibraryReader {
             fragment.typeParameters,
           );
           fragment.metadata = reader._readMetadata();
-          fragment.aliasedElement = reader._readAliasedElement(unitElement);
         },
       );
     });
@@ -1711,28 +1709,6 @@ class ResolutionReader {
   void _addTypeParameters2(List<TypeParameterElementImpl> typeParameters) {
     for (var typeParameter in typeParameters) {
       _localElements.add(typeParameter);
-    }
-  }
-
-  FragmentImpl? _readAliasedElement(LibraryFragmentImpl unitElement) {
-    var tag = _reader.readByte();
-    if (tag == AliasedElementTag.nothing) {
-      return null;
-    } else if (tag == AliasedElementTag.genericFunctionElement) {
-      var typeParameters = _readTypeParameters(unitElement);
-      var formalParameters = _readFormalParameters(unitElement);
-      var returnType = readRequiredType();
-
-      _localElements.length -= typeParameters.length;
-
-      var fragment = GenericFunctionTypeFragmentImpl()
-        ..typeParameters = typeParameters
-        ..formalParameters = formalParameters
-        ..returnType = returnType;
-      unitElement.encloseElement(fragment);
-      return fragment;
-    } else {
-      throw UnimplementedError('tag: $tag');
     }
   }
 
