@@ -561,7 +561,8 @@ Remove debugging information from the output and save it separately to the speci
           help: 'Compile to a specific target architecture.',
           allowed: Architecture.values.map((v) => v.name).toList())
       ..addOption('target-sanitizer',
-          help: 'Compile to a specific target sanitizer. Sanitizers are not offered with single-file executables because the sanitizers cannot symbolize embedded snapshots.',
+          help:
+              'Compile to a specific target sanitizer. Sanitizers are not offered with single-file executables because the sanitizers cannot symbolize embedded snapshots.',
           allowed: availableSanitizers())
       ..addExperimentalFlags(verbose: verbose);
   }
@@ -966,7 +967,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       if (!generateSourceMap) '--no-source-maps',
       if (optimizationLevel != null) '--optimization-level=$optimizationLevel',
       if (args.flag('minify')) '--minify',
-      if (args.flag('strip-wasm')) '--strip-wasm',
+      if (!args.flag('strip-wasm')) '--no-strip-wasm',
       if (args.flag('enable-deferred-loading')) '--enable-deferred-loading',
       for (final define in defines) '-D$define',
       if (maxPages != null) ...[

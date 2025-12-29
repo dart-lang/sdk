@@ -120,6 +120,11 @@ class CompilerPhaseInputOutputManager {
       ],
       if (!options.stripWasm) '-g',
     ];
+
+    if (options.translatorOptions.verbose) {
+      print('Running wasm-opt $args');
+    }
+
     if (options.saveUnopt) {
       await File(wasmInName)
           .copy(path.setExtension(wasmOutName, '.unopt.wasm'));
