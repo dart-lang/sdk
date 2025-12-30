@@ -940,6 +940,9 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   int? nameEnd;
 
   @override
+  int? thisKeywordOffset;
+
+  @override
   ConstructorFragmentImpl? previousFragment;
 
   @override
@@ -2670,7 +2673,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
   @override
   @trackedIndirectly
-  ConstructorElement get primaryConstructor {
+  ConstructorElementImpl get primaryConstructor {
     return constructors.first;
   }
 
@@ -4907,6 +4910,15 @@ sealed class InterfaceElementImpl extends InstanceElementImpl
     // TODO(paulberry): eliminate this cast by changing the type of the `mixins`
     // parameter.
     _mixins = mixins.cast();
+  }
+
+  @trackedIndirectly
+  ConstructorElementImpl? get primaryConstructor {
+    var result = constructors.firstOrNull;
+    if (result != null && result.isPrimary) {
+      return result;
+    }
+    return null;
   }
 
   @override

@@ -3404,6 +3404,7 @@ package:analyzer/dart/element/element.dart:
     offset (getter: int)
     periodOffset (getter: int?)
     previousFragment (getter: ConstructorFragment?)
+    thisKeywordOffset (getter: int?)
     typeName (getter: String?)
     typeNameOffset (getter: int?)
   DirectiveUri (class extends Object):

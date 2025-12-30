@@ -82,21 +82,21 @@ class AstResolver {
     _flowAnalysis.bodyOrInitializer_exit();
   }
 
-  void resolveConstructorNode(ConstructorDeclarationImpl node) {
+  void resolveConstructorDeclaration(ConstructorDeclarationImpl node) {
     // We don't want to visit the whole node because that will try to create an
     // element for it; we just want to process its children so that we can
     // resolve initializers and/or a redirection.
-    void visit(AstVisitor<Object?> visitor) {
+    void accept(AstVisitor<Object?> visitor) {
       node.initializers.accept(visitor);
       node.redirectedConstructor?.accept(visitor);
     }
 
     _prepareEnclosingDeclarations();
-    visit(_resolutionVisitor);
-    visit(_scopeResolverVisitor);
+    accept(_resolutionVisitor);
+    accept(_scopeResolverVisitor);
 
-    _flowAnalysis.bodyOrInitializer_enter(node, node.parameters, visit: visit);
-    visit(_resolverVisitor);
+    _flowAnalysis.bodyOrInitializer_enter(node, node.parameters, visit: accept);
+    accept(_resolverVisitor);
     _resolverVisitor.checkIdle();
     _flowAnalysis.bodyOrInitializer_exit();
   }
@@ -114,6 +114,28 @@ class AstResolver {
     _flowAnalysis.bodyOrInitializer_enter(node.parent as AstNodeImpl, null);
     _resolverVisitor.analyzeExpression(node, SharedTypeSchemaView(contextType));
     _resolverVisitor.popRewrite();
+    _resolverVisitor.checkIdle();
+    _flowAnalysis.bodyOrInitializer_exit();
+  }
+
+  void resolvePrimaryConstructor(
+    PrimaryConstructorDeclarationImpl node,
+    PrimaryConstructorBodyImpl? body,
+  ) {
+    void accept(AstVisitor<Object?> visitor) {
+      body?.initializers.accept(visitor);
+    }
+
+    _prepareEnclosingDeclarations();
+    accept(_resolutionVisitor);
+    accept(_scopeResolverVisitor);
+
+    _flowAnalysis.bodyOrInitializer_enter(
+      node,
+      node.formalParameters,
+      visit: accept,
+    );
+    accept(_resolverVisitor);
     _resolverVisitor.checkIdle();
     _flowAnalysis.bodyOrInitializer_exit();
   }

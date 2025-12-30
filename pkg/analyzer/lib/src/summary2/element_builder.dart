@@ -16,6 +16,7 @@ import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
@@ -1786,6 +1787,11 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   void visitPartOfDirective(PartOfDirective node) {}
 
   @override
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    // We copy initializers in [visitPrimaryConstructorDeclaration].
+  }
+
+  @override
   void visitPrimaryConstructorDeclaration(
     covariant PrimaryConstructorDeclarationImpl node,
   ) {
@@ -1808,9 +1814,21 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     fragment.isDeclaring = true;
     fragment.isPrimary = true;
     fragment.typeName = node.typeName.lexeme;
+
+    node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
     _addChildFragment(fragment);
+
+    var body = node.parent.classMembers
+        .whereType<PrimaryConstructorBodyImpl>()
+        .firstOrNull;
+    if (body != null) {
+      fragment.metadata = _buildMetadata(body.metadata);
+      if (fragment.isConst) {
+        fragment.constantInitializers = body.initializers;
+      }
+    }
 
     // Handle declaring formal parameters.
     var formalParameters = node.formalParameters.parameters;

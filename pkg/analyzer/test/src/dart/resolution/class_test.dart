@@ -761,4 +761,364 @@ ClassDeclaration
   declaredFragment: <testLibraryFragment> B@28
 ''');
   }
+
+  test_primaryConstructorBody_duplicate() async {
+    await assertNoErrorsInCode(r'''
+class A(bool x, bool y) {
+  this : assert(x) {
+    y;
+  }
+  this : assert(!x) {
+    !y;
+  }
+}
+''');
+
+    var node = findNode.singleClassDeclaration;
+    assertResolvedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: bool
+          element: dart:core::@class::bool
+          type: bool
+        name: x
+        declaredFragment: <testLibraryFragment> x@13
+          element: isPublic
+            type: bool
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: bool
+          element: dart:core::@class::bool
+          type: bool
+        name: y
+        declaredFragment: <testLibraryFragment> y@21
+          element: isPublic
+            type: bool
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A Function(bool, bool)
+  body: BlockClassBody
+    leftBracket: {
+    members
+      PrimaryConstructorBody
+        thisKeyword: this
+        colon: :
+        initializers
+          AssertInitializer
+            assertKeyword: assert
+            leftParenthesis: (
+            condition: SimpleIdentifier
+              token: x
+              element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+              staticType: bool
+            rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: SimpleIdentifier
+                  token: y
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::y
+                  staticType: bool
+                semicolon: ;
+            rightBracket: }
+      PrimaryConstructorBody
+        thisKeyword: this
+        colon: :
+        initializers
+          AssertInitializer
+            assertKeyword: assert
+            leftParenthesis: (
+            condition: PrefixExpression
+              operator: !
+              operand: SimpleIdentifier
+                token: x
+                element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                staticType: bool
+              element: <null>
+              staticType: bool
+            rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: PrefixExpression
+                  operator: !
+                  operand: SimpleIdentifier
+                    token: y
+                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::y
+                    staticType: bool
+                  element: <null>
+                  staticType: bool
+                semicolon: ;
+            rightBracket: }
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+''');
+  }
+
+  test_primaryConstructorBody_noDeclaration() async {
+    await assertErrorsInCode(
+      r'''
+class A/*(bool x, int y)*/ {
+  this : assert(x) {
+    y;
+  }
+}
+''',
+      [
+        error(diag.undefinedIdentifier, 45, 1),
+        error(diag.undefinedIdentifier, 54, 1),
+      ],
+    );
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
+        token: x
+        element: <null>
+        staticType: InvalidType
+      rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: y
+            element: <null>
+            staticType: InvalidType
+          semicolon: ;
+      rightBracket: }
+''');
+  }
+
+  test_primaryConstructorBody_primaryInitializerScope_declaringFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+class A(final bool a) {
+  this : assert(a);
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        staticType: bool
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_primaryConstructorBody_primaryInitializerScope_fieldFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+class A(this.a) {
+  final bool a;
+  this : assert(a);
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        staticType: bool
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_primaryConstructorBody_primaryInitializerScope_simpleFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+class A(bool a) {
+  this : assert(a);
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        staticType: bool
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_primaryConstructorBody_primaryInitializerScope_superFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+class A(final bool a);
+class B(super.a) extends A {
+  this : assert(a);
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
+        staticType: bool
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_primaryConstructorBody_primaryParameterScope_fieldFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+class A(this.a) {
+  final int a;
+  this {
+    a;
+    foo;
+  }
+  void foo() {}
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: a
+            element: <testLibrary>::@class::A::@getter::a
+            staticType: int
+          semicolon: ;
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: foo
+            element: <testLibrary>::@class::A::@method::foo
+            staticType: void Function()
+          semicolon: ;
+      rightBracket: }
+''');
+  }
+
+  test_primaryConstructorBody_primaryParameterScope_simpleFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+class A(int a) {
+  this {
+    a;
+    foo;
+  }
+  void foo() {}
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: a
+            element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+            staticType: int
+          semicolon: ;
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: foo
+            element: <testLibrary>::@class::A::@method::foo
+            staticType: void Function()
+          semicolon: ;
+      rightBracket: }
+''');
+  }
+
+  test_primaryConstructorBody_primaryParameterScope_superFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+class A(final int a);
+class B(super.a) extends A {
+  this {
+    a;
+    foo;
+  }
+  void foo() {}
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: a
+            element: <testLibrary>::@class::A::@getter::a
+            staticType: int
+          semicolon: ;
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: foo
+            element: <testLibrary>::@class::B::@method::foo
+            staticType: void Function()
+          semicolon: ;
+      rightBracket: }
+''');
+  }
 }

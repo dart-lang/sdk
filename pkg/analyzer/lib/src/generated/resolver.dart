@@ -3673,6 +3673,49 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
+    var primaryConstructorDeclaration = node.declaration;
+    var fragment = primaryConstructorDeclaration?.declaredFragment;
+    var element = fragment?.element;
+
+    var returnType = element?.type.returnType;
+    var outerFunction = enclosingFunction;
+
+    try {
+      enclosingFunction = element;
+      assert(_thisType == null);
+      _setupThisType();
+      checkUnreachableNode(node);
+      node.documentationComment?.accept(this);
+      node.metadata.accept(this);
+
+      if (primaryConstructorDeclaration != null) {
+        flowAnalysis.bodyOrInitializer_enter(
+          node,
+          primaryConstructorDeclaration.formalParameters,
+        );
+        flowAnalysis.executableDeclaration_enter(
+          node,
+          primaryConstructorDeclaration.formalParameters,
+          isClosure: false,
+        );
+      }
+
+      node.initializers.accept(this);
+      node.body.resolve(this, returnType is DynamicType ? null : returnType);
+
+      if (primaryConstructorDeclaration != null) {
+        flowAnalysis.executableDeclaration_exit(node.body, false);
+        flowAnalysis.bodyOrInitializer_exit();
+      }
+      nullSafetyDeadCodeVerifier.flowEnd(node);
+    } finally {
+      enclosingFunction = outerFunction;
+      _thisType = null;
+    }
+  }
+
+  @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     node.visitChildren(this);
   }
@@ -5415,6 +5458,30 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     // Do not visit the identifier after the `.`, since it is not meant to be
     // looked up in the current scope.
     node.prefix.accept(this);
+  }
+
+  @override
+  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
+    var outerScope = nameScope;
+    try {
+      var fragment = node.declaration?.declaredFragment;
+      var element = fragment?.element;
+
+      node.metadata.accept(this);
+
+      if (element != null) {
+        nameScope = ConstructorInitializerScope(outerScope, element);
+      }
+      node.initializers.accept(this);
+
+      if (element != null) {
+        nameScope = PrimaryParameterScope(outerScope, element);
+      }
+      _visitDocumentationComment(node.documentationComment);
+      node.body.accept(this);
+    } finally {
+      nameScope = outerScope;
+    }
   }
 
   @override

@@ -470,6 +470,10 @@ class _Element2Writer extends _AbstractElementWriter {
         _sink.writelnWithIndent('periodOffset: $periodOffset');
       }
 
+      if (f.thisKeywordOffset case var thisKeywordOffset?) {
+        _sink.writelnWithIndent('thisKeywordOffset: $thisKeywordOffset');
+      }
+
       _writeFragmentList(
         'formalParameters',
         f,
