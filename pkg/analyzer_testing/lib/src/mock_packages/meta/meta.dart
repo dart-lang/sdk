@@ -180,6 +180,9 @@ class _IsTestGroup {
   const _IsTestGroup();
 }
 
+@Target({
+  TargetKind.constructor,
+})
 class _Literal {
   const _Literal();
 }

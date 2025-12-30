@@ -735,7 +735,9 @@ class _IsTestGroup {
   const _IsTestGroup();
 }
 
-// TODO(srawlins): Enforce with `TargetKind.constructor`.
+@Target({
+  TargetKind.constructor,
+})
 class _Literal {
   const _Literal();
 }

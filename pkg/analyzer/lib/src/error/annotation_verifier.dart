@@ -399,7 +399,11 @@ class AnnotationVerifier {
   /// `@literal` annotation.
   void _checkLiteral(Annotation node) {
     var parent = node.parent;
-    if (parent is! ConstructorDeclaration || parent.constKeyword == null) {
+    if (parent is! ConstructorDeclaration) {
+      // Reported elsewhere.
+      return;
+    }
+    if (parent.constKeyword == null) {
       _diagnosticReporter.report(diag.invalidLiteralAnnotation.at(node.name));
     }
   }
