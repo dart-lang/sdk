@@ -289,12 +289,75 @@ void f(Object o) {
 ''');
   }
 
-  test_parameter_missingTypeArg() async {
+  test_parameter_default_missingTypeArg() async {
+    await assertErrorsInCode(
+      r'''
+void f({List a = const []}) {}
+''',
+      [error(diag.strictRawType, 8, 4)],
+    );
+  }
+
+  test_parameter_fieldFormal_missingTypeArg() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  Object a;
+  C(List this.a);
+}
+''',
+      [error(diag.strictRawType, 26, 4)],
+    );
+  }
+
+  test_parameter_functionTyped_parameter_missingTypeArg() async {
+    await assertErrorsInCode(
+      r'''
+void f(void a(List p)) {}
+''',
+      [error(diag.strictRawType, 14, 4)],
+    );
+  }
+
+  test_parameter_functionTyped_returnType_missingTypeArg() async {
+    await assertErrorsInCode(
+      r'''
+void f(List a()) {}
+''',
+      [error(diag.strictRawType, 7, 4)],
+    );
+  }
+
+  test_parameter_primaryDeclaring_missingTypeArg() async {
+    await assertErrorsInCode(
+      r'''
+class C(final List a);
+''',
+      [error(diag.strictRawType, 14, 4)],
+    );
+  }
+
+  test_parameter_simple_missingTypeArg() async {
     await assertErrorsInCode(
       r'''
 void f(List a) {}
 ''',
       [error(diag.strictRawType, 7, 4)],
+    );
+  }
+
+  test_parameter_super_missingTypeArg() async {
+    await assertErrorsInCode(
+      r'''
+abstract class C {
+  Object a;
+  C(this.a);
+}
+class D extends C {
+  D(List super.a);
+}
+''',
+      [error(diag.strictRawType, 70, 4)],
     );
   }
 
