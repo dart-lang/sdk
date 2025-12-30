@@ -25208,8 +25208,7 @@ class UriValidationCode {
 abstract final class VariableDeclaration implements Declaration {
   /// The fragment declared by this declaration.
   ///
-  /// Returns `null` if the AST structure hasn't been resolved or if this node
-  /// represents the declaration of a local variable.
+  /// Returns `null` if the AST structure hasn't been resolved.
   @override
   VariableFragment? get declaredFragment;
 

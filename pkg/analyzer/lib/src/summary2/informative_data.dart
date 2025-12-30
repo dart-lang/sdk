@@ -146,21 +146,9 @@ class InformativeDataApplier {
     );
 
     forCorrespondingPairs(
-      unitElement.typeAliases
-          .cast<TypeAliasFragmentImpl>()
-          .where((e) => e.isFunctionTypeAliasBased)
-          .toList(),
-      unitInfo.functionTypeAliases,
-      _applyToFunctionTypeAlias,
-    );
-
-    forCorrespondingPairs(
-      unitElement.typeAliases
-          .cast<TypeAliasFragmentImpl>()
-          .where((e) => !e.isFunctionTypeAliasBased)
-          .toList(),
-      unitInfo.genericTypeAliases,
-      _applyToGenericTypeAlias,
+      unitElement.typeAliases.cast<TypeAliasFragmentImpl>().toList(),
+      unitInfo.typeAliases,
+      _applyToTypeAlias,
     );
   }
 
@@ -432,60 +420,6 @@ class InformativeDataApplier {
     });
   }
 
-  void _applyToFunctionTypeAlias(
-    TypeAliasFragmentImpl element,
-    _InfoFunctionTypeAlias info,
-  ) {
-    element.setCodeRange(info.codeOffset, info.codeLength);
-    element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset = info.nameOffset;
-    element.documentationComment = info.documentationComment;
-
-    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-      _applyToTypeParameters(element.typeParameters, info.typeParameters);
-      if (element.aliasedElement case GenericFunctionTypeFragmentImpl aliased) {
-        _applyToFormalParameters(aliased.formalParameters, info.parameters);
-      }
-    });
-
-    _setupApplyConstantOffsetsForTypeAlias(
-      element,
-      info.constantOffsets,
-      aliasedFormalParameters: info.parameters,
-    );
-  }
-
-  void _applyToGenericTypeAlias(
-    TypeAliasFragmentImpl element,
-    _InfoGenericTypeAlias info,
-  ) {
-    element.setCodeRange(info.codeOffset, info.codeLength);
-    element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset = info.nameOffset;
-    element.documentationComment = info.documentationComment;
-
-    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-      _applyToTypeParameters(element.typeParameters, info.typeParameters);
-      if (element.aliasedElement case GenericFunctionTypeFragmentImpl aliased) {
-        _applyToTypeParameters(
-          aliased.typeParameters,
-          info.aliasedTypeParameters,
-        );
-        _applyToFormalParameters(
-          aliased.formalParameters,
-          info.aliasedFormalParameters,
-        );
-      }
-    });
-
-    _setupApplyConstantOffsetsForTypeAlias(
-      element,
-      info.constantOffsets,
-      aliasedFormalParameters: info.aliasedFormalParameters,
-      aliasedTypeParameters: info.aliasedTypeParameters,
-    );
-  }
-
   void _applyToImports(List<LibraryImportImpl> imports, _InfoUnit info) {
     forCorrespondingPairs(imports, info.imports, (element, info) {
       element.importKeywordOffset = info.importKeywordOffset;
@@ -580,6 +514,19 @@ class InformativeDataApplier {
     });
   }
 
+  void _applyToTypeAlias(TypeAliasFragmentImpl element, _InfoTypeAlias info) {
+    element.setCodeRange(info.codeOffset, info.codeLength);
+    element.firstTokenOffset = info.firstTokenOffset;
+    element.nameOffset = info.nameOffset;
+    element.documentationComment = info.documentationComment;
+
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
+      _applyToTypeParameters(element.typeParameters, info.typeParameters);
+    });
+
+    _setupApplyConstantOffsetsForTypeAlias(element, info.constantOffsets);
+  }
+
   void _applyToTypeParameters(
     List<TypeParameterFragmentImpl> elementList,
     List<_InfoTypeParameter> infoList,
@@ -605,31 +552,11 @@ class InformativeDataApplier {
 
   void _setupApplyConstantOffsetsForTypeAlias(
     TypeAliasFragmentImpl element,
-    Uint32List constantOffsets, {
-    List<_InfoFormalParameter>? aliasedFormalParameters,
-    List<_InfoTypeParameter>? aliasedTypeParameters,
-  }) {
+    Uint32List constantOffsets,
+  ) {
     element.deferConstantOffsets(constantOffsets, (applier) {
       applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
-
-      var aliasedElement = element.aliasedElement;
-      if (aliasedElement is FunctionTypedFragmentImpl) {
-        applier.applyToTypeParameters(aliasedElement.typeParameters);
-        applier.applyToFormalParameters(aliasedElement.formalParameters);
-        if (aliasedTypeParameters != null) {
-          _applyToTypeParameters(
-            aliasedElement.typeParameters,
-            aliasedTypeParameters,
-          );
-        }
-        if (aliasedFormalParameters != null) {
-          _applyToFormalParameters(
-            aliasedElement.formalParameters,
-            aliasedFormalParameters,
-          );
-        }
-      }
     });
   }
 }
@@ -651,13 +578,12 @@ class _InfoBuilder {
       enums: _buildEnums(unit),
       extensions: _buildExtensions(unit),
       extensionTypes: _buildExtensionTypes(unit),
-      functionTypeAliases: _buildFunctionTypeAliases(unit),
-      genericTypeAliases: _buildGenericTypeAliases(unit),
       mixinDeclarations: _buildMixins(unit),
       topLevelFunctions: _buildTopLevelFunctions(unit),
       topLevelGetters: _buildTopLevelGetters(unit),
       topLevelSetters: _buildTopLevelSetters(unit),
       topLevelVariable: _buildTopLevelVariables(unit),
+      typeAliases: _buildTypeAliases(unit),
     );
   }
 
@@ -944,58 +870,36 @@ class _InfoBuilder {
     );
   }
 
-  _InfoFunctionTypeAlias _buildFunctionTypeAlias(FunctionTypeAlias node) {
-    return _InfoFunctionTypeAlias(
+  _InfoTypeAlias _buildFunctionTypeAlias(FunctionTypeAlias node) {
+    return _InfoTypeAlias(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
       codeLength: node.length,
       nameOffset: node.name.offsetIfNotEmpty,
       documentationComment: _getDocumentationComment(node),
       typeParameters: _buildTypeParameters(node.typeParameters),
-      parameters: _buildFormalParameters(node.parameters),
       constantOffsets: _buildConstantOffsets(
         metadata: node.metadata,
         typeParameters: node.typeParameters,
-        formalParameters: node.parameters,
+        aliasedType: node.returnType,
       ),
     );
   }
 
-  List<_InfoFunctionTypeAlias> _buildFunctionTypeAliases(CompilationUnit unit) {
-    return unit.declarations
-        .whereType<FunctionTypeAlias>()
-        .map(_buildFunctionTypeAlias)
-        .toList();
-  }
-
-  _InfoGenericTypeAlias _buildGenericTypeAlias(GenericTypeAlias node) {
-    var aliasedType = node.type;
-    return _InfoGenericTypeAlias(
+  _InfoTypeAlias _buildGenericTypeAlias(GenericTypeAlias node) {
+    return _InfoTypeAlias(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
       codeLength: node.length,
       nameOffset: node.name.offsetIfNotEmpty,
       documentationComment: _getDocumentationComment(node),
       typeParameters: _buildTypeParameters(node.typeParameters),
-      aliasedTypeParameters: aliasedType is GenericFunctionType
-          ? _buildTypeParameters(aliasedType.typeParameters)
-          : [],
-      aliasedFormalParameters: aliasedType is GenericFunctionType
-          ? _buildFormalParameters(aliasedType.parameters)
-          : [],
       constantOffsets: _buildConstantOffsets(
         metadata: node.metadata,
         typeParameters: node.typeParameters,
         aliasedType: node.type,
       ),
     );
-  }
-
-  List<_InfoGenericTypeAlias> _buildGenericTypeAliases(CompilationUnit unit) {
-    return unit.declarations
-        .whereType<GenericTypeAlias>()
-        .map(_buildGenericTypeAlias)
-        .toList();
   }
 
   _InfoImport _buildImport(ImportDirective node) {
@@ -1248,6 +1152,22 @@ class _InfoBuilder {
         .toList();
   }
 
+  List<_InfoTypeAlias> _buildTypeAliases(CompilationUnit unit) {
+    return unit.declarations
+        .map((declaration) {
+          switch (declaration) {
+            case FunctionTypeAlias():
+              return _buildFunctionTypeAlias(declaration);
+            case GenericTypeAlias():
+              return _buildGenericTypeAlias(declaration);
+            default:
+              return null;
+          }
+        })
+        .nonNulls
+        .toList();
+  }
+
   _InfoTypeParameter _buildTypeParameter(TypeParameter node) {
     return _InfoTypeParameter(
       firstTokenOffset: node.offset,
@@ -1494,72 +1414,6 @@ class _InfoFormalParameter extends _InfoNode {
   }
 }
 
-class _InfoFunctionTypeAlias extends _InfoNode {
-  final List<_InfoTypeParameter> typeParameters;
-  final List<_InfoFormalParameter> parameters;
-  final Uint32List constantOffsets;
-
-  _InfoFunctionTypeAlias({
-    required super.firstTokenOffset,
-    required super.codeOffset,
-    required super.codeLength,
-    required super.nameOffset,
-    required super.documentationComment,
-    required this.typeParameters,
-    required this.parameters,
-    required this.constantOffsets,
-  }) : super();
-
-  _InfoFunctionTypeAlias.read(super.reader)
-    : typeParameters = reader.readList(_InfoTypeParameter.read),
-      parameters = reader.readList(_InfoFormalParameter.read),
-      constantOffsets = reader.readUint30List(),
-      super.read();
-
-  @override
-  void write(BinaryWriter writer) {
-    writer.writeList(typeParameters, (v) => v.write(writer));
-    writer.writeList(parameters, (v) => v.write(writer));
-    writer.writeUint30List(constantOffsets);
-    super.write(writer);
-  }
-}
-
-class _InfoGenericTypeAlias extends _InfoNode {
-  final List<_InfoTypeParameter> typeParameters;
-  final List<_InfoTypeParameter> aliasedTypeParameters;
-  final List<_InfoFormalParameter> aliasedFormalParameters;
-  final Uint32List constantOffsets;
-
-  _InfoGenericTypeAlias({
-    required super.firstTokenOffset,
-    required super.codeOffset,
-    required super.codeLength,
-    required super.nameOffset,
-    required super.documentationComment,
-    required this.typeParameters,
-    required this.aliasedTypeParameters,
-    required this.aliasedFormalParameters,
-    required this.constantOffsets,
-  }) : super();
-
-  _InfoGenericTypeAlias.read(super.reader)
-    : typeParameters = reader.readList(_InfoTypeParameter.read),
-      aliasedTypeParameters = reader.readList(_InfoTypeParameter.read),
-      aliasedFormalParameters = reader.readList(_InfoFormalParameter.read),
-      constantOffsets = reader.readUint30List(),
-      super.read();
-
-  @override
-  void write(BinaryWriter writer) {
-    writer.writeList(typeParameters, (v) => v.write(writer));
-    writer.writeList(aliasedTypeParameters, (v) => v.write(writer));
-    writer.writeList(aliasedFormalParameters, (v) => v.write(writer));
-    writer.writeUint30List(constantOffsets);
-    super.write(writer);
-  }
-}
-
 class _InfoImport {
   final int importKeywordOffset;
   final int? prefixOffset;
@@ -1741,6 +1595,33 @@ class _InfoTopLevelVariable extends _InfoNode {
   }
 }
 
+class _InfoTypeAlias extends _InfoNode {
+  final List<_InfoTypeParameter> typeParameters;
+  final Uint32List constantOffsets;
+
+  _InfoTypeAlias({
+    required super.firstTokenOffset,
+    required super.codeOffset,
+    required super.codeLength,
+    required super.nameOffset,
+    required super.documentationComment,
+    required this.typeParameters,
+    required this.constantOffsets,
+  }) : super();
+
+  _InfoTypeAlias.read(super.reader)
+    : typeParameters = reader.readList(_InfoTypeParameter.read),
+      constantOffsets = reader.readUint30List(),
+      super.read();
+
+  @override
+  void write(BinaryWriter writer) {
+    writer.writeList(typeParameters, (v) => v.write(writer));
+    writer.writeUint30List(constantOffsets);
+    super.write(writer);
+  }
+}
+
 class _InfoTypeParameter extends _InfoNode {
   _InfoTypeParameter({
     required super.firstTokenOffset,
@@ -1767,13 +1648,12 @@ class _InfoUnit {
   final List<_InfoEnumDeclaration> enums;
   final List<_InfoExtensionDeclaration> extensions;
   final List<_InfoExtensionTypeDeclaration> extensionTypes;
-  final List<_InfoFunctionTypeAlias> functionTypeAliases;
-  final List<_InfoGenericTypeAlias> genericTypeAliases;
   final List<_InfoMixinDeclaration> mixinDeclarations;
   final List<_InfoExecutableDeclaration> topLevelFunctions;
   final List<_InfoExecutableDeclaration> topLevelGetters;
   final List<_InfoExecutableDeclaration> topLevelSetters;
   final List<_InfoTopLevelVariable> topLevelVariable;
+  final List<_InfoTypeAlias> typeAliases;
 
   _InfoUnit({
     required this.codeOffset,
@@ -1790,13 +1670,12 @@ class _InfoUnit {
     required this.enums,
     required this.extensions,
     required this.extensionTypes,
-    required this.functionTypeAliases,
-    required this.genericTypeAliases,
     required this.mixinDeclarations,
     required this.topLevelFunctions,
     required this.topLevelGetters,
     required this.topLevelSetters,
     required this.topLevelVariable,
+    required this.typeAliases,
   });
 
   _InfoUnit.read(BinaryReader reader)
@@ -1814,13 +1693,12 @@ class _InfoUnit {
       enums = reader.readList(_InfoEnumDeclaration.read),
       extensions = reader.readList(_InfoExtensionDeclaration.read),
       extensionTypes = reader.readList(_InfoExtensionTypeDeclaration.read),
-      functionTypeAliases = reader.readList(_InfoFunctionTypeAlias.read),
-      genericTypeAliases = reader.readList(_InfoGenericTypeAlias.read),
       mixinDeclarations = reader.readList(_InfoMixinDeclaration.read),
       topLevelFunctions = reader.readList(_InfoExecutableDeclaration.read),
       topLevelGetters = reader.readList(_InfoExecutableDeclaration.read),
       topLevelSetters = reader.readList(_InfoExecutableDeclaration.read),
-      topLevelVariable = reader.readList(_InfoTopLevelVariable.read);
+      topLevelVariable = reader.readList(_InfoTopLevelVariable.read),
+      typeAliases = reader.readList(_InfoTypeAlias.read);
 
   void write(BinaryWriter writer) {
     writer.writeUint30(codeOffset);
@@ -1837,13 +1715,12 @@ class _InfoUnit {
     writer.writeList(enums, (v) => v.write(writer));
     writer.writeList(extensions, (v) => v.write(writer));
     writer.writeList(extensionTypes, (v) => v.write(writer));
-    writer.writeList(functionTypeAliases, (v) => v.write(writer));
-    writer.writeList(genericTypeAliases, (v) => v.write(writer));
     writer.writeList(mixinDeclarations, (v) => v.write(writer));
     writer.writeList(topLevelFunctions, (v) => v.write(writer));
     writer.writeList(topLevelGetters, (v) => v.write(writer));
     writer.writeList(topLevelSetters, (v) => v.write(writer));
     writer.writeList(topLevelVariable, (v) => v.write(writer));
+    writer.writeList(typeAliases, (v) => v.write(writer));
   }
 }
 
