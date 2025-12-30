@@ -66,10 +66,10 @@ class DartSnippetRequest {
     required this.offset,
     required this.file,
   }) : analysisSession = unit.analysisSession,
-       typeProvider = unit.unitElement.element.typeProvider,
+       typeProvider = unit.libraryFragment.element.typeProvider,
        content = unit.content,
        compilationUnit = unit.parsedUnit,
-       libraryElement = unit.unitElement.element,
+       libraryElement = unit.libraryFragment.element,
        filePath = unit.path {
     var target = CompletionTarget.forOffset(unit.parsedUnit, offset);
     context = _getContext(target);

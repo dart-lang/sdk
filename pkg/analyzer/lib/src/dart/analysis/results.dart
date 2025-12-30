@@ -376,7 +376,7 @@ class ResolvedForCompletionResultImpl {
   final CompilationUnit parsedUnit;
 
   /// The full element for the unit.
-  final LibraryFragment unitElement;
+  final LibraryFragment libraryFragment;
 
   /// Nodes from [parsedUnit] that were resolved to provide enough context
   /// to perform completion. How much is enough depends on the location
@@ -402,7 +402,7 @@ class ResolvedForCompletionResultImpl {
     required this.content,
     required this.lineInfo,
     required this.parsedUnit,
-    required this.unitElement,
+    required this.libraryFragment,
     required this.resolvedNodes,
   });
 }

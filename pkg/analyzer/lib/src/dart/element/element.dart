@@ -3409,13 +3409,13 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     // TODO(dantup): This does not keep any reference to the non-synthetic
     //  parameter which prevents navigation/references from working. See
     //  https://github.com/dart-lang/sdk/issues/60200
-    var element = FormalParameterFragmentImpl(
+    var fragment = FormalParameterFragmentImpl(
       name: name2,
       nameOffset: null,
       parameterKind: parameterKind,
     );
-    element.isSynthetic = true;
-    return element;
+    fragment.isSynthetic = true;
+    return fragment;
   }
 
   @override
@@ -3714,15 +3714,15 @@ abstract class FragmentImpl with _FragmentImplMixin implements Fragment {
     return identical(this, other);
   }
 
-  /// Set this element as the enclosing element for given [element].
-  void encloseElement(FragmentImpl element) {
-    element.enclosingFragment = this;
+  /// Set this element as the enclosing element for given [fragment].
+  void encloseElement(FragmentImpl fragment) {
+    fragment.enclosingFragment = this;
   }
 
-  /// Set this element as the enclosing element for given [elements].
-  void encloseElements(List<FragmentImpl> elements) {
-    for (var element in elements) {
-      element.enclosingFragment = this;
+  /// Set this element as the enclosing element for given [fragments].
+  void encloseElements(List<FragmentImpl> fragments) {
+    for (var fragment in fragments) {
+      fragment.enclosingFragment = this;
     }
   }
 
@@ -6692,8 +6692,8 @@ class LibraryFragmentImpl extends FragmentImpl
 
   /// Set the enums contained in this compilation unit to the given [enums].
   set enums(List<EnumFragmentImpl> enums) {
-    for (var element in enums) {
-      element.enclosingFragment = this;
+    for (var fragment in enums) {
+      fragment.enclosingFragment = this;
     }
     _enums = enums;
   }
@@ -6713,11 +6713,11 @@ class LibraryFragmentImpl extends FragmentImpl
   @override
   List<ExtensionTypeFragmentImpl> get extensionTypes => _extensionTypes;
 
-  set extensionTypes(List<ExtensionTypeFragmentImpl> elements) {
-    for (var element in elements) {
-      element.enclosingFragment = this;
+  set extensionTypes(List<ExtensionTypeFragmentImpl> fragments) {
+    for (var fragment in fragments) {
+      fragment.enclosingFragment = this;
     }
-    _extensionTypes = elements;
+    _extensionTypes = fragments;
   }
 
   @override
@@ -8645,14 +8645,14 @@ class PatternVariableElementImpl extends LocalVariableElementImpl
       super._firstFragment as PatternVariableFragmentImpl;
 
   static PatternVariableElement fromElement(
-    PatternVariableFragmentImpl element,
+    PatternVariableFragmentImpl fragment,
   ) {
-    if (element is JoinPatternVariableFragmentImpl) {
-      return JoinPatternVariableElementImpl(element);
-    } else if (element is BindPatternVariableFragmentImpl) {
-      return BindPatternVariableElementImpl(element);
+    if (fragment is JoinPatternVariableFragmentImpl) {
+      return JoinPatternVariableElementImpl(fragment);
+    } else if (fragment is BindPatternVariableFragmentImpl) {
+      return BindPatternVariableElementImpl(fragment);
     }
-    return PatternVariableElementImpl(element);
+    return PatternVariableElementImpl(fragment);
   }
 }
 
@@ -9499,8 +9499,8 @@ class SuperFormalParameterFragmentImpl extends FormalParameterFragmentImpl
       super.previousFragment as SuperFormalParameterFragmentImpl?;
 
   /// Return the index of this super-formal parameter among other super-formals.
-  int indexIn(ConstructorFragmentImpl enclosingElement) {
-    return enclosingElement.formalParameters
+  int indexIn(ConstructorFragmentImpl enclosingFragment) {
+    return enclosingFragment.formalParameters
         .whereType<SuperFormalParameterFragmentImpl>()
         .toList()
         .indexOf(this);
@@ -9667,7 +9667,7 @@ class TopLevelFunctionFragmentImpl extends FunctionFragmentImpl
       super.enclosingFragment as LibraryFragmentImpl;
 
   @override
-  set enclosingFragment(covariant LibraryFragmentImpl element);
+  set enclosingFragment(covariant LibraryFragmentImpl fragment);
 
   void addFragment(TopLevelFunctionFragmentImpl fragment) {
     fragment.element = element;

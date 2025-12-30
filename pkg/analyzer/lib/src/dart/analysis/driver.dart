@@ -2061,11 +2061,11 @@ class AnalysisDriver {
         libraryContext.load(targetLibrary: library, performance: performance);
       });
 
-      var element = libraryContext.computeUnitElement(library, file);
+      var fragment = libraryContext.computeUnitElement(library, file);
       var result = UnitElementResultImpl(
         session: currentSession,
         fileState: file,
-        fragment: element,
+        fragment: fragment,
       );
 
       _unitElementRequestedFiles.completeAll(path, result);
@@ -2351,7 +2351,7 @@ class AnalysisDriver {
       performance.run('libraryContext', (performance) {
         libraryContext.load(targetLibrary: library, performance: performance);
       });
-      var unitElement = libraryContext.computeUnitElement(library, file);
+      var libraryFragment = libraryContext.computeUnitElement(library, file);
       var analysisOptions = libraryContext.analysisContext
           .getAnalysisOptionsForFile(file.resource);
       var libraryElement = libraryContext.elementFactory.libraryOfUri2(
@@ -2375,7 +2375,7 @@ class AnalysisDriver {
         ).analyzeForCompletion(
           file: file,
           offset: offset,
-          unitElement: unitElement,
+          libraryFragment: libraryFragment,
           performance: performance,
         );
       });
@@ -2389,7 +2389,7 @@ class AnalysisDriver {
         content: file.content,
         lineInfo: file.lineInfo,
         parsedUnit: analysisResult.parsedUnit,
-        unitElement: unitElement,
+        libraryFragment: libraryFragment,
         resolvedNodes: analysisResult.resolvedNodes,
       );
     });

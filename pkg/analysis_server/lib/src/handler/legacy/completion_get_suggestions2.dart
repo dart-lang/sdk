@@ -172,7 +172,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
         fileState: resolvedUnit.fileState,
         filePath: resolvedUnit.path,
         fileContent: resolvedUnit.content,
-        libraryFragment: resolvedUnit.unitElement,
+        libraryFragment: resolvedUnit.libraryFragment,
         offset: offset,
         unit: resolvedUnit.parsedUnit,
         dartdocDirectiveInfo: server.getDartdocDirectiveInfoForSession(

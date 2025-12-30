@@ -488,8 +488,8 @@ class _IndexAssembler {
   _ElementInfo _getElementInfo(Element element) {
     element = element.baseElement;
     return elementMap.putIfAbsent(element, () {
-      var unitElement = getUnitElement(element);
-      int unitId = _getUnitId(unitElement);
+      var libraryFragment = getUnitElement(element);
+      int unitId = _getUnitId(libraryFragment);
       return _newElementInfo(unitId, element);
     });
   }
@@ -506,15 +506,15 @@ class _IndexAssembler {
     });
   }
 
-  /// Add information about [unitElement] to [unitUnitUris] and
+  /// Add information about [libraryFragment] to [unitUnitUris] and
   /// [unitLibraryUris] if necessary, and return the location in those
-  /// arrays representing [unitElement].
-  int _getUnitId(LibraryFragmentImpl unitElement) {
-    return unitMap.putIfAbsent(unitElement, () {
+  /// arrays representing [libraryFragment].
+  int _getUnitId(LibraryFragmentImpl libraryFragment) {
+    return unitMap.putIfAbsent(libraryFragment, () {
       assert(unitLibraryUris.length == unitUnitUris.length);
       int id = unitUnitUris.length;
-      unitLibraryUris.add(_getUriInfo(unitElement.library.uri));
-      unitUnitUris.add(_getUriInfo(unitElement.source.uri));
+      unitLibraryUris.add(_getUriInfo(libraryFragment.library.uri));
+      unitUnitUris.add(_getUriInfo(libraryFragment.source.uri));
       return id;
     });
   }

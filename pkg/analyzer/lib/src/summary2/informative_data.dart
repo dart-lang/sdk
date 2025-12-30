@@ -45,183 +45,186 @@ class InformativeDataApplier {
     }
     elementFactory.isApplyingInformativeData = true;
 
-    for (var unitElement in libraryElement.internal.fragments) {
-      var uri = unitElement.source.uri;
+    for (var libraryFragment in libraryElement.internal.fragments) {
+      var uri = libraryFragment.source.uri;
       if (unitsInformativeBytes[uri] case var infoBytes?) {
-        _applyFromBytes(unitElement, infoBytes);
+        _applyFromBytes(libraryFragment, infoBytes);
       }
     }
 
     elementFactory.isApplyingInformativeData = false;
   }
 
-  void _applyFromBytes(LibraryFragmentImpl unitElement, Uint8List infoBytes) {
+  void _applyFromBytes(
+    LibraryFragmentImpl libraryFragment,
+    Uint8List infoBytes,
+  ) {
     var unitReader = BinaryReader(infoBytes);
     var unitInfo = _InfoUnit.read(unitReader);
-    _applyFromInfo(unitElement, unitInfo);
+    _applyFromInfo(libraryFragment, unitInfo);
   }
 
-  void _applyFromInfo(LibraryFragmentImpl unitElement, _InfoUnit unitInfo) {
-    var libraryElement = unitElement.library;
-    if (identical(libraryElement.internal.firstFragment, unitElement)) {
+  void _applyFromInfo(LibraryFragmentImpl libraryFragment, _InfoUnit unitInfo) {
+    var libraryElement = libraryFragment.library;
+    if (identical(libraryElement.internal.firstFragment, libraryFragment)) {
       _applyToLibrary(libraryElement, unitInfo);
     }
 
-    unitElement.setCodeRange(unitInfo.codeOffset, unitInfo.codeLength);
-    unitElement.lineInfo = LineInfo(unitInfo.lineStarts);
+    libraryFragment.setCodeRange(unitInfo.codeOffset, unitInfo.codeLength);
+    libraryFragment.lineInfo = LineInfo(unitInfo.lineStarts);
 
     DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-      _applyToImports(unitElement.libraryImports, unitInfo);
-      _applyToExports(unitElement.libraryExports, unitInfo);
-      _applyToPartIncludes(unitElement.parts, unitInfo);
+      _applyToImports(libraryFragment.libraryImports, unitInfo);
+      _applyToExports(libraryFragment.libraryExports, unitInfo);
+      _applyToPartIncludes(libraryFragment.parts, unitInfo);
     });
 
-    unitElement.deferConstantOffsets(unitInfo.libraryConstantOffsets, (
+    libraryFragment.deferConstantOffsets(unitInfo.libraryConstantOffsets, (
       applier,
     ) {
-      applier.applyToImports(unitElement.libraryImports);
-      applier.applyToExports(unitElement.libraryExports);
-      applier.applyToParts(unitElement.parts);
+      applier.applyToImports(libraryFragment.libraryImports);
+      applier.applyToExports(libraryFragment.libraryExports);
+      applier.applyToParts(libraryFragment.parts);
     });
 
     _applyToAccessors(
-      unitElement.getters.withOriginDeclaration,
+      libraryFragment.getters.withOriginDeclaration,
       unitInfo.topLevelGetters,
     );
     _applyToAccessors(
-      unitElement.setters.withOriginDeclaration,
+      libraryFragment.setters.withOriginDeclaration,
       unitInfo.topLevelSetters,
     );
 
     forCorrespondingPairs(
-      unitElement.classes
-          .where((element) => !element.isMixinApplication)
+      libraryFragment.classes
+          .where((fragment) => !fragment.isMixinApplication)
           .toList(),
       unitInfo.classDeclarations,
       _applyToClassDeclaration,
     );
 
     forCorrespondingPairs(
-      unitElement.classes
-          .where((element) => element.isMixinApplication)
+      libraryFragment.classes
+          .where((fragment) => fragment.isMixinApplication)
           .toList(),
       unitInfo.classTypeAliases,
       _applyToClassTypeAlias,
     );
 
     forCorrespondingPairs(
-      unitElement.enums,
+      libraryFragment.enums,
       unitInfo.enums,
       _applyToEnumDeclaration,
     );
 
     forCorrespondingPairs(
-      unitElement.extensions,
+      libraryFragment.extensions,
       unitInfo.extensions,
       _applyToExtensionDeclaration,
     );
 
     forCorrespondingPairs(
-      unitElement.extensionTypes,
+      libraryFragment.extensionTypes,
       unitInfo.extensionTypes,
       _applyToExtensionTypeDeclaration,
     );
 
     forCorrespondingPairs(
-      unitElement.functions,
+      libraryFragment.functions,
       unitInfo.topLevelFunctions,
       _applyToFunctionDeclaration,
     );
 
     forCorrespondingPairs(
-      unitElement.mixins,
+      libraryFragment.mixins,
       unitInfo.mixinDeclarations,
       _applyToMixinDeclaration,
     );
 
     forCorrespondingPairs(
-      unitElement.topLevelVariables.withOriginDeclaration,
+      libraryFragment.topLevelVariables.withOriginDeclaration,
       unitInfo.topLevelVariable,
       _applyToTopLevelVariable,
     );
 
     forCorrespondingPairs(
-      unitElement.typeAliases.cast<TypeAliasFragmentImpl>().toList(),
+      libraryFragment.typeAliases.cast<TypeAliasFragmentImpl>().toList(),
       unitInfo.typeAliases,
       _applyToTypeAlias,
     );
   }
 
   void _applyToAccessors(
-    List<PropertyAccessorFragmentImpl> elementList,
+    List<PropertyAccessorFragmentImpl> fragmentList,
     List<_InfoExecutableDeclaration> infoList,
   ) {
-    forCorrespondingPairs(elementList.withOriginDeclaration, infoList, (
-      element,
+    forCorrespondingPairs(fragmentList.withOriginDeclaration, infoList, (
+      fragment,
       info,
     ) {
-      element.setCodeRange(info.codeOffset, info.codeLength);
-      element.firstTokenOffset = info.firstTokenOffset;
-      element.nameOffset = info.nameOffset;
-      element.documentationComment = info.documentationComment;
+      fragment.setCodeRange(info.codeOffset, info.codeLength);
+      fragment.firstTokenOffset = info.firstTokenOffset;
+      fragment.nameOffset = info.nameOffset;
+      fragment.documentationComment = info.documentationComment;
 
       DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-        _applyToFormalParameters(element.formalParameters, info.parameters);
+        _applyToFormalParameters(fragment.formalParameters, info.parameters);
       });
 
-      element.deferConstantOffsets(info.constantOffsets, (applier) {
-        applier.applyToMetadata(element.metadata);
-        applier.applyToTypeParameters(element.typeParameters);
-        applier.applyToFormalParameters(element.formalParameters);
+      fragment.deferConstantOffsets(info.constantOffsets, (applier) {
+        applier.applyToMetadata(fragment.metadata);
+        applier.applyToTypeParameters(fragment.typeParameters);
+        applier.applyToFormalParameters(fragment.formalParameters);
       });
     });
   }
 
   void _applyToClassDeclaration(
-    ClassFragmentImpl element,
+    ClassFragmentImpl fragment,
     _InfoClassDeclaration info,
   ) {
-    element.setCodeRange(info.codeOffset, info.codeLength);
-    element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset = info.nameOffset;
-    element.documentationComment = info.documentationComment;
+    fragment.setCodeRange(info.codeOffset, info.codeLength);
+    fragment.firstTokenOffset = info.firstTokenOffset;
+    fragment.nameOffset = info.nameOffset;
+    fragment.documentationComment = info.documentationComment;
 
     DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-      _applyToTypeParameters(element.typeParameters, info.typeParameters);
+      _applyToTypeParameters(fragment.typeParameters, info.typeParameters);
     });
 
-    element.deferConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element.metadata);
-      applier.applyToTypeParameters(element.typeParameters);
+    fragment.deferConstantOffsets(info.constantOffsets, (applier) {
+      applier.applyToMetadata(fragment.metadata);
+      applier.applyToTypeParameters(fragment.typeParameters);
     });
 
-    _scheduleApplyMembersOffsets(element, () {
+    _scheduleApplyMembersOffsets(fragment, () {
       DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-        _applyToConstructors(element.constructors, info.constructors);
-        _applyToFields(element.fields, info.fields);
-        _applyToAccessors(element.getters, info.getters);
-        _applyToAccessors(element.setters, info.setters);
-        _applyToMethods(element.methods, info.methods);
+        _applyToConstructors(fragment.constructors, info.constructors);
+        _applyToFields(fragment.fields, info.fields);
+        _applyToAccessors(fragment.getters, info.getters);
+        _applyToAccessors(fragment.setters, info.setters);
+        _applyToMethods(fragment.methods, info.methods);
       });
     });
   }
 
   void _applyToClassTypeAlias(
-    ClassFragmentImpl element,
+    ClassFragmentImpl fragment,
     _InfoClassTypeAlias info,
   ) {
-    element.setCodeRange(info.codeOffset, info.codeLength);
-    element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset = info.nameOffset;
-    element.documentationComment = info.documentationComment;
+    fragment.setCodeRange(info.codeOffset, info.codeLength);
+    fragment.firstTokenOffset = info.firstTokenOffset;
+    fragment.nameOffset = info.nameOffset;
+    fragment.documentationComment = info.documentationComment;
 
     DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-      _applyToTypeParameters(element.typeParameters, info.typeParameters);
+      _applyToTypeParameters(fragment.typeParameters, info.typeParameters);
     });
 
-    element.deferConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element.metadata);
-      applier.applyToTypeParameters(element.typeParameters);
+    fragment.deferConstantOffsets(info.constantOffsets, (applier) {
+      applier.applyToMetadata(fragment.metadata);
+      applier.applyToTypeParameters(fragment.typeParameters);
     });
   }
 
@@ -246,58 +249,58 @@ class InformativeDataApplier {
   }
 
   void _applyToConstructors(
-    List<ConstructorFragmentImpl> elementList,
+    List<ConstructorFragmentImpl> fragmentList,
     List<_InfoConstructorDeclaration> infoList,
   ) {
-    forCorrespondingPairs(elementList, infoList, (element, info) {
-      element.setCodeRange(info.codeOffset, info.codeLength);
-      element.newKeywordOffset = info.newKeywordOffset;
-      element.factoryKeywordOffset = info.factoryKeywordOffset;
-      element.typeNameOffset = info.typeNameOffset;
-      element.periodOffset = info.periodOffset;
-      element.firstTokenOffset = info.firstTokenOffset;
-      element.nameEnd = info.nameEnd;
-      element.nameOffset = info.nameOffset;
-      element.documentationComment = info.documentationComment;
+    forCorrespondingPairs(fragmentList, infoList, (fragment, info) {
+      fragment.setCodeRange(info.codeOffset, info.codeLength);
+      fragment.newKeywordOffset = info.newKeywordOffset;
+      fragment.factoryKeywordOffset = info.factoryKeywordOffset;
+      fragment.typeNameOffset = info.typeNameOffset;
+      fragment.periodOffset = info.periodOffset;
+      fragment.firstTokenOffset = info.firstTokenOffset;
+      fragment.nameEnd = info.nameEnd;
+      fragment.nameOffset = info.nameOffset;
+      fragment.documentationComment = info.documentationComment;
 
       DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-        _applyToFormalParameters(element.formalParameters, info.parameters);
+        _applyToFormalParameters(fragment.formalParameters, info.parameters);
       });
 
-      element.deferConstantOffsets(info.constantOffsets, (applier) {
-        applier.applyToMetadata(element.metadata);
-        applier.applyToFormalParameters(element.formalParameters);
-        applier.applyToConstructorInitializers(element);
+      fragment.deferConstantOffsets(info.constantOffsets, (applier) {
+        applier.applyToMetadata(fragment.metadata);
+        applier.applyToFormalParameters(fragment.formalParameters);
+        applier.applyToConstructorInitializers(fragment);
       });
     });
   }
 
   void _applyToEnumDeclaration(
-    EnumFragmentImpl element,
+    EnumFragmentImpl fragment,
     _InfoEnumDeclaration info,
   ) {
-    element.setCodeRange(info.codeOffset, info.codeLength);
-    element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset = info.nameOffset;
-    element.documentationComment = info.documentationComment;
+    fragment.setCodeRange(info.codeOffset, info.codeLength);
+    fragment.firstTokenOffset = info.firstTokenOffset;
+    fragment.nameOffset = info.nameOffset;
+    fragment.documentationComment = info.documentationComment;
 
     DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-      _applyToTypeParameters(element.typeParameters, info.typeParameters);
+      _applyToTypeParameters(fragment.typeParameters, info.typeParameters);
     });
 
-    _scheduleApplyMembersOffsets(element, () {
+    _scheduleApplyMembersOffsets(fragment, () {
       DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-        _applyToConstructors(element.constructors, info.constructors);
-        _applyToFields(element.fields, info.fields);
-        _applyToAccessors(element.getters, info.getters);
-        _applyToAccessors(element.setters, info.setters);
-        _applyToMethods(element.methods, info.methods);
+        _applyToConstructors(fragment.constructors, info.constructors);
+        _applyToFields(fragment.fields, info.fields);
+        _applyToAccessors(fragment.getters, info.getters);
+        _applyToAccessors(fragment.setters, info.setters);
+        _applyToMethods(fragment.methods, info.methods);
       });
     });
 
-    element.deferConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element.metadata);
-      applier.applyToTypeParameters(element.typeParameters);
+    fragment.deferConstantOffsets(info.constantOffsets, (applier) {
+      applier.applyToMetadata(fragment.metadata);
+      applier.applyToTypeParameters(fragment.typeParameters);
     });
   }
 
@@ -309,78 +312,78 @@ class InformativeDataApplier {
   }
 
   void _applyToExtensionDeclaration(
-    ExtensionFragmentImpl element,
+    ExtensionFragmentImpl fragment,
     _InfoExtensionDeclaration info,
   ) {
-    element.setCodeRange(info.codeOffset, info.codeLength);
-    element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset = info.nameOffset;
-    element.documentationComment = info.documentationComment;
+    fragment.setCodeRange(info.codeOffset, info.codeLength);
+    fragment.firstTokenOffset = info.firstTokenOffset;
+    fragment.nameOffset = info.nameOffset;
+    fragment.documentationComment = info.documentationComment;
 
     DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-      _applyToTypeParameters(element.typeParameters, info.typeParameters);
+      _applyToTypeParameters(fragment.typeParameters, info.typeParameters);
     });
 
-    _scheduleApplyMembersOffsets(element, () {
+    _scheduleApplyMembersOffsets(fragment, () {
       DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-        _applyToFields(element.fields, info.fields);
-        _applyToAccessors(element.getters, info.getters);
-        _applyToAccessors(element.setters, info.setters);
-        _applyToMethods(element.methods, info.methods);
+        _applyToFields(fragment.fields, info.fields);
+        _applyToAccessors(fragment.getters, info.getters);
+        _applyToAccessors(fragment.setters, info.setters);
+        _applyToMethods(fragment.methods, info.methods);
       });
     });
 
-    element.deferConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element.metadata);
-      applier.applyToTypeParameters(element.typeParameters);
+    fragment.deferConstantOffsets(info.constantOffsets, (applier) {
+      applier.applyToMetadata(fragment.metadata);
+      applier.applyToTypeParameters(fragment.typeParameters);
     });
   }
 
   void _applyToExtensionTypeDeclaration(
-    ExtensionTypeFragmentImpl element,
+    ExtensionTypeFragmentImpl fragment,
     _InfoExtensionTypeDeclaration info,
   ) {
-    element.setCodeRange(info.codeOffset, info.codeLength);
-    element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset = info.nameOffset;
-    element.documentationComment = info.documentationComment;
+    fragment.setCodeRange(info.codeOffset, info.codeLength);
+    fragment.firstTokenOffset = info.firstTokenOffset;
+    fragment.nameOffset = info.nameOffset;
+    fragment.documentationComment = info.documentationComment;
 
     DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-      _applyToTypeParameters(element.typeParameters, info.typeParameters);
+      _applyToTypeParameters(fragment.typeParameters, info.typeParameters);
     });
 
-    _scheduleApplyMembersOffsets(element, () {
+    _scheduleApplyMembersOffsets(fragment, () {
       DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-        _applyToFields(element.fields, info.fields);
-        _applyToConstructors(element.constructors, info.constructors);
-        _applyToAccessors(element.getters, info.getters);
-        _applyToAccessors(element.setters, info.setters);
-        _applyToMethods(element.methods, info.methods);
+        _applyToFields(fragment.fields, info.fields);
+        _applyToConstructors(fragment.constructors, info.constructors);
+        _applyToAccessors(fragment.getters, info.getters);
+        _applyToAccessors(fragment.setters, info.setters);
+        _applyToMethods(fragment.methods, info.methods);
       });
     });
 
-    element.deferConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element.metadata);
-      applier.applyToTypeParameters(element.typeParameters);
+    fragment.deferConstantOffsets(info.constantOffsets, (applier) {
+      applier.applyToMetadata(fragment.metadata);
+      applier.applyToTypeParameters(fragment.typeParameters);
     });
   }
 
   void _applyToFields(
-    List<FieldFragmentImpl> elementList,
+    List<FieldFragmentImpl> fragmentList,
     List<_InfoFieldDeclaration> infoList,
   ) {
-    forCorrespondingPairs(elementList.withOriginDeclaration, infoList, (
-      element,
+    forCorrespondingPairs(fragmentList.withOriginDeclaration, infoList, (
+      fragment,
       info,
     ) {
-      element.setCodeRange(info.codeOffset, info.codeLength);
-      element.firstTokenOffset = info.firstTokenOffset;
-      element.nameOffset = info.nameOffset;
-      element.documentationComment = info.documentationComment;
+      fragment.setCodeRange(info.codeOffset, info.codeLength);
+      fragment.firstTokenOffset = info.firstTokenOffset;
+      fragment.nameOffset = info.nameOffset;
+      fragment.documentationComment = info.documentationComment;
 
-      element.deferConstantOffsets(info.constantOffsets, (applier) {
-        applier.applyToMetadata(element.metadata);
-        applier.applyToConstantInitializer(element);
+      fragment.deferConstantOffsets(info.constantOffsets, (applier) {
+        applier.applyToMetadata(fragment.metadata);
+        applier.applyToConstantInitializer(fragment);
       });
     });
   }
@@ -390,33 +393,33 @@ class InformativeDataApplier {
     List<_InfoFormalParameter> infoList,
   ) {
     parameters = parameters.where((p) => p.isOriginDeclaration).toList();
-    forCorrespondingPairs(parameters, infoList, (element, info) {
-      element.setCodeRange(info.codeOffset, info.codeLength);
-      element.firstTokenOffset = info.firstTokenOffset;
-      element.nameOffset = info.nameOffset;
-      _applyToTypeParameters(element.typeParameters, info.typeParameters);
-      _applyToFormalParameters(element.formalParameters, info.parameters);
+    forCorrespondingPairs(parameters, infoList, (fragment, info) {
+      fragment.setCodeRange(info.codeOffset, info.codeLength);
+      fragment.firstTokenOffset = info.firstTokenOffset;
+      fragment.nameOffset = info.nameOffset;
+      _applyToTypeParameters(fragment.typeParameters, info.typeParameters);
+      _applyToFormalParameters(fragment.formalParameters, info.parameters);
     });
   }
 
   void _applyToFunctionDeclaration(
-    TopLevelFunctionFragmentImpl element,
+    TopLevelFunctionFragmentImpl fragment,
     _InfoExecutableDeclaration info,
   ) {
-    element.setCodeRange(info.codeOffset, info.codeLength);
-    element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset = info.nameOffset;
-    element.documentationComment = info.documentationComment;
+    fragment.setCodeRange(info.codeOffset, info.codeLength);
+    fragment.firstTokenOffset = info.firstTokenOffset;
+    fragment.nameOffset = info.nameOffset;
+    fragment.documentationComment = info.documentationComment;
 
     DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-      _applyToTypeParameters(element.typeParameters, info.typeParameters);
-      _applyToFormalParameters(element.formalParameters, info.parameters);
+      _applyToTypeParameters(fragment.typeParameters, info.typeParameters);
+      _applyToFormalParameters(fragment.formalParameters, info.parameters);
     });
 
-    element.deferConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element.metadata);
-      applier.applyToTypeParameters(element.typeParameters);
-      applier.applyToFormalParameters(element.formalParameters);
+    fragment.deferConstantOffsets(info.constantOffsets, (applier) {
+      applier.applyToMetadata(fragment.metadata);
+      applier.applyToTypeParameters(fragment.typeParameters);
+      applier.applyToFormalParameters(fragment.formalParameters);
     });
   }
 
@@ -442,54 +445,54 @@ class InformativeDataApplier {
   }
 
   void _applyToMethods(
-    List<MethodFragmentImpl> elementList,
+    List<MethodFragmentImpl> fragmentList,
     List<_InfoExecutableDeclaration> infoList,
   ) {
-    forCorrespondingPairs(elementList, infoList, (element, info) {
-      element.setCodeRange(info.codeOffset, info.codeLength);
-      element.firstTokenOffset = info.firstTokenOffset;
-      element.nameOffset = info.nameOffset;
-      element.documentationComment = info.documentationComment;
+    forCorrespondingPairs(fragmentList, infoList, (fragment, info) {
+      fragment.setCodeRange(info.codeOffset, info.codeLength);
+      fragment.firstTokenOffset = info.firstTokenOffset;
+      fragment.nameOffset = info.nameOffset;
+      fragment.documentationComment = info.documentationComment;
 
       DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-        _applyToTypeParameters(element.typeParameters, info.typeParameters);
-        _applyToFormalParameters(element.formalParameters, info.parameters);
+        _applyToTypeParameters(fragment.typeParameters, info.typeParameters);
+        _applyToFormalParameters(fragment.formalParameters, info.parameters);
       });
 
-      element.deferConstantOffsets(info.constantOffsets, (applier) {
-        applier.applyToMetadata(element.metadata);
-        applier.applyToTypeParameters(element.typeParameters);
-        applier.applyToFormalParameters(element.formalParameters);
+      fragment.deferConstantOffsets(info.constantOffsets, (applier) {
+        applier.applyToMetadata(fragment.metadata);
+        applier.applyToTypeParameters(fragment.typeParameters);
+        applier.applyToFormalParameters(fragment.formalParameters);
       });
     });
   }
 
   void _applyToMixinDeclaration(
-    MixinFragmentImpl element,
+    MixinFragmentImpl fragment,
     _InfoMixinDeclaration info,
   ) {
-    element.setCodeRange(info.codeOffset, info.codeLength);
-    element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset = info.nameOffset;
-    element.documentationComment = info.documentationComment;
+    fragment.setCodeRange(info.codeOffset, info.codeLength);
+    fragment.firstTokenOffset = info.firstTokenOffset;
+    fragment.nameOffset = info.nameOffset;
+    fragment.documentationComment = info.documentationComment;
 
     DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-      _applyToTypeParameters(element.typeParameters, info.typeParameters);
+      _applyToTypeParameters(fragment.typeParameters, info.typeParameters);
     });
 
-    _scheduleApplyMembersOffsets(element, () {
+    _scheduleApplyMembersOffsets(fragment, () {
       DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-        _applyToConstructors(element.constructors, info.constructors);
-        _applyToFields(element.fields, info.fields);
-        _applyToAccessors(element.getters, info.getters);
-        _applyToAccessors(element.setters, info.setters);
-        _applyToMethods(element.methods, info.methods);
+        _applyToConstructors(fragment.constructors, info.constructors);
+        _applyToFields(fragment.fields, info.fields);
+        _applyToAccessors(fragment.getters, info.getters);
+        _applyToAccessors(fragment.setters, info.setters);
+        _applyToMethods(fragment.methods, info.methods);
       });
     });
 
-    element.deferConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element.metadata);
-      applier.applyToTypeParameters(element.typeParameters);
+    fragment.deferConstantOffsets(info.constantOffsets, (applier) {
+      applier.applyToMetadata(fragment.metadata);
+      applier.applyToTypeParameters(fragment.typeParameters);
     });
   }
 
@@ -500,41 +503,41 @@ class InformativeDataApplier {
   }
 
   void _applyToTopLevelVariable(
-    TopLevelVariableFragmentImpl element,
+    TopLevelVariableFragmentImpl fragment,
     _InfoTopLevelVariable info,
   ) {
-    element.setCodeRange(info.codeOffset, info.codeLength);
-    element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset = info.nameOffset;
-    element.documentationComment = info.documentationComment;
+    fragment.setCodeRange(info.codeOffset, info.codeLength);
+    fragment.firstTokenOffset = info.firstTokenOffset;
+    fragment.nameOffset = info.nameOffset;
+    fragment.documentationComment = info.documentationComment;
 
-    element.deferConstantOffsets(info.constantOffsets, (applier) {
-      applier.applyToMetadata(element.metadata);
-      applier.applyToConstantInitializer(element);
+    fragment.deferConstantOffsets(info.constantOffsets, (applier) {
+      applier.applyToMetadata(fragment.metadata);
+      applier.applyToConstantInitializer(fragment);
     });
   }
 
-  void _applyToTypeAlias(TypeAliasFragmentImpl element, _InfoTypeAlias info) {
-    element.setCodeRange(info.codeOffset, info.codeLength);
-    element.firstTokenOffset = info.firstTokenOffset;
-    element.nameOffset = info.nameOffset;
-    element.documentationComment = info.documentationComment;
+  void _applyToTypeAlias(TypeAliasFragmentImpl fragment, _InfoTypeAlias info) {
+    fragment.setCodeRange(info.codeOffset, info.codeLength);
+    fragment.firstTokenOffset = info.firstTokenOffset;
+    fragment.nameOffset = info.nameOffset;
+    fragment.documentationComment = info.documentationComment;
 
     DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-      _applyToTypeParameters(element.typeParameters, info.typeParameters);
+      _applyToTypeParameters(fragment.typeParameters, info.typeParameters);
     });
 
-    _setupApplyConstantOffsetsForTypeAlias(element, info.constantOffsets);
+    _setupApplyConstantOffsetsForTypeAlias(fragment, info.constantOffsets);
   }
 
   void _applyToTypeParameters(
-    List<TypeParameterFragmentImpl> elementList,
+    List<TypeParameterFragmentImpl> fragmentList,
     List<_InfoTypeParameter> infoList,
   ) {
-    forCorrespondingPairs(elementList, infoList, (element, info) {
-      element.setCodeRange(info.codeOffset, info.codeLength);
-      element.firstTokenOffset = info.firstTokenOffset;
-      element.nameOffset = info.nameOffset;
+    forCorrespondingPairs(fragmentList, infoList, (fragment, info) {
+      fragment.setCodeRange(info.codeOffset, info.codeLength);
+      fragment.firstTokenOffset = info.firstTokenOffset;
+      fragment.nameOffset = info.nameOffset;
     });
   }
 
@@ -551,12 +554,12 @@ class InformativeDataApplier {
   }
 
   void _setupApplyConstantOffsetsForTypeAlias(
-    TypeAliasFragmentImpl element,
+    TypeAliasFragmentImpl fragment,
     Uint32List constantOffsets,
   ) {
-    element.deferConstantOffsets(constantOffsets, (applier) {
-      applier.applyToMetadata(element.metadata);
-      applier.applyToTypeParameters(element.typeParameters);
+    fragment.deferConstantOffsets(constantOffsets, (applier) {
+      applier.applyToMetadata(fragment.metadata);
+      applier.applyToTypeParameters(fragment.typeParameters);
     });
   }
 }
@@ -1764,16 +1767,16 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
 
   _OffsetsApplier(this._iterator);
 
-  void applyToConstantInitializer(FragmentImpl element) {
-    if (element is FieldFragmentImpl && element.isEnumConstant) {
-      _applyToEnumConstantInitializer(element);
-    } else if (element is VariableFragmentImpl) {
-      element.constantInitializer?.accept(this);
+  void applyToConstantInitializer(FragmentImpl fragment) {
+    if (fragment is FieldFragmentImpl && fragment.isEnumConstant) {
+      _applyToEnumConstantInitializer(fragment);
+    } else if (fragment is VariableFragmentImpl) {
+      fragment.constantInitializer?.accept(this);
     }
   }
 
-  void applyToConstructorInitializers(ConstructorFragmentImpl element) {
-    for (var initializer in element.constantInitializers) {
+  void applyToConstructorInitializers(ConstructorFragmentImpl fragment) {
+    for (var initializer in fragment.constantInitializers) {
       initializer.accept(this);
     }
   }
@@ -1866,8 +1869,8 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     super.visitSimpleIdentifier(node);
   }
 
-  void _applyToEnumConstantInitializer(FieldFragmentImpl element) {
-    var initializer = element.constantInitializer;
+  void _applyToEnumConstantInitializer(FieldFragmentImpl fragment) {
+    var initializer = fragment.constantInitializer;
     if (initializer is InstanceCreationExpressionImpl) {
       initializer.constructorName.type.typeArguments?.accept(this);
       initializer.argumentList.accept(this);

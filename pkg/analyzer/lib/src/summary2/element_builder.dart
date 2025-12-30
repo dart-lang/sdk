@@ -972,7 +972,7 @@ class ElementBuilder {
 
 class FragmentBuilder extends ThrowingAstVisitor<void> {
   final LibraryBuilder _libraryBuilder;
-  final LibraryFragmentImpl _unitElement;
+  final LibraryFragmentImpl _libraryFragment;
 
   var _exportDirectiveIndex = 0;
   var _importDirectiveIndex = 0;
@@ -982,10 +982,10 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
   FragmentBuilder({
     required LibraryBuilder libraryBuilder,
-    required LibraryFragmentImpl unitElement,
+    required LibraryFragmentImpl libraryFragment,
   }) : _libraryBuilder = libraryBuilder,
-       _unitElement = unitElement,
-       _enclosingContext = _EnclosingContext(fragment: unitElement);
+       _libraryFragment = libraryFragment,
+       _enclosingContext = _EnclosingContext(fragment: libraryFragment);
 
   Linker get _linker => _libraryBuilder.linker;
 
@@ -993,7 +993,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     unit.declarations.accept(this);
   }
 
-  /// Builds exports and imports, metadata into [_unitElement].
+  /// Builds exports and imports, metadata into [_libraryFragment].
   void buildDirectives(CompilationUnitImpl unit) {
     unit.directives.accept(this);
   }
@@ -1065,7 +1065,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
-    _libraryBuilder.addTopFragment(_unitElement, fragment);
+    _libraryBuilder.addTopFragment(_libraryFragment, fragment);
 
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
@@ -1100,7 +1100,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
-    _libraryBuilder.addTopFragment(_unitElement, fragment);
+    _libraryBuilder.addTopFragment(_libraryFragment, fragment);
 
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
@@ -1163,7 +1163,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
-    _libraryBuilder.addTopFragment(_unitElement, fragment);
+    _libraryBuilder.addTopFragment(_libraryFragment, fragment);
 
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
@@ -1319,7 +1319,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   @override
   void visitExportDirective(covariant ExportDirectiveImpl node) {
     var index = _exportDirectiveIndex++;
-    var exportElement = _unitElement.libraryExports[index];
+    var exportElement = _libraryFragment.libraryExports[index];
     exportElement.metadata = _buildMetadata(node.metadata);
     node.libraryExport = exportElement;
   }
@@ -1341,7 +1341,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
-    _libraryBuilder.addTopFragment(_unitElement, fragment);
+    _libraryBuilder.addTopFragment(_libraryFragment, fragment);
 
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
@@ -1372,7 +1372,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
-    _libraryBuilder.addTopFragment(_unitElement, fragment);
+    _libraryBuilder.addTopFragment(_libraryFragment, fragment);
 
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
@@ -1503,20 +1503,20 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       getterFragment.isOriginDeclaration = true;
       getterFragment.isStatic = true;
 
-      getterFragment.enclosingFragment = _unitElement;
+      getterFragment.enclosingFragment = _libraryFragment;
       executableFragment = getterFragment;
 
-      _libraryBuilder.addTopFragment(_unitElement, getterFragment);
+      _libraryBuilder.addTopFragment(_libraryFragment, getterFragment);
     } else if (node.isSetter) {
       var setterFragment = SetterFragmentImpl(name: name2);
       setterFragment.isAugmentation = node.augmentKeyword != null;
       setterFragment.isOriginDeclaration = true;
       setterFragment.isStatic = true;
 
-      setterFragment.enclosingFragment = _unitElement;
+      setterFragment.enclosingFragment = _libraryFragment;
       executableFragment = setterFragment;
 
-      _libraryBuilder.addTopFragment(_unitElement, setterFragment);
+      _libraryBuilder.addTopFragment(_libraryFragment, setterFragment);
     } else {
       var fragment = TopLevelFunctionFragmentImpl(name: name2);
       fragment.isAugmentation = node.augmentKeyword != null;
@@ -1524,7 +1524,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       fragment.isStatic = true;
       executableFragment = fragment;
 
-      _libraryBuilder.addTopFragment(_unitElement, fragment);
+      _libraryBuilder.addTopFragment(_libraryFragment, fragment);
     }
 
     executableFragment.hasImplicitReturnType = node.returnType == null;
@@ -1559,7 +1559,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
-    _libraryBuilder.addTopFragment(_unitElement, fragment);
+    _libraryBuilder.addTopFragment(_libraryFragment, fragment);
 
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
@@ -1621,7 +1621,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   @override
   void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
     var fragment = GenericFunctionTypeFragmentImpl();
-    _unitElement.encloseElement(fragment);
+    _libraryFragment.encloseElement(fragment);
 
     node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
@@ -1657,7 +1657,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
-    _libraryBuilder.addTopFragment(_unitElement, fragment);
+    _libraryBuilder.addTopFragment(_libraryFragment, fragment);
 
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
@@ -1675,7 +1675,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   @override
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     var index = _importDirectiveIndex++;
-    var importElement = _unitElement.libraryImports[index];
+    var importElement = _libraryFragment.libraryImports[index];
     importElement.metadata = _buildMetadata(node.metadata);
     node.libraryImport = importElement;
   }
@@ -1746,7 +1746,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
-    _libraryBuilder.addTopFragment(_unitElement, fragment);
+    _libraryBuilder.addTopFragment(_libraryFragment, fragment);
 
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
@@ -1777,7 +1777,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   @override
   void visitPartDirective(covariant PartDirectiveImpl node) {
     var index = _partDirectiveIndex++;
-    var partElement = _unitElement.parts[index];
+    var partElement = _libraryFragment.parts[index];
     partElement.metadata = _buildMetadata(node.metadata);
     node.partInclude = partElement;
   }
@@ -2004,7 +2004,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         fragment.hasImplicitType = true;
       }
 
-      _libraryBuilder.addTopFragment(_unitElement, fragment);
+      _libraryBuilder.addTopFragment(_libraryFragment, fragment);
 
       _linker.elementNodes[fragment] = variable;
       variable.declaredFragment = fragment;
@@ -2074,7 +2074,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     return MetadataImpl(
       List.generate(
         length,
-        (index) => ElementAnnotationImpl(_unitElement, nodeList[index]),
+        (index) => ElementAnnotationImpl(_libraryFragment, nodeList[index]),
         growable: false,
       ),
     );

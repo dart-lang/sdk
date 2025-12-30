@@ -265,17 +265,17 @@ class AstBinaryReader {
       defaultValue: defaultValue,
     );
 
-    var nonDefaultElement = parameter.declaredFragment!;
+    var nonDefaultFragment = parameter.declaredFragment!;
     var fragment = FormalParameterFragmentImpl(
-      name: nonDefaultElement.name,
-      nameOffset: nonDefaultElement.nameOffset,
+      name: nonDefaultFragment.name,
+      nameOffset: nonDefaultFragment.nameOffset,
       parameterKind: kind,
     );
     if (parameter is SimpleFormalParameterImpl) {
       parameter.declaredFragment = fragment;
     }
     node.declaredFragment = fragment;
-    fragment.element.type = nonDefaultElement.element.type;
+    fragment.element.type = nonDefaultFragment.element.type;
 
     return node;
   }

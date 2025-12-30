@@ -639,40 +639,40 @@ class BundleWriter {
   /// Write a formal parameter fragment in the signature of a top-level
   /// function, constructor, method, getter, or setter declaration.
   // TODO(scheglov): Deduplicate parameter writing implementation.
-  void _writeParameterElement(FormalParameterFragmentImpl element) {
-    _writeFragmentId(element);
-    _writeFragmentName(element);
-    _sink.writeBool(element.isInitializingFormal);
-    _sink.writeBool(element.isSuperFormal);
-    _sink._writeFormalParameterKind(element);
+  void _writeParameterElement(FormalParameterFragmentImpl fragment) {
+    _writeFragmentId(fragment);
+    _writeFragmentName(fragment);
+    _sink.writeBool(fragment.isInitializingFormal);
+    _sink.writeBool(fragment.isSuperFormal);
+    _sink._writeFormalParameterKind(fragment);
 
-    if (element is FieldFormalParameterFragmentImpl) {
-      _sink.writeOptionalStringReference(element.privateName);
+    if (fragment is FieldFormalParameterFragmentImpl) {
+      _sink.writeOptionalStringReference(fragment.privateName);
     }
 
-    element.writeModifiers(_sink);
+    fragment.writeModifiers(_sink);
 
-    _resolutionSink._writeMetadata(element.metadata);
+    _resolutionSink._writeMetadata(fragment.metadata);
 
-    _writeTypeParameters(element.typeParameters, () {
-      _sink.writeList(element.formalParameters, _writeParameterElement);
-      _resolutionSink.writeBool(element.element.inheritsCovariant);
-      _resolutionSink.writeType(element.element.type);
-      _resolutionSink._writeOptionalNode(element.constantInitializer);
+    _writeTypeParameters(fragment.typeParameters, () {
+      _sink.writeList(fragment.formalParameters, _writeParameterElement);
+      _resolutionSink.writeBool(fragment.element.inheritsCovariant);
+      _resolutionSink.writeType(fragment.element.type);
+      _resolutionSink._writeOptionalNode(fragment.constantInitializer);
 
-      if (element is FieldFormalParameterFragmentImpl) {
+      if (fragment is FieldFormalParameterFragmentImpl) {
         // TODO(scheglov): formal parameter types? Anything else?
-        _resolutionSink.writeElement(element.element.field);
+        _resolutionSink.writeElement(fragment.element.field);
       }
     });
   }
 
-  /// We write metadata here, to keep it inside [unitElement] resolution
+  /// We write metadata here, to keep it inside [libraryFragment] resolution
   /// data, because [_writePartInclude] recursively writes included unit
   /// elements. But the bundle reader wants all metadata for `parts`
   /// sequentially.
-  void _writePartElementsMetadata(LibraryFragmentImpl unitElement) {
-    for (var element in unitElement.parts) {
+  void _writePartElementsMetadata(LibraryFragmentImpl libraryFragment) {
+    for (var element in libraryFragment.parts) {
       _resolutionSink._writeMetadata(element.metadata);
     }
   }
@@ -819,37 +819,40 @@ class BundleWriter {
     });
   }
 
-  void _writeUnitElement(LibraryFragmentImpl unitElement) {
+  void _writeUnitElement(LibraryFragmentImpl libraryFragment) {
     _writeResolutionOffset();
 
     // ignore: deprecated_member_use_from_same_package
-    _sink.writeBool(unitElement.isSynthetic);
+    _sink.writeBool(libraryFragment.isSynthetic);
 
-    _sink.writeList(unitElement.libraryImports, _writeLibraryImport);
-    _sink.writeList(unitElement.libraryExports, _writeLibraryExport);
+    _sink.writeList(libraryFragment.libraryImports, _writeLibraryImport);
+    _sink.writeList(libraryFragment.libraryExports, _writeLibraryExport);
 
     // Write the metadata for parts here, even though we write parts below.
     // The reason is that resolution data must be in a single chunk.
-    _writePartElementsMetadata(unitElement);
+    _writePartElementsMetadata(libraryFragment);
 
-    _sink.writeList(unitElement.classes, _writeClassFragment);
-    _sink.writeList(unitElement.enums, _writeEnumFragment);
-    _sink.writeList(unitElement.extensions, _writeExtensionFragment);
-    _sink.writeList(unitElement.extensionTypes, _writeExtensionTypeFragment);
-    _sink.writeList(unitElement.functions, _writeTopLevelFunctionFragment);
-    _sink.writeList(unitElement.mixins, _writeMixinFragment);
-    _sink.writeList(unitElement.typeAliases, _writeTypeAliasFragment);
+    _sink.writeList(libraryFragment.classes, _writeClassFragment);
+    _sink.writeList(libraryFragment.enums, _writeEnumFragment);
+    _sink.writeList(libraryFragment.extensions, _writeExtensionFragment);
+    _sink.writeList(
+      libraryFragment.extensionTypes,
+      _writeExtensionTypeFragment,
+    );
+    _sink.writeList(libraryFragment.functions, _writeTopLevelFunctionFragment);
+    _sink.writeList(libraryFragment.mixins, _writeMixinFragment);
+    _sink.writeList(libraryFragment.typeAliases, _writeTypeAliasFragment);
 
     _sink.writeList(
-      unitElement.topLevelVariables,
+      libraryFragment.topLevelVariables,
       _writeTopLevelVariableFragment,
     );
-    _sink.writeList(unitElement.getters, _writeGetterFragment);
-    _sink.writeList(unitElement.setters, _writeSetterFragment);
+    _sink.writeList(libraryFragment.getters, _writeGetterFragment);
+    _sink.writeList(libraryFragment.setters, _writeSetterFragment);
 
     // Write parts after this library fragment, so that when we read, we
     // process fragments of declarations in the same order as we build them.
-    _sink.writeList(unitElement.parts, _writePartInclude);
+    _sink.writeList(libraryFragment.parts, _writePartInclude);
   }
 
   void _writeVariableGetterSetterLinking(
@@ -1022,29 +1025,11 @@ class ResolutionSink extends BinaryWriter {
   }
 
   /// Write the formal parameter list for a function type annotation.
-  void _writeFormalParameters2(
-    List<InternalFormalParameterElement> parameters, {
-    required bool withAnnotations,
-  }) {
+  void _writeFormalParameters(List<InternalFormalParameterElement> parameters) {
     writeList(parameters, (parameter) {
+      _writeElementName(parameter);
       _writeFormalParameterKind2(parameter);
-      writeBool(parameter.hasImplicitType);
-      writeBool(parameter.isInitializingFormal);
-      _writeTypeParameters2(parameter.typeParameters, () {
-        writeType(parameter.type);
-        _writeElementName(parameter);
-        if (parameter.baseElement
-            case FieldFormalParameterElementImpl fieldFormal) {
-          writeOptionalStringReference(fieldFormal.privateName);
-        }
-        _writeFormalParameters2(
-          parameter.formalParameters.cast(),
-          withAnnotations: withAnnotations,
-        );
-      }, withAnnotations: withAnnotations);
-      if (withAnnotations) {
-        _writeMetadata(parameter.metadata);
-      }
+      writeType(parameter.type);
     });
   }
 
@@ -1055,7 +1040,7 @@ class ResolutionSink extends BinaryWriter {
 
     _writeTypeParameters2(type.typeParameters, () {
       writeType(type.returnType);
-      _writeFormalParameters2(type.formalParameters, withAnnotations: false);
+      _writeFormalParameters(type.formalParameters);
     }, withAnnotations: false);
     _writeNullabilitySuffix(type.nullabilitySuffix);
   }

@@ -15,11 +15,11 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   final Linker _linker;
   final Scope _containerScope;
   final LibraryBuilder _libraryBuilder;
-  final LibraryFragmentImpl _unitElement;
+  final LibraryFragmentImpl _libraryFragment;
   late Scope _scope;
 
-  MetadataResolver(this._linker, this._unitElement, this._libraryBuilder)
-    : _containerScope = _unitElement.scope {
+  MetadataResolver(this._linker, this._libraryFragment, this._libraryBuilder)
+    : _containerScope = _libraryFragment.scope {
     _scope = _containerScope;
   }
 
@@ -30,7 +30,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
       var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
       var astResolver = AstResolver(
         _linker,
-        _unitElement,
+        _libraryFragment,
         _scope,
         analysisOptions,
       );

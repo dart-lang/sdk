@@ -145,11 +145,11 @@ class LibraryAnalyzer {
   AnalysisForCompletionResult analyzeForCompletion({
     required FileState file,
     required int offset,
-    required LibraryFragmentImpl unitElement,
+    required LibraryFragmentImpl libraryFragment,
     required OperationPerformanceImpl performance,
   }) {
     var fileAnalysis = performance.run('parse', (performance) {
-      return _parse(file: file, unitElement: unitElement);
+      return _parse(file: file, libraryFragment: libraryFragment);
     });
     var parsedUnit = fileAnalysis.unit;
     var node = parsedUnit.nodeCovering(offset: offset);
@@ -164,13 +164,13 @@ class LibraryAnalyzer {
       // TODO(scheglov): We don't need to do this for the whole unit.
       parsedUnit.accept(
         ResolutionVisitor(
-          unitElement: unitElement,
+          libraryFragment: libraryFragment,
           diagnosticListener: diagnosticListener,
-          nameScope: unitElement.scope,
+          nameScope: libraryFragment.scope,
           strictInference: _analysisOptions.strictInference,
           strictCasts: _analysisOptions.strictCasts,
           elementWalker: ElementWalker.forCompilationUnit(
-            unitElement,
+            libraryFragment,
             libraryFilePath: _library.file.path,
             unitFilePath: file.path,
           ),
@@ -186,7 +186,7 @@ class LibraryAnalyzer {
       parsedUnit.accept(
         ScopeResolverVisitor(
           fileAnalysis.diagnosticReporter,
-          nameScope: unitElement.scope,
+          nameScope: libraryFragment.scope,
         ),
       );
 
@@ -212,7 +212,7 @@ class LibraryAnalyzer {
         featureSet: _libraryElement.featureSet,
         analysisOptions: _library.file.analysisOptions,
         flowAnalysisHelper: flowAnalysisHelper,
-        libraryFragment: unitElement,
+        libraryFragment: libraryFragment,
         typeAnalyzerOptions: typeAnalyzerOptions,
       );
       _testingData?.recordTypeConstraintGenerationDataForTesting(
@@ -256,9 +256,9 @@ class LibraryAnalyzer {
     var libraryAnalysis = _libraryFiles.values.first;
     var libraryOverrideToken = libraryAnalysis.unit.languageVersionToken;
 
-    var elementToAnalysis = <LibraryFragmentImpl, FileAnalysis>{};
+    var fragmentToAnalysis = <LibraryFragmentImpl, FileAnalysis>{};
     for (var fileAnalysis in _libraryFiles.values) {
-      elementToAnalysis[fileAnalysis.element] = fileAnalysis;
+      fragmentToAnalysis[fileAnalysis.fragment] = fileAnalysis;
     }
 
     void visitPartDirectives(FileAnalysis container) {
@@ -266,7 +266,7 @@ class LibraryAnalyzer {
         if (directive is PartDirectiveImpl) {
           var uri = directive.partInclude?.uri;
           if (uri is DirectiveUriWithUnitImpl) {
-            var part = elementToAnalysis[uri.libraryFragment];
+            var part = fragmentToAnalysis[uri.libraryFragment];
             if (part != null) {
               var shouldReport = false;
               var partOverrideToken = part.unit.languageVersionToken;
@@ -649,14 +649,14 @@ class LibraryAnalyzer {
   /// Return a new parsed unresolved [CompilationUnit].
   FileAnalysis _parse({
     required FileState file,
-    required LibraryFragmentImpl unitElement,
+    required LibraryFragmentImpl libraryFragment,
   }) {
     var diagnosticListener = RecordingDiagnosticListener();
     var unit = file.parse(
       diagnosticListener: diagnosticListener,
       performance: OperationPerformanceImpl('<root>'),
     );
-    unit.declaredFragment = unitElement;
+    unit.declaredFragment = libraryFragment;
 
     // TODO(scheglov): Store [IgnoreInfo] as unlinked data.
 
@@ -664,7 +664,7 @@ class LibraryAnalyzer {
       file: file,
       diagnosticListener: diagnosticListener,
       unit: unit,
-      element: unitElement,
+      fragment: libraryFragment,
     );
     _libraryFiles[file] = result;
     return result;
@@ -675,7 +675,7 @@ class LibraryAnalyzer {
     _resolveDirectives(
       enclosingFile: null,
       fileKind: _library,
-      fileElement: _libraryElement.firstFragment,
+      fileFragment: _libraryElement.firstFragment,
     );
 
     for (var fileAnalysis in _libraryFiles.values) {
@@ -684,7 +684,7 @@ class LibraryAnalyzer {
 
     // Stop tracking usages by scopes.
     for (var fileAnalysis in _libraryFiles.values) {
-      var scope = fileAnalysis.element.scope;
+      var scope = fileAnalysis.fragment.scope;
       scope.importsTrackingDestroy();
     }
 
@@ -744,9 +744,12 @@ class LibraryAnalyzer {
   void _resolveDirectives({
     required FileAnalysis? enclosingFile,
     required FileKind fileKind,
-    required LibraryFragmentImpl fileElement,
+    required LibraryFragmentImpl fileFragment,
   }) {
-    var fileAnalysis = _parse(file: fileKind.file, unitElement: fileElement);
+    var fileAnalysis = _parse(
+      file: fileKind.file,
+      libraryFragment: fileFragment,
+    );
     var containerUnit = fileAnalysis.unit;
 
     var containerDiagnosticReporter = fileAnalysis.diagnosticReporter;
@@ -760,7 +763,7 @@ class LibraryAnalyzer {
         var index = libraryExportIndex++;
         _resolveLibraryExportDirective(
           directive: directive,
-          element: fileElement.libraryExports[index],
+          element: fileFragment.libraryExports[index],
           state: fileKind.libraryExports[index],
           diagnosticReporter: containerDiagnosticReporter,
         );
@@ -768,7 +771,7 @@ class LibraryAnalyzer {
         var index = libraryImportIndex++;
         _resolveLibraryImportDirective(
           directive: directive,
-          element: fileElement.libraryImports[index],
+          element: fileFragment.libraryImports[index],
           state: fileKind.libraryImports[index],
           diagnosticReporter: containerDiagnosticReporter,
         );
@@ -782,7 +785,7 @@ class LibraryAnalyzer {
           enclosingFile: fileAnalysis,
           directive: directive,
           partState: fileKind.partIncludes[index],
-          partElement: fileElement.parts[index],
+          partElement: fileFragment.parts[index],
           diagnosticReporter: containerDiagnosticReporter,
         );
       }
@@ -808,20 +811,20 @@ class LibraryAnalyzer {
     var source = fileAnalysis.file.source;
     var diagnosticListener = fileAnalysis.diagnosticListener;
     var unit = fileAnalysis.unit;
-    var unitElement = fileAnalysis.element;
+    var libraryFragment = fileAnalysis.fragment;
 
     TypeConstraintGenerationDataForTesting? inferenceDataForTesting =
         _testingData != null ? TypeConstraintGenerationDataForTesting() : null;
 
     unit.accept(
       ResolutionVisitor(
-        unitElement: unitElement,
+        libraryFragment: libraryFragment,
         diagnosticListener: diagnosticListener,
-        nameScope: unitElement.scope,
+        nameScope: libraryFragment.scope,
         strictInference: _analysisOptions.strictInference,
         strictCasts: _analysisOptions.strictCasts,
         elementWalker: ElementWalker.forCompilationUnit(
-          unitElement,
+          libraryFragment,
           libraryFilePath: _library.file.path,
           unitFilePath: fileAnalysis.file.path,
         ),
@@ -843,7 +846,7 @@ class LibraryAnalyzer {
     unit.accept(
       ScopeResolverVisitor(
         fileAnalysis.diagnosticReporter,
-        nameScope: unitElement.scope,
+        nameScope: libraryFragment.scope,
         docImportLibraries: docImportLibraries,
       ),
     );
@@ -873,7 +876,7 @@ class LibraryAnalyzer {
       analysisOptions: _library.file.analysisOptions,
       featureSet: unit.featureSet,
       flowAnalysisHelper: flowAnalysisHelper,
-      libraryFragment: unitElement,
+      libraryFragment: libraryFragment,
       typeAnalyzerOptions: typeAnalyzerOptions,
     );
     unit.accept(resolver);
@@ -1073,7 +1076,7 @@ class LibraryAnalyzer {
     _resolveDirectives(
       enclosingFile: enclosingFile,
       fileKind: includedKind,
-      fileElement: partElementUri.libraryFragment,
+      fileFragment: partElementUri.libraryFragment,
     );
   }
 
