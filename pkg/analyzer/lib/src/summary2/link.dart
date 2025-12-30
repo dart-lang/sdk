@@ -92,10 +92,10 @@ class Linker {
     return builders.containsKey(dartCoreUri);
   }
 
-  /// If the [element] is part of a library being linked, return the node
+  /// If the [fragment] is part of a library being linked, return the node
   /// from which it was created.
-  ast.AstNode? getLinkingNode(FragmentImpl element) {
-    return elementNodes[element];
+  ast.AstNode? getLinkingNode(FragmentImpl fragment) {
+    return elementNodes[fragment];
   }
 
   /// If the [fragment] is part of a library being linked, return the node

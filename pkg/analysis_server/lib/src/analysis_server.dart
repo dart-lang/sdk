@@ -1181,7 +1181,7 @@ abstract class AnalysisServer {
           content: result.content,
           lineInfo: result.lineInfo,
           parsedUnit: result.unit,
-          unitElement: result.libraryFragment,
+          libraryFragment: result.libraryFragment,
           resolvedNodes: [result.unit],
         );
       }

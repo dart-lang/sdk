@@ -179,13 +179,13 @@ class LibraryReader {
 
     var resolutionOffset = _baseResolutionOffset + _reader.readUint30();
     _libraryElement.deferReadResolution(() {
-      var unitElement = _libraryElement.internal.firstFragment;
+      var libraryFragment = _libraryElement.internal.firstFragment;
       var reader = ResolutionReader(
         _elementFactory,
         _referenceReader,
         _reader.fork(resolutionOffset),
       );
-      reader.currentLibraryFragment = unitElement;
+      reader.currentLibraryFragment = libraryFragment;
 
       _libraryElement.metadata = reader._readMetadata();
 
@@ -448,14 +448,14 @@ class LibraryReader {
         );
       case DirectiveUriKind.withUnit:
         var parent = readWithSource();
-        var unitElement = _readUnitElement(
+        var libraryFragment = _readUnitElement(
           containerUnit: containerUnit,
           unitSource: parent.source,
         );
         return DirectiveUriWithUnitImpl(
           relativeUriString: parent.relativeUriString,
           relativeUri: parent.relativeUri,
-          libraryFragment: unitElement,
+          libraryFragment: libraryFragment,
         );
       case DirectiveUriKind.withSource:
         return readWithSource();
@@ -752,14 +752,18 @@ class LibraryReader {
   /// top-level function, method, constructor, getter, or setter
   /// declaration.
   void _readFormalParameters2(
-    LibraryFragmentImpl unitElement,
+    LibraryFragmentImpl libraryFragment,
     ResolutionReader reader,
     List<FormalParameterFragmentImpl> parameters,
   ) {
     for (var parameter in parameters) {
       parameter.metadata = reader._readMetadata();
-      _readTypeParameters2(unitElement, reader, parameter.typeParameters);
-      _readFormalParameters2(unitElement, reader, parameter.formalParameters);
+      _readTypeParameters2(libraryFragment, reader, parameter.typeParameters);
+      _readFormalParameters2(
+        libraryFragment,
+        reader,
+        parameter.formalParameters,
+      );
       parameter.element.inheritsCovariant = reader.readBool();
       var type = reader.readType() ?? InvalidTypeImpl.instance;
       parameter.element.type = type;
@@ -1074,33 +1078,33 @@ class LibraryReader {
       var kindIndex = _reader.readByte();
       var kind = ResolutionReader._formalParameterKind(kindIndex);
 
-      FormalParameterFragmentImpl element;
+      FormalParameterFragmentImpl fragment;
       if (isInitializingFormal) {
         var privateName = _reader.readOptionalStringReference();
-        element = FieldFormalParameterFragmentImpl(
+        fragment = FieldFormalParameterFragmentImpl(
           name: fragmentName,
           nameOffset: null,
           parameterKind: kind,
           privateName: privateName,
         );
       } else if (isSuperFormal) {
-        element = SuperFormalParameterFragmentImpl(
+        fragment = SuperFormalParameterFragmentImpl(
           name: fragmentName,
           nameOffset: null,
           parameterKind: kind,
         );
       } else {
-        element = FormalParameterFragmentImpl(
+        fragment = FormalParameterFragmentImpl(
           name: fragmentName,
           nameOffset: null,
           parameterKind: kind,
         );
       }
-      idFragmentMap[id] = element;
-      element.readModifiers(_reader);
-      element.typeParameters = _readTypeParameters();
-      element.formalParameters = _readParameters();
-      return element;
+      idFragmentMap[id] = fragment;
+      fragment.readModifiers(_reader);
+      fragment.typeParameters = _readTypeParameters();
+      fragment.formalParameters = _readParameters();
+      return fragment;
     });
   }
 
@@ -1319,7 +1323,7 @@ class LibraryReader {
   }
 
   List<TypeAliasFragmentImpl> _readTypeAliasFragments(
-    LibraryFragmentImpl unitElement,
+    LibraryFragmentImpl libraryFragment,
   ) {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
@@ -1357,7 +1361,7 @@ class LibraryReader {
   }
 
   void _readTypeParameters2(
-    LibraryFragmentImpl unitElement,
+    LibraryFragmentImpl libraryFragment,
     ResolutionReader reader,
     List<TypeParameterFragmentImpl> typeParameters,
   ) {
@@ -1375,22 +1379,22 @@ class LibraryReader {
   }) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUint30();
 
-    var unitElement = LibraryFragmentImpl(
+    var libraryFragment = LibraryFragmentImpl(
       library: _libraryElement,
       source: unitSource,
       lineInfo: LineInfo([0]),
     );
 
-    unitElement.deferReadResolution(() {
+    libraryFragment.deferReadResolution(() {
       var reader = ResolutionReader(
         _elementFactory,
         _referenceReader,
         _reader.fork(resolutionOffset),
       );
 
-      reader.currentLibraryFragment = unitElement;
+      reader.currentLibraryFragment = libraryFragment;
 
-      for (var import in unitElement.libraryImports) {
+      for (var import in libraryFragment.libraryImports) {
         import.metadata = reader._readMetadata();
         var uri = import.uri;
         if (uri is DirectiveUriWithLibraryImpl) {
@@ -1398,7 +1402,7 @@ class LibraryReader {
         }
       }
 
-      for (var export in unitElement.libraryExports) {
+      for (var export in libraryFragment.libraryExports) {
         export.metadata = reader._readMetadata();
         var uri = export.uri;
         if (uri is DirectiveUriWithLibraryImpl) {
@@ -1406,38 +1410,38 @@ class LibraryReader {
         }
       }
 
-      for (var part in unitElement.parts) {
+      for (var part in libraryFragment.parts) {
         part.metadata = reader._readMetadata();
       }
     });
 
-    unitElement.isSynthetic = _reader.readBool();
+    libraryFragment.isSynthetic = _reader.readBool();
 
-    unitElement.libraryImports = _reader.readTypedList(() {
-      return _readLibraryImport(containerUnit: unitElement);
+    libraryFragment.libraryImports = _reader.readTypedList(() {
+      return _readLibraryImport(containerUnit: libraryFragment);
     });
 
-    unitElement.libraryExports = _reader.readTypedList(() {
-      return _readLibraryExport(containerUnit: unitElement);
+    libraryFragment.libraryExports = _reader.readTypedList(() {
+      return _readLibraryExport(containerUnit: libraryFragment);
     });
 
-    unitElement.classes = _readClassFragments();
-    unitElement.enums = _readEnumFragments();
-    unitElement.extensions = _readExtensionFragments();
-    unitElement.extensionTypes = _readExtensionTypeFragments();
-    unitElement.functions = _readTopLevelFunctionFragments();
-    unitElement.mixins = _readMixinFragments();
-    unitElement.typeAliases = _readTypeAliasFragments(unitElement);
+    libraryFragment.classes = _readClassFragments();
+    libraryFragment.enums = _readEnumFragments();
+    libraryFragment.extensions = _readExtensionFragments();
+    libraryFragment.extensionTypes = _readExtensionTypeFragments();
+    libraryFragment.functions = _readTopLevelFunctionFragments();
+    libraryFragment.mixins = _readMixinFragments();
+    libraryFragment.typeAliases = _readTypeAliasFragments(libraryFragment);
 
-    unitElement.topLevelVariables = _readTopLevelVariableFragments();
-    unitElement.getters = _readGetterFragments();
-    unitElement.setters = _readSetterFragments();
+    libraryFragment.topLevelVariables = _readTopLevelVariableFragments();
+    libraryFragment.getters = _readGetterFragments();
+    libraryFragment.setters = _readSetterFragments();
 
-    unitElement.parts = _reader.readTypedList(() {
-      return _readPartInclude(containerUnit: unitElement);
+    libraryFragment.parts = _reader.readTypedList(() {
+      return _readPartInclude(containerUnit: libraryFragment);
     });
 
-    return unitElement;
+    return libraryFragment;
   }
 
   void _readVariableGetterSetterLinking() {
@@ -1773,7 +1777,7 @@ class ResolutionReader {
   /// Read the formal parameter list for a function type annotation or type
   /// alias of a function type.
   List<FormalParameterFragmentImpl> _readFormalParameters(
-    LibraryFragmentImpl? unitElement,
+    LibraryFragmentImpl? libraryFragment,
   ) {
     return readTypedList(() {
       var fragment = FormalParameterFragmentImpl(
@@ -1874,7 +1878,7 @@ class ResolutionReader {
   }
 
   List<TypeParameterFragmentImpl> _readTypeParameters(
-    LibraryFragmentImpl? unitElement,
+    LibraryFragmentImpl? libraryFragment,
   ) {
     var typeParameters = readTypedList(() {
       var fragmentName = _readFragmentName();
@@ -1889,7 +1893,7 @@ class ResolutionReader {
 
     for (var typeParameter in typeParameters) {
       typeParameter.element.bound = readType();
-      if (unitElement != null) {
+      if (libraryFragment != null) {
         typeParameter.metadata = _readMetadata();
       }
     }

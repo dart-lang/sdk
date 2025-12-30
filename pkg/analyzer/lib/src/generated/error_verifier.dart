@@ -489,11 +489,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _isInNativeClass = node.nativeClause != null;
 
       var augmented = declaredFragment.element;
-      var declarationElement = augmented.firstFragment;
-      _enclosingClass = declarationElement.asElement2;
+      var declarationFragment = augmented.firstFragment;
+      _enclosingClass = declarationFragment.asElement2;
 
       List<ClassMember> members = node.body.members;
-      if (!declarationElement.element.isDartCoreFunction) {
+      if (!declarationFragment.element.isDartCoreFunction) {
         _checkForBuiltInIdentifierAsName(
           node.namePart.typeName,
           diag.builtInIdentifierAsTypeName,
@@ -509,7 +509,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           superclass != null ||
           withClause != null) {
         var moreChecks = _checkClassInheritance(
-          declarationElement,
+          declarationFragment,
           node,
           node.namePart.typeName,
           superclass,
@@ -1702,7 +1702,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Returns `false` if a severe hierarchy error was found, so that further
   /// checking is not useful.
   bool _checkClassInheritance(
-    InterfaceFragmentImpl declarationElement,
+    InterfaceFragmentImpl declarationFragment,
     CompilationUnitMember node,
     Token nameToken,
     NamedType? superclass,
@@ -1718,7 +1718,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         !_checkForNoGenerativeConstructorsInSuperclass(superclass)) {
       _checkForExtendsDeferredClass(superclass);
       _checkForRepeatedType(
-        libraryContext.setOfImplements(declarationElement.asElement2),
+        libraryContext.setOfImplements(declarationFragment.asElement2),
         implementsClause?.interfaces,
         diag.implementsRepeated,
       );
@@ -5354,15 +5354,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  /// Verify that the given [element] does not reference itself directly.
+  /// Verify that the given [fragment] does not reference itself directly.
   /// If it does, report the error on the [nameToken].
   ///
   /// See [diag.typeAliasCannotReferenceItself].
   void _checkForTypeAliasCannotReferenceItself(
     Token nameToken,
-    TypeAliasFragmentImpl element,
+    TypeAliasFragmentImpl fragment,
   ) {
-    if (element.hasSelfReference) {
+    if (fragment.hasSelfReference) {
       diagnosticReporter.report(
         diag.typeAliasCannotReferenceItself.at(nameToken),
       );

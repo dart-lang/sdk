@@ -538,8 +538,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
       return true;
     } else if (identical(node.defaultValue, _oldNode)) {
       node.defaultValue = _newNode as ExpressionImpl;
-      var parameterElement = node.declaredFragment;
-      parameterElement?.constantInitializer = _newNode;
+      var parameterFragment = node.declaredFragment;
+      parameterFragment?.constantInitializer = _newNode;
       return true;
     }
     return visitNode(node);

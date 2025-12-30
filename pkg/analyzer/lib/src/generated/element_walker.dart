@@ -214,10 +214,10 @@ class ElementWalker {
   /// from their corresponding "get" method calls; if not, throws a
   /// [StateError].
   void validate() {
-    void check(List<FragmentImpl>? elements, int index) {
-      if (elements != null && elements.length != index) {
+    void check(List<FragmentImpl>? fragments, int index) {
+      if (fragments != null && fragments.length != index) {
         throw StateError(
-          'Unmatched ${elements[index].runtimeType} ${elements[index]}',
+          'Unmatched ${fragments[index].runtimeType} ${fragments[index]}',
         );
       }
     }

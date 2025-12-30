@@ -251,16 +251,16 @@ class _ClassVerifier {
       if (member is FieldDeclarationImpl) {
         var fieldList = member.fields;
         for (var field in fieldList.variables) {
-          var fieldElement = field.declaredFragment! as FieldFragmentImpl;
+          var fieldFragment = field.declaredFragment! as FieldFragmentImpl;
           _checkDeclaredMember(
             field.name,
             libraryUri,
-            fieldElement.element.getter,
+            fieldFragment.element.getter,
           );
           _checkDeclaredMember(
             field.name,
             libraryUri,
-            fieldElement.element.setter,
+            fieldFragment.element.setter,
           );
           if (!member.isStatic && element is! EnumElementImpl) {
             _checkIllegalEnumValuesDeclaration(field.name);

@@ -555,7 +555,10 @@ class FileResolver {
         performance: performance,
       );
 
-      var unitElement = libraryContext!.computeUnitElement(libraryKind, file);
+      var libraryFragment = libraryContext!.computeUnitElement(
+        libraryKind,
+        file,
+      );
 
       return logger.run('Compute analysis results', () {
         var elementFactory = libraryContext!.elementFactory;
@@ -582,7 +585,7 @@ class FileResolver {
           return libraryAnalyzer.analyzeForCompletion(
             file: file,
             offset: completionOffset,
-            unitElement: unitElement,
+            libraryFragment: libraryFragment,
             performance: performance,
           );
         });
@@ -596,7 +599,7 @@ class FileResolver {
           content: file.content,
           lineInfo: file.lineInfo,
           parsedUnit: analysisResult.parsedUnit,
-          unitElement: unitElement,
+          libraryFragment: libraryFragment,
           resolvedNodes: analysisResult.resolvedNodes,
         );
       });

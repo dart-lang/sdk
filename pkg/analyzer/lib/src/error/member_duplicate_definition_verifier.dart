@@ -126,7 +126,7 @@ class MemberDuplicateDefinitionVerifier {
 
     if (firstFragment is InterfaceFragmentImpl) {
       _checkConflictingConstructorAndStatic(
-        interfaceElement: firstFragment,
+        interfaceFragment: firstFragment,
         staticScope: staticScope,
       );
     }
@@ -182,10 +182,10 @@ class MemberDuplicateDefinitionVerifier {
   }
 
   void _checkConflictingConstructorAndStatic({
-    required InterfaceFragmentImpl interfaceElement,
+    required InterfaceFragmentImpl interfaceFragment,
     required Map<String, _ScopeEntry> staticScope,
   }) {
-    for (var constructor in interfaceElement.constructors) {
+    for (var constructor in interfaceFragment.constructors) {
       var name = constructor.name;
 
       // It is already an error to declare a member named 'new'.
@@ -520,8 +520,8 @@ class MemberDuplicateDefinitionVerifier {
     }
   }
 
-  _InstanceElementContext _getElementContext(InstanceFragmentImpl element) {
-    return context._instanceElementContexts[element] ??=
+  _InstanceElementContext _getElementContext(InstanceFragmentImpl fragment) {
+    return context._instanceElementContexts[fragment] ??=
         _InstanceElementContext();
   }
 
@@ -567,7 +567,7 @@ class MemberDuplicateDefinitionVerifier {
       return MemberDuplicateDefinitionVerifier._(
         inheritance,
         libraryElement,
-        fileAnalysis.element,
+        fileAnalysis.fragment,
         fileAnalysis.diagnosticReporter,
         libraryVerificationContext.duplicationDefinitionContext,
       );

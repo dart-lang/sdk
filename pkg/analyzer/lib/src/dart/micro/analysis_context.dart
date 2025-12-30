@@ -109,9 +109,9 @@ class _FakeAnalysisDriver implements AnalysisDriver {
     }
     var kind = file.kind;
     var library = kind.library ?? kind.asLibrary;
-    var element = libraryContext.computeUnitElement(library, file);
+    var fragment = libraryContext.computeUnitElement(library, file);
     return UnitElementResultImpl(
-      fragment: element,
+      fragment: fragment,
       fileState: file,
       session: currentSession,
     );
