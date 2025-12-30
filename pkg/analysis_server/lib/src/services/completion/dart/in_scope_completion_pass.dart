@@ -1124,6 +1124,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitExpressionStatement(ExpressionStatement node) {
     var parent = node.parent;
     if (parent is SwitchPatternCase || parent is SwitchCase) {
+      keywordHelper.addKeyword(Keyword.CASE);
+      keywordHelper.addKeywordAndText(Keyword.DEFAULT, ':');
       collector.completionLocation = 'SwitchMember_statement';
     } else {
       collector.completionLocation = 'Block_statement';
