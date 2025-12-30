@@ -701,6 +701,21 @@ name: $testPackageName
     );
   }
 
+  Future<void> test_pubspec_withError() async {
+    registerLintRules();
+    createFile(analysisOptionsPath, '''
+linter:
+  rules:
+    - package_names
+''');
+
+    const content = r'''
+name: class^
+''';
+
+    await expectNoAction(filePath: pubspecFilePath, content);
+  }
+
   Future<void> test_snippets() async {
     setSnippetTextEditSupport();
 

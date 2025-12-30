@@ -64,7 +64,7 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
 
     YamlNode node;
     try {
-      node = loadYamlNode(content);
+      node = loadYamlNode(content, sourceUrl: file.toUri());
     } catch (exception) {
       return [];
     }
