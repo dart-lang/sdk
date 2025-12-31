@@ -26188,9 +26188,9 @@ WarningCode:
   inferenceFailureOnCollectionLiteral:
     type: staticWarning
     parameters:
-      String p0: the name of the collection
-    problemMessage: "The type argument(s) of '#p0' can't be inferred."
-    correctionMessage: "Use explicit type argument(s) for '#p0'."
+      String collection: the name of the collection
+    problemMessage: "The type argument(s) of '#collection' can't be inferred."
+    correctionMessage: "Use explicit type argument(s) for '#collection'."
     hasPublishedDocs: true
     comment: |-
       When "strict-inference" is enabled, collection literal types must be
@@ -26199,7 +26199,8 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when:
-      - the language option `strict-inference` is enabled in the analysis options file,
+      - the language option `strict-inference` is enabled in the analysis
+        options file,
       - a list, map, or set literal has no type arguments, and
       - the values for the type arguments can't be inferred from the elements.
 
@@ -26237,9 +26238,9 @@ WarningCode:
   inferenceFailureOnFunctionInvocation:
     type: staticWarning
     parameters:
-      String p0: the name of the function
-    problemMessage: "The type argument(s) of the function '#p0' can't be inferred."
-    correctionMessage: "Use explicit type argument(s) for '#p0'."
+      String function: the name of the function
+    problemMessage: "The type argument(s) of the function '#function' can't be inferred."
+    correctionMessage: "Use explicit type argument(s) for '#function'."
     hasPublishedDocs: true
     comment: |-
       When "strict-inference" is enabled, types in function invocations must be
@@ -26248,7 +26249,8 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when:
-      - the language option `strict-inference` is enabled in the analysis options file,
+      - the language option `strict-inference` is enabled in the analysis
+        options file,
       - the invocation of a method or function has no type arguments, and
       - the values for the type arguments can't be inferred.
 
@@ -26292,10 +26294,10 @@ WarningCode:
   inferenceFailureOnFunctionReturnType:
     type: staticWarning
     parameters:
-      String p0: the name of the function or method whose return type can't be
-                 inferred
-    problemMessage: "The return type of '#p0' can't be inferred."
-    correctionMessage: "Declare the return type of '#p0'."
+      String function: the name of the function or method whose return type
+                 can't be inferred
+    problemMessage: "The return type of '#function' can't be inferred."
+    correctionMessage: "Declare the return type of '#function'."
     hasPublishedDocs: true
     comment: |-
       When "strict-inference" is enabled, recursive local functions, top-level
@@ -26307,7 +26309,8 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when:
-      - the language option `strict-inference` is enabled in the analysis options file,
+      - the language option `strict-inference` is enabled in the analysis
+        options file,
       - the declaration of a method or function has no return type, and
       - the return type can't be inferred.
 
@@ -26343,9 +26346,9 @@ WarningCode:
   inferenceFailureOnGenericInvocation:
     type: staticWarning
     parameters:
-      String p0: the name of the type
-    problemMessage: "The type argument(s) of the generic function type '#p0' can't be inferred."
-    correctionMessage: "Use explicit type argument(s) for '#p0'."
+      String function: the name of the type
+    problemMessage: "The type argument(s) of the generic function type '#function' can't be inferred."
+    correctionMessage: "Use explicit type argument(s) for '#function'."
     hasPublishedDocs: true
     comment: |-
       When "strict-inference" is enabled, types in function invocations must be
@@ -26353,9 +26356,9 @@ WarningCode:
   inferenceFailureOnInstanceCreation:
     type: staticWarning
     parameters:
-      String p0: the name of the constructor
-    problemMessage: "The type argument(s) of the constructor '#p0' can't be inferred."
-    correctionMessage: "Use explicit type argument(s) for '#p0'."
+      String function: the name of the constructor
+    problemMessage: "The type argument(s) of the constructor '#function' can't be inferred."
+    correctionMessage: "Use explicit type argument(s) for '#function'."
     hasPublishedDocs: true
     comment: |-
       When "strict-inference" is enabled, types in instance creation
@@ -26364,8 +26367,8 @@ WarningCode:
   inferenceFailureOnUninitializedVariable:
     type: staticWarning
     parameters:
-      String p0: the name of the variable
-    problemMessage: "The type of #p0 can't be inferred without either a type or initializer."
+      String variable: the name of the variable
+    problemMessage: "The type of '#variable' can't be inferred without either a type or initializer."
     correctionMessage: Try specifying the type of the variable.
     hasPublishedDocs: true
     comment: |-
@@ -26375,7 +26378,8 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when:
-      - the language option `strict-inference` is enabled in the analysis options file,
+      - the language option `strict-inference` is enabled in the analysis
+        options file,
       - the declaration of a variable has no type, and
       - the type of the variable can't be inferred.
 
@@ -26408,8 +26412,8 @@ WarningCode:
   inferenceFailureOnUntypedParameter:
     type: staticWarning
     parameters:
-      String p0: the name of the parameter
-    problemMessage: "The type of #p0 can't be inferred; a type must be explicitly provided."
+      String parameter: the name of the parameter
+    problemMessage: "The type of '#parameter' can't be inferred; a type must be explicitly provided."
     correctionMessage: Try specifying the type of the parameter.
     hasPublishedDocs: false
     comment: |-
@@ -26419,7 +26423,8 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when:
-      - the language option `strict-inference` is enabled in the analysis options file,
+      - the language option `strict-inference` is enabled in the analysis
+        options file,
       - the declaration of a formal parameter has no type, and
       - the type of the parameter can't be inferred.
 

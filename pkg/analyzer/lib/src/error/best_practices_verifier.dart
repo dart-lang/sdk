@@ -862,6 +862,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    _checkStrictInferenceInParameters(node.formalParameters);
+    super.visitPrimaryConstructorDeclaration(node);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {
@@ -1453,11 +1459,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// In "strict-inference" mode, check that each of the [parameterList]' type
-  /// is specified.
+  /// In "strict-inference" mode, checks that the type of each of parameter in
+  /// [parameterList] is specified.
   ///
   /// Only parameters which are referenced in [initializers] or [body] are
-  /// reported. If [initializers] and [body] are both null, the parameters are
+  /// reported. If [initializers] and [body] are both `null`, the parameters are
   /// assumed to originate from a typedef, function-typed parameter, or function
   /// which is abstract or external.
   void _checkStrictInferenceInParameters(
@@ -1521,15 +1527,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     switch (reportNode) {
-      case MethodDeclaration():
+      case MethodDeclaration(:var name) || FunctionDeclaration(:var name):
         _diagnosticReporter.atToken(
-          reportNode.name,
-          diag.inferenceFailureOnFunctionReturnType,
-          arguments: [displayName],
-        );
-      case FunctionDeclaration():
-        _diagnosticReporter.atToken(
-          reportNode.name,
+          name,
           diag.inferenceFailureOnFunctionReturnType,
           arguments: [displayName],
         );
