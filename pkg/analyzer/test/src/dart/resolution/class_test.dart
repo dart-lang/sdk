@@ -869,15 +869,16 @@ ClassDeclaration
   test_primaryConstructorBody_noDeclaration() async {
     await assertErrorsInCode(
       r'''
-class A/*(bool x, int y)*/ {
+class A {
   this : assert(x) {
     y;
   }
 }
 ''',
       [
-        error(diag.undefinedIdentifier, 45, 1),
-        error(diag.undefinedIdentifier, 54, 1),
+        error(diag.primaryConstructorBodyWithoutDeclaration, 12, 29),
+        error(diag.undefinedIdentifier, 26, 1),
+        error(diag.undefinedIdentifier, 35, 1),
       ],
     );
 

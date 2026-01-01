@@ -13483,6 +13483,18 @@ prefixShadowedByLocalDeclaration = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string],
 );
 
+/// No parameters.
+const DiagnosticWithoutArguments
+primaryConstructorBodyWithoutDeclaration = DiagnosticWithoutArgumentsImpl(
+  name: 'primary_constructor_body_without_declaration',
+  problemMessage:
+      "A primary constructor body requires a primary constructor declaration.",
+  correctionMessage: "Try adding the primary constructor declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'primary_constructor_body_without_declaration',
+  expectedTypes: [],
+);
+
 /// Parameters:
 /// String p0: the private name that collides
 /// String p1: the name of the first mixin

@@ -1307,6 +1307,7 @@ enum A/*(bool x, int y)*/ {
 }
 ''',
       [
+        error(diag.primaryConstructorBodyWithoutDeclaration, 37, 29),
         error(diag.undefinedIdentifier, 51, 1),
         error(diag.undefinedIdentifier, 60, 1),
       ],
