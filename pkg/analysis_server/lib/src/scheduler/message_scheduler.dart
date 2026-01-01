@@ -306,7 +306,7 @@ final class MessageScheduler {
           : null;
     } catch (error, stackTrace) {
       (server as LspAnalysisServer).logException(
-        'An error occured while parsing cancel parameters',
+        'An error occurred while parsing cancel parameters',
         error,
         stackTrace,
       );
