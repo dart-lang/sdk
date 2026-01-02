@@ -4,8 +4,8 @@
   (type $BoxedInt (sub final $#Top (struct
     (field $field0 i32)
     (field $value i64))))
-  (func $"dart2wasm._292 (import)" (import "dart2wasm" "_292") (param externref) (result externref))
-  (func $"dart2wasm._293 (import)" (import "dart2wasm" "_293") (param externref) (result externref))
+  (func $"dart2wasm._295 (import)" (import "dart2wasm" "_295") (param externref) (result externref))
+  (func $"dart2wasm._296 (import)" (import "dart2wasm" "_296") (param externref) (result externref))
   (global $"intValueNullable initialized" (mut i32) <...>)
   (global $intValueNullable (mut (ref null $BoxedInt)) <...>)
   (func $_throwArgumentNullError <noInline>  <...>)
@@ -17,7 +17,7 @@
     (local $var0 externref)
     i64.const 1
     call $jsifyInt
-    call $"dart2wasm._292 (import)"
+    call $"dart2wasm._295 (import)"
     local.tee $var0
     call $isDartNull
     if (result i64)
@@ -32,13 +32,13 @@
   (func $"testIntConstantNullable <noInline>"
     (local $var0 externref)
     ref.null noextern
-    call $"dart2wasm._293 (import)"
+    call $"dart2wasm._296 (import)"
     local.tee $var0
     call $isDartNull
     if (result (ref null $BoxedInt))
       ref.null none
     else
-      i32.const 65
+      i32.const 68
       local.get $var0
       call $dartifyInt
       struct.new $BoxedInt
@@ -49,7 +49,7 @@
     (local $var0 externref)
     call $"intValue implicit getter"
     call $jsifyInt
-    call $"dart2wasm._292 (import)"
+    call $"dart2wasm._295 (import)"
     local.tee $var0
     call $isDartNull
     if (result i64)
@@ -69,7 +69,7 @@
     if
       call $"ktrue implicit getter"
       if (result (ref null $BoxedInt))
-        i32.const 65
+        i32.const 68
         call $"intValue implicit getter"
         struct.new $BoxedInt
       else
@@ -88,13 +88,13 @@
       local.get $var0
       call $jsifyRaw
     end
-    call $"dart2wasm._293 (import)"
+    call $"dart2wasm._296 (import)"
     local.tee $var1
     call $isDartNull
     if (result (ref null $BoxedInt))
       ref.null none
     else
-      i32.const 65
+      i32.const 68
       local.get $var1
       call $dartifyInt
       struct.new $BoxedInt

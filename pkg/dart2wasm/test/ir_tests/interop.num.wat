@@ -14,13 +14,13 @@
   (type $_Type (sub $#Top (struct
     (field $field0 i32)
     (field $isDeclaredNullable i32))))
-  (func $"dart2wasm._165 (import)" (import "dart2wasm" "_165") (param externref) (result f64))
-  (func $"dart2wasm._166 (import)" (import "dart2wasm" "_166") (param f64) (result externref))
-  (func $"dart2wasm._292 (import)" (import "dart2wasm" "_292") (param externref) (result externref))
-  (func $"dart2wasm._293 (import)" (import "dart2wasm" "_293") (param externref) (result externref))
-  (table $dtable0 745 funcref)
-  (global $"C319 _TopType" (ref $_TopType) <...>)
-  (global $"C66 WasmArray<WasmArray<_Type>>[729]" (ref $Array<WasmArray<_Type>>) <...>)
+  (func $"dart2wasm._168 (import)" (import "dart2wasm" "_168") (param externref) (result f64))
+  (func $"dart2wasm._169 (import)" (import "dart2wasm" "_169") (param f64) (result externref))
+  (func $"dart2wasm._295 (import)" (import "dart2wasm" "_295") (param externref) (result externref))
+  (func $"dart2wasm._296 (import)" (import "dart2wasm" "_296") (param externref) (result externref))
+  (table $dtable0 735 funcref)
+  (global $"C322 _TopType" (ref $_TopType) <...>)
+  (global $"C68 WasmArray<WasmArray<_Type>>[707]" (ref $Array<WasmArray<_Type>>) <...>)
   (global $"numValueNullable initialized" (mut i32) <...>)
   (global $numValueNullable (mut (ref null $#Top)) <...>)
   (elem $dtable0 <...>)
@@ -33,7 +33,7 @@
     (local $var0 externref)
     i64.const 1
     call $jsifyInt
-    call $"dart2wasm._292 (import)"
+    call $"dart2wasm._295 (import)"
     local.tee $var0
     call $isDartNull
     if (result f64)
@@ -41,15 +41,15 @@
       unreachable
     else
       local.get $var0
-      call $"dart2wasm._165 (import)"
+      call $"dart2wasm._168 (import)"
     end
     call $"sinkNum <noInline>"
   )
   (func $"testNumConstantDouble <noInline>"
     (local $var0 externref)
     f64.const 1.1
-    call $"dart2wasm._166 (import)"
-    call $"dart2wasm._292 (import)"
+    call $"dart2wasm._169 (import)"
+    call $"dart2wasm._295 (import)"
     local.tee $var0
     call $isDartNull
     if (result f64)
@@ -57,22 +57,22 @@
       unreachable
     else
       local.get $var0
-      call $"dart2wasm._165 (import)"
+      call $"dart2wasm._168 (import)"
     end
     call $"sinkNum <noInline>"
   )
   (func $"testNumConstantNullable <noInline>"
     (local $var0 externref)
     ref.null noextern
-    call $"dart2wasm._293 (import)"
+    call $"dart2wasm._296 (import)"
     local.tee $var0
     call $isDartNull
     if (result (ref null $BoxedDouble))
       ref.null none
     else
-      i32.const 84
+      i32.const 87
       local.get $var0
-      call $"dart2wasm._165 (import)"
+      call $"dart2wasm._168 (import)"
       struct.new $BoxedDouble
     end
     call $"sinkNumNullable <noInline>"
@@ -81,7 +81,7 @@
     (local $var0 externref)
     call $"numValue implicit getter"
     call $jsifyNum
-    call $"dart2wasm._292 (import)"
+    call $"dart2wasm._295 (import)"
     local.tee $var0
     call $isDartNull
     if (result f64)
@@ -89,7 +89,7 @@
       unreachable
     else
       local.get $var0
-      call $"dart2wasm._165 (import)"
+      call $"dart2wasm._168 (import)"
     end
     call $"sinkNum <noInline>"
   )
@@ -130,13 +130,13 @@
           local.get $var1
           struct.get $#Top $field0
           local.tee $var0
-          i32.const 65
+          i32.const 68
           i32.eq
           br_if $label1
           drop
           i32.const 1
           local.get $var0
-          i32.const 84
+          i32.const 87
           i32.eq
           br_if $label1
           drop
@@ -150,7 +150,7 @@
         end
         local.get $var1
         struct.get $#Top $field0
-        i32.const 86
+        i32.const 88
         i32.sub
         i32.const 10
         i32.ge_u
@@ -160,13 +160,13 @@
             local.get $var1
             struct.get $#Top $field0
             local.tee $var0
-            i32.const 70
+            i32.const 67
             i32.eq
             br_if $label2
             drop
             i32.const 1
             local.get $var0
-            i32.const 86
+            i32.const 88
             i32.sub
             i32.const 10
             i32.lt_u
@@ -181,13 +181,13 @@
             local.tee $var2
             struct.get $#Top $field0
             local.tee $var0
-            i32.const 180
+            i32.const 182
             i32.eq
             if (result i32)
               i32.const 0
             else
               local.get $var0
-              i32.const 180
+              i32.const 182
               call $_TypeUniverse._checkSubclassRelationshipViaTable
             end
             local.tee $var0
@@ -196,13 +196,13 @@
             if (result i32)
               i32.const 0
             else
-              global.get $"C319 _TopType"
+              global.get $"C322 _TopType"
               local.set $var3
               block $label3 (result i32)
                 local.get $var2
                 local.get $var2
                 struct.get $#Top $field0
-                i32.const 354
+                i32.const 360
                 i32.add
                 call_indirect (param (ref $#Top)) (result (ref $Array<_Type>))
                 local.set $var4
@@ -218,7 +218,7 @@
                   call $_TypeUniverse.isSubtype
                   br $label3
                 end
-                global.get $"C66 WasmArray<WasmArray<_Type>>[729]"
+                global.get $"C68 WasmArray<WasmArray<_Type>>[707]"
                 local.get $var0
                 array.get $Array<WasmArray<_Type>>
                 i32.const 0
@@ -236,7 +236,7 @@
             else
               local.get $var2
               struct.get $#Top $field0
-              i32.const 64
+              i32.const 108
               i32.eq
               if
                 unreachable
@@ -253,15 +253,15 @@
         ref.null noextern
       end $label0
     end
-    call $"dart2wasm._293 (import)"
+    call $"dart2wasm._296 (import)"
     local.tee $var5
     call $isDartNull
     if (result (ref null $BoxedDouble))
       ref.null none
     else
-      i32.const 84
+      i32.const 87
       local.get $var5
-      call $"dart2wasm._165 (import)"
+      call $"dart2wasm._168 (import)"
       struct.new $BoxedDouble
     end
     call $"sinkNumNullable <noInline>"

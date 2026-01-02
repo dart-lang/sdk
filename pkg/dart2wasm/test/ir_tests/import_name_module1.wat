@@ -10,7 +10,7 @@
     (field $field1 (mut i32)))))
   (func $print (import "module0" "func0") (param (ref null $#Top)) (result (ref null $#Top)))
   (global $".hello world" (import "" "hello world") (ref extern))
-  (global $"C460 \"hello world\"" (ref $JSStringImpl)
+  (global $"C463 \"hello world\"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
     (global.get $".hello world")
@@ -20,7 +20,7 @@
     ref.null none
   )
   (func $"mainFoo <noInline>"
-    global.get $"C460 \"hello world\""
+    global.get $"C463 \"hello world\""
     call $print
     drop
   )

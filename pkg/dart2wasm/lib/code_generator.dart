@@ -928,7 +928,7 @@ abstract class AstCodeGenerator
         (i) => b.block([], [exceptionType, stackTraceType]),
         growable: true);
 
-    w.Label try_ = b.try_([], [exceptionType, stackTraceType]);
+    w.Label try_ = b.try_legacy([], [exceptionType, stackTraceType]);
     catchBlockLabels.add(try_);
 
     catchBlockLabels = catchBlockLabels.reversed.toList();
@@ -973,7 +973,7 @@ abstract class AstCodeGenerator
 
     // Insert a catch instruction which will catch any thrown Dart
     // exceptions.
-    b.catch_legacy(translator.getExceptionTag(b.moduleBuilder));
+    b.catch_legacy(translator.getDartExceptionTag(b.moduleBuilder));
 
     b.local_set(thrownStackTrace);
     b.local_set(thrownException);
@@ -996,22 +996,15 @@ abstract class AstCodeGenerator
     // Rethrow if all the catch blocks fall through
     b.rethrow_(try_);
 
-    // If we have a catches that are generic enough to catch a JavaScript
-    // error, we need to put that into a catch_all block.
     if (node.catches
         .any((c) => guardCanMatchJSException(translator, c.guard))) {
-      // This catches any objects that aren't dart exceptions, such as
-      // JavaScript exceptions or objects.
-      b.catch_all_legacy();
+      b.catch_legacy(translator.getJsExceptionTag(b.moduleBuilder));
 
-      // We can't inspect the thrown object in a catch_all and get a stack
-      // trace, so we just attach the current stack trace.
-      call(translator.stackTraceCurrent.reference);
-      b.local_set(thrownStackTrace);
-
-      // We create a generic JavaScript error in this case.
       call(translator.javaScriptErrorFactory.reference);
-      b.local_set(thrownException);
+      b.local_tee(thrownException); // ref null #Top
+
+      b.getJavaScriptErrorStackTrace(translator);
+      b.local_set(thrownStackTrace);
 
       for (int catchBlockIndex = 0;
           catchBlockIndex < node.catches.length;
@@ -1102,7 +1095,7 @@ abstract class AstCodeGenerator
     w.Label returnFinalizerBlock = b.block();
     returnFinalizers.add(TryBlockFinalizer(returnFinalizerBlock));
 
-    w.Label tryBlock = b.try_();
+    w.Label tryBlock = b.try_legacy();
     translateStatement(node.body);
 
     final bool mustHandleReturn =
@@ -1117,12 +1110,12 @@ abstract class AstCodeGenerator
     }
 
     // Handle Dart exceptions.
-    b.catch_legacy(translator.getExceptionTag(b.moduleBuilder));
+    b.catch_legacy(translator.getDartExceptionTag(b.moduleBuilder));
     translateStatement(node.finalizer);
     b.rethrow_(tryBlock);
 
     // Handle JS exceptions.
-    b.catch_all_legacy();
+    b.catch_legacy(translator.getJsExceptionTag(b.moduleBuilder));
     translateStatement(node.finalizer);
     b.rethrow_(tryBlock);
 
@@ -2724,7 +2717,7 @@ abstract class AstCodeGenerator
     final exceptionLocals = tryBlockLocals.last;
     b.local_get(exceptionLocals.exceptionLocal);
     b.local_get(exceptionLocals.stackTraceLocal);
-    b.throw_(translator.getExceptionTag(b.moduleBuilder));
+    b.throw_(translator.getDartExceptionTag(b.moduleBuilder));
     return expectedType;
   }
 
@@ -5109,6 +5102,24 @@ extension MacroAssembler on w.InstructionsBuilder {
     assert(receiverType.isSubtypeOf(translator.topTypeNonNullable));
     struct_get(
         translator.classInfoCollector.topInfo.struct, FieldIndex.classId);
+  }
+
+  /// Expects a `_JavaScriptError` object to be on stack, calls
+  /// `_JavaScriptError.stackTrace` getter, downcasts the stack trace to
+  /// non-null. The cast is safe as this getter doesn't return null, but its
+  /// return type in the signature is nullable as it's an override.
+  ///
+  /// This is used to get the JS stack trace of a JS exception after boxing the
+  /// exception's `externref` (caught with the tag `WebAssembly.JSTag`) as
+  /// `_JavaScriptError`.
+  void getJavaScriptErrorStackTrace(Translator translator) {
+    final stackTraceGetter =
+        translator.javaScriptErrorStackTraceGetter.reference;
+    final stackTraceGetterFunction =
+        translator.functions.getFunction(stackTraceGetter);
+    ref_cast(stackTraceGetterFunction.type.inputs[0] as w.RefType);
+    translator.callReference(stackTraceGetter, this);
+    ref_as_non_null();
   }
 }
 

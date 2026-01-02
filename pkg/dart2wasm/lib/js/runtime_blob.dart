@@ -107,6 +107,9 @@ class CompiledApp {
       Object: Object,
       Array: Array,
       Reflect: Reflect,
+      WebAssembly: {
+        JSTag: WebAssembly.JSTag,
+      },
       <<IMPORTED_JS_STRINGS_IN_MJS>>
     };
 

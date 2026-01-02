@@ -684,8 +684,8 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(const ir.Else());
   }
 
-  /// Emit a `try` instruction.
-  Label try_(
+  /// Emit a legacy `try` instruction.
+  Label try_legacy(
           [List<ir.ValueType> inputs = const [],
           List<ir.ValueType> outputs = const []]) =>
       _beginBlock(
@@ -705,17 +705,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     try_.hasCatch = true;
     _reachable = try_.reachable;
     _add(ir.CatchLegacy(tag));
-  }
-
-  void catch_all_legacy() {
-    assert(_topOfLabelStack is Try ||
-        _reportError("Unexpected 'catch_all' (not in 'try' block)"));
-    final Try try_ = _topOfLabelStack as Try;
-    assert(_verifyEndOfBlock([],
-        trace: ['catch_all'], reachableAfter: try_.reachable, reindent: true));
-    try_.hasCatch = true;
-    _reachable = try_.reachable;
-    _add(const ir.CatchAllLegacy());
   }
 
   /// Emit a `throw` instruction.

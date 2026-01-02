@@ -8,31 +8,31 @@
   (func $JSStringImpl._interpolate3 (import "module0" "func10") (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl)))
   (func $print (import "module0" "func9") (param (ref null $#Top)) (result (ref null $#Top)))
   (global $".FooConst4(" (import "" "FooConst4(") (ref extern))
-  (global $"C364 4" (import "module0" "global10") (ref $BoxedInt))
+  (global $"C367 4" (import "module0" "global10") (ref $BoxedInt))
   (global $"C8 \")\"" (import "module0" "global4") (ref $JSStringImpl))
-  (global $"C514 FooConst4" (ref $FooConst4)
-    (i32.const 120)
+  (global $"C517 FooConst4" (ref $FooConst4)
+    (i32.const 122)
     (i32.const 0)
     (struct.new $FooConst4))
-  (global $"C515 \"FooConst4(\"" (ref $JSStringImpl)
+  (global $"C518 \"FooConst4(\"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
     (global.get $".FooConst4(")
     (struct.new $JSStringImpl))
-  (global $"C523 \"foo4Code(\"" (ref $JSStringImpl) <...>)
+  (global $"C526 \"foo4Code(\"" (ref $JSStringImpl) <...>)
   (global $fooGlobal4 (mut (ref null $#Top))
     (ref.null none))
   (func $"foo4Code <noInline>" (param $var0 (ref null $#Top)) (result (ref null $#Top))
-    global.get $"C514 FooConst4"
+    global.get $"C517 FooConst4"
     call $print
     drop
-    global.get $"C523 \"foo4Code(\""
+    global.get $"C526 \"foo4Code(\""
     local.get $var0
     global.get $"C8 \")\""
     call $JSStringImpl._interpolate3
     call $print
     drop
-    global.get $"C364 4"
+    global.get $"C367 4"
     global.set $fooGlobal4
     ref.null none
   )
@@ -40,7 +40,7 @@
     (local $var2 (ref $FooConst4))
     local.get $var0
     ref.cast $FooConst4
-    global.get $"C515 \"FooConst4(\""
+    global.get $"C518 \"FooConst4(\""
     local.get $var1
     global.get $"C8 \")\""
     call $JSStringImpl._interpolate3
