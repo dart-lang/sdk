@@ -463,9 +463,15 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   /// Checks whether the code for a type annotation for the given [type] can be
   /// written.
   ///
+  /// The given [offset] is the location where the type would be written, so we
+  /// can determine what type parameters are in scope. We look for a enclosing
+  /// method, function, or class declarations to determine the type parameters
+  /// in scope.
+  ///
   /// {@macro typeParametersInScope}
   bool canWriteType(
     DartType? type, {
+    required int offset,
     List<TypeParameterElement>? typeParametersInScope,
   });
 
