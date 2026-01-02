@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:front_end/src/api_unstable/vm.dart' as fe;
 import 'package:path/path.dart' as path;
 
@@ -57,6 +59,7 @@ class WasmCompilerOptions {
   String? dumpKernelAfterTfa;
   bool dryRun = false;
   Uri? wasmOptPath;
+  int maxActiveWasmOptProcesses = _defaultMaxActiveWasmOptProcesses();
   bool saveUnopt = false;
   Set<int> moduleIdsToOptimize = const {};
   bool stripWasm = true;
@@ -82,6 +85,16 @@ class WasmCompilerOptions {
       emitAsMain || id == mainModuleId
           ? path.basename(filePath)
           : path.basename(path.setExtension(filePath, '_module$id.wasm'));
+
+  static int _defaultMaxActiveWasmOptProcesses() {
+    try {
+      return Platform.numberOfProcessors;
+    } catch (e) {
+      // Fallback to 8 if numberOfProcessors is not available (e.g. if this is
+      // running in a web context).
+      return 8;
+    }
+  }
 
   bool get emitCfe => phases.last == CompilerPhase.cfe;
   bool get emitTfa => phases.last == CompilerPhase.tfa;

@@ -143,6 +143,10 @@ final List<Option> options = [
       (o, value) => o.validateDynamicModules = value,
       defaultsTo: true, negatable: true),
   UriOption("wasm-opt", (o, value) => o.wasmOptPath = value),
+  // The maximum number of concurrent wasm-opt processes to run. Defaults to the
+  // number of processors on the machine. Use -1 to run with no limit.
+  IntOption("wasm-opt-process-limit",
+      (o, value) => o.maxActiveWasmOptProcesses = value),
   Flag("save-unopt", (o, value) => o.saveUnopt = value),
   Flag("strip-wasm", (o, value) => o.stripWasm = value, negatable: true),
   IntMultiOption("wasm-opt-module-ids",

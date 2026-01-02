@@ -18,6 +18,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/verifier.dart';
+import 'package:pool/pool.dart' as pool;
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
 import 'package:vm/transformations/mixin_deduplication.dart'
     as mixin_deduplication show transformLibraries;
@@ -685,30 +686,31 @@ Future<CompilationResult> _runOptPhase(
     CodegenResult codegenResult,
     compiler.WasmCompilerOptions options,
     CompilerPhaseInputOutputManager ioManager) async {
-  final futures = <Future<void>>[];
   final numModules = codegenResult.numModules;
-  void doOpt(int moduleId) {
-    futures.add(ioManager.runWasmOpt(
-        codegenResult.mainWasmFile,
-        moduleId,
-        options.useMultiModuleOpt
-            ? _binaryenFlagsMultiModule
-            : _binaryenFlags));
-  }
+  final optPool = pool.Pool(options.maxActiveWasmOptProcesses == -1
+      ? numModules
+      : options.maxActiveWasmOptProcesses);
 
-  if (options.moduleIdsToOptimize.isEmpty) {
-    for (int i = 0; i < codegenResult.numModules; i++) {
-      doOpt(i);
+  final iterator = options.moduleIdsToOptimize.isEmpty
+      ? List.generate(numModules, (i) => i).iterator
+      : options.moduleIdsToOptimize.iterator;
+
+  while (iterator.moveNext()) {
+    final moduleId = iterator.current;
+    if (moduleId < 0 || moduleId >= numModules) {
+      throw ArgumentError('Invalid module ID to optimize: $moduleId');
     }
-  } else {
-    for (final moduleId in options.moduleIdsToOptimize) {
-      if (moduleId < 0 || moduleId >= numModules) {
-        throw ArgumentError('Invalid module ID to optimize: $moduleId');
-      }
-      doOpt(moduleId);
-    }
+    final resource = await optPool.request();
+    ioManager
+        .runWasmOpt(
+            codegenResult.mainWasmFile,
+            moduleId,
+            options.useMultiModuleOpt
+                ? _binaryenFlagsMultiModule
+                : _binaryenFlags)
+        .then((_) => resource.release());
   }
-  await Future.wait(futures);
+  await optPool.close();
   return OptResult(options.outputFile, numModules);
 }
 
