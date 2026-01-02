@@ -238,15 +238,13 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     final StateTarget initialTarget = targets.first;
     emitTargetLabel(initialTarget);
 
-    // Clone context on first execution.
     b.restoreSuspendStateContext(
         _suspendStateLocal,
         asyncSuspendStateInfo.struct,
         FieldIndex.asyncSuspendStateContext,
         closures,
         context,
-        thisLocal,
-        cloneContextFor: functionNode);
+        thisLocal);
 
     translateStatement(functionBody);
 
