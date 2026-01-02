@@ -1309,7 +1309,6 @@ class LocalGet extends Instruction {
   LocalGet(this.local);
 
   static LocalGet deserialize(Deserializer d) {
-    // TODO(joshualitt): This is not correct.
     return LocalGet(Local(d.readUnsigned(), NumType.i32));
   }
 

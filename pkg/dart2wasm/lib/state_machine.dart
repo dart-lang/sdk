@@ -35,7 +35,7 @@ class StateTarget {
   @override
   String toString() {
     String place = _placement == _StateTargetPlacement.Inner ? "in" : "after";
-    return "$index: $place $node";
+    return "$index: $place ${node.runtimeType} (${node.location})";
   }
 }
 
@@ -786,6 +786,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
         'target.node.location = ${target.node.location}');
     exceptionHandlers._terminateTryBlocks();
     b.end();
+    b.comment(target.toString());
     exceptionHandlers._generateTryBlocks(b);
   }
 
