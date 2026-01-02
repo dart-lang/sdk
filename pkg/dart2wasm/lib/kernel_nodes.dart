@@ -158,9 +158,6 @@ mixin KernelNodes {
       index.getProcedure("dart:async", "_AsyncSuspendState", "_complete");
   late final Procedure asyncSuspendStateCompleteError =
       index.getProcedure("dart:async", "_AsyncSuspendState", "_completeError");
-  late final Procedure asyncSuspendStateCompleteErrorWithCurrentStack =
-      index.getProcedure(
-          "dart:async", "_AsyncSuspendState", "_completeErrorWithCurrentStack");
   late final Procedure makeFuture =
       index.getTopLevelProcedure("dart:async", "_makeFuture");
 
@@ -315,6 +312,8 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "AssertionError", "_throwWithMessage");
   late final Procedure javaScriptErrorFactory =
       index.getProcedure("dart:core", "_JavaScriptError", "_");
+  late final Procedure javaScriptErrorStackTraceGetter =
+      index.getProcedure("dart:core", "_JavaScriptError", "get:stackTrace");
   late final Procedure rangeErrorCheckValueInInterval =
       index.getProcedure("dart:core", "RangeError", "checkValueInInterval");
   late final Class errorClass = index.getClass("dart:core", "Error");

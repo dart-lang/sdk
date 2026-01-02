@@ -49,16 +49,26 @@ class _Error extends Error {
 }
 
 // This error is emitted when we catch an opaque object that was thrown from
-// JavaScript
+// JavaScript.
 @pragma("wasm:entry-point")
 class _JavaScriptError extends Error {
-  _JavaScriptError();
+  final WasmExternRef? _errorRef;
+
+  _JavaScriptError(this._errorRef);
 
   @pragma("wasm:entry-point")
-  factory _JavaScriptError._() => _JavaScriptError();
+  factory _JavaScriptError._(WasmExternRef? errorRef) =>
+      _JavaScriptError(errorRef);
 
   @override
-  String toString() => "JavaScriptError";
+  String toString() => JSStringImpl.fromRefUnchecked(
+    JS<WasmExternRef?>("(exn) => exn.toString()", _errorRef),
+  );
+
+  @override
+  @pragma("wasm:entry-point")
+  StackTrace get stackTrace =>
+      _JavaScriptStack(JS<WasmExternRef?>("(exn) => exn.stack", _errorRef));
 }
 
 class _TypeError extends _Error implements TypeError {

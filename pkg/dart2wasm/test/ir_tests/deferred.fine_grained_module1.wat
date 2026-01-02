@@ -27,28 +27,28 @@
   (func $JSStringImpl._interpolate3 (import "module0" "func10") (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl)))
   (func $print (import "module0" "func9") (param (ref null $#Top)) (result (ref null $#Top)))
   (global $".FooConst5(" (import "" "FooConst5(") (ref extern))
-  (global $"C310 \"[]\"" (import "module0" "global6") (ref $JSStringImpl))
-  (global $"C386 5" (import "module0" "global5") (ref $BoxedInt))
-  (global $"C388 FooConst0" (import "module0" "global7") (ref $FooConst0))
+  (global $"C313 \"[]\"" (import "module0" "global6") (ref $JSStringImpl))
+  (global $"C389 5" (import "module0" "global5") (ref $BoxedInt))
+  (global $"C391 FooConst0" (import "module0" "global7") (ref $FooConst0))
   (global $"C8 \")\"" (import "module0" "global4") (ref $JSStringImpl))
-  (table $module0.dispatch0 (import "module0" "dispatch0") 793 funcref)
+  (table $module0.dispatch0 (import "module0" "dispatch0") 778 funcref)
   (table $module0.static1-0 (import "module0" "static1-0") 4 (ref null $type2))
   (table $module0.static2-0 (import "module0" "static2-0") 4 (ref null $type0))
   (table $module0.static3-0 (import "module0" "static3-0") 1 (ref null $type4))
   (table $module0.static4-0 (import "module0" "static4-0") 1 (ref null $type6))
   (table $module0.static5-0 (import "module0" "static5-0") 1 (ref null $type8))
   (table $module0.static6-0 (import "module0" "static6-0") 1 (ref null $type10))
-  (global $"C507 FooConst5" (ref $FooConst5)
-    (i32.const 121)
+  (global $"C510 FooConst5" (ref $FooConst5)
+    (i32.const 123)
     (i32.const 0)
     (struct.new $FooConst5))
-  (global $"C508 \"foo5Code(\"" (ref $JSStringImpl) <...>)
-  (global $"C509 \"FooConst5(\"" (ref $JSStringImpl)
+  (global $"C511 \"foo5Code(\"" (ref $JSStringImpl) <...>)
+  (global $"C512 \"FooConst5(\"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
     (global.get $".FooConst5(")
     (struct.new $JSStringImpl))
-  (global $"C510 _InterfaceType" (ref $_InterfaceType) <...>)
+  (global $"C513 _InterfaceType" (ref $_InterfaceType) <...>)
   (global $allFooConstants (mut (ref null $GrowableList))
     (ref.null none))
   (global $fooGlobal5 (mut (ref null $#Top))
@@ -58,16 +58,16 @@
     (local $var1 (ref $GrowableList))
     (local $var2 (ref $FooConstBase))
     (local $var3 i64)
-    global.get $"C507 FooConst5"
+    global.get $"C510 FooConst5"
     call $print
     drop
-    global.get $"C508 \"foo5Code(\""
+    global.get $"C511 \"foo5Code(\""
     local.get $var0
     global.get $"C8 \")\""
     call $JSStringImpl._interpolate3
     call $print
     drop
-    global.get $"C386 5"
+    global.get $"C389 5"
     global.set $fooGlobal5
     call $"fooGlobal0 implicit getter"
     call $"foo0Code <noInline>"
@@ -95,8 +95,8 @@
     block $label0 (result (ref $GrowableList))
       global.get $allFooConstants
       br_on_non_null $label0
-      global.get $"C510 _InterfaceType"
-      global.get $"C388 FooConst0"
+      global.get $"C513 _InterfaceType"
+      global.get $"C391 FooConst0"
       i32.const 0
       call_indirect $module0.static3-0 (result (ref $FooConst1))
       i32.const 0
@@ -105,7 +105,7 @@
       call_indirect $module0.static5-0 (result (ref $FooConst3))
       i32.const 0
       call_indirect $module0.static6-0 (result (ref $FooConst4))
-      global.get $"C507 FooConst5"
+      global.get $"C510 FooConst5"
       array.new_fixed $Array<Object?> 6
       call $GrowableList._withData
       global.set $allFooConstants
@@ -119,7 +119,7 @@
     if
       i64.const 0
       local.get $var3
-      global.get $"C310 \"[]\""
+      global.get $"C313 \"[]\""
       call $"_throwIndexError <noInline>"
       unreachable
     end
@@ -132,7 +132,7 @@
     call $"fooGlobal5 implicit getter"
     local.get $var2
     struct.get $FooConstBase $field0
-    i32.const 413
+    i32.const 400
     i32.add
     call_indirect $module0.dispatch0 (param (ref $FooConstBase) (ref null $#Top)) (result (ref null $#Top))
     drop
@@ -142,7 +142,7 @@
     (local $var2 (ref $FooConst5))
     local.get $var0
     ref.cast $FooConst5
-    global.get $"C509 \"FooConst5(\""
+    global.get $"C512 \"FooConst5(\""
     local.get $var1
     global.get $"C8 \")\""
     call $JSStringImpl._interpolate3

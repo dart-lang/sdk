@@ -351,6 +351,10 @@ abstract class ConstructorFragment implements ExecutableFragment {
   @override
   ConstructorFragment? get previousFragment;
 
+  /// The offset of the `this` keyword, if this fragment is based on
+  /// [PrimaryConstructorDeclaration] and has [PrimaryConstructorBody].
+  int? get thisKeywordOffset;
+
   /// The specified name of the type (e.g. class).
   ///
   /// In valid code it is the name of the [enclosingFragment], however it

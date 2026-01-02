@@ -458,37 +458,39 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     void Function(FormalParameterElement first, FormalParameterElement second)
     f,
   ) {
-    Map<String, FormalParameterElement>? firstNamed;
-    Map<String, FormalParameterElement>? secondNamed;
-    var firstPositional = <FormalParameterElement>[];
-    var secondPositional = <FormalParameterElement>[];
-    for (var element in firstList) {
-      if (element.isNamed) {
-        (firstNamed ??= {})[element.name!] = element;
-      } else {
-        firstPositional.add(element);
+    (List<FormalParameterElement>?, Map<String, FormalParameterElement>?)
+    segregate(List<FormalParameterElement> elements) {
+      List<FormalParameterElement>? positional;
+      Map<String, FormalParameterElement>? named;
+      for (var element in elements) {
+        if (element.isNamed) {
+          if (element.name case var name?) {
+            (named ??= {})[name] = element;
+          }
+        } else {
+          assert(element.isPositional);
+          (positional ??= []).add(element);
+        }
       }
-    }
-    for (var element in secondList) {
-      if (element.isNamed) {
-        (secondNamed ??= {})[element.name!] = element;
-      } else {
-        secondPositional.add(element);
-      }
+      return (positional, named);
     }
 
-    var positionalLength = math.min(
-      firstPositional.length,
-      secondPositional.length,
-    );
-    for (var i = 0; i < positionalLength; i++) {
-      f(firstPositional[i], secondPositional[i]);
+    var (firstPositional, firstNamed) = segregate(firstList);
+    var (secondPositional, secondNamed) = segregate(secondList);
+
+    if (firstPositional != null && secondPositional != null) {
+      var positionalLength = math.min(
+        firstPositional.length,
+        secondPositional.length,
+      );
+      for (var i = 0; i < positionalLength; i++) {
+        f(firstPositional[i], secondPositional[i]);
+      }
     }
 
     if (firstNamed != null && secondNamed != null) {
       for (var firstEntry in firstNamed.entries) {
-        var second = secondNamed[firstEntry.key];
-        if (second != null) {
+        if (secondNamed[firstEntry.key] case var second?) {
           f(firstEntry.value, second);
         }
       }

@@ -11,18 +11,14 @@ void main() {
 }
 
 const List<(String?, int?, int?, String?)?> frameDetails = [
-  ('errors_patch.dart', null, null, '_throwWithCurrentStackTrace'),
   ('source_map_simple_lib.dart', 18, 3, 'g'),
-  ('source_map_simple_lib.dart', 14, 3, 'f'),
 ];
 
 /*
-at Error._throwWithCurrentStackTrace (wasm://wasm/0008d08e:wasm-function[115]:0xc095)
-at g (wasm://wasm/0008d08e:wasm-function[359]:0x11e15)
-at f (wasm://wasm/0008d08e:wasm-function[358]:0x11e0b)
-at main (wasm://wasm/0008d08e:wasm-function[357]:0x11913)
-at _invokeMain (wasm://wasm/0008d08e:wasm-function[82]:0xb349)
-at Module.invoke (...)
-at main (...)
-at async action (...)
+at <minified>.g (wasm://wasm/-00088996:wasm-function[179]:0xd12b)
+at <minified>._invokeMain (wasm://wasm/-00088996:wasm-function[50]:0xa44e)
+at InstantiatedApp.invokeMain (.../source_map_simple_optimized_test.mjs:309:37)
+at main (.../run_wasm.js:428:21)
+at async action (.../run_wasm.js:353:38)
+at async eventLoop (.../run_wasm.js:329:9)
 */

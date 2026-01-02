@@ -23195,6 +23195,522 @@ library
 ''');
   }
 
+  test_primaryConstructorBody_constantInitializers_assertInitializer() async {
+    var library = await buildLibrary('''
+class const A() {
+  this : assert(true);
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:12) (firstTokenOffset:0) (offset:12)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 12
+              thisKeywordOffset: 20
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        const declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          constantInitializers
+            AssertInitializer
+              assertKeyword: assert @27
+              leftParenthesis: ( @33
+              condition: BooleanLiteral
+                literal: true @34
+                staticType: bool
+              rightParenthesis: ) @38
+''');
+  }
+
+  test_primaryConstructorBody_constantInitializers_fieldInitializer() async {
+    var library = await buildLibrary('''
+class const A() {
+  final int x;
+  this : x = 0;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:12) (firstTokenOffset:0) (offset:12)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 isOriginDeclaration x (nameOffset:30) (firstTokenOffset:30) (offset:30)
+              element: <testLibrary>::@class::A::@field::x
+          constructors
+            #F3 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 12
+              thisKeywordOffset: 35
+          getters
+            #F4 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@class::A::@getter::x
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        final isOriginDeclaration x
+          reference: <testLibrary>::@class::A::@field::x
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::A::@getter::x
+      constructors
+        const declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          constantInitializers
+            ConstructorFieldInitializer
+              fieldName: SimpleIdentifier
+                token: x @42
+                element: <testLibrary>::@class::A::@field::x
+                staticType: null
+              equals: = @44
+              expression: IntegerLiteral
+                literal: 0 @46
+                staticType: int
+      getters
+        synthetic isOriginVariable x
+          reference: <testLibrary>::@class::A::@getter::x
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::x
+''');
+  }
+
+  test_primaryConstructorBody_constantInitializers_superConstructorInvocation() async {
+    var library = await buildLibrary('''
+class A(int x);
+
+class const B() extends A {
+  this : super(0);
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 6
+              formalParameters
+                #F3 requiredPositional x (nameOffset:12) (firstTokenOffset:8) (offset:12)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+        #F4 class B (nameOffset:29) (firstTokenOffset:17) (offset:29)
+          element: <testLibrary>::@class::B
+          constructors
+            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:23) (offset:29)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 29
+              thisKeywordOffset: 47
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E0 requiredPositional x
+              firstFragment: #F3
+              type: int
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F4
+      supertype: A
+      constructors
+        const declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F5
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @54
+              argumentList: ArgumentList
+                leftParenthesis: ( @59
+                arguments
+                  IntegerLiteral
+                    literal: 0 @60
+                    staticType: int
+                rightParenthesis: ) @61
+              element: <testLibrary>::@class::A::@constructor::new
+          superConstructor: <testLibrary>::@class::A::@constructor::new
+''');
+  }
+
+  test_primaryConstructorBody_duplicate() async {
+    var library = await buildLibrary(r'''
+class const A() {
+  final int x;
+  @Deprecated('0')
+  this : x = 0;
+  @Deprecated('1')
+  this : x = 1;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:12) (firstTokenOffset:0) (offset:12)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 isOriginDeclaration x (nameOffset:30) (firstTokenOffset:30) (offset:30)
+              element: <testLibrary>::@class::A::@field::x
+          constructors
+            #F3 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
+              metadata
+                Annotation
+                  atSign: @ @35
+                  name: SimpleIdentifier
+                    token: Deprecated @36
+                    element: dart:core::@class::Deprecated
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @46
+                    arguments
+                      SimpleStringLiteral
+                        literal: '0' @47
+                    rightParenthesis: ) @50
+                  element: dart:core::@class::Deprecated::@constructor::new
+              typeName: A
+              typeNameOffset: 12
+              thisKeywordOffset: 54
+          getters
+            #F4 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@class::A::@getter::x
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        final isOriginDeclaration x
+          reference: <testLibrary>::@class::A::@field::x
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::A::@getter::x
+      constructors
+        const declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          metadata
+            Annotation
+              atSign: @ @35
+              name: SimpleIdentifier
+                token: Deprecated @36
+                element: dart:core::@class::Deprecated
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @46
+                arguments
+                  SimpleStringLiteral
+                    literal: '0' @47
+                rightParenthesis: ) @50
+              element: dart:core::@class::Deprecated::@constructor::new
+          constantInitializers
+            ConstructorFieldInitializer
+              fieldName: SimpleIdentifier
+                token: x @61
+                element: <testLibrary>::@class::A::@field::x
+                staticType: null
+              equals: = @63
+              expression: IntegerLiteral
+                literal: 0 @65
+                staticType: int
+      getters
+        synthetic isOriginVariable x
+          reference: <testLibrary>::@class::A::@getter::x
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::x
+''');
+  }
+
+  test_primaryConstructorBody_metadata() async {
+    var library = await buildLibrary('''
+class const A(final int x) {
+  @deprecated
+  this;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:12) (firstTokenOffset:0) (offset:12)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 synthetic isOriginDeclaringFormalParameter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
+              element: <testLibrary>::@class::A::@field::x
+          constructors
+            #F3 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
+              metadata
+                Annotation
+                  atSign: @ @31
+                  name: SimpleIdentifier
+                    token: deprecated @32
+                    element: dart:core::@getter::deprecated
+                    staticType: null
+                  element: dart:core::@getter::deprecated
+              typeName: A
+              typeNameOffset: 12
+              thisKeywordOffset: 45
+              formalParameters
+                #F4 requiredPositional final this.x (nameOffset:24) (firstTokenOffset:14) (offset:24)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+          getters
+            #F5 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
+              element: <testLibrary>::@class::A::@getter::x
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic final isOriginDeclaringFormalParameter x
+          reference: <testLibrary>::@class::A::@field::x
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::A::@getter::x
+          declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+      constructors
+        const declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          metadata
+            Annotation
+              atSign: @ @31
+              name: SimpleIdentifier
+                token: deprecated @32
+                element: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
+          formalParameters
+            #E0 requiredPositional final declaring this.x
+              firstFragment: #F4
+              type: int
+              field: <testLibrary>::@class::A::@field::x
+      getters
+        synthetic isOriginVariable x
+          reference: <testLibrary>::@class::A::@getter::x
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::x
+''');
+  }
+
+  test_primaryConstructorBody_named() async {
+    var library = await buildLibrary(r'''
+class const A.named() {
+  this : assert(true);
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:12) (firstTokenOffset:0) (offset:12)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 const isOriginDeclaration isPrimary named (nameOffset:14) (firstTokenOffset:6) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              thisKeywordOffset: 26
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        const declaring isOriginDeclaration isPrimary named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F2
+          constantInitializers
+            AssertInitializer
+              assertKeyword: assert @33
+              leftParenthesis: ( @39
+              condition: BooleanLiteral
+                literal: true @40
+                staticType: bool
+              rightParenthesis: ) @44
+''');
+  }
+
+  test_primaryConstructorBody_noDeclaration() async {
+    var library = await buildLibrary('''
+class A {
+  this : assert(true) {}
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+''');
+  }
+
+  test_primaryConstructorBody_notConst() async {
+    var library = await buildLibrary('''
+class A() {
+  this : assert(true) {}
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 6
+              thisKeywordOffset: 14
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+''');
+  }
+
+  test_primaryConstructorBody_primaryInitializerScope() async {
+    var library = await buildLibrary('''
+class const A(final int x) {
+  this : assert(x > 0);
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:12) (firstTokenOffset:0) (offset:12)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 synthetic isOriginDeclaringFormalParameter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
+              element: <testLibrary>::@class::A::@field::x
+          constructors
+            #F3 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 12
+              thisKeywordOffset: 31
+              formalParameters
+                #F4 requiredPositional final this.x (nameOffset:24) (firstTokenOffset:14) (offset:24)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+          getters
+            #F5 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
+              element: <testLibrary>::@class::A::@getter::x
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic final isOriginDeclaringFormalParameter x
+          reference: <testLibrary>::@class::A::@field::x
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::A::@getter::x
+          declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+      constructors
+        const declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional final declaring this.x
+              firstFragment: #F4
+              type: int
+              field: <testLibrary>::@class::A::@field::x
+          constantInitializers
+            AssertInitializer
+              assertKeyword: assert @38
+              leftParenthesis: ( @44
+              condition: BinaryExpression
+                leftOperand: SimpleIdentifier
+                  token: x @45
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                  staticType: int
+                operator: > @47
+                rightOperand: IntegerLiteral
+                  literal: 0 @49
+                  staticType: int
+                element: dart:core::@class::num::@method::>
+                staticInvokeType: bool Function(num)
+                staticType: bool
+              rightParenthesis: ) @50
+      getters
+        synthetic isOriginVariable x
+          reference: <testLibrary>::@class::A::@getter::x
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::x
+''');
+  }
+
   test_unused_type_parameter() async {
     var library = await buildLibrary('''
 class C<T> {

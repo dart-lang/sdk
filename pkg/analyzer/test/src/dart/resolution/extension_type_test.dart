@@ -3022,6 +3022,175 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  test_primaryConstructorBody_duplicate() async {
+    await assertNoErrorsInCode(r'''
+extension type A({bool it = false}) {
+  this : assert(it);
+  this : assert(!it);
+}
+''');
+
+    var node = findNode.singleExtensionTypeDeclaration;
+    assertResolvedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: bool
+            element: dart:core::@class::bool
+            type: bool
+          name: it
+          declaredFragment: <testLibraryFragment> it@23
+            element: isFinal isPublic
+              type: bool
+              field: <testLibrary>::@extensionType::A::@field::it
+        separator: =
+        defaultValue: BooleanLiteral
+          literal: false
+          staticType: bool
+        declaredFragment: <testLibraryFragment> it@23
+          element: isFinal isPublic
+            type: bool
+            field: <testLibrary>::@extensionType::A::@field::it
+      rightDelimiter: }
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function({bool it})
+  body: BlockClassBody
+    leftBracket: {
+    members
+      PrimaryConstructorBody
+        thisKeyword: this
+        colon: :
+        initializers
+          AssertInitializer
+            assertKeyword: assert
+            leftParenthesis: (
+            condition: SimpleIdentifier
+              token: it
+              element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+              staticType: bool
+            rightParenthesis: )
+        body: EmptyFunctionBody
+          semicolon: ;
+      PrimaryConstructorBody
+        thisKeyword: this
+        colon: :
+        initializers
+          AssertInitializer
+            assertKeyword: assert
+            leftParenthesis: (
+            condition: PrefixExpression
+              operator: !
+              operand: SimpleIdentifier
+                token: it
+                element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                staticType: bool
+              element: <null>
+              staticType: bool
+            rightParenthesis: )
+        body: EmptyFunctionBody
+          semicolon: ;
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+''');
+  }
+
+  test_primaryConstructorBody_primaryInitializerScope_optionalNamed() async {
+    await assertNoErrorsInCode(r'''
+extension type A({bool it = false}) {
+  this : assert(it);
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
+        token: it
+        element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+        staticType: bool
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_primaryConstructorBody_primaryInitializerScope_requiredPositional() async {
+    await assertNoErrorsInCode(r'''
+extension type A(bool it) {
+  this : assert(it);
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
+        token: it
+        element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+        staticType: bool
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_primaryConstructorBody_primaryParameterScope() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  this {
+    it;
+    foo;
+  }
+  void foo() {}
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: it
+            element: <testLibrary>::@extensionType::A::@getter::it
+            staticType: int
+          semicolon: ;
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: foo
+            element: <testLibrary>::@extensionType::A::@method::foo
+            staticType: void Function()
+          semicolon: ;
+      rightBracket: }
+''');
+  }
+
   test_secondaryConstructor_fieldFormalParameter() async {
     var code = r'''
 extension type A(int it) {

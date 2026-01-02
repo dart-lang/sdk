@@ -1960,6 +1960,36 @@ f() => m();
 ''');
   }
 
+  test_parameter_missingName_isNamed_redirectingFactory_source() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C.impl({int? x});
+  factory C({}) = C.impl;
+}
+''',
+      [
+        error(diag.missingIdentifier, 43, 1),
+        error(diag.redirectToInvalidFunctionType, 48, 6),
+      ],
+    );
+  }
+
+  test_parameter_missingName_isNamed_redirectingFactory_target() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C.impl({});
+  factory C({int? x}) = C.impl;
+}
+''',
+      [
+        error(diag.missingIdentifier, 20, 1),
+        error(diag.redirectToInvalidFunctionType, 48, 6),
+      ],
+    );
+  }
+
   test_parameter_notUsed_constructor_named() async {
     await assertErrorsInCode(
       r'''

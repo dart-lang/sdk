@@ -2104,7 +2104,7 @@ class Intrinsifier {
         b.end(); // notErrorBlock
 
         b.local_get(stackTraceLocal);
-        b.throw_(translator.getExceptionTag(b.moduleBuilder));
+        b.throw_(translator.getDartExceptionTag(b.moduleBuilder));
 
       case MemberIntrinsic.nullRef:
         b.ref_null(w.HeapType.noextern);

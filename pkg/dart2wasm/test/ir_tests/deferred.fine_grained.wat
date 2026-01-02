@@ -21,29 +21,29 @@
   (table $static5-0 (export "static5-0") 1 (ref null $type10))
   (table $static6-0 (export "static6-0") 1 (ref null $type12))
   (global $"C12 0" (ref $BoxedInt) <...>)
-  (global $"C387 \"FooConstBase(\"" (ref $JSStringImpl)
+  (global $"C390 \"FooConstBase(\"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
     (global.get $".FooConstBase(")
     (struct.new $JSStringImpl))
-  (global $"C388 FooConst0" (ref $FooConst0)
-    (i32.const 116)
+  (global $"C391 FooConst0" (ref $FooConst0)
+    (i32.const 118)
     (i32.const 0)
     (struct.new $FooConst0))
-  (global $"C389 \"FooConst0(\"" (ref $JSStringImpl)
+  (global $"C392 \"FooConst0(\"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
     (global.get $".FooConst0(")
     (struct.new $JSStringImpl))
-  (global $"C505 \"foo0Code(\"" (ref $JSStringImpl) <...>)
+  (global $"C508 \"foo0Code(\"" (ref $JSStringImpl) <...>)
   (global $"C8 \")\"" (ref $JSStringImpl) <...>)
   (global $fooGlobal0 (mut (ref null $#Top))
     (ref.null none))
   (func $"foo0Code <noInline>" (export "func12") (param $var0 (ref null $#Top)) (result (ref null $#Top))
-    global.get $"C388 FooConst0"
+    global.get $"C391 FooConst0"
     call $print
     drop
-    global.get $"C505 \"foo0Code(\""
+    global.get $"C508 \"foo0Code(\""
     local.get $var0
     global.get $"C8 \")\""
     call $JSStringImpl._interpolate3
@@ -57,7 +57,7 @@
     (local $var2 (ref $FooConst0))
     local.get $var0
     ref.cast $FooConst0
-    global.get $"C389 \"FooConst0(\""
+    global.get $"C392 \"FooConst0(\""
     local.get $var1
     global.get $"C8 \")\""
     call $JSStringImpl._interpolate3
@@ -69,7 +69,7 @@
     ref.null none
   )
   (func $FooConstBase.doit (export "func14") (param $var0 (ref $FooConstBase)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
-    global.get $"C387 \"FooConstBase(\""
+    global.get $"C390 \"FooConstBase(\""
     local.get $var1
     global.get $"C8 \")\""
     call $JSStringImpl._interpolate3

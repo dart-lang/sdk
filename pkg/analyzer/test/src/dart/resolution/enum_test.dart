@@ -1172,6 +1172,257 @@ EnumDeclaration
 ''');
   }
 
+  test_primaryConstructorBody_duplicate() async {
+    await assertNoErrorsInCode(r'''
+enum A(bool x, bool y) {
+  v(true, true);
+  this : assert(x) {
+    y;
+  }
+  this : assert(!x) {
+    !y;
+  }
+}
+''');
+
+    var node = findNode.singleEnumDeclaration;
+    assertResolvedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: bool
+          element: dart:core::@class::bool
+          type: bool
+        name: x
+        declaredFragment: <testLibraryFragment> x@12
+          element: isPublic
+            type: bool
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: bool
+          element: dart:core::@class::bool
+          type: bool
+        name: y
+        declaredFragment: <testLibraryFragment> y@20
+          element: isPublic
+            type: bool
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@enum::A::@constructor::new
+        type: A Function(bool, bool)
+  body: EnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+        arguments: EnumConstantArguments
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments
+              BooleanLiteral
+                literal: true
+                correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
+                staticType: bool
+              BooleanLiteral
+                literal: true
+                correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
+                staticType: bool
+            rightParenthesis: )
+        constructorElement: <testLibrary>::@enum::A::@constructor::new
+        declaredFragment: <testLibraryFragment> v@27
+    semicolon: ;
+    members
+      PrimaryConstructorBody
+        thisKeyword: this
+        colon: :
+        initializers
+          AssertInitializer
+            assertKeyword: assert
+            leftParenthesis: (
+            condition: SimpleIdentifier
+              token: x
+              element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
+              staticType: bool
+            rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: SimpleIdentifier
+                  token: y
+                  element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
+                  staticType: bool
+                semicolon: ;
+            rightBracket: }
+      PrimaryConstructorBody
+        thisKeyword: this
+        colon: :
+        initializers
+          AssertInitializer
+            assertKeyword: assert
+            leftParenthesis: (
+            condition: PrefixExpression
+              operator: !
+              operand: SimpleIdentifier
+                token: x
+                element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
+                staticType: bool
+              element: <null>
+              staticType: bool
+            rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: PrefixExpression
+                  operator: !
+                  operand: SimpleIdentifier
+                    token: y
+                    element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
+                    staticType: bool
+                  element: <null>
+                  staticType: bool
+                semicolon: ;
+            rightBracket: }
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@5
+''');
+  }
+
+  test_primaryConstructorBody_noDeclaration() async {
+    await assertErrorsInCode(
+      r'''
+enum A/*(bool x, int y)*/ {
+  v();
+  this : assert(x) {
+    y;
+  }
+}
+''',
+      [
+        error(diag.primaryConstructorBodyWithoutDeclaration, 37, 29),
+        error(diag.undefinedIdentifier, 51, 1),
+        error(diag.undefinedIdentifier, 60, 1),
+      ],
+    );
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
+        token: x
+        element: <null>
+        staticType: InvalidType
+      rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: y
+            element: <null>
+            staticType: InvalidType
+          semicolon: ;
+      rightBracket: }
+''');
+  }
+
+  test_primaryConstructorBody_primaryInitializerScope_declaringFormalParameter_optionalNamed() async {
+    await assertNoErrorsInCode(r'''
+enum A({final x = false}) {
+  v(x: true);
+  this : assert(x);
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
+        token: x
+        element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
+        staticType: bool
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_primaryConstructorBody_primaryInitializerScope_declaringFormalParameter_requiredPositional() async {
+    await assertNoErrorsInCode(r'''
+enum A(final bool a) {
+  v(true);
+  this : assert(a);
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
+        staticType: bool
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_primaryConstructorBody_primaryInitializerScope_fieldFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+enum A(this.x) {
+  v(true);
+  final bool x;
+  this : assert(x);
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
+        token: x
+        element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
+        staticType: bool
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   test_setter() async {
     await assertNoErrorsInCode(r'''
 enum E<T> {

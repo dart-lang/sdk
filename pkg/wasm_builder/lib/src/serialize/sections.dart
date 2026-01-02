@@ -357,7 +357,7 @@ class TagSection extends Section {
 
   static ir.Tags deserialize(Deserializer? d, ir.Module module, ir.Types types,
       List<ir.ImportedTag> imported) {
-    if (d == null) return ir.Tags([], imported);
+    if (d == null) return ir.Tags(imported, []);
 
     final defined = <ir.DefinedTag>[];
     final count = d.readUnsigned();
@@ -371,7 +371,7 @@ class TagSection extends Section {
           module, ir.FinalizableIndex()..value = imported.length + i, type);
       defined.add(tag);
     }
-    return ir.Tags(defined, []);
+    return ir.Tags(imported, defined);
   }
 }
 

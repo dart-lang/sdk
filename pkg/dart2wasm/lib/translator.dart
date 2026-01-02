@@ -196,7 +196,7 @@ class Translator with KernelNodes {
   late final Globals globals;
   late final Constants constants;
   late final Types types;
-  late final ExceptionTag exceptionTag;
+  late final ExceptionTags _exceptionTags;
   late final CompilationQueue compilationQueue;
   late final FunctionCollector functions;
 
@@ -522,7 +522,7 @@ class Translator with KernelNodes {
     compilationQueue = CompilationQueue(this);
     functions = FunctionCollector(this);
     types = Types(this);
-    exceptionTag = ExceptionTag(this);
+    _exceptionTags = ExceptionTags(this);
 
     dynamicModuleConstants =
         (component.metadata[DynamicModuleConstantRepository.repositoryTag]
@@ -897,9 +897,17 @@ class Translator with KernelNodes {
         requiredParameterCount: staticType.requiredParameterCount);
   }
 
-  /// Get the exception tag reference for [module].
-  w.Tag getExceptionTag(w.ModuleBuilder module) =>
-      exceptionTag.getExceptionTag(module);
+  /// Get the Dart exception tag for [module].
+  ///
+  /// This tag catches Dart exceptions.
+  w.Tag getDartExceptionTag(w.ModuleBuilder module) =>
+      _exceptionTags.getDartExceptionTag(module);
+
+  /// Get the JS exception tag for [module].
+  ///
+  /// This tag catches JS exceptions.
+  w.Tag getJsExceptionTag(w.ModuleBuilder module) =>
+      _exceptionTags.getJsExceptionTag(module);
 
   w.ValueType translateReturnType(DartType type) {
     if (type is NeverType && !type.isPotentiallyNullable) {

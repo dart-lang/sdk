@@ -427,8 +427,9 @@ class DynamicModuleInfo {
   void initSubmodule() {
     initFunction = submodule.startFunction;
 
-    // Make sure the exception tag is exported from the main module.
-    translator.getExceptionTag(submodule);
+    // Make sure the exception tags are exported from the main module.
+    translator.getDartExceptionTag(submodule);
+    translator.getJsExceptionTag(submodule);
 
     if (isSubmodule) {
       _initMainModuleConstantDefinitions();

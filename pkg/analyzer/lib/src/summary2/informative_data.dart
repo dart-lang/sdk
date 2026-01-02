@@ -261,6 +261,7 @@ class InformativeDataApplier {
       fragment.firstTokenOffset = info.firstTokenOffset;
       fragment.nameEnd = info.nameEnd;
       fragment.nameOffset = info.nameOffset;
+      fragment.thisKeywordOffset = info.thisKeywordOffset;
       fragment.documentationComment = info.documentationComment;
 
       DeferredResolutionReadingHelper.withoutLoadingResolution(() {
@@ -727,6 +728,7 @@ class _InfoBuilder {
       typeNameOffset: node.typeName?.offset,
       periodOffset: node.period?.offset,
       nameEnd: (node.name ?? node.typeName)?.end,
+      thisKeywordOffset: null,
     );
   }
 
@@ -979,11 +981,19 @@ class _InfoBuilder {
       members: members,
       fields: fields,
     );
+
+    var primaryConstructorBody = members
+        .whereType<PrimaryConstructorBody>()
+        .firstOrNull;
+
     return _InterfaceData(
       instanceData: instanceData,
       constructors: [
         if (primaryConstructor != null)
-          _buildPrimaryConstructor(primaryConstructor),
+          _buildPrimaryConstructor(
+            primaryConstructor,
+            body: primaryConstructorBody,
+          ),
         ...members.whereType<ConstructorDeclaration>().map(_buildConstructor),
       ],
     );
@@ -1065,8 +1075,9 @@ class _InfoBuilder {
   }
 
   _InfoConstructorDeclaration _buildPrimaryConstructor(
-    PrimaryConstructorDeclaration node,
-  ) {
+    PrimaryConstructorDeclaration node, {
+    required PrimaryConstructorBody? body,
+  }) {
     return _InfoConstructorDeclaration(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
@@ -1076,13 +1087,16 @@ class _InfoBuilder {
       typeParameters: const [],
       parameters: _buildFormalParameters(node.formalParameters),
       constantOffsets: _buildConstantOffsets(
+        metadata: body?.metadata,
         formalParameters: node.formalParameters,
+        constructorInitializers: body?.initializers,
       ),
       newKeywordOffset: null,
       factoryKeywordOffset: null,
       typeNameOffset: node.typeName.offset,
       periodOffset: node.constructorName?.period.offset,
       nameEnd: (node.constructorName?.name ?? node.typeName).end,
+      thisKeywordOffset: body?.thisKeyword.offset,
     );
   }
 
@@ -1264,6 +1278,7 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
   final int? typeNameOffset;
   final int? periodOffset;
   final int? nameEnd;
+  final int? thisKeywordOffset;
 
   _InfoConstructorDeclaration({
     required super.firstTokenOffset,
@@ -1279,6 +1294,7 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
     required this.typeNameOffset,
     required this.periodOffset,
     required this.nameEnd,
+    required this.thisKeywordOffset,
   });
 
   _InfoConstructorDeclaration.read(super.reader)
@@ -1287,6 +1303,7 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
       typeNameOffset = reader.readOptionalUint30(),
       periodOffset = reader.readOptionalUint30(),
       nameEnd = reader.readOptionalUint30(),
+      thisKeywordOffset = reader.readOptionalUint30(),
       super.read();
 
   @override
@@ -1296,6 +1313,7 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
     writer.writeOptionalUint30(typeNameOffset);
     writer.writeOptionalUint30(periodOffset);
     writer.writeOptionalUint30(nameEnd);
+    writer.writeOptionalUint30(thisKeywordOffset);
     super.write(writer);
   }
 }

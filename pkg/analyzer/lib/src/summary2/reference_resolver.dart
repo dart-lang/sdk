@@ -503,9 +503,13 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {}
+
+  @override
   void visitPrimaryConstructorDeclaration(
     covariant PrimaryConstructorDeclarationImpl node,
   ) {
+    LinkingNodeContext(node, scope);
     node.typeParameters?.accept(this);
     node.formalParameters.accept(this);
   }

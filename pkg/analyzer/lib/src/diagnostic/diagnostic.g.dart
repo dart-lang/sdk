@@ -7122,9 +7122,9 @@ inconsistentPatternVariableLogicalOr = DiagnosticWithArguments(
 /// inferred via the context type, or have type arguments.
 ///
 /// Parameters:
-/// String p0: the name of the collection
+/// String collection: the name of the collection
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String collection})
 >
 inferenceFailureOnCollectionLiteral = DiagnosticWithArguments(
   name: 'inference_failure_on_collection_literal',
@@ -7141,9 +7141,9 @@ inferenceFailureOnCollectionLiteral = DiagnosticWithArguments(
 /// inferred via the context type, or have type arguments.
 ///
 /// Parameters:
-/// String p0: the name of the function
+/// String function: the name of the function
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String function})
 >
 inferenceFailureOnFunctionInvocation = DiagnosticWithArguments(
   name: 'inference_failure_on_function_invocation',
@@ -7164,10 +7164,10 @@ inferenceFailureOnFunctionInvocation = DiagnosticWithArguments(
 /// https://github.com/dart-lang/language/blob/master/resources/type-system/strict-inference.md
 ///
 /// Parameters:
-/// String p0: the name of the function or method whose return type can't be
-///            inferred
+/// String function: the name of the function or method whose return type
+///                  can't be inferred
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String function})
 >
 inferenceFailureOnFunctionReturnType = DiagnosticWithArguments(
   name: 'inference_failure_on_function_return_type',
@@ -7184,9 +7184,9 @@ inferenceFailureOnFunctionReturnType = DiagnosticWithArguments(
 /// inferred via the context type, or have type arguments.
 ///
 /// Parameters:
-/// String p0: the name of the type
+/// String function: the name of the type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String function})
 >
 inferenceFailureOnGenericInvocation = DiagnosticWithArguments(
   name: 'inference_failure_on_generic_invocation',
@@ -7206,9 +7206,9 @@ inferenceFailureOnGenericInvocation = DiagnosticWithArguments(
 /// arguments.
 ///
 /// Parameters:
-/// String p0: the name of the constructor
+/// String function: the name of the constructor
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String function})
 >
 inferenceFailureOnInstanceCreation = DiagnosticWithArguments(
   name: 'inference_failure_on_instance_creation',
@@ -7226,14 +7226,14 @@ inferenceFailureOnInstanceCreation = DiagnosticWithArguments(
 /// declared with a specific type.
 ///
 /// Parameters:
-/// String p0: the name of the variable
+/// String variable: the name of the variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String variable})
 >
 inferenceFailureOnUninitializedVariable = DiagnosticWithArguments(
   name: 'inference_failure_on_uninitialized_variable',
   problemMessage:
-      "The type of {0} can't be inferred without either a type or initializer.",
+      "The type of '{0}' can't be inferred without either a type or initializer.",
   correctionMessage: "Try specifying the type of the variable.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
@@ -7246,14 +7246,14 @@ inferenceFailureOnUninitializedVariable = DiagnosticWithArguments(
 /// declared with a specific type, or inherit a type.
 ///
 /// Parameters:
-/// String p0: the name of the parameter
+/// String parameter: the name of the parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String parameter})
 >
 inferenceFailureOnUntypedParameter = DiagnosticWithArguments(
   name: 'inference_failure_on_untyped_parameter',
   problemMessage:
-      "The type of {0} can't be inferred; a type must be explicitly provided.",
+      "The type of '{0}' can't be inferred; a type must be explicitly provided.",
   correctionMessage: "Try specifying the type of the parameter.",
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'inference_failure_on_untyped_parameter',
@@ -13483,6 +13483,18 @@ prefixShadowedByLocalDeclaration = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string],
 );
 
+/// No parameters.
+const DiagnosticWithoutArguments
+primaryConstructorBodyWithoutDeclaration = DiagnosticWithoutArgumentsImpl(
+  name: 'primary_constructor_body_without_declaration',
+  problemMessage:
+      "A primary constructor body requires a primary constructor declaration.",
+  correctionMessage: "Try adding the primary constructor declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'primary_constructor_body_without_declaration',
+  expectedTypes: [],
+);
+
 /// Parameters:
 /// String p0: the private name that collides
 /// String p1: the name of the first mixin
@@ -19179,55 +19191,59 @@ LocatableDiagnostic _withArgumentsInconsistentPatternVariableLogicalOr({
 }
 
 LocatableDiagnostic _withArgumentsInferenceFailureOnCollectionLiteral({
-  required String p0,
+  required String collection,
 }) {
   return LocatableDiagnosticImpl(diag.inferenceFailureOnCollectionLiteral, [
-    p0,
+    collection,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsInferenceFailureOnFunctionInvocation({
-  required String p0,
+  required String function,
 }) {
   return LocatableDiagnosticImpl(diag.inferenceFailureOnFunctionInvocation, [
-    p0,
+    function,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsInferenceFailureOnFunctionReturnType({
-  required String p0,
+  required String function,
 }) {
   return LocatableDiagnosticImpl(diag.inferenceFailureOnFunctionReturnType, [
-    p0,
+    function,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsInferenceFailureOnGenericInvocation({
-  required String p0,
+  required String function,
 }) {
   return LocatableDiagnosticImpl(diag.inferenceFailureOnGenericInvocation, [
-    p0,
+    function,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsInferenceFailureOnInstanceCreation({
-  required String p0,
+  required String function,
 }) {
-  return LocatableDiagnosticImpl(diag.inferenceFailureOnInstanceCreation, [p0]);
+  return LocatableDiagnosticImpl(diag.inferenceFailureOnInstanceCreation, [
+    function,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsInferenceFailureOnUninitializedVariable({
-  required String p0,
+  required String variable,
 }) {
   return LocatableDiagnosticImpl(diag.inferenceFailureOnUninitializedVariable, [
-    p0,
+    variable,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsInferenceFailureOnUntypedParameter({
-  required String p0,
+  required String parameter,
 }) {
-  return LocatableDiagnosticImpl(diag.inferenceFailureOnUntypedParameter, [p0]);
+  return LocatableDiagnosticImpl(diag.inferenceFailureOnUntypedParameter, [
+    parameter,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsInitializerForNonExistentField({

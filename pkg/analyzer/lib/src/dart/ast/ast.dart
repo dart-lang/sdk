@@ -19689,6 +19689,19 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
     _body = _becomeParentOf(body);
   }
 
+  PrimaryConstructorDeclarationImpl? get declaration {
+    switch (parent?.parent) {
+      case ClassDeclarationImpl parent:
+        return parent.namePart.ifTypeOrNull();
+      case EnumDeclarationImpl parent:
+        return parent.namePart.ifTypeOrNull();
+      case ExtensionTypeDeclarationImpl parent:
+        return parent.primaryConstructor;
+      default:
+        return null;
+    }
+  }
+
   @generated
   @override
   Token get endToken {

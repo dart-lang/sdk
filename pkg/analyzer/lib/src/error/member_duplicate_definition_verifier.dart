@@ -119,8 +119,8 @@ class MemberDuplicateDefinitionVerifier {
             }
           }
         case PrimaryConstructorBodyImpl():
-          // TODO(scheglov): Handle this case.
-          throw UnimplementedError();
+          // Not an actual declaration.
+          break;
       }
     }
 
