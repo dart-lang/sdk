@@ -1754,7 +1754,7 @@ package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart:
     requiredImports (getter: List<Uri>)
     addInsertion (method: void Function(int, void Function(DartEditBuilder)))
     addReplacement (method: void Function(SourceRange, void Function(DartEditBuilder)))
-    canWriteType (method: bool Function(DartType?, {List<TypeParameterElement>? typeParametersInScope}))
+    canWriteType (method: bool Function(DartType?, {required int offset, List<TypeParameterElement>? typeParametersInScope}))
     convertFunctionFromAsyncToSync (method: void Function({required FunctionBody body, required TypeProvider typeProvider, required TypeSystem typeSystem}))
     convertFunctionFromSyncToAsync (method: void Function({required FunctionBody body, required TypeProvider typeProvider, required TypeSystem typeSystem}))
     format (method: void Function(SourceRange))
