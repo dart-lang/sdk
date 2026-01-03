@@ -2282,7 +2282,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     analyzeExpression(expression, SharedTypeSchemaView(fieldType));
     expression = popRewrite()!;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(expression);
-    if (fieldElement != null) {
+    if (fieldElement != null && enclosingFunction != null) {
       var enclosingConstructor = enclosingFunction as ConstructorElementImpl;
       checkForFieldInitializerNotAssignable(
         node,

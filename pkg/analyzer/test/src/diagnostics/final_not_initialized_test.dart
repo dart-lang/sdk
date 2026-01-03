@@ -93,6 +93,21 @@ abstract class A {
     );
   }
 
+  test_class_field_primaryConstructorBody_noDeclaration_fieldInitializer() async {
+    await assertErrorsInCode(
+      '''
+class C {
+  final int f;
+  this : f = 0;
+}
+''',
+      [
+        error(diag.finalNotInitialized, 22, 1),
+        error(diag.primaryConstructorBodyWithoutDeclaration, 27, 13),
+      ],
+    );
+  }
+
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_field_unnamedConstructor_augmentationDeclares_constructorInitializer() async {
     newFile('$testPackageLibPath/a.dart', r'''
