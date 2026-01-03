@@ -97,7 +97,7 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "6ec7b5f9c615d3b224c67ae221d6812c8f8e1a96",
-  "boringssl_rev": "a5eafaa42335cb9ad053a5df76d3bee022f40a8f",
+  "boringssl_rev": "f2fdfcd521d9ef1abbb3db55da009313cb26584a",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "bac6843cce3c98d8794a7cce796faaa8860cc00f",
@@ -131,7 +131,7 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "ai_rev": "4eb2446144a8af374e08da8d3c743dcce129f87f",
+  "ai_rev": "a3a196bf4773c7a7a9f93b6798232fb0d8220bc3",
   "core_rev": "cbb485437c61d37753bcc98818beca54d5b38f69", # b/444274553
   "dartdoc_rev": "6d1aa6f5045c33d3723aba05e3e0dc1403b763c0",
   "ecosystem_rev": "eac66d93142907b39f2271647c111f36ff3365b9",
