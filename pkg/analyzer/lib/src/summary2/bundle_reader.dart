@@ -424,15 +424,12 @@ class LibraryReader {
 
       var sourceUriStr = _reader.readStringReference();
       var sourceUri = uriCache.parse(sourceUriStr);
-      var source = sourceFactory.forUri2(sourceUri);
-
-      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49431
-      var fixedSource = source ?? sourceFactory.forUri('dart:math')!;
+      var source = sourceFactory.forUri2(sourceUri)!;
 
       return DirectiveUriWithSourceImpl(
         relativeUriString: parent.relativeUriString,
         relativeUri: parent.relativeUri,
-        source: fixedSource,
+        source: source,
       );
     }
 
