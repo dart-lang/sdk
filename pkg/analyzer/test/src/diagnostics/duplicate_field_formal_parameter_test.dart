@@ -375,6 +375,24 @@ class A {
     );
   }
 
+  test_required_positional_primaryConstructor() async {
+    await assertErrorsInCode(
+      r'''
+class A(this.f, this.f) {
+  int f;
+}
+''',
+      [
+        error(
+          diag.duplicateFieldFormalParameter,
+          21,
+          1,
+          contextMessages: [message(testFile, 13, 1)],
+        ),
+      ],
+    );
+  }
+
   // TODO(pq): add more tests (https://github.com/dart-lang/sdk/issues/56092)
   test_required_positional_wildcard() async {
     await assertErrorsInCode(

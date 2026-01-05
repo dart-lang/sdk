@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -20,8 +21,16 @@ class ConstructorFieldsVerifier {
     DiagnosticReporter diagnosticReporter,
     InterfaceElement element,
     List<ClassMember> members,
+    ClassNamePartImpl primaryConstructor,
   ) {
     var interfaceFields = _forInterface(element);
+    if (primaryConstructor is PrimaryConstructorDeclarationImpl) {
+      _addPrimaryConstructor(
+        diagnosticReporter: diagnosticReporter,
+        interfaceFields: interfaceFields,
+        primaryConstructor: primaryConstructor,
+      );
+    }
     var constructors = members.whereType<ConstructorDeclarationImpl>();
     for (var constructor in constructors) {
       _addConstructor(
@@ -54,15 +63,43 @@ class ConstructorFieldsVerifier {
     var fragment = node.declaredFragment!;
     var constructorState = interfaceFields.forConstructor(
       diagnosticReporter: diagnosticReporter,
-      node: node,
-      fragment: fragment,
+      element: fragment.element,
+      errorRange: node.errorRange,
     );
 
     if (!fragment.isAugmentation) {
-      constructorState.updateWithParameters(node);
+      constructorState.updateWithParameters(node.parameters.parameters);
     }
 
-    constructorState.updateWithInitializers(diagnosticReporter, node);
+    constructorState.updateWithInitializers(
+      diagnosticReporter,
+      node.initializers,
+    );
+  }
+
+  void _addPrimaryConstructor({
+    required DiagnosticReporter diagnosticReporter,
+    required _Interface interfaceFields,
+    required PrimaryConstructorDeclarationImpl primaryConstructor,
+  }) {
+    var fragment = primaryConstructor.declaredFragment!;
+    var constructorState = interfaceFields.forConstructor(
+      diagnosticReporter: diagnosticReporter,
+      element: fragment.element,
+      errorRange: primaryConstructor.errorRange,
+    );
+
+    constructorState.updateWithParameters(
+      primaryConstructor.formalParameters.parameters,
+    );
+
+    var body = primaryConstructor.body;
+    if (body != null) {
+      constructorState.updateWithInitializers(
+        diagnosticReporter,
+        body.initializers,
+      );
+    }
   }
 
   _Interface _forInterface(InterfaceElement element) {
@@ -95,8 +132,7 @@ class ConstructorFieldsVerifier {
 class _Constructor {
   final TypeSystemImpl typeSystem;
   final DiagnosticReporter diagnosticReporter;
-  final ConstructorDeclaration node;
-  final ConstructorElement element;
+  final SourceRange errorRange;
   final Map<FieldElement, _InitState> fields;
 
   /// Set to `true` if the constructor redirects.
@@ -105,8 +141,7 @@ class _Constructor {
   _Constructor({
     required this.typeSystem,
     required this.diagnosticReporter,
-    required this.node,
-    required this.element,
+    required this.errorRange,
     required this.fields,
   });
 
@@ -155,11 +190,7 @@ class _Constructor {
       ),
     };
 
-    diagnosticReporter.atConstructorDeclaration(
-      node,
-      code,
-      arguments: arguments,
-    );
+    diagnosticReporter.atSourceRange(errorRange, code, arguments: arguments);
   }
 
   void reportNotInitializedNonNullable(List<_Field> notInitNonNullableFields) {
@@ -171,8 +202,8 @@ class _Constructor {
     names.sort();
 
     for (var name in names) {
-      diagnosticReporter.atConstructorDeclaration(
-        node,
+      diagnosticReporter.atSourceRange(
+        errorRange,
         diag.notInitializedNonNullableInstanceFieldConstructor,
         arguments: [name],
       );
@@ -181,9 +212,9 @@ class _Constructor {
 
   void updateWithInitializers(
     DiagnosticReporter diagnosticReporter,
-    ConstructorDeclaration node,
+    NodeList<ConstructorInitializer> initializers,
   ) {
-    for (var initializer in node.initializers) {
+    for (var initializer in initializers) {
       if (initializer is RedirectingConstructorInvocation) {
         hasRedirectingConstructorInvocation = true;
       }
@@ -217,13 +248,13 @@ class _Constructor {
     }
   }
 
-  void updateWithParameters(ConstructorDeclaration node) {
-    var formalParameters = node.parameters.parameters;
+  void updateWithParameters(NodeList<FormalParameter> formalParameters) {
     for (var formalParameter in formalParameters) {
       formalParameter = formalParameter.notDefault;
-      if (formalParameter is FieldFormalParameterImpl) {
-        var parameterFragment = formalParameter.declaredFragment!;
-        var fieldElement = parameterFragment.element.field;
+      var parameterFragment = formalParameter.declaredFragment!;
+      var parameterElement = parameterFragment.element;
+      if (parameterElement is FieldFormalParameterElement) {
+        var fieldElement = parameterElement.field;
         if (fieldElement == null) {
           continue;
         }
@@ -232,11 +263,13 @@ class _Constructor {
           fields[fieldElement] = _InitState.initInFieldFormal;
         } else if (state == _InitState.initInDeclaration) {
           if (fieldElement.isFinal || fieldElement.isConst) {
-            diagnosticReporter.atToken(
-              formalParameter.name,
-              diag.finalInitializedInDeclarationAndConstructor,
-              arguments: [fieldElement.displayName],
-            );
+            if (formalParameter.name case var name?) {
+              diagnosticReporter.atToken(
+                name,
+                diag.finalInitializedInDeclarationAndConstructor,
+                arguments: [fieldElement.displayName],
+              );
+            }
           }
           fields[fieldElement] = _InitState.initInFieldFormal;
         } else if (state == _InitState.initInFieldFormal) {
@@ -294,15 +327,13 @@ class _Interface {
 
   _Constructor forConstructor({
     required DiagnosticReporter diagnosticReporter,
-    required ConstructorDeclaration node,
-    required ConstructorFragment fragment,
+    required SourceRange errorRange,
+    required ConstructorElement element,
   }) {
-    var element = fragment.element;
     return constructors[element] ??= _Constructor(
       typeSystem: typeSystem,
       diagnosticReporter: diagnosticReporter,
-      node: node,
-      element: element,
+      errorRange: errorRange,
       fields: {...fields},
     );
   }

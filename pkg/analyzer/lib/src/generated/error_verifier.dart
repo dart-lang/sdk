@@ -526,6 +526,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           diagnosticReporter,
           augmented,
           members,
+          node.namePart,
         );
       }
 
@@ -769,6 +770,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         diagnosticReporter,
         element,
         members,
+        node.namePart,
       );
       _checkForFinalNotInitializedInClass(declaredFragment, members);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
@@ -867,6 +869,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         diagnosticReporter,
         declaredElement,
         members,
+        node.primaryConstructor,
       );
       _checkForNonCovariantTypeParameterPositionInRepresentationType(
         node,

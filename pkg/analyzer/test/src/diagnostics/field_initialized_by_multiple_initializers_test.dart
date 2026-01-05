@@ -169,6 +169,43 @@ class A {
 ''');
   }
 
+  test_class_primaryConstructor_multiple_names() async {
+    await assertErrorsInCode(
+      r'''
+class A() {
+  int f1;
+  int f2;
+  this : f1 = 0, f1 = 0, f2 = 0, f2 = 0;
+}
+''',
+      [error(_errorCode, 49, 2), error(_errorCode, 65, 2)],
+    );
+  }
+
+  test_class_primaryConstructor_three_initializers() async {
+    await assertErrorsInCode(
+      r'''
+class A() {
+  int f;
+  this : f = 0, f = 1, f = 2;
+}
+''',
+      [error(_errorCode, 37, 1), error(_errorCode, 44, 1)],
+    );
+  }
+
+  test_class_primaryConstructor_two_initializers() async {
+    await assertErrorsInCode(
+      r'''
+class A() {
+  int f;
+  this : f = 0, f = 1;
+}
+''',
+      [error(_errorCode, 37, 1)],
+    );
+  }
+
   test_class_two_initializers_initInDeclaration() async {
     await assertErrorsInCode(
       r'''
