@@ -29,8 +29,8 @@ part of "dart:core";
 /// }
 /// ```
 /// **See also:**
-/// [Iteration](https://dart.dev/guides/libraries/library-tour#iteration)
-/// in the [library tour](https://dart.dev/guides/libraries/library-tour)
+/// [Iteration](https://dart.dev/libraries/dart-core#iteration)
+/// in the [introduction to `dart:core`](https://dart.dev/libraries/dart-core).
 abstract interface class Iterator<E> {
   /// Advances the iterator to the next element of the iteration.
   ///

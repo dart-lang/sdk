@@ -12,8 +12,8 @@ part of "dart:core";
 /// When you define a class, you should consider overriding [toString]
 /// to return a string describing an instance of that class.
 /// You might also need to define [hashCode] and [operator ==], as described in the
-/// [Implementing map keys](https://dart.dev/guides/libraries/library-tour#implementing-map-keys)
-/// section of the [library tour](https://dart.dev/guides/libraries/library-tour).
+/// [Implementing map keys](https://dart.dev/libraries/dart-core#implementing-map-keys)
+/// section of the [introduction to `dart:core`](https://dart.dev/libraries/dart-core).
 @pragma("vm:entry-point")
 @pragma('dyn-module:language-impl:extendable')
 class Object {

@@ -12,8 +12,8 @@ part of "dart:core";
 /// **See also:**
 /// * [int]: An integer number.
 /// * [double]: A double-precision floating point number.
-/// * [Numbers](https://dart.dev/guides/language/numbers) in
-/// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
+/// * [Built-in number types](https://dart.dev/language/built-in-types#numbers)
+/// * [Number representation](https://dart.dev/resources/language/number-representation)
 sealed class num implements Comparable<num> {
   /// Test whether this value is numerically equal to `other`.
   ///
