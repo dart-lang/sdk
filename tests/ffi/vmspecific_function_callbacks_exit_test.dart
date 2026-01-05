@@ -7,6 +7,7 @@
 // VMOptions=
 // VMOptions=--use-slow-path
 // SharedObjects=ffi_test_functions
+// Environment=TSAN_OPTIONS=report_thread_leaks=0
 import 'dart:io';
 import 'dart:ffi';
 import 'dart:isolate';
