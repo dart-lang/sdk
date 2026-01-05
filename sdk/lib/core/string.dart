@@ -103,7 +103,7 @@ part of "dart:core";
 ///
 /// * [StringBuffer] to efficiently build a string incrementally.
 /// * [RegExp] to work with regular expressions.
-/// * [Strings and regular expressions](https://dart.dev/guides/libraries/library-tour#strings-and-regular-expressions)
+/// * [Strings and regular expressions](https://dart.dev/libraries/dart-core#strings-and-regular-expressions)
 @pragma('vm:entry-point')
 abstract final class String implements Comparable<String>, Pattern {
   /// Allocates a new string containing the specified [charCodes].
@@ -777,10 +777,7 @@ abstract final class String implements Comparable<String>, Pattern {
 /// ```
 ///
 /// **See also:**
-/// * [Runes and grapheme clusters](
-/// https://dart.dev/guides/language/language-tour#runes-and-grapheme-clusters)
-/// in
-/// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
+/// * [Runes and grapheme clusters](https://dart.dev/language/built-in-types#runes-and-grapheme-clusters)
 final class Runes extends Iterable<int> {
   /// The string that this is the runes of.
   final String string;
