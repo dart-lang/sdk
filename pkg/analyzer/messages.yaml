@@ -2900,9 +2900,9 @@ CompileTimeErrorCode:
   conflictingConstructorAndStaticField:
     type: compileTimeError
     parameters:
-      String p0: the name of the constructor and field
+      String name: the name of the constructor and field
     sharedName: conflictingConstructorAndStaticMember
-    problemMessage: "'#p0' can't be used to name both a constructor and a static field in this class."
+    problemMessage: "'#name' can't be used to name both a constructor and a static field in this class."
     correctionMessage: Try renaming either the constructor or the field.
     hasPublishedDocs: true
     documentation: |-
@@ -2941,34 +2941,34 @@ CompileTimeErrorCode:
   conflictingConstructorAndStaticGetter:
     type: compileTimeError
     parameters:
-      String p0: the name of the constructor and getter
+      String name: the name of the constructor and getter
     sharedName: conflictingConstructorAndStaticMember
-    problemMessage: "'#p0' can't be used to name both a constructor and a static getter in this class."
+    problemMessage: "'#name' can't be used to name both a constructor and a static getter in this class."
     correctionMessage: Try renaming either the constructor or the getter.
     hasPublishedDocs: true
   conflictingConstructorAndStaticMethod:
     type: compileTimeError
     parameters:
-      String p0: the name of the constructor
+      String name: the name of the constructor
     sharedName: conflictingConstructorAndStaticMember
-    problemMessage: "'#p0' can't be used to name both a constructor and a static method in this class."
+    problemMessage: "'#name' can't be used to name both a constructor and a static method in this class."
     correctionMessage: Try renaming either the constructor or the method.
     hasPublishedDocs: true
   conflictingConstructorAndStaticSetter:
     type: compileTimeError
     parameters:
-      String p0: the name of the constructor and setter
+      String name: the name of the constructor and setter
     sharedName: conflictingConstructorAndStaticMember
-    problemMessage: "'#p0' can't be used to name both a constructor and a static setter in this class."
+    problemMessage: "'#name' can't be used to name both a constructor and a static setter in this class."
     correctionMessage: Try renaming either the constructor or the setter.
     hasPublishedDocs: true
   conflictingFieldAndMethod:
     type: compileTimeError
     parameters:
-      String p0: the name of the class defining the conflicting field
-      String p1: the name of the conflicting field
-      String p2: the name of the class defining the method with which the field conflicts
-    problemMessage: "Class '#p0' can't define field '#p1' and have method '#p2.#p1' with the same name."
+      String className: the name of the class defining the conflicting field
+      String fieldName: the name of the conflicting field
+      String conflictingClassName: the name of the class defining the method with which the field conflicts
+    problemMessage: "Class '#className' can't define field '#fieldName' and have method '#conflictingClassName.#fieldName' with the same name."
     correctionMessage: "Try converting the getter to a method, or renaming the field to a name that doesn't conflict."
     hasPublishedDocs: false
     comment: |-
@@ -3031,10 +3031,10 @@ CompileTimeErrorCode:
   conflictingMethodAndField:
     type: compileTimeError
     parameters:
-      String p0: the name of the class defining the conflicting method
-      String p1: the name of the conflicting method
-      String p2: the name of the class defining the field with which the method conflicts
-    problemMessage: "Class '#p0' can't define method '#p1' and have field '#p2.#p1' with the same name."
+      String className: the name of the class defining the conflicting method
+      String methodName: the name of the conflicting method
+      String conflictingClassName: the name of the class defining the field with which the method conflicts
+    problemMessage: "Class '#className' can't define method '#methodName' and have field '#conflictingClassName.#methodName' with the same name."
     correctionMessage: "Try converting the method to a getter, or renaming the method to a name that doesn't conflict."
     hasPublishedDocs: false
     comment: |-
@@ -3044,10 +3044,10 @@ CompileTimeErrorCode:
   conflictingStaticAndInstance:
     type: compileTimeError
     parameters:
-      String p0: the name of the class defining the conflicting member
-      String p1: the name of the conflicting static member
-      String p2: the name of the class defining the field with which the method conflicts
-    problemMessage: "Class '#p0' can't define static member '#p1' and have instance member '#p2.#p1' with the same name."
+      String className: the name of the class defining the conflicting member
+      String memberName: the name of the conflicting static member
+      String conflictingClassName: the name of the class defining the field with which the method conflicts
+    problemMessage: "Class '#className' can't define static member '#memberName' and have instance member '#conflictingClassName.#memberName' with the same name."
     correctionMessage: "Try renaming the member to a name that doesn't conflict."
     hasPublishedDocs: false
     comment: |-

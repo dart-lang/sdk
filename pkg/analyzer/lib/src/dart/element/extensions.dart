@@ -6,6 +6,8 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -85,6 +87,24 @@ extension Element2Extension on Element {
                 this is! FieldFormalParameterElement &&
                 this is! SuperFormalParameterElement)) &&
         library.hasWildcardVariablesFeatureEnabled;
+  }
+
+  /// Computes a [SourceRange] suitable for reporting a diagnostic related to
+  /// this element.
+  ///
+  /// Since [SourceRange] objects carry offset and length information but no
+  /// filename information, the caller should make sure to only call this method
+  /// on elements whose declaration appears in the particular compilation unit
+  /// they are generating diagnostics for. To reduce the risk of mistakes, the
+  /// caller is required to pass in the [Source] for which they are generating
+  /// diagnostics; an assertion will fire if this doesn't match the source
+  /// containing the element's first fragment.
+  SourceRange diagnosticRange(Source source) {
+    assert(identical(firstFragment.libraryFragment?.source, source));
+    return SourceRange(
+      nonSynthetic.firstFragment.nameOffset ?? -1,
+      nonSynthetic.name?.length ?? 0,
+    );
   }
 }
 

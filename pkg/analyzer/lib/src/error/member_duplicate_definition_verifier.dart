@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/file_analysis.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -153,10 +152,14 @@ class MemberDuplicateDefinitionVerifier {
             if (instanceScope.containsKey(name)) {
               if (firstFragment is InterfaceFragmentImpl) {
                 String className = firstFragment.name ?? '';
-                _diagnosticReporter.atToken(
-                  identifier,
-                  diag.conflictingStaticAndInstance,
-                  arguments: [className, name, className],
+                _diagnosticReporter.report(
+                  diag.conflictingStaticAndInstance
+                      .withArguments(
+                        className: className,
+                        memberName: name,
+                        conflictingClassName: className,
+                      )
+                      .at(identifier),
                 );
               }
             }
@@ -169,10 +172,14 @@ class MemberDuplicateDefinitionVerifier {
           if (instanceScope.containsKey(name)) {
             if (firstFragment is InterfaceFragmentImpl) {
               String className = firstFragment.name ?? '';
-              _diagnosticReporter.atToken(
-                identifier,
-                diag.conflictingStaticAndInstance,
-                arguments: [className, name, className],
+              _diagnosticReporter.report(
+                diag.conflictingStaticAndInstance
+                    .withArguments(
+                      className: className,
+                      memberName: name,
+                      conflictingClassName: className,
+                    )
+                    .at(identifier),
               );
             }
           }
@@ -201,32 +208,36 @@ class MemberDuplicateDefinitionVerifier {
         case _ScopeEntryElement(
           element: PropertyAccessorElementImpl staticMember2,
         ):
-          DiagnosticCode diagnosticCode;
-          if (staticMember2.isOriginVariable) {
-            diagnosticCode = diag.conflictingConstructorAndStaticField;
-          } else if (staticMember2 is GetterElementImpl) {
-            diagnosticCode = diag.conflictingConstructorAndStaticGetter;
-          } else {
-            diagnosticCode = diag.conflictingConstructorAndStaticSetter;
-          }
-          _diagnosticReporter.atElement2(
-            constructor.asElement2,
-            diagnosticCode,
-            arguments: [name],
+          _diagnosticReporter.report(
+            switch (staticMember2) {
+                  PropertyAccessorElementImpl(isOriginVariable: true) =>
+                    diag.conflictingConstructorAndStaticField,
+                  GetterElementImpl() =>
+                    diag.conflictingConstructorAndStaticGetter,
+                  _ => diag.conflictingConstructorAndStaticSetter,
+                }
+                .withArguments(name: name)
+                .atSourceRange(
+                  constructor.asElement2.diagnosticRange(_currentUnit.source),
+                ),
           );
         case _ScopeEntryElement(element: MethodElementImpl()):
-          _diagnosticReporter.atElement2(
-            constructor.asElement2,
-            diag.conflictingConstructorAndStaticMethod,
-            arguments: [name],
+          _diagnosticReporter.report(
+            diag.conflictingConstructorAndStaticMethod
+                .withArguments(name: name)
+                .atSourceRange(
+                  constructor.asElement2.diagnosticRange(_currentUnit.source),
+                ),
           );
         case _ScopeEntryGetterSetterPair():
-          _diagnosticReporter.atElement2(
-            constructor.asElement2,
-            state.getter.isOriginVariable
-                ? diag.conflictingConstructorAndStaticField
-                : diag.conflictingConstructorAndStaticGetter,
-            arguments: [name],
+          _diagnosticReporter.report(
+            (state.getter.isOriginVariable
+                    ? diag.conflictingConstructorAndStaticField
+                    : diag.conflictingConstructorAndStaticGetter)
+                .withArguments(name: name)
+                .atSourceRange(
+                  constructor.asElement2.diagnosticRange(_currentUnit.source),
+                ),
           );
         case _ScopeEntryElement(:var element):
           throw StateError(
@@ -322,14 +333,16 @@ class MemberDuplicateDefinitionVerifier {
       var baseName = accessor.displayName;
       var inherited = _getInheritedMember(fragment.element, baseName);
       if (inherited is InternalMethodElement) {
-        _diagnosticReporter.atElement2(
-          accessor.asElement2,
-          diag.conflictingFieldAndMethod,
-          arguments: [
-            firstFragment.displayName,
-            baseName,
-            inherited.enclosingElement!.name!,
-          ],
+        _diagnosticReporter.report(
+          diag.conflictingFieldAndMethod
+              .withArguments(
+                className: firstFragment.displayName,
+                fieldName: baseName,
+                conflictingClassName: inherited.enclosingElement!.name!,
+              )
+              .atSourceRange(
+                accessor.asElement2.diagnosticRange(_currentUnit.source),
+              ),
         );
       }
     }
@@ -344,14 +357,16 @@ class MemberDuplicateDefinitionVerifier {
       var baseName = method.displayName;
       var inherited = _getInheritedMember(fragment.element, baseName);
       if (inherited is InternalPropertyAccessorElement) {
-        _diagnosticReporter.atElement2(
-          method.asElement2,
-          diag.conflictingMethodAndField,
-          arguments: [
-            firstFragment.displayName,
-            baseName,
-            inherited.enclosingElement.name!,
-          ],
+        _diagnosticReporter.report(
+          diag.conflictingMethodAndField
+              .withArguments(
+                className: firstFragment.displayName,
+                methodName: baseName,
+                conflictingClassName: inherited.enclosingElement.name!,
+              )
+              .atSourceRange(
+                method.asElement2.diagnosticRange(_currentUnit.source),
+              ),
         );
       }
     }
@@ -373,10 +388,16 @@ class MemberDuplicateDefinitionVerifier {
       if (accessor.isStatic) {
         var instance = _getInterfaceMember(fragment.element, baseName);
         if (instance != null && baseName != 'values') {
-          _diagnosticReporter.atElement2(
-            accessor.asElement2,
-            diag.conflictingStaticAndInstance,
-            arguments: [declarationName, baseName, declarationName],
+          _diagnosticReporter.report(
+            diag.conflictingStaticAndInstance
+                .withArguments(
+                  className: declarationName,
+                  memberName: baseName,
+                  conflictingClassName: declarationName,
+                )
+                .atSourceRange(
+                  accessor.asElement2.diagnosticRange(_currentUnit.source),
+                ),
           );
         }
       }
@@ -390,10 +411,16 @@ class MemberDuplicateDefinitionVerifier {
       if (method.isStatic) {
         var instance = _getInterfaceMember(fragment.element, baseName);
         if (instance != null) {
-          _diagnosticReporter.atElement2(
-            method.asElement2,
-            diag.conflictingStaticAndInstance,
-            arguments: [declarationName, baseName, declarationName],
+          _diagnosticReporter.report(
+            diag.conflictingStaticAndInstance
+                .withArguments(
+                  className: declarationName,
+                  memberName: baseName,
+                  conflictingClassName: declarationName,
+                )
+                .atSourceRange(
+                  method.asElement2.diagnosticRange(_currentUnit.source),
+                ),
           );
         }
       }
