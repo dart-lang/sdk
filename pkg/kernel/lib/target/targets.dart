@@ -483,7 +483,9 @@ abstract class Target {
   /// for uninitialized late fields and variables through the `createSentinel`
   /// and `isSentinel` methods in `dart:_internal`.
   ///
-  /// If `true` this is used when [supportsLateFields] is `false`.
+  /// If `true` this is used when late fields and locals are lowered,
+  /// as determined by [isLateLocalLoweringEnabled] and
+  /// [isLateFieldLoweringEnabled].
   bool get supportsLateLoweringSentinel;
 
   /// Whether static fields with initializers in nnbd libraries should be
