@@ -8,6 +8,7 @@ import 'dart:isolate';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:args/args.dart';
 
+import '../project_generator/current_directory_generator.dart';
 import '../project_generator/git_clone_project_generator.dart';
 import '../project_generator/git_worktree_project_generator.dart';
 import 'scenario.dart';
@@ -63,6 +64,13 @@ final List<Scenario> scenarios = () {
         'main',
         isSdkRepo: true,
       ),
+    ),
+    Scenario(
+      name: 'sdk_rename_driver_class_cwd',
+      logFile: fileSystem.getFile(
+        logsRoot.resolve('sdk_rename_driver_class.json').toFilePath(),
+      ),
+      project: CurrentDirectoryGenerator(),
     ),
     Scenario(
       name: 'initialize',

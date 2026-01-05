@@ -867,11 +867,12 @@ class FfiNativeTransformer extends FfiTransformer {
       final dimensions = ensureArraySizeAnnotation(node, ffiType, false);
       return (
         ffiType,
-        NativeTypeCfe.withoutLayout(
+        NativeTypeCfe(
           this,
           dartType,
           arrayDimensions: dimensions,
           variableLength: false,
+          withLayout: false,
         ),
       );
     }
@@ -898,7 +899,7 @@ class FfiNativeTransformer extends FfiTransformer {
       }
     }
 
-    return (ffiType, NativeTypeCfe.withoutLayout(this, ffiType));
+    return (ffiType, NativeTypeCfe(this, ffiType, withLayout: false));
   }
 
   DartType _validateOrInferNativeFunctionType(

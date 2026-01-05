@@ -99,7 +99,7 @@ class LogPlayer {
                 if (actualId == null) {
                   throw StateError(
                     'Cannot respond to a server message that we haven\'t '
-                    'recieved yet, expected an analysis server request with '
+                    'received yet, expected an analysis server request with '
                     'ID: ${entry.message.id}',
                   );
                 }

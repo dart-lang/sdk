@@ -10621,9 +10621,12 @@ TEST_CASE(DartAPI_InvokeVMServiceMethod) {
 static Monitor* loop_test_lock = new Monitor();
 static bool loop_test_exit = false;
 static bool loop_reset_count = false;
+static ThreadJoinId loop_test_join_id = OSThread::kInvalidThreadJoinId;
 
 #if !defined(PRODUCT)
 static void InvokeServiceMessages(uword param) {
+  loop_test_join_id = OSThread::GetCurrentThreadJoinId(OSThread::Current());
+
   char buffer[1024];
   Utils::SNPrint(buffer, sizeof(buffer),
                  R"({
@@ -10659,13 +10662,16 @@ static void InvokeServiceMessages(uword param) {
 }
 
 TEST_CASE(DartAPI_InvokeVMServiceMethod_Loop) {
-  MonitorLocker ml(loop_test_lock);
-  loop_test_exit = false;
-  loop_reset_count = false;
-  OSThread::Start("InvokeServiceMessages", InvokeServiceMessages, 0);
-  while (!loop_test_exit) {
-    ml.Wait();
+  {
+    MonitorLocker ml(loop_test_lock);
+    loop_test_exit = false;
+    loop_reset_count = false;
+    OSThread::Start("InvokeServiceMessages", InvokeServiceMessages, 0);
+    while (!loop_test_exit) {
+      ml.Wait();
+    }
   }
+  OSThread::Join(loop_test_join_id);
 }
 #endif  // !defined(PRODUCT)
 
@@ -10674,6 +10680,7 @@ static void HandleResponse(Dart_Port dest_port_id, Dart_CObject* message) {
 }
 
 static void CreateNativePorts(uword param) {
+  loop_test_join_id = OSThread::GetCurrentThreadJoinId(OSThread::Current());
   uint32_t count = 0;
   do {
     const Dart_Port port_id = Dart_NewNativePort("tst", &HandleResponse, false);
@@ -10690,13 +10697,16 @@ static void CreateNativePorts(uword param) {
 }
 
 TEST_CASE(DartAPI_NativePort_Loop) {
-  MonitorLocker ml(loop_test_lock);
-  loop_test_exit = false;
-  loop_reset_count = false;
-  OSThread::Start("NativePort", CreateNativePorts, 0);
-  while (!loop_test_exit) {
-    ml.Wait();
+  {
+    MonitorLocker ml(loop_test_lock);
+    loop_test_exit = false;
+    loop_reset_count = false;
+    OSThread::Start("NativePort", CreateNativePorts, 0);
+    while (!loop_test_exit) {
+      ml.Wait();
+    }
   }
+  OSThread::Join(loop_test_join_id);
 }
 
 #if !defined(PRODUCT)
@@ -10787,14 +10797,16 @@ TEST_CASE(DartAPI_TimelineEvents_Serialization) {
 }
 
 static void CreateTimelineEvents(uword param) {
-  {
-    MonitorLocker ml(loop_test_lock);
-    loop_test_exit = true;
-    ml.Notify();
-  }
+  loop_test_join_id = OSThread::GetCurrentThreadJoinId(OSThread::Current());
+
+  MonitorLocker ml(loop_test_lock);
+  loop_test_exit = true;
+  ml.Notify();
+
   do {
+    MonitorLeaveScope leave(&ml);
     ReportTimelineEvents();
-  } while (true);
+  } while (loop_test_exit);
 }
 
 UNIT_TEST_CASE(DartAPI_TimelineEvents_Loop) {
@@ -10821,7 +10833,6 @@ UNIT_TEST_CASE(DartAPI_TimelineEvents_Loop) {
       printf("VM waiting for notification\n");
       ml.Wait();
     }
-    loop_test_exit = false;
   }
   result = Dart_Cleanup();
   EXPECT(result == nullptr);
@@ -10832,6 +10843,12 @@ UNIT_TEST_CASE(DartAPI_TimelineEvents_Loop) {
     result = Dart_Cleanup();
     EXPECT(result == nullptr);
   }
+
+  {
+    MonitorLocker ml(loop_test_lock);
+    loop_test_exit = false;
+  }
+  OSThread::Join(loop_test_join_id);
 }
 
 UNIT_TEST_CASE(DartAPI_TimelineEvents_NullFlowIdsHandledGracefully) {

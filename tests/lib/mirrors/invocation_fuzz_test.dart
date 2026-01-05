@@ -6,6 +6,8 @@
 // invoke them with various basic values (nulls, ints, etc). This may result in
 // Dart exceptions or hangs, but should never result in crashes.
 
+// Environment=TSAN_OPTIONS=report_thread_leaks=0
+
 // Library name is used by test.
 library test.invoke_natives;
 
