@@ -5,6 +5,7 @@
 #include <setjmp.h>  // NOLINT
 #include <stdlib.h>
 
+#include <bit>
 #include <cmath>
 
 #include "vm/globals.h"
@@ -818,61 +819,23 @@ static uint32_t remuw(uint32_t a, uint32_t b) {
 #endif  // XLEN >= 64
 
 static uintx_t clz(uintx_t a) {
-  for (int bit = XLEN - 1; bit >= 0; bit--) {
-    if ((a & (static_cast<uintx_t>(1) << bit)) != 0) {
-      return XLEN - bit - 1;
-    }
-  }
-  return XLEN;
+  return std::countl_zero(a);
 }
-
 static uintx_t ctz(uintx_t a) {
-  for (int bit = 0; bit < XLEN; bit++) {
-    if ((a & (static_cast<uintx_t>(1) << bit)) != 0) {
-      return bit;
-    }
-  }
-  return XLEN;
+  return std::countr_zero(a);
 }
-
 static uintx_t cpop(uintx_t a) {
-  uintx_t count = 0;
-  for (int bit = 0; bit < XLEN; bit++) {
-    if ((a & (static_cast<uintx_t>(1) << bit)) != 0) {
-      count++;
-    }
-  }
-  return count;
+  return std::popcount(a);
 }
-
 static uintx_t clzw(uint32_t a) {
-  for (int bit = 32 - 1; bit >= 0; bit--) {
-    if ((a & (static_cast<uint32_t>(1) << bit)) != 0) {
-      return 32 - bit - 1;
-    }
-  }
-  return 32;
+  return std::countl_zero(a);
 }
-
 static uintx_t ctzw(uint32_t a) {
-  for (int bit = 0; bit < 32; bit++) {
-    if ((a & (static_cast<uint32_t>(1) << bit)) != 0) {
-      return bit;
-    }
-  }
-  return 32;
+  return std::countr_zero(a);
 }
-
 static uintx_t cpopw(uint32_t a) {
-  uintx_t count = 0;
-  for (int bit = 0; bit < 32; bit++) {
-    if ((a & (static_cast<uint32_t>(1) << bit)) != 0) {
-      count++;
-    }
-  }
-  return count;
+  return std::popcount(a);
 }
-
 static intx_t max(intx_t a, intx_t b) {
   return a > b ? a : b;
 }
@@ -930,26 +893,16 @@ static uintx_t zextw(uintx_t a) {
 }
 #endif
 static uintx_t ror(uintx_t a, uintx_t b) {
-  uintx_t r = b & (XLEN - 1);
-  uintx_t l = (XLEN - r) & (XLEN - 1);
-  return (a << l) | (a >> r);
+  return std::rotr(a, b & (XLEN - 1));
 }
 static uintx_t rol(uintx_t a, uintx_t b) {
-  uintx_t l = b & (XLEN - 1);
-  uintx_t r = (XLEN - l) & (XLEN - 1);
-  return (a << l) | (a >> r);
+  return std::rotl(a, b & (XLEN - 1));
 }
 static uintx_t rorw(uintx_t a, uintx_t b) {
-  uint32_t r = b & (XLEN - 1);
-  uint32_t l = (XLEN - r) & (XLEN - 1);
-  uint32_t x = a;
-  return sign_extend((x << l) | (x >> r));
+  return sign_extend(std::rotr(static_cast<uint32_t>(a), b & (XLEN - 1)));
 }
 static uintx_t rolw(uintx_t a, uintx_t b) {
-  uint32_t l = b & (XLEN - 1);
-  uint32_t r = (XLEN - l) & (XLEN - 1);
-  uint32_t x = a;
-  return sign_extend((x << l) | (x >> r));
+  return sign_extend(std::rotl(static_cast<uint32_t>(a), b & (XLEN - 1)));
 }
 static uintx_t orcb(uintx_t a) {
   uintx_t result = 0;
