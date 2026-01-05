@@ -8,3 +8,6 @@ DART_EXPORT_FIELD struct Coord globalStruct;
 DART_EXPORT_FIELD const char* globalString = "Hello Dart!";
 DART_EXPORT_FIELD int globalArray[] = {1, 2, 3};
 DART_EXPORT_FIELD double identity3x3[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+DART_EXPORT_FIELD struct Coord globalStructArray[] = {
+    {.x = 1.0, .y = 2.0, .next = 0x0},
+    {.x = 3.0, .y = 4.0, .next = 0x0}};
