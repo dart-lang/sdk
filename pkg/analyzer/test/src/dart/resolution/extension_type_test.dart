@@ -1193,12 +1193,12 @@ ExtensionTypeDeclaration
         name: it
         declaredFragment: <testLibraryFragment> it@23
           element: hasImplicitType isFinal isPublic
-            type: InvalidType
+            type: Object?
             field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@extensionType::A::@constructor::new
-        type: A Function(InvalidType)
+        type: A Function(Object?)
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
@@ -1232,12 +1232,12 @@ ExtensionTypeDeclaration
         name: it
         declaredFragment: <testLibraryFragment> it@39
           element: hasImplicitType isFinal isPublic
-            type: InvalidType
+            type: Object?
             field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@extensionType::A::@constructor::new
-        type: A Function(InvalidType)
+        type: A Function(Object?)
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
@@ -1344,12 +1344,12 @@ ExtensionTypeDeclaration
         name: it
         declaredFragment: <testLibraryFragment> it@21
           element: hasImplicitType isFinal isPublic
-            type: InvalidType
+            type: Object?
             field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@extensionType::A::@constructor::new
-        type: A Function(InvalidType)
+        type: A Function(Object?)
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
@@ -1383,12 +1383,12 @@ ExtensionTypeDeclaration
         name: it
         declaredFragment: <testLibraryFragment> it@37
           element: hasImplicitType isFinal isPublic
-            type: InvalidType
+            type: Object?
             field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@extensionType::A::@constructor::new
-        type: A Function(InvalidType)
+        type: A Function(Object?)
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
@@ -2662,7 +2662,6 @@ ExtensionTypeDeclaration
 extension type A(it) {}
 ''');
 
-    // TODO(scheglov): should be `dynamic`
     var node = findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
@@ -2676,12 +2675,12 @@ ExtensionTypeDeclaration
         name: it
         declaredFragment: <testLibraryFragment> it@17
           element: hasImplicitType isFinal isPublic
-            type: InvalidType
+            type: Object?
             field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@extensionType::A::@constructor::new
-        type: A Function(InvalidType)
+        type: A Function(Object?)
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
@@ -2711,12 +2710,12 @@ ExtensionTypeDeclaration
         name: it
         declaredFragment: <testLibraryFragment> it@33
           element: hasImplicitType isFinal isPublic
-            type: InvalidType
+            type: Object?
             field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@extensionType::A::@constructor::new
-        type: A Function(InvalidType)
+        type: A Function(Object?)
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
@@ -2750,12 +2749,12 @@ ExtensionTypeDeclaration
         name: it
         declaredFragment: <testLibraryFragment> it@29
           element: hasImplicitType isFinal isPublic
-            type: InvalidType
+            type: Object?
             field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@extensionType::A::@constructor::new
-        type: A Function(InvalidType)
+        type: A Function(Object?)
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
@@ -2793,12 +2792,12 @@ ExtensionTypeDeclaration
         name: it
         declaredFragment: <testLibraryFragment> it@45
           element: hasImplicitType isFinal isPublic
-            type: InvalidType
+            type: Object?
             field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@extensionType::A::@constructor::new
-        type: A Function(InvalidType)
+        type: A Function(Object?)
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
