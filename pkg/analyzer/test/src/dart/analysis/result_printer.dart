@@ -1313,6 +1313,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
           'isMixinApplication': item.flags.isMixinApplication,
           'isMixinClass': item.flags.isMixinClass,
           'isSealed': item.flags.isSealed,
+          'isSimplyBounded': item.flags.isSimplyBounded,
         });
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
@@ -1336,7 +1337,10 @@ class LibraryManifestPrinter extends ManifestPrinter {
   void _writeEnumItem(EnumItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
-        sink.writeFlags({'hasNonFinalField': item.hasNonFinalField});
+        sink.writeFlags({
+          'hasNonFinalField': item.hasNonFinalField,
+          'isSimplyBounded': item.flags.isSimplyBounded,
+        });
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
         _writeTypeList('mixins', item.mixins);
@@ -1353,6 +1357,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
   void _writeExtensionItem(ExtensionItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
+        sink.writeFlags({'isSimplyBounded': item.flags.isSimplyBounded});
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
         _writeNamedType('extendedType', item.extendedType);
@@ -1372,6 +1377,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
           'hasNonFinalField': item.hasNonFinalField,
           'hasRepresentationSelfReference':
               item.flags.hasRepresentationSelfReference,
+          'isSimplyBounded': item.flags.isSimplyBounded,
         });
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
@@ -1390,7 +1396,12 @@ class LibraryManifestPrinter extends ManifestPrinter {
   void _writeGetterItem(GetterItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
-        sink.writeFlags({..._executableItemFlags(item)});
+        sink.writeFlags({
+          ..._executableItemFlags(item),
+          'isOriginDeclaration': item.flags.isOriginDeclaration,
+          'isOriginInterface': item.flags.isOriginInterface,
+          'isOriginVariable': item.flags.isOriginVariable,
+        });
         _writeMetadata(item);
         _writeNamedType('returnType', item.functionType.returnType);
       });
@@ -1432,6 +1443,13 @@ class LibraryManifestPrinter extends ManifestPrinter {
         'isCovariant': item.flags.isCovariant,
         'isEnumConstant': item.flags.isEnumConstant,
         'isExternal': item.flags.isExternal,
+        'isOriginDeclaration': item.flags.isOriginDeclaration,
+        'isOriginDeclaringFormalParameter':
+            item.flags.isOriginDeclaringFormalParameter,
+        'isOriginEnumValues': item.flags.isOriginEnumValues,
+        'isOriginExtensionTypeRecoveryRepresentation':
+            item.flags.isOriginExtensionTypeRecoveryRepresentation,
+        'isOriginGetterSetter': item.flags.isOriginGetterSetter,
         'isPromotable': item.flags.isPromotable,
       });
       _writeMetadata(item);
@@ -1441,13 +1459,23 @@ class LibraryManifestPrinter extends ManifestPrinter {
     });
 
     writeDeclaredItems('declaredGetters', item.declaredGetters, (item) {
-      sink.writeFlags({..._executableItemFlags(item)});
+      sink.writeFlags({
+        ..._executableItemFlags(item),
+        'isOriginDeclaration': item.flags.isOriginDeclaration,
+        'isOriginInterface': item.flags.isOriginInterface,
+        'isOriginVariable': item.flags.isOriginVariable,
+      });
       _writeMetadata(item);
       _writeNamedType('returnType', item.functionType.returnType);
     });
 
     writeDeclaredItems('declaredSetters', item.declaredSetters, (item) {
-      sink.writeFlags({..._executableItemFlags(item)});
+      sink.writeFlags({
+        ..._executableItemFlags(item),
+        'isOriginDeclaration': item.flags.isOriginDeclaration,
+        'isOriginInterface': item.flags.isOriginInterface,
+        'isOriginVariable': item.flags.isOriginVariable,
+      });
       _writeMetadata(item);
       _writeNamedType('functionType', item.functionType);
     });
@@ -1457,6 +1485,8 @@ class LibraryManifestPrinter extends ManifestPrinter {
         ..._executableItemFlags(item),
         'isOperatorEqualWithParameterTypeFromObject':
             item.flags.isOperatorEqualWithParameterTypeFromObject,
+        'isOriginDeclaration': item.flags.isOriginDeclaration,
+        'isOriginInterface': item.flags.isOriginInterface,
       });
       _writeMetadata(item);
       _writeNamedType('functionType', item.functionType);
@@ -1470,7 +1500,12 @@ class LibraryManifestPrinter extends ManifestPrinter {
         sink.writeFlags({
           ..._executableItemFlags(item),
           'isConst': item.flags.isConst,
+          'isDeclaring': item.flags.isDeclaring,
           'isFactory': item.flags.isFactory,
+          'isOriginDeclaration': item.flags.isOriginDeclaration,
+          'isOriginImplicitDefault': item.flags.isOriginImplicitDefault,
+          'isOriginMixinApplication': item.flags.isOriginMixinApplication,
+          'isPrimary': item.flags.isPrimary,
         });
         _writeMetadata(item);
         _writeNamedType('functionType', item.functionType);
@@ -1616,6 +1651,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
         sink.writeFlags({
           'hasNonFinalField': item.hasNonFinalField,
           'isBase': item.flags.isBase,
+          'isSimplyBounded': item.flags.isSimplyBounded,
         });
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
@@ -1694,7 +1730,12 @@ class LibraryManifestPrinter extends ManifestPrinter {
   void _writeSetterItem(SetterItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
-        sink.writeFlags({..._executableItemFlags(item)});
+        sink.writeFlags({
+          ..._executableItemFlags(item),
+          'isOriginDeclaration': item.flags.isOriginDeclaration,
+          'isOriginInterface': item.flags.isOriginInterface,
+          'isOriginVariable': item.flags.isOriginVariable,
+        });
         _writeMetadata(item);
         _writeNamedType('functionType', item.functionType);
       });
@@ -1704,7 +1745,11 @@ class LibraryManifestPrinter extends ManifestPrinter {
   void _writeTopLevelFunctionItem(TopLevelFunctionItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
-        sink.writeFlags({..._executableItemFlags(item)});
+        sink.writeFlags({
+          ..._executableItemFlags(item),
+          'isOriginDeclaration': item.flags.isOriginDeclaration,
+          'isOriginLoadLibrary': item.flags.isOriginLoadLibrary,
+        });
         _writeMetadata(item);
         _writeNamedType('functionType', item.functionType);
       });
@@ -1727,6 +1772,8 @@ class LibraryManifestPrinter extends ManifestPrinter {
         sink.writeFlags({
           ..._variableItemFlags(item),
           'isExternal': item.flags.isExternal,
+          'isOriginDeclaration': item.flags.isOriginDeclaration,
+          'isOriginGetterSetter': item.flags.isOriginGetterSetter,
         });
         _writeMetadata(item);
         _writeNamedType('type', item.type);
