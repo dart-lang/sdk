@@ -13768,10 +13768,13 @@ recursiveIncludeFile = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the class that implements itself recursively
-/// String p1: a string representation of the implements loop
+/// String className: the name of the class that implements itself recursively
+/// String loop: a string representation of the implements loop
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String className,
+    required String loop,
+  })
 >
 recursiveInterfaceInheritance = DiagnosticWithArguments(
   name: 'recursive_interface_inheritance',
@@ -13793,9 +13796,9 @@ recursiveInterfaceInheritance = DiagnosticWithArguments(
 /// superclass of itself.
 ///
 /// Parameters:
-/// String p0: the name of the class that implements itself recursively
+/// String className: the name of the class that implements itself recursively
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String className})
 >
 recursiveInterfaceInheritanceExtends = DiagnosticWithArguments(
   name: 'recursive_interface_inheritance',
@@ -13817,9 +13820,9 @@ recursiveInterfaceInheritanceExtends = DiagnosticWithArguments(
 /// superclass of itself.
 ///
 /// Parameters:
-/// String p0: the name of the class that implements itself recursively
+/// String className: the name of the class that implements itself recursively
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String className})
 >
 recursiveInterfaceInheritanceImplements = DiagnosticWithArguments(
   name: 'recursive_interface_inheritance',
@@ -13832,9 +13835,10 @@ recursiveInterfaceInheritanceImplements = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the mixin that constraints itself recursively
+/// String mixinName: the name of the mixin that constraints itself
+///                   recursively
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String mixinName})
 >
 recursiveInterfaceInheritanceOn = DiagnosticWithArguments(
   name: 'recursive_interface_inheritance',
@@ -13856,9 +13860,9 @@ recursiveInterfaceInheritanceOn = DiagnosticWithArguments(
 /// superclass of itself.
 ///
 /// Parameters:
-/// String p0: the name of the class that implements itself recursively
+/// String className: the name of the class that implements itself recursively
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String className})
 >
 recursiveInterfaceInheritanceWith = DiagnosticWithArguments(
   name: 'recursive_interface_inheritance',
@@ -20464,38 +20468,45 @@ LocatableDiagnostic _withArgumentsRecursiveIncludeFile({
 }
 
 LocatableDiagnostic _withArgumentsRecursiveInterfaceInheritance({
-  required String p0,
-  required String p1,
+  required String className,
+  required String loop,
 }) {
-  return LocatableDiagnosticImpl(diag.recursiveInterfaceInheritance, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.recursiveInterfaceInheritance, [
+    className,
+    loop,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsRecursiveInterfaceInheritanceExtends({
-  required String p0,
+  required String className,
 }) {
   return LocatableDiagnosticImpl(diag.recursiveInterfaceInheritanceExtends, [
-    p0,
+    className,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsRecursiveInterfaceInheritanceImplements({
-  required String p0,
+  required String className,
 }) {
   return LocatableDiagnosticImpl(diag.recursiveInterfaceInheritanceImplements, [
-    p0,
+    className,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsRecursiveInterfaceInheritanceOn({
-  required String p0,
+  required String mixinName,
 }) {
-  return LocatableDiagnosticImpl(diag.recursiveInterfaceInheritanceOn, [p0]);
+  return LocatableDiagnosticImpl(diag.recursiveInterfaceInheritanceOn, [
+    mixinName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsRecursiveInterfaceInheritanceWith({
-  required String p0,
+  required String className,
 }) {
-  return LocatableDiagnosticImpl(diag.recursiveInterfaceInheritanceWith, [p0]);
+  return LocatableDiagnosticImpl(diag.recursiveInterfaceInheritanceWith, [
+    className,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsRedeclareOnNonRedeclaringMember({

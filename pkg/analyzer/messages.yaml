@@ -15246,9 +15246,9 @@ CompileTimeErrorCode:
   recursiveInterfaceInheritance:
     type: compileTimeError
     parameters:
-      String p0: the name of the class that implements itself recursively
-      String p1: a string representation of the implements loop
-    problemMessage: "'#p0' can't be a superinterface of itself: #p1."
+      String className: the name of the class that implements itself recursively
+      String loop: a string representation of the implements loop
+    problemMessage: "'#className' can't be a superinterface of itself: #loop."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -15273,9 +15273,9 @@ CompileTimeErrorCode:
   recursiveInterfaceInheritanceExtends:
     type: compileTimeError
     parameters:
-      String p0: the name of the class that implements itself recursively
+      String className: the name of the class that implements itself recursively
     sharedName: recursiveInterfaceInheritance
-    problemMessage: "'#p0' can't extend itself."
+    problemMessage: "'#className' can't extend itself."
     hasPublishedDocs: true
     comment: |-
       7.10 Superinterfaces: It is a compile-time error if the interface of a
@@ -15289,9 +15289,9 @@ CompileTimeErrorCode:
   recursiveInterfaceInheritanceImplements:
     type: compileTimeError
     parameters:
-      String p0: the name of the class that implements itself recursively
+      String className: the name of the class that implements itself recursively
     sharedName: recursiveInterfaceInheritance
-    problemMessage: "'#p0' can't implement itself."
+    problemMessage: "'#className' can't implement itself."
     hasPublishedDocs: true
     comment: |-
       7.10 Superinterfaces: It is a compile-time error if the interface of a
@@ -15305,16 +15305,16 @@ CompileTimeErrorCode:
   recursiveInterfaceInheritanceOn:
     type: compileTimeError
     parameters:
-      String p0: the name of the mixin that constraints itself recursively
+      String mixinName: the name of the mixin that constraints itself recursively
     sharedName: recursiveInterfaceInheritance
-    problemMessage: "'#p0' can't use itself as a superclass constraint."
+    problemMessage: "'#mixinName' can't use itself as a superclass constraint."
     hasPublishedDocs: true
   recursiveInterfaceInheritanceWith:
     type: compileTimeError
     parameters:
-      String p0: the name of the class that implements itself recursively
+      String className: the name of the class that implements itself recursively
     sharedName: recursiveInterfaceInheritance
-    problemMessage: "'#p0' can't use itself as a mixin."
+    problemMessage: "'#className' can't use itself as a mixin."
     hasPublishedDocs: true
     comment: |-
       7.10 Superinterfaces: It is a compile-time error if the interface of a
