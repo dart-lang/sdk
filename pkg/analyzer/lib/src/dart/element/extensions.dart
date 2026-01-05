@@ -100,10 +100,12 @@ extension Element2Extension on Element {
   /// diagnostics; an assertion will fire if this doesn't match the source
   /// containing the element's first fragment.
   SourceRange diagnosticRange(Source source) {
-    assert(identical(firstFragment.libraryFragment?.source, source));
+    var nonSyntheticLocation =
+        (nonSynthetic.baseElement as ElementImpl).firstFragmentLocation;
+    assert(identical(nonSyntheticLocation.libraryFragment?.source, source));
     return SourceRange(
-      nonSynthetic.firstFragment.nameOffset ?? -1,
-      nonSynthetic.name?.length ?? 0,
+      nonSyntheticLocation.nameOffset ?? -1,
+      nonSyntheticLocation.name?.length ?? 0,
     );
   }
 }
