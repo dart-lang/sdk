@@ -56,8 +56,8 @@ String normalizeLog(File input) {
           .cast<Map<String, Object?>>();
   for (var i = 0; i < workspaceFolders.length; i++) {
     var folder = workspaceFolders[i];
-    var uri = folder['uri'] as String;
-    content = content.replaceAll(uri, '{{workspaceFolder-$i}}');
+    var uri = Uri.parse(folder['uri'] as String);
+    content = content.replaceAll(uri.path, '{{workspaceFolder-$i}}');
   }
   return content;
 }
