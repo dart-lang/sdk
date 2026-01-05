@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -30,10 +31,10 @@ class VariableDeclarationResolver {
 
     if (initializer == null) {
       if (_strictInference && parent.type == null) {
-        _resolver.diagnosticReporter.atNode(
-          node,
-          diag.inferenceFailureOnUninitializedVariable,
-          arguments: [node.name.lexeme],
+        _resolver.diagnosticReporter.report(
+          diag.inferenceFailureOnUninitializedVariable
+              .withArguments(variable: node.name.lexeme)
+              .at(node),
         );
       }
       return;

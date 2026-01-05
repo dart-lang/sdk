@@ -9,7 +9,6 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart' show DiagnosticReporter;
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -20,6 +19,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:collection/collection.dart';
 
@@ -604,10 +604,10 @@ class GenericInferrer {
       String constructorName = errorEntity.name == null
           ? errorEntity.type.qualifiedName
           : '${errorEntity.type}.${errorEntity.name}';
-      diagnosticReporter.atNode(
-        errorEntity,
-        diag.inferenceFailureOnInstanceCreation,
-        arguments: [constructorName],
+      diagnosticReporter.report(
+        diag.inferenceFailureOnInstanceCreation
+            .withArguments(function: constructorName)
+            .at(errorEntity),
       );
     } else if (errorEntity is Annotation) {
       if (genericMetadataIsEnabled) {
@@ -617,10 +617,10 @@ class GenericInferrer {
           String constructorName = errorEntity.constructorName == null
               ? errorEntity.name.name
               : '${errorEntity.name.name}.${errorEntity.constructorName}';
-          diagnosticReporter.atNode(
-            errorEntity,
-            diag.inferenceFailureOnInstanceCreation,
-            arguments: [constructorName],
+          diagnosticReporter.report(
+            diag.inferenceFailureOnInstanceCreation
+                .withArguments(function: constructorName)
+                .at(errorEntity),
           );
         }
       }
@@ -641,10 +641,10 @@ class GenericInferrer {
           }
         }
         if (!element.metadata.hasOptionalTypeArgs) {
-          diagnosticReporter.atNode(
-            errorEntity,
-            diag.inferenceFailureOnFunctionInvocation,
-            arguments: [errorEntity.name],
+          diagnosticReporter.report(
+            diag.inferenceFailureOnFunctionInvocation
+                .withArguments(function: errorEntity.name)
+                .at(errorEntity),
           );
           return;
         }
@@ -653,10 +653,10 @@ class GenericInferrer {
       var type = errorEntity.staticType;
       if (type != null) {
         var typeDisplayString = _typeStr(type);
-        diagnosticReporter.atNode(
-          errorEntity,
-          diag.inferenceFailureOnGenericInvocation,
-          arguments: [typeDisplayString],
+        diagnosticReporter.report(
+          diag.inferenceFailureOnGenericInvocation
+              .withArguments(function: typeDisplayString)
+              .at(errorEntity),
         );
         return;
       }

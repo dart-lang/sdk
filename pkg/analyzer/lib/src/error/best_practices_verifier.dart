@@ -1508,10 +1508,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     for (var parameter in implicitlyTypedParameters) {
       var element = parameter.declaredFragment!.element;
-      _diagnosticReporter.atNode(
-        parameter,
-        diag.inferenceFailureOnUntypedParameter,
-        arguments: [element.displayName],
+      _diagnosticReporter.report(
+        diag.inferenceFailureOnUntypedParameter
+            .withArguments(parameter: element.displayName)
+            .at(parameter),
       );
     }
   }
@@ -1528,16 +1528,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     switch (reportNode) {
       case MethodDeclaration(:var name) || FunctionDeclaration(:var name):
-        _diagnosticReporter.atToken(
-          name,
-          diag.inferenceFailureOnFunctionReturnType,
-          arguments: [displayName],
+        _diagnosticReporter.report(
+          diag.inferenceFailureOnFunctionReturnType
+              .withArguments(function: displayName)
+              .at(name),
         );
       case _:
-        _diagnosticReporter.atNode(
-          reportNode,
-          diag.inferenceFailureOnFunctionReturnType,
-          arguments: [displayName],
+        _diagnosticReporter.report(
+          diag.inferenceFailureOnFunctionReturnType
+              .withArguments(function: displayName)
+              .at(reportNode),
         );
     }
   }

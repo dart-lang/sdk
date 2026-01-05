@@ -3394,9 +3394,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var formalParameters = formalParameterList.parameters;
 
     if (formalParameters.isEmpty) {
-      diagnosticReporter.atToken(
-        formalParameterList.leftParenthesis.next!,
-        diag.expectedRepresentationField,
+      diagnosticReporter.report(
+        diag.expectedRepresentationField.at(
+          formalParameterList.leftParenthesis.next!,
+        ),
       );
       return;
     }
@@ -3405,37 +3406,34 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var inner = first.notDefault;
 
     if (formalParameters.length > 1) {
-      diagnosticReporter.atToken(
-        first.endToken.next!,
-        diag.multipleRepresentationFields,
+      diagnosticReporter.report(
+        diag.multipleRepresentationFields.at(first.endToken.next!),
       );
       return;
     }
 
     if (inner is FieldFormalParameterImpl) {
-      diagnosticReporter.atToken(
-        inner.thisKeyword,
-        diag.expectedRepresentationField,
+      diagnosticReporter.report(
+        diag.expectedRepresentationField.at(inner.thisKeyword),
       );
       return;
     }
 
     if (inner is SuperFormalParameterImpl) {
-      diagnosticReporter.atToken(
-        inner.superKeyword,
-        diag.expectedRepresentationField,
+      diagnosticReporter.report(
+        diag.expectedRepresentationField.at(inner.superKeyword),
       );
       return;
     }
 
     var nameToken = inner.name;
     if (nameToken == null) {
-      diagnosticReporter.atNode(inner, diag.expectedRepresentationField);
+      diagnosticReporter.report(diag.expectedRepresentationField.at(inner));
       return;
     }
 
     if (nameToken.lexeme == node.primaryConstructor.typeName.lexeme) {
-      diagnosticReporter.atToken(nameToken, diag.memberWithClassName);
+      diagnosticReporter.report(diag.memberWithClassName.at(nameToken));
     }
 
     if (_featureSet!.isEnabled(Feature.primary_constructors)) {
@@ -3443,26 +3441,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var keyword = inner.keyword;
         if (keyword != null) {
           if (keyword.keyword == Keyword.VAR) {
-            diagnosticReporter.atToken(
-              keyword,
-              diag.representationFieldModifier,
+            diagnosticReporter.report(
+              diag.representationFieldModifier.at(keyword),
             );
           }
         }
       }
     } else {
       if (formalParameterList.leftDelimiter case var leftDelimiter?) {
-        diagnosticReporter.atToken(
-          leftDelimiter,
-          diag.expectedRepresentationField,
+        diagnosticReporter.report(
+          diag.expectedRepresentationField.at(leftDelimiter),
         );
         return;
       }
 
       if (inner is FunctionTypedFormalParameterImpl) {
-        diagnosticReporter.atToken(
-          inner.beginToken,
-          diag.expectedRepresentationField,
+        diagnosticReporter.report(
+          diag.expectedRepresentationField.at(inner.beginToken),
         );
         return;
       }
@@ -3472,25 +3467,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (keyword != null) {
           if (keyword.keyword == Keyword.FINAL ||
               keyword.keyword == Keyword.VAR) {
-            diagnosticReporter.atToken(
-              keyword,
-              diag.representationFieldModifier,
+            diagnosticReporter.report(
+              diag.representationFieldModifier.at(keyword),
             );
           }
         }
         if (inner.type == null) {
-          diagnosticReporter.atToken(
-            nameToken,
-            diag.expectedRepresentationType,
+          diagnosticReporter.report(
+            diag.expectedRepresentationType.at(nameToken),
           );
         }
       }
 
       if (first.endToken.next case var maybeComma?) {
         if (maybeComma.type == TokenType.COMMA) {
-          diagnosticReporter.atToken(
-            maybeComma,
-            diag.representationFieldTrailingComma,
+          diagnosticReporter.report(
+            diag.representationFieldTrailingComma.at(maybeComma),
           );
         }
       }
