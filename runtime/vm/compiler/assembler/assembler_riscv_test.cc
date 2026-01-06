@@ -9324,6 +9324,18 @@ ASSEMBLER_TEST_RUN(LoadImmediate_LiSlliAddi, test) {
       "    8082 ret\n");
   EXPECT_EQ(static_cast<int64_t>(0xFF000000000000FF), Call(test->entry()));
 }
+
+ASSEMBLER_TEST_GENERATE(LoadImmediate_Bseti, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ LoadImmediate(A0, static_cast<intx_t>(1) << 62);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadImmediate_Bseti, test) {
+  EXPECT_DISASSEMBLY(
+      "2be01513 bseti a0, zero, 0x3e\n"
+      "    8082 ret\n");
+  EXPECT_EQ(static_cast<intx_t>(1) << 62, Call(test->entry()));
+}
 #endif
 
 ASSEMBLER_TEST_GENERATE(BitwiseImmediates_GC, assembler) {
@@ -9370,6 +9382,58 @@ ASSEMBLER_TEST_RUN(BitwiseImmediates_GCB, test) {
       "29c59513 bseti a0, a1, 0x1c\n"
       "69c59513 binvi a0, a1, 0x1c\n"
       "    8082 ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(LoadSImmediate_IntCast, assembler) {
+  __ SetExtensions(RV_GC);
+  __ LoadSImmediate(FA0, 10.0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadSImmediate_IntCast, test) {
+  EXPECT_DISASSEMBLY(
+      "    4729 li tmp2, 10\n"
+      "d0070553 fcvt.s.w fa0, tmp2\n"
+      "    8082 ret\n");
+  EXPECT_EQ(10.0f, CallF(test->entry(), 0.0f));
+}
+
+ASSEMBLER_TEST_GENERATE(LoadSImmediate_NegLi, assembler) {
+  __ SetExtensions(RV_GC | RV_Zfa);
+  __ LoadSImmediate(FA0, -2.0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadSImmediate_NegLi, test) {
+  EXPECT_DISASSEMBLY(
+      "f01a0553 flis fa0, 2.000000\n"
+      "20a51553 fneg.s fa0, fa0\n"
+      "    8082 ret\n");
+  EXPECT_EQ(-2.0f, CallF(test->entry(), 0.0f));
+}
+
+ASSEMBLER_TEST_GENERATE(LoadDImmediate_IntCast, assembler) {
+  __ SetExtensions(RV_GC);
+  __ LoadDImmediate(FA0, 10.0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadDImmediate_IntCast, test) {
+  EXPECT_DISASSEMBLY(
+      "    4729 li tmp2, 10\n"
+      "d2070553 fcvt.d.w fa0, tmp2\n"
+      "    8082 ret\n");
+  EXPECT_EQ(10.0, CallD(test->entry(), 0.0));
+}
+
+ASSEMBLER_TEST_GENERATE(LoadDImmediate_NegLi, assembler) {
+  __ SetExtensions(RV_GC | RV_Zfa);
+  __ LoadDImmediate(FA0, -2.0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadDImmediate_NegLi, test) {
+  EXPECT_DISASSEMBLY(
+      "f21a0553 flid fa0, 2.000000\n"
+      "22a51553 fneg.d fa0, fa0\n"
+      "    8082 ret\n");
+  EXPECT_EQ(-2.0, CallD(test->entry(), 0.0));
 }
 
 ASSEMBLER_TEST_GENERATE(AddImmediateBranchOverflow, assembler) {

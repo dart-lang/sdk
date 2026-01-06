@@ -4592,6 +4592,11 @@ void Assembler::LoadIsolateGroup(Register dst) {
 void Assembler::LoadImmediate(Register reg, intx_t imm) {
 #if XLEN > 32
   if (!Utils::IsInt(32, imm)) {
+    if (Supports(RV_Zbs) && Utils::IsPowerOfTwo(imm)) {
+      bseti(reg, ZR, Utils::ShiftForPowerOfTwo(imm));
+      return;
+    }
+
     int shift = Utils::CountTrailingZeros64(imm);
     if (IsITypeImm(imm >> shift)) {
       li(reg, imm >> shift);
@@ -4651,6 +4656,22 @@ void Assembler::LoadSImmediate(FRegister reg, float imms) {
           return;
         }
       }
+      uint32_t nimm = imm ^ 0x80000000;
+      for (intptr_t i = 0; i < 32; i++) {
+        if (kFlisConstants[i] == nimm) {
+          flis(reg, i);
+          fnegs(reg, reg);
+          return;
+        }
+      }
+    }
+
+    int32_t immi = imms;
+    if (IsITypeImm(immi) &&
+        imm == bit_cast<uint32_t, float>(static_cast<float>(immi))) {
+      li(TMP2, immi);
+      fcvtsw(reg, TMP2);  // static_cast int32_t -> float
+      return;
     }
 
     ASSERT(constant_pool_allowed());
@@ -4676,6 +4697,22 @@ void Assembler::LoadDImmediate(FRegister reg, double immd) {
           return;
         }
       }
+      uint64_t nimm = imm ^ 0x8000000000000000;
+      for (intptr_t i = 0; i < 32; i++) {
+        if (kFlidConstants[i] == nimm) {
+          flid(reg, i);
+          fnegd(reg, reg);
+          return;
+        }
+      }
+    }
+
+    int32_t immi = immd;
+    if (IsITypeImm(immi) &&
+        imm == bit_cast<uint64_t, double>(static_cast<double>(immi))) {
+      li(TMP2, immi);
+      fcvtdw(reg, TMP2);  // static_cast int32_t -> double
+      return;
     }
 
     ASSERT(constant_pool_allowed());
