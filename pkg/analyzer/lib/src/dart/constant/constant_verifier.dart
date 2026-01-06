@@ -920,10 +920,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             // TODO(kallentu): Report the specific error we got from the
             // evaluator to make it clear to the user what's wrong.
             if (result is! DartObjectImpl) {
-              _diagnosticReporter.atToken(
-                constKeyword,
-                diag.constConstructorWithFieldInitializedByNonConst,
-                arguments: [variableDeclaration.name.lexeme],
+              _diagnosticReporter.report(
+                diag.constConstructorWithFieldInitializedByNonConst
+                    .withArguments(fieldName: variableDeclaration.name.lexeme)
+                    .at(constKeyword),
               );
             }
           }
@@ -1362,10 +1362,10 @@ class _ConstLiteralVerifier {
     if (listValue != null) {
       var featureSet = verifier._currentLibrary.featureSet;
       if (!listValue.every((e) => e.hasPrimitiveEquality(featureSet))) {
-        verifier._diagnosticReporter.atNode(
-          element,
-          diag.constSetElementNotPrimitiveEquality,
-          arguments: [value.type],
+        verifier._diagnosticReporter.report(
+          diag.constSetElementNotPrimitiveEquality
+              .withArguments(type: value.type)
+              .at(element),
         );
         return false;
       }
@@ -1432,10 +1432,10 @@ class _ConstLiteralVerifier {
 
       var featureSet = verifier._currentLibrary.featureSet;
       if (!keyValue.hasPrimitiveEquality(featureSet)) {
-        verifier._diagnosticReporter.atNode(
-          keyExpression,
-          diag.constMapKeyNotPrimitiveEquality,
-          arguments: [keyType],
+        verifier._diagnosticReporter.report(
+          diag.constMapKeyNotPrimitiveEquality
+              .withArguments(keyType: keyType)
+              .at(keyExpression),
         );
       }
 
@@ -1541,10 +1541,10 @@ class _ConstLiteralVerifier {
 
     var featureSet = verifier._currentLibrary.featureSet;
     if (!value.hasPrimitiveEquality(featureSet)) {
-      verifier._diagnosticReporter.atNode(
-        expression,
-        diag.constSetElementNotPrimitiveEquality,
-        arguments: [value.type],
+      verifier._diagnosticReporter.report(
+        diag.constSetElementNotPrimitiveEquality
+            .withArguments(type: value.type)
+            .at(expression),
       );
       return false;
     }

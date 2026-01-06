@@ -1862,13 +1862,25 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         _linker.elementNodes[fieldFragment] = formalParameter;
         _addChildFragment(fieldFragment);
 
+        var formalParameterName = name;
+        String? formalParameterPrivateName;
+        if (formalParameterName != null &&
+            formalParameter.isNamed &&
+            _libraryBuilder.element.featureSet.isEnabled(
+              Feature.private_named_parameters,
+            )) {
+          var publicName = correspondingPublicName(formalParameterName);
+          if (publicName != null) {
+            formalParameterPrivateName = formalParameterName;
+            formalParameterName = publicName;
+          }
+        }
+
         var formalFragment = FieldFormalParameterFragmentImpl(
-          name: name,
+          name: formalParameterName,
           nameOffset: null,
           parameterKind: formalParameter.kind,
-          // TODO(rnystrom): Support private named parameters for declaring
-          // formals.
-          privateName: null,
+          privateName: formalParameterPrivateName,
         );
         formalFragment.isDeclaring = true;
 

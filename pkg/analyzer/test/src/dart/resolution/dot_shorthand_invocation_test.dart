@@ -758,4 +758,42 @@ void main() {
       [error(diag.invalidAssignment, 105, 9)],
     );
   }
+
+  test_undefinedInvocation_message() async {
+    await assertErrorsInCode(
+      r'''
+int f() => .foo();
+''',
+      [
+        error(
+          diag.dotShorthandUndefinedInvocation,
+          12,
+          3,
+          messageContains: [
+            "context type 'int'",
+            "static method or constructor 'foo'",
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_undefinedInvocation_message_equalityRhs() async {
+    await assertErrorsInCode(
+      r'''
+bool f(int x) => x == .foo();
+''',
+      [
+        error(
+          diag.dotShorthandUndefinedInvocation,
+          23,
+          3,
+          messageContains: [
+            "context type 'int'",
+            "static method or constructor 'foo'",
+          ],
+        ),
+      ],
+    );
+  }
 }

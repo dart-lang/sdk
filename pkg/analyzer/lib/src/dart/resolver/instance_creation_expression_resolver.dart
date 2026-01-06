@@ -85,10 +85,13 @@ class InstanceCreationExpressionResolver {
             when element.isAccessibleIn(_resolver.definingLibrary)) {
           node.element = element;
         } else {
-          _resolver.diagnosticReporter.atNode(
-            node.constructorName,
-            diag.constWithUndefinedConstructor,
-            arguments: [contextType, node.constructorName.name],
+          _resolver.diagnosticReporter.report(
+            diag.constWithUndefinedConstructor
+                .withArguments(
+                  className: contextElement.displayName,
+                  constructorName: node.constructorName.name,
+                )
+                .at(node.constructorName),
           );
         }
       }

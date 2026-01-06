@@ -1076,7 +1076,7 @@ library
 ''');
   }
 
-  test_class_constructor_field_formal_named_privateNoCorrespondingPublic() async {
+  test_class_constructor_field_formal_named_private_noCorrespondingPublic() async {
     var library = await buildLibrary('class C { int? _123; C({this._123}); }');
     checkElementText(library, r'''
 library
@@ -21938,6 +21938,119 @@ library
 ''');
   }
 
+  test_primaryConstructor_declaringFormalParameter_optionalNamed_private() async {
+    var library = await buildLibrary('''
+class A({final int? _foo}) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 synthetic isOriginDeclaringFormalParameter _foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::_foo
+          constructors
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 6
+              formalParameters
+                #F4 optionalNamed final this.foo (nameOffset:20) (firstTokenOffset:9) (offset:20)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+          getters
+            #F5 synthetic isOriginVariable _foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@getter::_foo
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic final promotable isOriginDeclaringFormalParameter _foo
+          reference: <testLibrary>::@class::A::@field::_foo
+          firstFragment: #F2
+          type: int?
+          getter: <testLibrary>::@class::A::@getter::_foo
+          declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 optionalNamed final declaring this.foo
+              firstFragment: #F4
+              type: int?
+              privateName: _foo
+              field: <testLibrary>::@class::A::@field::_foo
+      getters
+        synthetic isOriginVariable _foo
+          reference: <testLibrary>::@class::A::@getter::_foo
+          firstFragment: #F5
+          returnType: int?
+          variable: <testLibrary>::@class::A::@field::_foo
+''');
+  }
+
+  test_primaryConstructor_declaringFormalParameter_optionalNamed_private_noCorrespondingPublic() async {
+    var library = await buildLibrary('''
+class A({final int? _123}) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 synthetic isOriginDeclaringFormalParameter _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::_123
+          constructors
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 6
+              formalParameters
+                #F4 optionalNamed final this._123 (nameOffset:20) (firstTokenOffset:9) (offset:20)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::_123
+          getters
+            #F5 synthetic isOriginVariable _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@getter::_123
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic final promotable isOriginDeclaringFormalParameter _123
+          reference: <testLibrary>::@class::A::@field::_123
+          firstFragment: #F2
+          type: int?
+          getter: <testLibrary>::@class::A::@getter::_123
+          declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::_123
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 optionalNamed final declaring this._123
+              firstFragment: #F4
+              type: int?
+              field: <testLibrary>::@class::A::@field::_123
+      getters
+        synthetic isOriginVariable _123
+          reference: <testLibrary>::@class::A::@getter::_123
+          firstFragment: #F5
+          returnType: int?
+          variable: <testLibrary>::@class::A::@field::_123
+''');
+  }
+
   test_primaryConstructor_declaringFormalParameter_optionalNamed_simple_final() async {
     var library = await buildLibrary('''
 class A({final int foo}) {}
@@ -22159,6 +22272,63 @@ library
           firstFragment: #F5
           returnType: int Function()
           variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
+  test_primaryConstructor_declaringFormalParameter_requiredNamed_private() async {
+    var library = await buildLibrary('''
+class A({required final int _foo}) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 synthetic isOriginDeclaringFormalParameter _foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::_foo
+          constructors
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 6
+              formalParameters
+                #F4 requiredNamed final this.foo (nameOffset:28) (firstTokenOffset:9) (offset:28)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+          getters
+            #F5 synthetic isOriginVariable _foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@getter::_foo
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic final promotable isOriginDeclaringFormalParameter _foo
+          reference: <testLibrary>::@class::A::@field::_foo
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::A::@getter::_foo
+          declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredNamed final declaring this.foo
+              firstFragment: #F4
+              type: int
+              privateName: _foo
+              field: <testLibrary>::@class::A::@field::_foo
+      getters
+        synthetic isOriginVariable _foo
+          reference: <testLibrary>::@class::A::@getter::_foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::_foo
 ''');
   }
 
@@ -23058,6 +23228,179 @@ library
           hasEnclosingTypeParameterReference: true
           returnType: T
           variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
+  test_primaryConstructor_formalParameter_optionalNamed_this_private() async {
+    var library = await buildLibrary('''
+class A({this._foo}) {
+  final int? _foo;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 isOriginDeclaration _foo (nameOffset:36) (firstTokenOffset:36) (offset:36)
+              element: <testLibrary>::@class::A::@field::_foo
+          constructors
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 6
+              formalParameters
+                #F4 optionalNamed final this.foo (nameOffset:14) (firstTokenOffset:9) (offset:14)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+          getters
+            #F5 synthetic isOriginVariable _foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+              element: <testLibrary>::@class::A::@getter::_foo
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        final promotable isOriginDeclaration _foo
+          reference: <testLibrary>::@class::A::@field::_foo
+          firstFragment: #F2
+          type: int?
+          getter: <testLibrary>::@class::A::@getter::_foo
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 optionalNamed final hasImplicitType this.foo
+              firstFragment: #F4
+              type: int?
+              privateName: _foo
+              field: <testLibrary>::@class::A::@field::_foo
+      getters
+        synthetic isOriginVariable _foo
+          reference: <testLibrary>::@class::A::@getter::_foo
+          firstFragment: #F5
+          returnType: int?
+          variable: <testLibrary>::@class::A::@field::_foo
+''');
+  }
+
+  test_primaryConstructor_formalParameter_optionalNamed_this_private_noCorrespondingPublic() async {
+    var library = await buildLibrary(r'''
+class A({this._123}) {
+  final int? _123;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 isOriginDeclaration _123 (nameOffset:36) (firstTokenOffset:36) (offset:36)
+              element: <testLibrary>::@class::A::@field::_123
+          constructors
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 6
+              formalParameters
+                #F4 optionalNamed final this._123 (nameOffset:14) (firstTokenOffset:9) (offset:14)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::_123
+          getters
+            #F5 synthetic isOriginVariable _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+              element: <testLibrary>::@class::A::@getter::_123
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        final promotable isOriginDeclaration _123
+          reference: <testLibrary>::@class::A::@field::_123
+          firstFragment: #F2
+          type: int?
+          getter: <testLibrary>::@class::A::@getter::_123
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 optionalNamed final hasImplicitType this._123
+              firstFragment: #F4
+              type: int?
+              field: <testLibrary>::@class::A::@field::_123
+      getters
+        synthetic isOriginVariable _123
+          reference: <testLibrary>::@class::A::@getter::_123
+          firstFragment: #F5
+          returnType: int?
+          variable: <testLibrary>::@class::A::@field::_123
+''');
+  }
+
+  test_primaryConstructor_formalParameter_requiredNamed_this_private() async {
+    var library = await buildLibrary('''
+class A({required this._foo}) {
+  final int? _foo;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 isOriginDeclaration _foo (nameOffset:45) (firstTokenOffset:45) (offset:45)
+              element: <testLibrary>::@class::A::@field::_foo
+          constructors
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 6
+              formalParameters
+                #F4 requiredNamed final this.foo (nameOffset:23) (firstTokenOffset:9) (offset:23)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+          getters
+            #F5 synthetic isOriginVariable _foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
+              element: <testLibrary>::@class::A::@getter::_foo
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        final promotable isOriginDeclaration _foo
+          reference: <testLibrary>::@class::A::@field::_foo
+          firstFragment: #F2
+          type: int?
+          getter: <testLibrary>::@class::A::@getter::_foo
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredNamed final hasImplicitType this.foo
+              firstFragment: #F4
+              type: int?
+              privateName: _foo
+              field: <testLibrary>::@class::A::@field::_foo
+      getters
+        synthetic isOriginVariable _foo
+          reference: <testLibrary>::@class::A::@getter::_foo
+          firstFragment: #F5
+          returnType: int?
+          variable: <testLibrary>::@class::A::@field::_foo
 ''');
   }
 

@@ -312,6 +312,239 @@ library
 ''');
   }
 
+  test_constructor_formalParameters_optionalNamed_this_private() async {
+    var library = await buildLibrary(r'''
+extension type A(int? _it) {
+  A.named({this._it});
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@extensionType::A
+          fields
+            #F2 isOriginDeclaringFormalParameter _it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@extensionType::A::@field::_it
+          constructors
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              typeName: A
+              typeNameOffset: 15
+              formalParameters
+                #F4 requiredPositional final this._it (nameOffset:22) (firstTokenOffset:17) (offset:22)
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::_it
+            #F5 isOriginDeclaration named (nameOffset:33) (firstTokenOffset:31) (offset:33)
+              element: <testLibrary>::@extensionType::A::@constructor::named
+              typeName: A
+              typeNameOffset: 31
+              periodOffset: 32
+              formalParameters
+                #F6 optionalNamed final this.it (nameOffset:45) (firstTokenOffset:40) (offset:45)
+                  element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
+          getters
+            #F7 synthetic isOriginVariable _it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@extensionType::A::@getter::_it
+  extensionTypes
+    extension type A
+      reference: <testLibrary>::@extensionType::A
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::A::@field::_it
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
+      typeErasure: int?
+      fields
+        final promotable isOriginDeclaringFormalParameter _it
+          reference: <testLibrary>::@extensionType::A::@field::_it
+          firstFragment: #F2
+          type: int?
+          getter: <testLibrary>::@extensionType::A::@getter::_it
+          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::_it
+      constructors
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional final declaring this._it
+              firstFragment: #F4
+              type: int?
+              field: <testLibrary>::@extensionType::A::@field::_it
+        isExtensionTypeMember isOriginDeclaration named
+          reference: <testLibrary>::@extensionType::A::@constructor::named
+          firstFragment: #F5
+          formalParameters
+            #E1 optionalNamed final hasImplicitType this.it
+              firstFragment: #F6
+              type: int?
+              privateName: _it
+              field: <testLibrary>::@extensionType::A::@field::_it
+      getters
+        synthetic isExtensionTypeMember isOriginVariable _it
+          reference: <testLibrary>::@extensionType::A::@getter::_it
+          firstFragment: #F7
+          returnType: int?
+          variable: <testLibrary>::@extensionType::A::@field::_it
+''');
+  }
+
+  test_constructor_formalParameters_optionalNamed_this_private_noCorrespondingPublic() async {
+    var library = await buildLibrary(r'''
+extension type A(int? _123) {
+  A.named({this._123});
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@extensionType::A
+          fields
+            #F2 isOriginDeclaringFormalParameter _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@extensionType::A::@field::_123
+          constructors
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              typeName: A
+              typeNameOffset: 15
+              formalParameters
+                #F4 requiredPositional final this._123 (nameOffset:22) (firstTokenOffset:17) (offset:22)
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::_123
+            #F5 isOriginDeclaration named (nameOffset:34) (firstTokenOffset:32) (offset:34)
+              element: <testLibrary>::@extensionType::A::@constructor::named
+              typeName: A
+              typeNameOffset: 32
+              periodOffset: 33
+              formalParameters
+                #F6 optionalNamed final this._123 (nameOffset:46) (firstTokenOffset:41) (offset:46)
+                  element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::_123
+          getters
+            #F7 synthetic isOriginVariable _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@extensionType::A::@getter::_123
+  extensionTypes
+    extension type A
+      reference: <testLibrary>::@extensionType::A
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::A::@field::_123
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
+      typeErasure: int?
+      fields
+        final promotable isOriginDeclaringFormalParameter _123
+          reference: <testLibrary>::@extensionType::A::@field::_123
+          firstFragment: #F2
+          type: int?
+          getter: <testLibrary>::@extensionType::A::@getter::_123
+          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::_123
+      constructors
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional final declaring this._123
+              firstFragment: #F4
+              type: int?
+              field: <testLibrary>::@extensionType::A::@field::_123
+        isExtensionTypeMember isOriginDeclaration named
+          reference: <testLibrary>::@extensionType::A::@constructor::named
+          firstFragment: #F5
+          formalParameters
+            #E1 optionalNamed final hasImplicitType this._123
+              firstFragment: #F6
+              type: int?
+              field: <testLibrary>::@extensionType::A::@field::_123
+      getters
+        synthetic isExtensionTypeMember isOriginVariable _123
+          reference: <testLibrary>::@extensionType::A::@getter::_123
+          firstFragment: #F7
+          returnType: int?
+          variable: <testLibrary>::@extensionType::A::@field::_123
+''');
+  }
+
+  test_constructor_formalParameters_requiredNamed_this_private() async {
+    var library = await buildLibrary(r'''
+extension type A(int? _it) {
+  A.named({required this._it});
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@extensionType::A
+          fields
+            #F2 isOriginDeclaringFormalParameter _it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@extensionType::A::@field::_it
+          constructors
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              typeName: A
+              typeNameOffset: 15
+              formalParameters
+                #F4 requiredPositional final this._it (nameOffset:22) (firstTokenOffset:17) (offset:22)
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::_it
+            #F5 isOriginDeclaration named (nameOffset:33) (firstTokenOffset:31) (offset:33)
+              element: <testLibrary>::@extensionType::A::@constructor::named
+              typeName: A
+              typeNameOffset: 31
+              periodOffset: 32
+              formalParameters
+                #F6 requiredNamed final this.it (nameOffset:54) (firstTokenOffset:40) (offset:54)
+                  element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
+          getters
+            #F7 synthetic isOriginVariable _it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@extensionType::A::@getter::_it
+  extensionTypes
+    extension type A
+      reference: <testLibrary>::@extensionType::A
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::A::@field::_it
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
+      typeErasure: int?
+      fields
+        final promotable isOriginDeclaringFormalParameter _it
+          reference: <testLibrary>::@extensionType::A::@field::_it
+          firstFragment: #F2
+          type: int?
+          getter: <testLibrary>::@extensionType::A::@getter::_it
+          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::_it
+      constructors
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional final declaring this._it
+              firstFragment: #F4
+              type: int?
+              field: <testLibrary>::@extensionType::A::@field::_it
+        isExtensionTypeMember isOriginDeclaration named
+          reference: <testLibrary>::@extensionType::A::@constructor::named
+          firstFragment: #F5
+          formalParameters
+            #E1 requiredNamed final hasImplicitType this.it
+              firstFragment: #F6
+              type: int?
+              privateName: _it
+              field: <testLibrary>::@extensionType::A::@field::_it
+      getters
+        synthetic isExtensionTypeMember isOriginVariable _it
+          reference: <testLibrary>::@extensionType::A::@getter::_it
+          firstFragment: #F7
+          returnType: int?
+          variable: <testLibrary>::@extensionType::A::@field::_it
+''');
+  }
+
   test_constructor_newHead_named() async {
     var library = await buildLibrary(r'''
 extension type A(int it) {
@@ -5882,6 +6115,126 @@ library
           firstFragment: #F5
           returnType: Object?
           variable: <testLibrary>::@extensionType::A::@field::it
+''');
+  }
+
+  test_primaryConstructor_formalParameters_optionalNamed_private() async {
+    var library = await buildLibrary(r'''
+extension type A({int? _it}) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@extensionType::A
+          fields
+            #F2 isOriginDeclaringFormalParameter _it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@extensionType::A::@field::_it
+          constructors
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              typeName: A
+              typeNameOffset: 15
+              formalParameters
+                #F4 optionalNamed final this.it (nameOffset:23) (firstTokenOffset:18) (offset:23)
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+          getters
+            #F5 synthetic isOriginVariable _it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@extensionType::A::@getter::_it
+  extensionTypes
+    extension type A
+      reference: <testLibrary>::@extensionType::A
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::A::@field::_it
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
+      typeErasure: int?
+      fields
+        final promotable isOriginDeclaringFormalParameter _it
+          reference: <testLibrary>::@extensionType::A::@field::_it
+          firstFragment: #F2
+          type: int?
+          getter: <testLibrary>::@extensionType::A::@getter::_it
+          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+      constructors
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 optionalNamed final declaring this.it
+              firstFragment: #F4
+              type: int?
+              privateName: _it
+              field: <testLibrary>::@extensionType::A::@field::_it
+      getters
+        synthetic isExtensionTypeMember isOriginVariable _it
+          reference: <testLibrary>::@extensionType::A::@getter::_it
+          firstFragment: #F5
+          returnType: int?
+          variable: <testLibrary>::@extensionType::A::@field::_it
+''');
+  }
+
+  test_primaryConstructor_formalParameters_requiredNamed_private() async {
+    var library = await buildLibrary(r'''
+extension type A({required int _it}) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@extensionType::A
+          fields
+            #F2 isOriginDeclaringFormalParameter _it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@extensionType::A::@field::_it
+          constructors
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              typeName: A
+              typeNameOffset: 15
+              formalParameters
+                #F4 requiredNamed final this.it (nameOffset:31) (firstTokenOffset:18) (offset:31)
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+          getters
+            #F5 synthetic isOriginVariable _it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@extensionType::A::@getter::_it
+  extensionTypes
+    extension type A
+      reference: <testLibrary>::@extensionType::A
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::A::@field::_it
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
+      typeErasure: int
+      fields
+        final promotable isOriginDeclaringFormalParameter _it
+          reference: <testLibrary>::@extensionType::A::@field::_it
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@extensionType::A::@getter::_it
+          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+      constructors
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredNamed final declaring this.it
+              firstFragment: #F4
+              type: int
+              privateName: _it
+              field: <testLibrary>::@extensionType::A::@field::_it
+      getters
+        synthetic isExtensionTypeMember isOriginVariable _it
+          reference: <testLibrary>::@extensionType::A::@getter::_it
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::_it
 ''');
   }
 
