@@ -67,11 +67,10 @@ class FastaErrorReporter {
         return;
       case PseudoSharedCode.constNotInitialized:
         var name = arguments['name'] as String;
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.constNotInitialized,
-          arguments: [name],
+        diagnosticReporter?.report(
+          diag.constNotInitialized
+              .withArguments(name: name)
+              .atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.defaultValueInFunctionType:

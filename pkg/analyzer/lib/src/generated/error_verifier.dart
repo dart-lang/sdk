@@ -2216,10 +2216,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 Feature.class_modifiers,
               ) &&
               !_mayIgnoreClassModifiers(withElement.library)) {
-            diagnosticReporter.atNode(
-              withMixin,
-              diag.classUsedAsMixin,
-              arguments: [withElement.name!],
+            diagnosticReporter.report(
+              diag.classUsedAsMixin
+                  .withArguments(name: withElement.name!)
+                  .at(withMixin),
             );
           }
         }
@@ -2578,15 +2578,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     for (var error in errors) {
       if (error is IncompatibleInterfacesClassHierarchyError) {
-        diagnosticReporter.atToken(
-          nameToken,
-          diag.conflictingGenericInterfaces,
-          arguments: [
-            _enclosingClass!.kind.displayName,
-            _enclosingClass!.name!,
-            error.first.getDisplayString(),
-            error.second.getDisplayString(),
-          ],
+        diagnosticReporter.report(
+          diag.conflictingGenericInterfaces
+              .withArguments(
+                kind: _enclosingClass!.kind.displayName,
+                element: _enclosingClass!.name!,
+                type1: error.first.getDisplayString(),
+                type2: error.second.getDisplayString(),
+              )
+              .at(nameToken),
         );
       } else {
         throw UnimplementedError('${error.runtimeType}');
@@ -2799,10 +2799,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
     var errorNode = superInvocation ?? constructor.typeName!;
 
-    diagnosticReporter.atNode(
-      errorNode,
-      diag.constConstructorWithNonConstSuper,
-      arguments: [element.enclosingElement.displayName],
+    diagnosticReporter.report(
+      diag.constConstructorWithNonConstSuper
+          .withArguments(superclassName: element.enclosingElement.displayName)
+          .at(errorNode),
     );
     return true;
   }
@@ -2938,10 +2938,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         arguments: [namedType.qualifiedName, name.name],
       );
     } else {
-      diagnosticReporter.atNode(
-        constructorName,
-        diag.constWithUndefinedConstructorDefault,
-        arguments: [namedType.qualifiedName],
+      diagnosticReporter.report(
+        diag.constWithUndefinedConstructorDefault
+            .withArguments(className: namedType.qualifiedName)
+            .at(constructorName),
       );
     }
   }
@@ -3633,10 +3633,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (VariableDeclaration variable in variables) {
       if (variable.initializer == null) {
         if (isConst) {
-          diagnosticReporter.atToken(
-            variable.name,
-            diag.constNotInitialized,
-            arguments: [variable.name.lexeme],
+          diagnosticReporter.report(
+            diag.constNotInitialized
+                .withArguments(name: variable.name.lexeme)
+                .at(variable.name),
           );
         } else {
           var variableElement = variable.declaredFragment?.element;

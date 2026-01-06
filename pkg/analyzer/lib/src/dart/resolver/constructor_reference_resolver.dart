@@ -72,10 +72,13 @@ class ConstructorReferenceResolver {
             error.withArguments(name: name.name).at(node),
           );
         } else if (!name.isSynthetic) {
-          _resolver.diagnosticReporter.atNode(
-            node,
-            diag.classInstantiationAccessToUnknownMember,
-            arguments: [enclosingElement.name!, name.name],
+          _resolver.diagnosticReporter.report(
+            diag.classInstantiationAccessToUnknownMember
+                .withArguments(
+                  className: enclosingElement.name!,
+                  memberName: name.name,
+                )
+                .at(node),
           );
         }
       }
