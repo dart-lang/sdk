@@ -34,6 +34,7 @@ import '../fragment/fragment.dart';
 import '../source/fragment_factory.dart';
 import '../source/source_type_parameter_builder.dart';
 import 'body_builder.dart';
+import 'internal_ast.dart';
 
 /// The name for the synthesized field used to store information of
 /// unserializable exports in a [Library].
@@ -364,3 +365,5 @@ class _DummyExtensionScope implements ExtensionScope {
   @override
   void forEachExtension(void Function(ExtensionBuilder) f) {}
 }
+
+final Argument dummyArgument = new PositionalArgument(dummyExpression);

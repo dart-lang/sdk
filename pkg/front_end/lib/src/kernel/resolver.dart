@@ -144,7 +144,7 @@ class Resolver {
     required ExtensionScope extensionScope,
     required LookupScope scope,
     required Token? token,
-    required List<Expression> enumSyntheticArguments,
+    required List<Argument> enumSyntheticArguments,
     required int enumTypeParameterCount,
     required TypeArguments? typeArguments,
     required MemberBuilder? constructorBuilder,
@@ -178,16 +178,21 @@ class Resolver {
       constantContext: constantContext,
     );
     BuildEnumConstantResult? result;
-    ArgumentsImpl arguments;
+    ActualArguments arguments;
     if (token != null) {
       result = bodyBuilder.buildEnumConstant(token: token);
       arguments = result.arguments;
-      arguments.positional.insertAll(0, enumSyntheticArguments);
-      arguments.argumentsOriginalOrder?.insertAll(0, enumSyntheticArguments);
+      arguments.prependArguments(
+        enumSyntheticArguments,
+        positionalCount: enumSyntheticArguments.length,
+      );
     } else {
-      arguments = new ArgumentsImpl(enumSyntheticArguments);
+      arguments = new ActualArguments(
+        argumentList: enumSyntheticArguments,
+        hasNamedBeforePositional: false,
+        positionalCount: enumSyntheticArguments.length,
+      );
     }
-    setParents(enumSyntheticArguments, arguments);
     Expression initializer;
     DartType? fieldType;
     if (constructorBuilder == null ||
@@ -431,12 +436,11 @@ class Resolver {
     bool needsImplicitSuperInitializer = result.needsImplicitSuperInitializer;
     if (isConst) {
       List<FormalParameterBuilder>? formals = bodyBuilderContext.formals;
-      List<Object>? superParametersAsArguments = formals != null
-          ? _createSuperParametersAsArguments(
-              assignedVariables: context.typeInferrer.assignedVariables,
-              formals: formals,
-            )
-          : null;
+      _SuperParameterArguments? superParameterArguments =
+          _createSuperParameterArguments(
+            assignedVariables: context.typeInferrer.assignedVariables,
+            formals: formals,
+          );
       _declareFormals(
         typeInferrer: context.typeInferrer,
         bodyBuilderContext: bodyBuilderContext,
@@ -451,7 +455,7 @@ class Resolver {
         bodyBuilderContext: bodyBuilderContext,
         asyncModifier: AsyncMarker.Sync,
         body: null,
-        superParametersAsArguments: superParametersAsArguments,
+        superParameterArguments: superParameterArguments,
         fileUri: fileUri,
         needsImplicitSuperInitializer: needsImplicitSuperInitializer,
         constantContext: constantContext,
@@ -820,7 +824,7 @@ class Resolver {
     required TypeEnvironment typeEnvironment,
     required Member target,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     required Uri fileUri,
     required int fileOffset,
     required bool hasInferredTypeArguments,
@@ -976,37 +980,55 @@ class Resolver {
     );
   }
 
-  List<Object>? _createSuperParametersAsArguments({
+  _SuperParameterArguments? _createSuperParameterArguments({
     required AssignedVariables assignedVariables,
-    required List<FormalParameterBuilder> formals,
+    required List<FormalParameterBuilder>? formals,
   }) {
-    List<Object>? superParametersAsArguments;
+    if (formals == null) {
+      return null;
+    }
+    List<Argument>? superParametersAsArguments;
+    int positionalCount = 0;
+    int? firstPositionalOffset;
     for (int i = 0; i < formals.length; i++) {
       FormalParameterBuilder formal = formals[i];
       if (formal.isSuperInitializingFormal) {
         if (formal.isNamed) {
-          (superParametersAsArguments ??= <Object>[]).add(
-            new NamedExpression(
-              formal.name,
+          (superParametersAsArguments ??= []).add(
+            new SuperNamedArgument(
+              new NamedExpression(
+                formal.name,
+                _createVariableGet(
+                  assignedVariables: assignedVariables,
+                  variable: formal.variable as VariableDeclarationImpl,
+                  fileOffset: formal.fileOffset,
+                ),
+              )..fileOffset = formal.fileOffset,
+            ),
+          );
+        } else {
+          positionalCount++;
+          firstPositionalOffset ??= formal.fileOffset;
+          (superParametersAsArguments ??= []).add(
+            new SuperPositionalArgument(
               _createVariableGet(
                 assignedVariables: assignedVariables,
                 variable: formal.variable as VariableDeclarationImpl,
                 fileOffset: formal.fileOffset,
               ),
-            )..fileOffset = formal.fileOffset,
-          );
-        } else {
-          (superParametersAsArguments ??= <Object>[]).add(
-            _createVariableGet(
-              assignedVariables: assignedVariables,
-              variable: formal.variable as VariableDeclarationImpl,
-              fileOffset: formal.fileOffset,
             ),
           );
         }
       }
     }
-    return superParametersAsArguments;
+    if (superParametersAsArguments == null) {
+      return null;
+    }
+    return new _SuperParameterArguments(
+      superParametersAsArguments,
+      positionalCount: positionalCount,
+      firstPositionalOffset: firstPositionalOffset ?? -1,
+    );
   }
 
   /// Helper method to create a [VariableGet] of the [variable] using
@@ -1059,10 +1081,7 @@ class Resolver {
     required TypeInferrer typeInferrer,
     required Uri fileUri,
     required List<Initializer> initializers,
-    required Set<String>? namedSuperParameterNames,
-    required List<Expression>? positionalSuperParametersAsArguments,
-    required List<NamedExpression>? namedSuperParametersAsArguments,
-    required List<Object>? superParametersAsArguments,
+    required _SuperParameterArguments? superParameterArguments,
     required bool needsImplicitSuperInitializer,
     required AsyncMarker asyncModifier,
     required int? asyncModifierFileOffset,
@@ -1097,10 +1116,11 @@ class Resolver {
             ),
           )..parent = last.parent;
           needsImplicitSuperInitializer = false;
-        } else if (libraryFeatures.superParameters.isEnabled) {
-          ArgumentsImpl arguments = last.arguments;
-          if (positionalSuperParametersAsArguments != null) {
-            if (arguments.positional.isNotEmpty) {
+        } else if (superParameterArguments != null) {
+          bool insertNamedOnly = false;
+          ActualArguments arguments = last.arguments;
+          if (superParameterArguments.positionalCount > 0) {
+            if (arguments.positionalCount > 0) {
               problemReporting.addProblem(
                 codePositionalSuperParametersAndArguments,
                 arguments.fileOffset,
@@ -1109,47 +1129,44 @@ class Resolver {
                 context: <LocatedMessage>[
                   codeSuperInitializerParameter.withLocation(
                     fileUri,
-                    (positionalSuperParametersAsArguments.first as VariableGet)
-                        .variable
-                        .fileOffset,
+                    superParameterArguments.firstPositionalOffset,
                     noLength,
                   ),
                 ],
               );
-            } else {
-              arguments.positional.addAll(positionalSuperParametersAsArguments);
-              setParents(positionalSuperParametersAsArguments, arguments);
-              arguments.positionalAreSuperParameters = true;
+              insertNamedOnly = true;
             }
           }
-          if (namedSuperParametersAsArguments != null) {
-            // TODO(cstefantsova): Report name conflicts.
-            arguments.named.addAll(namedSuperParametersAsArguments);
-            setParents(namedSuperParametersAsArguments, arguments);
-            arguments.namedSuperParameterNames = namedSuperParameterNames;
-          }
-          if (superParametersAsArguments != null) {
-            arguments.argumentsOriginalOrder?.insertAll(
-              0,
-              superParametersAsArguments,
+          if (insertNamedOnly) {
+            /// Error case: Don't insert positional argument when  positional
+            /// arguments already exist.
+            arguments.prependArguments(
+              superParameterArguments.arguments
+                  .whereType<NamedArgument>()
+                  .toList(),
+              positionalCount: 0,
+            );
+          } else {
+            arguments.prependArguments(
+              superParameterArguments.arguments,
+              positionalCount: superParameterArguments.positionalCount,
             );
           }
         }
       } else if (last is InternalRedirectingInitializer) {
         if (bodyBuilderContext.isEnumClass &&
             libraryFeatures.enhancedEnums.isEnabled) {
-          ArgumentsImpl arguments = last.arguments;
+          ActualArguments arguments = last.arguments;
           List<Expression> enumSyntheticArguments = [
             new VariableGet(function.positionalParameters[0])
               ..parent = last.arguments,
             new VariableGet(function.positionalParameters[1])
               ..parent = last.arguments,
           ];
-          arguments.positional.insertAll(0, enumSyntheticArguments);
-          arguments.argumentsOriginalOrder?.insertAll(
-            0,
-            enumSyntheticArguments,
-          );
+          arguments.prependArguments([
+            new PositionalArgument(enumSyntheticArguments[0]),
+            new PositionalArgument(enumSyntheticArguments[1]),
+          ], positionalCount: 2);
         }
       }
 
@@ -1199,12 +1216,12 @@ class Resolver {
       /// >of the form super() is added at the end of the constructor's
       /// >initializer list, unless the enclosing class is class Object.
       Initializer? initializer;
-      ArgumentsImpl arguments;
-      List<Expression>? positionalArguments;
-      List<NamedExpression>? namedArguments;
-      if (libraryFeatures.superParameters.isEnabled) {
-        positionalArguments = positionalSuperParametersAsArguments;
-        namedArguments = namedSuperParametersAsArguments;
+      ActualArguments arguments;
+      List<Argument>? argumentsOriginalOrder;
+      int positionalCount = 0;
+      if (superParameterArguments != null) {
+        argumentsOriginalOrder = superParameterArguments.arguments;
+        positionalCount += superParameterArguments.positionalCount;
       }
       if (bodyBuilderContext.isEnumClass) {
         assert(
@@ -1212,22 +1229,23 @@ class Resolver {
               function.positionalParameters[0].name == "#index" &&
               function.positionalParameters[1].name == "#name",
         );
-        (positionalArguments ??= <Expression>[]).insertAll(0, [
-          new VariableGet(function.positionalParameters[0]),
-          new VariableGet(function.positionalParameters[1]),
+        Expression indexExpression = new VariableGet(
+          function.positionalParameters[0],
+        );
+        Expression nameExpression = new VariableGet(
+          function.positionalParameters[1],
+        );
+        (argumentsOriginalOrder ??= []).insertAll(0, [
+          new PositionalArgument(indexExpression),
+          new PositionalArgument(nameExpression),
         ]);
+        positionalCount += 2;
       }
 
       int argumentsOffset = -1;
-      if (superParametersAsArguments != null) {
-        for (Object argument in superParametersAsArguments) {
-          assert(argument is Expression || argument is NamedExpression);
-          int currentArgumentOffset;
-          if (argument is Expression) {
-            currentArgumentOffset = argument.fileOffset;
-          } else {
-            currentArgumentOffset = (argument as NamedExpression).fileOffset;
-          }
+      if (superParameterArguments != null) {
+        for (Argument argument in superParameterArguments.arguments) {
+          int currentArgumentOffset = argument.expression.fileOffset;
           argumentsOffset = argumentsOffset <= currentArgumentOffset
               ? argumentsOffset
               : currentArgumentOffset;
@@ -1246,19 +1264,16 @@ class Resolver {
       }
 
       const Forest forest = const Forest();
-      if (positionalArguments != null || namedArguments != null) {
+      if (argumentsOriginalOrder != null) {
         arguments = forest.createArguments(
           argumentsOffset,
-          positionalArguments ?? <Expression>[],
-          named: namedArguments,
+          arguments: argumentsOriginalOrder,
+          hasNamedBeforePositional: false,
+          positionalCount: positionalCount,
         );
       } else {
         arguments = forest.createArgumentsEmpty(argumentsOffset);
       }
-
-      arguments.positionalAreSuperParameters =
-          positionalSuperParametersAsArguments != null;
-      arguments.namedSuperParameterNames = namedSuperParameterNames;
 
       MemberLookupResult? result = bodyBuilderContext.lookupSuperConstructor(
         '',
@@ -1318,77 +1333,54 @@ class Resolver {
               typeParameters: const <TypeParameter>[],
             )
             case LocatedMessage argumentIssue) {
-          List<int>? positionalSuperParametersIssueOffsets;
-          if (positionalSuperParametersAsArguments != null) {
-            for (
-              int positionalSuperParameterIndex =
-                  superTarget.function.positionalParameters.length;
-              positionalSuperParameterIndex <
-                  positionalSuperParametersAsArguments.length;
-              positionalSuperParameterIndex++
-            ) {
-              (positionalSuperParametersIssueOffsets ??= []).add(
-                positionalSuperParametersAsArguments[ // force line break
-                    positionalSuperParameterIndex]
-                    .fileOffset,
-              );
-            }
-          }
-
-          List<int>? namedSuperParametersIssueOffsets;
-          if (namedSuperParametersAsArguments != null) {
+          Initializer? errorMessageInitializer;
+          if (superParameterArguments != null) {
+            int positionalSuperParameterCount =
+                superTarget.function.positionalParameters.length;
             Set<String> superTargetNamedParameterNames = {
               for (VariableDeclaration namedParameter
                   in superTarget.function.namedParameters)
-                if (namedParameter // Coverage-ignore(suite): Not run.
-                        .name !=
-                    null)
-                  // Coverage-ignore(suite): Not run.
-                  namedParameter.name!,
+                ?namedParameter // Coverage-ignore(suite): Not run.
+                    .name,
             };
-            for (NamedExpression namedSuperParameter
-                in namedSuperParametersAsArguments) {
-              if (!superTargetNamedParameterNames.contains(
-                namedSuperParameter.name,
-              )) {
-                (namedSuperParametersIssueOffsets ??= []).add(
-                  namedSuperParameter.fileOffset,
-                );
+            int positionalIndex = 0;
+            for (Argument argument in superParameterArguments.arguments) {
+              switch (argument) {
+                case PositionalArgument():
+                  if (positionalIndex >= positionalSuperParameterCount) {
+                    InvalidExpression errorMessageExpression = problemReporting
+                        .buildProblem(
+                          compilerContext: compilerContext,
+                          message:
+                              codeMissingPositionalSuperConstructorParameter,
+                          fileUri: fileUri,
+                          fileOffset: argument.expression.fileOffset,
+                          length: noLength,
+                        );
+                    errorMessageInitializer ??= _buildInvalidInitializer(
+                      errorMessageExpression,
+                    );
+                    needsImplicitSuperInitializer = false;
+                  }
+                  positionalIndex++;
+                case NamedArgument():
+                  if (!superTargetNamedParameterNames.contains(
+                    argument.namedExpression.name,
+                  )) {
+                    InvalidExpression errorMessageExpression = problemReporting
+                        .buildProblem(
+                          compilerContext: compilerContext,
+                          message: codeMissingNamedSuperConstructorParameter,
+                          fileUri: fileUri,
+                          fileOffset: argument.namedExpression.fileOffset,
+                          length: noLength,
+                        );
+                    errorMessageInitializer ??= _buildInvalidInitializer(
+                      errorMessageExpression,
+                    );
+                    needsImplicitSuperInitializer = false;
+                  }
               }
-            }
-          }
-
-          Initializer? errorMessageInitializer;
-          if (positionalSuperParametersIssueOffsets != null) {
-            for (int issueOffset in positionalSuperParametersIssueOffsets) {
-              InvalidExpression errorMessageExpression = problemReporting
-                  .buildProblem(
-                    compilerContext: compilerContext,
-                    message: codeMissingPositionalSuperConstructorParameter,
-                    fileUri: fileUri,
-                    fileOffset: issueOffset,
-                    length: noLength,
-                  );
-              errorMessageInitializer ??= _buildInvalidInitializer(
-                errorMessageExpression,
-              );
-              needsImplicitSuperInitializer = false;
-            }
-          }
-          if (namedSuperParametersIssueOffsets != null) {
-            for (int issueOffset in namedSuperParametersIssueOffsets) {
-              InvalidExpression errorMessageExpression = problemReporting
-                  .buildProblem(
-                    compilerContext: compilerContext,
-                    message: codeMissingNamedSuperConstructorParameter,
-                    fileUri: fileUri,
-                    fileOffset: issueOffset,
-                    length: noLength,
-                  );
-              errorMessageInitializer ??= _buildInvalidInitializer(
-                errorMessageExpression,
-              );
-              needsImplicitSuperInitializer = false;
             }
           }
           if (explicitSuperInitializer == null) {
@@ -1462,117 +1454,12 @@ class Resolver {
     required BodyBuilderContext bodyBuilderContext,
     required AsyncMarker asyncModifier,
     required Statement? body,
-    required List<Object /* Expression | NamedExpression */>?
-    superParametersAsArguments,
+    required _SuperParameterArguments? superParameterArguments,
     required Uri fileUri,
     required bool needsImplicitSuperInitializer,
     required ConstantContext constantContext,
     required List<Initializer> initializers,
   }) {
-    AssignedVariables assignedVariables = context.assignedVariables;
-
-    /// Quotes below are from [Dart Programming Language Specification, 4th
-    /// Edition](
-    /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf).
-    assert(
-      () {
-        if (superParametersAsArguments == null) {
-          return true;
-        }
-        for (Object superParameterAsArgument in superParametersAsArguments) {
-          if (superParameterAsArgument is! Expression &&
-              superParameterAsArgument is! NamedExpression) {
-            return false;
-          }
-        }
-        return true;
-      }(),
-      "Expected 'superParametersAsArguments' "
-      "to contain nothing but Expressions and NamedExpressions.",
-    );
-    assert(
-      () {
-        if (superParametersAsArguments == null) {
-          return true;
-        }
-        int previousOffset = -1;
-        for (Object superParameterAsArgument in superParametersAsArguments) {
-          int offset;
-          if (superParameterAsArgument is Expression) {
-            offset = superParameterAsArgument.fileOffset;
-          } else if (superParameterAsArgument is NamedExpression) {
-            offset = superParameterAsArgument.value.fileOffset;
-          } else {
-            return false;
-          }
-          if (previousOffset > offset) {
-            return false;
-          }
-          previousOffset = offset;
-        }
-        return true;
-      }(),
-      "Expected 'superParametersAsArguments' "
-      "to be sorted by occurrence in file.",
-    );
-
-    Set<String>? namedSuperParameterNames;
-    List<Expression>? positionalSuperParametersAsArguments;
-    List<NamedExpression>? namedSuperParametersAsArguments;
-    List<FormalParameterBuilder>? formals = bodyBuilderContext.formals;
-    if (superParametersAsArguments != null) {
-      for (Object superParameterAsArgument in superParametersAsArguments) {
-        if (superParameterAsArgument is Expression) {
-          (positionalSuperParametersAsArguments ??= <Expression>[]).add(
-            superParameterAsArgument,
-          );
-        } else {
-          NamedExpression namedSuperParameterAsArgument =
-              superParameterAsArgument as NamedExpression;
-          (namedSuperParametersAsArguments ??= <NamedExpression>[]).add(
-            namedSuperParameterAsArgument,
-          );
-          (namedSuperParameterNames ??= <String>{}).add(
-            namedSuperParameterAsArgument.name,
-          );
-        }
-      }
-    } else if (formals != null) {
-      for (FormalParameterBuilder formal in formals) {
-        if (formal.isSuperInitializingFormal) {
-          // Coverage-ignore-block(suite): Not run.
-          if (formal.isNamed) {
-            NamedExpression superParameterAsArgument = new NamedExpression(
-              formal.name,
-              _createVariableGet(
-                assignedVariables: assignedVariables,
-                variable: formal.variable as VariableDeclarationImpl,
-                fileOffset: formal.fileOffset,
-              ),
-            )..fileOffset = formal.fileOffset;
-            (namedSuperParametersAsArguments ??= <NamedExpression>[]).add(
-              superParameterAsArgument,
-            );
-            (namedSuperParameterNames ??= <String>{}).add(formal.name);
-            (superParametersAsArguments ??= <Object>[]).add(
-              superParameterAsArgument,
-            );
-          } else {
-            Expression superParameterAsArgument = _createVariableGet(
-              assignedVariables: assignedVariables,
-              variable: formal.variable as VariableDeclarationImpl,
-              fileOffset: formal.fileOffset,
-            );
-            (positionalSuperParametersAsArguments ??= <Expression>[]).add(
-              superParameterAsArgument,
-            );
-            (superParametersAsArguments ??= <Object>[]).add(
-              superParameterAsArgument,
-            );
-          }
-        }
-      }
-    }
     _finishInitializers(
       compilerContext: compilerContext,
       problemReporting: problemReporting,
@@ -1582,11 +1469,7 @@ class Resolver {
       typeInferrer: context.typeInferrer,
       fileUri: fileUri,
       initializers: initializers,
-      namedSuperParameterNames: namedSuperParameterNames,
-      positionalSuperParametersAsArguments:
-          positionalSuperParametersAsArguments,
-      namedSuperParametersAsArguments: namedSuperParametersAsArguments,
-      superParametersAsArguments: superParametersAsArguments,
+      superParameterArguments: superParameterArguments,
       needsImplicitSuperInitializer: needsImplicitSuperInitializer,
       asyncModifier: asyncModifier,
       asyncModifierFileOffset: body?.fileOffset,
@@ -1636,16 +1519,11 @@ class Resolver {
     // Create variable get expressions for super parameters before finishing
     // the analysis of the assigned variables. Creating the expressions later
     // that point results in a flow analysis error.
-    List<Object>? superParametersAsArguments;
-    if (formals != null) {
-      List<FormalParameterBuilder>? formalParameters = formals.parameters;
-      if (formalParameters != null) {
-        superParametersAsArguments = _createSuperParametersAsArguments(
+    _SuperParameterArguments? superParameterArguments =
+        _createSuperParameterArguments(
           assignedVariables: assignedVariables,
-          formals: formalParameters,
+          formals: formals?.parameters,
         );
-      }
-    }
     assignedVariables.finish();
 
     FunctionNode function = bodyBuilderContext.function;
@@ -1715,7 +1593,7 @@ class Resolver {
         bodyBuilderContext: bodyBuilderContext,
         asyncModifier: asyncModifier,
         body: body,
-        superParametersAsArguments: superParametersAsArguments,
+        superParameterArguments: superParameterArguments,
         fileUri: fileUri,
         needsImplicitSuperInitializer: needsImplicitSuperInitializer,
         constantContext: constantContext,

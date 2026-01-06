@@ -287,68 +287,137 @@ class TypeArguments {
   }
 }
 
-/// Front end specific implementation of [Argument].
-class ArgumentsImpl extends TreeNode with InternalTreeNode {
-  final List<Expression> positional;
-  List<NamedExpression> named;
+sealed class Argument {
+  TreeNode get node;
 
-  bool _hasExplicitTypeArguments;
+  abstract Expression expression;
 
-  List<Object?>? argumentsOriginalOrder;
+  bool get isSuperParameter => false;
 
-  /// True if the arguments are passed to the super-constructor in a
-  /// super-initializer, and the positional parameters are super-initializer
-  /// parameters. It is true that either all of the positional parameters are
-  /// super-initializer parameters or none of them, so a simple boolean
-  /// accurately reflects the state.
-  bool positionalAreSuperParameters = false;
+  void toTextInternal(AstPrinter printer);
+}
 
-  /// Names of the named positional parameters. If none of the parameters are
-  /// super-positional, the field is null.
-  Set<String>? namedSuperParameterNames;
+class PositionalArgument extends Argument {
+  @override
+  Expression expression;
 
-  ArgumentsImpl(
-    this.positional, {
-    List<DartType>? types,
-    List<NamedExpression>? named,
-    this.argumentsOriginalOrder,
-  }) : _hasExplicitTypeArguments = false,
-       this.named = named ?? [];
+  PositionalArgument(this.expression);
 
-  ArgumentsImpl.empty()
-    : _hasExplicitTypeArguments = false,
-      this.positional = [],
-      this.named = [];
-
-  @deprecated
+  @override
   // Coverage-ignore(suite): Not run.
-  bool get hasExplicitTypeArguments => _hasExplicitTypeArguments;
+  TreeNode get node => expression;
 
-  Arguments toArguments(List<DartType> typeArguments) {
-    return new Arguments(positional, types: typeArguments, named: named)
-      ..fileOffset = fileOffset;
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    expression.toTextInternal(printer);
+  }
+
+  @override
+  String toString() => 'PositionalArgument($expression)';
+}
+
+class SuperPositionalArgument extends PositionalArgument {
+  SuperPositionalArgument(super.expression);
+
+  @override
+  bool get isSuperParameter => true;
+}
+
+class NamedArgument extends Argument {
+  NamedExpression namedExpression;
+
+  NamedArgument(this.namedExpression);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  TreeNode get node => namedExpression;
+
+  String get name => namedExpression.name;
+
+  @override
+  Expression get expression => namedExpression.value;
+
+  @override
+  void set expression(Expression value) {
+    namedExpression.value = value..parent = namedExpression;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    namedExpression.toTextInternal(printer);
+  }
+
+  @override
+  String toString() => 'NamedArgument($namedExpression)';
+}
+
+class SuperNamedArgument extends NamedArgument {
+  SuperNamedArgument(super.expression);
+
+  @override
+  bool get isSuperParameter => true;
+}
+
+/// Front end specific implementation of [Argument].
+class ActualArguments extends TreeNode with InternalTreeNode {
+  final List<Argument> argumentList;
+
+  bool _hasNamedBeforePositional;
+  int _positionalCount;
+
+  ActualArguments({
+    required this.argumentList,
+    required bool hasNamedBeforePositional,
+    required int positionalCount,
+  }) : _hasNamedBeforePositional = hasNamedBeforePositional,
+       _positionalCount = positionalCount;
+
+  // Coverage-ignore(suite): Not run.
+  ActualArguments.empty()
+    : this.argumentList = [],
+      this._hasNamedBeforePositional = false,
+      this._positionalCount = 0;
+
+  int get positionalCount => _positionalCount;
+
+  int get namedCount => argumentList.length - positionalCount;
+
+  bool get hasNamedBeforePositional => _hasNamedBeforePositional;
+
+  void prependArguments(List<Argument> list, {required int positionalCount}) {
+    assert(list.whereType<PositionalArgument>().length == positionalCount);
+    argumentList.insertAll(0, list);
+    if (!_hasNamedBeforePositional &&
+        _positionalCount > 0 &&
+        positionalCount < list.length) {
+      _hasNamedBeforePositional = true;
+    }
+    _positionalCount += positionalCount;
+  }
+
+  Arguments toArguments(
+    List<DartType> typeArguments,
+    List<Expression> positionalArguments,
+    List<NamedExpression> namedArguments,
+  ) {
+    return new Arguments(
+      positionalArguments,
+      types: typeArguments,
+      named: namedArguments,
+    )..fileOffset = fileOffset;
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('(');
-    for (int index = 0; index < positional.length; index++) {
+    for (int index = 0; index < argumentList.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeExpression(positional[index]);
-    }
-    if (named.isNotEmpty) {
-      if (positional.isNotEmpty) {
-        printer.write(', ');
-      }
-      for (int index = 0; index < named.length; index++) {
-        if (index > 0) {
-          printer.write(', ');
-        }
-        printer.writeNamedExpression(named[index]);
-      }
+      argumentList[index].toTextInternal(printer);
     }
     printer.write(')');
   }
@@ -492,7 +561,7 @@ class FactoryConstructorInvocation extends InternalExpression {
   bool hasBeenInferred = false;
   final Procedure target;
   final TypeArguments? typeArguments;
-  ArgumentsImpl arguments;
+  ActualArguments arguments;
 
   /// If `true`, this invocation is constant, either explicit or inferred.
   final bool isConst;
@@ -543,7 +612,7 @@ class TypeAliasedConstructorInvocation extends InternalExpression {
   final TypeAliasBuilder typeAliasBuilder;
   final Constructor target;
   final TypeArguments? typeArguments;
-  ArgumentsImpl arguments;
+  ActualArguments arguments;
   final bool isConst;
 
   TypeAliasedConstructorInvocation(
@@ -593,7 +662,7 @@ class TypeAliasedFactoryInvocation extends InternalExpression {
   final TypeAliasBuilder typeAliasBuilder;
   final Procedure target;
   final TypeArguments? typeArguments;
-  ArgumentsImpl arguments;
+  ActualArguments arguments;
 
   /// If `true`, this invocation is constant, either explicit or inferred.
   final bool isConst;
@@ -796,7 +865,7 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
 class ExpressionInvocation extends InternalExpression {
   Expression expression;
   final TypeArguments? typeArguments;
-  ArgumentsImpl arguments;
+  ActualArguments arguments;
 
   ExpressionInvocation(this.expression, this.typeArguments, this.arguments) {
     expression.parent = this;
@@ -1427,7 +1496,7 @@ mixin InternalExpressionVariableMixin on TreeNode
 
 /// Front end specific implementation of [LoadLibrary].
 class LoadLibraryImpl extends LoadLibrary {
-  final ArgumentsImpl? arguments;
+  final ActualArguments? arguments;
 
   LoadLibraryImpl(LibraryDependency import, this.arguments) : super(import);
 
@@ -3865,7 +3934,7 @@ class ExtensionMethodInvocation extends InternalExpression {
   final TypeArguments? typeArguments;
 
   /// The arguments provided to the method.
-  ArgumentsImpl arguments;
+  ActualArguments arguments;
 
   /// `true` if the extension access is explicit, i.e. `E(o).a()` and
   /// not implicit like `a()` inside the extension `E`.
@@ -3885,7 +3954,7 @@ class ExtensionMethodInvocation extends InternalExpression {
     required Name name,
     required Procedure target,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
   }) : this._(
          extension,
          thisAccess,
@@ -3905,7 +3974,7 @@ class ExtensionMethodInvocation extends InternalExpression {
     required Name name,
     required Procedure target,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     required List<DartType>? explicitTypeArguments,
     required int? extensionTypeArgumentOffset,
     required bool isNullAware,
@@ -4012,7 +4081,7 @@ class ExtensionGetterInvocation extends InternalExpression {
   final TypeArguments? typeArguments;
 
   /// The arguments provided to the getter.
-  ArgumentsImpl arguments;
+  ActualArguments arguments;
 
   /// `true` if the extension access is explicit, i.e. `E(o).a()` and
   /// not implicit like `a()` inside the extension `E`.
@@ -4032,7 +4101,7 @@ class ExtensionGetterInvocation extends InternalExpression {
     required Name name,
     required Procedure target,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
   }) : this._(
          extension,
          thisAccess,
@@ -4052,7 +4121,7 @@ class ExtensionGetterInvocation extends InternalExpression {
     required Name name,
     required Procedure target,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     required List<DartType>? explicitTypeArguments,
     required int? extensionTypeArgumentOffset,
     required bool isNullAware,
@@ -4449,7 +4518,7 @@ class MethodInvocation extends InternalExpression {
   final TypeArguments? typeArguments;
 
   /// The arguments applied at the invocation.
-  ArgumentsImpl arguments;
+  ActualArguments arguments;
 
   /// `true` if the access is null-aware, i.e. of the form `o?.a()`.
   final bool isNullAware;
@@ -4618,7 +4687,7 @@ class AugmentSuperInvocation extends InternalExpression {
 
   final TypeArguments? typeArguments;
 
-  ArgumentsImpl arguments;
+  ActualArguments arguments;
 
   AugmentSuperInvocation(
     this.target,
@@ -4808,14 +4877,19 @@ class ObjectPatternInternal extends ObjectPattern {
 
 class ExtensionTypeRedirectingInitializer extends InternalInitializer {
   Reference targetReference;
-  ArgumentsImpl arguments;
+  ActualArguments arguments;
 
   /// Redirecting initializers are encoded as calls to top-level functions.
   /// The type arguments for this call are inferred.
   List<DartType> inferredTypeArguments = [];
 
-  ExtensionTypeRedirectingInitializer(Procedure target, ArgumentsImpl arguments)
-    : this.byReference(
+  List<Expression> positional = [];
+  List<NamedExpression> named = [];
+
+  ExtensionTypeRedirectingInitializer(
+    Procedure target,
+    ActualArguments arguments,
+  ) : this.byReference(
         // Getter vs setter doesn't matter for procedures.
         getNonNullableMemberReferenceGetter(target),
         arguments,
@@ -4935,7 +5009,7 @@ class DotShorthandInvocation extends InternalExpression {
   final Name name;
   final int nameOffset;
   final TypeArguments? typeArguments;
-  final ArgumentsImpl arguments;
+  final ActualArguments arguments;
 
   /// If `true`, this invocation is constant, either explicit or inferred.
   final bool isConst;
@@ -5018,7 +5092,7 @@ class DotShorthandPropertyGet extends InternalExpression {
 class InternalConstructorInvocation extends InternalExpression {
   final Constructor target;
   final TypeArguments? typeArguments;
-  final ArgumentsImpl arguments;
+  final ActualArguments arguments;
   final bool isConst;
 
   InternalConstructorInvocation(
@@ -5065,7 +5139,7 @@ class InternalStaticInvocation extends InternalExpression {
   final Name name;
   final Procedure target;
   final TypeArguments? typeArguments;
-  final ArgumentsImpl arguments;
+  final ActualArguments arguments;
 
   InternalStaticInvocation(
     this.name,
@@ -5102,7 +5176,7 @@ class InternalSuperMethodInvocation extends InternalExpression {
   final Name name;
   final Procedure target;
   final TypeArguments? typeArguments;
-  final ArgumentsImpl arguments;
+  final ActualArguments arguments;
 
   InternalSuperMethodInvocation(
     this.name,
@@ -5138,7 +5212,7 @@ class InternalSuperMethodInvocation extends InternalExpression {
 
 class InternalRedirectingInitializer extends InternalInitializer {
   final Constructor target;
-  ArgumentsImpl arguments;
+  ActualArguments arguments;
 
   InternalRedirectingInitializer(this.target, this.arguments) {
     arguments.parent = this;
@@ -5168,7 +5242,7 @@ class InternalRedirectingInitializer extends InternalInitializer {
 
 class InternalSuperInitializer extends InternalInitializer {
   final Constructor target;
-  ArgumentsImpl arguments;
+  ActualArguments arguments;
 
   @override
   final bool isSynthetic;

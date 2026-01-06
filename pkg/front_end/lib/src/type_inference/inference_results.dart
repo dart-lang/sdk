@@ -114,6 +114,12 @@ abstract class InvocationInferenceResult {
   /// The explicit or inferred type arguments.
   List<DartType> get typeArguments;
 
+  /// The positional arguments.
+  List<Expression> get positional;
+
+  /// The named arguments.
+  List<NamedExpression> get named;
+
   /// Applies the result of the inference to the expression being inferred.
   ///
   /// A successful result leaves [expression] intact, and an error detected
@@ -160,12 +166,20 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
 
   final List<VariableDeclaration>? hoistedArguments;
 
+  @override
+  final List<Expression> positional;
+
+  @override
+  final List<NamedExpression> named;
+
   final DartType? inferredReceiverType;
 
-  SuccessfulInferenceResult(
-    this.inferredType,
-    this.functionType,
-    this.typeArguments, {
+  SuccessfulInferenceResult({
+    required this.inferredType,
+    required this.functionType,
+    required this.typeArguments,
+    required this.positional,
+    required this.named,
     required this.hoistedArguments,
     this.inferredReceiverType,
   });
@@ -296,12 +310,20 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
 
   final List<VariableDeclaration>? hoistedArguments;
 
-  WrapInProblemInferenceResult(
-    this.message,
-    this.problemReporting,
-    this.compilerContext, {
+  @override
+  final List<Expression> positional;
+
+  @override
+  final List<NamedExpression> named;
+
+  WrapInProblemInferenceResult({
+    required this.message,
+    required this.problemReporting,
+    required this.compilerContext,
     required this.isInapplicable,
     required this.hoistedArguments,
+    required this.positional,
+    required this.named,
   });
 
   @override

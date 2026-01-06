@@ -234,7 +234,7 @@ abstract class Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   });
 
@@ -360,7 +360,7 @@ abstract class Generator {
     required String name,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     required Token nameToken,
     required Token nameLastToken,
     required Constness constness,
@@ -540,7 +540,7 @@ class VariableUseGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     return _helper.forest.createExpressionInvocation(
@@ -668,7 +668,7 @@ class PropertyAccessGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     return _helper.buildMethodInvocation(
@@ -1020,7 +1020,7 @@ class ThisPropertyAccessGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     return _helper.buildMethodInvocation(
@@ -1192,7 +1192,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     return unsupported("doInvocation", offset, _fileUri);
@@ -1387,7 +1387,7 @@ class SuperPropertyAccessGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     if (_helper.constantContext != ConstantContext.none) {
@@ -1561,7 +1561,7 @@ class IndexedAccessGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     return _helper.forest.createExpressionInvocation(
@@ -1739,7 +1739,7 @@ class ThisIndexedAccessGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     return _helper.forest.createExpressionInvocation(
@@ -1814,7 +1814,12 @@ class SuperIndexedAccessGenerator extends Generator {
         indexGetName,
         getter,
         null,
-        _helper.forest.createArguments(fileOffset, <Expression>[index]),
+        _helper.forest.createArguments(
+          fileOffset,
+          arguments: [new PositionalArgument(index)],
+          hasNamedBeforePositional: false,
+          positionalCount: 1,
+        ),
       );
     }
   }
@@ -1837,10 +1842,15 @@ class SuperIndexedAccessGenerator extends Generator {
           indexSetName,
           setter,
           null,
-          _helper.forest.createArguments(fileOffset, <Expression>[
-            index,
-            value,
-          ]),
+          _helper.forest.createArguments(
+            fileOffset,
+            arguments: [
+              new PositionalArgument(index),
+              new PositionalArgument(value),
+            ],
+            hasNamedBeforePositional: false,
+            positionalCount: 2,
+          ),
         );
       } else {
         return new SuperIndexSet(setter, index, value)..fileOffset = fileOffset;
@@ -1919,7 +1929,7 @@ class SuperIndexedAccessGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     return _helper.forest.createExpressionInvocation(
@@ -2200,7 +2210,7 @@ class StaticAccessGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     if (_helper.constantContext != ConstantContext.none &&
@@ -2606,7 +2616,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     Procedure? method = invokeTarget;
@@ -3053,7 +3063,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     Procedure? method = invokeTarget;
@@ -3349,7 +3359,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     return _helper.forest.createExpressionInvocation(
@@ -3576,7 +3586,12 @@ class ExplicitExtensionAccessGenerator extends Generator {
       offset: fileOffset,
       typeArgumentBuilders: null,
       typeArguments: null,
-      arguments: _forest.createArguments(fileOffset, <Expression>[right]),
+      arguments: _forest.createArguments(
+        fileOffset,
+        arguments: [new PositionalArgument(right)],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
+      ),
     );
   }
 
@@ -3597,7 +3612,7 @@ class ExplicitExtensionAccessGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     Generator generator = _createInstanceAccess(token, callName);
@@ -3770,10 +3785,10 @@ class LoadLibraryGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
-    if (arguments.positional.length > 0 || arguments.named.length > 0) {
+    if (arguments.positionalCount > 0 || arguments.namedCount > 0) {
       _helper.addProblemErrorIfConst(
         codeLoadLibraryTakesNoArguments,
         offset,
@@ -3998,7 +4013,7 @@ class DeferredAccessGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     Object suffix = suffixGenerator.doInvocation(
@@ -4029,7 +4044,7 @@ class DeferredAccessGenerator extends Generator {
     required String name,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     required Token nameToken,
     required Token nameLastToken,
     required Constness constness,
@@ -4148,7 +4163,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
     required String name,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     required Token nameToken,
     required Token nameLastToken,
     required Constness constness,
@@ -4241,7 +4256,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
   ) {
     int nameOffset = offsetForToken(send.token);
     Name name = send.name;
-    ArgumentsImpl? arguments = send.arguments;
+    ActualArguments? arguments = send.arguments;
 
     TypeDeclarationBuilder? declarationBuilder = declaration;
     TypeAliasBuilder? aliasBuilder;
@@ -4696,12 +4711,12 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     if (declaration is ExtensionBuilder) {
       ExtensionBuilder extensionBuilder = declaration as ExtensionBuilder;
-      if (arguments.positional.length != 1 || arguments.named.isNotEmpty) {
+      if (arguments.positionalCount != 1 || arguments.namedCount > 0) {
         return _helper.buildProblem(
           message: codeExplicitExtensionArgumentMismatch,
           fileUri: _helper.uri,
@@ -4731,7 +4746,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
         helper: _helper,
         token: token,
         extensionBuilder: declaration as ExtensionBuilder,
-        receiver: arguments.positional.single,
+        receiver: arguments.argumentList.single.expression,
         explicitTypeArguments: typeArguments,
         extensionTypeArgumentOffset: extensionTypeArgumentOffset,
       );
@@ -4948,7 +4963,7 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     return _helper.forest.createExpressionInvocation(
@@ -5016,7 +5031,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     return buildError(charOffset: offset, kind: UnresolvedKind.Method);
@@ -5113,7 +5128,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
     required String name,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     required Token nameToken,
     required Token nameLastToken,
     required Constness constness,
@@ -5239,7 +5254,7 @@ class DuplicateDeclarationGenerator extends ErroneousExpressionGenerator {
     required String name,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     required Token nameToken,
     required Token nameLastToken,
     required Constness constness,
@@ -5300,7 +5315,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     return buildError(
@@ -5414,7 +5429,7 @@ abstract class ContextAwareGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     return unhandled("${runtimeType}", "doInvocation", offset, _fileUri);
@@ -5806,7 +5821,7 @@ class PrefixUseGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     return problemReporting.wrapInLocatedProblem(
@@ -5985,7 +6000,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     return _helper.buildUnresolvedError(
@@ -6031,7 +6046,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
     required String name,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     required Token nameToken,
     required Token nameLastToken,
     required Constness constness,
@@ -6186,7 +6201,7 @@ class ParserErrorGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     return buildProblem();
@@ -6238,7 +6253,7 @@ class ParserErrorGenerator extends Generator {
     required String name,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     required Token nameToken,
     required Token nameLastToken,
     required Constness constness,
@@ -6392,7 +6407,7 @@ class ThisAccessGenerator extends Generator {
     bool isNullAware,
   ) {
     Name name = selector.name;
-    ArgumentsImpl? arguments = selector.arguments;
+    ActualArguments? arguments = selector.arguments;
     int offset = offsetForToken(selector.token);
     if (isInitializer && selector is InvocationSelector) {
       if (isNullAware) {
@@ -6459,7 +6474,7 @@ class ThisAccessGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     if (isInitializer) {
@@ -6493,7 +6508,12 @@ class ThisAccessGenerator extends Generator {
       Expression result = _helper.buildSuperInvocation(
         equalsName,
         null,
-        _forest.createArguments(offset, <Expression>[right]),
+        _forest.createArguments(
+          offset,
+          arguments: [new PositionalArgument(right)],
+          hasNamedBeforePositional: false,
+          positionalCount: 1,
+        ),
         offset,
       );
       if (isNot) {
@@ -6516,7 +6536,12 @@ class ThisAccessGenerator extends Generator {
       return _helper.buildSuperInvocation(
         binaryName,
         null,
-        _forest.createArguments(offset, <Expression>[right]),
+        _forest.createArguments(
+          offset,
+          arguments: [new PositionalArgument(right)],
+          hasNamedBeforePositional: false,
+          positionalCount: 1,
+        ),
         offset,
       );
     }
@@ -6542,7 +6567,7 @@ class ThisAccessGenerator extends Generator {
   Expression_Initializer buildConstructorInitializer(
     int offset,
     Name name,
-    ArgumentsImpl arguments,
+    ActualArguments arguments,
   ) {
     if (isSuper) {
       MemberLookupResult? result = _helper.lookupSuperConstructor(
@@ -6746,7 +6771,7 @@ class IncompleteErrorGenerator extends ErroneousExpressionGenerator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) => this;
 
@@ -6895,7 +6920,7 @@ abstract class Selector {
   // Coverage-ignore(suite): Not run.
   TypeArguments? get typeArguments => null;
 
-  ArgumentsImpl? get arguments => null;
+  ActualArguments? get arguments => null;
 
   /// Internal name used for debugging.
   String get _debugName;
@@ -6951,7 +6976,7 @@ class InvocationSelector extends Selector {
   final bool isTypeArgumentsInForest;
 
   @override
-  final ArgumentsImpl arguments;
+  final ActualArguments arguments;
 
   final bool isPotentiallyConstant;
 
@@ -7186,7 +7211,7 @@ class AugmentSuperAccessGenerator extends Generator {
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
     Member? invokeTarget = augmentSuperTarget.invokeTarget;

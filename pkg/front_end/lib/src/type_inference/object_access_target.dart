@@ -142,7 +142,7 @@ sealed class InvocationTargetType {
   /// [typeArguments] and [arguments].
   FunctionType computeFunctionTypeForInference(
     List<DartType>? typeArguments,
-    ArgumentsImpl arguments,
+    ActualArguments arguments,
   );
 }
 
@@ -191,7 +191,7 @@ class InvocationTargetFunctionType extends InvocationTargetType {
   @override
   FunctionType computeFunctionTypeForInference(
     List<DartType>? typeArguments,
-    ArgumentsImpl arguments,
+    ActualArguments arguments,
   ) {
     return functionType;
   }
@@ -285,19 +285,18 @@ sealed class InvocationTargetNonFunctionType extends InvocationTargetType {
   @override
   FunctionType computeFunctionTypeForInference(
     List<DartType>? typeArguments,
-    ArgumentsImpl arguments,
+    ActualArguments arguments,
   ) {
     return new FunctionType(
-      new List<DartType>.filled(
-        arguments.positional.length,
-        const DynamicType(),
-      ),
+      new List<DartType>.filled(arguments.positionalCount, const DynamicType()),
       this.returnType,
       Nullability.nonNullable,
-      namedParameters: <NamedType>[
-        for (NamedExpression namedExpression in arguments.named)
-          new NamedType(namedExpression.name, const DynamicType()),
-      ],
+      namedParameters: arguments.namedCount > 0
+          ? arguments.argumentList
+                .whereType<NamedArgument>()
+                .map((a) => new NamedType(a.name, const DynamicType()))
+                .toList()
+          : [],
       typeParameters: [
         if (typeArguments != null)
           for (DartType _ in typeArguments)

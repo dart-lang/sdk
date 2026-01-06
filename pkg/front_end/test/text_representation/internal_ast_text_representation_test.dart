@@ -648,7 +648,7 @@ void _testFactoryConstructorInvocation() {
     new FactoryConstructorInvocation(
       factoryConstructor,
       null,
-      new ArgumentsImpl([]),
+      new ActualArguments.empty(),
       isConst: false,
     ),
     '''
@@ -661,7 +661,7 @@ new library test:dummy::Class()''',
     new FactoryConstructorInvocation(
       factoryConstructor,
       null,
-      new ArgumentsImpl([]),
+      new ActualArguments.empty(),
       isConst: true,
     ),
     '''
@@ -670,13 +670,20 @@ const Class()''',
 const library test:dummy::Class()''',
   );
 
+  Expression positionalArgument = new IntLiteral(0);
+  NamedExpression namedArgument = new NamedExpression('bar', new IntLiteral(1));
+
   testExpression(
     new FactoryConstructorInvocation(
       factoryConstructor,
       new TypeArguments([const VoidType()]),
-      new ArgumentsImpl(
-        [new IntLiteral(0)],
-        named: [new NamedExpression('bar', new IntLiteral(1))],
+      new ActualArguments(
+        argumentList: [
+          new PositionalArgument(positionalArgument),
+          new NamedArgument(namedArgument),
+        ],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
       ),
       isConst: false,
     ),
@@ -691,9 +698,13 @@ new library test:dummy::Class<void>(0, bar: 1)''',
     new FactoryConstructorInvocation(
       factoryConstructor,
       new TypeArguments([const VoidType()]),
-      new ArgumentsImpl(
-        [new IntLiteral(0)],
-        named: [new NamedExpression('bar', new IntLiteral(1))],
+      new ActualArguments(
+        argumentList: [
+          new PositionalArgument(positionalArgument),
+          new NamedArgument(namedArgument),
+        ],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
       ),
       isConst: false,
     ),
@@ -746,7 +757,7 @@ void _testTypeAliasedConstructorInvocation(CompilerContext c) {
       typeAliasBuilder,
       constructor,
       null,
-      new ArgumentsImpl([]),
+      new ActualArguments.empty(),
     ),
     '''
 new Typedef()''',
@@ -754,14 +765,21 @@ new Typedef()''',
 new library test:dummy::Typedef()''',
   );
 
+  Expression positionalArgument = new IntLiteral(0);
+  NamedExpression namedArgument = new NamedExpression('bar', new IntLiteral(1));
+
   testExpression(
     new TypeAliasedConstructorInvocation(
       typeAliasBuilder,
       constructor,
       new TypeArguments([const VoidType()]),
-      new ArgumentsImpl(
-        [new IntLiteral(0)],
-        named: [new NamedExpression('bar', new IntLiteral(1))],
+      new ActualArguments(
+        argumentList: [
+          new PositionalArgument(positionalArgument),
+          new NamedArgument(namedArgument),
+        ],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
       ),
     ),
     '''
@@ -776,9 +794,13 @@ new library test:dummy::Typedef<void>(0, bar: 1)''',
       typeAliasBuilder,
       constructor,
       new TypeArguments([const VoidType()]),
-      new ArgumentsImpl(
-        [new IntLiteral(0)],
-        named: [new NamedExpression('bar', new IntLiteral(1))],
+      new ActualArguments(
+        argumentList: [
+          new PositionalArgument(positionalArgument),
+          new NamedArgument(namedArgument),
+        ],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
       ),
     ),
     '''
@@ -793,9 +815,13 @@ new library test:dummy::Typedef<void>.foo(0, bar: 1)''',
       typeAliasBuilder,
       constructor,
       new TypeArguments([const VoidType()]),
-      new ArgumentsImpl(
-        [new IntLiteral(0)],
-        named: [new NamedExpression('bar', new IntLiteral(1))],
+      new ActualArguments(
+        argumentList: [
+          new PositionalArgument(positionalArgument),
+          new NamedArgument(namedArgument),
+        ],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
       ),
       isConst: true,
     ),
@@ -849,7 +875,7 @@ void _testTypeAliasedFactoryInvocation(CompilerContext c) {
       typeAliasBuilder,
       factoryConstructor,
       null,
-      new ArgumentsImpl([]),
+      new ActualArguments.empty(),
       isConst: false,
     ),
     '''
@@ -858,14 +884,21 @@ new Typedef()''',
 new library test:dummy::Typedef()''',
   );
 
+  Expression positionalArgument = new IntLiteral(0);
+  NamedExpression namedArgument = new NamedExpression('bar', new IntLiteral(1));
+
   testExpression(
     new TypeAliasedFactoryInvocation(
       typeAliasBuilder,
       factoryConstructor,
       new TypeArguments([const VoidType()]),
-      new ArgumentsImpl(
-        [new IntLiteral(0)],
-        named: [new NamedExpression('bar', new IntLiteral(1))],
+      new ActualArguments(
+        argumentList: [
+          new PositionalArgument(positionalArgument),
+          new NamedArgument(namedArgument),
+        ],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
       ),
       isConst: false,
     ),
@@ -881,9 +914,13 @@ new library test:dummy::Typedef<void>(0, bar: 1)''',
       typeAliasBuilder,
       factoryConstructor,
       new TypeArguments([const VoidType()]),
-      new ArgumentsImpl(
-        [new IntLiteral(0)],
-        named: [new NamedExpression('bar', new IntLiteral(1))],
+      new ActualArguments(
+        argumentList: [
+          new PositionalArgument(positionalArgument),
+          new NamedArgument(namedArgument),
+        ],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
       ),
       isConst: false,
     ),
@@ -899,9 +936,13 @@ new library test:dummy::Typedef<void>.foo(0, bar: 1)''',
       typeAliasBuilder,
       factoryConstructor,
       new TypeArguments([const VoidType()]),
-      new ArgumentsImpl(
-        [new IntLiteral(0)],
-        named: [new NamedExpression('bar', new IntLiteral(1))],
+      new ActualArguments(
+        argumentList: [
+          new PositionalArgument(positionalArgument),
+          new NamedArgument(namedArgument),
+        ],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
       ),
       isConst: true,
     ),
@@ -943,23 +984,36 @@ void _testInternalMethodInvocation() {
       new IntLiteral(0),
       new Name('boz'),
       null,
-      new ArgumentsImpl([]),
+      new ActualArguments.empty(),
       isNullAware: false,
     ),
     '''
 0.boz()''',
   );
+
+  Expression positionalArgument = new IntLiteral(1);
+  NamedExpression namedArgument1 = new NamedExpression(
+    'foo',
+    new IntLiteral(2),
+  );
+  NamedExpression namedArgument2 = new NamedExpression(
+    'bar',
+    new IntLiteral(3),
+  );
+
   testExpression(
     new MethodInvocation(
       new IntLiteral(0),
       new Name('boz'),
       new TypeArguments([const VoidType(), const DynamicType()]),
-      new ArgumentsImpl(
-        [new IntLiteral(1)],
-        named: [
-          new NamedExpression('foo', new IntLiteral(2)),
-          new NamedExpression('bar', new IntLiteral(3)),
+      new ActualArguments(
+        argumentList: [
+          new PositionalArgument(positionalArgument),
+          new NamedArgument(namedArgument1),
+          new NamedArgument(namedArgument2),
         ],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
       ),
       isNullAware: false,
     ),
@@ -971,7 +1025,7 @@ void _testInternalMethodInvocation() {
       new IntLiteral(0),
       new Name('boz'),
       null,
-      new ArgumentsImpl([]),
+      new ActualArguments.empty(),
       isNullAware: true,
     ),
     '''
@@ -982,12 +1036,14 @@ void _testInternalMethodInvocation() {
       new IntLiteral(0),
       new Name('boz'),
       new TypeArguments([const VoidType(), const DynamicType()]),
-      new ArgumentsImpl(
-        [new IntLiteral(1)],
-        named: [
-          new NamedExpression('foo', new IntLiteral(2)),
-          new NamedExpression('bar', new IntLiteral(3)),
+      new ActualArguments(
+        argumentList: [
+          new PositionalArgument(positionalArgument),
+          new NamedArgument(namedArgument1),
+          new NamedArgument(namedArgument2),
         ],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
       ),
       isNullAware: true,
     ),
@@ -1040,20 +1096,37 @@ void _testPropertySet() {
 
 void _testExpressionInvocation() {
   testExpression(
-    new ExpressionInvocation(new IntLiteral(0), null, new ArgumentsImpl([])),
+    new ExpressionInvocation(
+      new IntLiteral(0),
+      null,
+      new ActualArguments.empty(),
+    ),
     '''
 0()''',
   );
+
+  Expression positionalArgument = new IntLiteral(1);
+  NamedExpression namedArgument1 = new NamedExpression(
+    'foo',
+    new IntLiteral(2),
+  );
+  NamedExpression namedArgument2 = new NamedExpression(
+    'bar',
+    new IntLiteral(3),
+  );
+
   testExpression(
     new ExpressionInvocation(
       new IntLiteral(0),
       new TypeArguments([const VoidType(), const DynamicType()]),
-      new ArgumentsImpl(
-        [new IntLiteral(1)],
-        named: [
-          new NamedExpression('foo', new IntLiteral(2)),
-          new NamedExpression('bar', new IntLiteral(3)),
+      new ActualArguments(
+        argumentList: [
+          new PositionalArgument(positionalArgument),
+          new NamedArgument(namedArgument1),
+          new NamedArgument(namedArgument2),
         ],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
       ),
     ),
     '''
@@ -1067,7 +1140,7 @@ void _testMethodInvocation() {
       new IntLiteral(0),
       new Name('foo'),
       null,
-      new ArgumentsImpl([]),
+      new ActualArguments.empty(),
       isNullAware: false,
     ),
     '''
@@ -1079,7 +1152,7 @@ void _testMethodInvocation() {
       new IntLiteral(0),
       new Name('foo'),
       null,
-      new ArgumentsImpl([]),
+      new ActualArguments.empty(),
       isNullAware: true,
     ),
     '''
@@ -1155,10 +1228,23 @@ void _testLoadLibraryImpl() {
     library,
     'pre',
   );
-  testExpression(new LoadLibraryImpl(dependency, new ArgumentsImpl([])), '''
-pre.loadLibrary()''');
   testExpression(
-    new LoadLibraryImpl(dependency, new ArgumentsImpl([new IntLiteral(0)])),
+    new LoadLibraryImpl(dependency, new ActualArguments.empty()),
+    '''
+pre.loadLibrary()''',
+  );
+
+  Expression positionalArgument = new IntLiteral(0);
+
+  testExpression(
+    new LoadLibraryImpl(
+      dependency,
+      new ActualArguments(
+        argumentList: [new PositionalArgument(positionalArgument)],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
+      ),
+    ),
     '''
 pre.loadLibrary(0)''',
   );
@@ -2645,6 +2731,8 @@ void _testExtensionGetterInvocation() {
   );
   library.addProcedure(method);
 
+  Expression positionalArgument = new IntLiteral(1);
+
   testExpression(
     new ExtensionGetterInvocation.explicit(
       extension: extension,
@@ -2654,7 +2742,11 @@ void _testExtensionGetterInvocation() {
       name: name,
       target: method,
       typeArguments: null,
-      arguments: new ArgumentsImpl([new IntLiteral(1)]),
+      arguments: new ActualArguments(
+        argumentList: [new PositionalArgument(positionalArgument)],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
+      ),
       isNullAware: false,
     ),
     '''
@@ -2670,7 +2762,11 @@ Extension(0).foo(1)''',
       name: name,
       target: method,
       typeArguments: null,
-      arguments: new ArgumentsImpl([new IntLiteral(1)]),
+      arguments: new ActualArguments(
+        argumentList: [new PositionalArgument(positionalArgument)],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
+      ),
       isNullAware: true,
     ),
     '''
@@ -2686,7 +2782,11 @@ Extension(0)?.foo(1)''',
       name: name,
       target: method,
       typeArguments: null,
-      arguments: new ArgumentsImpl([new IntLiteral(1)]),
+      arguments: new ActualArguments(
+        argumentList: [new PositionalArgument(positionalArgument)],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
+      ),
       isNullAware: false,
     ),
     '''
@@ -2702,7 +2802,11 @@ Extension<void>(0).foo(1)''',
       name: name,
       target: method,
       typeArguments: null,
-      arguments: new ArgumentsImpl([new IntLiteral(1)]),
+      arguments: new ActualArguments(
+        argumentList: [new PositionalArgument(positionalArgument)],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
+      ),
       isNullAware: true,
     ),
     '''
@@ -2722,7 +2826,11 @@ Extension<void>(0)?.foo(1)''',
       name: name,
       target: method,
       typeArguments: null,
-      arguments: new ArgumentsImpl([new IntLiteral(1)]),
+      arguments: new ActualArguments(
+        argumentList: [new PositionalArgument(positionalArgument)],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
+      ),
     ),
     '''
 0.foo(1)''',
@@ -2746,6 +2854,8 @@ void _testExtensionMethodInvocation() {
   );
   library.addProcedure(method);
 
+  Expression positionalArgument = new IntLiteral(1);
+
   testExpression(
     new ExtensionMethodInvocation.explicit(
       extension: extension,
@@ -2755,7 +2865,11 @@ void _testExtensionMethodInvocation() {
       name: name,
       target: method,
       typeArguments: null,
-      arguments: new ArgumentsImpl([new IntLiteral(1)]),
+      arguments: new ActualArguments(
+        argumentList: [new PositionalArgument(positionalArgument)],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
+      ),
       isNullAware: false,
     ),
     '''
@@ -2771,7 +2885,11 @@ Extension(0).foo(1)''',
       name: name,
       target: method,
       typeArguments: null,
-      arguments: new ArgumentsImpl([new IntLiteral(1)]),
+      arguments: new ActualArguments(
+        argumentList: [new PositionalArgument(positionalArgument)],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
+      ),
       isNullAware: true,
     ),
     '''
@@ -2787,7 +2905,11 @@ Extension(0)?.foo(1)''',
       name: name,
       target: method,
       typeArguments: null,
-      arguments: new ArgumentsImpl([new IntLiteral(1)]),
+      arguments: new ActualArguments(
+        argumentList: [new PositionalArgument(positionalArgument)],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
+      ),
       isNullAware: false,
     ),
     '''
@@ -2803,7 +2925,11 @@ Extension<void>(0).foo(1)''',
       name: name,
       target: method,
       typeArguments: null,
-      arguments: new ArgumentsImpl([new IntLiteral(1)]),
+      arguments: new ActualArguments(
+        argumentList: [new PositionalArgument(positionalArgument)],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
+      ),
       isNullAware: true,
     ),
     '''
@@ -2823,7 +2949,11 @@ Extension<void>(0)?.foo(1)''',
       name: name,
       target: method,
       typeArguments: null,
-      arguments: new ArgumentsImpl([new IntLiteral(1)]),
+      arguments: new ActualArguments(
+        argumentList: [new PositionalArgument(positionalArgument)],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
+      ),
     ),
     '''
 0.foo(1)''',
@@ -3533,16 +3663,22 @@ void _testExtensionTypeRedirectingInitializer() {
   testInitializer(
     new ExtensionTypeRedirectingInitializer(
       unnamedTarget,
-      new ArgumentsImpl([]),
+      new ActualArguments.empty(),
     ),
     '''
 this()''',
   );
 
+  Expression positionalArgument = new IntLiteral(0);
+
   testInitializer(
     new ExtensionTypeRedirectingInitializer(
       namedTarget,
-      new ArgumentsImpl([new IntLiteral(0)]),
+      new ActualArguments(
+        argumentList: [new PositionalArgument(positionalArgument)],
+        hasNamedBeforePositional: false,
+        positionalCount: 1,
+      ),
     ),
     '''
 this.named(0)''',

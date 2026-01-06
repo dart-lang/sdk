@@ -246,7 +246,7 @@ mixin BodyBuilderTestMixin on BodyBuilderImpl {
     TypeDeclarationBuilder? type,
     Token nameToken,
     Token nameLastToken,
-    ArgumentsImpl arguments,
+    ActualArguments arguments,
     String name,
     List<TypeBuilder>? typeArgumentBuilders,
     TypeArguments? typeArguments,
