@@ -717,4 +717,36 @@ DotShorthandPropertyAccess
   staticType: Object Function()
 ''');
   }
+
+  test_undefinedGetter_message() async {
+    await assertErrorsInCode(
+      r'''
+int f() => .foo;
+''',
+      [
+        error(
+          diag.dotShorthandUndefinedGetter,
+          12,
+          3,
+          messageContains: ["static getter 'foo'", "context type 'int'"],
+        ),
+      ],
+    );
+  }
+
+  test_undefinedGetter_message_equalityRhs() async {
+    await assertErrorsInCode(
+      r'''
+bool f(int x) => x == .foo;
+''',
+      [
+        error(
+          diag.dotShorthandUndefinedGetter,
+          23,
+          3,
+          messageContains: ["static getter 'foo'", "context type 'int'"],
+        ),
+      ],
+    );
+  }
 }

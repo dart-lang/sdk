@@ -4156,9 +4156,9 @@ CompileTimeErrorCode:
   constWithUndefinedConstructor:
     type: compileTimeError
     parameters:
-      Object p0: the name of the type
-      String p1: the name of the requested constant constructor
-    problemMessage: "The class '#p0' doesn't have a constant constructor '#p1'."
+      String className: the name of the type
+      String constructorName: the name of the requested constant constructor
+    problemMessage: "The class '#className' doesn't have a constant constructor '#constructorName'."
     correctionMessage: Try calling a different constructor.
     hasPublishedDocs: false
     comment: |-
@@ -19435,7 +19435,7 @@ CompileTimeErrorCode:
       String p1: the name of the constructor being invoked
     sharedName: wrongNumberOfTypeArgumentsConstructor
     experiment: dot-shorthands
-    problemMessage: "The constructor '#p0.#p1` doesn't have type parameters."
+    problemMessage: "The constructor '#p0.#p1' doesn't have type parameters."
     correctionMessage: Try removing the type arguments, or adding a class name, followed by the type arguments, then the constructor name.
     hasPublishedDocs: true
   wrongNumberOfTypeArgumentsEnum:

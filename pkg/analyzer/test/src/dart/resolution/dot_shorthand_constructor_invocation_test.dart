@@ -1089,4 +1089,74 @@ void main() {
       [error(diag.dotShorthandMissingContext, 24, 17)],
     );
   }
+
+  test_undefinedConstructor_message() async {
+    await assertErrorsInCode(
+      r'''
+int f() => const .foo();
+''',
+      [
+        error(
+          diag.constWithUndefinedConstructor,
+          18,
+          3,
+          messageContains: ["class 'int'", "constructor 'foo'"],
+        ),
+      ],
+    );
+  }
+
+  test_undefinedConstructor_message_equalityRhs() async {
+    await assertErrorsInCode(
+      r'''
+bool f(int x) => x == const .foo();
+''',
+      [
+        // Make sure the error message properly refers to the `int` class. See
+        // https://github.com/dart-lang/sdk/issues/62352.
+        error(
+          diag.constWithUndefinedConstructor,
+          29,
+          3,
+          messageContains: ["class 'int'", "constructor 'foo'"],
+        ),
+      ],
+    );
+  }
+
+  test_wrongNumberOfTypeArguments_message() async {
+    await assertErrorsInCode(
+      r'''
+class C {}
+
+C f() => .new<int>();
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsDotShorthandConstructor,
+          25,
+          5,
+          messageContains: ["constructor 'C.new'"],
+        ),
+      ],
+    );
+  }
+
+  test_wrongNumberOfTypeArguments_message_equalityRhs() async {
+    await assertErrorsInCode(
+      r'''
+class C {}
+
+bool f(C c) => c == .new<int>();
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsDotShorthandConstructor,
+          36,
+          5,
+          messageContains: ["constructor 'C.new'"],
+        ),
+      ],
+    );
+  }
 }

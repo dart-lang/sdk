@@ -2846,10 +2846,13 @@ const DiagnosticWithoutArguments constWithTypeParametersFunctionTearoff =
 /// a constant constructor declared by the type <i>T</i>.
 ///
 /// Parameters:
-/// Object p0: the name of the type
-/// String p1: the name of the requested constant constructor
+/// String className: the name of the type
+/// String constructorName: the name of the requested constant constructor
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0, required String p1})
+  LocatableDiagnostic Function({
+    required String className,
+    required String constructorName,
+  })
 >
 constWithUndefinedConstructor = DiagnosticWithArguments(
   name: 'const_with_undefined_constructor',
@@ -2858,7 +2861,7 @@ constWithUndefinedConstructor = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'const_with_undefined_constructor',
   withArguments: _withArgumentsConstWithUndefinedConstructor,
-  expectedTypes: [ExpectedType.object, ExpectedType.string],
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// 16.12.2 Const: It is a compile-time error if <i>T.id</i> is not the name of
@@ -17536,7 +17539,7 @@ const DiagnosticWithArguments<
 >
 wrongNumberOfTypeArgumentsDotShorthandConstructor = DiagnosticWithArguments(
   name: 'wrong_number_of_type_arguments_constructor',
-  problemMessage: "The constructor '{0}.{1}` doesn't have type parameters.",
+  problemMessage: "The constructor '{0}.{1}' doesn't have type parameters.",
   correctionMessage:
       "Try removing the type arguments, or adding a class name, followed by "
       "the type arguments, then the constructor name.",
@@ -18445,10 +18448,13 @@ LocatableDiagnostic _withArgumentsConstWithNonType({required String p0}) {
 }
 
 LocatableDiagnostic _withArgumentsConstWithUndefinedConstructor({
-  required Object p0,
-  required String p1,
+  required String className,
+  required String constructorName,
 }) {
-  return LocatableDiagnosticImpl(diag.constWithUndefinedConstructor, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.constWithUndefinedConstructor, [
+    className,
+    constructorName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsConstWithUndefinedConstructorDefault({

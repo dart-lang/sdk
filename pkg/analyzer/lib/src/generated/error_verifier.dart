@@ -2932,10 +2932,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // report as named or default constructor absence
     var name = constructorName.name;
     if (name != null) {
-      diagnosticReporter.atNode(
-        name,
-        diag.constWithUndefinedConstructor,
-        arguments: [namedType.qualifiedName, name.name],
+      diagnosticReporter.report(
+        diag.constWithUndefinedConstructor
+            .withArguments(
+              className: namedType.qualifiedName,
+              constructorName: name.name,
+            )
+            .at(name),
       );
     } else {
       diagnosticReporter.report(
