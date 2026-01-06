@@ -6,7 +6,7 @@ publish_to: none
 resolution: workspace
 
 environment:
-  sdk: ^3.11.0-edge
+  sdk: ^3.11.0-0
 
 dependencies:
   args: any
