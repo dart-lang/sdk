@@ -813,7 +813,11 @@ class _ExtensionTypeInitializerToStatementConverter
             thisVariable,
             new StaticInvocation(
               node.target,
-              node.arguments.toArguments(node.inferredTypeArguments),
+              node.arguments.toArguments(
+                node.inferredTypeArguments,
+                node.positional,
+                node.named,
+              ),
             )..fileOffset = node.fileOffset,
           )..fileOffset = node.fileOffset,
         )..fileOffset = node.fileOffset,

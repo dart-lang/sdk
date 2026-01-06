@@ -76,7 +76,12 @@ Future<void> main() async {
     CoreTypes coreTypes = new CoreTypes(component);
     ClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes);
 
-    ArgumentsImpl arguments = new ArgumentsImpl([new StringLiteral("arg")]);
+    Expression argument = new StringLiteral("arg");
+    ActualArguments arguments = new ActualArguments(
+      argumentList: [new PositionalArgument(argument)],
+      hasNamedBeforePositional: false,
+      positionalCount: 1,
+    );
     Expression expression = new VariableGet(
       new VariableDeclaration("expression"),
     );

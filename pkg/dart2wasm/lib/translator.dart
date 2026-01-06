@@ -1002,9 +1002,7 @@ class Translator with KernelNodes {
           return (builtin as w.RefType).withNullability(nullable);
         }
         final boxedBuiltin = classInfo[boxedClasses[builtin]!]!;
-        return nullable
-            ? boxedBuiltin.nullableType
-            : boxedBuiltin.nonNullableType;
+        return boxedBuiltin.typeWithNullability(nullable);
       }
 
       // Regular class.

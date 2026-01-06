@@ -565,7 +565,7 @@ class BuildFieldInitializerResult {
 }
 
 class BuildEnumConstantResult {
-  final ArgumentsImpl arguments;
+  final ActualArguments arguments;
   final PendingAnnotations? annotations;
 
   BuildEnumConstantResult(this.arguments, this.annotations);

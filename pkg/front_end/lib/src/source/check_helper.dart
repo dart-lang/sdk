@@ -113,7 +113,7 @@ extension CheckHelper on ProblemReporting {
   LocatedMessage? checkArgumentsForFunction({
     required FunctionNode function,
     required TypeArguments? explicitTypeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     required int fileOffset,
     required Uri fileUri,
     required List<TypeParameter> typeParameters,
@@ -122,7 +122,7 @@ extension CheckHelper on ProblemReporting {
     int typeParameterCount = typeParameters.length;
     int requiredParameterCount = function.requiredParameterCount;
     int positionalParameterCount = function.positionalParameters.length;
-    int positionalArgumentsCount = arguments.positional.length;
+    int positionalArgumentsCount = arguments.positionalCount;
     if (extension != null) {
       // Extension member invocations have additional synthetic parameter for
       // `this`.
@@ -140,22 +140,32 @@ extension CheckHelper on ProblemReporting {
           .withArgumentsOld(positionalParameterCount, positionalArgumentsCount)
           .withLocation(fileUri, arguments.fileOffset, noLength);
     }
-    List<NamedExpression> named = arguments.named;
-    if (named.isNotEmpty) {
+    Set<String> argumentNames = {};
+    if (arguments.namedCount > 0) {
       Set<String?> parameterNames = new Set.of(
         function.namedParameters.map((a) => a.name),
       );
-      for (int i = 0; i < named.length; i++) {
-        NamedExpression argument = named[i];
-        if (!parameterNames.contains(argument.name)) {
-          return codeNoSuchNamedParameter
-              .withArgumentsOld(argument.name)
-              .withLocation(fileUri, argument.fileOffset, argument.name.length);
+      for (Argument argument in arguments.argumentList) {
+        switch (argument) {
+          case NamedArgument():
+            NamedExpression namedExpression = argument.namedExpression;
+            String name = namedExpression.name;
+            argumentNames.add(name);
+            if (!parameterNames.contains(name)) {
+              return codeNoSuchNamedParameter
+                  .withArgumentsOld(name)
+                  .withLocation(
+                    fileUri,
+                    namedExpression.fileOffset,
+                    name.length,
+                  );
+            }
+          case PositionalArgument():
+            break;
         }
       }
     }
     if (function.namedParameters.isNotEmpty) {
-      Set<String> argumentNames = new Set.of(named.map((a) => a.name));
       for (int i = 0; i < function.namedParameters.length; i++) {
         VariableDeclaration parameter = function.namedParameters[i];
         if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
@@ -165,6 +175,7 @@ extension CheckHelper on ProblemReporting {
         }
       }
     }
+
     if (explicitTypeArguments != null) {
       if (typeParameterCount != explicitTypeArguments.types.length) {
         // A wrong (non-zero) amount of type arguments given. That's an error.
@@ -181,15 +192,15 @@ extension CheckHelper on ProblemReporting {
   LocatedMessage? checkArgumentsForType({
     required FunctionType function,
     required TypeArguments? explicitTypeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     required Uri fileUri,
     required int fileOffset,
   }) {
     int requiredPositionalParameterCountToReport =
         function.requiredParameterCount;
     int positionalParameterCountToReport = function.positionalParameters.length;
-    int positionalArgumentCountToReport = arguments.positional.length;
-    if (arguments.positional.length < function.requiredParameterCount) {
+    int positionalArgumentCountToReport = arguments.positionalCount;
+    if (positionalArgumentCountToReport < function.requiredParameterCount) {
       return codeTooFewArguments
           .withArgumentsOld(
             requiredPositionalParameterCountToReport,
@@ -197,7 +208,8 @@ extension CheckHelper on ProblemReporting {
           )
           .withLocation(fileUri, arguments.fileOffset, noLength);
     }
-    if (arguments.positional.length > function.positionalParameters.length) {
+    if (positionalArgumentCountToReport >
+        function.positionalParameters.length) {
       return codeTooManyArguments
           .withArgumentsOld(
             positionalParameterCountToReport,
@@ -205,22 +217,32 @@ extension CheckHelper on ProblemReporting {
           )
           .withLocation(fileUri, arguments.fileOffset, noLength);
     }
-    List<NamedExpression> named = arguments.named;
-    if (named.isNotEmpty) {
+    Set<String> argumentNames = {};
+    if (arguments.namedCount > 0) {
       Set<String> names = new Set.of(
         function.namedParameters.map((a) => a.name),
       );
-      for (int i = 0; i < named.length; i++) {
-        NamedExpression argument = named[i];
-        if (!names.contains(argument.name)) {
-          return codeNoSuchNamedParameter
-              .withArgumentsOld(argument.name)
-              .withLocation(fileUri, argument.fileOffset, argument.name.length);
+      for (Argument argument in arguments.argumentList) {
+        switch (argument) {
+          case NamedArgument():
+            NamedExpression namedExpression = argument.namedExpression;
+            String name = namedExpression.name;
+            argumentNames.add(name);
+            if (!names.contains(name)) {
+              return codeNoSuchNamedParameter
+                  .withArgumentsOld(name)
+                  .withLocation(
+                    fileUri,
+                    namedExpression.fileOffset,
+                    name.length,
+                  );
+            }
+          case PositionalArgument():
+            break;
         }
       }
     }
     if (function.namedParameters.isNotEmpty) {
-      Set<String> argumentNames = new Set.of(named.map((a) => a.name));
       for (int i = 0; i < function.namedParameters.length; i++) {
         NamedType parameter = function.namedParameters[i];
         if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
@@ -364,7 +386,7 @@ extension CheckHelper on ProblemReporting {
     required FunctionType functionType,
     required String? localName,
     required List<DartType> explicitOrInferredTypeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     required Uri fileUri,
     required int fileOffset,
     required bool hasInferredTypeArguments,
@@ -462,7 +484,7 @@ extension CheckHelper on ProblemReporting {
     required Name name,
     required Member? interfaceTarget,
     required List<DartType> explicitOrInferredTypeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     required Uri fileUri,
     required int fileOffset,
     required bool hasInferredTypeArguments,
@@ -718,7 +740,7 @@ extension CheckHelper on ProblemReporting {
     required CompilerContext compilerContext,
     required Member target,
     required TypeArguments? explicitTypeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     required int fileOffset,
     required Uri fileUri,
   }) {

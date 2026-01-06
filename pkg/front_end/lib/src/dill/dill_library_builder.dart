@@ -106,7 +106,6 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
       _dillLibraryBuilder.conditionalImportSupported;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Importability get importability => _dillLibraryBuilder.importability;
 
   @override
@@ -396,7 +395,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   bool get conditionalImportSupported => library.conditionalImportSupported;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Importability get importability => library.importability;
 
   @override

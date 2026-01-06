@@ -269,7 +269,8 @@ class TypeInferrerImpl implements TypeInferrer {
     required FunctionType targetType,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(fileUri: fileUri);
-    List<Expression> positionalArguments = <Expression>[];
+    List<Argument> arguments = [];
+    int positionalCount = 0;
     for (VariableDeclaration parameter
         in redirectingFactoryFunction.positionalParameters) {
       flowAnalysis.declare(
@@ -277,9 +278,10 @@ class TypeInferrerImpl implements TypeInferrer {
         new SharedTypeView(parameter.type),
         initialized: true,
       );
-      positionalArguments.add(new VariableGet(parameter));
+      Expression variableGet = new VariableGet(parameter);
+      arguments.add(new PositionalArgument(variableGet));
+      positionalCount++;
     }
-    List<NamedExpression> namedArguments = <NamedExpression>[];
     for (VariableDeclaration parameter
         in redirectingFactoryFunction.namedParameters) {
       flowAnalysis.declare(
@@ -287,15 +289,18 @@ class TypeInferrerImpl implements TypeInferrer {
         new SharedTypeView(parameter.type),
         initialized: true,
       );
-      namedArguments.add(
-        new NamedExpression(parameter.name!, new VariableGet(parameter)),
+      NamedExpression namedExpression = new NamedExpression(
+        parameter.name!,
+        new VariableGet(parameter),
       );
+      arguments.add(new NamedArgument(namedExpression));
     }
     // If arguments are created using [ArgumentsImpl], and the
     // type arguments are omitted, they are to be inferred.
-    ArgumentsImpl targetInvocationArguments = new ArgumentsImpl(
-      positionalArguments,
-      named: namedArguments,
+    ActualArguments targetInvocationArguments = new ActualArguments(
+      argumentList: arguments,
+      hasNamedBeforePositional: false,
+      positionalCount: positionalCount,
     )..fileOffset = fileOffset;
 
     InvocationInferenceResult result = visitor.inferInvocation(

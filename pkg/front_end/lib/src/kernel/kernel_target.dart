@@ -1843,17 +1843,16 @@ class KernelTarget {
       final Importability importability = compilationUnit.importability;
       final bool importableWithFlag =
           (importability == Importability.withFlag &&
-          // Coverage-ignore(suite): Not run.
           flags.includeUnsupportedPlatformLibraryStubs);
       if (!dartLibrarySupport.computeDartLibrarySupport(
         importUri.path,
         isSupportedBySpec:
             (importability == Importability.always || importableWithFlag),
       )) {
-        // Coverage-ignore-block(suite): Not run.
         diagnostic = codeUnavailableDartLibrary.withArguments(uri: importUri);
-      } else if (importableWithFlag) {
-        // Coverage-ignore-block(suite): Not run.
+      }
+      // Coverage-ignore(suite): Not run.
+      else if (importableWithFlag) {
         // Display a warning for each import of an unsupported library.
         diagnostic = codeUnsupportedPlatformDartLibraryImport.withArguments(
           uri: importUri,

@@ -189,14 +189,14 @@ class A7 extends core::Object {
 }
 class B7 extends self::A7 {
   constructor •({required dynamic x1, required dynamic x2, required <X extends core::Object? = dynamic>(core::Object) → X% f1, required <X extends core::Object? = dynamic>(core::Object) → X% f2, required <X extends core::Object? = dynamic>(X%) → void g1, required <X extends core::Object? = dynamic>(X%) → void g2}) → self::B7
-    : super self::A7::•(x2: x2 as{TypeError,ForDynamic} core::int, f2: f2<core::bool>, g2: g2<dynamic>, x1: invalid-expression "pkg/front_end/testcases/super_parameters/no_coercions.dart:73:30: Error: The argument type 'dynamic' can't be assigned to the parameter type 'int'.
+    : super self::A7::•(x1: invalid-expression "pkg/front_end/testcases/super_parameters/no_coercions.dart:73:30: Error: The argument type 'dynamic' can't be assigned to the parameter type 'int'.
   B7({required dynamic super.x1, // Error.
                              ^" in x1 as{TypeError} core::int, f1: invalid-expression "pkg/front_end/testcases/super_parameters/no_coercions.dart:75:44: Error: The argument type 'X Function<X>(Object)' can't be assigned to the parameter type 'bool Function(Object)'.
  - 'Object' is from 'dart:core'.
       required X Function<X>(Object) super.f1, // Error.
                                            ^" in f1 as{TypeError} (core::Object) → core::bool, g1: invalid-expression "pkg/front_end/testcases/super_parameters/no_coercions.dart:77:42: Error: The argument type 'void Function<X>(X)' can't be assigned to the parameter type 'void Function(dynamic)'.
       required void Function<X>(X) super.g1, // Error.
-                                         ^" in g1 as{TypeError} (dynamic) → void)
+                                         ^" in g1 as{TypeError} (dynamic) → void, x2: x2 as{TypeError,ForDynamic} core::int, f2: f2<core::bool>, g2: g2<dynamic>)
     ;
 }
 static method main() → dynamic {}

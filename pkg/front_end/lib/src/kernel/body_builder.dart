@@ -914,7 +914,7 @@ class BodyBuilderImpl extends StackListenerImpl
       ]),
     );
     debugEvent("Metadata");
-    ArgumentsImpl? arguments = pop() as ArgumentsImpl?;
+    ActualArguments? arguments = pop() as ActualArguments?;
     pushQualifiedReference(
       beginToken.next!,
       periodBeforeName,
@@ -1335,14 +1335,14 @@ class BodyBuilderImpl extends StackListenerImpl
     return annotation;
   }
 
-  ArgumentsImpl parseArguments(Token token) {
+  ActualArguments parseArguments(Token token) {
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
       experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     );
     token = parser.parseArgumentsRest(token);
-    ArgumentsImpl arguments = pop() as ArgumentsImpl;
+    ActualArguments arguments = pop() as ActualArguments;
     checkEmpty(token.charOffset);
     return arguments;
   }
@@ -1366,104 +1366,71 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   void endArguments(int count, Token beginToken, Token endToken) {
     debugEvent("Arguments");
-    List<Object?>? arguments = count == 0
-        ? <Object>[]
-        : const FixedNullableList<Object>().pop(stack, count);
+    assert(
+      checkState(
+        beginToken,
+        repeatedKind(
+          unionOfKinds([ValueKinds.Argument, ValueKinds.ParserRecovery]),
+          count,
+        ),
+      ),
+    );
+
+    List<Argument>? arguments = count == 0
+        ? <Argument>[]
+        : const FixedNullableList<Argument>().popNonNullable(
+            stack,
+            count,
+            dummyArgument,
+          );
     if (arguments == null) {
       push(new ParserRecovery(beginToken.charOffset));
       return;
     }
-    List<Object?>? argumentsOriginalOrder;
-    if (libraryFeatures.namedArgumentsAnywhere.isEnabled) {
-      argumentsOriginalOrder = new List<Object?>.of(arguments);
-    }
+    List<Argument> argumentsOriginalOrder = new List.of(arguments);
     int firstNamedArgumentIndex = arguments.length;
     int positionalCount = 0;
     bool hasNamedBeforePositional = false;
     for (int i = 0; i < arguments.length; i++) {
-      Object? node = arguments[i];
-      if (node is NamedExpression) {
-        firstNamedArgumentIndex = i < firstNamedArgumentIndex
-            ? i
-            : firstNamedArgumentIndex;
-      } else {
-        positionalCount++;
-        Expression argument = toValue(node);
-        arguments[i] = argument;
-        argumentsOriginalOrder?[i] = argument;
-        if (i > firstNamedArgumentIndex) {
-          hasNamedBeforePositional = true;
-          if (!libraryFeatures.namedArgumentsAnywhere.isEnabled) {
-            arguments[i] = new NamedExpression(
-              "#$i",
-              buildProblem(
-                message: cfe.codeExpectedNamedArgument,
-                fileUri: uri,
-                fileOffset: argument.fileOffset,
-                length: noLength,
-              ),
-            )..fileOffset = beginToken.charOffset;
+      Argument argument = arguments[i];
+      switch (argument) {
+        case NamedArgument():
+          firstNamedArgumentIndex = i < firstNamedArgumentIndex
+              ? i
+              : firstNamedArgumentIndex;
+        case PositionalArgument():
+          positionalCount++;
+          if (i > firstNamedArgumentIndex) {
+            hasNamedBeforePositional = true;
+            if (!libraryFeatures.namedArgumentsAnywhere.isEnabled) {
+              addProblem(
+                cfe.codeExpectedNamedArgument,
+                argument.expression.fileOffset,
+                noLength,
+              );
+            }
           }
-        }
       }
-    }
-    if (!hasNamedBeforePositional) {
-      argumentsOriginalOrder = null;
     }
     if (firstNamedArgumentIndex < arguments.length) {
-      List<Expression> positional;
-      List<NamedExpression> named;
-      if (libraryFeatures.namedArgumentsAnywhere.isEnabled) {
-        positional = new List<Expression>.filled(
-          positionalCount,
-          dummyExpression,
-          growable: true,
-        );
-        named = new List<NamedExpression>.filled(
-          arguments.length - positionalCount,
-          dummyNamedExpression,
-          growable: true,
-        );
-        int positionalIndex = 0;
-        int namedIndex = 0;
-        for (int i = 0; i < arguments.length; i++) {
-          if (arguments[i] is NamedExpression) {
-            named[namedIndex++] = arguments[i] as NamedExpression;
-          } else {
-            positional[positionalIndex++] = arguments[i] as Expression;
-          }
-        }
-        assert(
-          positionalIndex == positional.length && namedIndex == named.length,
-        );
-      } else {
-        // arguments have non-null Expression entries after the initial loop.
-        positional = new List<Expression>.from(
-          arguments.getRange(0, firstNamedArgumentIndex),
-        );
-        named = new List<NamedExpression>.from(
-          arguments.getRange(firstNamedArgumentIndex, arguments.length),
-        );
-      }
-
       push(
         forest.createArguments(
           beginToken.offset,
-          positional,
-          named: named,
-          argumentsOriginalOrder: argumentsOriginalOrder,
+          arguments: argumentsOriginalOrder,
+          hasNamedBeforePositional: hasNamedBeforePositional,
+          positionalCount: positionalCount,
         ),
       );
     } else {
       // TODO(kmillikin): Find a way to avoid allocating a second list in the
       // case where there were no named arguments, which is a common one.
-
       // arguments have non-null Expression entries after the initial loop.
       push(
         forest.createArguments(
           beginToken.offset,
-          new List<Expression>.from(arguments),
-          argumentsOriginalOrder: argumentsOriginalOrder,
+          arguments: argumentsOriginalOrder,
+          hasNamedBeforePositional: hasNamedBeforePositional,
+          positionalCount: argumentsOriginalOrder.length,
         ),
       );
     }
@@ -1592,7 +1559,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // Delay adding [typeArgumentBuilders] to [forest] for type aliases: They
     // must be unaliased to the type arguments of the denoted type.
     bool isInForest =
-        arguments is ArgumentsImpl &&
+        arguments is ActualArguments &&
         typeArgumentBuilders != null &&
         (receiver is! TypeUseGenerator ||
             receiver.declaration is! TypeAliasBuilder);
@@ -1625,7 +1592,7 @@ class BodyBuilderImpl extends StackListenerImpl
             name,
             typeArgumentBuilders,
             typeArguments,
-            arguments as ArgumentsImpl,
+            arguments as ActualArguments,
             isTypeArgumentsInForest: isInForest,
           ),
         );
@@ -1638,7 +1605,7 @@ class BodyBuilderImpl extends StackListenerImpl
           receiver,
           typeArgumentBuilders,
           typeArguments,
-          arguments as ArgumentsImpl,
+          arguments as ActualArguments,
           beginToken.charOffset,
           isTypeArgumentsInForest: isInForest,
         ),
@@ -1661,7 +1628,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Object receiver,
     List<TypeBuilder>? typeArgumentBuilders,
     TypeArguments? typeArguments,
-    ArgumentsImpl arguments,
+    ActualArguments arguments,
     int charOffset, {
     bool isTypeArgumentsInForest = false,
   }) {
@@ -4347,7 +4314,6 @@ class BodyBuilderImpl extends StackListenerImpl
         token,
         repeatedKind(
           unionOfKinds([
-            ValueKinds.Generator,
             ValueKinds.Expression,
             ValueKinds.NamedExpression,
             ValueKinds.ParserRecovery,
@@ -6234,7 +6200,7 @@ class BodyBuilderImpl extends StackListenerImpl
   Expression _buildConstructorInvocation(
     Member target,
     TypeArguments? typeArguments,
-    ArgumentsImpl arguments, {
+    ActualArguments arguments, {
     Constness constness = Constness.implicit,
     required TypeAliasBuilder? typeAliasBuilder,
     required int fileOffset,
@@ -6370,7 +6336,7 @@ class BodyBuilderImpl extends StackListenerImpl
   Expression buildStaticInvocation({
     required Procedure target,
     required TypeArguments? typeArguments,
-    required ArgumentsImpl arguments,
+    required ActualArguments arguments,
     required int fileOffset,
   }) {
     Expression? result = problemReporting.checkStaticArguments(
@@ -6496,9 +6462,9 @@ class BodyBuilderImpl extends StackListenerImpl
 
     ConstantContext savedConstantContext = pop() as ConstantContext;
 
-    if (arguments is! ArgumentsImpl) {
+    if (arguments is! ActualArguments) {
       push(new ParserErrorGenerator(this, nameToken, cfe.codeSyntheticToken));
-      arguments = forest.createArguments(offset, []);
+      arguments = forest.createArgumentsEmpty(offset);
     } else if (type is Generator) {
       push(
         type.invokeConstructor(
@@ -6555,7 +6521,7 @@ class BodyBuilderImpl extends StackListenerImpl
     List<TypeBuilder>? typeArgumentBuilders,
     String className,
     String constructorName,
-    ArgumentsImpl arguments, {
+    ActualArguments arguments, {
     required int instantiationOffset,
     required int invocationOffset,
     required bool inImplicitCreationContext,
@@ -6627,7 +6593,7 @@ class BodyBuilderImpl extends StackListenerImpl
     TypeDeclarationBuilder? typeDeclarationBuilder,
     Token nameToken,
     Token nameLastToken,
-    ArgumentsImpl arguments,
+    ActualArguments arguments,
     String name,
     List<TypeBuilder>? typeArgumentBuilders,
     TypeArguments? typeArguments,
@@ -7651,8 +7617,10 @@ class BodyBuilderImpl extends StackListenerImpl
     Object? identifier = pop();
     if (identifier is Identifier) {
       push(
-        new NamedExpression(identifier.name, value)
-          ..fileOffset = identifier.nameOffset,
+        new NamedArgument(
+          new NamedExpression(identifier.name, value)
+            ..fileOffset = identifier.nameOffset,
+        ),
       );
     } else {
       assert(
@@ -7665,8 +7633,54 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  // TODO: Handle directly.
-  void handleNamedRecordField(Token colon) => handleNamedArgument(colon);
+  void handlePositionalArgument(Token token) {
+    debugEvent("NamedArgument");
+    assert(
+      checkState(token, [
+        unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
+      ]),
+    );
+    Expression value = popForValue();
+    push(new PositionalArgument(value));
+  }
+
+  @override
+  void handleNamedRecordField(Token colon) {
+    debugEvent("handleNamedRecordField");
+    assert(
+      checkState(colon, [
+        unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
+        unionOfKinds([ValueKinds.Identifier, ValueKinds.ParserRecovery]),
+      ]),
+    );
+    Expression value = popForValue();
+    Object? identifier = pop();
+    if (identifier is Identifier) {
+      push(
+        new NamedExpression(identifier.name, value)
+          ..fileOffset = identifier.nameOffset,
+      );
+    } else {
+      assert(
+        identifier is ParserRecovery,
+        "Unexpected record field name: "
+        "${identifier} (${identifier.runtimeType})",
+      );
+      push(identifier);
+    }
+  }
+
+  @override
+  void handlePositionalRecordField(Token token) {
+    debugEvent("handlePositionalRecordField");
+    assert(
+      checkState(token, [
+        unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
+      ]),
+    );
+    Expression value = popForValue();
+    push(value);
+  }
 
   @override
   void endFunctionName(
@@ -10010,7 +10024,7 @@ class BodyBuilderImpl extends StackListenerImpl
   Initializer buildSuperInitializer(
     bool isSynthetic,
     Constructor constructor,
-    ArgumentsImpl arguments, [
+    ActualArguments arguments, [
     int charOffset = -1,
   ]) {
     if (_context.isConstConstructor && !constructor.isConst) {
@@ -10031,7 +10045,7 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   Initializer buildRedirectingInitializer(
     Name name,
-    ArgumentsImpl arguments, {
+    ActualArguments arguments, {
     required int fileOffset,
   }) {
     Builder? constructorBuilder = _context.lookupConstructor(name);
@@ -10283,21 +10297,14 @@ class BodyBuilderImpl extends StackListenerImpl
 
   @override
   Expression evaluateArgumentsBefore(
-    ArgumentsImpl? arguments,
+    ActualArguments? arguments,
     Expression expression,
   ) {
     if (arguments == null) return expression;
-    List<Expression> expressions = new List<Expression>.of(
-      arguments.positional,
-    );
-    for (NamedExpression named in arguments.named) {
-      // Coverage-ignore-block(suite): Not run.
-      expressions.add(named.value);
-    }
-    for (Expression argument in expressions.reversed) {
+    for (Argument argument in arguments.argumentList.reversed) {
       expression = new Let(
         new VariableDeclaration.forValue(
-          argument,
+          argument.expression,
           isFinal: true,
           type: coreTypes.objectRawType(Nullability.nullable),
         ),
@@ -10315,7 +10322,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Expression receiver,
     Name name,
     TypeArguments? typeArguments,
-    ArgumentsImpl arguments,
+    ActualArguments arguments,
     int offset, {
     bool isConstantExpression = false,
     bool isNullAware = false,
@@ -10346,7 +10353,7 @@ class BodyBuilderImpl extends StackListenerImpl
   Expression buildSuperInvocation(
     Name name,
     TypeArguments? typeArguments,
-    ArgumentsImpl arguments,
+    ActualArguments arguments,
     int offset, {
     bool isConstantExpression = false,
     bool isNullAware = false,
@@ -11341,7 +11348,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
   @override
   BuildEnumConstantResult buildEnumConstant({required Token token}) {
-    ArgumentsImpl arguments = parseArguments(token);
+    ActualArguments arguments = parseArguments(token);
     return new BuildEnumConstantResult(arguments, _takePendingAnnotations());
   }
 

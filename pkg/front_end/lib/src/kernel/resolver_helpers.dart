@@ -327,3 +327,18 @@ class _InitializerBuilder {
 
   List<Initializer> get initializers => _initializers;
 }
+
+class _SuperParameterArguments {
+  final List<Argument> arguments;
+  final int positionalCount;
+  final int firstPositionalOffset;
+
+  _SuperParameterArguments(
+    this.arguments, {
+    required this.positionalCount,
+    required this.firstPositionalOffset,
+  });
+
+  // Coverage-ignore(suite): Not run.
+  int get namedCount => arguments.length - positionalCount;
+}

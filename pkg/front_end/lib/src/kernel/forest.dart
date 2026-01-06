@@ -28,21 +28,26 @@ import 'internal_ast.dart';
 class Forest {
   const Forest();
 
-  ArgumentsImpl createArguments(
-    int fileOffset,
-    List<Expression> positional, {
-    List<NamedExpression>? named,
-    List<Object?>? argumentsOriginalOrder,
+  ActualArguments createArguments(
+    int fileOffset, {
+    required List<Argument> arguments,
+    required bool hasNamedBeforePositional,
+    required int positionalCount,
   }) {
-    return new ArgumentsImpl(
-      positional,
-      named: named,
-      argumentsOriginalOrder: argumentsOriginalOrder,
+    return new ActualArguments(
+      argumentList: arguments,
+      hasNamedBeforePositional: hasNamedBeforePositional,
+      positionalCount: positionalCount,
     )..fileOffset = fileOffset;
   }
 
-  ArgumentsImpl createArgumentsEmpty(int fileOffset) {
-    return createArguments(fileOffset, []);
+  ActualArguments createArgumentsEmpty(int fileOffset) {
+    return createArguments(
+      fileOffset,
+      arguments: [],
+      hasNamedBeforePositional: false,
+      positionalCount: 0,
+    );
   }
 
   /// Return a representation of a boolean literal at the given [fileOffset].
@@ -192,7 +197,7 @@ class Forest {
   LoadLibrary createLoadLibrary(
     int fileOffset,
     LibraryDependency dependency,
-    ArgumentsImpl? arguments,
+    ActualArguments? arguments,
   ) {
     return new LoadLibraryImpl(dependency, arguments)..fileOffset = fileOffset;
   }
@@ -752,7 +757,7 @@ class Forest {
     int fileOffset,
     Expression expression,
     TypeArguments? typeArguments,
-    ArgumentsImpl arguments,
+    ActualArguments arguments,
   ) {
     return new ExpressionInvocation(expression, typeArguments, arguments)
       ..fileOffset = fileOffset;
@@ -763,7 +768,7 @@ class Forest {
     Expression expression,
     Name name,
     TypeArguments? typeArguments,
-    ArgumentsImpl arguments, {
+    ActualArguments arguments, {
     required bool isNullAware,
   }) {
     return new MethodInvocation(
@@ -780,7 +785,7 @@ class Forest {
     Name name,
     Procedure procedure,
     TypeArguments? typeArguments,
-    ArgumentsImpl arguments,
+    ActualArguments arguments,
   ) {
     return new InternalSuperMethodInvocation(
       name,
@@ -1156,7 +1161,7 @@ class Forest {
     int fileOffset,
     Name name,
     TypeArguments? typeArguments,
-    ArgumentsImpl arguments, {
+    ActualArguments arguments, {
     required int nameOffset,
     required bool isConst,
   }) {

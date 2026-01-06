@@ -1460,7 +1460,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ) {
     ensureMemberType(node.target);
     TypeArguments? typeArguments = node.typeArguments;
-    ArgumentsImpl arguments = node.arguments;
+    ActualArguments arguments = node.arguments;
     bool hasInferredTypeArguments = typeArguments == null;
     FunctionType functionType = node.target.function.computeThisFunctionType(
       Nullability.nonNullable,
@@ -1488,7 +1488,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     Expression replacement = createConstructorInvocation(
       node.target,
-      createArgumentsFromInternalNode(result.typeArguments, arguments),
+      createArgumentsFromInternalNode(
+        result.typeArguments,
+        result.positional,
+        result.named,
+        arguments,
+      ),
       fileOffset: node.fileOffset,
       isConst: node.isConst,
     );
@@ -2115,11 +2120,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
 
     StaticInvocation replacement = createExtensionInvocation(
-      node.fileOffset,
-      target,
-      receiver,
-      result.typeArguments,
-      node.arguments,
+      invocationOffset: node.fileOffset,
+      argumentsOffset: node.arguments.fileOffset,
+      target: target,
+      receiver: receiver,
+      explicitOrInferredTypeArguments: result.typeArguments,
+      positionalArguments: result.positional,
+      namedArguments: result.named,
     );
 
     return new ExpressionInferenceResult(
@@ -2562,6 +2569,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression resolvedExpression = _resolveRedirectingFactoryTarget(
       target: node.target,
       explicitOrInferredTypeArguments: result.typeArguments,
+      positional: result.positional,
+      named: result.named,
       arguments: node.arguments,
       fileOffset: node.fileOffset,
       isConst: node.isConst,
@@ -2581,7 +2590,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   Expression? _resolveRedirectingFactoryTarget({
     required Procedure target,
     required List<DartType> explicitOrInferredTypeArguments,
-    required ArgumentsImpl arguments,
+    required List<Expression> positional,
+    required List<NamedExpression> named,
+    required ActualArguments arguments,
     required int fileOffset,
     required bool isConst,
     required bool hasInferredTypeArguments,
@@ -2622,6 +2633,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             : null,
         effectiveTarget: resolvedTarget,
         explicitOrInferredTypeArguments: typeArguments,
+        positional: positional,
+        named: named,
         arguments: arguments,
         isConst: isConst,
         fileOffset: fileOffset,
@@ -2635,7 +2648,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required Procedure? redirectingFactoryTarget,
     required Member effectiveTarget,
     required List<DartType> explicitOrInferredTypeArguments,
-    required ArgumentsImpl arguments,
+    required List<Expression> positional,
+    required List<NamedExpression> named,
+    required ActualArguments arguments,
     required bool isConst,
     required int fileOffset,
     required bool hasInferredTypeArguments,
@@ -2675,6 +2690,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         effectiveTarget,
         createArgumentsFromInternalNode(
           explicitOrInferredTypeArguments,
+          positional,
+          named,
           arguments,
         ),
         isConst: isConst,
@@ -2725,6 +2742,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         effectiveTarget,
         createArgumentsFromInternalNode(
           explicitOrInferredTypeArguments,
+          positional,
+          named,
           arguments,
         ),
         isConst: isConst,
@@ -2893,6 +2912,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         _unaliasSingleTypeAliasedConstructorInvocation(
           node,
           result.typeArguments,
+          result.positional,
+          result.named,
         );
     Expression resultingExpression = result.applyResult(resolvedExpression);
 
@@ -2905,6 +2926,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   Expression _unaliasSingleTypeAliasedConstructorInvocation(
     TypeAliasedConstructorInvocation node,
     List<DartType> explicitOrInferredTypeArguments,
+    List<Expression> positional,
+    List<NamedExpression> named,
   ) {
     DartType aliasedType = new TypedefType(
       node.typeAliasBuilder.typedef,
@@ -2926,9 +2949,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       invocationTypeArguments = unaliasedType.typeArguments.toList();
     }
     Arguments invocationArguments = new Arguments(
-      node.arguments.positional,
+      positional,
       types: invocationTypeArguments,
-      named: node.arguments.named,
+      named: named,
     )..fileOffset = node.arguments.fileOffset;
     return new ConstructorInvocation(
       node.target,
@@ -3026,6 +3049,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression resolvedExpression = _unaliasSingleTypeAliasedFactoryInvocation(
       node,
       result.typeArguments,
+      result.positional,
+      result.named,
     )!;
     Expression resultExpression = result.applyResult(resolvedExpression);
 
@@ -3036,6 +3061,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   Expression? _unaliasSingleTypeAliasedFactoryInvocation(
     TypeAliasedFactoryInvocation node,
     List<DartType> explicitOrInferredTypeArguments,
+    List<Expression> positional,
+    List<NamedExpression> named,
   ) {
     bool hasInferredTypeArguments = node.typeArguments == null;
     DartType aliasedType = new TypedefType(
@@ -3062,6 +3089,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       explicitOrInferredTypeArguments:
           invocationTypeArguments ?? // Coverage-ignore(suite): Not run.
           [],
+      positional: positional,
+      named: named,
       arguments: node.arguments,
       fileOffset: node.fileOffset,
       isConst: node.isConst,
@@ -8421,7 +8450,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       );
       StaticInvocation invocation = new StaticInvocation(
         member,
-        createArgumentsFromInternalNode(result.typeArguments, node.arguments),
+        createArgumentsFromInternalNode(
+          result.typeArguments,
+          result.positional,
+          result.named,
+          node.arguments,
+        ),
       );
       String targetName = member.name.text;
       if (member.enclosingClass != null) {
@@ -12335,7 +12369,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ensureMemberType(node.target);
     List<TypeParameter> classTypeParameters =
         node.target.enclosingClass.typeParameters;
-    ArgumentsImpl arguments = node.arguments;
+    ActualArguments arguments = node.arguments;
     // The redirecting initializer syntax doesn't include type arguments passed
     // to the target constructor so we synthesize them for calling
     // [inferInvocation].
@@ -12386,7 +12420,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       result ??
           (new RedirectingInitializer(
             node.target,
-            createArgumentsFromInternalNode([], arguments),
+            createArgumentsFromInternalNode(
+              [],
+              inferenceResult.positional,
+              inferenceResult.named,
+              arguments,
+            ),
           )..fileOffset = node.fileOffset),
       inferenceResult,
     );
@@ -12425,6 +12464,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       staticTarget: node.target,
     );
     node.inferredTypeArguments = inferenceResult.typeArguments;
+    node.positional = inferenceResult.positional;
+    node.named = inferenceResult.named;
 
     LocatedMessage? message = problemReporting.checkArgumentsForFunction(
       function: node.target.function,
@@ -12720,7 +12761,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     FunctionType calleeType = node.target.function.computeFunctionType(
       Nullability.nonNullable,
     );
-    ArgumentsImpl arguments = node.arguments;
+    ActualArguments arguments = node.arguments;
     InvocationInferenceResult result = inferInvocation(
       this,
       typeContext,
@@ -12747,7 +12788,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     Expression replacement = createStaticInvocation(
       node.target,
-      createArgumentsFromInternalNode(result.typeArguments, arguments),
+      createArgumentsFromInternalNode(
+        result.typeArguments,
+        result.positional,
+        result.named,
+        arguments,
+      ),
       fileOffset: node.fileOffset,
     );
     flowAnalysis.forwardExpression(replacement, node);
@@ -12848,7 +12894,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       result ??
           (new SuperInitializer(
               node.target,
-              createArgumentsFromInternalNode([], node.arguments),
+              createArgumentsFromInternalNode(
+                [],
+                inferenceResult.positional,
+                inferenceResult.named,
+                node.arguments,
+              ),
             )
             ..fileOffset = node.fileOffset
             ..isSynthetic = node.isSynthetic),
@@ -16335,7 +16386,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       );
       expr = new StaticInvocation(
         member,
-        createArgumentsFromInternalNode(result.typeArguments, node.arguments),
+        createArgumentsFromInternalNode(
+          result.typeArguments,
+          result.positional,
+          result.named,
+          node.arguments,
+        ),
       )..fileOffset = node.fileOffset;
       return new ExpressionInferenceResult(
         result.inferredType,
@@ -16411,7 +16467,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         );
         expr = new ConstructorInvocation(
           constructor,
-          createArgumentsFromInternalNode(result.typeArguments, node.arguments),
+          createArgumentsFromInternalNode(
+            result.typeArguments,
+            result.positional,
+            result.named,
+            node.arguments,
+          ),
           isConst: node.isConst,
         )..fileOffset = node.fileOffset;
         return new ExpressionInferenceResult(
@@ -16453,6 +16514,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           expr = _resolveRedirectingFactoryTarget(
             target: constructor,
             explicitOrInferredTypeArguments: result.typeArguments,
+            positional: result.positional,
+            named: result.named,
             arguments: node.arguments,
             fileOffset: node.fileOffset,
             isConst: node.isConst,
@@ -16463,6 +16526,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             constructor,
             createArgumentsFromInternalNode(
               result.typeArguments,
+              result.positional,
+              result.named,
               node.arguments,
             ),
             isConst: node.isConst,

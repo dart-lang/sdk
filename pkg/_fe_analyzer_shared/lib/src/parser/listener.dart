@@ -2028,6 +2028,8 @@ abstract class Listener implements UnescapeErrorListener {
     logEvent("NamedArgument");
   }
 
+  void handlePositionalArgument(Token token) {}
+
   /// Called after the parser has consumed a patternField, consisting of an
   /// optional identifier, optional `:`, and a pattern.
   void handlePatternField(Token? colon) {
@@ -2037,6 +2039,8 @@ abstract class Listener implements UnescapeErrorListener {
   void handleNamedRecordField(Token colon) {
     logEvent("NamedRecordField");
   }
+
+  void handlePositionalRecordField(Token token) {}
 
   void beginNewExpression(Token token) {}
 

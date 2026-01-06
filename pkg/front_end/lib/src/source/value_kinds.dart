@@ -45,10 +45,11 @@ class ValueKinds {
       const SingleValueKind<List<type.Expression>>();
   static const ValueKind AnnotationListOrNull =
       const SingleValueKind<List<type.Expression>>(NullValues.Metadata);
+  static const ValueKind Argument = const SingleValueKind<type.Argument>();
   static const ValueKind Arguments =
-      const SingleValueKind<type.ArgumentsImpl>();
+      const SingleValueKind<type.ActualArguments>();
   static const ValueKind ArgumentsOrNull =
-      const SingleValueKind<type.ArgumentsImpl>(NullValues.Arguments);
+      const SingleValueKind<type.ActualArguments>(NullValues.Arguments);
   static const ValueKind ArgumentsTokenOrNull =
       const SingleValueKind<type.Token>(NullValues.Arguments);
   static const ValueKind AssignedVariablesNodeInfo =

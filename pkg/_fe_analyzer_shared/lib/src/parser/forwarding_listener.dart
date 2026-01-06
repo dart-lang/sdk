@@ -1920,6 +1920,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handlePositionalArgument(Token token) {
+    listener?.handlePositionalArgument(token);
+  }
+
+  @override
   void handlePatternField(Token? colon) {
     listener?.handlePatternField(colon);
   }
@@ -1927,6 +1932,11 @@ class ForwardingListener implements Listener {
   @override
   void handleNamedRecordField(Token colon) {
     listener?.handleNamedRecordField(colon);
+  }
+
+  @override
+  void handlePositionalRecordField(Token token) {
+    listener?.handlePositionalRecordField(token);
   }
 
   @override

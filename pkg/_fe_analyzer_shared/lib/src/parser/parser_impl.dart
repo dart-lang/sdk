@@ -8038,9 +8038,14 @@ class Parser {
         colon = token;
         wasValidRecord = true;
       }
+      Token beginExpressionToken = token;
       token = parseExpression(token);
       next = token.next!;
-      if (colon != null) listener.handleNamedRecordField(colon);
+      if (colon != null) {
+        listener.handleNamedRecordField(colon);
+      } else {
+        listener.handlePositionalRecordField(beginExpressionToken.next!);
+      }
       ++count;
       if (!next.isA(TokenType.COMMA)) {
         // TODO(jensj): Possible more specific recovery.
@@ -9272,6 +9277,7 @@ class Parser {
         colon = token;
       }
       bool expressionHandled = false;
+      Token beginExpressionToken = token;
 
       // For increased performance we'd prefer to shortcut common cases, but if
       // a subclass of the parser has a special implementation of
@@ -9336,7 +9342,11 @@ class Parser {
         token = parseExpression(token);
       }
       next = token.next!;
-      if (colon != null) listener.handleNamedArgument(colon);
+      if (colon != null) {
+        listener.handleNamedArgument(colon);
+      } else {
+        listener.handlePositionalArgument(beginExpressionToken.next!);
+      }
       ++argumentCount;
       if (!next.isA(TokenType.COMMA)) {
         if (next.isA(TokenType.CLOSE_PAREN)) {

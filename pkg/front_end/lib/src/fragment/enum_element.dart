@@ -360,7 +360,10 @@ class EnumElementDeclaration
             extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
             scope: _fragment.enclosingScope,
             token: token,
-            enumSyntheticArguments: enumSyntheticArguments,
+            enumSyntheticArguments: [
+              new PositionalArgument(enumSyntheticArguments[0]),
+              new PositionalArgument(enumSyntheticArguments[1]),
+            ],
             enumTypeParameterCount: sourceEnumBuilder.typeParametersCount,
             typeArguments: typeArguments,
             constructorBuilder: constructorBuilder,

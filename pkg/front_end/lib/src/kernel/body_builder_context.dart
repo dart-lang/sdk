@@ -102,7 +102,7 @@ abstract class BodyBuilderContext {
   /// in the same class.
   Initializer buildRedirectingInitializer(
     Builder constructorBuilder,
-    ArgumentsImpl arguments, {
+    ActualArguments arguments, {
     required int fileOffset,
   }) {
     return declarationContext.buildRedirectingInitializer(
@@ -453,7 +453,7 @@ abstract class BodyBuilderDeclarationContext {
 
   Initializer buildRedirectingInitializer(
     Builder constructorBuilder,
-    ArgumentsImpl arguments, {
+    ActualArguments arguments, {
     required int fileOffset,
   }) {
     throw new UnsupportedError('${runtimeType}.buildRedirectingInitializer');
@@ -563,7 +563,7 @@ class _SourceClassBodyBuilderDeclarationContext
   @override
   Initializer buildRedirectingInitializer(
     covariant SourceConstructorBuilder constructorBuilder,
-    ArgumentsImpl arguments, {
+    ActualArguments arguments, {
     required int fileOffset,
   }) {
     return new InternalRedirectingInitializer(
@@ -668,7 +668,7 @@ class _SourceExtensionTypeDeclarationBodyBuilderDeclarationContext
   @override
   Initializer buildRedirectingInitializer(
     covariant SourceConstructorBuilder constructorBuilder,
-    ArgumentsImpl arguments, {
+    ActualArguments arguments, {
     required int fileOffset,
   }) {
     return new ExtensionTypeRedirectingInitializer(
