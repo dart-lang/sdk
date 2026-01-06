@@ -3836,9 +3836,9 @@ const DiagnosticWithoutArguments duplicateDeferred =
     );
 
 /// Parameters:
-/// Object p0: the name of the duplicate entity
+/// String name: the name of the duplicate entity
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 duplicateDefinition = DiagnosticWithArguments(
   name: 'duplicate_definition',
@@ -3848,7 +3848,7 @@ duplicateDefinition = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'duplicate_definition',
   withArguments: _withArgumentsDuplicateDefinition,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
@@ -3880,9 +3880,9 @@ const DiagnosticWithoutArguments duplicateExport =
     );
 
 /// Parameters:
-/// Object p0: the name of the field
+/// String name: the name of the field
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 duplicateFieldFormalParameter = DiagnosticWithArguments(
   name: 'duplicate_field_formal_parameter',
@@ -3895,13 +3895,13 @@ duplicateFieldFormalParameter = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'duplicate_field_formal_parameter',
   withArguments: _withArgumentsDuplicateFieldFormalParameter,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object p0: the duplicated name
+/// String name: the duplicated name
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 duplicateFieldName = DiagnosticWithArguments(
   name: 'duplicate_field_name',
@@ -3911,7 +3911,7 @@ duplicateFieldName = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'duplicate_field_name',
   withArguments: _withArgumentsDuplicateFieldName,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -4101,9 +4101,9 @@ const DiagnosticWithoutArguments duplicateShownName =
     );
 
 /// Parameters:
-/// Object p0: the name of the variable
+/// String name: the name of the variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 duplicateVariablePattern = DiagnosticWithArguments(
   name: 'duplicate_variable_pattern',
@@ -4113,7 +4113,7 @@ duplicateVariablePattern = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'duplicate_variable_pattern',
   withArguments: _withArgumentsDuplicateVariablePattern,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -13450,9 +13450,9 @@ prefixAfterCombinator = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Object p0: the name of the prefix
+/// String name: the name of the prefix
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 prefixCollidesWithTopLevelMember = DiagnosticWithArguments(
   name: 'prefix_collides_with_top_level_member',
@@ -13464,7 +13464,7 @@ prefixCollidesWithTopLevelMember = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'prefix_collides_with_top_level_member',
   withArguments: _withArgumentsPrefixCollidesWithTopLevelMember,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
@@ -13558,10 +13558,9 @@ privateNamedNonFieldParameter = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String publicName: the corresponding public name of private named
-///                    parameter
+/// String name: the corresponding public name of private named parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String publicName})
+  LocatableDiagnostic Function({required String name})
 >
 privateNamedParameterDuplicatePublicName = DiagnosticWithArguments(
   name: 'private_named_parameter_duplicate_public_name',
@@ -18665,18 +18664,18 @@ LocatableDiagnostic _withArgumentsDuplicateConstructorName({
   return LocatableDiagnosticImpl(diag.duplicateConstructorName, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsDuplicateDefinition({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.duplicateDefinition, [p0]);
+LocatableDiagnostic _withArgumentsDuplicateDefinition({required String name}) {
+  return LocatableDiagnosticImpl(diag.duplicateDefinition, [name]);
 }
 
 LocatableDiagnostic _withArgumentsDuplicateFieldFormalParameter({
-  required Object p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.duplicateFieldFormalParameter, [p0]);
+  return LocatableDiagnosticImpl(diag.duplicateFieldFormalParameter, [name]);
 }
 
-LocatableDiagnostic _withArgumentsDuplicateFieldName({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.duplicateFieldName, [p0]);
+LocatableDiagnostic _withArgumentsDuplicateFieldName({required String name}) {
+  return LocatableDiagnosticImpl(diag.duplicateFieldName, [name]);
 }
 
 LocatableDiagnostic _withArgumentsDuplicateIgnore({required String p0}) {
@@ -18706,9 +18705,9 @@ LocatableDiagnostic _withArgumentsDuplicateRule({required String ruleName}) {
 }
 
 LocatableDiagnostic _withArgumentsDuplicateVariablePattern({
-  required Object p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.duplicateVariablePattern, [p0]);
+  return LocatableDiagnosticImpl(diag.duplicateVariablePattern, [name]);
 }
 
 LocatableDiagnostic _withArgumentsEmptyStruct({
@@ -20462,9 +20461,9 @@ LocatableDiagnostic _withArgumentsPluginsInInnerOptions({
 }
 
 LocatableDiagnostic _withArgumentsPrefixCollidesWithTopLevelMember({
-  required Object p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.prefixCollidesWithTopLevelMember, [p0]);
+  return LocatableDiagnosticImpl(diag.prefixCollidesWithTopLevelMember, [name]);
 }
 
 LocatableDiagnostic _withArgumentsPrefixIdentifierNotFollowedByDot({
@@ -20492,11 +20491,11 @@ LocatableDiagnostic _withArgumentsPrivateCollisionInMixinApplication({
 }
 
 LocatableDiagnostic _withArgumentsPrivateNamedParameterDuplicatePublicName({
-  required String publicName,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(
     diag.privateNamedParameterDuplicatePublicName,
-    [publicName],
+    [name],
   );
 }
 

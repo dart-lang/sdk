@@ -4818,8 +4818,8 @@ CompileTimeErrorCode:
   duplicateDefinition:
     type: compileTimeError
     parameters:
-      Object p0: the name of the duplicate entity
-    problemMessage: "The name '#p0' is already defined."
+      String name: the name of the duplicate entity
+    problemMessage: "The name '#name' is already defined."
     correctionMessage: Try renaming one of the declarations.
     hasPublishedDocs: true
     documentation: |-
@@ -4849,8 +4849,8 @@ CompileTimeErrorCode:
   duplicateFieldName:
     type: compileTimeError
     parameters:
-      Object p0: the duplicated name
-    problemMessage: The field name '#p0' is already used in this record.
+      String name: the duplicated name
+    problemMessage: The field name '#name' is already used in this record.
     correctionMessage: Try renaming the field.
     hasPublishedDocs: true
     documentation: |-
@@ -4887,8 +4887,8 @@ CompileTimeErrorCode:
   duplicateFieldFormalParameter:
     type: compileTimeError
     parameters:
-      Object p0: the name of the field
-    problemMessage: "The field '#p0' can't be initialized by multiple parameters in the same constructor."
+      String name: the name of the field
+    problemMessage: "The field '#name' can't be initialized by multiple parameters in the same constructor."
     correctionMessage: Try removing one of the parameters, or using different fields.
     hasPublishedDocs: true
     documentation: |-
@@ -5167,8 +5167,8 @@ CompileTimeErrorCode:
   duplicateVariablePattern:
     type: compileTimeError
     parameters:
-      Object p0: the name of the variable
-    problemMessage: The variable '#p0' is already defined in this pattern.
+      String name: the name of the variable
+    problemMessage: The variable '#name' is already defined in this pattern.
     correctionMessage: Try renaming the variable.
     hasPublishedDocs: true
     documentation: |-
@@ -14759,8 +14759,8 @@ CompileTimeErrorCode:
   prefixCollidesWithTopLevelMember:
     type: compileTimeError
     parameters:
-      Object p0: the name of the prefix
-    problemMessage: "The name '#p0' is already used as an import prefix and can't be used to name a top-level element."
+      String name: the name of the prefix
+    problemMessage: "The name '#name' is already used as an import prefix and can't be used to name a top-level element."
     correctionMessage: Try renaming either the top-level element or the prefix.
     hasPublishedDocs: true
     documentation: |-
@@ -14955,8 +14955,8 @@ CompileTimeErrorCode:
   privateNamedParameterDuplicatePublicName:
     type: compileTimeError
     parameters:
-      String publicName: the corresponding public name of private named parameter
-    problemMessage: "The corresponding public name '#publicName' is already the name of another parameter."
+      String name: the corresponding public name of private named parameter
+    problemMessage: "The corresponding public name '#name' is already the name of another parameter."
     correctionMessage: "Try renaming one of the parameters."
     hasPublishedDocs: true
     documentation: |-

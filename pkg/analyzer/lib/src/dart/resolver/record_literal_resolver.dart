@@ -83,7 +83,7 @@ class RecordLiteralResolver {
         var name = field.name.label.name;
         var previousField = usedNames[name];
         if (previousField != null) {
-          _diagnosticReporter.reportError(
+          _diagnosticReporter.report(
             DiagnosticFactory().duplicateFieldDefinitionInLiteral(
               _diagnosticReporter.source,
               field,

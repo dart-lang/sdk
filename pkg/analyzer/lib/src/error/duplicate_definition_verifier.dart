@@ -4,13 +4,13 @@
 
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
@@ -32,13 +32,12 @@ class DuplicateDefinitionVerifier {
       if (element != null && element.isWildcardVariable) return;
       String exceptionName = exceptionParameter.name.lexeme;
       if (exceptionName == stackTraceParameter.name.lexeme) {
-        _diagnosticReporter.reportError(
+        _diagnosticReporter.report(
           _diagnosticFactory.duplicateDefinitionForNodes(
             _diagnosticReporter.source,
-            diag.duplicateDefinition,
+            diag.duplicateDefinition.withArguments(name: exceptionName),
             stackTraceParameter,
             exceptionParameter,
-            [exceptionName],
           ),
         );
       }
@@ -182,12 +181,11 @@ class DuplicateDefinitionVerifier {
       var name = importPrefix.name;
       if (name != null) {
         if (libraryDeclarations.withName(name) case var existing?) {
-          _diagnosticReporter.reportError(
+          _diagnosticReporter.report(
             _diagnosticFactory.duplicateDefinition(
-              diag.prefixCollidesWithTopLevelMember,
+              diag.prefixCollidesWithTopLevelMember.withArguments(name: name),
               importPrefix.firstFragment,
               existing as ElementImpl,
-              [name],
             ),
           );
         }
@@ -332,12 +330,11 @@ class DuplicateDefinitionVerifier {
 
     if (scope[lookupName] case var previous?) {
       _reportedTokens.add(identifier);
-      _diagnosticReporter.reportError(
+      _diagnosticReporter.report(
         _diagnosticFactory.duplicateDefinition(
-          diag.duplicateDefinition,
+          diag.duplicateDefinition.withArguments(name: lookupName),
           originFragment ?? fragment,
           previous,
-          [lookupName],
         ),
       );
     } else {
@@ -380,13 +377,15 @@ class _DuplicateIdentifierScope<T extends AstNode> {
 
     if (_scope[identifier.lexeme] case (var previousNode, var previousToken)) {
       _verifier._reportedTokens.add(identifier);
-      _verifier._diagnosticReporter.reportError(
+      _verifier._diagnosticReporter.report(
         _verifier._diagnosticFactory.duplicateDefinitionForNodes(
           _verifier._diagnosticReporter.source,
-          getDiagnostic(previousNode, node),
+          getDiagnostic(
+            previousNode,
+            node,
+          ).withArguments(name: identifier.lexeme),
           identifier,
           previousToken,
-          [identifier.lexeme],
         ),
       );
     } else {
@@ -396,8 +395,8 @@ class _DuplicateIdentifierScope<T extends AstNode> {
 
   /// The diagnostic code to use when [previous] and [current] have the same
   /// name.
-  DiagnosticCode getDiagnostic(T previous, T current) =>
-      diag.duplicateDefinition;
+  DiagnosticWithArguments<LocatableDiagnostic Function({required String name})>
+  getDiagnostic(T previous, T current) => diag.duplicateDefinition;
 
   /// Whether [node] whose name is known to be `_` should be treated as a
   /// wildcard or not.
@@ -419,23 +418,22 @@ class _FormalParameterDuplicateIdentifierScope
     required String publicName,
   }) {
     if (_scope[publicName] case (var _, var previousToken)) {
-      _verifier._diagnosticReporter.reportError(
+      _verifier._diagnosticReporter.report(
         _verifier._diagnosticFactory.duplicateDefinitionForNodes(
           _verifier._diagnosticReporter.source,
-          diag.privateNamedParameterDuplicatePublicName,
+          diag.privateNamedParameterDuplicatePublicName.withArguments(
+            name: publicName,
+          ),
           privateName,
           previousToken,
-          [publicName],
         ),
       );
     }
   }
 
   @override
-  DiagnosticCode getDiagnostic(
-    FormalParameter previous,
-    FormalParameter current,
-  ) {
+  DiagnosticWithArguments<LocatableDiagnostic Function({required String name})>
+  getDiagnostic(FormalParameter previous, FormalParameter current) {
     // When two initializing formals collide, tell the user they can't
     // initialize the same field twice.
     if (previous.notDefault is FieldFormalParameter &&
