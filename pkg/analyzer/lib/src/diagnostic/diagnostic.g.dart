@@ -6325,16 +6325,16 @@ getterNotAssignableSetterTypes = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Object p0: the name of the getter
-/// Object p1: the type of the getter
-/// Object p2: the type of the setter
-/// Object p3: the name of the setter
+/// Object getterName: the name of the getter
+/// Object getterType: the type of the getter
+/// Object setterType: the type of the setter
+/// Object setterName: the name of the setter
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-    required Object p3,
+    required Object getterName,
+    required Object getterType,
+    required Object setterType,
+    required Object setterName,
   })
 >
 getterNotSubtypeSetterTypes = DiagnosticWithArguments(
@@ -10759,10 +10759,13 @@ mixinsSuperClass = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the mixin that is not 'base'
-/// String p1: the name of the 'base' supertype
+/// String subtypeName: the name of the mixin that is not 'base'
+/// String supertypeName: the name of the 'base' supertype
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String subtypeName,
+    required String supertypeName,
+  })
 >
 mixinSubtypeOfBaseIsNotBase = DiagnosticWithArguments(
   name: 'subtype_of_base_or_final_is_not_base_final_or_sealed',
@@ -10776,10 +10779,13 @@ mixinSubtypeOfBaseIsNotBase = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the mixin that is not 'final'
-/// String p1: the name of the 'final' supertype
+/// String subtypeName: the name of the mixin that is not 'final'
+/// String supertypeName: the name of the 'final' supertype
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String subtypeName,
+    required String supertypeName,
+  })
 >
 mixinSubtypeOfFinalIsNotBase = DiagnosticWithArguments(
   name: 'subtype_of_base_or_final_is_not_base_final_or_sealed',
@@ -14798,11 +14804,14 @@ strictRawType = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the subtype that is not 'base', 'final', or
-///            'sealed'
-/// String p1: the name of the 'base' supertype
+/// String subtypeName: the name of the subtype that is not 'base', 'final',
+///                     or 'sealed'
+/// String supertypeName: the name of the 'base' supertype
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String subtypeName,
+    required String supertypeName,
+  })
 >
 subtypeOfBaseIsNotBaseFinalOrSealed = DiagnosticWithArguments(
   name: 'subtype_of_base_or_final_is_not_base_final_or_sealed',
@@ -14817,11 +14826,14 @@ subtypeOfBaseIsNotBaseFinalOrSealed = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the subtype that is not 'base', 'final', or
-///            'sealed'
-/// String p1: the name of the 'final' supertype
+/// String subtypeName: the name of the subtype that is not 'base', 'final',
+///                     or 'sealed'
+/// String supertypeName: the name of the 'final' supertype
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String subtypeName,
+    required String supertypeName,
+  })
 >
 subtypeOfFinalIsNotBaseFinalOrSealed = DiagnosticWithArguments(
   name: 'subtype_of_base_or_final_is_not_base_final_or_sealed',
@@ -19003,16 +19015,16 @@ LocatableDiagnostic _withArgumentsGetterNotAssignableSetterTypes({
 }
 
 LocatableDiagnostic _withArgumentsGetterNotSubtypeSetterTypes({
-  required Object p0,
-  required Object p1,
-  required Object p2,
-  required Object p3,
+  required Object getterName,
+  required Object getterType,
+  required Object setterType,
+  required Object setterName,
 }) {
   return LocatableDiagnosticImpl(diag.getterNotSubtypeSetterTypes, [
-    p0,
-    p1,
-    p2,
-    p3,
+    getterName,
+    getterType,
+    setterType,
+    setterName,
   ]);
 }
 
@@ -19912,17 +19924,23 @@ LocatableDiagnostic _withArgumentsMixinsSuperClass({required Element p0}) {
 }
 
 LocatableDiagnostic _withArgumentsMixinSubtypeOfBaseIsNotBase({
-  required String p0,
-  required String p1,
+  required String subtypeName,
+  required String supertypeName,
 }) {
-  return LocatableDiagnosticImpl(diag.mixinSubtypeOfBaseIsNotBase, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.mixinSubtypeOfBaseIsNotBase, [
+    subtypeName,
+    supertypeName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsMixinSubtypeOfFinalIsNotBase({
-  required String p0,
-  required String p1,
+  required String subtypeName,
+  required String supertypeName,
 }) {
-  return LocatableDiagnosticImpl(diag.mixinSubtypeOfFinalIsNotBase, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.mixinSubtypeOfFinalIsNotBase, [
+    subtypeName,
+    supertypeName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsMixinSuperClassConstraintDisallowedClass({
@@ -20719,22 +20737,22 @@ LocatableDiagnostic _withArgumentsStrictRawType({required DartType p0}) {
 }
 
 LocatableDiagnostic _withArgumentsSubtypeOfBaseIsNotBaseFinalOrSealed({
-  required String p0,
-  required String p1,
+  required String subtypeName,
+  required String supertypeName,
 }) {
   return LocatableDiagnosticImpl(diag.subtypeOfBaseIsNotBaseFinalOrSealed, [
-    p0,
-    p1,
+    subtypeName,
+    supertypeName,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsSubtypeOfFinalIsNotBaseFinalOrSealed({
-  required String p0,
-  required String p1,
+  required String subtypeName,
+  required String supertypeName,
 }) {
   return LocatableDiagnosticImpl(diag.subtypeOfFinalIsNotBaseFinalOrSealed, [
-    p0,
-    p1,
+    subtypeName,
+    supertypeName,
   ]);
 }
 

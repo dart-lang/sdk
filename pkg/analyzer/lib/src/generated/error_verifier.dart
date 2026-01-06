@@ -544,6 +544,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       GetterSetterTypesVerifier(
         library: _currentLibrary,
         diagnosticReporter: diagnosticReporter,
+        diagnosticSource: _currentUnit.source,
       ).checkStaticGetters(augmented.getters);
 
       super.visitClassDeclaration(node);
@@ -613,6 +614,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     GetterSetterTypesVerifier(
       library: _currentLibrary,
       diagnosticReporter: diagnosticReporter,
+      diagnosticSource: _currentUnit.source,
     ).checkStaticGetters(fragment.element.getters);
 
     super.visitCompilationUnit(node);
@@ -780,6 +782,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       GetterSetterTypesVerifier(
         library: _currentLibrary,
         diagnosticReporter: diagnosticReporter,
+        diagnosticSource: _currentUnit.source,
       ).checkStaticGetters(declaredElement.getters);
 
       super.visitEnumDeclaration(node);
@@ -824,6 +827,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     GetterSetterTypesVerifier(
       library: _currentLibrary,
       diagnosticReporter: diagnosticReporter,
+      diagnosticSource: _currentUnit.source,
     ).checkExtension(declaredElement);
 
     var name = node.name;
@@ -894,6 +898,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       GetterSetterTypesVerifier(
         library: _currentLibrary,
         diagnosticReporter: diagnosticReporter,
+        diagnosticSource: _currentUnit.source,
       ).checkExtensionType(declaredElement, interface);
 
       super.visitExtensionTypeDeclaration(node);

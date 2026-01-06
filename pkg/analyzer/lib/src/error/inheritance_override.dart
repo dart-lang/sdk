@@ -306,6 +306,7 @@ class _ClassVerifier {
     GetterSetterTypesVerifier(
       library: library,
       diagnosticReporter: reporter,
+      diagnosticSource: diagnosticSource,
     ).checkInterface(element, interface);
 
     if (element is ClassElementImpl && !element.isAbstract ||

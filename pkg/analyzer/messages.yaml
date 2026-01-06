@@ -7752,11 +7752,11 @@ CompileTimeErrorCode:
   getterNotSubtypeSetterTypes:
     type: compileTimeError
     parameters:
-      Object p0: the name of the getter
-      Object p1: the type of the getter
-      Object p2: the type of the setter
-      Object p3: the name of the setter
-    problemMessage: "The return type of getter '#p0' is '#p1' which isn't a subtype of the type '#p2' of its setter '#p3'."
+      Object getterName: the name of the getter
+      Object getterType: the type of the getter
+      Object setterType: the type of the setter
+      Object setterName: the name of the setter
+    problemMessage: "The return type of getter '#getterName' is '#getterType' which isn't a subtype of the type '#setterType' of its setter '#setterName'."
     correctionMessage: Try changing the types so that they are compatible.
     hasPublishedDocs: true
     documentation: |-
@@ -11687,18 +11687,18 @@ CompileTimeErrorCode:
   mixinSubtypeOfBaseIsNotBase:
     type: compileTimeError
     parameters:
-      String p0: the name of the mixin that is not 'base'
-      String p1: the name of the 'base' supertype
+      String subtypeName: the name of the mixin that is not 'base'
+      String supertypeName: the name of the 'base' supertype
     sharedName: subtypeOfBaseOrFinalIsNotBaseFinalOrSealed
-    problemMessage: "The mixin '#p0' must be 'base' because the supertype '#p1' is 'base'."
+    problemMessage: "The mixin '#subtypeName' must be 'base' because the supertype '#supertypeName' is 'base'."
     hasPublishedDocs: true
   mixinSubtypeOfFinalIsNotBase:
     type: compileTimeError
     parameters:
-      String p0: the name of the mixin that is not 'final'
-      String p1: the name of the 'final' supertype
+      String subtypeName: the name of the mixin that is not 'final'
+      String supertypeName: the name of the 'final' supertype
     sharedName: subtypeOfBaseOrFinalIsNotBaseFinalOrSealed
-    problemMessage: "The mixin '#p0' must be 'base' because the supertype '#p1' is 'final'."
+    problemMessage: "The mixin '#subtypeName' must be 'base' because the supertype '#supertypeName' is 'final'."
     hasPublishedDocs: true
   mixinSuperClassConstraintDeferredClass:
     type: compileTimeError
@@ -16496,10 +16496,10 @@ CompileTimeErrorCode:
   subtypeOfBaseIsNotBaseFinalOrSealed:
     type: compileTimeError
     parameters:
-      String p0: the name of the subtype that is not 'base', 'final', or 'sealed'
-      String p1: the name of the 'base' supertype
+      String subtypeName: the name of the subtype that is not 'base', 'final', or 'sealed'
+      String supertypeName: the name of the 'base' supertype
     sharedName: subtypeOfBaseOrFinalIsNotBaseFinalOrSealed
-    problemMessage: "The type '#p0' must be 'base', 'final' or 'sealed' because the supertype '#p1' is 'base'."
+    problemMessage: "The type '#subtypeName' must be 'base', 'final' or 'sealed' because the supertype '#supertypeName' is 'base'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -16530,10 +16530,10 @@ CompileTimeErrorCode:
   subtypeOfFinalIsNotBaseFinalOrSealed:
     type: compileTimeError
     parameters:
-      String p0: the name of the subtype that is not 'base', 'final', or 'sealed'
-      String p1: the name of the 'final' supertype
+      String subtypeName: the name of the subtype that is not 'base', 'final', or 'sealed'
+      String supertypeName: the name of the 'final' supertype
     sharedName: subtypeOfBaseOrFinalIsNotBaseFinalOrSealed
-    problemMessage: "The type '#p0' must be 'base', 'final' or 'sealed' because the supertype '#p1' is 'final'."
+    problemMessage: "The type '#subtypeName' must be 'base', 'final' or 'sealed' because the supertype '#supertypeName' is 'final'."
     hasPublishedDocs: true
   superFormalParameterTypeIsNotSubtypeOfAssociated:
     type: compileTimeError
