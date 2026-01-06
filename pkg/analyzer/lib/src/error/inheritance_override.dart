@@ -9,9 +9,11 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -53,6 +55,7 @@ class InheritanceOverrideVerifier {
           node: declaration,
           classNameToken: declaration.namePart.typeName,
           classElement: fragment.element,
+          diagnosticSource: unit.declaredFragment!.source,
           implementsClause: declaration.implementsClause,
           members: declaration.body.members,
           superclass: declaration.extendsClause?.superclass,
@@ -74,6 +77,7 @@ class InheritanceOverrideVerifier {
           node: declaration,
           classNameToken: declaration.name,
           classElement: fragment.element,
+          diagnosticSource: unit.declaredFragment!.source,
           implementsClause: declaration.implementsClause,
           superclass: declaration.superclass,
           withClause: declaration.withClause,
@@ -94,6 +98,7 @@ class InheritanceOverrideVerifier {
           node: declaration,
           classNameToken: declaration.namePart.typeName,
           classElement: fragment.element,
+          diagnosticSource: unit.declaredFragment!.source,
           implementsClause: declaration.implementsClause,
           members: declaration.body.members,
           withClause: declaration.withClause,
@@ -114,6 +119,7 @@ class InheritanceOverrideVerifier {
           node: declaration,
           classNameToken: declaration.name,
           classElement: fragment.element,
+          diagnosticSource: unit.declaredFragment!.source,
           implementsClause: declaration.implementsClause,
           members: declaration.body.members,
           onClause: declaration.onClause,
@@ -170,6 +176,9 @@ class _ClassVerifier {
 
   final List<InterfaceType> directSuperInterfaces = [];
 
+  /// The source file for which diagnostics are being generated.
+  final Source diagnosticSource;
+
   late final bool implementsDartCoreEnum = classElement.allSupertypes.any(
     (e) => e.isDartCoreEnum,
   );
@@ -184,6 +193,7 @@ class _ClassVerifier {
     required this.node,
     required this.classNameToken,
     required this.classElement,
+    required this.diagnosticSource,
     this.implementsClause,
     this.members = const [],
     this.onClause,
@@ -559,10 +569,10 @@ class _ClassVerifier {
 
     if (superclass case var superclass?) {
       if (superclass.element == element) {
-        reporter.atElement2(
-          element,
-          diag.recursiveInterfaceInheritanceExtends,
-          arguments: [element.displayName],
+        reporter.report(
+          diag.recursiveInterfaceInheritanceExtends
+              .withArguments(className: element.displayName)
+              .atSourceRange(element.diagnosticRange(diagnosticSource)),
         );
         return true;
       }
@@ -571,10 +581,10 @@ class _ClassVerifier {
     if (onClause case var onClause?) {
       for (var typeAnnotation in onClause.superclassConstraints) {
         if (typeAnnotation.element == element) {
-          reporter.atElement2(
-            element,
-            diag.recursiveInterfaceInheritanceOn,
-            arguments: [element.displayName],
+          reporter.report(
+            diag.recursiveInterfaceInheritanceOn
+                .withArguments(mixinName: element.displayName)
+                .atSourceRange(element.diagnosticRange(diagnosticSource)),
           );
           return true;
         }
@@ -584,10 +594,10 @@ class _ClassVerifier {
     if (withClause case var withClause?) {
       for (var typeAnnotation in withClause.mixinTypes) {
         if (typeAnnotation.element == element) {
-          reporter.atElement2(
-            element,
-            diag.recursiveInterfaceInheritanceWith,
-            arguments: [element.displayName],
+          reporter.report(
+            diag.recursiveInterfaceInheritanceWith
+                .withArguments(className: element.displayName)
+                .atSourceRange(element.diagnosticRange(diagnosticSource)),
           );
           return true;
         }
@@ -597,23 +607,23 @@ class _ClassVerifier {
     if (implementsClause case var implementsClause?) {
       for (var typeAnnotation in implementsClause.interfaces) {
         if (typeAnnotation.element == element) {
-          reporter.atElement2(
-            element,
-            diag.recursiveInterfaceInheritanceImplements,
-            arguments: [element.displayName],
+          reporter.report(
+            diag.recursiveInterfaceInheritanceImplements
+                .withArguments(className: element.displayName)
+                .atSourceRange(element.diagnosticRange(diagnosticSource)),
           );
           return true;
         }
       }
     }
 
-    reporter.atElement2(
-      classElement,
-      diag.recursiveInterfaceInheritance,
-      arguments: [
-        element.displayName,
-        cycle.map((e) => e.displayName).join(', '),
-      ],
+    reporter.report(
+      diag.recursiveInterfaceInheritance
+          .withArguments(
+            className: element.displayName,
+            loop: cycle.map((e) => e.displayName).join(', '),
+          )
+          .atSourceRange(classElement.diagnosticRange(diagnosticSource)),
     );
     return true;
   }

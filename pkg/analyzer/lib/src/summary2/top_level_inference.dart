@@ -208,6 +208,7 @@ class _PropertyInducingElementTypeInference
             getInitializer = () => node.initializer!;
           }
         case DefaultFormalParameterImpl():
+          _assertElementFieldOriginDeclaringFormalParameter();
           if (node.defaultValue != null) {
             initializerLibraryFragment = fragment.libraryFragment;
             scope = LinkingNodeContext.get(node).scope;
@@ -216,6 +217,10 @@ class _PropertyInducingElementTypeInference
             _status = _InferenceStatus.inferred;
             return _element.library.typeSystem.objectQuestion;
           }
+        case SimpleFormalParameterImpl():
+          _assertElementFieldOriginDeclaringFormalParameter();
+          _status = _InferenceStatus.inferred;
+          return _element.library.typeSystem.objectQuestion;
       }
     }
 
@@ -286,6 +291,15 @@ class _PropertyInducingElementTypeInference
 
     var initializerType = getInitializer().typeOrThrow;
     return _refineType(initializerType);
+  }
+
+  void _assertElementFieldOriginDeclaringFormalParameter() {
+    assert(() {
+      if (_element case FieldElementImpl element) {
+        return element.isOriginDeclaringFormalParameter;
+      }
+      return false;
+    }());
   }
 
   TypeImpl _refineType(TypeImpl type) {

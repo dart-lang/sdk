@@ -518,10 +518,10 @@ class TypedLiteralResolver {
       // We cannot infer the type of a collection literal with no elements, and
       // no context type. If there are any elements, inference has not failed,
       // as the types of those elements are considered resolved.
-      _diagnosticReporter.atNode(
-        node,
-        diag.inferenceFailureOnCollectionLiteral,
-        arguments: ['List'],
+      _diagnosticReporter.report(
+        diag.inferenceFailureOnCollectionLiteral
+            .withArguments(collection: 'List')
+            .at(node),
       );
     }
 
@@ -785,10 +785,10 @@ class TypedLiteralResolver {
       // We cannot infer the type of a collection literal with no elements, and
       // no context type. If there are any elements, inference has not failed,
       // as the types of those elements are considered resolved.
-      _diagnosticReporter.atNode(
-        node,
-        diag.inferenceFailureOnCollectionLiteral,
-        arguments: [node.isMap ? 'Map' : 'Set'],
+      _diagnosticReporter.report(
+        diag.inferenceFailureOnCollectionLiteral
+            .withArguments(collection: node.isMap ? 'Map' : 'Set')
+            .at(node),
       );
     }
     // TODO(brianwilkerson): Decide whether the literalType needs to be made

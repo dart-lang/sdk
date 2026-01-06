@@ -1578,9 +1578,9 @@ concreteClassWithAbstractMember = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the constructor and field
+/// String name: the name of the constructor and field
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 conflictingConstructorAndStaticField = DiagnosticWithArguments(
   name: 'conflicting_constructor_and_static_member',
@@ -1596,9 +1596,9 @@ conflictingConstructorAndStaticField = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the constructor and getter
+/// String name: the name of the constructor and getter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 conflictingConstructorAndStaticGetter = DiagnosticWithArguments(
   name: 'conflicting_constructor_and_static_member',
@@ -1614,9 +1614,9 @@ conflictingConstructorAndStaticGetter = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the constructor
+/// String name: the name of the constructor
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 conflictingConstructorAndStaticMethod = DiagnosticWithArguments(
   name: 'conflicting_constructor_and_static_member',
@@ -1632,9 +1632,9 @@ conflictingConstructorAndStaticMethod = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the constructor and setter
+/// String name: the name of the constructor and setter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 conflictingConstructorAndStaticSetter = DiagnosticWithArguments(
   name: 'conflicting_constructor_and_static_member',
@@ -1654,15 +1654,15 @@ conflictingConstructorAndStaticSetter = DiagnosticWithArguments(
 /// method named `n`.
 ///
 /// Parameters:
-/// String p0: the name of the class defining the conflicting field
-/// String p1: the name of the conflicting field
-/// String p2: the name of the class defining the method with which the field
-///            conflicts
+/// String className: the name of the class defining the conflicting field
+/// String fieldName: the name of the conflicting field
+/// String conflictingClassName: the name of the class defining the method
+///                              with which the field conflicts
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required String p2,
+    required String className,
+    required String fieldName,
+    required String conflictingClassName,
   })
 >
 conflictingFieldAndMethod = DiagnosticWithArguments(
@@ -1749,15 +1749,15 @@ conflictingInheritedMethodAndSetter = DiagnosticWithArguments(
 /// with basename `n`.
 ///
 /// Parameters:
-/// String p0: the name of the class defining the conflicting method
-/// String p1: the name of the conflicting method
-/// String p2: the name of the class defining the field with which the method
-///            conflicts
+/// String className: the name of the class defining the conflicting method
+/// String methodName: the name of the conflicting method
+/// String conflictingClassName: the name of the class defining the field with
+///                              which the method conflicts
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required String p2,
+    required String className,
+    required String methodName,
+    required String conflictingClassName,
   })
 >
 conflictingMethodAndField = DiagnosticWithArguments(
@@ -1802,15 +1802,15 @@ conflictingModifiers = DiagnosticWithArguments(
 /// instance member with basename `n`.
 ///
 /// Parameters:
-/// String p0: the name of the class defining the conflicting member
-/// String p1: the name of the conflicting static member
-/// String p2: the name of the class defining the field with which the method
-///            conflicts
+/// String className: the name of the class defining the conflicting member
+/// String memberName: the name of the conflicting static member
+/// String conflictingClassName: the name of the class defining the field with
+///                              which the method conflicts
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required String p2,
+    required String className,
+    required String memberName,
+    required String conflictingClassName,
   })
 >
 conflictingStaticAndInstance = DiagnosticWithArguments(
@@ -13768,10 +13768,13 @@ recursiveIncludeFile = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the class that implements itself recursively
-/// String p1: a string representation of the implements loop
+/// String className: the name of the class that implements itself recursively
+/// String loop: a string representation of the implements loop
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String className,
+    required String loop,
+  })
 >
 recursiveInterfaceInheritance = DiagnosticWithArguments(
   name: 'recursive_interface_inheritance',
@@ -13793,9 +13796,9 @@ recursiveInterfaceInheritance = DiagnosticWithArguments(
 /// superclass of itself.
 ///
 /// Parameters:
-/// String p0: the name of the class that implements itself recursively
+/// String className: the name of the class that implements itself recursively
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String className})
 >
 recursiveInterfaceInheritanceExtends = DiagnosticWithArguments(
   name: 'recursive_interface_inheritance',
@@ -13817,9 +13820,9 @@ recursiveInterfaceInheritanceExtends = DiagnosticWithArguments(
 /// superclass of itself.
 ///
 /// Parameters:
-/// String p0: the name of the class that implements itself recursively
+/// String className: the name of the class that implements itself recursively
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String className})
 >
 recursiveInterfaceInheritanceImplements = DiagnosticWithArguments(
   name: 'recursive_interface_inheritance',
@@ -13832,9 +13835,10 @@ recursiveInterfaceInheritanceImplements = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the mixin that constraints itself recursively
+/// String mixinName: the name of the mixin that constraints itself
+///                   recursively
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String mixinName})
 >
 recursiveInterfaceInheritanceOn = DiagnosticWithArguments(
   name: 'recursive_interface_inheritance',
@@ -13856,9 +13860,9 @@ recursiveInterfaceInheritanceOn = DiagnosticWithArguments(
 /// superclass of itself.
 ///
 /// Parameters:
-/// String p0: the name of the class that implements itself recursively
+/// String className: the name of the class that implements itself recursively
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String className})
 >
 recursiveInterfaceInheritanceWith = DiagnosticWithArguments(
   name: 'recursive_interface_inheritance',
@@ -18113,43 +18117,47 @@ LocatableDiagnostic _withArgumentsConcreteClassWithAbstractMember({
 }
 
 LocatableDiagnostic _withArgumentsConflictingConstructorAndStaticField({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(diag.conflictingConstructorAndStaticField, [
-    p0,
+    name,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsConflictingConstructorAndStaticGetter({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(diag.conflictingConstructorAndStaticGetter, [
-    p0,
+    name,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsConflictingConstructorAndStaticMethod({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(diag.conflictingConstructorAndStaticMethod, [
-    p0,
+    name,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsConflictingConstructorAndStaticSetter({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(diag.conflictingConstructorAndStaticSetter, [
-    p0,
+    name,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsConflictingFieldAndMethod({
-  required String p0,
-  required String p1,
-  required String p2,
+  required String className,
+  required String fieldName,
+  required String conflictingClassName,
 }) {
-  return LocatableDiagnosticImpl(diag.conflictingFieldAndMethod, [p0, p1, p2]);
+  return LocatableDiagnosticImpl(diag.conflictingFieldAndMethod, [
+    className,
+    fieldName,
+    conflictingClassName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsConflictingGenericInterfaces({
@@ -18179,11 +18187,15 @@ LocatableDiagnostic _withArgumentsConflictingInheritedMethodAndSetter({
 }
 
 LocatableDiagnostic _withArgumentsConflictingMethodAndField({
-  required String p0,
-  required String p1,
-  required String p2,
+  required String className,
+  required String methodName,
+  required String conflictingClassName,
 }) {
-  return LocatableDiagnosticImpl(diag.conflictingMethodAndField, [p0, p1, p2]);
+  return LocatableDiagnosticImpl(diag.conflictingMethodAndField, [
+    className,
+    methodName,
+    conflictingClassName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsConflictingModifiers({
@@ -18194,14 +18206,14 @@ LocatableDiagnostic _withArgumentsConflictingModifiers({
 }
 
 LocatableDiagnostic _withArgumentsConflictingStaticAndInstance({
-  required String p0,
-  required String p1,
-  required String p2,
+  required String className,
+  required String memberName,
+  required String conflictingClassName,
 }) {
   return LocatableDiagnosticImpl(diag.conflictingStaticAndInstance, [
-    p0,
-    p1,
-    p2,
+    className,
+    memberName,
+    conflictingClassName,
   ]);
 }
 
@@ -20456,38 +20468,45 @@ LocatableDiagnostic _withArgumentsRecursiveIncludeFile({
 }
 
 LocatableDiagnostic _withArgumentsRecursiveInterfaceInheritance({
-  required String p0,
-  required String p1,
+  required String className,
+  required String loop,
 }) {
-  return LocatableDiagnosticImpl(diag.recursiveInterfaceInheritance, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.recursiveInterfaceInheritance, [
+    className,
+    loop,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsRecursiveInterfaceInheritanceExtends({
-  required String p0,
+  required String className,
 }) {
   return LocatableDiagnosticImpl(diag.recursiveInterfaceInheritanceExtends, [
-    p0,
+    className,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsRecursiveInterfaceInheritanceImplements({
-  required String p0,
+  required String className,
 }) {
   return LocatableDiagnosticImpl(diag.recursiveInterfaceInheritanceImplements, [
-    p0,
+    className,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsRecursiveInterfaceInheritanceOn({
-  required String p0,
+  required String mixinName,
 }) {
-  return LocatableDiagnosticImpl(diag.recursiveInterfaceInheritanceOn, [p0]);
+  return LocatableDiagnosticImpl(diag.recursiveInterfaceInheritanceOn, [
+    mixinName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsRecursiveInterfaceInheritanceWith({
-  required String p0,
+  required String className,
 }) {
-  return LocatableDiagnosticImpl(diag.recursiveInterfaceInheritanceWith, [p0]);
+  return LocatableDiagnosticImpl(diag.recursiveInterfaceInheritanceWith, [
+    className,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsRedeclareOnNonRedeclaringMember({

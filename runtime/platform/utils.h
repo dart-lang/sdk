@@ -5,6 +5,7 @@
 #ifndef RUNTIME_PLATFORM_UTILS_H_
 #define RUNTIME_PLATFORM_UTILS_H_
 
+#include <bit>
 #include <cstdlib>
 #include <limits>
 #include <memory>
@@ -74,7 +75,8 @@ class Utils {
 
   template <typename T>
   static constexpr bool IsPowerOfTwo(T x) {
-    return ((x & (x - 1)) == 0) && (x != 0);
+    using Unsigned = typename std::make_unsigned<T>::type;
+    return std::has_single_bit(static_cast<Unsigned>(x));
   }
 
   template <typename T>
@@ -130,56 +132,14 @@ class Utils {
         RoundUp(reinterpret_cast<uword>(x), alignment, offset));
   }
 
-  // Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.,
-  // figure 3-3, page 48, where the function is called clp2.
   static constexpr uintptr_t RoundUpToPowerOfTwo(uintptr_t x) {
-    x = x - 1;
-    x = x | (x >> 1);
-    x = x | (x >> 2);
-    x = x | (x >> 4);
-    x = x | (x >> 8);
-    x = x | (x >> 16);
-#if defined(ARCH_IS_64_BIT)
-    x = x | (x >> 32);
-#endif  // defined(ARCH_IS_64_BIT)
-    return x + 1;
+    if (x == 0) return 0;
+    return std::bit_ceil(x);
   }
 
-  static constexpr int CountOneBits64(uint64_t x) {
-    // Apparently there are x64 chips without popcount.
-#if __GNUC__ && !defined(HOST_ARCH_IA32) && !defined(HOST_ARCH_X64)
-    return __builtin_popcountll(x);
-#else
-    x = x - ((x >> 1) & 0x5555555555555555);
-    x = (x & 0x3333333333333333) + ((x >> 2) & 0x3333333333333333);
-    x = (((x + (x >> 4)) & 0x0f0f0f0f0f0f0f0f) * 0x0101010101010101) >> 56;
-    return x;
-#endif
-  }
-
-  static constexpr int CountOneBits32(uint32_t x) {
-    // Apparently there are x64 chips without popcount.
-#if __GNUC__ && !defined(HOST_ARCH_IA32) && !defined(HOST_ARCH_X64)
-    return __builtin_popcount(x);
-#else
-    // Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.,
-    // figure 5-2, page 66, where the function is called pop.
-    x = x - ((x >> 1) & 0x55555555);
-    x = (x & 0x33333333) + ((x >> 2) & 0x33333333);
-    x = (x + (x >> 4)) & 0x0F0F0F0F;
-    x = x + (x >> 8);
-    x = x + (x >> 16);
-    return static_cast<int>(x & 0x0000003F);
-#endif
-  }
-
-  static constexpr int CountOneBitsWord(uword x) {
-#ifdef ARCH_IS_64_BIT
-    return CountOneBits64(x);
-#else
-    return CountOneBits32(x);
-#endif
-  }
+  static constexpr int CountOneBits64(uint64_t x) { return std::popcount(x); }
+  static constexpr int CountOneBits32(uint32_t x) { return std::popcount(x); }
+  static constexpr int CountOneBitsWord(uword x) { return std::popcount(x); }
 
   // TODO(koda): Compare to flsll call/intrinsic.
   static constexpr size_t HighestBit(int64_t v) {
@@ -213,78 +173,16 @@ class Utils {
   static constexpr size_t BitLength(int64_t value) {
     // Flip bits if negative (-1 becomes 0).
     value ^= value >> (8 * sizeof(value) - 1);
-    return (value == 0) ? 0 : (Utils::HighestBit(value) + 1);
+    return std::bit_width(static_cast<uint64_t>(value));
   }
 
-  static int CountLeadingZeros32(uint32_t x) {
-#if defined(DART_HOST_OS_WINDOWS)
-    unsigned long position;  // NOLINT
-    return (_BitScanReverse(&position, x) == 0)
-               ? 32
-               : 31 - static_cast<int>(position);
-#else
-    return x == 0 ? 32 : __builtin_clz(x);
-#endif
-  }
-  static int CountLeadingZeros64(uint64_t x) {
-#if defined(DART_HOST_OS_WINDOWS)
-#if defined(ARCH_IS_32_BIT)
-    const uint32_t x_hi = static_cast<uint32_t>(x >> 32);
-    if (x_hi != 0) {
-      return CountLeadingZeros32(x_hi);
-    }
-    return 32 + CountLeadingZeros32(static_cast<uint32_t>(x));
-#else
-    unsigned long position;  // NOLINT
-    return (_BitScanReverse64(&position, x) == 0)
-               ? 64
-               : 63 - static_cast<int>(position);
-#endif
-#else
-    return x == 0 ? 64 : __builtin_clzll(x);
-#endif
-  }
-  static int CountLeadingZerosWord(uword x) {
-#ifdef ARCH_IS_64_BIT
-    return CountLeadingZeros64(x);
-#else
-    return CountLeadingZeros32(x);
-#endif
-  }
+  static int CountLeadingZeros32(uint32_t x) { return std::countl_zero(x); }
+  static int CountLeadingZeros64(uint64_t x) { return std::countl_zero(x); }
+  static int CountLeadingZerosWord(uword x) { return std::countl_zero(x); }
 
-  static int CountTrailingZeros32(uint32_t x) {
-#if defined(DART_HOST_OS_WINDOWS)
-    unsigned long position;  // NOLINT
-    return (_BitScanForward(&position, x) == 0) ? 32
-                                                : static_cast<int>(position);
-#else
-    return x == 0 ? 32 : __builtin_ctz(x);
-#endif
-  }
-  static int CountTrailingZeros64(uint64_t x) {
-#if defined(DART_HOST_OS_WINDOWS)
-#if defined(ARCH_IS_32_BIT)
-    const uint32_t x_lo = static_cast<uint32_t>(x);
-    if (x_lo != 0) {
-      return CountTrailingZeros32(x_lo);
-    }
-    return 32 + CountTrailingZeros32(static_cast<uint32_t>(x >> 32));
-#else
-    unsigned long position;  // NOLINT
-    return (_BitScanForward64(&position, x) == 0) ? 64
-                                                  : static_cast<int>(position);
-#endif
-#else
-    return x == 0 ? 64 : __builtin_ctzll(x);
-#endif
-  }
-  static int CountTrailingZerosWord(uword x) {
-#ifdef ARCH_IS_64_BIT
-    return CountTrailingZeros64(x);
-#else
-    return CountTrailingZeros32(x);
-#endif
-  }
+  static int CountTrailingZeros32(uint32_t x) { return std::countr_zero(x); }
+  static int CountTrailingZeros64(uint64_t x) { return std::countr_zero(x); }
+  static int CountTrailingZerosWord(uword x) { return std::countr_zero(x); }
 
   static uint64_t ReverseBits64(uint64_t x);
   static uint32_t ReverseBits32(uint32_t x);

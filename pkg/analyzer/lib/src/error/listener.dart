@@ -4,8 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
-import 'package:analyzer/dart/ast/ast.dart'
-    show AstNode, ConstructorDeclaration;
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -13,6 +11,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -292,6 +292,27 @@ class DiagnosticReporter {
     );
     reportError(diagnostic);
     return diagnostic;
+  }
+
+  /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
+  ///
+  /// The [range] is used to compute the location of the diagnostic.
+  ///
+  /// The reported [Diagnostic] is returned so that the caller may attach
+  /// additional information to it (for example, using an expando).
+  Diagnostic atSourceRange(
+    SourceRange range,
+    DiagnosticCode diagnosticCode, {
+    List<Object>? arguments,
+    List<DiagnosticMessage>? contextMessages,
+  }) {
+    return atOffset(
+      offset: range.offset,
+      length: range.length,
+      diagnosticCode: diagnosticCode,
+      arguments: arguments,
+      contextMessages: contextMessages,
+    );
   }
 
   /// Reports a diagnostic with the given [diagnosticCode] and [arguments].

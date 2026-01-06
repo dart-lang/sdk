@@ -93,6 +93,7 @@ final ArgParser summaryArgsParser = new ArgParser()
   ..addFlag('use-incremental-compiler', defaultsTo: false)
   ..addOption('used-inputs')
   ..addFlag('track-widget-creation', defaultsTo: false)
+  ..addFlag('include-unsupported-platform-library-stubs', defaultsTo: false)
   ..addMultiOption('enable-experiment',
       help: 'Enable a language experiment when invoking the CFE.')
   ..addMultiOption('define', abbr: 'D')
@@ -177,13 +178,17 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     throw new ArgumentError('--summary-only conflicts with --no-summary');
   }
   bool trackWidgetCreation = parsedArgs['track-widget-creation'] as bool;
+  bool includeUnsupportedPlatformLibraryStubs =
+      parsedArgs['include-unsupported-platform-library-stubs'] as bool;
 
   // TODO(sigmund,jakemac): make target mandatory. We allow null to be backwards
   // compatible while we migrate existing clients of this tool.
   String targetName =
       (parsedArgs['target'] as String?) ?? (summaryOnly ? 'ddc' : 'vm');
-  TargetFlags targetFlags =
-      new TargetFlags(trackWidgetCreation: trackWidgetCreation);
+  TargetFlags targetFlags = new TargetFlags(
+      trackWidgetCreation: trackWidgetCreation,
+      includeUnsupportedPlatformLibraryStubs:
+          includeUnsupportedPlatformLibraryStubs);
   Target target;
   switch (targetName) {
     case 'vm':

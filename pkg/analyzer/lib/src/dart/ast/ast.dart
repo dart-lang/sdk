@@ -45,6 +45,7 @@ import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/lint/constants.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
@@ -19828,6 +19829,9 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
     }
     return typeName;
   }
+
+  PrimaryConstructorBodyImpl? get body =>
+      parent.classMembers.whereType<PrimaryConstructorBodyImpl>().firstOrNull;
 
   @generated
   @override

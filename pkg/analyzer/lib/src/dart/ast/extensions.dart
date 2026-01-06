@@ -337,6 +337,15 @@ extension PatternFieldImplExtension on PatternFieldImpl {
   }
 }
 
+extension PrimaryConstructorDeclarationExtension
+    on PrimaryConstructorDeclaration {
+  SourceRange get errorRange {
+    var startEntity = beginToken;
+    var endEntity = constructorName ?? beginToken;
+    return SourceRange(startEntity.offset, endEntity.end - startEntity.offset);
+  }
+}
+
 extension RecordTypeAnnotationExtension on RecordTypeAnnotation {
   List<RecordTypeAnnotationField> get fields {
     return [...positionalFields, ...?namedFields?.fields];

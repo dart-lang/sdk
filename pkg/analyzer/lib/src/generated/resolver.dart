@@ -3676,9 +3676,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
     var primaryConstructorDeclaration = node.declaration;
     if (primaryConstructorDeclaration == null) {
-      diagnosticReporter.atNode(
-        node,
-        diag.primaryConstructorBodyWithoutDeclaration,
+      diagnosticReporter.report(
+        diag.primaryConstructorBodyWithoutDeclaration.at(node),
       );
     }
 

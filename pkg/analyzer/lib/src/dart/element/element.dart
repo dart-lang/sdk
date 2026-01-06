@@ -2638,7 +2638,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   @trackedIncludedInId
   bool hasImplementsSelfReference = false;
 
-  late DartType _typeErasure;
+  late TypeImpl _typeErasure;
 
   ExtensionTypeElementImpl(this.reference, this._firstFragment) {
     reference.element = this;
@@ -2685,12 +2685,12 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
   @override
   @trackedIncludedInId
-  DartType get typeErasure {
+  TypeImpl get typeErasure {
     _ensureReadResolution();
     return _typeErasure;
   }
 
-  set typeErasure(DartType value) {
+  set typeErasure(TypeImpl value) {
     _typeErasure = value;
   }
 
