@@ -102,7 +102,10 @@ extension Element2Extension on Element {
   SourceRange diagnosticRange(Source source) {
     var nonSyntheticLocation =
         (nonSynthetic.baseElement as ElementImpl).firstFragmentLocation;
-    assert(identical(nonSyntheticLocation.libraryFragment?.source, source));
+    // Note: sources are compared using `==` rather than `identical`, because
+    // during an incremental update to the element model, elements that are
+    // unchanged may still point to an older (but equivalent) `source` object.
+    assert(nonSyntheticLocation.libraryFragment?.source == source);
     return SourceRange(
       nonSyntheticLocation.nameOffset ?? -1,
       nonSyntheticLocation.name?.length ?? 0,

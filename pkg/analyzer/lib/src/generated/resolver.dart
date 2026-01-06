@@ -368,6 +368,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
        baseOrFinalTypeVerifier = BaseOrFinalTypeVerifier(
          definingLibrary: definingLibrary,
          diagnosticReporter: diagnosticReporter,
+         diagnosticSource: source,
        ) {
     inferenceHelper = InvocationInferenceHelper(
       resolver: this,
