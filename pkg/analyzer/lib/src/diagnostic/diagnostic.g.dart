@@ -3997,8 +3997,8 @@ duplicateNamedArgument = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Uri p0: the URI of the duplicate part
-const DiagnosticWithArguments<LocatableDiagnostic Function({required Uri p0})>
+/// Uri uri: the URI of the duplicate part
+const DiagnosticWithArguments<LocatableDiagnostic Function({required Uri uri})>
 duplicatePart = DiagnosticWithArguments(
   name: 'duplicate_part',
   problemMessage: "The library already contains a part with the URI '{0}'.",
@@ -9104,9 +9104,9 @@ invalidUnicodeEscapeUStarted = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the URI that is invalid
+/// String uri: the URI that is invalid
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String uri})
 >
 invalidUri = DiagnosticWithArguments(
   name: 'invalid_uri',
@@ -13032,11 +13032,14 @@ parseError = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of expected library name
-/// String p1: the non-matching actual library name from the "part of"
-///            declaration
+/// String expectedName: the name of expected library name
+/// String actualName: the non-matching actual library name from the "part of"
+///                    declaration
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String expectedName,
+    required String actualName,
+  })
 >
 partOfDifferentLibrary = DiagnosticWithArguments(
   name: 'part_of_different_library',
@@ -13063,9 +13066,9 @@ const DiagnosticWithoutArguments partOfName = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the URI pointing to a non-library declaration
+/// String uriStr: the URI pointing to a non-library declaration
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String uriStr})
 >
 partOfNonPart = DiagnosticWithArguments(
   name: 'part_of_non_part',
@@ -13079,10 +13082,10 @@ partOfNonPart = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the non-matching actual library name from the "part of"
-///            declaration
+/// String libraryName: the non-matching actual library name from the "part
+///                     of" declaration
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String libraryName})
 >
 partOfUnnamedLibrary = DiagnosticWithArguments(
   name: 'part_of_unnamed_library',
@@ -17080,9 +17083,9 @@ unusedShownName = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the URI pointing to a nonexistent file
+/// String uriStr: the URI pointing to a nonexistent file
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String uriStr})
 >
 uriDoesNotExist = DiagnosticWithArguments(
   name: 'uri_does_not_exist',
@@ -17098,9 +17101,9 @@ uriDoesNotExist = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the URI pointing to a nonexistent file
+/// String uriStr: the URI pointing to a nonexistent file
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String uriStr})
 >
 uriDoesNotExistInDocImport = DiagnosticWithArguments(
   name: 'uri_does_not_exist_in_doc_import',
@@ -17116,9 +17119,9 @@ uriDoesNotExistInDocImport = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the URI pointing to a nonexistent file
+/// String uriStr: the URI pointing to a nonexistent file
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String uriStr})
 >
 uriHasNotBeenGenerated = DiagnosticWithArguments(
   name: 'uri_has_not_been_generated',
@@ -18686,8 +18689,8 @@ LocatableDiagnostic _withArgumentsDuplicateNamedArgument({required String p0}) {
   return LocatableDiagnosticImpl(diag.duplicateNamedArgument, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsDuplicatePart({required Uri p0}) {
-  return LocatableDiagnosticImpl(diag.duplicatePart, [p0]);
+LocatableDiagnostic _withArgumentsDuplicatePart({required Uri uri}) {
+  return LocatableDiagnosticImpl(diag.duplicatePart, [uri]);
 }
 
 LocatableDiagnostic _withArgumentsDuplicatePatternAssignmentVariable({
@@ -19638,8 +19641,8 @@ LocatableDiagnostic _withArgumentsInvalidTypeArgumentInConstSet({
   return LocatableDiagnosticImpl(diag.invalidTypeArgumentInConstSet, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsInvalidUri({required String p0}) {
-  return LocatableDiagnosticImpl(diag.invalidUri, [p0]);
+LocatableDiagnostic _withArgumentsInvalidUri({required String uri}) {
+  return LocatableDiagnosticImpl(diag.invalidUri, [uri]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidUseOfDoNotSubmitMember({
@@ -20374,18 +20377,23 @@ LocatableDiagnostic _withArgumentsParseError({required String errorMessage}) {
 }
 
 LocatableDiagnostic _withArgumentsPartOfDifferentLibrary({
-  required String p0,
-  required String p1,
+  required String expectedName,
+  required String actualName,
 }) {
-  return LocatableDiagnosticImpl(diag.partOfDifferentLibrary, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.partOfDifferentLibrary, [
+    expectedName,
+    actualName,
+  ]);
 }
 
-LocatableDiagnostic _withArgumentsPartOfNonPart({required String p0}) {
-  return LocatableDiagnosticImpl(diag.partOfNonPart, [p0]);
+LocatableDiagnostic _withArgumentsPartOfNonPart({required String uriStr}) {
+  return LocatableDiagnosticImpl(diag.partOfNonPart, [uriStr]);
 }
 
-LocatableDiagnostic _withArgumentsPartOfUnnamedLibrary({required String p0}) {
-  return LocatableDiagnosticImpl(diag.partOfUnnamedLibrary, [p0]);
+LocatableDiagnostic _withArgumentsPartOfUnnamedLibrary({
+  required String libraryName,
+}) {
+  return LocatableDiagnosticImpl(diag.partOfUnnamedLibrary, [libraryName]);
 }
 
 LocatableDiagnostic _withArgumentsPathDoesNotExist({required String p0}) {
@@ -21316,18 +21324,20 @@ LocatableDiagnostic _withArgumentsUnusedShownName({required String p0}) {
   return LocatableDiagnosticImpl(diag.unusedShownName, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsUriDoesNotExist({required String p0}) {
-  return LocatableDiagnosticImpl(diag.uriDoesNotExist, [p0]);
+LocatableDiagnostic _withArgumentsUriDoesNotExist({required String uriStr}) {
+  return LocatableDiagnosticImpl(diag.uriDoesNotExist, [uriStr]);
 }
 
 LocatableDiagnostic _withArgumentsUriDoesNotExistInDocImport({
-  required String p0,
+  required String uriStr,
 }) {
-  return LocatableDiagnosticImpl(diag.uriDoesNotExistInDocImport, [p0]);
+  return LocatableDiagnosticImpl(diag.uriDoesNotExistInDocImport, [uriStr]);
 }
 
-LocatableDiagnostic _withArgumentsUriHasNotBeenGenerated({required String p0}) {
-  return LocatableDiagnosticImpl(diag.uriHasNotBeenGenerated, [p0]);
+LocatableDiagnostic _withArgumentsUriHasNotBeenGenerated({
+  required String uriStr,
+}) {
+  return LocatableDiagnosticImpl(diag.uriHasNotBeenGenerated, [uriStr]);
 }
 
 LocatableDiagnostic _withArgumentsVariableTypeMismatch({
