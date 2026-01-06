@@ -124,6 +124,9 @@ class PluginManager {
 
   final ProcessRunner _processRunner;
 
+  /// The set of context root paths with no configured _new_ plugins.
+  final contextRootsWithNoPlugins = <String>{};
+
   /// Initializes a newly created plugin manager.
   ///
   /// The notifications from the running plugins will be handled by the given
@@ -380,6 +383,10 @@ class PluginManager {
     var stateName = _uniqueDirectoryName(pluginPath);
     return stateFolder.getChildAssumingFolder(stateName);
   }
+
+  /// The path to the "plugin state" folder for a plugin at [pluginPath].
+  String pluginStateFolderPath(String pluginPath) =>
+      pluginStateFolder(pluginPath).path;
 
   /// The given [contextRoot] is no longer being analyzed.
   void removedContextRoot(analyzer.ContextRoot contextRoot) {

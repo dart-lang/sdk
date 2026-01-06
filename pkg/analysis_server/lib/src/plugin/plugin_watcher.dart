@@ -50,6 +50,8 @@ class PluginWatcher implements DriverWatcher {
 
     var pluginsOptions = driver.pluginsOptions;
     if (pluginsOptions == null || pluginsOptions.configurations.isEmpty) {
+      manager.contextRootsWithNoPlugins.add(contextRoot.root.path);
+
       // Call the plugin manager "initialized."
       if (!manager.initializedCompleter.isCompleted) {
         manager.initializedCompleter.complete();
