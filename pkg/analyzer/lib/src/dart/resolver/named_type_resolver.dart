@@ -541,13 +541,12 @@ class _ErrorHelper {
           );
         } else {
           String className = node.name.lexeme;
-          diagnosticReporter.atOffset(
-            offset: errorRange.offset,
-            length: errorRange.length,
-            diagnosticCode: instanceCreation.isConst
-                ? diag.constWithNonType
-                : diag.newWithNonType,
-            arguments: [className],
+          diagnosticReporter.report(
+            (instanceCreation.isConst
+                    ? diag.constWithNonType
+                    : diag.newWithNonType)
+                .withArguments(name: className)
+                .atSourceRange(errorRange),
           );
         }
         return true;

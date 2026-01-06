@@ -2768,9 +2768,9 @@ const DiagnosticWithoutArguments constWithNonConstantArgument =
     );
 
 /// Parameters:
-/// String p0: the name of the non-type element
+/// String name: the name of the non-type element
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 constWithNonType = DiagnosticWithArguments(
   name: 'creation_with_non_type',
@@ -11409,9 +11409,9 @@ newConstructorQualifiedName = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the non-type element
+/// String name: the name of the non-type element
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 newWithNonType = DiagnosticWithArguments(
   name: 'creation_with_non_type',
@@ -18443,8 +18443,8 @@ LocatableDiagnostic _withArgumentsConstSetElementNotPrimitiveEquality({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsConstWithNonType({required String p0}) {
-  return LocatableDiagnosticImpl(diag.constWithNonType, [p0]);
+LocatableDiagnostic _withArgumentsConstWithNonType({required String name}) {
+  return LocatableDiagnosticImpl(diag.constWithNonType, [name]);
 }
 
 LocatableDiagnostic _withArgumentsConstWithUndefinedConstructor({
@@ -20053,8 +20053,8 @@ LocatableDiagnostic _withArgumentsNativeFieldInvalidType({
   return LocatableDiagnosticImpl(diag.nativeFieldInvalidType, [type]);
 }
 
-LocatableDiagnostic _withArgumentsNewWithNonType({required String p0}) {
-  return LocatableDiagnosticImpl(diag.newWithNonType, [p0]);
+LocatableDiagnostic _withArgumentsNewWithNonType({required String name}) {
+  return LocatableDiagnosticImpl(diag.newWithNonType, [name]);
 }
 
 LocatableDiagnostic _withArgumentsNewWithUndefinedConstructor({

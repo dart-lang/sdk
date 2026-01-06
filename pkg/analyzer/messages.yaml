@@ -4262,9 +4262,9 @@ CompileTimeErrorCode:
   newWithNonType:
     type: compileTimeError
     parameters:
-      String p0: the name of the non-type element
+      String name: the name of the non-type element
     sharedName: creationWithNonType
-    problemMessage: "The name '#p0' isn't a class."
+    problemMessage: "The name '#name' isn't a class."
     correctionMessage: Try correcting the name to match an existing class.
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
@@ -4313,9 +4313,9 @@ CompileTimeErrorCode:
   constWithNonType:
     type: compileTimeError
     parameters:
-      String p0: the name of the non-type element
+      String name: the name of the non-type element
     sharedName: creationWithNonType
-    problemMessage: "The name '#p0' isn't a class."
+    problemMessage: "The name '#name' isn't a class."
     correctionMessage: Try correcting the name to match an existing class.
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
