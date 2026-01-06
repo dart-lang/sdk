@@ -168,8 +168,8 @@ class AnalyticsManager {
   }
 
   /// Record that the set of plugins known to the [pluginManager] has changed.
-  void changedPlugins(PluginManager pluginManager) {
-    _pluginData.recordPlugins(pluginManager);
+  Future<void> changedPlugins(PluginManager pluginManager) async {
+    await _pluginData.recordPlugins(pluginManager);
   }
 
   /// Record the number of [added] folders and [removed] folders.
@@ -741,7 +741,7 @@ class AnalyticsManager {
     }
   }
 
-  /// Send information about the session.
+  /// Sends information about the session, after the session has ended.
   Future<void> _sendSessionData(SessionData sessionData) async {
     var endTime = DateTime.now().millisecondsSinceEpoch;
     var duration = endTime - sessionData.startTime.millisecondsSinceEpoch;
@@ -754,12 +754,24 @@ class AnalyticsManager {
         duration: duration,
       ),
     );
-    for (var entry in _pluginData.usageCounts.entries) {
+    for (var MapEntry(key: pluginId, value: percentileCalculator)
+        in _pluginData.usageCounts.entries) {
       analytics.send(
         Event.pluginUse(
           count: _pluginData.recordCount,
-          enabled: entry.value.toAnalyticsString(),
-          pluginId: entry.key,
+          enabled: percentileCalculator.toAnalyticsString(),
+          pluginId: pluginId,
+        ),
+      );
+    }
+    for (var counts in _pluginData.counts.values) {
+      analytics.send(
+        Event.plugins(
+          count: counts.pluginCount,
+          lintRuleCounts: counts.lintRuleCounts.toAnalyticsString(),
+          warningRuleCounts: counts.warningRuleCounts.toAnalyticsString(),
+          fixCounts: counts.fixCounts.toAnalyticsString(),
+          assistCounts: counts.assistCounts.toAnalyticsString(),
         ),
       );
     }
