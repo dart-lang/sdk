@@ -46,6 +46,8 @@ import 'package:kernel/names.dart' show minusName, plusName;
 import 'package:kernel/src/bounds_checks.dart' hide calculateBounds;
 import 'package:kernel/type_environment.dart';
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart' as shared;
+
 import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/lowering_predicates.dart';
 import '../base/compiler_context.dart';
@@ -5400,25 +5402,44 @@ class BodyBuilderImpl extends StackListenerImpl
 
     // If it's a private named parameter, handle the public name.
     String? publicName;
-    if (libraryFeatures.privateNamedParameters.isEnabled &&
-        kind.isNamed &&
-        name != null &&
-        name.name.startsWith('_')) {
+    if (kind.isNamed && name != null && name.name.startsWith('_')) {
       // TODO(rnystrom): Also handle declaring field parameters.
       bool refersToField = thisKeyword != null;
 
-      publicName = correspondingPublicName(name.name);
+      if (libraryFeatures.privateNamedParameters.isEnabled) {
+        if (!refersToField) {
+          handleRecoverableError(
+            cfe.codePrivateNamedNonFieldParameter,
+            nameToken,
+            nameToken,
+          );
+        } else {
+          publicName = correspondingPublicName(name.name);
 
-      // Only report the error for no corresponding public name if this is a
-      // parameter that could be private and named. Otherwise, that's already
-      // an error (which has been reported by the parser), so don't report a
-      // second error on top.
-      if (refersToField && publicName == null) {
-        handleRecoverableError(
-          cfe.codePrivateNamedParameterWithoutPublicName,
-          nameToken,
-          nameToken,
-        );
+          // Only report the error for no corresponding public name if this is a
+          // parameter that could be private and named.
+          if (publicName == null) {
+            handleRecoverableError(
+              cfe.codePrivateNamedParameterWithoutPublicName,
+              nameToken,
+              nameToken,
+            );
+          }
+        }
+      } else {
+        if (refersToField) {
+          handleExperimentNotEnabled(
+            shared.ExperimentalFlag.privateNamedParameters,
+            nameToken,
+            nameToken,
+          );
+        } else {
+          handleRecoverableError(
+            cfe.codePrivateNamedParameter,
+            nameToken,
+            nameToken,
+          );
+        }
       }
     }
 

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart' as shared;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
@@ -41,6 +42,7 @@ import '../base/modifiers.dart' show Modifiers;
 import '../base/operator.dart' show Operator;
 import '../base/problems.dart' show unhandled;
 import '../base/uris.dart';
+import '../codes/cfe_codes.dart' as cfe;
 import '../builder/compilation_unit.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -2979,13 +2981,45 @@ class OutlineBuilder extends StackListenerImpl {
       // corresponding public name. The variable declared by the parameter will
       // use that name instead.
       String? publicName;
-      // TODO(rnystrom): Also handle declaring field parameters.
-      bool refersToField = thisKeyword != null;
-      if (refersToField &&
-          libraryFeatures.privateNamedParameters.isEnabled &&
-          kind.isNamed &&
-          parameterName.startsWith('_')) {
-        publicName = correspondingPublicName(parameterName);
+      if (kind.isNamed && parameterName.startsWith('_')) {
+        // TODO(rnystrom): Also handle declaring field parameters.
+        bool refersToField = thisKeyword != null;
+
+        if (libraryFeatures.privateNamedParameters.isEnabled) {
+          if (!refersToField) {
+            handleRecoverableError(
+              cfe.codePrivateNamedNonFieldParameter,
+              nameToken,
+              nameToken,
+            );
+          } else {
+            publicName = correspondingPublicName(parameterName);
+
+            // Only report the error for no corresponding public name if this
+            // is a parameter that could be private and named.
+            if (publicName == null) {
+              handleRecoverableError(
+                cfe.codePrivateNamedParameterWithoutPublicName,
+                nameToken,
+                nameToken,
+              );
+            }
+          }
+        } else {
+          if (refersToField) {
+            handleExperimentNotEnabled(
+              shared.ExperimentalFlag.privateNamedParameters,
+              nameToken,
+              nameToken,
+            );
+          } else {
+            handleRecoverableError(
+              cfe.codePrivateNamedParameter,
+              nameToken,
+              nameToken,
+            );
+          }
+        }
       }
 
       push(
