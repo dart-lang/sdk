@@ -1719,15 +1719,15 @@ conflictingGenericInterfaces = DiagnosticWithArguments(
 /// instance setter with basename `n`.
 ///
 /// Parameters:
-/// String p0: the name of the enclosing element kind - class, extension type,
-///            etc
-/// String p1: the name of the enclosing element
-/// String p2: the name of the conflicting method / setter
+/// String enclosingElementKind: the name of the enclosing element kind -
+///                              class, extension type, etc
+/// String enclosingElementName: the name of the enclosing element
+/// String memberName: the name of the conflicting method / setter
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required String p2,
+    required String enclosingElementKind,
+    required String enclosingElementName,
+    required String memberName,
   })
 >
 conflictingInheritedMethodAndSetter = DiagnosticWithArguments(
@@ -1830,9 +1830,9 @@ conflictingStaticAndInstance = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the type parameter
+/// String typeParameterName: the name of the type parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String typeParameterName})
 >
 conflictingTypeVariableAndClass = DiagnosticWithArguments(
   name: 'conflicting_type_variable_and_container',
@@ -1848,9 +1848,9 @@ conflictingTypeVariableAndClass = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the type parameter
+/// String typeParameterName: the name of the type parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String typeParameterName})
 >
 conflictingTypeVariableAndEnum = DiagnosticWithArguments(
   name: 'conflicting_type_variable_and_container',
@@ -1866,9 +1866,9 @@ conflictingTypeVariableAndEnum = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the type parameter
+/// String typeParameterName: the name of the type parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String typeParameterName})
 >
 conflictingTypeVariableAndExtension = DiagnosticWithArguments(
   name: 'conflicting_type_variable_and_container',
@@ -1884,9 +1884,9 @@ conflictingTypeVariableAndExtension = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the type parameter
+/// String typeParameterName: the name of the type parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String typeParameterName})
 >
 conflictingTypeVariableAndExtensionType = DiagnosticWithArguments(
   name: 'conflicting_type_variable_and_container',
@@ -1902,9 +1902,9 @@ conflictingTypeVariableAndExtensionType = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the type parameter
+/// String typeParameterName: the name of the type parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String typeParameterName})
 >
 conflictingTypeVariableAndMemberClass = DiagnosticWithArguments(
   name: 'conflicting_type_variable_and_member',
@@ -1920,9 +1920,9 @@ conflictingTypeVariableAndMemberClass = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the type parameter
+/// String typeParameterName: the name of the type parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String typeParameterName})
 >
 conflictingTypeVariableAndMemberEnum = DiagnosticWithArguments(
   name: 'conflicting_type_variable_and_member',
@@ -1938,9 +1938,9 @@ conflictingTypeVariableAndMemberEnum = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the type parameter
+/// String typeParameterName: the name of the type parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String typeParameterName})
 >
 conflictingTypeVariableAndMemberExtension = DiagnosticWithArguments(
   name: 'conflicting_type_variable_and_member',
@@ -1956,9 +1956,9 @@ conflictingTypeVariableAndMemberExtension = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the type parameter
+/// String typeParameterName: the name of the type parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String typeParameterName})
 >
 conflictingTypeVariableAndMemberExtensionType = DiagnosticWithArguments(
   name: 'conflicting_type_variable_and_member',
@@ -1974,9 +1974,9 @@ conflictingTypeVariableAndMemberExtensionType = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the type parameter
+/// String typeParameterName: the name of the type parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String typeParameterName})
 >
 conflictingTypeVariableAndMemberMixin = DiagnosticWithArguments(
   name: 'conflicting_type_variable_and_member',
@@ -1992,9 +1992,9 @@ conflictingTypeVariableAndMemberMixin = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the type parameter
+/// String typeParameterName: the name of the type parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String typeParameterName})
 >
 conflictingTypeVariableAndMixin = DiagnosticWithArguments(
   name: 'conflicting_type_variable_and_container',
@@ -11513,12 +11513,15 @@ noDefaultSuperConstructorExplicit = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the name of the superclass that does not define an implicitly
-///          invoked constructor
-/// String p1: the name of the subclass that does not contain any explicit
-///            constructors
+/// Type superclassType: the name of the superclass that does not define an
+///                      implicitly invoked constructor
+/// String subclassName: the name of the subclass that does not contain any
+///                      explicit constructors
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required String p1})
+  LocatableDiagnostic Function({
+    required DartType superclassType,
+    required String subclassName,
+  })
 >
 noDefaultSuperConstructorImplicit = DiagnosticWithArguments(
   name: 'no_default_super_constructor',
@@ -12217,14 +12220,15 @@ nonGenerativeConstructor = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the superclass
-/// String p1: the name of the current class
-/// Element p2: the implicitly called factory constructor of the superclass
+/// String superclassName: the name of the superclass
+/// String className: the name of the current class
+/// Element factoryConstructor: the implicitly called factory constructor of
+///                             the superclass
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required Element p2,
+    required String superclassName,
+    required String className,
+    required Element factoryConstructor,
   })
 >
 nonGenerativeImplicitConstructor = DiagnosticWithArguments(
@@ -17365,17 +17369,18 @@ workspaceValueNotSubdirectory = DiagnosticWithArguments(
 /// `T`.
 ///
 /// Parameters:
-/// Object p0: the name of the type parameter
-/// Object p1: the variance modifier defined for {0}
-/// Object p2: the variance position of the type parameter {0} in the
-///            superinterface {3}
-/// Object p3: the name of the superinterface
+/// String typeParameterName: the name of the type parameter
+/// String varianceModifier: the variance modifier defined for the type
+///                          parameter
+/// String variancePosition: the variance position of the type parameter in
+///                          the superinterface
+/// Type superInterface: the type of the superinterface
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-    required Object p3,
+    required String typeParameterName,
+    required String varianceModifier,
+    required String variancePosition,
+    required DartType superInterface,
   })
 >
 wrongExplicitTypeParameterVarianceInSuperinterface = DiagnosticWithArguments(
@@ -17391,10 +17396,10 @@ wrongExplicitTypeParameterVarianceInSuperinterface = DiagnosticWithArguments(
   withArguments:
       _withArgumentsWrongExplicitTypeParameterVarianceInSuperinterface,
   expectedTypes: [
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.type,
   ],
 );
 
@@ -17660,10 +17665,13 @@ wrongTerminatorForParameterGroup = DiagnosticWithArguments(
 /// error if `X` occurs contravariantly or invariantly in `T`.
 ///
 /// Parameters:
-/// String p0: the name of the type parameter
-/// Type p1: the name of the super interface
+/// String typeParameterName: the name of the type parameter
+/// Type superInterfaceType: the name of the super interface
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required String typeParameterName,
+    required DartType superInterfaceType,
+  })
 >
 wrongTypeParameterVarianceInSuperinterface = DiagnosticWithArguments(
   name: 'wrong_type_parameter_variance_in_superinterface',
@@ -18187,14 +18195,14 @@ LocatableDiagnostic _withArgumentsConflictingGenericInterfaces({
 }
 
 LocatableDiagnostic _withArgumentsConflictingInheritedMethodAndSetter({
-  required String p0,
-  required String p1,
-  required String p2,
+  required String enclosingElementKind,
+  required String enclosingElementName,
+  required String memberName,
 }) {
   return LocatableDiagnosticImpl(diag.conflictingInheritedMethodAndSetter, [
-    p0,
-    p1,
-    p2,
+    enclosingElementKind,
+    enclosingElementName,
+    memberName,
   ]);
 }
 
@@ -18230,80 +18238,86 @@ LocatableDiagnostic _withArgumentsConflictingStaticAndInstance({
 }
 
 LocatableDiagnostic _withArgumentsConflictingTypeVariableAndClass({
-  required String p0,
+  required String typeParameterName,
 }) {
-  return LocatableDiagnosticImpl(diag.conflictingTypeVariableAndClass, [p0]);
+  return LocatableDiagnosticImpl(diag.conflictingTypeVariableAndClass, [
+    typeParameterName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsConflictingTypeVariableAndEnum({
-  required String p0,
+  required String typeParameterName,
 }) {
-  return LocatableDiagnosticImpl(diag.conflictingTypeVariableAndEnum, [p0]);
+  return LocatableDiagnosticImpl(diag.conflictingTypeVariableAndEnum, [
+    typeParameterName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsConflictingTypeVariableAndExtension({
-  required String p0,
+  required String typeParameterName,
 }) {
   return LocatableDiagnosticImpl(diag.conflictingTypeVariableAndExtension, [
-    p0,
+    typeParameterName,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsConflictingTypeVariableAndExtensionType({
-  required String p0,
+  required String typeParameterName,
 }) {
   return LocatableDiagnosticImpl(diag.conflictingTypeVariableAndExtensionType, [
-    p0,
+    typeParameterName,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsConflictingTypeVariableAndMemberClass({
-  required String p0,
+  required String typeParameterName,
 }) {
   return LocatableDiagnosticImpl(diag.conflictingTypeVariableAndMemberClass, [
-    p0,
+    typeParameterName,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsConflictingTypeVariableAndMemberEnum({
-  required String p0,
+  required String typeParameterName,
 }) {
   return LocatableDiagnosticImpl(diag.conflictingTypeVariableAndMemberEnum, [
-    p0,
+    typeParameterName,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsConflictingTypeVariableAndMemberExtension({
-  required String p0,
+  required String typeParameterName,
 }) {
   return LocatableDiagnosticImpl(
     diag.conflictingTypeVariableAndMemberExtension,
-    [p0],
+    [typeParameterName],
   );
 }
 
 LocatableDiagnostic
 _withArgumentsConflictingTypeVariableAndMemberExtensionType({
-  required String p0,
+  required String typeParameterName,
 }) {
   return LocatableDiagnosticImpl(
     diag.conflictingTypeVariableAndMemberExtensionType,
-    [p0],
+    [typeParameterName],
   );
 }
 
 LocatableDiagnostic _withArgumentsConflictingTypeVariableAndMemberMixin({
-  required String p0,
+  required String typeParameterName,
 }) {
   return LocatableDiagnosticImpl(diag.conflictingTypeVariableAndMemberMixin, [
-    p0,
+    typeParameterName,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsConflictingTypeVariableAndMixin({
-  required String p0,
+  required String typeParameterName,
 }) {
-  return LocatableDiagnosticImpl(diag.conflictingTypeVariableAndMixin, [p0]);
+  return LocatableDiagnosticImpl(diag.conflictingTypeVariableAndMixin, [
+    typeParameterName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsConstantPatternNeverMatchesValueType({
@@ -20049,12 +20063,12 @@ LocatableDiagnostic _withArgumentsNoDefaultSuperConstructorExplicit({
 }
 
 LocatableDiagnostic _withArgumentsNoDefaultSuperConstructorImplicit({
-  required DartType p0,
-  required String p1,
+  required DartType superclassType,
+  required String subclassName,
 }) {
   return LocatableDiagnosticImpl(diag.noDefaultSuperConstructorImplicit, [
-    p0,
-    p1,
+    superclassType,
+    subclassName,
   ]);
 }
 
@@ -20204,14 +20218,14 @@ LocatableDiagnostic _withArgumentsNonGenerativeConstructor({
 }
 
 LocatableDiagnostic _withArgumentsNonGenerativeImplicitConstructor({
-  required String p0,
-  required String p1,
-  required Element p2,
+  required String superclassName,
+  required String className,
+  required Element factoryConstructor,
 }) {
   return LocatableDiagnosticImpl(diag.nonGenerativeImplicitConstructor, [
-    p0,
-    p1,
-    p2,
+    superclassName,
+    className,
+    factoryConstructor,
   ]);
 }
 
@@ -21314,14 +21328,14 @@ LocatableDiagnostic _withArgumentsWorkspaceValueNotSubdirectory({
 
 LocatableDiagnostic
 _withArgumentsWrongExplicitTypeParameterVarianceInSuperinterface({
-  required Object p0,
-  required Object p1,
-  required Object p2,
-  required Object p3,
+  required String typeParameterName,
+  required String varianceModifier,
+  required String variancePosition,
+  required DartType superInterface,
 }) {
   return LocatableDiagnosticImpl(
     diag.wrongExplicitTypeParameterVarianceInSuperinterface,
-    [p0, p1, p2, p3],
+    [typeParameterName, varianceModifier, variancePosition, superInterface],
   );
 }
 
@@ -21438,12 +21452,12 @@ LocatableDiagnostic _withArgumentsWrongTerminatorForParameterGroup({
 }
 
 LocatableDiagnostic _withArgumentsWrongTypeParameterVarianceInSuperinterface({
-  required String p0,
-  required DartType p1,
+  required String typeParameterName,
+  required DartType superInterfaceType,
 }) {
   return LocatableDiagnosticImpl(
     diag.wrongTypeParameterVarianceInSuperinterface,
-    [p0, p1],
+    [typeParameterName, superInterfaceType],
   );
 }
 

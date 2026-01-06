@@ -3019,10 +3019,10 @@ CompileTimeErrorCode:
   conflictingInheritedMethodAndSetter:
     type: compileTimeError
     parameters:
-      String p0: the name of the enclosing element kind - class, extension type, etc
-      String p1: the name of the enclosing element
-      String p2: the name of the conflicting method / setter
-    problemMessage: "The #p0 '#p1' can't inherit both a method and a setter named '#p2'."
+      String enclosingElementKind: the name of the enclosing element kind - class, extension type, etc
+      String enclosingElementName: the name of the enclosing element
+      String memberName: the name of the conflicting method / setter
+    problemMessage: "The #enclosingElementKind '#enclosingElementName' can't inherit both a method and a setter named '#memberName'."
     hasPublishedDocs: false
     comment: |-
       10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
@@ -3057,9 +3057,9 @@ CompileTimeErrorCode:
   conflictingTypeVariableAndClass:
     type: compileTimeError
     parameters:
-      String p0: the name of the type parameter
+      String typeParameterName: the name of the type parameter
     sharedName: conflictingTypeVariableAndContainer
-    problemMessage: "'#p0' can't be used to name both a type parameter and the class in which the type parameter is defined."
+    problemMessage: "'#typeParameterName' can't be used to name both a type parameter and the class in which the type parameter is defined."
     correctionMessage: Try renaming either the type parameter or the class.
     hasPublishedDocs: true
     documentation: |-
@@ -3088,41 +3088,41 @@ CompileTimeErrorCode:
   conflictingTypeVariableAndEnum:
     type: compileTimeError
     parameters:
-      String p0: the name of the type parameter
+      String typeParameterName: the name of the type parameter
     sharedName: conflictingTypeVariableAndContainer
-    problemMessage: "'#p0' can't be used to name both a type parameter and the enum in which the type parameter is defined."
+    problemMessage: "'#typeParameterName' can't be used to name both a type parameter and the enum in which the type parameter is defined."
     correctionMessage: Try renaming either the type parameter or the enum.
     hasPublishedDocs: true
   conflictingTypeVariableAndExtension:
     type: compileTimeError
     parameters:
-      String p0: the name of the type parameter
+      String typeParameterName: the name of the type parameter
     sharedName: conflictingTypeVariableAndContainer
-    problemMessage: "'#p0' can't be used to name both a type parameter and the extension in which the type parameter is defined."
+    problemMessage: "'#typeParameterName' can't be used to name both a type parameter and the extension in which the type parameter is defined."
     correctionMessage: Try renaming either the type parameter or the extension.
     hasPublishedDocs: true
   conflictingTypeVariableAndExtensionType:
     type: compileTimeError
     parameters:
-      String p0: the name of the type parameter
+      String typeParameterName: the name of the type parameter
     sharedName: conflictingTypeVariableAndContainer
-    problemMessage: "'#p0' can't be used to name both a type parameter and the extension type in which the type parameter is defined."
+    problemMessage: "'#typeParameterName' can't be used to name both a type parameter and the extension type in which the type parameter is defined."
     correctionMessage: Try renaming either the type parameter or the extension.
     hasPublishedDocs: true
   conflictingTypeVariableAndMixin:
     type: compileTimeError
     parameters:
-      String p0: the name of the type parameter
+      String typeParameterName: the name of the type parameter
     sharedName: conflictingTypeVariableAndContainer
-    problemMessage: "'#p0' can't be used to name both a type parameter and the mixin in which the type parameter is defined."
+    problemMessage: "'#typeParameterName' can't be used to name both a type parameter and the mixin in which the type parameter is defined."
     correctionMessage: Try renaming either the type parameter or the mixin.
     hasPublishedDocs: true
   conflictingTypeVariableAndMemberClass:
     type: compileTimeError
     parameters:
-      String p0: the name of the type parameter
+      String typeParameterName: the name of the type parameter
     sharedName: conflictingTypeVariableAndMember
-    problemMessage: "'#p0' can't be used to name both a type parameter and a member in this class."
+    problemMessage: "'#typeParameterName' can't be used to name both a type parameter and a member in this class."
     correctionMessage: Try renaming either the type parameter or the member.
     hasPublishedDocs: true
     documentation: |-
@@ -3155,33 +3155,33 @@ CompileTimeErrorCode:
   conflictingTypeVariableAndMemberMixin:
     type: compileTimeError
     parameters:
-      String p0: the name of the type parameter
+      String typeParameterName: the name of the type parameter
     sharedName: conflictingTypeVariableAndMember
-    problemMessage: "'#p0' can't be used to name both a type parameter and a member in this mixin."
+    problemMessage: "'#typeParameterName' can't be used to name both a type parameter and a member in this mixin."
     correctionMessage: Try renaming either the type parameter or the member.
     hasPublishedDocs: true
   conflictingTypeVariableAndMemberEnum:
     type: compileTimeError
     parameters:
-      String p0: the name of the type parameter
+      String typeParameterName: the name of the type parameter
     sharedName: conflictingTypeVariableAndMember
-    problemMessage: "'#p0' can't be used to name both a type parameter and a member in this enum."
+    problemMessage: "'#typeParameterName' can't be used to name both a type parameter and a member in this enum."
     correctionMessage: Try renaming either the type parameter or the member.
     hasPublishedDocs: true
   conflictingTypeVariableAndMemberExtension:
     type: compileTimeError
     parameters:
-      String p0: the name of the type parameter
+      String typeParameterName: the name of the type parameter
     sharedName: conflictingTypeVariableAndMember
-    problemMessage: "'#p0' can't be used to name both a type parameter and a member in this extension."
+    problemMessage: "'#typeParameterName' can't be used to name both a type parameter and a member in this extension."
     correctionMessage: Try renaming either the type parameter or the member.
     hasPublishedDocs: true
   conflictingTypeVariableAndMemberExtensionType:
     type: compileTimeError
     parameters:
-      String p0: the name of the type parameter
+      String typeParameterName: the name of the type parameter
     sharedName: conflictingTypeVariableAndMember
-    problemMessage: "'#p0' can't be used to name both a type parameter and a member in this extension type."
+    problemMessage: "'#typeParameterName' can't be used to name both a type parameter and a member in this extension type."
     correctionMessage: Try renaming either the type parameter or the member.
     hasPublishedDocs: true
   constConstructorFieldTypeMismatch:
@@ -13040,11 +13040,11 @@ CompileTimeErrorCode:
   nonGenerativeImplicitConstructor:
     type: compileTimeError
     parameters:
-      String p0: the name of the superclass
-      String p1: the name of the current class
-      Element p2: the implicitly called factory constructor of the superclass
-    problemMessage: "The unnamed constructor of superclass '#p0' (called by the default constructor of '#p1') must be a generative constructor, but factory found."
-    correctionMessage: "Try adding an explicit constructor that has a different superinitializer or changing the superclass constructor '#p2' to not be a factory constructor."
+      String superclassName: the name of the superclass
+      String className: the name of the current class
+      Element factoryConstructor: the implicitly called factory constructor of the superclass
+    problemMessage: "The unnamed constructor of superclass '#superclassName' (called by the default constructor of '#className') must be a generative constructor, but factory found."
+    correctionMessage: "Try adding an explicit constructor that has a different superinitializer or changing the superclass constructor '#factoryConstructor' to not be a factory constructor."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -13865,11 +13865,11 @@ CompileTimeErrorCode:
   noDefaultSuperConstructorImplicit:
     type: compileTimeError
     parameters:
-      Type p0: the name of the superclass that does not define an implicitly invoked constructor
-      String p1: the name of the subclass that does not contain any explicit constructors
+      Type superclassType: the name of the superclass that does not define an implicitly invoked constructor
+      String subclassName: the name of the subclass that does not contain any explicit constructors
     sharedName: noDefaultSuperConstructor
-    problemMessage: "The superclass '#p0' doesn't have a zero argument constructor."
-    correctionMessage: "Try declaring a zero argument constructor in '#p0', or declaring a constructor in #p1 that explicitly invokes a constructor in '#p0'."
+    problemMessage: "The superclass '#superclassType' doesn't have a zero argument constructor."
+    correctionMessage: "Try declaring a zero argument constructor in '#superclassType', or declaring a constructor in #subclassName that explicitly invokes a constructor in '#superclassType'."
     hasPublishedDocs: false
   noGenerativeConstructorsInSuperclass:
     type: compileTimeError
@@ -19261,11 +19261,11 @@ CompileTimeErrorCode:
   wrongExplicitTypeParameterVarianceInSuperinterface:
     type: compileTimeError
     parameters:
-      Object p0: the name of the type parameter
-      Object p1: the variance modifier defined for {0}
-      Object p2: the variance position of the type parameter {0} in the superinterface {3}
-      Object p3: the name of the superinterface
-    problemMessage: "'#p0' is an '#p1' type parameter and can't be used in an '#p2' position in '#p3'."
+      String typeParameterName: the name of the type parameter
+      String varianceModifier: the variance modifier defined for the type parameter
+      String variancePosition: the variance position of the type parameter in the superinterface
+      Type superInterface: the type of the superinterface
+    problemMessage: "'#typeParameterName' is an '#varianceModifier' type parameter and can't be used in an '#variancePosition' position in '#superInterface'."
     correctionMessage: "Try using 'in' type parameters in 'in' positions and 'out' type parameters in 'out' positions in the superinterface."
     hasPublishedDocs: false
     comment: |-
@@ -19605,9 +19605,9 @@ CompileTimeErrorCode:
   wrongTypeParameterVarianceInSuperinterface:
     type: compileTimeError
     parameters:
-      String p0: the name of the type parameter
-      Type p1: the name of the super interface
-    problemMessage: "'#p0' can't be used contravariantly or invariantly in '#p1'."
+      String typeParameterName: the name of the type parameter
+      Type superInterfaceType: the name of the super interface
+    problemMessage: "'#typeParameterName' can't be used contravariantly or invariantly in '#superInterfaceType'."
     correctionMessage: Try not using class type parameters in types of formal parameters of function types, nor in explicitly contravariant or invariant superinterfaces.
     hasPublishedDocs: false
     comment: |-

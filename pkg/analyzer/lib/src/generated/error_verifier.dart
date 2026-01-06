@@ -2262,14 +2262,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       if (method.isStatic) {
         void reportStaticConflict(InternalExecutableElement inherited) {
-          diagnosticReporter.atElement2(
-            method.asElement2,
-            diag.conflictingStaticAndInstance,
-            arguments: [
-              enclosingClass.displayName,
-              name,
-              inherited.enclosingElement!.displayName,
-            ],
+          diagnosticReporter.report(
+            diag.conflictingStaticAndInstance
+                .withArguments(
+                  className: enclosingClass.displayName,
+                  memberName: name,
+                  conflictingClassName: inherited.enclosingElement!.displayName,
+                )
+                .atSourceRange(
+                  method.asElement2.diagnosticRange(_currentUnit.source),
+                ),
           );
         }
 
@@ -2290,14 +2292,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
 
       void reportFieldConflict(InternalPropertyAccessorElement inherited) {
-        diagnosticReporter.atElement2(
-          method.asElement2,
-          diag.conflictingMethodAndField,
-          arguments: [
-            enclosingClass.displayName,
-            name,
-            inherited.enclosingElement.displayName,
-          ],
+        diagnosticReporter.report(
+          diag.conflictingMethodAndField
+              .withArguments(
+                className: enclosingClass.displayName,
+                methodName: name,
+                conflictingClassName: inherited.enclosingElement.displayName,
+              )
+              .atSourceRange(
+                method.asElement2.diagnosticRange(_currentUnit.source),
+              ),
         );
       }
 
@@ -2327,14 +2331,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       );
 
       if (accessor.isStatic && inherited != null) {
-        diagnosticReporter.atElement2(
-          accessor.asElement2,
-          diag.conflictingStaticAndInstance,
-          arguments: [
-            enclosingClass.displayName,
-            name,
-            inherited.enclosingElement!.displayName,
-          ],
+        diagnosticReporter.report(
+          diag.conflictingStaticAndInstance
+              .withArguments(
+                className: enclosingClass.displayName,
+                memberName: name,
+                conflictingClassName: inherited.enclosingElement!.displayName,
+              )
+              .atSourceRange(
+                accessor.asElement2.diagnosticRange(_currentUnit.source),
+              ),
         );
         conflictingDeclaredNames.add(name);
       } else if (inherited is InternalMethodElement) {
@@ -2342,14 +2348,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (enclosingClass is ExtensionTypeElementImpl) {
           continue;
         }
-        diagnosticReporter.atElement2(
-          accessor.asElement2,
-          diag.conflictingFieldAndMethod,
-          arguments: [
-            enclosingClass.displayName,
-            name,
-            inherited.enclosingElement!.displayName,
-          ],
+        diagnosticReporter.report(
+          diag.conflictingFieldAndMethod
+              .withArguments(
+                className: enclosingClass.displayName,
+                fieldName: name,
+                conflictingClassName: inherited.enclosingElement!.displayName,
+              )
+              .atSourceRange(
+                accessor.asElement2.diagnosticRange(_currentUnit.source),
+              ),
         );
         conflictingDeclaredNames.add(name);
       }
@@ -2367,38 +2375,46 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var setterName = methodName.forSetter;
         var setter = inherited[setterName];
         if (setter is InternalPropertyAccessorElement) {
-          diagnosticReporter.atElement2(
-            enclosingClass,
-            diag.conflictingInheritedMethodAndSetter,
-            arguments: [
-              enclosingClass.kind.displayName,
-              enclosingClass.displayName,
-              methodName.name,
-            ],
-            contextMessages: [
-              DiagnosticMessageImpl(
-                filePath: method.firstFragment.libraryFragment.source.fullName,
-                message:
-                    formatList("The method is inherited from the {0} '{1}'.", [
-                      method.enclosingElement!.kind.displayName,
-                      method.enclosingElement!.name,
-                    ]),
-                offset: method.firstFragment.nameOffset!,
-                length: method.firstFragment.name!.length,
-                url: null,
-              ),
-              DiagnosticMessageImpl(
-                filePath: setter.firstFragment.libraryFragment.source.fullName,
-                message:
-                    formatList("The setter is inherited from the {0} '{1}'.", [
-                      setter.enclosingElement.kind.displayName,
-                      setter.enclosingElement.name,
-                    ]),
-                offset: setter.firstFragment.nameOffset!,
-                length: setter.firstFragment.name!.length,
-                url: null,
-              ),
-            ],
+          diagnosticReporter.report(
+            diag.conflictingInheritedMethodAndSetter
+                .withArguments(
+                  enclosingElementKind: enclosingClass.kind.displayName,
+                  enclosingElementName: enclosingClass.displayName,
+                  memberName: methodName.name,
+                )
+                .withContextMessages([
+                  DiagnosticMessageImpl(
+                    filePath:
+                        method.firstFragment.libraryFragment.source.fullName,
+                    message: formatList(
+                      "The method is inherited from the {0} '{1}'.",
+                      [
+                        method.enclosingElement!.kind.displayName,
+                        method.enclosingElement!.name,
+                      ],
+                    ),
+                    offset: method.firstFragment.nameOffset!,
+                    length: method.firstFragment.name!.length,
+                    url: null,
+                  ),
+                  DiagnosticMessageImpl(
+                    filePath:
+                        setter.firstFragment.libraryFragment.source.fullName,
+                    message: formatList(
+                      "The setter is inherited from the {0} '{1}'.",
+                      [
+                        setter.enclosingElement.kind.displayName,
+                        setter.enclosingElement.name,
+                      ],
+                    ),
+                    offset: setter.firstFragment.nameOffset!,
+                    length: setter.firstFragment.name!.length,
+                    url: null,
+                  ),
+                ])
+                .atSourceRange(
+                  enclosingClass.diagnosticRange(_currentUnit.source),
+                ),
           );
         }
       }
@@ -2419,7 +2435,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var code = enclosingClass is MixinElement
             ? diag.conflictingTypeVariableAndMixin
             : diag.conflictingTypeVariableAndClass;
-        diagnosticReporter.atElement2(typeParameter, code, arguments: [name]);
+        diagnosticReporter.report(
+          code
+              .withArguments(typeParameterName: name)
+              .atSourceRange(
+                typeParameter.diagnosticRange(_currentUnit.source),
+              ),
+        );
       }
       // check members
       if (enclosingClass.getNamedConstructor(name) != null ||
@@ -2429,7 +2451,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var code = enclosingClass is MixinElement
             ? diag.conflictingTypeVariableAndMemberMixin
             : diag.conflictingTypeVariableAndMemberClass;
-        diagnosticReporter.atElement2(typeParameter, code, arguments: [name]);
+        diagnosticReporter.report(
+          code
+              .withArguments(typeParameterName: name)
+              .atSourceRange(
+                typeParameter.diagnosticRange(_currentUnit.source),
+              ),
+        );
       }
     }
   }
@@ -2441,10 +2469,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var name = typeParameter.name ?? '';
       // name is same as the name of the enclosing enum
       if (fragment.name == name) {
-        diagnosticReporter.atElement2(
-          typeParameter.asElement2,
-          diag.conflictingTypeVariableAndEnum,
-          arguments: [name],
+        diagnosticReporter.report(
+          diag.conflictingTypeVariableAndEnum
+              .withArguments(typeParameterName: name)
+              .atSourceRange(
+                typeParameter.asElement2.diagnosticRange(_currentUnit.source),
+              ),
         );
       }
       // check members
@@ -2452,10 +2482,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (element.getMethod(name) != null ||
           element.getGetter(name) != null ||
           element.getSetter(name) != null) {
-        diagnosticReporter.atElement2(
-          typeParameter.asElement2,
-          diag.conflictingTypeVariableAndMemberEnum,
-          arguments: [name],
+        diagnosticReporter.report(
+          diag.conflictingTypeVariableAndMemberEnum
+              .withArguments(typeParameterName: name)
+              .atSourceRange(
+                typeParameter.asElement2.diagnosticRange(_currentUnit.source),
+              ),
         );
       }
     }
@@ -2470,10 +2502,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var name = typeParameter.name ?? '';
       // name is same as the name of the enclosing class
       if (fragment.name == name) {
-        diagnosticReporter.atElement2(
-          typeParameter.asElement2,
-          diag.conflictingTypeVariableAndExtensionType,
-          arguments: [name],
+        diagnosticReporter.report(
+          diag.conflictingTypeVariableAndExtensionType
+              .withArguments(typeParameterName: name)
+              .atSourceRange(
+                typeParameter.asElement2.diagnosticRange(_currentUnit.source),
+              ),
         );
       }
       // check members
@@ -2482,10 +2516,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           element.getMethod(name) != null ||
           element.getGetter(name) != null ||
           element.getSetter(name) != null) {
-        diagnosticReporter.atElement2(
-          typeParameter.asElement2,
-          diag.conflictingTypeVariableAndMemberExtensionType,
-          arguments: [name],
+        diagnosticReporter.report(
+          diag.conflictingTypeVariableAndMemberExtensionType
+              .withArguments(typeParameterName: name)
+              .atSourceRange(
+                typeParameter.asElement2.diagnosticRange(_currentUnit.source),
+              ),
         );
       }
     }
@@ -2503,20 +2539,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       // name is same as the name of the enclosing class
       if (_enclosingExtension!.name == name) {
-        diagnosticReporter.atElement2(
-          typeParameter,
-          diag.conflictingTypeVariableAndExtension,
-          arguments: [name],
+        diagnosticReporter.report(
+          diag.conflictingTypeVariableAndExtension
+              .withArguments(typeParameterName: name)
+              .atSourceRange(
+                typeParameter.diagnosticRange(_currentUnit.source),
+              ),
         );
       }
       // check members
       if (_enclosingExtension!.getMethod(name) != null ||
           _enclosingExtension!.getGetter(name) != null ||
           _enclosingExtension!.getSetter(name) != null) {
-        diagnosticReporter.atElement2(
-          typeParameter,
-          diag.conflictingTypeVariableAndMemberExtension,
-          arguments: [name],
+        diagnosticReporter.report(
+          diag.conflictingTypeVariableAndMemberExtension
+              .withArguments(typeParameterName: name)
+              .atSourceRange(
+                typeParameter.diagnosticRange(_currentUnit.source),
+              ),
         );
       }
     }
@@ -4679,14 +4719,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var superUnnamedConstructor = superElement.unnamedConstructor;
     if (superUnnamedConstructor != null) {
       if (superUnnamedConstructor.isFactory) {
-        diagnosticReporter.atElement2(
-          fragment.asElement2,
-          diag.nonGenerativeImplicitConstructor,
-          arguments: [
-            superElement.name ?? '',
-            fragment.name ?? '',
-            superUnnamedConstructor,
-          ],
+        diagnosticReporter.report(
+          diag.nonGenerativeImplicitConstructor
+              .withArguments(
+                superclassName: superElement.name ?? '',
+                className: fragment.name ?? '',
+                factoryConstructor: superUnnamedConstructor,
+              )
+              .atSourceRange(
+                fragment.asElement2.diagnosticRange(_currentUnit.source),
+              ),
         );
         return;
       }
@@ -4698,10 +4740,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (!_typeProvider.isNonSubtypableClass(superType.element)) {
       // Don't report this diagnostic for non-subtypable classes because the
       // real problem was already reported.
-      diagnosticReporter.atElement2(
-        fragment.asElement2,
-        diag.noDefaultSuperConstructorImplicit,
-        arguments: [superType, fragment.displayName],
+      diagnosticReporter.report(
+        diag.noDefaultSuperConstructorImplicit
+            .withArguments(
+              superclassType: superType,
+              subclassName: fragment.displayName,
+            )
+            .atSourceRange(
+              fragment.asElement2.diagnosticRange(_currentUnit.source),
+            ),
       );
     }
   }
@@ -5928,21 +5975,28 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           // position.
           if (!superVariance.greaterThanOrEqual(typeParameter.variance)) {
             if (!typeParameter.isLegacyCovariant) {
-              diagnosticReporter.atElement2(
-                typeParameter,
-                diag.wrongExplicitTypeParameterVarianceInSuperinterface,
-                arguments: [
-                  typeParameter.name ?? '',
-                  typeParameter.variance.keyword,
-                  superVariance.keyword,
-                  superInterface,
-                ],
+              diagnosticReporter.report(
+                diag.wrongExplicitTypeParameterVarianceInSuperinterface
+                    .withArguments(
+                      typeParameterName: typeParameter.name ?? '',
+                      varianceModifier: typeParameter.variance.keyword,
+                      variancePosition: superVariance.keyword,
+                      superInterface: superInterface,
+                    )
+                    .atSourceRange(
+                      typeParameter.diagnosticRange(_currentUnit.source),
+                    ),
               );
             } else {
-              diagnosticReporter.atElement2(
-                typeParameter,
-                diag.wrongTypeParameterVarianceInSuperinterface,
-                arguments: [typeParameter.name ?? '', superInterface],
+              diagnosticReporter.report(
+                diag.wrongTypeParameterVarianceInSuperinterface
+                    .withArguments(
+                      typeParameterName: typeParameter.name ?? '',
+                      superInterfaceType: superInterface,
+                    )
+                    .atSourceRange(
+                      typeParameter.diagnosticRange(_currentUnit.source),
+                    ),
               );
             }
           }
