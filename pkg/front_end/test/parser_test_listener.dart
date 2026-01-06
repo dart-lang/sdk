@@ -3809,6 +3809,15 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handlePositionalArgument(Token token) {
+    seen(token);
+    doPrint(
+      'handlePositionalArgument('
+      '$token)',
+    );
+  }
+
+  @override
   void handlePatternField(Token? colon) {
     seen(colon);
     doPrint(
@@ -3823,6 +3832,15 @@ class ParserTestListener implements Listener {
     doPrint(
       'handleNamedRecordField('
       '$colon)',
+    );
+  }
+
+  @override
+  void handlePositionalRecordField(Token token) {
+    seen(token);
+    doPrint(
+      'handlePositionalRecordField('
+      '$token)',
     );
   }
 
