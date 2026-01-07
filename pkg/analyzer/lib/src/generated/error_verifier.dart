@@ -6181,8 +6181,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // Must refer to a field.
-    // TODO(rnystrom): Handle primary constructor declaring parameters.
-    if (node is! FieldFormalParameter) {
+    var element = node.declaredFragment!.element;
+    if (element is! FieldFormalParameterElementImpl) {
       diagnosticReporter.report(diag.privateNamedNonFieldParameter.at(name));
       return;
     }

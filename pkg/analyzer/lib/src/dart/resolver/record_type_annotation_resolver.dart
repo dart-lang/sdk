@@ -47,7 +47,7 @@ class RecordTypeAnnotationResolver {
 
         var previousField = usedNames[name];
         if (previousField != null) {
-          _diagnosticReporter.reportError(
+          _diagnosticReporter.report(
             DiagnosticFactory().duplicateFieldDefinitionInType(
               _diagnosticReporter.source,
               field,

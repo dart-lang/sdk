@@ -289,12 +289,11 @@ class MemberDuplicateDefinitionVerifier {
       case _ScopeEntryGetterSetterPair(getter: ElementImpl previous):
       case _ScopeEntryElement(element: ElementImpl previous):
         if (!identical(previous, fragment.element)) {
-          _diagnosticReporter.reportError(
+          _diagnosticReporter.report(
             _diagnosticFactory.duplicateDefinition(
-              diag.duplicateDefinition,
+              diag.duplicateDefinition.withArguments(name: name),
               originFragment ?? fragment,
               previous,
-              [name],
             ),
           );
         }

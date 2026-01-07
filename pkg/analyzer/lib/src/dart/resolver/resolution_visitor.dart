@@ -2044,13 +2044,12 @@ class _VariableBinderErrors
     required covariant BindPatternVariableElementImpl original,
     required covariant BindPatternVariableElementImpl duplicate,
   }) {
-    visitor._diagnosticReporter.reportError(
+    visitor._diagnosticReporter.report(
       DiagnosticFactory().duplicateDefinitionForNodes(
         visitor._diagnosticReporter.source,
-        diag.duplicateVariablePattern,
+        diag.duplicateVariablePattern.withArguments(name: name),
         duplicate.node.name,
         original.node.name,
-        [name],
       ),
     );
     duplicate.isDuplicate = true;
