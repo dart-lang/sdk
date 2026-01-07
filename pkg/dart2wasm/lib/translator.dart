@@ -15,6 +15,7 @@ import 'package:vm/metadata/direct_call.dart';
 import 'package:vm/metadata/inferred_type.dart';
 import 'package:vm/metadata/procedure_attributes.dart';
 import 'package:vm/metadata/unboxing_info.dart';
+import 'package:vm/metadata/unreachable.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
@@ -184,6 +185,9 @@ class Translator with KernelNodes {
       (component.metadata[ProcedureAttributesMetadataRepository.repositoryTag]
               as ProcedureAttributesMetadataRepository)
           .mapping;
+  late final UnreachableNodeMetadataRepository unreachableMetadata =
+      component.metadata[UnreachableNodeMetadataRepository.repositoryTag]
+          as UnreachableNodeMetadataRepository;
 
   // Other parts of the global compiler state.
   @override

@@ -7,6 +7,7 @@ import 'dart:math' show min;
 import 'package:kernel/ast.dart';
 import 'package:vm/metadata/procedure_attributes.dart';
 import 'package:vm/metadata/table_selector.dart';
+import 'package:vm/metadata/unreachable.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
@@ -131,7 +132,11 @@ class SelectorInfo {
     final references = source.readList(source.readReference);
 
     final paramInfo = _parameterInfoFromReferences(
-        references, useSentinelForOptionalParameters);
+        source.component
+                .metadata[UnreachableNodeMetadataRepository.repositoryTag]
+            as UnreachableNodeMetadataRepository,
+        references,
+        useSentinelForOptionalParameters);
     return SelectorInfo._(dispatchTable, id, name, callCount,
         isSetter: isSetter)
       ..useMultipleEntryPoints = useMultipleEntryPoints
@@ -747,7 +752,9 @@ class DispatchTable {
         selector.useMultipleEntryPoints = false;
         selector._useSentinelForOptionalParameters = true;
         selector.paramInfo = _parameterInfoFromReferences(
-            selector._references, selector._useSentinelForOptionalParameters);
+            translator.unreachableMetadata,
+            selector._references,
+            selector._useSentinelForOptionalParameters);
       } else {
         // Will be initialized in the `selectorTargets.forEach()` below.
       }
@@ -814,7 +821,9 @@ class DispatchTable {
         selector._useSentinelForOptionalParameters = true;
       }
       selector.paramInfo = _parameterInfoFromReferences(
-          selector._references, selector._useSentinelForOptionalParameters);
+          translator.unreachableMetadata,
+          selector._references,
+          selector._useSentinelForOptionalParameters);
 
       // Split up [ranges] into those that are statically dispatched to and
       // those are used via dispatch table.
@@ -1076,15 +1085,26 @@ bool _isUsedViaDispatchTableCall(SelectorInfo selector) {
 }
 
 ParameterInfo _parameterInfoFromReferences(
-    List<Reference> references, bool useDefaultValueSentinel) {
+    UnreachableNodeMetadataRepository unreachableMetadata,
+    List<Reference> references,
+    bool useDefaultValueSentinel) {
+  final unreachableNodeMapping = unreachableMetadata.mapping;
   // We know all target implementations (closed world) if all of them use
   // the same default value for optionals, we can make the caller pass it.
   final first = references.first;
+  final firstMember = first.asMember;
   final paramInfo = ParameterInfo.fromMember(
-      first, useDefaultValueSentinel || first.asMember.isAbstract);
+      first,
+      useDefaultValueSentinel ||
+          firstMember.isAbstract ||
+          unreachableNodeMapping[firstMember] != null);
   for (final target in references.skip(1)) {
+    final targetMember = target.asMember;
     paramInfo.merge(ParameterInfo.fromMember(
-        target, useDefaultValueSentinel || target.asMember.isAbstract));
+        target,
+        useDefaultValueSentinel ||
+            targetMember.isAbstract ||
+            unreachableNodeMapping[targetMember] != null));
   }
   return paramInfo;
 }
