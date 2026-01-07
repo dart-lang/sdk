@@ -774,10 +774,8 @@ class AnalysisDriver {
     return completer.future;
   }
 
-  /// NOTE: this API is experimental and subject to change in a future
-  /// release (see https://github.com/dart-lang/sdk/issues/53876 for context).
   AnalysisOptionsImpl getAnalysisOptionsForFile(File file) =>
-      analysisOptionsMap.getOptions(file);
+      analysisOptionsMap[file];
 
   /// Return the cached [ResolvedUnitResult] for the Dart file with the given
   /// [path]. If there is no cached result, return `null`. Usually only results

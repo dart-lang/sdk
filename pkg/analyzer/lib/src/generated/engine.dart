@@ -61,10 +61,7 @@ abstract class AnalysisContext {
   // ignore: analyzer_public_api_bad_type
   SourceFactory get sourceFactory;
 
-  /// Get the [AnalysisOptions] instance for the given [file].
-  ///
-  /// NOTE: this API is experimental and subject to change in a future
-  /// release (see https://github.com/dart-lang/sdk/issues/53876 for context).
+  /// Gets the [AnalysisOptions] instance for the given [file].
   AnalysisOptions getAnalysisOptionsForFile(File file);
 }
 

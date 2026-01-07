@@ -196,12 +196,6 @@ class ContextBuilderImpl {
   ) {
     var provider = AnalysisOptionsProvider(sourceFactory);
 
-    void updateOptions(AnalysisOptionsImpl options) {
-      if (updateAnalysisOptions != null) {
-        updateAnalysisOptions(analysisOptions: options, sdk: sdk);
-      }
-    }
-
     var optionsMappings = contextRoot.optionsFileMap.entries;
     for (var MapEntry(key: file, value: folders) in optionsMappings) {
       var options = AnalysisOptionsImpl.fromYaml(
@@ -211,11 +205,15 @@ class ContextBuilderImpl {
       );
 
       for (var folder in folders) {
-        _optionsMap.add(folder, options);
+        _optionsMap[folder] = options;
       }
     }
 
-    _optionsMap.forEachOptionsObject(updateOptions);
+    for (var options in _optionsMap.options) {
+      if (updateAnalysisOptions != null) {
+        updateAnalysisOptions(analysisOptions: options, sdk: sdk);
+      }
+    }
     return _optionsMap;
   }
 

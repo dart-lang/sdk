@@ -35,46 +35,31 @@ class AnalysisOptionsMap {
         ?sharedOptions.file?.parent: sharedOptions,
       }, (a, b) => b.path.compareTo(a.path));
 
-  /// Gets the first options entry or the default options object if there is none.
-  AnalysisOptionsImpl get firstOrDefault =>
-      _map.entries.firstOrNull?.value ?? _defaultOptions;
-
   /// All [Folder]s in the options map.
   List<Folder> get folders => _map.keys.toList();
 
-  /// All [AnalysisOptionsImpl]s in the options map.
-  List<AnalysisOptionsImpl> get options => _map.values.toList();
-
-  /// Gets all the mapped options, falling back to the [_defaultOptions] object
-  /// if the options map is empty.
-  Iterable<AnalysisOptionsImpl> get _allOptions {
+  /// All [AnalysisOptionsImpl]s in the options map, falling back to the
+  /// [_defaultOptions] object if the options map is empty.
+  List<AnalysisOptionsImpl> get options {
     var allOptions = _map.values.toList();
-    if (allOptions.isEmpty) {
-      allOptions.add(_defaultOptions);
-    }
-    return allOptions;
-  }
-
-  /// Map this [folder] to the given [options].
-  void add(Folder folder, AnalysisOptionsImpl options) {
-    _map[folder] = options;
-  }
-
-  /// Performs the given [action] on all the mapped options.
-  ///
-  /// If the options map is empty, perform the action on this map's default
-  /// options object instead.
-  void forEachOptionsObject(void Function(AnalysisOptionsImpl element) action) {
-    _allOptions.forEach(action);
+    return switch (allOptions) {
+      ([]) => [_defaultOptions],
+      _ => allOptions,
+    };
   }
 
   /// Gets the [AnalysisOptions] instance for the given [file] (or a shared empty
   /// default options object if there is no entry for a containing folder).
-  AnalysisOptionsImpl getOptions(File file) {
+  AnalysisOptionsImpl operator [](File file) {
     for (var MapEntry(key: folder, value: options) in _map.entries) {
       if (folder.contains(file.path)) return options;
     }
 
     return _defaultOptions;
+  }
+
+  /// Maps this [folder] to the given [options].
+  void operator []=(Folder folder, AnalysisOptionsImpl options) {
+    _map[folder] = options;
   }
 }
