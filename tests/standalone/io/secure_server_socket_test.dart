@@ -88,15 +88,19 @@ void testSimpleConnect() {
       context: clientContext,
     );
     server.listen((serverEnd) {
-      clientEndFuture.then((clientEnd) {
+      clientEndFuture.then((clientEnd) async {
         var x5 = clientEnd.peerCertificate!;
         print(x5.subject);
         print(x5.issuer);
         print(x5.startValidity);
         print(x5.endValidity);
-        clientEnd.close();
-        serverEnd.close();
-        server.close();
+        await Future.wait([
+          clientEnd.drain(),
+          clientEnd.close(),
+          serverEnd.drain(),
+          serverEnd.close(),
+          server.close(),
+        ]);
         asyncEnd();
       });
     });
@@ -137,8 +141,8 @@ void testSimpleConnectFail(
               error is HandshakeException ||
               error is SocketException,
         );
-        clientEndFuture.then((_) {
-          if (!cancelOnError) server.close();
+        clientEndFuture.then((_) async {
+          if (!cancelOnError) await server.close();
           asyncEnd();
         });
       },
@@ -158,10 +162,14 @@ void testServerListenAfterConnect() {
     );
     new Timer(const Duration(milliseconds: 500), () {
       server.listen((serverEnd) {
-        clientEndFuture.then((clientEnd) {
-          clientEnd.close();
-          serverEnd.close();
-          server.close();
+        clientEndFuture.then((clientEnd) async {
+          await Future.wait([
+            clientEnd.drain(),
+            clientEnd.close(),
+            serverEnd.drain(),
+            serverEnd.close(),
+            server.close(),
+          ]);
           asyncEnd();
         });
       });
@@ -231,9 +239,9 @@ void testSimpleReadWrite() {
           dataReceived.setRange(bytesRead, bytesRead + buffer.length, buffer);
           bytesRead += buffer.length;
         },
-        onDone: () {
+        onDone: () async {
           verifyTestData(dataReceived);
-          socket.close();
+          await socket.close();
           asyncEnd();
         },
       );

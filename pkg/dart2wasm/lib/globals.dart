@@ -126,12 +126,8 @@ class Globals {
       // access.
       final initializer = field.initializer;
       if (initializer != null && _initializeAtStartup(field)) {
-        // The dummy value (if needed) needs to be created before we define
-        // the global that may use it.
         final dummyCollector =
             translator.getDummyValuesCollectorForModule(module);
-        dummyCollector.prepareDummyValue(module, fieldType);
-
         final global =
             module.globals.define(w.GlobalType(fieldType), memberName);
         dummyCollector.instantiateDummyValue(global.initializer, fieldType);

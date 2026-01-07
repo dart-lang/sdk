@@ -1107,8 +1107,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       return constantModule != vtableModule &&
           vtableModule != translator.mainModule.module;
     }, (cinfo, b, __) {
-      // The dummy struct must be declared before the constant global so that the
-      // constant's initializer can reference it.
+      // The dummy struct must be declared before the constant global so that
+      // the constant's initializer can reference it.
       final dummyStructGlobal = translator
           .getDummyValuesCollectorForModule(b.moduleBuilder)
           .dummyStructGlobal;
