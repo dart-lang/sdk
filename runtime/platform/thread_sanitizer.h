@@ -5,6 +5,7 @@
 #ifndef RUNTIME_PLATFORM_THREAD_SANITIZER_H_
 #define RUNTIME_PLATFORM_THREAD_SANITIZER_H_
 
+#include "platform/allocation.h"
 #include "platform/globals.h"
 
 #if __SANITIZE_THREAD__
@@ -54,6 +55,8 @@ extern "C" void __tsan_write8_pc(void* addr, void* pc);
 extern "C" void __tsan_write16_pc(void* addr, void* pc);
 extern "C" void __tsan_func_entry(void* pc);
 extern "C" void __tsan_func_exit();
+extern "C" void __tsan_ignore_thread_begin();
+extern "C" void __tsan_ignore_thread_end();
 constexpr uintptr_t kExternalPCBit = 1ULL << 60;
 #else
 #define NO_SANITIZE_THREAD
@@ -71,5 +74,23 @@ constexpr uintptr_t kExternalPCBit = 1ULL << 60;
 #else
 #define DO_IF_NOT_TSAN(CODE) CODE
 #endif
+
+namespace dart {
+
+class TsanIgnoreScope : public ValueObject {
+ public:
+  TsanIgnoreScope() {
+#if defined(USING_THREAD_SANITIZER)
+    __tsan_ignore_thread_begin();
+#endif
+  }
+  ~TsanIgnoreScope() {
+#if defined(USING_THREAD_SANITIZER)
+    __tsan_ignore_thread_end();
+#endif
+  }
+};
+
+}  // namespace dart
 
 #endif  // RUNTIME_PLATFORM_THREAD_SANITIZER_H_

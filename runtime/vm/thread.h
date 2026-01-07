@@ -580,8 +580,6 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
 
   // The isolate that this thread is operating on, or nullptr if none.
   Isolate* isolate() const { return isolate_; }
-  NO_SANITIZE_THREAD
-  Isolate* isolate_ignore_race() const { return isolate_; }
   static intptr_t isolate_offset() { return OFFSET_OF(Thread, isolate_); }
   static intptr_t isolate_group_offset() {
     return OFFSET_OF(Thread, isolate_group_);
@@ -637,11 +635,9 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
 
   // Is |this| executing Dart code?
   bool IsExecutingDartCode() const;
-  bool IsExecutingDartCodeIgnoreRace() const;
 
   // Has |this| exited Dart code?
   bool HasExitedDartCode() const;
-  bool HasExitedDartCodeIgnoreRace() const;
 
   bool HasCompilerState() const { return compiler_state_ != nullptr; }
 
@@ -749,8 +745,6 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   }
 
   uword top_exit_frame_info() const { return top_exit_frame_info_; }
-  NO_SANITIZE_THREAD
-  uword top_exit_frame_info_ignore_race() const { return top_exit_frame_info_; }
   void set_top_exit_frame_info(uword top_exit_frame_info) {
     top_exit_frame_info_ = top_exit_frame_info;
   }
@@ -881,8 +875,6 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
 #endif
 
   uword vm_tag() const { return vm_tag_; }
-  NO_SANITIZE_THREAD
-  uword vm_tag_ignore_race() const { return vm_tag_; }
   void set_vm_tag(uword tag) { vm_tag_ = tag; }
   static intptr_t vm_tag_offset() { return OFFSET_OF(Thread, vm_tag_); }
 
@@ -1352,8 +1344,6 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   }
 
   bool IsDeoptimizing() const { return deopt_context_ != nullptr; }
-  NO_SANITIZE_THREAD
-  bool IsDeoptimizingIgnoreRace() const { return deopt_context_ != nullptr; }
   DeoptContext* deopt_context() const { return deopt_context_; }
   void set_deopt_context(DeoptContext* value) {
     ASSERT(value == nullptr || deopt_context_ == nullptr);
@@ -1372,8 +1362,6 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   }
 
   uword user_tag() const { return user_tag_; }
-  NO_SANITIZE_THREAD
-  uword user_tag_ignore_race() const { return user_tag_; }
   static intptr_t user_tag_offset() { return OFFSET_OF(Thread, user_tag_); }
   static intptr_t current_tag_offset() {
     return OFFSET_OF(Thread, current_tag_);

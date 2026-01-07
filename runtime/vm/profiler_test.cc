@@ -2461,6 +2461,20 @@ ISOLATE_UNIT_TEST_CASE(Profiler_EnterExitIsolate) {
   }
 }
 
+// Poke a lot at OSThread::thread_interrupt_disabled_, which will be read by the
+// sampling thread.
+// https://github.com/dart-lang/sdk/issues/62332
+ISOLATE_UNIT_TEST_CASE(Profiler_ThreadEnableDisableProfiler) {
+  EnableProfiler();
+  Profiler::UpdateFlagProfilePeriod(50);  // Microseconds.
+  Profiler::UpdateSamplePeriod();
+
+  for (intptr_t i = 0; i < 100000; i++) {
+    Dart_ThreadDisableProfiling();
+    Dart_ThreadEnableProfiling();
+  }
+}
+
 ISOLATE_UNIT_TEST_CASE(Profiler_UpdateRunningState) {
   Isolate* isolate = Isolate::Current();
   SampleFilter filter(isolate->main_port(), Thread::kMutatorTask, -1, -1);
