@@ -3,7 +3,7 @@ name: analysis_server
 publish_to: none
 
 environment:
-  sdk: '^3.10.0'
+  sdk: "^3.10.0"
 
 resolution: workspace
 
@@ -43,6 +43,7 @@ dev_dependencies:
   lints: any
   logging: any
   matcher: any
+  package_config: any
   test: any
   test_descriptor: any
   test_reflective_loader: any

@@ -6,30 +6,44 @@ import 'dart:io' show exit;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:args/args.dart';
 import 'package:cli_util/cli_util.dart';
+import 'package:package_config/package_config.dart';
 
 import 'log.dart';
 
 void main(List<String> args) {
-  if (args.length != 2) {
-    print(
-      'Expected exactly two arguments, an input log path a output log path',
-    );
-    exit(1);
+  var parsed = argParser.parse(args);
+  if (parsed.flag('help')) {
+    print(argParser.usage);
+    return;
   }
+
   var resourceProvider = PhysicalResourceProvider.INSTANCE;
   var inputFile = resourceProvider.getFile(
-    Uri.base.resolve(args[0]).toFilePath(),
-  );
-  var outputFile = resourceProvider.getFile(
-    Uri.base.resolve(args[1]).toFilePath(),
+    Uri.base.resolve(parsed.option('input')!).toFilePath(),
   );
   if (!inputFile.exists) {
-    print('Input file ${args[0]} does not exist');
+    print('Input file ${inputFile.path} does not exist');
     exit(1);
   }
+  var outputFile = resourceProvider.getFile(
+    Uri.base.resolve(parsed.option('output')!).toFilePath(),
+  );
+  var packageConfigFile = resourceProvider.getFile(
+    Uri.base.resolve(parsed.option('package-config')!).toFilePath(),
+  );
+  if (!packageConfigFile.exists) {
+    print('Package config file ${packageConfigFile.path} does not exist');
+    exit(1);
+  }
+  var packageConfig = PackageConfig.parseBytes(
+    packageConfigFile.readAsBytesSync(),
+    packageConfigFile.toUri(),
+  );
+
   print('normalizing log at ${inputFile.path}');
-  var normalized = normalizeLog(inputFile);
+  var normalized = normalizeLog(inputFile, packageConfig);
   outputFile.writeAsStringSync(normalized);
   print('wrote normalized log to ${outputFile.path}');
 
@@ -42,18 +56,50 @@ void main(List<String> args) {
   }
 }
 
+final argParser = ArgParser()
+  ..addOption(
+    'input',
+    abbr: 'i',
+    help: 'The path to the input log to be normalized',
+    mandatory: true,
+  )
+  ..addOption(
+    'output',
+    abbr: 'o',
+    help: 'The path output the normalized log to',
+    mandatory: true,
+  )
+  ..addOption(
+    'package-config',
+    abbr: 'p',
+    help: 'The path to the package config file for normalizing package paths',
+    mandatory: true,
+  )
+  ..addFlag('help', abbr: 'h', help: 'Prints the usage text');
+
 /// Reads an [input] log file, and attempts to normalize it so that it can work
 /// across multiple environments.
 ///
 /// Specifically, this:
-///   - Replaces all occurences of the "rootPath" value with {{workspaceRoot}}
+///   - Replaces all workspace folder paths with {{workspaceFolder-[i]}}
+///     placeholders.
+///   - Replaces the Dart SDK root with {{dartSdkRoot}}.
+///   - Replaces all package roots with {{package-root:[package-name]}}
 ///
 /// Returns the new file contents after normalization.
 //
-// TODO(somebody): Replace all other absolute paths.
 // TODO(somebody): Support legacy protocol.
-String normalizeLog(File input) {
+String normalizeLog(File input, PackageConfig packageCofig) {
   var content = input.readAsStringSync();
+  // First, replace the package roots
+  for (var package in packageCofig.packages) {
+    content = content.replaceAll(
+      package.root.toString(),
+      '{{package-root:${package.name}}}',
+    );
+  }
+
+  // Next, replace the workspace folder paths.
   var original = Log.fromString(content, {});
   var initializeMessage = original.entries.firstWhere(
     (log) => log.isMessage && log.message.isInitialize,
@@ -68,6 +114,8 @@ String normalizeLog(File input) {
     var uri = Uri.parse(folder['uri'] as String);
     content = content.replaceAll(uri.path, '{{workspaceFolder-$i}}');
   }
+
+  // Finally, replace the dart sdk path
   content = content.replaceAll(sdkPath, '{{dartSdkRoot}}');
   return content;
 }
