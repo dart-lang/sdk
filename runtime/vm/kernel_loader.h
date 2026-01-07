@@ -340,7 +340,8 @@ class KernelLoader : public ValueObject {
   // Generates field getter and setter functions.
   void GenerateFieldAccessors(const Class& klass,
                               const Field& field,
-                              FieldHelper* field_helper);
+                              FieldHelper* field_helper,
+                              uint32_t pragma_bits);
 
   void LoadLibraryImportsAndExports(Library* library,
                                     const Class& toplevel_class);

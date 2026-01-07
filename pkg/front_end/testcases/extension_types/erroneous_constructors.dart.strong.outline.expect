@@ -49,11 +49,11 @@ static extension-type-member method E1|constructor#named(dynamic value) → self
   ;
 static extension-type-member synthetic method E1|constructor#_#named#tearOff(dynamic value) → self::E1% /* erasure=dynamic, declared=! */
   return self::E1|constructor#named(value);
-static extension-type-member erroneous method E2|constructor#(core::num it) → self::E2% /* erasure=core::num, declared=! */
+static extension-type-member method E2|constructor#(core::num it) → self::E2% /* erasure=core::num, declared=! */
   ;
 static extension-type-member synthetic method E2|constructor#_#new#tearOff(core::num it) → self::E2% /* erasure=core::num, declared=! */
   return self::E2|constructor#(it);
-static extension-type-member method E2|constructor#named(invalid-type it) → self::E2% /* erasure=core::num, declared=! */ {
+static extension-type-member erroneous method E2|constructor#named(invalid-type it) → self::E2% /* erasure=core::num, declared=! */ {
   lowered final self::E2% /* erasure=core::num, declared=! */ #this;
   return #this;
 }

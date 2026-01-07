@@ -12,15 +12,16 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/element.dart'
-    show JoinPatternVariableElementImpl, MetadataImpl;
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart'
     show SubstitutedExecutableElementImpl;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
@@ -503,6 +504,8 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 /// [diag.unusedField],
 /// [diag.unusedLocalVariable], etc.
 class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
+  final Source _fileSource;
+
   /// The error listener to which errors will be reported.
   final DiagnosticListener _diagnosticListener;
 
@@ -521,6 +524,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   /// Create a new instance of the [UnusedLocalElementsVerifier].
   UnusedLocalElementsVerifier(
+    this._fileSource,
     this._diagnosticListener,
     this._usedElements,
     LibraryElement library,
@@ -714,30 +718,40 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
-    // Do not report a field declared in a primary constructor which is declared
-    // in an extension type, since it cannot be removed, and renaming it to be
-    // public is not an improvement.
-    if (node.parent is! ExtensionTypeDeclaration) {
-      for (var parameter in node.formalParameters.parameters) {
-        var fragment = parameter.declaredFragment;
-        var element = fragment!.element;
-        if (element is! FieldFormalParameterElement) continue;
-        var field = element.field;
-        if (field == null) continue;
-        if (!_isReadMember(field)) {
-          var keyword = switch (parameter.notDefault) {
-            SimpleFormalParameter p => p.keyword!.lexeme,
-            _ => '',
-          };
-          _reportDiagnosticForElement(
-            diag.unusedFieldFromPrimaryConstructor,
-            element,
-            [field.displayName, keyword],
-          );
+  void visitPrimaryConstructorDeclaration(
+    covariant PrimaryConstructorDeclarationImpl node,
+  ) {
+    switch (node.parent) {
+      case ClassDeclarationImpl():
+      case EnumDeclarationImpl():
+        for (var parameter in node.formalParameters.parameters) {
+          var element = parameter.declaredFragment!.element;
+          if (element is FieldFormalParameterElementImpl &&
+              element.isDeclaring) {
+            var field = element.field;
+            if (field != null && !_isReadMember(field)) {
+              var keyword = parameter.finalOrVarKeyword!.lexeme;
+              // TODO(scheglov): give the class DiagnosticReporter
+              DiagnosticReporter(_diagnosticListener, _fileSource).report(
+                diag.unusedFieldFromPrimaryConstructor
+                    .withArguments(
+                      fieldName: field.displayName,
+                      keyword: keyword,
+                    )
+                    .at(parameter.name!),
+              );
+            }
+          }
         }
-      }
+      case ExtensionTypeDeclarationImpl():
+        // Do not report a field declared in a primary constructor which is
+        // declared in an extension type, since it cannot be removed, and
+        // renaming it to be public is not an improvement.
+        break;
+      default:
+        throw UnimplementedError('${node.parent.runtimeType}');
     }
+
     super.visitPrimaryConstructorDeclaration(node);
   }
 

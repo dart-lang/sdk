@@ -15,6 +15,7 @@ import 'package:vm/metadata/direct_call.dart';
 import 'package:vm/metadata/inferred_type.dart';
 import 'package:vm/metadata/procedure_attributes.dart';
 import 'package:vm/metadata/unboxing_info.dart';
+import 'package:vm/metadata/unreachable.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
@@ -184,6 +185,9 @@ class Translator with KernelNodes {
       (component.metadata[ProcedureAttributesMetadataRepository.repositoryTag]
               as ProcedureAttributesMetadataRepository)
           .mapping;
+  late final UnreachableNodeMetadataRepository unreachableMetadata =
+      component.metadata[UnreachableNodeMetadataRepository.repositoryTag]
+          as UnreachableNodeMetadataRepository;
 
   // Other parts of the global compiler state.
   @override
@@ -3079,6 +3083,10 @@ class DummyValuesCollector {
 
   final Map<w.FunctionType, w.BaseFunction> _dummyFunctions = {};
   final Map<w.HeapType, w.Global> _dummyValues = {};
+
+  /// A global with type `ref struct`, initialized as an empty struct.
+  ///
+  /// This can be used as the dummy value for contexts.
   late final w.Global dummyStructGlobal;
 
   DummyValuesCollector(this.translator, this.module) {
@@ -3099,50 +3107,53 @@ class DummyValuesCollector {
     dummyStructGlobal = dummyStructGlobalInit;
   }
 
-  w.Global? prepareDummyValue(w.ModuleBuilder module, w.ValueType type) {
-    if (type is w.RefType && !type.nullable) {
-      w.HeapType heapType = type.heapType;
-      return _dummyValues.putIfAbsent(heapType, () {
-        if (heapType is w.DefType) {
-          if (heapType is w.StructType) {
-            for (w.FieldType field in heapType.fields) {
-              prepareDummyValue(module, field.type.unpacked);
-            }
-            final global =
-                module.globals.define(w.GlobalType(type, mutable: false));
-            final ib = global.initializer;
-            for (w.FieldType field in heapType.fields) {
-              instantiateDummyValue(ib, field.type.unpacked);
-            }
-            ib.struct_new(heapType);
-            ib.end();
-            return global;
-          } else if (heapType is w.ArrayType) {
-            final global =
-                module.globals.define(w.GlobalType(type, mutable: false));
-            final ib = global.initializer;
-            ib.array_new_fixed(heapType, 0);
-            ib.end();
-            return global;
-          } else if (heapType is w.FunctionType) {
-            final global =
-                module.globals.define(w.GlobalType(type, mutable: false));
-            final ib = global.initializer;
-            ib.ref_func(getDummyFunction(heapType));
-            ib.end();
-            return global;
-          }
-        }
-        throw 'Unexpected heapType: $heapType';
-      });
-    }
+  /// When [type] is a non-nullable reference type, create a global in [module]
+  /// for its dummy value.
+  ///
+  /// Nullable references and non-reference types don't need dummy values. This
+  /// function returns [null] for nullable references and non-reference types.
+  w.Global? _prepareDummyValueGlobal(w.ModuleBuilder module, w.ValueType type) {
+    if (type is! w.RefType || type.nullable) return null;
 
-    return null;
+    final w.HeapType heapType = type.heapType;
+    return _dummyValues.putIfAbsent(heapType, () {
+      if (heapType is w.DefType) {
+        if (heapType is w.StructType) {
+          for (w.FieldType field in heapType.fields) {
+            _prepareDummyValueGlobal(module, field.type.unpacked);
+          }
+          final global =
+              module.globals.define(w.GlobalType(type, mutable: false));
+          final ib = global.initializer;
+          for (w.FieldType field in heapType.fields) {
+            instantiateDummyValue(ib, field.type.unpacked);
+          }
+          ib.struct_new(heapType);
+          ib.end();
+          return global;
+        } else if (heapType is w.ArrayType) {
+          final global =
+              module.globals.define(w.GlobalType(type, mutable: false));
+          final ib = global.initializer;
+          ib.array_new_fixed(heapType, 0);
+          ib.end();
+          return global;
+        } else if (heapType is w.FunctionType) {
+          final global =
+              module.globals.define(w.GlobalType(type, mutable: false));
+          final ib = global.initializer;
+          ib.ref_func(getDummyFunction(heapType));
+          ib.end();
+          return global;
+        }
+      }
+      throw 'Unexpected heapType: $heapType';
+    });
   }
 
   /// Produce a dummy value of any Wasm type. For non-nullable reference types,
-  /// the value is constructed in a global initializer, and the instantiation
-  /// of the value merely reads the global.
+  /// the value is constructed in a global initializer, and the instantiation of
+  /// the value merely reads the global.
   void instantiateDummyValue(w.InstructionsBuilder b, w.ValueType type) {
     switch (type) {
       case w.NumType.i32:
@@ -3163,8 +3174,8 @@ class DummyValuesCollector {
           if (type.nullable) {
             b.ref_null(heapType.bottomType);
           } else {
-            translator.globals
-                .readGlobal(b, prepareDummyValue(b.moduleBuilder, type)!);
+            translator.globals.readGlobal(
+                b, _prepareDummyValueGlobal(b.moduleBuilder, type)!);
           }
         } else {
           throw "Unsupported global type $type ($type)";

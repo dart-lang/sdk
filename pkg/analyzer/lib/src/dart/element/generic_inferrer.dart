@@ -369,10 +369,13 @@ class GenericInferrer {
           return null;
         }
 
-        _diagnosticReporter?.atEntity(
-          errorEntity!,
-          diag.couldNotInfer,
-          arguments: [name, _formatError(parameter, inferred, constraints)],
+        _diagnosticReporter?.report(
+          diag.couldNotInfer
+              .withArguments(
+                typeParameterName: name,
+                detailText: _formatError(parameter, inferred, constraints),
+              )
+              .at(errorEntity!),
         );
 
         // Heuristic: even if we failed, keep the erroneous type.
@@ -398,15 +401,16 @@ class GenericInferrer {
 
         var typeParameters = inferred.typeParameters;
         var typeParametersStr = typeParameters.map(_elementStr).join(', ');
-        _diagnosticReporter.atEntity(
-          errorEntity!,
-          diag.couldNotInfer,
-          arguments: [
-            name,
-            ' Inferred candidate type ${_typeStr(inferred)} has type parameters'
-                ' [$typeParametersStr], but a function with'
-                ' type parameters cannot be used as a type argument.',
-          ],
+        _diagnosticReporter.report(
+          diag.couldNotInfer
+              .withArguments(
+                typeParameterName: name,
+                detailText:
+                    ' Inferred candidate type ${_typeStr(inferred)} has type parameters'
+                    ' [$typeParametersStr], but a function with'
+                    ' type parameters cannot be used as a type argument.',
+              )
+              .at(errorEntity!),
         );
       }
 
@@ -453,15 +457,16 @@ class GenericInferrer {
               typeParam.bound ?? _typeSystem.typeProvider.objectType,
             );
         // TODO(jmesserly): improve this error message.
-        _diagnosticReporter?.atEntity(
-          errorEntity!,
-          diag.couldNotInfer,
-          arguments: [
-            name,
-            "\nRecursive bound cannot be instantiated: '$typeParamBound'."
-                "\nConsider passing explicit type argument(s) "
-                "to the generic.\n\n'",
-          ],
+        _diagnosticReporter?.report(
+          diag.couldNotInfer
+              .withArguments(
+                typeParameterName: name,
+                detailText:
+                    "\nRecursive bound cannot be instantiated: '$typeParamBound'."
+                    "\nConsider passing explicit type argument(s) "
+                    "to the generic.\n\n'",
+              )
+              .at(errorEntity!),
         );
       }
     }
@@ -505,16 +510,17 @@ class GenericInferrer {
       );
       var bound = substitution.substituteType(rawBound);
       if (!_typeSystem.isSubtypeOf(argument, bound)) {
-        diagnosticReporter?.atEntity(
-          errorEntity!,
-          diag.couldNotInfer,
-          arguments: [
-            name,
-            "\n'${_typeStr(argument)}' doesn't conform to "
-                "the bound '${_typeStr(bound)}'"
-                ", instantiated from '${_typeStr(rawBound)}'"
-                " using type arguments ${typeArguments.map(_typeStr).toList()}.",
-          ],
+        diagnosticReporter?.report(
+          diag.couldNotInfer
+              .withArguments(
+                typeParameterName: name,
+                detailText:
+                    "\n'${_typeStr(argument)}' doesn't conform to "
+                    "the bound '${_typeStr(bound)}'"
+                    ", instantiated from '${_typeStr(rawBound)}'"
+                    " using type arguments ${typeArguments.map(_typeStr).toList()}.",
+              )
+              .at(errorEntity!),
         );
       }
     }

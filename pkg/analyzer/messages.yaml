@@ -2486,9 +2486,9 @@ CompileTimeErrorCode:
   castToNonType:
     type: compileTimeError
     parameters:
-      String p0: the name of the type
-    problemMessage: "The name '#p0' isn't a type, so it can't be used in an 'as' expression."
-    correctionMessage: "Try changing the name to the name of an existing type, or creating a type with the name '#p0'."
+      String name: the name of the type
+    problemMessage: "The name '#name' isn't a type, so it can't be used in an 'as' expression."
+    correctionMessage: "Try changing the name to the name of an existing type, or creating a type with the name '#name'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2517,8 +2517,8 @@ CompileTimeErrorCode:
   classUsedAsMixin:
     type: compileTimeError
     parameters:
-      String p0: the name of the class being used as a mixin
-    problemMessage: "The class '#p0' can't be used as a mixin because it's neither a mixin class nor a mixin."
+      String name: the name of the class being used as a mixin
+    problemMessage: "The class '#name' can't be used as a mixin because it's neither a mixin class nor a mixin."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -2562,11 +2562,11 @@ CompileTimeErrorCode:
   classInstantiationAccessToUnknownMember:
     type: compileTimeError
     parameters:
-      String p0: the name of the class
-      String p1: the name of the member
+      String className: the name of the class
+      String memberName: the name of the member
     sharedName: classInstantiationAccessToMember
-    problemMessage: "The class '#p0' doesn't have a constructor named '#p1'."
-    correctionMessage: "Try invoking a different constructor, or defining a constructor named '#p1'."
+    problemMessage: "The class '#className' doesn't have a constructor named '#memberName'."
+    correctionMessage: "Try invoking a different constructor, or defining a constructor named '#memberName'."
     hasPublishedDocs: false
   classInstantiationAccessToStaticMember:
     type: compileTimeError
@@ -2978,11 +2978,11 @@ CompileTimeErrorCode:
   conflictingGenericInterfaces:
     type: compileTimeError
     parameters:
-      String p0: the name of the kind of the element implementing the conflicting interface
-      String p1: the name of the element implementing the conflicting interface
-      String p2: the first conflicting type
-      String p3: the second conflicting type
-    problemMessage: "The #p0 '#p1' can't implement both '#p2' and '#p3' because the type arguments are different."
+      String kind: the name of the kind of the element implementing the conflicting interface
+      String element: the name of the element implementing the conflicting interface
+      String type1: the first conflicting type
+      String type2: the second conflicting type
+    problemMessage: "The #kind '#element' can't implement both '#type1' and '#type2' because the type arguments are different."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -3266,8 +3266,8 @@ CompileTimeErrorCode:
   constConstructorWithFieldInitializedByNonConst:
     type: compileTimeError
     parameters:
-      String p0: the name of the field
-    problemMessage: "Can't define the 'const' constructor because the field '#p0' is initialized with a non-constant value."
+      String fieldName: the name of the field
+    problemMessage: "Can't define the 'const' constructor because the field '#fieldName' is initialized with a non-constant value."
     correctionMessage: "Try initializing the field to a constant value, or removing the keyword 'const' from the constructor."
     hasPublishedDocs: true
     documentation: |-
@@ -3349,8 +3349,8 @@ CompileTimeErrorCode:
   constConstructorWithNonConstSuper:
     type: compileTimeError
     parameters:
-      String p0: the name of the superclass
-    problemMessage: "A constant constructor can't call a non-constant super constructor of '#p0'."
+      String superclassName: the name of the superclass
+    problemMessage: "A constant constructor can't call a non-constant super constructor of '#superclassName'."
     correctionMessage: "Try calling a constant constructor in the superclass, or removing the keyword 'const' from the constructor."
     hasPublishedDocs: true
     documentation: |-
@@ -3769,8 +3769,8 @@ CompileTimeErrorCode:
   constMapKeyNotPrimitiveEquality:
     type: compileTimeError
     parameters:
-      Type p0: the type of the entry's key
-    problemMessage: "The type of a key in a constant map can't override the '==' operator, or 'hashCode', but the class '#p0' does."
+      Type keyType: the type of the entry's key
+    problemMessage: "The type of a key in a constant map can't override the '==' operator, or 'hashCode', but the class '#keyType' does."
     correctionMessage: "Try using a different value for the key, or removing the keyword 'const' from the map."
     hasPublishedDocs: true
     documentation: |-
@@ -3841,8 +3841,8 @@ CompileTimeErrorCode:
   constNotInitialized:
     type: compileTimeError
     parameters:
-      String p0: the name of the uninitialized final variable
-    problemMessage: "The constant '#p0' must be initialized."
+      String name: the name of the uninitialized final variable
+    problemMessage: "The constant '#name' must be initialized."
     correctionMessage: Try adding an initialization to the declaration.
     hasPublishedDocs: true
     documentation: |-
@@ -3869,8 +3869,8 @@ CompileTimeErrorCode:
   constSetElementNotPrimitiveEquality:
     type: compileTimeError
     parameters:
-      Type p0: the type of the element
-    problemMessage: "An element in a constant set can't override the '==' operator, or 'hashCode', but the type '#p0' does."
+      Type type: the type of the element
+    problemMessage: "An element in a constant set can't override the '==' operator, or 'hashCode', but the type '#type' does."
     correctionMessage: "Try using a different value for the element, or removing the keyword 'const' from the set."
     previousName: CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS
     hasPublishedDocs: true
@@ -4156,9 +4156,9 @@ CompileTimeErrorCode:
   constWithUndefinedConstructor:
     type: compileTimeError
     parameters:
-      Object p0: the name of the type
-      String p1: the name of the requested constant constructor
-    problemMessage: "The class '#p0' doesn't have a constant constructor '#p1'."
+      String className: the name of the type
+      String constructorName: the name of the requested constant constructor
+    problemMessage: "The class '#className' doesn't have a constant constructor '#constructorName'."
     correctionMessage: Try calling a different constructor.
     hasPublishedDocs: false
     comment: |-
@@ -4167,8 +4167,8 @@ CompileTimeErrorCode:
   constWithUndefinedConstructorDefault:
     type: compileTimeError
     parameters:
-      String p0: the name of the type
-    problemMessage: "The class '#p0' doesn't have an unnamed constant constructor."
+      String className: the name of the type
+    problemMessage: "The class '#className' doesn't have an unnamed constant constructor."
     correctionMessage: Try calling a different constructor.
     hasPublishedDocs: false
     comment: |-
@@ -4255,16 +4255,16 @@ CompileTimeErrorCode:
   couldNotInfer:
     type: compileTimeError
     parameters:
-      String p0: the name of the type parameter
-      String p1: detail text explaining why the type could not be inferred
-    problemMessage: "Couldn't infer type parameter '#p0'.#p1"
+      String typeParameterName: the name of the type parameter
+      String detailText: detail text explaining why the type could not be inferred
+    problemMessage: "Couldn't infer type parameter '#typeParameterName'.#detailText"
     hasPublishedDocs: false
   newWithNonType:
     type: compileTimeError
     parameters:
-      String p0: the name of the non-type element
+      String name: the name of the non-type element
     sharedName: creationWithNonType
-    problemMessage: "The name '#p0' isn't a class."
+    problemMessage: "The name '#name' isn't a class."
     correctionMessage: Try correcting the name to match an existing class.
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
@@ -4313,9 +4313,9 @@ CompileTimeErrorCode:
   constWithNonType:
     type: compileTimeError
     parameters:
-      String p0: the name of the non-type element
+      String name: the name of the non-type element
     sharedName: creationWithNonType
-    problemMessage: "The name '#p0' isn't a class."
+    problemMessage: "The name '#name' isn't a class."
     correctionMessage: Try correcting the name to match an existing class.
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
@@ -4818,8 +4818,8 @@ CompileTimeErrorCode:
   duplicateDefinition:
     type: compileTimeError
     parameters:
-      Object p0: the name of the duplicate entity
-    problemMessage: "The name '#p0' is already defined."
+      String name: the name of the duplicate entity
+    problemMessage: "The name '#name' is already defined."
     correctionMessage: Try renaming one of the declarations.
     hasPublishedDocs: true
     documentation: |-
@@ -4849,8 +4849,8 @@ CompileTimeErrorCode:
   duplicateFieldName:
     type: compileTimeError
     parameters:
-      Object p0: the duplicated name
-    problemMessage: The field name '#p0' is already used in this record.
+      String name: the duplicated name
+    problemMessage: The field name '#name' is already used in this record.
     correctionMessage: Try renaming the field.
     hasPublishedDocs: true
     documentation: |-
@@ -4887,8 +4887,8 @@ CompileTimeErrorCode:
   duplicateFieldFormalParameter:
     type: compileTimeError
     parameters:
-      Object p0: the name of the field
-    problemMessage: "The field '#p0' can't be initialized by multiple parameters in the same constructor."
+      String name: the name of the field
+    problemMessage: "The field '#name' can't be initialized by multiple parameters in the same constructor."
     correctionMessage: Try removing one of the parameters, or using different fields.
     hasPublishedDocs: true
     documentation: |-
@@ -4979,8 +4979,8 @@ CompileTimeErrorCode:
   duplicatePart:
     type: compileTimeError
     parameters:
-      Uri p0: the URI of the duplicate part
-    problemMessage: "The library already contains a part with the URI '#p0'."
+      Uri uri: the URI of the duplicate part
+    problemMessage: "The library already contains a part with the URI '#uri'."
     correctionMessage: Try removing all except one of the duplicated part directives.
     hasPublishedDocs: true
     documentation: |-
@@ -5167,8 +5167,8 @@ CompileTimeErrorCode:
   duplicateVariablePattern:
     type: compileTimeError
     parameters:
-      Object p0: the name of the variable
-    problemMessage: The variable '#p0' is already defined in this pattern.
+      String name: the name of the variable
+    problemMessage: The variable '#name' is already defined in this pattern.
     correctionMessage: Try renaming the variable.
     hasPublishedDocs: true
     documentation: |-
@@ -10191,8 +10191,8 @@ CompileTimeErrorCode:
   invalidUri:
     type: compileTimeError
     parameters:
-      String p0: the URI that is invalid
-    problemMessage: "Invalid URI syntax: '#p0'."
+      String uri: the URI that is invalid
+    problemMessage: "Invalid URI syntax: '#uri'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -14213,9 +14213,9 @@ CompileTimeErrorCode:
   partOfDifferentLibrary:
     type: compileTimeError
     parameters:
-      String p0: the name of expected library name
-      String p1: the non-matching actual library name from the "part of" declaration
-    problemMessage: "Expected this library to be part of '#p0', not '#p1'."
+      String expectedName: the name of expected library name
+      String actualName: the non-matching actual library name from the "part of" declaration
+    problemMessage: "Expected this library to be part of '#expectedName', not '#actualName'."
     correctionMessage: "Try including a different part, or changing the name of the library in the part's part-of directive."
     hasPublishedDocs: true
     documentation: |-
@@ -14253,9 +14253,9 @@ CompileTimeErrorCode:
   partOfNonPart:
     type: compileTimeError
     parameters:
-      String p0: the URI pointing to a non-library declaration
-    problemMessage: "The included part '#p0' must have a part-of directive."
-    correctionMessage: "Try adding a part-of directive to '#p0'."
+      String uriStr: the URI pointing to a non-library declaration
+    problemMessage: "The included part '#uriStr' must have a part-of directive."
+    correctionMessage: "Try adding a part-of directive to '#uriStr'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -14299,8 +14299,8 @@ CompileTimeErrorCode:
   partOfUnnamedLibrary:
     type: compileTimeError
     parameters:
-      String p0: the non-matching actual library name from the "part of" declaration
-    problemMessage: "The library is unnamed. A URI is expected, not a library name '#p0', in the part-of directive."
+      String libraryName: the non-matching actual library name from the "part of" declaration
+    problemMessage: "The library is unnamed. A URI is expected, not a library name '#libraryName', in the part-of directive."
     correctionMessage: Try changing the part-of directive to a URI, or try including a different part.
     hasPublishedDocs: true
     documentation: |-
@@ -14759,8 +14759,8 @@ CompileTimeErrorCode:
   prefixCollidesWithTopLevelMember:
     type: compileTimeError
     parameters:
-      Object p0: the name of the prefix
-    problemMessage: "The name '#p0' is already used as an import prefix and can't be used to name a top-level element."
+      String name: the name of the prefix
+    problemMessage: "The name '#name' is already used as an import prefix and can't be used to name a top-level element."
     correctionMessage: Try renaming either the top-level element or the prefix.
     hasPublishedDocs: true
     documentation: |-
@@ -14955,8 +14955,8 @@ CompileTimeErrorCode:
   privateNamedParameterDuplicatePublicName:
     type: compileTimeError
     parameters:
-      String publicName: the corresponding public name of private named parameter
-    problemMessage: "The corresponding public name '#publicName' is already the name of another parameter."
+      String name: the corresponding public name of private named parameter
+    problemMessage: "The corresponding public name '#name' is already the name of another parameter."
     correctionMessage: "Try renaming one of the parameters."
     hasPublishedDocs: true
     documentation: |-
@@ -19027,8 +19027,8 @@ CompileTimeErrorCode:
   uriDoesNotExist:
     type: compileTimeError
     parameters:
-      String p0: the URI pointing to a nonexistent file
-    problemMessage: "Target of URI doesn't exist: '#p0'."
+      String uriStr: the URI pointing to a nonexistent file
+    problemMessage: "Target of URI doesn't exist: '#uriStr'."
     correctionMessage: Try creating the file referenced by the URI, or try using a URI for a file that does exist.
     hasPublishedDocs: true
     documentation: |-
@@ -19054,8 +19054,8 @@ CompileTimeErrorCode:
   uriHasNotBeenGenerated:
     type: compileTimeError
     parameters:
-      String p0: the URI pointing to a nonexistent file
-    problemMessage: "Target of URI hasn't been generated: '#p0'."
+      String uriStr: the URI pointing to a nonexistent file
+    problemMessage: "Target of URI hasn't been generated: '#uriStr'."
     correctionMessage: Try running the generator that will generate the file referenced by the URI.
     hasPublishedDocs: true
     documentation: |-
@@ -19435,7 +19435,7 @@ CompileTimeErrorCode:
       String p1: the name of the constructor being invoked
     sharedName: wrongNumberOfTypeArgumentsConstructor
     experiment: dot-shorthands
-    problemMessage: "The constructor '#p0.#p1` doesn't have type parameters."
+    problemMessage: "The constructor '#p0.#p1' doesn't have type parameters."
     correctionMessage: Try removing the type arguments, or adding a class name, followed by the type arguments, then the constructor name.
     hasPublishedDocs: true
   wrongNumberOfTypeArgumentsEnum:
@@ -30917,8 +30917,8 @@ WarningCode:
   uriDoesNotExistInDocImport:
     type: staticWarning
     parameters:
-      String p0: the URI pointing to a nonexistent file
-    problemMessage: "Target of URI doesn't exist: '#p0'."
+      String uriStr: the URI pointing to a nonexistent file
+    problemMessage: "Target of URI doesn't exist: '#uriStr'."
     correctionMessage: Try creating the file referenced by the URI, or try using a URI for a file that does exist.
     hasPublishedDocs: true
     documentation: |-

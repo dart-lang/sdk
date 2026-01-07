@@ -1847,7 +1847,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     for (var (i, formalParameter) in formalParameters.indexed) {
       var isExtensionTypeRepresentation =
           i == 0 && isFirstFormalExtensionTypeRepresentation;
-      if (formalParameter.hasFinalOrVarKeyword ||
+      if (formalParameter.finalOrVarKeyword != null ||
           isExtensionTypeRepresentation) {
         var name = _getFragmentName(formalParameter.name);
         var fieldFragment = FieldFragmentImpl(name: name);
@@ -1862,13 +1862,25 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         _linker.elementNodes[fieldFragment] = formalParameter;
         _addChildFragment(fieldFragment);
 
+        var formalParameterName = name;
+        String? formalParameterPrivateName;
+        if (formalParameterName != null &&
+            formalParameter.isNamed &&
+            _libraryBuilder.element.featureSet.isEnabled(
+              Feature.private_named_parameters,
+            )) {
+          var publicName = correspondingPublicName(formalParameterName);
+          if (publicName != null) {
+            formalParameterPrivateName = formalParameterName;
+            formalParameterName = publicName;
+          }
+        }
+
         var formalFragment = FieldFormalParameterFragmentImpl(
-          name: name,
+          name: formalParameterName,
           nameOffset: null,
           parameterKind: formalParameter.kind,
-          // TODO(rnystrom): Support private named parameters for declaring
-          // formals.
-          privateName: null,
+          privateName: formalParameterPrivateName,
         );
         formalFragment.isDeclaring = true;
 
@@ -2134,19 +2146,6 @@ class _EnclosingContext {
 }
 
 extension _FormalParameterImplExtension on FormalParameterImpl {
-  bool get hasFinalOrVarKeyword {
-    switch (this) {
-      case DefaultFormalParameterImpl self:
-        return self.parameter.hasFinalOrVarKeyword;
-      case FunctionTypedFormalParameterImpl self:
-        return self.finalKeyword != null || self.varKeyword != null;
-      case SimpleFormalParameterImpl self:
-        return self.finalKeyword != null || self.varKeyword != null;
-      default:
-        return false;
-    }
-  }
-
   FormalParameterImpl get selfOrParentDefault {
     return parent.ifTypeOrNull<DefaultFormalParameterImpl>() ?? this;
   }

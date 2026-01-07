@@ -541,13 +541,12 @@ class _ErrorHelper {
           );
         } else {
           String className = node.name.lexeme;
-          diagnosticReporter.atOffset(
-            offset: errorRange.offset,
-            length: errorRange.length,
-            diagnosticCode: instanceCreation.isConst
-                ? diag.constWithNonType
-                : diag.newWithNonType,
-            arguments: [className],
+          diagnosticReporter.report(
+            (instanceCreation.isConst
+                    ? diag.constWithNonType
+                    : diag.newWithNonType)
+                .withArguments(name: className)
+                .atSourceRange(errorRange),
           );
         }
         return true;
@@ -585,11 +584,10 @@ class _ErrorHelper {
 
     if (_isTypeInAsExpression(node)) {
       var errorRange = _getErrorRange(node);
-      diagnosticReporter.atOffset(
-        offset: errorRange.offset,
-        length: errorRange.length,
-        diagnosticCode: diag.castToNonType,
-        arguments: [node.name.lexeme],
+      diagnosticReporter.report(
+        diag.castToNonType
+            .withArguments(name: node.name.lexeme)
+            .atOffset(offset: errorRange.offset, length: errorRange.length),
       );
       return;
     }

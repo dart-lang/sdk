@@ -1465,6 +1465,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     _checkForTypeAnnotationDeferredClass(node.type);
+    _checkPrivateOptionalParameter(node);
     super.visitSimpleFormalParameter(node);
   }
 
@@ -1516,6 +1517,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
+    _checkPrivateOptionalParameter(node);
     super.visitSuperFormalParameter(node);
 
     if (_enclosingClass is ExtensionTypeElement) {
@@ -2216,10 +2218,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 Feature.class_modifiers,
               ) &&
               !_mayIgnoreClassModifiers(withElement.library)) {
-            diagnosticReporter.atNode(
-              withMixin,
-              diag.classUsedAsMixin,
-              arguments: [withElement.name!],
+            diagnosticReporter.report(
+              diag.classUsedAsMixin
+                  .withArguments(name: withElement.name!)
+                  .at(withMixin),
             );
           }
         }
@@ -2578,15 +2580,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     for (var error in errors) {
       if (error is IncompatibleInterfacesClassHierarchyError) {
-        diagnosticReporter.atToken(
-          nameToken,
-          diag.conflictingGenericInterfaces,
-          arguments: [
-            _enclosingClass!.kind.displayName,
-            _enclosingClass!.name!,
-            error.first.getDisplayString(),
-            error.second.getDisplayString(),
-          ],
+        diagnosticReporter.report(
+          diag.conflictingGenericInterfaces
+              .withArguments(
+                kind: _enclosingClass!.kind.displayName,
+                element: _enclosingClass!.name!,
+                type1: error.first.getDisplayString(),
+                type2: error.second.getDisplayString(),
+              )
+              .at(nameToken),
         );
       } else {
         throw UnimplementedError('${error.runtimeType}');
@@ -2799,10 +2801,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
     var errorNode = superInvocation ?? constructor.typeName!;
 
-    diagnosticReporter.atNode(
-      errorNode,
-      diag.constConstructorWithNonConstSuper,
-      arguments: [element.enclosingElement.displayName],
+    diagnosticReporter.report(
+      diag.constConstructorWithNonConstSuper
+          .withArguments(superclassName: element.enclosingElement.displayName)
+          .at(errorNode),
     );
     return true;
   }
@@ -2932,16 +2934,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // report as named or default constructor absence
     var name = constructorName.name;
     if (name != null) {
-      diagnosticReporter.atNode(
-        name,
-        diag.constWithUndefinedConstructor,
-        arguments: [namedType.qualifiedName, name.name],
+      diagnosticReporter.report(
+        diag.constWithUndefinedConstructor
+            .withArguments(
+              className: namedType.qualifiedName,
+              constructorName: name.name,
+            )
+            .at(name),
       );
     } else {
-      diagnosticReporter.atNode(
-        constructorName,
-        diag.constWithUndefinedConstructorDefault,
-        arguments: [namedType.qualifiedName],
+      diagnosticReporter.report(
+        diag.constWithUndefinedConstructorDefault
+            .withArguments(className: namedType.qualifiedName)
+            .at(constructorName),
       );
     }
   }
@@ -3633,10 +3638,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (VariableDeclaration variable in variables) {
       if (variable.initializer == null) {
         if (isConst) {
-          diagnosticReporter.atToken(
-            variable.name,
-            diag.constNotInitialized,
-            arguments: [variable.name.lexeme],
+          diagnosticReporter.report(
+            diag.constNotInitialized
+                .withArguments(name: variable.name.lexeme)
+                .at(variable.name),
           );
         } else {
           var variableElement = variable.declaredFragment?.element;
@@ -6135,32 +6140,50 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  /// Check that a private named [parameter] has a valid public name.
-  void _checkPrivateOptionalParameter(FormalParameter parameter) {
-    // The parser has already reported an error if private named parameters are
-    // disabled or we're in a context where one isn't allowed. Only report the
-    // more precise error on a private named parameter with no public name if
-    // the feature is enabled.
-    if (!_currentLibrary.featureSet.isEnabled(
-      Feature.private_named_parameters,
-    )) {
-      return;
-    }
-
+  /// Check that a private named [node] has a valid public name.
+  void _checkPrivateOptionalParameter(FormalParameter node) {
     // Must be a named parameter.
-    if (!parameter.isNamed) {
+    if (!node.isNamed) {
       return;
     }
 
     // Must be private.
-    var name = parameter.name;
+    var name = node.name;
     if (name == null || name.isSynthetic || !name.lexeme.startsWith('_')) {
       return;
     }
 
+    var feature = Feature.private_named_parameters;
+    if (!_currentLibrary.featureSet.isEnabled(feature)) {
+      if (node is FieldFormalParameter) {
+        // The user is using syntax that is now meaningful, but in a
+        // library where it isn't enabled, so report a more precise error.
+        if (feature.isEnabledByDefault) {
+          diagnosticReporter.report(
+            diag.experimentNotEnabled
+                .withArguments(
+                  string: feature.experimentalFlag!,
+                  string2: feature.releaseVersion.toString(),
+                )
+                .at(name),
+          );
+        } else {
+          diagnosticReporter.report(
+            diag.experimentNotEnabledOffByDefault
+                .withArguments(string: feature.experimentalFlag!)
+                .at(name),
+          );
+        }
+      } else {
+        diagnosticReporter.report(diag.privateOptionalParameter.at(name));
+      }
+      return;
+    }
+
     // Must refer to a field.
-    // TODO(rnystrom): Handle primary constructor declaring parameters.
-    if (parameter is! FieldFormalParameter) {
+    var element = node.declaredFragment!.element;
+    if (element is! FieldFormalParameterElementImpl) {
+      diagnosticReporter.report(diag.privateNamedNonFieldParameter.at(name));
       return;
     }
 

@@ -63,13 +63,10 @@ class MethodTest extends PartialCodeTest {
           diag.missingIdentifier,
           diag.missingFunctionBody,
         ], 'm(B b, [_s_]){}'),
-        TestDescriptor(
-          'noType_emptyNamed',
-          'm(B b, {})',
-          [diag.missingIdentifier, diag.missingFunctionBody],
-          'm(B b, {_s_}){}',
-          expectedDiagnosticsInValidCode: [diag.privateOptionalParameter],
-        ),
+        TestDescriptor('noType_emptyNamed', 'm(B b, {})', [
+          diag.missingIdentifier,
+          diag.missingFunctionBody,
+        ], 'm(B b, {_s_}){}'),
         //
         // Instance method, with simple return type.
         //
@@ -108,13 +105,10 @@ class MethodTest extends PartialCodeTest {
           diag.missingIdentifier,
           diag.missingFunctionBody,
         ], 'A m(B b, [_s_]){}'),
-        TestDescriptor(
-          'type_emptyNamed',
-          'A m(B b, {})',
-          [diag.missingIdentifier, diag.missingFunctionBody],
-          'A m(B b, {_s_}){}',
-          expectedDiagnosticsInValidCode: [diag.privateOptionalParameter],
-        ),
+        TestDescriptor('type_emptyNamed', 'A m(B b, {})', [
+          diag.missingIdentifier,
+          diag.missingFunctionBody,
+        ], 'A m(B b, {_s_}){}'),
         //
         // Static method, no return type.
         //
@@ -155,13 +149,10 @@ class MethodTest extends PartialCodeTest {
           [diag.missingIdentifier, diag.missingFunctionBody],
           'static m(B b, [_s_]){}',
         ),
-        TestDescriptor(
-          'static_noType_emptyNamed',
-          'static m(B b, {})',
-          [diag.missingIdentifier, diag.missingFunctionBody],
-          'static m(B b, {_s_}){}',
-          expectedDiagnosticsInValidCode: [diag.privateOptionalParameter],
-        ),
+        TestDescriptor('static_noType_emptyNamed', 'static m(B b, {})', [
+          diag.missingIdentifier,
+          diag.missingFunctionBody,
+        ], 'static m(B b, {_s_}){}'),
         //
         // Static method, with simple return type.
         //
@@ -207,7 +198,6 @@ class MethodTest extends PartialCodeTest {
           'static A m(B b, {})',
           [diag.missingIdentifier, diag.missingFunctionBody],
           'static A m(B b, {_s_}){}',
-          expectedDiagnosticsInValidCode: [diag.privateOptionalParameter],
         ),
       ],
       PartialCodeTest.classMemberSuffixes,

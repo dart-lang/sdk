@@ -178,11 +178,12 @@ class DataSerializer {
 }
 
 class DataDeserializer {
+  final Component component;
   final _BinaryDataSource _source;
   final _IdToEntityMapper _mapper;
   final List<String> _stringIndexer = [];
 
-  DataDeserializer(Uint8List bytes, Component component)
+  DataDeserializer(Uint8List bytes, this.component)
       : _source = _BinaryDataSource(bytes),
         _mapper = _IdToEntityMapper(component);
 

@@ -100,7 +100,7 @@ vars = {
   "boringssl_rev": "9f138d05879fcf61965d1ea9d6c8b2cfc8bc12cb",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
-  "devtools_rev": "bac6843cce3c98d8794a7cce796faaa8860cc00f",
+  "devtools_rev": "b9d7fc1a4119b3d214a77939f9d75b0c0b25d36a",
   # Use the SHA found in `flutter-candidate.txt` in the devtools repo.
   "flutter_rev": "36ea2bdeab611e908967b6fa57659998f600a2cb",
   "icu_rev": "1b2e3e8a421efae36141a7b932b41e315b089af8",
@@ -140,13 +140,13 @@ vars = {
   "i18n_rev": "dd8a792a8492370a594706c8304d2eb8db844d7a",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "native_rev": "9a11537944f2ee295df46104624fb714c3dd7741", # rolled manually while record_use is experimental
+  "native_rev": "4bed1ed249b22f9a447b96bcaf4b546ce0e70319", # rolled manually while record_use is experimental
   "protobuf_rev": "9e30258e0aa6a6430ee36c84b75308a9702fde42",
   "pub_rev": "b21ac685bc64f6e81050ec0093aa83543d66e2fd", # rolled manually
   "shelf_rev": "dd830a0338b31bee92fe7ebc20b9bb963403b6b0",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
-  "test_rev": "c15153b9618afc4c5e8a43bac43339de130c2149",
+  "test_rev": "f95c0f5c10fa9af35014117cb00ec17d2a117265",
   "tools_rev": "87270e60a5c92f127acb29d6e0dbc2d920c3f669",
   "vector_math_rev": "70a9a2cb610d040b247f3ca2cd70a94c1c6f6f23",
   "web_rev": "35fc98dd8f9da175ed0a2dcf246299e922e1e1e2",

@@ -328,9 +328,6 @@ class Parser {
   /// `true` if the 'primary-constructors' feature is enabled.
   final bool _isPrimaryConstructorsFeatureEnabled;
 
-  /// `true` if the 'private-named-parameters' feature is enabled.
-  final bool _isPrivateNamedParametersEnabled;
-
   /// `true` if the 'anonymous-methods' feature is enabled.
   final bool _isAnonymousMethodsFeatureEnabled;
 
@@ -359,8 +356,6 @@ class Parser {
            .isExperimentEnabled(ExperimentalFlag.enhancedParts),
        _isPrimaryConstructorsFeatureEnabled = experimentalFeatures
            .isExperimentEnabled(ExperimentalFlag.primaryConstructors),
-       _isPrivateNamedParametersEnabled = experimentalFeatures
-           .isExperimentEnabled(ExperimentalFlag.privateNamedParameters),
        _isAnonymousMethodsFeatureEnabled = experimentalFeatures
            .isExperimentEnabled(ExperimentalFlag.anonymousMethods);
 
@@ -2331,31 +2326,6 @@ class Parser {
       listener.handleNoName(nameToken);
     } else {
       nameToken = token = ensureIdentifier(token, nameContext);
-      if (isNamedParameter && nameToken.lexeme.startsWith("_")) {
-        // TODO(rnystrom): Also handle declaring field parameters.
-        bool refersToField = thisKeyword != null;
-
-        if (_isPrivateNamedParametersEnabled) {
-          if (!refersToField) {
-            reportRecoverableError(
-              nameToken,
-              codes.codePrivateNamedNonFieldParameter,
-            );
-          }
-        } else {
-          if (!refersToField) {
-            reportRecoverableError(nameToken, codes.codePrivateNamedParameter);
-          } else {
-            // The user is using syntax that is now meaningful, but in a
-            // library where it isn't enabled, so report a more precise error.
-            reportExperimentNotEnabled(
-              ExperimentalFlag.privateNamedParameters,
-              nameToken,
-              nameToken,
-            );
-          }
-        }
-      }
     }
     if (endInlineFunctionType != null) {
       token = endInlineFunctionType;

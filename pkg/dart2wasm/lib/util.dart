@@ -16,6 +16,7 @@ import 'package:vm/metadata/procedure_attributes.dart'
     show ProcedureAttributesMetadataRepository;
 import 'package:vm/metadata/table_selector.dart'
     show TableSelectorMetadataRepository;
+import 'package:vm/metadata/unreachable.dart';
 
 final bool compilerAssertsEnabled = (() {
   bool compilerAsserts = false;
@@ -104,6 +105,7 @@ String intToMinString(int i) {
 
 Component createEmptyComponent() {
   return Component()
+    ..addMetadataRepository(UnreachableNodeMetadataRepository())
     ..addMetadataRepository(ProcedureAttributesMetadataRepository())
     ..addMetadataRepository(TableSelectorMetadataRepository())
     ..addMetadataRepository(DirectCallMetadataRepository())

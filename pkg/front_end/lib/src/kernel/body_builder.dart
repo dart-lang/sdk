@@ -46,6 +46,8 @@ import 'package:kernel/names.dart' show minusName, plusName;
 import 'package:kernel/src/bounds_checks.dart' hide calculateBounds;
 import 'package:kernel/type_environment.dart';
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart' as shared;
+
 import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/lowering_predicates.dart';
 import '../base/compiler_context.dart';
@@ -90,7 +92,6 @@ import '../builder/void_type_builder.dart';
 import '../codes/cfe_codes.dart' as cfe;
 import '../source/check_helper.dart';
 import '../source/diet_parser.dart';
-import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
 import '../source/source_property_builder.dart';
@@ -99,6 +100,7 @@ import '../source/stack_listener_impl.dart'
     show StackListenerImpl, offsetForToken;
 import '../source/type_parameter_factory.dart';
 import '../source/value_kinds.dart';
+import '../type_inference/external_ast_helper.dart';
 import '../util/helpers.dart';
 import '../util/local_stack.dart';
 import 'benchmarker.dart' show Benchmarker, BenchmarkSubdivides;
@@ -199,18 +201,6 @@ class BodyBuilderImpl extends StackListenerImpl
   final TypeEnvironment typeEnvironment;
 
   final Benchmarker? benchmarker;
-
-  /// Only used when [member] is a constructor. It tracks if an implicit super
-  /// initializer is needed.
-  ///
-  /// An implicit super initializer isn't needed
-  ///
-  /// 1. if the current class is Object,
-  /// 2. if there is an explicit super initializer,
-  /// 3. if there is a redirecting (this) initializer, or
-  /// 4. if a compile-time error prevented us from generating code for an
-  ///    initializer. This avoids cascading errors.
-  bool _needsImplicitSuperInitializer;
 
   LocalScope? formalParameterScope;
 
@@ -375,9 +365,6 @@ class BodyBuilderImpl extends StackListenerImpl
        forest = const Forest(),
        enableNative = libraryBuilder.loader.target.backendTarget.enableNative(
          libraryBuilder.importUri,
-       ),
-       _needsImplicitSuperInitializer = context.needsImplicitSuperInitializer(
-         coreTypes,
        ),
        benchmarker = libraryBuilder.loader.target.benchmarker,
        _localScopes = new LocalStack([enclosingScope]),
@@ -1105,7 +1092,7 @@ class BodyBuilderImpl extends StackListenerImpl
             List<Initializer> initializers;
             if (_context.isExternalConstructor) {
               initializers = <Initializer>[
-                buildInvalidInitializer(
+                createInvalidInitializer(
                   buildProblem(
                     message: cfe.codeExternalConstructorWithFieldInitializers,
                     fileUri: uri,
@@ -1189,7 +1176,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Object? node = pop();
     List<Initializer> initializers;
 
-    if (!(_context.isConstructor && !_context.isExternalConstructor)) {
+    if (!_context.isConstructor || _context.isExternalConstructor) {
       // An error has been reported by the parser.
       initializers = <Initializer>[];
     } else if (node is Initializer) {
@@ -1224,7 +1211,7 @@ class BodyBuilderImpl extends StackListenerImpl
         );
       }
       initializers = <Initializer>[
-        buildInvalidInitializer(value as InvalidExpression),
+        createInvalidInitializer(value as InvalidExpression),
       ];
     }
 
@@ -5400,25 +5387,44 @@ class BodyBuilderImpl extends StackListenerImpl
 
     // If it's a private named parameter, handle the public name.
     String? publicName;
-    if (libraryFeatures.privateNamedParameters.isEnabled &&
-        kind.isNamed &&
-        name != null &&
-        name.name.startsWith('_')) {
+    if (kind.isNamed && name != null && name.name.startsWith('_')) {
       // TODO(rnystrom): Also handle declaring field parameters.
       bool refersToField = thisKeyword != null;
 
-      publicName = correspondingPublicName(name.name);
+      if (libraryFeatures.privateNamedParameters.isEnabled) {
+        if (!refersToField) {
+          handleRecoverableError(
+            cfe.codePrivateNamedNonFieldParameter,
+            nameToken,
+            nameToken,
+          );
+        } else {
+          publicName = correspondingPublicName(name.name);
 
-      // Only report the error for no corresponding public name if this is a
-      // parameter that could be private and named. Otherwise, that's already
-      // an error (which has been reported by the parser), so don't report a
-      // second error on top.
-      if (refersToField && publicName == null) {
-        handleRecoverableError(
-          cfe.codePrivateNamedParameterWithoutPublicName,
-          nameToken,
-          nameToken,
-        );
+          // Only report the error for no corresponding public name if this is a
+          // parameter that could be private and named.
+          if (publicName == null) {
+            handleRecoverableError(
+              cfe.codePrivateNamedParameterWithoutPublicName,
+              nameToken,
+              nameToken,
+            );
+          }
+        }
+      } else {
+        if (refersToField) {
+          handleExperimentNotEnabled(
+            shared.ExperimentalFlag.privateNamedParameters,
+            nameToken,
+            nameToken,
+          );
+        } else {
+          handleRecoverableError(
+            cfe.codePrivateNamedParameter,
+            nameToken,
+            nameToken,
+          );
+        }
       }
     }
 
@@ -9832,13 +9838,6 @@ class BodyBuilderImpl extends StackListenerImpl
     return buildProblemStatement(message, statement.fileOffset);
   }
 
-  @override
-  Initializer buildInvalidInitializer(InvalidExpression expression) {
-    _needsImplicitSuperInitializer = false;
-    return new InvalidInitializer(expression.message)
-      ..fileOffset = expression.fileOffset;
-  }
-
   Initializer buildDuplicatedInitializer(
     SourcePropertyBuilder fieldBuilder,
     Expression value,
@@ -9846,15 +9845,15 @@ class BodyBuilderImpl extends StackListenerImpl
     int offset,
     int previousInitializerOffset,
   ) {
-    return new InvalidInitializer(
+    return createInvalidInitializer(
       buildProblem(
         message: cfe.codeConstructorInitializeSameInstanceVariableSeveralTimes
             .withArgumentsOld(name),
         fileUri: uri,
         fileOffset: offset,
         length: noLength,
-      ).message,
-    )..fileOffset = offset;
+      ),
+    );
   }
 
   /// Parameter [formalType] should only be passed in the special case of
@@ -9887,7 +9886,7 @@ class BodyBuilderImpl extends StackListenerImpl
         _context.registerInitializedField(firstBuilder);
       }
       return <Initializer>[
-        buildInvalidInitializer(
+        createInvalidInitializer(
           LookupResult.createDuplicateExpression(
             result,
             context: libraryBuilder.loader.target.context,
@@ -9905,7 +9904,7 @@ class BodyBuilderImpl extends StackListenerImpl
         // Operating on an invalid field. Don't report anything though
         // as we've already reported that the field isn't valid.
         return <Initializer>[
-          buildInvalidInitializer(
+          createInvalidInitializer(
             new InvalidExpression(
               compilerContext
                   .format(
@@ -9937,7 +9936,7 @@ class BodyBuilderImpl extends StackListenerImpl
       initializedFields![name] = assignmentOffset;
       if (builder.hasAbstractField) {
         return <Initializer>[
-          buildInvalidInitializer(
+          createInvalidInitializer(
             buildProblem(
               message: cfe.codeAbstractFieldConstructorInitializer,
               fileUri: uri,
@@ -9948,7 +9947,7 @@ class BodyBuilderImpl extends StackListenerImpl
         ];
       } else if (builder.hasExternalField) {
         return <Initializer>[
-          buildInvalidInitializer(
+          createInvalidInitializer(
             buildProblem(
               message: cfe.codeExternalFieldConstructorInitializer,
               fileUri: uri,
@@ -9959,7 +9958,7 @@ class BodyBuilderImpl extends StackListenerImpl
         ];
       } else if (builder.isFinal && builder.hasInitializer) {
         return <Initializer>[
-          new InvalidInitializer(
+          createInvalidInitializer(
             buildProblem(
               message: cfe.codeFieldAlreadyInitializedAtDeclaration
                   .withArgumentsOld(name),
@@ -9971,8 +9970,8 @@ class BodyBuilderImpl extends StackListenerImpl
                     .withArgumentsOld(name)
                     .withLocation(uri, builder.fileOffset, name.length),
               ],
-            ).message,
-          )..fileOffset = assignmentOffset,
+            ),
+          ),
         ];
       } else {
         _context.registerInitializedField(builder);
@@ -9981,7 +9980,7 @@ class BodyBuilderImpl extends StackListenerImpl
           DartType fieldType = _context.substituteFieldType(builder.fieldType);
           if (!typeEnvironment.isSubtypeOf(formalType, fieldType)) {
             return [
-              buildInvalidInitializer(
+              createInvalidInitializer(
                 buildProblem(
                   message: cfe.codeInitializingFormalTypeMismatch
                       .withArgumentsOld(name, formalType, builder.fieldType),
@@ -10008,7 +10007,7 @@ class BodyBuilderImpl extends StackListenerImpl
       }
     } else {
       return <Initializer>[
-        buildInvalidInitializer(
+        createInvalidInitializer(
           buildProblem(
             message: cfe.codeInitializerForStaticField.withArgumentsOld(name),
             fileUri: uri,
@@ -10034,7 +10033,6 @@ class BodyBuilderImpl extends StackListenerImpl
         constructor.name.text.length,
       );
     }
-    _needsImplicitSuperInitializer = false;
     return new InternalSuperInitializer(
       constructor,
       arguments,
@@ -10056,7 +10054,7 @@ class BodyBuilderImpl extends StackListenerImpl
         length = "this".length;
       }
       String fullName = constructorNameForDiagnostics(name.text);
-      return buildInvalidInitializer(
+      return createInvalidInitializer(
         buildProblem(
           message: cfe.codeConstructorNotFound.withArgumentsOld(fullName),
           fileUri: uri,
@@ -10079,13 +10077,10 @@ class BodyBuilderImpl extends StackListenerImpl
               formal.fileOffset,
               noLength,
             );
-            if (constructorBuilder is SourceConstructorBuilder) {
-              constructorBuilder.markAsErroneous();
-            }
+            _context.markAsErroneous();
           }
         }
       }
-      _needsImplicitSuperInitializer = false;
       return _context.buildRedirectingInitializer(
         constructorBuilder,
         arguments,
@@ -11116,7 +11111,6 @@ class BodyBuilderImpl extends StackListenerImpl
     parseInitializers(beginInitializers);
     return new BuildInitializersResult(
       _initializers,
-      _needsImplicitSuperInitializer,
       _takePendingAnnotations(),
     );
   }
@@ -11246,7 +11240,6 @@ class BodyBuilderImpl extends StackListenerImpl
       asyncModifier: asyncModifier,
       body: body,
       initializers: _initializers,
-      needsImplicitSuperInitializer: _needsImplicitSuperInitializer,
       annotations: _takePendingAnnotations(),
     );
   }

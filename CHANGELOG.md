@@ -1,3 +1,7 @@
+## 3.12.0
+
+**Released on:** Unreleased
+
 ## 3.11.0
 
 **Released on:** Unreleased
@@ -49,13 +53,16 @@
 - Various fixes are made for the `error` and `stackTrace` parameters of
   try/catch statements.
 - Various fixes are made for syntax highlighting, navigation, code completion,
-  hovers, quick fixes, assists, and "rename" refactoring.
+  hovers, quick fixes, assists, "rename" refactoring, and "go to imports."
 - Various fixes for IDE features with regards to "Dot Shorthand" syntax.
 - Improvements to LSP format-on-type, to not format in undesirable cases.
 - Various performance improvements.
 - Fixes to the 'Extract Widget' refactoring.
 - (Thanks [@FMorschel](https://github.com/FMorschel) and
   [@DanTup](https://github.com/DanTup) for many of the above enhancements!)
+- A new lint rule is offered: `simplify_variable_pattern`, which encourages
+  using the pattern shorthand for variables and property names of the same
+  name.
 - The `avoid_null_checks_in_equality_operators` lint rule is now deprecated.
 - The `prefer_final_parameters` lint rule is now deprecated.
 - The `use_if_null_to_convert_nulls_to_bools` lint rule is now deprecated.

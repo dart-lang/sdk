@@ -1392,9 +1392,9 @@ const DiagnosticWithoutArguments castFromNullAlwaysFails =
     );
 
 /// Parameters:
-/// String p0: the name of the type
+/// String name: the name of the type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 castToNonType = DiagnosticWithArguments(
   name: 'cast_to_non_type',
@@ -1483,10 +1483,13 @@ classInstantiationAccessToStaticMember = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the class
-/// String p1: the name of the member
+/// String className: the name of the class
+/// String memberName: the name of the member
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String className,
+    required String memberName,
+  })
 >
 classInstantiationAccessToUnknownMember = DiagnosticWithArguments(
   name: 'class_instantiation_access_to_member',
@@ -1501,9 +1504,9 @@ classInstantiationAccessToUnknownMember = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the class being used as a mixin
+/// String name: the name of the class being used as a mixin
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 classUsedAsMixin = DiagnosticWithArguments(
   name: 'class_used_as_mixin',
@@ -1684,17 +1687,18 @@ conflictingFieldAndMethod = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the kind of the element implementing the
-///            conflicting interface
-/// String p1: the name of the element implementing the conflicting interface
-/// String p2: the first conflicting type
-/// String p3: the second conflicting type
+/// String kind: the name of the kind of the element implementing the
+///              conflicting interface
+/// String element: the name of the element implementing the conflicting
+///                 interface
+/// String type1: the first conflicting type
+/// String type2: the second conflicting type
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required String p2,
-    required String p3,
+    required String kind,
+    required String element,
+    required String type1,
+    required String type2,
   })
 >
 conflictingGenericInterfaces = DiagnosticWithArguments(
@@ -2160,9 +2164,9 @@ const DiagnosticWithoutArguments constConstructorWithBody =
     );
 
 /// Parameters:
-/// String p0: the name of the field
+/// String fieldName: the name of the field
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String fieldName})
 >
 constConstructorWithFieldInitializedByNonConst = DiagnosticWithArguments(
   name: 'const_constructor_with_field_initialized_by_non_const',
@@ -2238,9 +2242,9 @@ constConstructorWithMixinWithFields = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the superclass
+/// String superclassName: the name of the superclass
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String superclassName})
 >
 constConstructorWithNonConstSuper = DiagnosticWithArguments(
   name: 'const_constructor_with_non_const_super',
@@ -2610,9 +2614,9 @@ const DiagnosticWithoutArguments constInstanceField =
     );
 
 /// Parameters:
-/// Type p0: the type of the entry's key
+/// Type keyType: the type of the entry's key
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0})
+  LocatableDiagnostic Function({required DartType keyType})
 >
 constMapKeyNotPrimitiveEquality = DiagnosticWithArguments(
   name: 'const_map_key_not_primitive_equality',
@@ -2641,9 +2645,9 @@ const DiagnosticWithoutArguments constMethod = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the uninitialized final variable
+/// String name: the name of the uninitialized final variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 constNotInitialized = DiagnosticWithArguments(
   name: 'const_not_initialized',
@@ -2682,9 +2686,9 @@ constructorWithTypeArguments = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Type p0: the type of the element
+/// Type type: the type of the element
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0})
+  LocatableDiagnostic Function({required DartType type})
 >
 constSetElementNotPrimitiveEquality = DiagnosticWithArguments(
   name: 'const_set_element_not_primitive_equality',
@@ -2764,9 +2768,9 @@ const DiagnosticWithoutArguments constWithNonConstantArgument =
     );
 
 /// Parameters:
-/// String p0: the name of the non-type element
+/// String name: the name of the non-type element
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 constWithNonType = DiagnosticWithArguments(
   name: 'creation_with_non_type',
@@ -2842,10 +2846,13 @@ const DiagnosticWithoutArguments constWithTypeParametersFunctionTearoff =
 /// a constant constructor declared by the type <i>T</i>.
 ///
 /// Parameters:
-/// Object p0: the name of the type
-/// String p1: the name of the requested constant constructor
+/// String className: the name of the type
+/// String constructorName: the name of the requested constant constructor
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0, required String p1})
+  LocatableDiagnostic Function({
+    required String className,
+    required String constructorName,
+  })
 >
 constWithUndefinedConstructor = DiagnosticWithArguments(
   name: 'const_with_undefined_constructor',
@@ -2854,16 +2861,16 @@ constWithUndefinedConstructor = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'const_with_undefined_constructor',
   withArguments: _withArgumentsConstWithUndefinedConstructor,
-  expectedTypes: [ExpectedType.object, ExpectedType.string],
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// 16.12.2 Const: It is a compile-time error if <i>T.id</i> is not the name of
 /// a constant constructor declared by the type <i>T</i>.
 ///
 /// Parameters:
-/// String p0: the name of the type
+/// String className: the name of the type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String className})
 >
 constWithUndefinedConstructorDefault = DiagnosticWithArguments(
   name: 'const_with_undefined_constructor_default',
@@ -2916,10 +2923,14 @@ continueWithoutLabelInCase = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the type parameter
-/// String p1: detail text explaining why the type could not be inferred
+/// String typeParameterName: the name of the type parameter
+/// String detailText: detail text explaining why the type could not be
+///                    inferred
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String typeParameterName,
+    required String detailText,
+  })
 >
 couldNotInfer = DiagnosticWithArguments(
   name: 'could_not_infer',
@@ -3825,9 +3836,9 @@ const DiagnosticWithoutArguments duplicateDeferred =
     );
 
 /// Parameters:
-/// Object p0: the name of the duplicate entity
+/// String name: the name of the duplicate entity
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 duplicateDefinition = DiagnosticWithArguments(
   name: 'duplicate_definition',
@@ -3837,7 +3848,7 @@ duplicateDefinition = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'duplicate_definition',
   withArguments: _withArgumentsDuplicateDefinition,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
@@ -3869,9 +3880,9 @@ const DiagnosticWithoutArguments duplicateExport =
     );
 
 /// Parameters:
-/// Object p0: the name of the field
+/// String name: the name of the field
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 duplicateFieldFormalParameter = DiagnosticWithArguments(
   name: 'duplicate_field_formal_parameter',
@@ -3884,13 +3895,13 @@ duplicateFieldFormalParameter = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'duplicate_field_formal_parameter',
   withArguments: _withArgumentsDuplicateFieldFormalParameter,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object p0: the duplicated name
+/// String name: the duplicated name
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 duplicateFieldName = DiagnosticWithArguments(
   name: 'duplicate_field_name',
@@ -3900,7 +3911,7 @@ duplicateFieldName = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'duplicate_field_name',
   withArguments: _withArgumentsDuplicateFieldName,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -3986,8 +3997,8 @@ duplicateNamedArgument = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Uri p0: the URI of the duplicate part
-const DiagnosticWithArguments<LocatableDiagnostic Function({required Uri p0})>
+/// Uri uri: the URI of the duplicate part
+const DiagnosticWithArguments<LocatableDiagnostic Function({required Uri uri})>
 duplicatePart = DiagnosticWithArguments(
   name: 'duplicate_part',
   problemMessage: "The library already contains a part with the URI '{0}'.",
@@ -4090,9 +4101,9 @@ const DiagnosticWithoutArguments duplicateShownName =
     );
 
 /// Parameters:
-/// Object p0: the name of the variable
+/// String name: the name of the variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 duplicateVariablePattern = DiagnosticWithArguments(
   name: 'duplicate_variable_pattern',
@@ -4102,7 +4113,7 @@ duplicateVariablePattern = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'duplicate_variable_pattern',
   withArguments: _withArgumentsDuplicateVariablePattern,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -9093,9 +9104,9 @@ invalidUnicodeEscapeUStarted = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the URI that is invalid
+/// String uri: the URI that is invalid
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String uri})
 >
 invalidUri = DiagnosticWithArguments(
   name: 'invalid_uri',
@@ -11398,9 +11409,9 @@ newConstructorQualifiedName = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the non-type element
+/// String name: the name of the non-type element
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 newWithNonType = DiagnosticWithArguments(
   name: 'creation_with_non_type',
@@ -13021,11 +13032,14 @@ parseError = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of expected library name
-/// String p1: the non-matching actual library name from the "part of"
-///            declaration
+/// String expectedName: the name of expected library name
+/// String actualName: the non-matching actual library name from the "part of"
+///                    declaration
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String expectedName,
+    required String actualName,
+  })
 >
 partOfDifferentLibrary = DiagnosticWithArguments(
   name: 'part_of_different_library',
@@ -13052,9 +13066,9 @@ const DiagnosticWithoutArguments partOfName = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the URI pointing to a non-library declaration
+/// String uriStr: the URI pointing to a non-library declaration
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String uriStr})
 >
 partOfNonPart = DiagnosticWithArguments(
   name: 'part_of_non_part',
@@ -13068,10 +13082,10 @@ partOfNonPart = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the non-matching actual library name from the "part of"
-///            declaration
+/// String libraryName: the non-matching actual library name from the "part
+///                     of" declaration
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String libraryName})
 >
 partOfUnnamedLibrary = DiagnosticWithArguments(
   name: 'part_of_unnamed_library',
@@ -13439,9 +13453,9 @@ prefixAfterCombinator = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Object p0: the name of the prefix
+/// String name: the name of the prefix
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 prefixCollidesWithTopLevelMember = DiagnosticWithArguments(
   name: 'prefix_collides_with_top_level_member',
@@ -13453,7 +13467,7 @@ prefixCollidesWithTopLevelMember = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'prefix_collides_with_top_level_member',
   withArguments: _withArgumentsPrefixCollidesWithTopLevelMember,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
@@ -13547,10 +13561,9 @@ privateNamedNonFieldParameter = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String publicName: the corresponding public name of private named
-///                    parameter
+/// String name: the corresponding public name of private named parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String publicName})
+  LocatableDiagnostic Function({required String name})
 >
 privateNamedParameterDuplicatePublicName = DiagnosticWithArguments(
   name: 'private_named_parameter_duplicate_public_name',
@@ -17070,9 +17083,9 @@ unusedShownName = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the URI pointing to a nonexistent file
+/// String uriStr: the URI pointing to a nonexistent file
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String uriStr})
 >
 uriDoesNotExist = DiagnosticWithArguments(
   name: 'uri_does_not_exist',
@@ -17088,9 +17101,9 @@ uriDoesNotExist = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the URI pointing to a nonexistent file
+/// String uriStr: the URI pointing to a nonexistent file
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String uriStr})
 >
 uriDoesNotExistInDocImport = DiagnosticWithArguments(
   name: 'uri_does_not_exist_in_doc_import',
@@ -17106,9 +17119,9 @@ uriDoesNotExistInDocImport = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the URI pointing to a nonexistent file
+/// String uriStr: the URI pointing to a nonexistent file
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String uriStr})
 >
 uriHasNotBeenGenerated = DiagnosticWithArguments(
   name: 'uri_has_not_been_generated',
@@ -17528,7 +17541,7 @@ const DiagnosticWithArguments<
 >
 wrongNumberOfTypeArgumentsDotShorthandConstructor = DiagnosticWithArguments(
   name: 'wrong_number_of_type_arguments_constructor',
-  problemMessage: "The constructor '{0}.{1}` doesn't have type parameters.",
+  problemMessage: "The constructor '{0}.{1}' doesn't have type parameters.",
   correctionMessage:
       "Try removing the type arguments, or adding a class name, followed by "
       "the type arguments, then the constructor name.",
@@ -18083,8 +18096,8 @@ LocatableDiagnostic _withArgumentsCastFromNullableAlwaysFails({
   return LocatableDiagnosticImpl(diag.castFromNullableAlwaysFails, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsCastToNonType({required String p0}) {
-  return LocatableDiagnosticImpl(diag.castToNonType, [p0]);
+LocatableDiagnostic _withArgumentsCastToNonType({required String name}) {
+  return LocatableDiagnosticImpl(diag.castToNonType, [name]);
 }
 
 LocatableDiagnostic _withArgumentsClassInstantiationAccessToInstanceMember({
@@ -18105,17 +18118,17 @@ LocatableDiagnostic _withArgumentsClassInstantiationAccessToStaticMember({
 }
 
 LocatableDiagnostic _withArgumentsClassInstantiationAccessToUnknownMember({
-  required String p0,
-  required String p1,
+  required String className,
+  required String memberName,
 }) {
   return LocatableDiagnosticImpl(diag.classInstantiationAccessToUnknownMember, [
-    p0,
-    p1,
+    className,
+    memberName,
   ]);
 }
 
-LocatableDiagnostic _withArgumentsClassUsedAsMixin({required String p0}) {
-  return LocatableDiagnosticImpl(diag.classUsedAsMixin, [p0]);
+LocatableDiagnostic _withArgumentsClassUsedAsMixin({required String name}) {
+  return LocatableDiagnosticImpl(diag.classUsedAsMixin, [name]);
 }
 
 LocatableDiagnostic _withArgumentsCompoundImplementsFinalizable({
@@ -18181,16 +18194,16 @@ LocatableDiagnostic _withArgumentsConflictingFieldAndMethod({
 }
 
 LocatableDiagnostic _withArgumentsConflictingGenericInterfaces({
-  required String p0,
-  required String p1,
-  required String p2,
-  required String p3,
+  required String kind,
+  required String element,
+  required String type1,
+  required String type2,
 }) {
   return LocatableDiagnosticImpl(diag.conflictingGenericInterfaces, [
-    p0,
-    p1,
-    p2,
-    p3,
+    kind,
+    element,
+    type1,
+    type2,
   ]);
 }
 
@@ -18354,11 +18367,11 @@ LocatableDiagnostic _withArgumentsConstConstructorParamTypeMismatch({
 
 LocatableDiagnostic
 _withArgumentsConstConstructorWithFieldInitializedByNonConst({
-  required String p0,
+  required String fieldName,
 }) {
   return LocatableDiagnosticImpl(
     diag.constConstructorWithFieldInitializedByNonConst,
-    [p0],
+    [fieldName],
   );
 }
 
@@ -18377,9 +18390,11 @@ LocatableDiagnostic _withArgumentsConstConstructorWithMixinWithFields({
 }
 
 LocatableDiagnostic _withArgumentsConstConstructorWithNonConstSuper({
-  required String p0,
+  required String superclassName,
 }) {
-  return LocatableDiagnosticImpl(diag.constConstructorWithNonConstSuper, [p0]);
+  return LocatableDiagnosticImpl(diag.constConstructorWithNonConstSuper, [
+    superclassName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsConstEvalAssertionFailureWithMessage({
@@ -18411,47 +18426,55 @@ LocatableDiagnostic _withArgumentsConstFieldInitializerNotAssignable({
 }
 
 LocatableDiagnostic _withArgumentsConstMapKeyNotPrimitiveEquality({
-  required DartType p0,
+  required DartType keyType,
 }) {
-  return LocatableDiagnosticImpl(diag.constMapKeyNotPrimitiveEquality, [p0]);
-}
-
-LocatableDiagnostic _withArgumentsConstNotInitialized({required String p0}) {
-  return LocatableDiagnosticImpl(diag.constNotInitialized, [p0]);
-}
-
-LocatableDiagnostic _withArgumentsConstSetElementNotPrimitiveEquality({
-  required DartType p0,
-}) {
-  return LocatableDiagnosticImpl(diag.constSetElementNotPrimitiveEquality, [
-    p0,
+  return LocatableDiagnosticImpl(diag.constMapKeyNotPrimitiveEquality, [
+    keyType,
   ]);
 }
 
-LocatableDiagnostic _withArgumentsConstWithNonType({required String p0}) {
-  return LocatableDiagnosticImpl(diag.constWithNonType, [p0]);
+LocatableDiagnostic _withArgumentsConstNotInitialized({required String name}) {
+  return LocatableDiagnosticImpl(diag.constNotInitialized, [name]);
+}
+
+LocatableDiagnostic _withArgumentsConstSetElementNotPrimitiveEquality({
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.constSetElementNotPrimitiveEquality, [
+    type,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsConstWithNonType({required String name}) {
+  return LocatableDiagnosticImpl(diag.constWithNonType, [name]);
 }
 
 LocatableDiagnostic _withArgumentsConstWithUndefinedConstructor({
-  required Object p0,
-  required String p1,
+  required String className,
+  required String constructorName,
 }) {
-  return LocatableDiagnosticImpl(diag.constWithUndefinedConstructor, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.constWithUndefinedConstructor, [
+    className,
+    constructorName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsConstWithUndefinedConstructorDefault({
-  required String p0,
+  required String className,
 }) {
   return LocatableDiagnosticImpl(diag.constWithUndefinedConstructorDefault, [
-    p0,
+    className,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsCouldNotInfer({
-  required String p0,
-  required String p1,
+  required String typeParameterName,
+  required String detailText,
 }) {
-  return LocatableDiagnosticImpl(diag.couldNotInfer, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.couldNotInfer, [
+    typeParameterName,
+    detailText,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsDeadCodeOnCatchSubtype({
@@ -18644,18 +18667,18 @@ LocatableDiagnostic _withArgumentsDuplicateConstructorName({
   return LocatableDiagnosticImpl(diag.duplicateConstructorName, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsDuplicateDefinition({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.duplicateDefinition, [p0]);
+LocatableDiagnostic _withArgumentsDuplicateDefinition({required String name}) {
+  return LocatableDiagnosticImpl(diag.duplicateDefinition, [name]);
 }
 
 LocatableDiagnostic _withArgumentsDuplicateFieldFormalParameter({
-  required Object p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.duplicateFieldFormalParameter, [p0]);
+  return LocatableDiagnosticImpl(diag.duplicateFieldFormalParameter, [name]);
 }
 
-LocatableDiagnostic _withArgumentsDuplicateFieldName({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.duplicateFieldName, [p0]);
+LocatableDiagnostic _withArgumentsDuplicateFieldName({required String name}) {
+  return LocatableDiagnosticImpl(diag.duplicateFieldName, [name]);
 }
 
 LocatableDiagnostic _withArgumentsDuplicateIgnore({required String p0}) {
@@ -18666,8 +18689,8 @@ LocatableDiagnostic _withArgumentsDuplicateNamedArgument({required String p0}) {
   return LocatableDiagnosticImpl(diag.duplicateNamedArgument, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsDuplicatePart({required Uri p0}) {
-  return LocatableDiagnosticImpl(diag.duplicatePart, [p0]);
+LocatableDiagnostic _withArgumentsDuplicatePart({required Uri uri}) {
+  return LocatableDiagnosticImpl(diag.duplicatePart, [uri]);
 }
 
 LocatableDiagnostic _withArgumentsDuplicatePatternAssignmentVariable({
@@ -18685,9 +18708,9 @@ LocatableDiagnostic _withArgumentsDuplicateRule({required String ruleName}) {
 }
 
 LocatableDiagnostic _withArgumentsDuplicateVariablePattern({
-  required Object p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.duplicateVariablePattern, [p0]);
+  return LocatableDiagnosticImpl(diag.duplicateVariablePattern, [name]);
 }
 
 LocatableDiagnostic _withArgumentsEmptyStruct({
@@ -19618,8 +19641,8 @@ LocatableDiagnostic _withArgumentsInvalidTypeArgumentInConstSet({
   return LocatableDiagnosticImpl(diag.invalidTypeArgumentInConstSet, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsInvalidUri({required String p0}) {
-  return LocatableDiagnosticImpl(diag.invalidUri, [p0]);
+LocatableDiagnostic _withArgumentsInvalidUri({required String uri}) {
+  return LocatableDiagnosticImpl(diag.invalidUri, [uri]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidUseOfDoNotSubmitMember({
@@ -20032,8 +20055,8 @@ LocatableDiagnostic _withArgumentsNativeFieldInvalidType({
   return LocatableDiagnosticImpl(diag.nativeFieldInvalidType, [type]);
 }
 
-LocatableDiagnostic _withArgumentsNewWithNonType({required String p0}) {
-  return LocatableDiagnosticImpl(diag.newWithNonType, [p0]);
+LocatableDiagnostic _withArgumentsNewWithNonType({required String name}) {
+  return LocatableDiagnosticImpl(diag.newWithNonType, [name]);
 }
 
 LocatableDiagnostic _withArgumentsNewWithUndefinedConstructor({
@@ -20354,18 +20377,23 @@ LocatableDiagnostic _withArgumentsParseError({required String errorMessage}) {
 }
 
 LocatableDiagnostic _withArgumentsPartOfDifferentLibrary({
-  required String p0,
-  required String p1,
+  required String expectedName,
+  required String actualName,
 }) {
-  return LocatableDiagnosticImpl(diag.partOfDifferentLibrary, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.partOfDifferentLibrary, [
+    expectedName,
+    actualName,
+  ]);
 }
 
-LocatableDiagnostic _withArgumentsPartOfNonPart({required String p0}) {
-  return LocatableDiagnosticImpl(diag.partOfNonPart, [p0]);
+LocatableDiagnostic _withArgumentsPartOfNonPart({required String uriStr}) {
+  return LocatableDiagnosticImpl(diag.partOfNonPart, [uriStr]);
 }
 
-LocatableDiagnostic _withArgumentsPartOfUnnamedLibrary({required String p0}) {
-  return LocatableDiagnosticImpl(diag.partOfUnnamedLibrary, [p0]);
+LocatableDiagnostic _withArgumentsPartOfUnnamedLibrary({
+  required String libraryName,
+}) {
+  return LocatableDiagnosticImpl(diag.partOfUnnamedLibrary, [libraryName]);
 }
 
 LocatableDiagnostic _withArgumentsPathDoesNotExist({required String p0}) {
@@ -20441,9 +20469,9 @@ LocatableDiagnostic _withArgumentsPluginsInInnerOptions({
 }
 
 LocatableDiagnostic _withArgumentsPrefixCollidesWithTopLevelMember({
-  required Object p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.prefixCollidesWithTopLevelMember, [p0]);
+  return LocatableDiagnosticImpl(diag.prefixCollidesWithTopLevelMember, [name]);
 }
 
 LocatableDiagnostic _withArgumentsPrefixIdentifierNotFollowedByDot({
@@ -20471,11 +20499,11 @@ LocatableDiagnostic _withArgumentsPrivateCollisionInMixinApplication({
 }
 
 LocatableDiagnostic _withArgumentsPrivateNamedParameterDuplicatePublicName({
-  required String publicName,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(
     diag.privateNamedParameterDuplicatePublicName,
-    [publicName],
+    [name],
   );
 }
 
@@ -21296,18 +21324,20 @@ LocatableDiagnostic _withArgumentsUnusedShownName({required String p0}) {
   return LocatableDiagnosticImpl(diag.unusedShownName, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsUriDoesNotExist({required String p0}) {
-  return LocatableDiagnosticImpl(diag.uriDoesNotExist, [p0]);
+LocatableDiagnostic _withArgumentsUriDoesNotExist({required String uriStr}) {
+  return LocatableDiagnosticImpl(diag.uriDoesNotExist, [uriStr]);
 }
 
 LocatableDiagnostic _withArgumentsUriDoesNotExistInDocImport({
-  required String p0,
+  required String uriStr,
 }) {
-  return LocatableDiagnosticImpl(diag.uriDoesNotExistInDocImport, [p0]);
+  return LocatableDiagnosticImpl(diag.uriDoesNotExistInDocImport, [uriStr]);
 }
 
-LocatableDiagnostic _withArgumentsUriHasNotBeenGenerated({required String p0}) {
-  return LocatableDiagnosticImpl(diag.uriHasNotBeenGenerated, [p0]);
+LocatableDiagnostic _withArgumentsUriHasNotBeenGenerated({
+  required String uriStr,
+}) {
+  return LocatableDiagnosticImpl(diag.uriHasNotBeenGenerated, [uriStr]);
 }
 
 LocatableDiagnostic _withArgumentsVariableTypeMismatch({

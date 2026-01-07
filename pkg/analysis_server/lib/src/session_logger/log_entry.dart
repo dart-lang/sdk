@@ -37,8 +37,9 @@ extension type LogEntry(JsonMap map) {
 
 /// A representation of a message sent from one process to another.
 extension type Message(JsonMap map) {
-  /// The ID of the message. All messages have IDs.
-  int get id => map['id'] as int;
+  /// The ID of the message. All request messages have IDs, but notifications
+  /// do not.
+  int? get id => map['id'] as int?;
 
   /// Whether this message is a request for the server to exit.
   bool get isExit => method == 'exit';

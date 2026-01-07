@@ -792,24 +792,34 @@ abstract class AstCodeGenerator
   void visitVariableDeclaration(VariableDeclaration node) {
     final w.ValueType type = translator.translateTypeOfLocalVariable(node);
     w.Local? local;
-    Capture? capture = closures.captures[node];
+    final Capture? capture = closures.captures[node];
     if (capture == null || !capture.written) {
+      // Variable is not captured, or never updated after initialization. Keep
+      // the value in a local.
       local = addLocal(type, name: node.name);
       locals[node] = local;
     }
 
-    // Handle variable initialization. Nullable variables have an implicit
-    // initializer.
+    // Handle variable initialization. Nullable variables don't get an
+    // initializer in kernel, but they still need to be initialized as `null`,
+    // to reset the variables in loops to the initial value, intead of reusing
+    // the last value from the previous iteration. This is tested in
+    // `tests/language/local_null_initialization.dart`.
     if (node.initializer != null ||
         node.type.nullability == Nullability.nullable) {
       Expression initializer =
           node.initializer ?? ConstantExpression(NullConstant());
       if (capture != null) {
-        w.ValueType expectedType = capture.written ? capture.type : local!.type;
+        // Type for the variable in context will always be nullable, to be able
+        // to allocate the context without creating dummy values. Nullability of
+        // the local's type will depend on the Dart type.
+        assert(
+            local == null || local.type.withNullability(true) == capture.type);
+        w.ValueType expectedType = local != null ? local.type : capture.type;
         b.local_get(capture.context.currentLocal);
         translateExpression(initializer, expectedType);
-        if (!capture.written) {
-          b.local_tee(local!);
+        if (local != null) {
+          b.local_tee(local);
         }
         b.struct_set(capture.context.struct, capture.fieldIndex);
       } else {
@@ -817,7 +827,8 @@ abstract class AstCodeGenerator
         b.local_set(local);
       }
     } else if (local != null && !local.type.defaultable) {
-      // Uninitialized variable
+      // Uninitialized variable. We don't need to update the context when the
+      // variable is captured as the context is already initialized.
       translator
           .getDummyValuesCollectorForModule(b.moduleBuilder)
           .instantiateDummyValue(b, local.type);
@@ -836,6 +847,8 @@ abstract class AstCodeGenerator
     w.Local? local;
     final Capture? capture = closures.captures[node];
     if (capture == null || !capture.written) {
+      // Variable is not captured, or never updated after initialization. Keep
+      // the value in a local.
       local = addLocal(type, name: node.name);
       locals[node] = local;
     }
@@ -843,8 +856,8 @@ abstract class AstCodeGenerator
     if (capture != null) {
       b.local_get(capture.context.currentLocal);
       pushInitialValue();
-      if (!capture.written) {
-        b.local_tee(local!);
+      if (local != null) {
+        b.local_tee(local);
       }
       b.struct_set(capture.context.struct, capture.fieldIndex);
     } else {

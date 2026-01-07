@@ -106,8 +106,6 @@ abstract class ExpressionGeneratorHelper {
     bool isTypeArgumentsInForest = false,
   });
 
-  Initializer buildInvalidInitializer(InvalidExpression expression);
-
   List<Initializer> createFieldInitializer(
     String name,
     int fieldNameOffset,

@@ -100,8 +100,11 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  void registerInitializers(List<Initializer> initializers) {
-    _builder.registerInitializers(initializers);
+  void registerInitializers(
+    List<Initializer> initializers, {
+    required bool isErroneous,
+  }) {
+    _builder.registerInitializers(initializers, isErroneous: isErroneous);
   }
 
   @override

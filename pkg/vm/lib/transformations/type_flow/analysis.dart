@@ -888,16 +888,9 @@ final class _DispatchableInvocation extends _Invocation {
       isDynamicallyOverridden = true;
     }
     if (kPrintTrace) {
-      tracePrint(
-        "isDynamicallyOverridden = $isDynamicallyOverridden, isPrivate = ${selector.name.isPrivate}",
-      );
+      tracePrint("isDynamicallyOverridden = $isDynamicallyOverridden");
     }
-    // Edge case: when desugaring enums, front-end generates classes which
-    // override private _enumToString method from a different library.
-    // So analysis should treat _enumToString as public for correctness.
-    return !isDynamicallyOverridden ||
-        (selector.name.isPrivate &&
-            selector.name != typeFlowAnalysis.enumToStringName);
+    return !isDynamicallyOverridden;
   }
 
   void _recordMismatchedDynamicInvocation(

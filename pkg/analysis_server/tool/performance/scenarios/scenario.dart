@@ -6,13 +6,11 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:path/path.dart' as p;
+import 'package:cli_util/cli_util.dart';
 
 import '../../log_player/log.dart';
 import '../../log_player/log_player.dart';
 import '../project_generator/project_generator.dart';
-
-final dartSdkRoot = p.dirname(p.dirname(Platform.resolvedExecutable));
 
 /// A [Scenario] represents a combination of a [project] and a [logFile] to
 /// replay in that project.
@@ -46,12 +44,19 @@ class Scenario {
 
     print('Setting up project');
     var projectDirs = await project.setUp();
+    late StreamSubscription<ProcessSignal> exitListener;
+    exitListener = ProcessSignal.sigint.watch().listen((_) async {
+      print('cleaning up project for clean exit... hit ctrl+c again to force');
+      unawaited(exitListener.cancel());
+      await project.tearDown(projectDirs);
+      exit(1);
+    });
 
     print('Reading logs');
     var logs = Log.fromFile(logFile, {
       for (var i = 0; i < projectDirs.length; i++)
         '{{workspaceFolder-$i}}': projectDirs.elementAt(i).path,
-      '{{dartSdkRoot}}': dartSdkRoot,
+      '{{dartSdkRoot}}': sdkPath,
     });
 
     print('Creating log player');
@@ -76,6 +81,7 @@ $s
     } finally {
       print('Tearing down scenario for project');
       await project.tearDown(projectDirs);
+      await exitListener.cancel();
       print('Scenario cleaned up');
     }
   }

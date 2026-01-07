@@ -266,6 +266,7 @@ Future<void> nativeAssetsTest(
         'native_add_version_skew',
         'native_add',
         'native_dynamic_linking',
+        'recursive_invocation',
         'system_library',
         'treeshaking_native_libs',
         'user_defines',

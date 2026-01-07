@@ -721,7 +721,71 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
         accessor.fileUri,
       );
     }
+    _issueErrorsOnUnsupportedDartColonImports(
+      libraryBuilder,
+      uri,
+      accessor,
+      charOffset,
+      noLength,
+    );
     return libraryBuilder;
+  }
+
+  void _issueErrorsOnUnsupportedDartColonImports(
+    CompilationUnit libraryBuilder,
+    Uri uri,
+    CompilationUnit accessor,
+    int charOffset,
+    int length,
+  ) {
+    final Uri importUri = libraryBuilder.importUri;
+    // Only check for imports of unsupported dart:* libraries.
+    if (!importUri.isScheme('dart')) {
+      return;
+    }
+    // Untranslatable dart uris are handled in [tokenize].
+    if (libraryBuilder.fileUri.isScheme(untranslatableUriScheme)) {
+      return;
+    }
+
+    // dart:* libraries (and their patch files) are not restricted from
+    // importing other dart:* libraries.
+    if (accessor.importUri.isScheme('dart') ||
+        (accessor is SourceCompilationUnit &&
+            accessor.originImportUri.isScheme('dart'))) {
+      return;
+    }
+
+    final TargetFlags flags = target.backendTarget.flags;
+    final DartLibrarySupport dartLibrarySupport =
+        target.backendTarget.dartLibrarySupport;
+
+    Message? diagnostic;
+    final Importability importability = libraryBuilder.importability;
+    final bool importableWithFlag =
+        (importability == Importability.withFlag &&
+        // Coverage-ignore(suite): Not run.
+        flags.includeUnsupportedPlatformLibraryStubs);
+    if (!dartLibrarySupport.computeDartLibrarySupport(
+      importUri.path,
+      isSupportedBySpec:
+          (importability == Importability.always || importableWithFlag),
+    )) {
+      diagnostic = codeUnavailableDartLibrary.withArguments(uri: importUri);
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (importableWithFlag) {
+      // Display a warning for each import of an unsupported library.
+      diagnostic = codeUnsupportedPlatformDartLibraryImport.withArguments(
+        uri: importUri,
+      );
+    }
+
+    if (diagnostic == null) {
+      return;
+    }
+
+    accessor.addProblem(diagnostic, charOffset, length, accessor.fileUri);
   }
 
   /// Reads the library [uri] as an entry point. This is used for reading the
@@ -769,6 +833,15 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
       } else {
         addProblem(codePlatformPrivateLibraryAccess, -1, noLength, null);
       }
+    }
+    if (firstLibrary != null) {
+      _issueErrorsOnUnsupportedDartColonImports(
+        libraryBuilder,
+        uri,
+        firstLibrary,
+        -1,
+        noLength,
+      );
     }
     return libraryBuilder;
   }

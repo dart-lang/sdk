@@ -3590,12 +3590,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   bool _computeMustBeAssignable(Expression node) {
     var request = state.request;
-    var lineInfo = request.fileState.lineInfo;
     if (node.parent case AssignmentExpression assignment) {
       if (assignment.leftHandSide == node) {
-        var requestLoc = lineInfo.getLocation(request.offset);
-        var opLoc = lineInfo.getLocation(assignment.operator.offset);
-        return requestLoc.lineNumber == opLoc.lineNumber;
+        return request.fileState.lineInfo.onSameLine(
+          request.offset,
+          assignment.operator.offset,
+        );
       }
     }
     return false;

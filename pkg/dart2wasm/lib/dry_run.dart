@@ -8,7 +8,6 @@ import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:collection/collection.dart';
 import 'package:front_end/src/api_prototype/codes.dart'
@@ -152,7 +151,6 @@ class DryRunSummarizer {
       var allOptions =
           (context as DriverBasedAnalysisContext).allAnalysisOptions;
       for (var options in allOptions) {
-        options as AnalysisOptionsImpl;
         options.lintRules = [
           _avoidDoubleAndIntChecks,
           _invalidRuntimeCheckWithJSInteropTypes

@@ -688,8 +688,11 @@ Remove debugging information from the output and save it separately to the speci
             return 255;
           }
         } else if (await builder.hasHooks()) {
+          final packages = (await builder.packagesWithBuildHooks()).join(', ');
           stderr.writeln(
-              "'dart compile' does not support build hooks, use 'dart build' instead.");
+            "'dart compile' does not support build hooks, use 'dart build' instead.\n"
+            'Packages with build hooks: $packages.',
+          );
           return 255;
         }
       }

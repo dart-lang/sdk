@@ -79,12 +79,9 @@ sealed class CompilationUnit {
   /// through import or export.
   Iterable<Uri> get dependencies;
 
-  /// Returns the set of imports and exports of this library from other
-  /// libraries.
-  Iterable<LibraryAccess> get accessors;
-
   /// Records the location of an import or export of this library from
-  /// [accessor].
+  /// [accessor], but only on source libraries (saving it on dill libraries will
+  /// cause leaks).
   void recordAccess(
     CompilationUnit accessor,
     int charOffset,
@@ -295,6 +292,8 @@ abstract class SourceCompilationUnit
   /// Reports [message] on all compilation units that access this compilation
   /// unit.
   void addProblemAtAccessors(Message message);
+
+  Iterable<LibraryAccess> get accessors;
 
   /// Non-null if this library causes an error upon access, that is, there was
   /// an error reading its source.

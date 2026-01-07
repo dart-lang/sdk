@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class PrivateOptionalParameterTest extends PubPackageResolutionTest {
-  test_fieldFormal() async {
+  test_class_constructorDeclaration_fieldFormal() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -27,16 +27,7 @@ class A {
     );
   }
 
-  test_nonConstructor() async {
-    await assertErrorsInCode(
-      '''
-f({var _p}) {}
-''',
-      [error(diag.privateNamedNonFieldParameter, 7, 2)],
-    );
-  }
-
-  test_nonFieldParameter() async {
+  test_class_constructorDeclaration_nonFieldParameter() async {
     await assertErrorsInCode(
       '''
 class C {
@@ -47,7 +38,7 @@ class C {
     );
   }
 
-  test_noPublicName_nonIdentifier() async {
+  test_class_constructorDeclaration_noPublicName_nonIdentifier() async {
     await assertErrorsInCode(
       '''
 class C {
@@ -62,7 +53,7 @@ class C {
     );
   }
 
-  test_noPublicName_preFeature() async {
+  test_class_constructorDeclaration_noPublicName_preFeature() async {
     await assertErrorsInCode(
       '''
 // @dart=3.10
@@ -78,7 +69,7 @@ class C {
     );
   }
 
-  test_noPublicName_reservedWord() async {
+  test_class_constructorDeclaration_noPublicName_reservedWord() async {
     await assertErrorsInCode(
       '''
 class C {
@@ -93,7 +84,7 @@ class C {
     );
   }
 
-  test_noPublicName_stillPrivate() async {
+  test_class_constructorDeclaration_noPublicName_stillPrivate() async {
     await assertErrorsInCode(
       '''
 class C {
@@ -108,7 +99,7 @@ class C {
     );
   }
 
-  test_noPublicName_wildcard() async {
+  test_class_constructorDeclaration_noPublicName_wildcard() async {
     await assertErrorsInCode(
       '''
 class C {
@@ -123,12 +114,202 @@ class C {
     );
   }
 
-  test_withDefaultValue() async {
+  test_class_method() async {
     await assertErrorsInCode(
       '''
-f({_p = 0}) {}
+class A {
+  void f({int? _p}) {}
+}
 ''',
-      [error(diag.privateNamedNonFieldParameter, 3, 2)],
+      [error(diag.privateNamedNonFieldParameter, 25, 2)],
+    );
+  }
+
+  test_class_method_noPublicName() async {
+    await assertErrorsInCode(
+      '''
+class A {
+  void f({int? _123}) {}
+}
+''',
+      [error(diag.privateNamedNonFieldParameter, 25, 4)],
+    );
+  }
+
+  test_class_primaryConstructor_declaringFormalParameter_optionalNamed() async {
+    await assertErrorsInCode(
+      r'''
+class A({final int _p = 0}) {}
+''',
+      [error(diag.unusedFieldFromPrimaryConstructor, 19, 2)],
+    );
+  }
+
+  test_class_primaryConstructor_declaringFormalParameter_optionalNamed_noPublicName_nonIdentifier() async {
+    await assertErrorsInCode(
+      '''
+class C({final int? _123}) {}
+''',
+      [
+        error(diag.privateNamedParameterWithoutPublicName, 20, 4),
+        error(diag.unusedFieldFromPrimaryConstructor, 20, 4),
+      ],
+    );
+  }
+
+  test_class_primaryConstructor_declaringFormalParameter_optionalNamed_noPublicName_reservedWord() async {
+    await assertErrorsInCode(
+      '''
+class C({final int? _for}) {}
+''',
+      [
+        error(diag.privateNamedParameterWithoutPublicName, 20, 4),
+        error(diag.unusedFieldFromPrimaryConstructor, 20, 4),
+      ],
+    );
+  }
+
+  test_class_primaryConstructor_declaringFormalParameter_optionalNamed_noPublicName_stillPrivate() async {
+    await assertErrorsInCode(
+      '''
+class C({final int? __extraPrivate}) {}
+''',
+      [
+        error(diag.privateNamedParameterWithoutPublicName, 20, 14),
+        error(diag.unusedFieldFromPrimaryConstructor, 20, 14),
+      ],
+    );
+  }
+
+  test_class_primaryConstructor_declaringFormalParameter_optionalNamed_noPublicName_wildcard() async {
+    await assertErrorsInCode(
+      '''
+class C({final int? _}) {}
+''',
+      [
+        error(diag.privateNamedParameterWithoutPublicName, 20, 1),
+        error(diag.unusedFieldFromPrimaryConstructor, 20, 1),
+      ],
+    );
+  }
+
+  test_class_primaryConstructor_formalParameter_optionalNamed_fieldFormal() async {
+    await assertErrorsInCode(
+      r'''
+class A({this._p = 0}) {
+  int? _p;
+}
+''',
+      [error(diag.unusedField, 32, 2)],
+    );
+  }
+
+  test_class_primaryConstructor_formalParameter_optionalNamed_fieldFormal_noPublicName_nonIdentifier() async {
+    await assertErrorsInCode(
+      '''
+class C({this._123}) {
+  int? _123;
+}
+''',
+      [
+        error(diag.privateNamedParameterWithoutPublicName, 14, 4),
+        error(diag.unusedField, 30, 4),
+      ],
+    );
+  }
+
+  test_class_primaryConstructor_formalParameter_optionalNamed_fieldFormal_noPublicName_reservedWord() async {
+    await assertErrorsInCode(
+      '''
+class C({this._for}) {
+  int? _for;
+}
+''',
+      [
+        error(diag.privateNamedParameterWithoutPublicName, 14, 4),
+        error(diag.unusedField, 30, 4),
+      ],
+    );
+  }
+
+  test_class_primaryConstructor_formalParameter_optionalNamed_fieldFormal_noPublicName_stillPrivate() async {
+    await assertErrorsInCode(
+      '''
+class C({this.__extraPrivate}) {
+  int? __extraPrivate;
+}
+''',
+      [
+        error(diag.privateNamedParameterWithoutPublicName, 14, 14),
+        error(diag.unusedField, 40, 14),
+      ],
+    );
+  }
+
+  test_class_primaryConstructor_formalParameter_optionalNamed_fieldFormal_noPublicName_wildcard() async {
+    await assertErrorsInCode(
+      '''
+class C({this._}) {
+  int? _;
+}
+''',
+      [
+        error(diag.privateNamedParameterWithoutPublicName, 14, 1),
+        error(diag.unusedField, 27, 1),
+      ],
+    );
+  }
+
+  test_class_primaryConstructor_formalParameter_optionalNamed_nonFieldFormal() async {
+    await assertErrorsInCode(
+      '''
+class C({int? _notField}) {}
+''',
+      [error(diag.privateNamedNonFieldParameter, 14, 9)],
+    );
+  }
+
+  test_extensionType_method() async {
+    await assertErrorsInCode(
+      '''
+extension type E(int it) {
+  void f({int? _p}) {}
+}
+''',
+      [error(diag.privateNamedNonFieldParameter, 42, 2)],
+    );
+  }
+
+  test_extensionType_primaryConstructor_requiredNamed() async {
+    await assertNoErrorsInCode('''
+extension type E({required int _it});
+''');
+  }
+
+  test_extensionType_primaryConstructor_requiredNamed_noPublicName_nonIdentifier() async {
+    await assertErrorsInCode(
+      '''
+extension type E({required int _123});
+''',
+      [error(diag.privateNamedParameterWithoutPublicName, 31, 4)],
+    );
+  }
+
+  test_topLevel_function() async {
+    await assertErrorsInCode(
+      '''
+void f({int? _p}) {}
+''',
+      [error(diag.privateNamedNonFieldParameter, 13, 2)],
+    );
+  }
+
+  test_topLevel_function_withDefaultValue() async {
+    await assertErrorsInCode(
+      '''
+void f({int _p = 0}) {}
+''',
+      [error(diag.privateNamedNonFieldParameter, 12, 2)],
     );
   }
 }

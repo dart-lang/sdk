@@ -6,7 +6,6 @@ import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
@@ -31,6 +30,7 @@ import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer_options.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/best_practices_verifier.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/constructor_fields_verifier.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/ignore_validator.dart';
@@ -545,6 +545,7 @@ class LibraryAnalyzer {
     // Unused local elements.
     unit.accept(
       UnusedLocalElementsVerifier(
+        fileAnalysis.file.source,
         fileAnalysis.diagnosticListener,
         usedElements,
         _libraryElement,
@@ -705,10 +706,8 @@ class LibraryAnalyzer {
         var errorCode = state.isDocImport
             ? diag.uriDoesNotExistInDocImport
             : diag.uriDoesNotExist;
-        diagnosticReporter.atNode(
-          directive.uri,
-          errorCode,
-          arguments: [selectedUriStr],
+        diagnosticReporter.report(
+          errorCode.withArguments(uriStr: selectedUriStr).at(directive.uri),
         );
       } else if (state is LibraryImportWithFile && !state.importedFile.exists) {
         var errorCode = state.isDocImport
@@ -716,10 +715,8 @@ class LibraryAnalyzer {
             : state.importedSource.isGenerated
             ? diag.uriHasNotBeenGenerated
             : diag.uriDoesNotExist;
-        diagnosticReporter.atNode(
-          directive.uri,
-          errorCode,
-          arguments: [selectedUriStr],
+        diagnosticReporter.report(
+          errorCode.withArguments(uriStr: selectedUriStr).at(directive.uri),
         );
       } else if (state.importedLibrarySource == null) {
         diagnosticReporter.atNode(
@@ -729,10 +726,10 @@ class LibraryAnalyzer {
         );
       }
     } else if (state is LibraryImportWithUriStr) {
-      diagnosticReporter.atNode(
-        directive.uri,
-        diag.invalidUri,
-        arguments: [state.selectedUri.relativeUriStr],
+      diagnosticReporter.report(
+        diag.invalidUri
+            .withArguments(uri: state.selectedUri.relativeUriStr)
+            .at(directive.uri),
       );
     } else {
       diagnosticReporter.report(diag.uriWithInterpolation.at(directive.uri));
@@ -920,19 +917,17 @@ class LibraryAnalyzer {
       if (selectedUriStr.startsWith('dart-ext:')) {
         diagnosticReporter.report(diag.useOfNativeExtension.at(directive.uri));
       } else if (state.exportedSource == null) {
-        diagnosticReporter.atNode(
-          directive.uri,
-          diag.uriDoesNotExist,
-          arguments: [selectedUriStr],
+        diagnosticReporter.report(
+          diag.uriDoesNotExist
+              .withArguments(uriStr: selectedUriStr)
+              .at(directive.uri),
         );
       } else if (state is LibraryExportWithFile && !state.exportedFile.exists) {
         var errorCode = isGeneratedSource(state.exportedSource)
             ? diag.uriHasNotBeenGenerated
             : diag.uriDoesNotExist;
-        diagnosticReporter.atNode(
-          directive.uri,
-          errorCode,
-          arguments: [selectedUriStr],
+        diagnosticReporter.report(
+          errorCode.withArguments(uriStr: selectedUriStr).at(directive.uri),
         );
       } else if (state.exportedLibrarySource == null) {
         diagnosticReporter.atNode(
@@ -942,10 +937,10 @@ class LibraryAnalyzer {
         );
       }
     } else if (state is LibraryExportWithUriStr) {
-      diagnosticReporter.atNode(
-        directive.uri,
-        diag.invalidUri,
-        arguments: [state.selectedUri.relativeUriStr],
+      diagnosticReporter.report(
+        diag.invalidUri
+            .withArguments(uri: state.selectedUri.relativeUriStr)
+            .at(directive.uri),
       );
     } else {
       diagnosticReporter.report(diag.uriWithInterpolation.at(directive.uri));
@@ -980,16 +975,9 @@ class LibraryAnalyzer {
   }) {
     directive?.partInclude = partElement;
 
-    void reportOnDirectiveUri(
-      DiagnosticCode diagnosticCode, {
-      List<Object>? arguments = const [],
-    }) {
+    void reportOnDirectiveUri(LocatableDiagnostic locatableDiagnostic) {
       if (directive != null) {
-        diagnosticReporter.atNode(
-          directive.uri,
-          diagnosticCode,
-          arguments: arguments,
-        );
+        diagnosticReporter.report(locatableDiagnostic.at(directive.uri));
       }
     }
 
@@ -1000,16 +988,18 @@ class LibraryAnalyzer {
 
     if (partState is! PartIncludeWithUri) {
       reportOnDirectiveUri(
-        diag.invalidUri,
-        arguments: [partState.selectedUri.relativeUriStr],
+        diag.invalidUri.withArguments(
+          uri: partState.selectedUri.relativeUriStr,
+        ),
       );
       return;
     }
 
     if (partState is! PartIncludeWithFile) {
       reportOnDirectiveUri(
-        diag.uriDoesNotExist,
-        arguments: [partState.selectedUri.relativeUriStr],
+        diag.uriDoesNotExist.withArguments(
+          uriStr: partState.selectedUri.relativeUriStr,
+        ),
       );
       return;
     }
@@ -1018,15 +1008,15 @@ class LibraryAnalyzer {
     var includedKind = includedFile.kind;
 
     if (includedKind is! PartFileKind) {
-      DiagnosticCode diagnosticCode;
-      if (includedFile.exists) {
-        diagnosticCode = diag.partOfNonPart;
-      } else if (isGeneratedSource(includedFile.source)) {
-        diagnosticCode = diag.uriHasNotBeenGenerated;
-      } else {
-        diagnosticCode = diag.uriDoesNotExist;
-      }
-      reportOnDirectiveUri(diagnosticCode, arguments: [includedFile.uriStr]);
+      var diagnosticCode = switch (includedFile) {
+        FileState(exists: true) => diag.partOfNonPart,
+        FileState(:var source) when isGeneratedSource(source) =>
+          diag.uriHasNotBeenGenerated,
+        _ => diag.uriDoesNotExist,
+      };
+      reportOnDirectiveUri(
+        diagnosticCode.withArguments(uriStr: includedFile.uriStr),
+      );
       return;
     }
 
@@ -1034,7 +1024,9 @@ class LibraryAnalyzer {
     // Validate that the part source is unique in the library.
     //
     if (_libraryFiles.containsKey(includedFile)) {
-      reportOnDirectiveUri(diag.duplicatePart, arguments: [includedFile.uri]);
+      reportOnDirectiveUri(
+        diag.duplicatePart.withArguments(uri: includedFile.uri),
+      );
       return;
     }
 
@@ -1047,20 +1039,23 @@ class LibraryAnalyzer {
             var libraryName = _libraryElement.name;
             if (libraryName.isEmpty) {
               reportOnDirectiveUri(
-                diag.partOfUnnamedLibrary,
-                arguments: [name],
+                diag.partOfUnnamedLibrary.withArguments(libraryName: name),
               );
             } else {
               reportOnDirectiveUri(
-                diag.partOfDifferentLibrary,
-                arguments: [libraryName, name],
+                diag.partOfDifferentLibrary.withArguments(
+                  expectedName: libraryName,
+                  actualName: name,
+                ),
               );
             }
           }
         case PartOfUriFileKind():
           reportOnDirectiveUri(
-            diag.partOfDifferentLibrary,
-            arguments: [enclosingFile.file.uriStr, includedFile.uriStr],
+            diag.partOfDifferentLibrary.withArguments(
+              expectedName: enclosingFile.file.uriStr,
+              actualName: includedFile.uriStr,
+            ),
           );
       }
       return;
