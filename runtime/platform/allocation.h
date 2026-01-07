@@ -21,7 +21,7 @@ void* realloc(void* ptr, size_t size);
 class ValueObject {
  public:
   ValueObject() {}
-  ~ValueObject() {}
+  virtual ~ValueObject() = default;
 
  private:
   DISALLOW_ALLOCATION();
