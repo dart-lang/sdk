@@ -6,8 +6,6 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
-import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
-    show Importability;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -15,8 +13,7 @@ import 'package:kernel/reference_from_index.dart'
     show IndexedContainer, IndexedClass;
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
-import 'package:kernel/target/targets.dart'
-    show DiagnosticReporter, Target, TargetFlags, DartLibrarySupport;
+import 'package:kernel/target/targets.dart' show DiagnosticReporter, Target;
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/verifier.dart' show VerificationStage;
@@ -24,12 +21,6 @@ import 'package:package_config/package_config.dart' hide LanguageVersion;
 
 import '../api_prototype/experimental_flags.dart'
     show ExperimentalFlag, GlobalFeatures;
-import '../api_prototype/codes.dart'
-    show
-        codeUnavailableDartLibrary,
-        noLength,
-        codeUnsupportedPlatformDartLibraryImport,
-        Message;
 import '../api_prototype/file_system.dart' show FileSystem;
 import '../base/compiler_context.dart' show CompilerContext;
 import '../base/crash.dart' show withCrashReporting;
@@ -72,8 +63,7 @@ import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_constructor_builder.dart';
 import '../source/source_declaration_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
-import '../source/source_library_builder.dart'
-    show SourceLibraryBuilder, LibraryAccess;
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
 import '../source/source_property_builder.dart';
 import '../type_inference/type_schema.dart';
@@ -790,11 +780,6 @@ class KernelTarget {
       // Coverage-ignore(suite): Not run.
       ?.enterPhase(BenchmarkPhases.body_runBuildTransformations);
       runBuildTransformations();
-
-      benchmarker
-      // Coverage-ignore(suite): Not run.
-      ?.enterPhase(BenchmarkPhases.body_checkForUnsupportedDartColonImports);
-      checkForUnsupportedDartColonImports();
 
       if (verify) {
         benchmarker
@@ -1824,60 +1809,6 @@ class KernelTarget {
       logger: (String msg) => ticker.logMs(msg),
       changedStructureNotifier: changedStructureNotifier,
     );
-  }
-
-  /// Perform target-specific checks for imports of unsupported dart:* libraries
-  /// specified by [backendTarget.dartLibrarySupport].
-  void checkForUnsupportedDartColonImports() {
-    final TargetFlags flags = backendTarget.flags;
-    final DartLibrarySupport dartLibrarySupport =
-        backendTarget.dartLibrarySupport;
-
-    for (final CompilationUnit compilationUnit in loader.compilationUnits) {
-      final Uri importUri = compilationUnit.importUri;
-      // Only check for imports of unsupported dart:* libraries.
-      if (!importUri.isScheme('dart')) {
-        continue;
-      }
-      Message? diagnostic;
-      final Importability importability = compilationUnit.importability;
-      final bool importableWithFlag =
-          (importability == Importability.withFlag &&
-          flags.includeUnsupportedPlatformLibraryStubs);
-      if (!dartLibrarySupport.computeDartLibrarySupport(
-        importUri.path,
-        isSupportedBySpec:
-            (importability == Importability.always || importableWithFlag),
-      )) {
-        diagnostic = codeUnavailableDartLibrary.withArguments(uri: importUri);
-      }
-      // Coverage-ignore(suite): Not run.
-      else if (importableWithFlag) {
-        // Display a warning for each import of an unsupported library.
-        diagnostic = codeUnsupportedPlatformDartLibraryImport.withArguments(
-          uri: importUri,
-        );
-      }
-      if (diagnostic == null) {
-        continue;
-      }
-      for (final LibraryAccess access in compilationUnit.accessors) {
-        final CompilationUnit accessor = access.accessor;
-        // dart:* libraries (and their patch files) are not restricted from
-        // importing other dart:* libraries.
-        if (accessor.importUri.isScheme('dart') ||
-            (accessor is SourceCompilationUnit &&
-                accessor.originImportUri.isScheme('dart'))) {
-          continue;
-        }
-        access.accessor.addProblem(
-          diagnostic,
-          access.charOffset,
-          access.length,
-          access.fileUri,
-        );
-      }
-    }
   }
 
   ChangedStructureNotifier? get changedStructureNotifier => null;

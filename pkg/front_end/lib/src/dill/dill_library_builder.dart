@@ -30,7 +30,6 @@ import '../codes/cfe_codes.dart'
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/utils.dart';
 import '../source/name_scheme.dart';
-import '../source/source_library_builder.dart';
 import '../util/reference_map.dart';
 import 'dill_class_builder.dart' show DillClassBuilder;
 import 'dill_extension_builder.dart';
@@ -44,9 +43,6 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
 
   @override
   final List<Export> exporters = <Export>[];
-
-  @override
-  Iterable<LibraryAccess> get accessors => _dillLibraryBuilder.accessors;
 
   DillCompilationUnitImpl(this._dillLibraryBuilder);
 
@@ -124,7 +120,7 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
     int length,
     Uri fileUri,
   ) {
-    _dillLibraryBuilder.recordAccess(accessor, charOffset, length, fileUri);
+    // We can't save this here, it will cause leaks.
   }
 }
 
