@@ -1,4 +1,4 @@
-## 0.14.0-dev
+## 0.14.0
 
 - Require version `10.0.0` of the `analyzer` package.
 - `AssistContributorMixin` is now a mixin.

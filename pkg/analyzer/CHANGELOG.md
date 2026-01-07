@@ -1,4 +1,4 @@
-## 10.0.0-dev
+## 10.0.0
 * Deprecations in `ClassDeclaration`:
   * Properties `leftBracket`, `members`, `rightBracket` are deprecated; use
     `body` instead.
