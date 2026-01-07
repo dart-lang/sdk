@@ -10,7 +10,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:cli_util/cli_logging.dart';
@@ -84,7 +83,6 @@ class Driver {
         var allOptions =
             (context as DriverBasedAnalysisContext).allAnalysisOptions;
         for (var options in allOptions) {
-          options as AnalysisOptionsImpl;
           options.lintRules = [...options.lintRules, ...lints];
           options.lint = true;
         }
