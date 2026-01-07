@@ -84,9 +84,11 @@ class _E2 extends self::_E1 /*hasConstConstructor*/  {
 }
 @#C3
 abstract class H extends core::Object /*isMixinDeclaration*/  {
+  @#C9
   method foo() → void {
     this.{self::H::_foo}(){() → void};
   }
+  @#C9
   @#C7
   method _foo() → void {
     self::H::_smethod12();
@@ -119,8 +121,11 @@ class _I3 extends core::Object {
 @#C7
 mixin class J extends core::Object implements self::_I1<self::_I2> {
   static const field core::Map<core::String, self::_E2> _const14 = #C16;
+  @#C9
   field core::Map<core::String, self::_E2> _ifield16 = #C16;
+  @#C9
   field core::int _ifield17 = self::J::_smethod15();
+  @#C9
   field self::_I3? _ifield18 = null;
   synthetic constructor •() → self::J
     : super core::Object::•()
