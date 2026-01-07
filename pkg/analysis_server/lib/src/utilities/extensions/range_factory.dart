@@ -189,10 +189,10 @@ extension RangeFactoryExtensions on RangeFactory {
       lastToken = token;
     }
     if (comment != null) {
-      var tokenLine = _lineNumber(lineInfo, lastToken);
-      if (_lineNumber(lineInfo, comment) == tokenLine) {
+      if (lineInfo.onSameLine(comment.offset, lastToken.offset)) {
         var next = comment.next;
-        while (next != null && _lineNumber(lineInfo, next) == tokenLine) {
+        while (next != null &&
+            lineInfo.onSameLine(next.offset, lastToken.offset)) {
           comment = next;
           next = next.next;
         }
@@ -205,7 +205,7 @@ extension RangeFactoryExtensions on RangeFactory {
   /// Return `true` if the line number of the given [token] is different than
   /// the line number of the [other].
   bool _areDifferentLines(LineInfo lineInfo, Token token, Token other) =>
-      _lineNumber(lineInfo, token) != _lineNumber(lineInfo, other);
+      !lineInfo.onSameLine(token.offset, other.offset);
 
   /// Return the left-most comment immediately before the [token] that is not on
   /// the same line as the first non-comment token before the [token]. Return
@@ -215,13 +215,10 @@ extension RangeFactoryExtensions on RangeFactory {
     if (previous == null || previous.isEof) {
       return token.precedingComments ?? token;
     }
-    var tokenLine = lineInfo.getLocation(token.offset).lineNumber;
-    var previousLine = lineInfo.getLocation(previous.offset).lineNumber;
     Token? comment = token.precedingComments;
-    if (tokenLine != previousLine) {
+    if (_areDifferentLines(lineInfo, token, previous)) {
       while (comment != null) {
-        var commentLine = lineInfo.getLocation(comment.offset).lineNumber;
-        if (commentLine != previousLine) {
+        if (_areDifferentLines(lineInfo, previous, comment)) {
           break;
         }
         comment = comment.next;
@@ -229,10 +226,6 @@ extension RangeFactoryExtensions on RangeFactory {
     }
     return comment ?? token;
   }
-
-  /// Return the line number of the given [token].
-  int _lineNumber(LineInfo lineInfo, Token token) =>
-      lineInfo.getLocation(token.offset).lineNumber;
 
   /// Return `true` if the comments preceding the token after the given [comma]
   /// should be included.

@@ -295,9 +295,8 @@ class ImportOrganizer {
     // Don't connect comments that have a blank line between them if this is
     // a pseudo-library directive.
     while (isPseudoLibraryDirective && comment != null && nextComment != null) {
-      var currentLine = lineInfo.getLocation(comment.offset).lineNumber;
-      var nextLine = lineInfo.getLocation(nextComment.offset).lineNumber;
-      if (nextLine - currentLine > 1) {
+      if (lineInfo.lineNumberDifference(comment.offset, nextComment.offset) >
+          1) {
         firstComment = nextComment;
       }
       comment = nextComment;
@@ -319,24 +318,19 @@ class ImportOrganizer {
 
     // Skip over any comments on the same line as the previous directive
     // as they will be attached to the end of it.
-    var previousDirectiveLine = lineInfo
-        .getLocation(beginToken.previous!.end)
-        .lineNumber;
     comment = firstComment;
     // For first directive, do not attach comment if there is a line break
     // between comment and directive.
     if (isPseudoLibraryDirective && comment != null) {
-      var directiveLine = lineInfo.getLocation(beginToken.offset).lineNumber;
-      if ((directiveLine - 1) ==
-          lineInfo.getLocation(comment.offset).lineNumber) {
+      if (lineInfo.lineNumberDifference(beginToken.offset, comment.offset) ==
+          -1) {
         return comment;
       } else {
         return null;
       }
     }
     while (comment != null &&
-        previousDirectiveLine ==
-            lineInfo.getLocation(comment.offset).lineNumber) {
+        lineInfo.onSameLine(beginToken.previous!.end, comment.offset)) {
       comment = comment.next;
     }
     return comment;
@@ -352,10 +346,9 @@ class ImportOrganizer {
     UriBasedDirective directive,
     LineInfo lineInfo,
   ) {
-    var line = lineInfo.getLocation(directive.end).lineNumber;
     Token? comment = directive.endToken.next!.precedingComments;
     while (comment != null) {
-      if (lineInfo.getLocation(comment.offset).lineNumber == line) {
+      if (lineInfo.onSameLine(comment.offset, directive.end)) {
         return comment;
       }
       comment = comment.next;
