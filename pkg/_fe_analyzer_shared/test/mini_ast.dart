@@ -6724,7 +6724,6 @@ class _MiniAstTypeAnalyzer
     );
     // Build the property get IR.
     _harness.irBuilder.propertyGet(propertyName, location: node.location);
-    // TODO(paulberry): handle null shorting
     return new ExpressionTypeAnalysisResult(type: SharedTypeView(propertyType));
   }
 
