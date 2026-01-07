@@ -235,7 +235,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   late final ConstructorReferenceResolver _constructorReferenceResolver =
       ConstructorReferenceResolver(this);
   late final FunctionExpressionInvocationResolver
-  _functionExpressionInvocationResolver;
+  functionExpressionInvocationResolver;
   late final FunctionExpressionResolver _functionExpressionResolver;
   late final ForResolver _forResolver;
   late final PostfixExpressionResolver _postfixExpressionResolver;
@@ -271,9 +271,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   late final FunctionReferenceResolver _functionReferenceResolver;
 
   late final InstanceCreationExpressionResolver
-  _instanceCreationExpressionResolver = InstanceCreationExpressionResolver(
-    this,
-  );
+  instanceCreationExpressionResolver = InstanceCreationExpressionResolver(this);
 
   late final SimpleIdentifierResolver _simpleIdentifierResolver =
       SimpleIdentifierResolver(this);
@@ -379,8 +377,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           : null,
     );
     _binaryExpressionResolver = BinaryExpressionResolver(resolver: this);
-    _functionExpressionInvocationResolver =
-        FunctionExpressionInvocationResolver(resolver: this);
+    functionExpressionInvocationResolver = FunctionExpressionInvocationResolver(
+      resolver: this,
+    );
     _functionExpressionResolver = FunctionExpressionResolver(resolver: this);
     _forResolver = ForResolver(resolver: this);
     _postfixExpressionResolver = PostfixExpressionResolver(resolver: this);
@@ -2388,7 +2387,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
     }
 
-    _instanceCreationExpressionResolver.resolveDotShorthand(
+    instanceCreationExpressionResolver.resolveDotShorthand(
       node,
       contextType: contextType,
     );
@@ -2422,24 +2421,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       whyNotPromotedArguments: whyNotPromotedArguments,
       contextType: contextType,
     );
-    switch (rewrittenExpression) {
-      case null:
-        // In this case, we didn't rewrite anything. The [node] is a static
-        // method invocation.
-        break;
-      case FunctionExpressionInvocationImpl():
-        _resolveRewrittenFunctionExpressionInvocation(
-          rewrittenExpression,
-          whyNotPromotedArguments,
-          contextType: contextType,
-        );
-      case DotShorthandConstructorInvocationImpl():
-        _instanceCreationExpressionResolver.resolveDotShorthand(
-          rewrittenExpression,
-          contextType: contextType,
-        );
-    }
 
+    // TODO(paulberry): why don't we do this for
+    // DotShorthandConstructorInvocationImpl?
     if (rewrittenExpression is FunctionExpressionInvocationImpl ||
         rewrittenExpression == null) {
       var replacement = insertGenericFunctionInstantiation(
@@ -2920,7 +2904,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var whyNotPromotedArguments =
         <Map<SharedTypeView, NonPromotionReason> Function()>[];
-    _functionExpressionInvocationResolver.resolve(
+    functionExpressionInvocationResolver.resolve(
       node,
       whyNotPromotedArguments,
       contextType: contextType,
@@ -3165,7 +3149,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
-    _instanceCreationExpressionResolver.resolve(node, contextType: contextType);
+    instanceCreationExpressionResolver.resolve(node, contextType: contextType);
     _insertImplicitCallReference(node, contextType: contextType);
     inferenceLogWriter?.exitExpression(node);
   }
@@ -3374,19 +3358,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     node.typeArguments?.accept(this);
-    var functionRewrite = elementResolver.visitMethodInvocation(
+    elementResolver.visitMethodInvocation(
       node,
       whyNotPromotedArguments: whyNotPromotedArguments,
       contextType: contextType,
     );
 
-    if (functionRewrite != null) {
-      _resolveRewrittenFunctionExpressionInvocation(
-        functionRewrite,
-        whyNotPromotedArguments,
-        contextType: contextType,
-      );
-    }
     var replacement = insertGenericFunctionInstantiation(
       node,
       contextType: contextType,
@@ -4512,25 +4489,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
 
     _insertImplicitCallReference(replacement, contextType: contextType);
-  }
-
-  /// Continues resolution of a [FunctionExpressionInvocation] that was created
-  /// from a rewritten [MethodInvocation]. The target function is already
-  /// resolved.
-  ///
-  /// The specification says that `target.getter()` should be treated as an
-  /// ordinary method invocation. So, we need to perform the same null shorting
-  /// as for method invocations.
-  void _resolveRewrittenFunctionExpressionInvocation(
-    FunctionExpressionInvocationImpl node,
-    List<WhyNotPromotedGetter> whyNotPromotedArguments, {
-    required TypeImpl contextType,
-  }) {
-    _functionExpressionInvocationResolver.resolve(
-      node,
-      whyNotPromotedArguments,
-      contextType: contextType,
-    );
   }
 
   void _setupThisType() {
