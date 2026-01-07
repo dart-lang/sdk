@@ -64,16 +64,18 @@ class A {
 
   Future<void> test_class_constructor() async {
     await parseTestCode(r'''
-class A {
+class A() {
   A.c() {   }
   A.a() { }
+  this;
   A() {}
   A.b();
 }
 ''');
     // validate change
     _assertSort(r'''
-class A {
+class A() {
+  this;
   A() {}
   A.a() { }
   A.b();
