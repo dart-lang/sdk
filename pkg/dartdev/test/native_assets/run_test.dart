@@ -4,6 +4,8 @@
 
 // @dart=2.18
 
+import 'dart:io';
+
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -223,4 +225,26 @@ Couldn't resolve native function 'multiply' in 'package:drop_dylib_link/dylib_mu
       },
     );
   }
+
+  // Regression test for Bug: https://github.com/dart-lang/native/issues/2921.
+  test(
+    'dart run invoking dart run',
+    // Windows not supported: https://github.com/dart-lang/native/issues/1534.
+    skip: Platform.isWindows,
+    timeout: longTimeout,
+    () async {
+      await nativeAssetsTest('recursive_invocation', (dartAppUri) async {
+        final result = await runDart(
+          arguments: [
+            'run',
+            'bin/subprocess.dart',
+          ],
+          workingDirectory: dartAppUri,
+          logger: logger,
+        );
+        // No crash.
+        expect(result.exitCode, equals(0));
+      });
+    },
+  );
 }
