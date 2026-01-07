@@ -545,6 +545,7 @@ class LibraryAnalyzer {
     // Unused local elements.
     unit.accept(
       UnusedLocalElementsVerifier(
+        fileAnalysis.file.source,
         fileAnalysis.diagnosticListener,
         usedElements,
         _libraryElement,

@@ -10179,6 +10179,29 @@ sealed class FormalParameterImpl extends AstNodeImpl
   @override
   FormalParameterFragmentImpl? declaredFragment;
 
+  Token? get finalOrVarKeyword {
+    Token? finalOrVarKeyword(Token? token) {
+      if (token != null) {
+        var keyword = token.keyword;
+        if (keyword == Keyword.FINAL || keyword == Keyword.VAR) {
+          return token;
+        }
+      }
+      return null;
+    }
+
+    switch (this) {
+      case DefaultFormalParameterImpl self:
+        return self.parameter.finalOrVarKeyword;
+      case FunctionTypedFormalParameterImpl self:
+        return finalOrVarKeyword(self.keyword);
+      case SimpleFormalParameterImpl self:
+        return finalOrVarKeyword(self.keyword);
+      default:
+        return null;
+    }
+  }
+
   @override
   bool get isNamed => kind.isNamed;
 
