@@ -164,7 +164,12 @@ extension on DataAsset {
 
 extension on Uri {
   Future<void> copyTo(Uri targetUri) async {
-    await File.fromUri(targetUri).create(recursive: true);
+    var targetFile = File.fromUri(targetUri);
+    // File.copy truncates. So, first to ensure that if it was dlopened it
+    // doesn't get truncated on disk.
+    // https://github.com/dart-lang/sdk/issues/62361
+    if (await targetFile.exists()) await targetFile.delete();
+    await targetFile.create(recursive: true);
     await File.fromUri(this).copy(targetUri.toFilePath());
   }
 }
