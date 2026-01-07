@@ -8279,18 +8279,22 @@ invalidHexEscape = DiagnosticWithoutArgumentsImpl(
 /// [diag.invalidOverride].
 ///
 /// Parameters:
-/// Object p0: the name of the declared member that is not a valid override.
-/// Object p1: the name of the interface that declares the member.
-/// Object p2: the type of the declared member in the interface.
-/// Object p3: the name of the interface with the overridden member.
-/// Object p4: the type of the overridden member.
+/// String memberName: the name of the declared member that is not a valid
+///                    override.
+/// String declaringInterfaceName: the name of the interface that declares the
+///                                member.
+/// Type typeInDeclaringInterface: the type of the declared member in the
+///                                interface.
+/// String overriddenInterfaceName: the name of the interface with the
+///                                 overridden member.
+/// Type typeInOverriddenInterface: the type of the overridden member.
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-    required Object p3,
-    required Object p4,
+    required String memberName,
+    required String declaringInterfaceName,
+    required DartType typeInDeclaringInterface,
+    required String overriddenInterfaceName,
+    required DartType typeInOverriddenInterface,
   })
 >
 invalidImplementationOverride = DiagnosticWithArguments(
@@ -8303,11 +8307,11 @@ invalidImplementationOverride = DiagnosticWithArguments(
   uniqueName: 'invalid_implementation_override',
   withArguments: _withArgumentsInvalidImplementationOverride,
   expectedTypes: [
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.type,
+    ExpectedType.string,
+    ExpectedType.type,
   ],
 );
 
@@ -8315,18 +8319,22 @@ invalidImplementationOverride = DiagnosticWithArguments(
 /// [diag.invalidOverride].
 ///
 /// Parameters:
-/// Object p0: the name of the declared setter that is not a valid override.
-/// Object p1: the name of the interface that declares the setter.
-/// Object p2: the type of the declared setter in the interface.
-/// Object p3: the name of the interface with the overridden setter.
-/// Object p4: the type of the overridden setter.
+/// String memberName: the name of the declared setter that is not a valid
+///                    override.
+/// String declaringInterfaceName: the name of the interface that declares the
+///                                setter.
+/// Type typeInDeclaringInterface: the type of the declared setter in the
+///                                interface.
+/// String overriddenInterfaceName: the name of the interface with the
+///                                 overridden setter.
+/// Type typeInOverriddenInterface: the type of the overridden setter.
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-    required Object p3,
-    required Object p4,
+    required String memberName,
+    required String declaringInterfaceName,
+    required DartType typeInDeclaringInterface,
+    required String overriddenInterfaceName,
+    required DartType typeInOverriddenInterface,
   })
 >
 invalidImplementationOverrideSetter = DiagnosticWithArguments(
@@ -8339,11 +8347,11 @@ invalidImplementationOverrideSetter = DiagnosticWithArguments(
   uniqueName: 'invalid_implementation_override_setter',
   withArguments: _withArgumentsInvalidImplementationOverrideSetter,
   expectedTypes: [
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.type,
+    ExpectedType.string,
+    ExpectedType.type,
   ],
 );
 
@@ -8768,18 +8776,22 @@ invalidOption = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the declared member that is not a valid override.
-/// String p1: the name of the interface that declares the member.
-/// Type p2: the type of the declared member in the interface.
-/// String p3: the name of the interface with the overridden member.
-/// Type p4: the type of the overridden member.
+/// String memberName: the name of the declared member that is not a valid
+///                    override.
+/// String declaringInterfaceName: the name of the interface that declares the
+///                                member.
+/// Type typeInDeclaringInterface: the type of the declared member in the
+///                                interface.
+/// String overriddenInterfaceName: the name of the interface with the
+///                                 overridden member.
+/// Type typeInOverriddenInterface: the type of the overridden member.
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required DartType p2,
-    required String p3,
-    required DartType p4,
+    required String memberName,
+    required String declaringInterfaceName,
+    required DartType typeInDeclaringInterface,
+    required String overriddenInterfaceName,
+    required DartType typeInOverriddenInterface,
   })
 >
 invalidOverride = DiagnosticWithArguments(
@@ -8821,18 +8833,22 @@ invalidOverrideOfNonVirtualMember = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Object p0: the name of the declared setter that is not a valid override.
-/// Object p1: the name of the interface that declares the setter.
-/// Object p2: the type of the declared setter in the interface.
-/// Object p3: the name of the interface with the overridden setter.
-/// Object p4: the type of the overridden setter.
+/// String memberName: the name of the declared setter that is not a valid
+///                    override.
+/// String declaringInterfaceName: the name of the interface that declares the
+///                                setter.
+/// Type typeInDeclaringInterface: the type of the declared setter in the
+///                                interface.
+/// String overriddenInterfaceName: the name of the interface with the
+///                                 overridden setter.
+/// Type typeInOverriddenInterface: the type of the overridden setter.
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-    required Object p3,
-    required Object p4,
+    required String memberName,
+    required String declaringInterfaceName,
+    required DartType typeInDeclaringInterface,
+    required String overriddenInterfaceName,
+    required DartType typeInOverriddenInterface,
   })
 >
 invalidOverrideSetter = DiagnosticWithArguments(
@@ -8844,11 +8860,11 @@ invalidOverrideSetter = DiagnosticWithArguments(
   uniqueName: 'invalid_override_setter',
   withArguments: _withArgumentsInvalidOverrideSetter,
   expectedTypes: [
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.type,
+    ExpectedType.string,
+    ExpectedType.type,
   ],
 );
 
@@ -19501,34 +19517,34 @@ LocatableDiagnostic _withArgumentsInvalidFieldTypeInStruct({
 }
 
 LocatableDiagnostic _withArgumentsInvalidImplementationOverride({
-  required Object p0,
-  required Object p1,
-  required Object p2,
-  required Object p3,
-  required Object p4,
+  required String memberName,
+  required String declaringInterfaceName,
+  required DartType typeInDeclaringInterface,
+  required String overriddenInterfaceName,
+  required DartType typeInOverriddenInterface,
 }) {
   return LocatableDiagnosticImpl(diag.invalidImplementationOverride, [
-    p0,
-    p1,
-    p2,
-    p3,
-    p4,
+    memberName,
+    declaringInterfaceName,
+    typeInDeclaringInterface,
+    overriddenInterfaceName,
+    typeInOverriddenInterface,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidImplementationOverrideSetter({
-  required Object p0,
-  required Object p1,
-  required Object p2,
-  required Object p3,
-  required Object p4,
+  required String memberName,
+  required String declaringInterfaceName,
+  required DartType typeInDeclaringInterface,
+  required String overriddenInterfaceName,
+  required DartType typeInOverriddenInterface,
 }) {
   return LocatableDiagnosticImpl(diag.invalidImplementationOverrideSetter, [
-    p0,
-    p1,
-    p2,
-    p3,
-    p4,
+    memberName,
+    declaringInterfaceName,
+    typeInDeclaringInterface,
+    overriddenInterfaceName,
+    typeInOverriddenInterface,
   ]);
 }
 
@@ -19582,13 +19598,19 @@ LocatableDiagnostic _withArgumentsInvalidOption({
 }
 
 LocatableDiagnostic _withArgumentsInvalidOverride({
-  required String p0,
-  required String p1,
-  required DartType p2,
-  required String p3,
-  required DartType p4,
+  required String memberName,
+  required String declaringInterfaceName,
+  required DartType typeInDeclaringInterface,
+  required String overriddenInterfaceName,
+  required DartType typeInOverriddenInterface,
 }) {
-  return LocatableDiagnosticImpl(diag.invalidOverride, [p0, p1, p2, p3, p4]);
+  return LocatableDiagnosticImpl(diag.invalidOverride, [
+    memberName,
+    declaringInterfaceName,
+    typeInDeclaringInterface,
+    overriddenInterfaceName,
+    typeInOverriddenInterface,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidOverrideOfNonVirtualMember({
@@ -19602,18 +19624,18 @@ LocatableDiagnostic _withArgumentsInvalidOverrideOfNonVirtualMember({
 }
 
 LocatableDiagnostic _withArgumentsInvalidOverrideSetter({
-  required Object p0,
-  required Object p1,
-  required Object p2,
-  required Object p3,
-  required Object p4,
+  required String memberName,
+  required String declaringInterfaceName,
+  required DartType typeInDeclaringInterface,
+  required String overriddenInterfaceName,
+  required DartType typeInOverriddenInterface,
 }) {
   return LocatableDiagnosticImpl(diag.invalidOverrideSetter, [
-    p0,
-    p1,
-    p2,
-    p3,
-    p4,
+    memberName,
+    declaringInterfaceName,
+    typeInDeclaringInterface,
+    overriddenInterfaceName,
+    typeInOverriddenInterface,
   ]);
 }
 

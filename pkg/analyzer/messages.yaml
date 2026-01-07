@@ -9631,12 +9631,12 @@ CompileTimeErrorCode:
   invalidImplementationOverride:
     type: compileTimeError
     parameters:
-      Object p0: the name of the declared member that is not a valid override.
-      Object p1: the name of the interface that declares the member.
-      Object p2: the type of the declared member in the interface.
-      Object p3: the name of the interface with the overridden member.
-      Object p4: the type of the overridden member.
-    problemMessage: "'#p1.#p0' ('#p2') isn't a valid concrete implementation of '#p3.#p0' ('#p4')."
+      String memberName: the name of the declared member that is not a valid override.
+      String declaringInterfaceName: the name of the interface that declares the member.
+      Type typeInDeclaringInterface: the type of the declared member in the interface.
+      String overriddenInterfaceName: the name of the interface with the overridden member.
+      Type typeInOverriddenInterface: the type of the overridden member.
+    problemMessage: "'#declaringInterfaceName.#memberName' ('#typeInDeclaringInterface') isn't a valid concrete implementation of '#overriddenInterfaceName.#memberName' ('#typeInOverriddenInterface')."
     hasPublishedDocs: true
     comment: |-
       The parameters of this error code must be kept in sync with those of
@@ -9726,13 +9726,13 @@ CompileTimeErrorCode:
   invalidImplementationOverrideSetter:
     type: compileTimeError
     parameters:
-      Object p0: the name of the declared setter that is not a valid override.
-      Object p1: the name of the interface that declares the setter.
-      Object p2: the type of the declared setter in the interface.
-      Object p3: the name of the interface with the overridden setter.
-      Object p4: the type of the overridden setter.
+      String memberName: the name of the declared setter that is not a valid override.
+      String declaringInterfaceName: the name of the interface that declares the setter.
+      Type typeInDeclaringInterface: the type of the declared setter in the interface.
+      String overriddenInterfaceName: the name of the interface with the overridden setter.
+      Type typeInOverriddenInterface: the type of the overridden setter.
     sharedName: invalidImplementationOverride
-    problemMessage: "The setter '#p1.#p0' ('#p2') isn't a valid concrete implementation of '#p3.#p0' ('#p4')."
+    problemMessage: "The setter '#declaringInterfaceName.#memberName' ('#typeInDeclaringInterface') isn't a valid concrete implementation of '#overriddenInterfaceName.#memberName' ('#typeInOverriddenInterface')."
     hasPublishedDocs: true
     comment: |-
       The parameters of this error code must be kept in sync with those of
@@ -9858,12 +9858,12 @@ CompileTimeErrorCode:
   invalidOverride:
     type: compileTimeError
     parameters:
-      String p0: the name of the declared member that is not a valid override.
-      String p1: the name of the interface that declares the member.
-      Type p2: the type of the declared member in the interface.
-      String p3: the name of the interface with the overridden member.
-      Type p4: the type of the overridden member.
-    problemMessage: "'#p1.#p0' ('#p2') isn't a valid override of '#p3.#p0' ('#p4')."
+      String memberName: the name of the declared member that is not a valid override.
+      String declaringInterfaceName: the name of the interface that declares the member.
+      Type typeInDeclaringInterface: the type of the declared member in the interface.
+      String overriddenInterfaceName: the name of the interface with the overridden member.
+      Type typeInOverriddenInterface: the type of the overridden member.
+    problemMessage: "'#declaringInterfaceName.#memberName' ('#typeInDeclaringInterface') isn't a valid override of '#overriddenInterfaceName.#memberName' ('#typeInOverriddenInterface')."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -9925,13 +9925,13 @@ CompileTimeErrorCode:
   invalidOverrideSetter:
     type: compileTimeError
     parameters:
-      Object p0: the name of the declared setter that is not a valid override.
-      Object p1: the name of the interface that declares the setter.
-      Object p2: the type of the declared setter in the interface.
-      Object p3: the name of the interface with the overridden setter.
-      Object p4: the type of the overridden setter.
+      String memberName: the name of the declared setter that is not a valid override.
+      String declaringInterfaceName: the name of the interface that declares the setter.
+      Type typeInDeclaringInterface: the type of the declared setter in the interface.
+      String overriddenInterfaceName: the name of the interface with the overridden setter.
+      Type typeInOverriddenInterface: the type of the overridden setter.
     sharedName: invalidOverride
-    problemMessage: "The setter '#p1.#p0' ('#p2') isn't a valid override of '#p3.#p0' ('#p4')."
+    problemMessage: "The setter '#declaringInterfaceName.#memberName' ('#typeInDeclaringInterface') isn't a valid override of '#overriddenInterfaceName.#memberName' ('#typeInOverriddenInterface')."
     hasPublishedDocs: true
   invalidReferenceToGenerativeEnumConstructor:
     type: compileTimeError
