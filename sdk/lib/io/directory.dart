@@ -90,8 +90,8 @@ part of "dart:io";
 ///
 /// ## Other resources
 ///
-/// * The [Files and directories](https://dart.dev/guides/libraries/library-tour#files-and-directories)
-///   section of the library tour.
+/// * The [Read and write Files](https://docs.flutter.dev/cookbook/persistence/reading-writing-files)
+///   cookbook page.
 ///
 /// * [Write Command-Line Apps](https://dart.dev/tutorials/server/cmdline),
 ///   a tutorial about writing command-line apps, includes information about
