@@ -228,6 +228,7 @@ abstract class BodyBuilderContext {
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Returns `true` if the constructor whose initializers is being built, needs
   /// to include an implicit super initializer.
   bool needsImplicitSuperInitializer(CoreTypes coreTypes) => false;
@@ -350,7 +351,10 @@ abstract class BodyBuilderContext {
 
   /// This registers [initializers] as the fully resolved initializers of a
   /// constructor.
-  void registerInitializers(List<Initializer> initializers) {
+  void registerInitializers(
+    List<Initializer> initializers, {
+    required bool isErroneous,
+  }) {
     throw new UnsupportedError('${runtimeType}.initializers');
   }
 

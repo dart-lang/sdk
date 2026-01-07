@@ -8,6 +8,7 @@ library;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show lengthForToken, lengthOfSpan;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+import 'package:front_end/src/type_inference/external_ast_helper.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/names.dart'
     show
@@ -204,7 +205,7 @@ abstract class Generator {
 
   List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
     return <Initializer>[
-      _helper.buildInvalidInitializer(
+      createInvalidInitializer(
         _helper.buildProblem(
           message: codeInvalidInitializer,
           fileUri: _helper.uri,
@@ -5022,7 +5023,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
   @override
   List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
     return <Initializer>[
-      _helper.buildInvalidInitializer(buildError(kind: UnresolvedKind.Setter)),
+      createInvalidInitializer(buildError(kind: UnresolvedKind.Setter)),
     ];
   }
 
@@ -5220,9 +5221,7 @@ class DuplicateDeclarationGenerator extends ErroneousExpressionGenerator {
   @override
   // Coverage-ignore(suite): Not run.
   List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
-    return <Initializer>[
-      _helper.buildInvalidInitializer(_createInvalidExpression()),
-    ];
+    return <Initializer>[createInvalidInitializer(_createInvalidExpression())];
   }
 
   @override
@@ -6193,7 +6192,7 @@ class ParserErrorGenerator extends Generator {
 
   @override
   List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
-    return <Initializer>[_helper.buildInvalidInitializer(buildProblem())];
+    return <Initializer>[createInvalidInitializer(buildProblem())];
   }
 
   @override
@@ -6397,7 +6396,7 @@ class ThisAccessGenerator extends Generator {
   @override
   List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
     InvalidExpression error = buildFieldInitializerError(initializedFields);
-    return <Initializer>[_helper.buildInvalidInitializer(error)];
+    return <Initializer>[createInvalidInitializer(error)];
   }
 
   @override
@@ -6577,7 +6576,7 @@ class ThisAccessGenerator extends Generator {
       Constructor? constructor;
       if (result != null) {
         if (result.isInvalidLookup) {
-          return _helper.buildInvalidInitializer(
+          return createInvalidInitializer(
             LookupResult.createDuplicateExpression(
               result,
               context: _helper.libraryBuilder.loader.target.context,
@@ -6603,7 +6602,7 @@ class ThisAccessGenerator extends Generator {
       }
       if (constructor == null) {
         String fullName = _helper.superConstructorNameForDiagnostics(name.text);
-        return _helper.buildInvalidInitializer(
+        return createInvalidInitializer(
           _helper.buildProblem(
             message: codeSuperclassHasNoConstructor.withArgumentsOld(fullName),
             fileUri: _fileUri,

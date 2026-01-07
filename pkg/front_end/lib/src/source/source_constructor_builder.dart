@@ -266,7 +266,13 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   Reference? get writeTargetReference => null;
 
-  void registerInitializers(List<Initializer> initializers) {
+  void registerInitializers(
+    List<Initializer> initializers, {
+    required bool isErroneous,
+  }) {
+    if (isErroneous) {
+      markAsErroneous();
+    }
     _lastDeclaration.registerInitializers(initializers);
   }
 
