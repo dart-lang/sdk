@@ -490,14 +490,9 @@ class MultiTargetAnnotations {
 
 class BuildInitializersResult {
   final List<Initializer> initializers;
-  final bool needsImplicitSuperInitializer;
   final PendingAnnotations? annotations;
 
-  BuildInitializersResult(
-    this.initializers,
-    this.needsImplicitSuperInitializer,
-    this.annotations,
-  );
+  BuildInitializersResult(this.initializers, this.annotations);
 }
 
 class BuildParameterInitializerResult {
@@ -537,7 +532,6 @@ class BuildFunctionBodyResult {
   final AsyncMarker asyncModifier;
   final Statement? body;
   final List<Initializer> initializers;
-  final bool needsImplicitSuperInitializer;
   final PendingAnnotations? annotations;
 
   BuildFunctionBodyResult({
@@ -545,7 +539,6 @@ class BuildFunctionBodyResult {
     required this.asyncModifier,
     required this.body,
     required this.initializers,
-    required this.needsImplicitSuperInitializer,
     required this.annotations,
   });
 }

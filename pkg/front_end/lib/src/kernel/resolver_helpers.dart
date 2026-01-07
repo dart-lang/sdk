@@ -169,163 +169,572 @@ class _ResolverContext {
 }
 
 class _InitializerBuilder {
-  SuperInitializer? superInitializer;
+  final CompilerContext _compilerContext;
+  final ProblemReporting _problemReporting;
+  final BodyBuilderContext _bodyBuilderContext;
+  final TypeInferrer _typeInferrer;
+  final Uri _fileUri;
 
-  RedirectingInitializer? redirectingInitializer;
+  SuperInitializer? _superInitializer;
 
-  List<Initializer> _initializers = [];
+  Initializer? _redirectingInitializer;
 
-  void _injectInvalidInitializer(
-    CompilerContext compilerContext,
-    ProblemReporting problemReporting,
-    Message message,
-    Uri fileUri,
-    int fileOffset,
-    int length,
-  ) {
-    Initializer lastInitializer = _initializers.removeLast();
-    assert(
-      lastInitializer == superInitializer ||
-          lastInitializer == redirectingInitializer,
-    );
-    Initializer error = createInvalidInitializer(
-      problemReporting.buildProblem(
-        compilerContext: compilerContext,
-        message: message,
-        fileUri: fileUri,
-        fileOffset: fileOffset,
-        length: length,
-      ),
-    );
-    _initializers.add(error);
-    _initializers.add(lastInitializer);
-  }
+  List<Initializer> _regularInitializers = [];
 
-  bool addInitializer(
-    CompilerContext compilerContext,
-    ProblemReporting problemReporting,
-    BodyBuilderContext bodyBuilderContext,
-    InitializerInferenceResult inferenceResult, {
+  bool _isErroneous = false;
+
+  /// Only used when [member] is a constructor. It tracks if an implicit super
+  /// initializer is needed.
+  ///
+  /// An implicit super initializer isn't needed
+  ///
+  /// 1. if the current class is Object,
+  /// 2. if there is an explicit super initializer,
+  /// 3. if there is a redirecting (this) initializer, or
+  /// 4. if a compile-time error prevented us from generating code for an
+  ///    initializer. This avoids cascading errors.
+  bool _needsImplicitSuperInitializer;
+
+  _InitializerBuilder({
+    required CompilerContext compilerContext,
+    required ProblemReporting problemReporting,
+    required BodyBuilderContext bodyBuilderContext,
+    required TypeInferrer typeInferrer,
+    required CoreTypes coreTypes,
     required Uri fileUri,
-  }) {
-    Initializer initializer = inferenceResult.initializer;
-    if (initializer is SuperInitializer) {
-      if (superInitializer != null) {
-        _injectInvalidInitializer(
-          compilerContext,
-          problemReporting,
-          codeMoreThanOneSuperInitializer,
-          fileUri,
-          initializer.fileOffset,
-          "super".length,
-        );
-        return false;
-      } else if (redirectingInitializer != null) {
-        _injectInvalidInitializer(
-          compilerContext,
-          problemReporting,
-          codeRedirectingConstructorWithSuperInitializer,
-          fileUri,
-          initializer.fileOffset,
-          "super".length,
-        );
-        return false;
-      } else {
-        inferenceResult.applyResult(_initializers, null);
-        superInitializer = initializer;
-        _initializers.add(initializer);
-        return true;
-      }
-    } else if (initializer
-        case RedirectingInitializer() ||
-            ExtensionTypeRedirectingInitializer()) {
-      if (superInitializer != null) {
-        // Point to the existing super initializer.
-        _injectInvalidInitializer(
-          compilerContext,
-          problemReporting,
-          codeRedirectingConstructorWithSuperInitializer,
-          fileUri,
-          superInitializer!.fileOffset,
-          "super".length,
-        );
-        bodyBuilderContext.markAsErroneous();
-        return false;
-      } else if (redirectingInitializer != null) {
-        _injectInvalidInitializer(
-          compilerContext,
-          problemReporting,
-          codeRedirectingConstructorWithMultipleRedirectInitializers,
-          fileUri,
-          initializer.fileOffset,
-          noLength,
-        );
-        bodyBuilderContext.markAsErroneous();
-        return false;
-      } else if (_initializers.isNotEmpty) {
-        // Error on all previous ones.
-        for (int i = 0; i < _initializers.length; i++) {
-          Initializer initializer = _initializers[i];
-          int length = noLength;
-          if (initializer is AssertInitializer) length = "assert".length;
-          Initializer error = createInvalidInitializer(
-            problemReporting.buildProblem(
-              compilerContext: compilerContext,
-              message: codeRedirectingConstructorWithAnotherInitializer,
-              fileUri: fileUri,
-              fileOffset: initializer.fileOffset,
-              length: length,
-            ),
-          );
-          _initializers[i] = error;
-        }
-        inferenceResult.applyResult(_initializers, null);
-        _initializers.add(initializer);
-        if (initializer is RedirectingInitializer) {
-          redirectingInitializer = initializer;
-        }
-        bodyBuilderContext.markAsErroneous();
-        return false;
-      } else {
-        inferenceResult.applyResult(_initializers, null);
-        if (initializer is RedirectingInitializer) {
-          redirectingInitializer = initializer;
-        }
-        _initializers.add(initializer);
-        return true;
-      }
-    } else if (redirectingInitializer != null) {
-      int length = noLength;
-      if (initializer is AssertInitializer) length = "assert".length;
-      _injectInvalidInitializer(
-        compilerContext,
-        problemReporting,
-        codeRedirectingConstructorWithAnotherInitializer,
-        fileUri,
-        initializer.fileOffset,
-        length,
-      );
-      bodyBuilderContext.markAsErroneous();
-      return false;
-    } else if (superInitializer != null) {
-      _injectInvalidInitializer(
-        compilerContext,
-        problemReporting,
-        codeSuperInitializerNotLast,
-        fileUri,
-        initializer.fileOffset,
-        noLength,
-      );
-      bodyBuilderContext.markAsErroneous();
-      return false;
-    } else {
-      inferenceResult.applyResult(_initializers, null);
-      _initializers.add(initializer);
-      return true;
+  }) : this._compilerContext = compilerContext,
+       this._problemReporting = problemReporting,
+       this._bodyBuilderContext = bodyBuilderContext,
+       this._typeInferrer = typeInferrer,
+       this._fileUri = fileUri,
+       this._needsImplicitSuperInitializer = bodyBuilderContext
+           .needsImplicitSuperInitializer(coreTypes);
+
+  void _inferInitializer(Initializer initializer) {
+    InitializerInferenceResult result = _bodyBuilderContext.inferInitializer(
+      typeInferrer: _typeInferrer,
+      fileUri: _fileUri,
+      initializer: initializer,
+    );
+    if (!_bodyBuilderContext.isExternalConstructor) {
+      _addInferredInitializer(result);
     }
   }
 
-  List<Initializer> get initializers => _initializers;
+  void processInitializers({
+    required SourceLibraryBuilder libraryBuilder,
+    required LibraryFeatures libraryFeatures,
+    required _SuperParameterArguments? superParameterArguments,
+    required List<Initializer> initializers,
+    required AsyncMarker asyncModifier,
+    required int? asyncModifierFileOffset,
+  }) {
+    if (initializers.isNotEmpty) {
+      if (_bodyBuilderContext.isMixinClass) {
+        // Report an error if a mixin class has a constructor with an
+        // initializer.
+        _problemReporting.buildProblem(
+          compilerContext: _compilerContext,
+          message: codeIllegalMixinDueToConstructors.withArgumentsOld(
+            _bodyBuilderContext.className,
+          ),
+          fileUri: _fileUri,
+          fileOffset: _bodyBuilderContext.memberNameOffset,
+          length: noLength,
+        );
+      }
+    }
+
+    for (Initializer initializer in initializers) {
+      switch (initializer) {
+        case AuxiliaryInitializer():
+          if (initializer is InternalInitializer) {
+            switch (initializer) {
+              case ExtensionTypeRedirectingInitializer():
+                _needsImplicitSuperInitializer = false;
+                _inferInitializer(initializer);
+              case ExtensionTypeRepresentationFieldInitializer():
+                _inferInitializer(initializer);
+              case InternalRedirectingInitializer():
+                _needsImplicitSuperInitializer = false;
+                if (_bodyBuilderContext.isEnumClass &&
+                    libraryFeatures.enhancedEnums.isEnabled) {
+                  FunctionNode function = _bodyBuilderContext.function;
+                  ActualArguments arguments = initializer.arguments;
+                  List<Expression> enumSyntheticArguments = [
+                    new VariableGet(function.positionalParameters[0])
+                      ..parent = initializer.arguments,
+                    new VariableGet(function.positionalParameters[1])
+                      ..parent = initializer.arguments,
+                  ];
+                  arguments.prependArguments([
+                    new PositionalArgument(enumSyntheticArguments[0]),
+                    new PositionalArgument(enumSyntheticArguments[1]),
+                  ], positionalCount: 2);
+                }
+                _inferInitializer(initializer);
+              case InternalSuperInitializer():
+                _needsImplicitSuperInitializer = false;
+                if (_bodyBuilderContext.isEnumClass) {
+                  initializer = createInvalidInitializer(
+                    _problemReporting.buildProblem(
+                      compilerContext: _compilerContext,
+                      message: codeEnumConstructorSuperInitializer,
+                      fileUri: _fileUri,
+                      fileOffset: initializer.fileOffset,
+                      length: noLength,
+                    ),
+                  )..parent = initializer.parent;
+                } else if (superParameterArguments != null) {
+                  bool insertNamedOnly = false;
+                  ActualArguments arguments = initializer.arguments;
+                  if (superParameterArguments.positionalCount > 0) {
+                    if (arguments.positionalCount > 0) {
+                      _problemReporting.addProblem(
+                        codePositionalSuperParametersAndArguments,
+                        arguments.fileOffset,
+                        noLength,
+                        _fileUri,
+                        context: <LocatedMessage>[
+                          codeSuperInitializerParameter.withLocation(
+                            _fileUri,
+                            superParameterArguments.firstPositionalOffset,
+                            noLength,
+                          ),
+                        ],
+                      );
+                      insertNamedOnly = true;
+                    }
+                  }
+                  if (insertNamedOnly) {
+                    /// Error case: Don't insert positional argument when
+                    /// positional arguments already exist.
+                    arguments.prependArguments(
+                      superParameterArguments.arguments
+                          .whereType<NamedArgument>()
+                          .toList(),
+                      positionalCount: 0,
+                    );
+                  } else {
+                    arguments.prependArguments(
+                      superParameterArguments.arguments,
+                      positionalCount: superParameterArguments.positionalCount,
+                    );
+                  }
+                }
+                _inferInitializer(initializer);
+            }
+          }
+        case InvalidInitializer():
+          _needsImplicitSuperInitializer = false;
+          _inferInitializer(initializer);
+        case FieldInitializer():
+        case LocalInitializer():
+        case AssertInitializer():
+          _inferInitializer(initializer);
+        // Coverage-ignore(suite): Not run.
+        case SuperInitializer():
+        case RedirectingInitializer():
+          throw new UnsupportedError(
+            "Unexpected initializer $initializer "
+            "(${initializer.runtimeType}).",
+          );
+      }
+    }
+
+    if (asyncModifier != AsyncMarker.Sync) {
+      _inferInitializer(
+        createInvalidInitializer(
+          _problemReporting.buildProblem(
+            compilerContext: _compilerContext,
+            message: codeConstructorNotSync,
+            fileUri: _fileUri,
+            fileOffset: asyncModifierFileOffset!,
+            length: noLength,
+          ),
+        ),
+      );
+      _needsImplicitSuperInitializer = false;
+    }
+
+    if (_needsImplicitSuperInitializer) {
+      _addImplicitSuperInitializer(
+        libraryBuilder: libraryBuilder,
+        typeInferrer: _typeInferrer,
+        superParameterArguments: superParameterArguments,
+      );
+    }
+    _bodyBuilderContext.registerInitializers([
+      ..._regularInitializers,
+      ?_redirectingInitializer,
+      ?_superInitializer,
+    ], isErroneous: _isErroneous);
+  }
+
+  void _addSuperInitializer(
+    InitializerInferenceResult inferenceResult,
+    SuperInitializer initializer,
+  ) {
+    if (_superInitializer != null) {
+      _regularInitializers.add(
+        createInvalidInitializer(
+          _problemReporting.buildProblem(
+            compilerContext: _compilerContext,
+            message: codeMoreThanOneSuperInitializer,
+            fileUri: _fileUri,
+            fileOffset: initializer.fileOffset,
+            length: "super".length,
+          ),
+        ),
+      );
+      _needsImplicitSuperInitializer = false;
+    } else if (_redirectingInitializer != null) {
+      _regularInitializers.add(
+        createInvalidInitializer(
+          _problemReporting.buildProblem(
+            compilerContext: _compilerContext,
+            message: codeRedirectingConstructorWithSuperInitializer,
+            fileUri: _fileUri,
+            fileOffset: initializer.fileOffset,
+            length: "super".length,
+          ),
+        ),
+      );
+      _needsImplicitSuperInitializer = false;
+    } else {
+      inferenceResult.addHoistedArguments(_regularInitializers);
+      _superInitializer = initializer;
+    }
+  }
+
+  void _addRedirectingInitializer(
+    InitializerInferenceResult inferenceResult,
+    Initializer initializer,
+  ) {
+    if (_superInitializer != null) {
+      // Point to the existing super initializer.
+      _regularInitializers.add(
+        createInvalidInitializer(
+          _problemReporting.buildProblem(
+            compilerContext: _compilerContext,
+            message: codeRedirectingConstructorWithSuperInitializer,
+            fileUri: _fileUri,
+            fileOffset: _superInitializer!.fileOffset,
+            length: "super".length,
+          ),
+        ),
+      );
+      _isErroneous = true;
+      _needsImplicitSuperInitializer = false;
+    } else if (_redirectingInitializer != null) {
+      _regularInitializers.add(
+        createInvalidInitializer(
+          _problemReporting.buildProblem(
+            compilerContext: _compilerContext,
+            message: codeRedirectingConstructorWithMultipleRedirectInitializers,
+            fileUri: _fileUri,
+            fileOffset: initializer.fileOffset,
+            length: noLength,
+          ),
+        ),
+      );
+      _isErroneous = true;
+      _needsImplicitSuperInitializer = false;
+    } else if (_regularInitializers.isNotEmpty) {
+      // Error on all previous ones.
+      for (int i = 0; i < _regularInitializers.length; i++) {
+        Initializer initializer = _regularInitializers[i];
+        int length = noLength;
+        if (initializer is AssertInitializer) length = "assert".length;
+        _regularInitializers[i] = createInvalidInitializer(
+          _problemReporting.buildProblem(
+            compilerContext: _compilerContext,
+            message: codeRedirectingConstructorWithAnotherInitializer,
+            fileUri: _fileUri,
+            fileOffset: initializer.fileOffset,
+            length: length,
+          ),
+        );
+      }
+      inferenceResult.addHoistedArguments(_regularInitializers);
+      _redirectingInitializer = initializer;
+      _isErroneous = true;
+      _needsImplicitSuperInitializer = false;
+    } else {
+      inferenceResult.addHoistedArguments(_regularInitializers);
+      _redirectingInitializer = initializer;
+    }
+  }
+
+  void _addRegularInitializer(
+    InitializerInferenceResult inferenceResult,
+    Initializer initializer,
+  ) {
+    if (_redirectingInitializer != null) {
+      int length = noLength;
+      if (initializer is AssertInitializer) length = "assert".length;
+      _regularInitializers.add(
+        createInvalidInitializer(
+          _problemReporting.buildProblem(
+            compilerContext: _compilerContext,
+            message: codeRedirectingConstructorWithAnotherInitializer,
+            fileUri: _fileUri,
+            fileOffset: initializer.fileOffset,
+            length: length,
+          ),
+        ),
+      );
+      _isErroneous = true;
+      _needsImplicitSuperInitializer = false;
+    } else if (_superInitializer != null) {
+      _regularInitializers.add(
+        createInvalidInitializer(
+          _problemReporting.buildProblem(
+            compilerContext: _compilerContext,
+            message: codeSuperInitializerNotLast,
+            fileUri: _fileUri,
+            fileOffset: initializer.fileOffset,
+            length: noLength,
+          ),
+        ),
+      );
+      _isErroneous = true;
+      _needsImplicitSuperInitializer = false;
+    } else {
+      inferenceResult.addHoistedArguments(_regularInitializers);
+      _regularInitializers.add(initializer);
+    }
+  }
+
+  void _addInferredInitializer(InitializerInferenceResult inferenceResult) {
+    Initializer initializer = inferenceResult.initializer;
+    switch (initializer) {
+      case SuperInitializer():
+        _addSuperInitializer(inferenceResult, initializer);
+      case RedirectingInitializer():
+        _addRedirectingInitializer(inferenceResult, initializer);
+      case LocalInitializer():
+      case AssertInitializer():
+      case InvalidInitializer():
+      case FieldInitializer():
+        _addRegularInitializer(inferenceResult, initializer);
+      case AuxiliaryInitializer():
+        if (initializer is InternalInitializer) {
+          switch (initializer) {
+            case ExtensionTypeRedirectingInitializer():
+              _addRedirectingInitializer(inferenceResult, initializer);
+            case ExtensionTypeRepresentationFieldInitializer():
+              _addRegularInitializer(inferenceResult, initializer);
+            // Coverage-ignore(suite): Not run.
+            case InternalRedirectingInitializer():
+            case InternalSuperInitializer():
+              throw new UnsupportedError(
+                "Unexpected internal initializer ${initializer} "
+                "(${initializer.runtimeType}).",
+              );
+          }
+        } else {
+          throw new UnsupportedError(
+            "Unexpected initializer ${initializer} "
+            "(${initializer.runtimeType}).",
+          );
+        }
+    }
+  }
+
+  void _addImplicitSuperInitializer({
+    required SourceLibraryBuilder libraryBuilder,
+    required TypeInferrer typeInferrer,
+    required _SuperParameterArguments? superParameterArguments,
+  }) {
+    /// >If no superinitializer is provided, an implicit superinitializer
+    /// >of the form super() is added at the end of the constructor's
+    /// >initializer list, unless the enclosing class is class Object.
+    Initializer? initializer;
+    ActualArguments arguments;
+    List<Argument>? argumentsOriginalOrder;
+    int positionalCount = 0;
+    if (superParameterArguments != null) {
+      argumentsOriginalOrder = superParameterArguments.arguments;
+      positionalCount += superParameterArguments.positionalCount;
+    }
+    if (_bodyBuilderContext.isEnumClass) {
+      FunctionNode function = _bodyBuilderContext.function;
+      assert(
+        function.positionalParameters.length >= 2 &&
+            function.positionalParameters[0].name == "#index" &&
+            function.positionalParameters[1].name == "#name",
+      );
+      Expression indexExpression = new VariableGet(
+        function.positionalParameters[0],
+      );
+      Expression nameExpression = new VariableGet(
+        function.positionalParameters[1],
+      );
+      (argumentsOriginalOrder ??= []).insertAll(0, [
+        new PositionalArgument(indexExpression),
+        new PositionalArgument(nameExpression),
+      ]);
+      positionalCount += 2;
+    }
+
+    int argumentsOffset = -1;
+    if (superParameterArguments != null) {
+      for (Argument argument in superParameterArguments.arguments) {
+        int currentArgumentOffset = argument.expression.fileOffset;
+        argumentsOffset = argumentsOffset <= currentArgumentOffset
+            ? argumentsOffset
+            : currentArgumentOffset;
+      }
+    }
+    if (argumentsOffset == -1) {
+      argumentsOffset = _bodyBuilderContext.memberNameOffset;
+    }
+
+    const Forest forest = const Forest();
+    if (argumentsOriginalOrder != null) {
+      arguments = forest.createArguments(
+        argumentsOffset,
+        arguments: argumentsOriginalOrder,
+        hasNamedBeforePositional: false,
+        positionalCount: positionalCount,
+      );
+    } else {
+      arguments = forest.createArgumentsEmpty(argumentsOffset);
+    }
+
+    MemberLookupResult? result = _bodyBuilderContext.lookupSuperConstructor(
+      '',
+      libraryBuilder.nameOriginBuilder,
+    );
+    Constructor? superTarget;
+    if (result != null) {
+      if (result.isInvalidLookup) {
+        int length = _bodyBuilderContext.memberNameLength;
+        if (length == 0) {
+          length = _bodyBuilderContext.className.length;
+        }
+        initializer = createInvalidInitializer(
+          LookupResult.createDuplicateExpression(
+            result,
+            context: _compilerContext,
+            name: '',
+            fileUri: _fileUri,
+            fileOffset: _bodyBuilderContext.memberNameOffset,
+            length: noLength,
+          ),
+        );
+      } else {
+        MemberBuilder? memberBuilder = result.getable;
+        Member? member = memberBuilder?.invokeTarget;
+        if (member is Constructor) {
+          superTarget = member;
+        }
+      }
+    }
+    if (initializer == null) {
+      if (superTarget == null) {
+        String superclass = _bodyBuilderContext.superClassName;
+        int length = _bodyBuilderContext.memberNameLength;
+        if (length == 0) {
+          length = _bodyBuilderContext.className.length;
+        }
+        initializer = createInvalidInitializer(
+          _problemReporting.buildProblem(
+            compilerContext: _compilerContext,
+            message: codeSuperclassHasNoDefaultConstructor.withArgumentsOld(
+              superclass,
+            ),
+            fileUri: _fileUri,
+            fileOffset: _bodyBuilderContext.memberNameOffset,
+            length: length,
+          ),
+        );
+      } else if (_problemReporting.checkArgumentsForFunction(
+            function: superTarget.function,
+            explicitTypeArguments: null,
+            arguments: arguments,
+            fileOffset: _bodyBuilderContext.memberNameOffset,
+            fileUri: _fileUri,
+            typeParameters: const <TypeParameter>[],
+          )
+          case LocatedMessage argumentIssue) {
+        Initializer? errorMessageInitializer;
+        if (superParameterArguments != null) {
+          int positionalSuperParameterCount =
+              superTarget.function.positionalParameters.length;
+          Set<String> superTargetNamedParameterNames = {
+            for (VariableDeclaration namedParameter
+                in superTarget.function.namedParameters)
+              ?namedParameter // Coverage-ignore(suite): Not run.
+                  .name,
+          };
+          int positionalIndex = 0;
+          for (Argument argument in superParameterArguments.arguments) {
+            switch (argument) {
+              case PositionalArgument():
+                if (positionalIndex >= positionalSuperParameterCount) {
+                  InvalidExpression errorMessageExpression = _problemReporting
+                      .buildProblem(
+                        compilerContext: _compilerContext,
+                        message: codeMissingPositionalSuperConstructorParameter,
+                        fileUri: _fileUri,
+                        fileOffset: argument.expression.fileOffset,
+                        length: noLength,
+                      );
+                  errorMessageInitializer ??= createInvalidInitializer(
+                    errorMessageExpression,
+                  );
+                }
+                positionalIndex++;
+              case NamedArgument():
+                if (!superTargetNamedParameterNames.contains(
+                  argument.namedExpression.name,
+                )) {
+                  InvalidExpression errorMessageExpression = _problemReporting
+                      .buildProblem(
+                        compilerContext: _compilerContext,
+                        message: codeMissingNamedSuperConstructorParameter,
+                        fileUri: _fileUri,
+                        fileOffset: argument.namedExpression.fileOffset,
+                        length: noLength,
+                      );
+                  errorMessageInitializer ??= createInvalidInitializer(
+                    errorMessageExpression,
+                  );
+                }
+            }
+          }
+        }
+        errorMessageInitializer ??= createInvalidInitializer(
+          _problemReporting.buildProblem(
+            compilerContext: _compilerContext,
+            message: codeImplicitSuperInitializerMissingArguments
+                .withArgumentsOld(superTarget.enclosingClass.name),
+            fileUri: _fileUri,
+            fileOffset: argumentIssue.charOffset,
+            length: argumentIssue.length,
+          ),
+        );
+        initializer = errorMessageInitializer;
+      } else {
+        if (_bodyBuilderContext.isConstConstructor && !superTarget.isConst) {
+          _problemReporting.addProblem(
+            codeConstConstructorWithNonConstSuper,
+            _bodyBuilderContext.memberNameOffset,
+            superTarget.name.text.length,
+            _fileUri,
+          );
+        }
+        initializer = new InternalSuperInitializer(
+          superTarget,
+          arguments,
+          isSynthetic: true,
+        )..fileOffset = _bodyBuilderContext.memberNameOffset;
+      }
+    }
+    _inferInitializer(initializer);
+  }
 }
 
 class _SuperParameterArguments {

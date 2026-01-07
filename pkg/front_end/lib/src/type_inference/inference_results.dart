@@ -370,8 +370,9 @@ abstract class InitializerInferenceResult {
   /// The inferred initializer.
   Initializer get initializer;
 
-  /// Modifies list of initializers in-place to apply the inference result.
-  void applyResult(List<Initializer> initializers, TreeNode? parent);
+  /// Adds any hoisted arguments for [initializer] to [initializers] as
+  /// [LocalInitializer]s.
+  void addHoistedArguments(List<Initializer> initializers);
 
   factory InitializerInferenceResult.fromInvocationInferenceResult(
     Initializer initializer,
@@ -389,7 +390,7 @@ class SuccessfulInitializerInferenceResult
   SuccessfulInitializerInferenceResult(this.initializer);
 
   @override
-  void applyResult(List<Initializer> initializers, TreeNode? parent) {}
+  void addHoistedArguments(List<Initializer> initializers) {}
 }
 
 class SuccessfulInitializerInvocationInferenceResult
@@ -397,20 +398,11 @@ class SuccessfulInitializerInvocationInferenceResult
   @override
   final Initializer initializer;
 
-  final DartType inferredType;
-
-  final FunctionType functionType;
-
   final List<VariableDeclaration>? hoistedArguments;
-
-  final DartType? inferredReceiverType;
 
   SuccessfulInitializerInvocationInferenceResult({
     required this.initializer,
-    required this.inferredType,
-    required this.functionType,
     required this.hoistedArguments,
-    required this.inferredReceiverType,
   });
 
   SuccessfulInitializerInvocationInferenceResult.fromSuccessfulInferenceResult(
@@ -418,20 +410,16 @@ class SuccessfulInitializerInvocationInferenceResult
     SuccessfulInferenceResult successfulInferenceResult,
   ) : this(
         initializer: initializer,
-        inferredType: successfulInferenceResult.inferredType,
-        functionType: successfulInferenceResult.functionType,
         hoistedArguments: successfulInferenceResult.hoistedArguments,
-        inferredReceiverType: successfulInferenceResult.inferredReceiverType,
       );
 
   @override
-  void applyResult(List<Initializer> initializers, TreeNode? parent) {
+  void addHoistedArguments(List<Initializer> initializers) {
     List<VariableDeclaration>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments != null && hoistedArguments.isNotEmpty) {
       for (VariableDeclaration hoistedArgument in hoistedArguments) {
         initializers.add(
           new LocalInitializer(hoistedArgument)
-            ..parent = parent
             ..fileOffset = hoistedArgument.fileOffset,
         );
       }
@@ -451,7 +439,7 @@ class WrapInProblemInitializerInferenceResult
   );
 
   @override
-  void applyResult(List<Initializer> initializers, TreeNode? parent) {}
+  void addHoistedArguments(List<Initializer> initializers) {}
 }
 
 /// The result of inference of a property get expression.

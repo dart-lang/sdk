@@ -1,4 +1,15 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/supported_libraries/main.dart:7:8: Error: Dart library 'dart:unsupported.by.target' is not available on this platform.
+// import 'dart:unsupported.by.target';
+//        ^
+//
+// pkg/front_end/testcases/general/supported_libraries/main.dart:8:8: Error: Dart library 'dart:unsupported.not.importable' is not available on this platform.
+// import 'dart:unsupported.not.importable';
+//        ^
+//
 import self as self;
 
 import "dart:supported.by.spec";

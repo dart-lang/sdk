@@ -381,7 +381,6 @@ class Resolver {
         thisVariable: functionBodyBuildingContext.thisVariable,
         initializers: result.initializers,
         constantContext: constantContext,
-        needsImplicitSuperInitializer: result.needsImplicitSuperInitializer,
       );
       context.performBacklog(result.annotations);
     }
@@ -433,7 +432,6 @@ class Resolver {
       beginInitializers: beginInitializers,
     );
     List<Initializer> initializers = result.initializers;
-    bool needsImplicitSuperInitializer = result.needsImplicitSuperInitializer;
     if (isConst) {
       List<FormalParameterBuilder>? formals = bodyBuilderContext.formals;
       _SuperParameterArguments? superParameterArguments =
@@ -457,7 +455,6 @@ class Resolver {
         body: null,
         superParameterArguments: superParameterArguments,
         fileUri: fileUri,
-        needsImplicitSuperInitializer: needsImplicitSuperInitializer,
         constantContext: constantContext,
         initializers: initializers,
       );
@@ -633,8 +630,6 @@ class Resolver {
         thisVariable: functionBodyBuildingContext.thisVariable,
         initializers: result.initializers,
         constantContext: constantContext,
-        needsImplicitSuperInitializer: bodyBuilderContext
-            .needsImplicitSuperInitializer(_coreTypes),
       );
       context.performBacklog(result.annotations);
     }
@@ -1072,379 +1067,6 @@ class Resolver {
     }
   }
 
-  void _finishInitializers({
-    required CompilerContext compilerContext,
-    required ProblemReporting problemReporting,
-    required SourceLibraryBuilder libraryBuilder,
-    required LibraryFeatures libraryFeatures,
-    required BodyBuilderContext bodyBuilderContext,
-    required TypeInferrer typeInferrer,
-    required Uri fileUri,
-    required List<Initializer> initializers,
-    required _SuperParameterArguments? superParameterArguments,
-    required bool needsImplicitSuperInitializer,
-    required AsyncMarker asyncModifier,
-    required int? asyncModifierFileOffset,
-  }) {
-    FunctionNode function = bodyBuilderContext.function;
-    _InitializerBuilder initializerBuilder = new _InitializerBuilder();
-
-    if (initializers.isNotEmpty) {
-      if (bodyBuilderContext.isMixinClass) {
-        // Report an error if a mixin class has a constructor with an
-        // initializer.
-        problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: codeIllegalMixinDueToConstructors.withArgumentsOld(
-            bodyBuilderContext.className,
-          ),
-          fileUri: fileUri,
-          fileOffset: bodyBuilderContext.memberNameOffset,
-          length: noLength,
-        );
-      }
-      Initializer last = initializers.last;
-      if (last is InternalSuperInitializer) {
-        if (bodyBuilderContext.isEnumClass) {
-          initializers[initializers.length - 1] = _buildInvalidInitializer(
-            problemReporting.buildProblem(
-              compilerContext: compilerContext,
-              message: codeEnumConstructorSuperInitializer,
-              fileUri: fileUri,
-              fileOffset: last.fileOffset,
-              length: noLength,
-            ),
-          )..parent = last.parent;
-          needsImplicitSuperInitializer = false;
-        } else if (superParameterArguments != null) {
-          bool insertNamedOnly = false;
-          ActualArguments arguments = last.arguments;
-          if (superParameterArguments.positionalCount > 0) {
-            if (arguments.positionalCount > 0) {
-              problemReporting.addProblem(
-                codePositionalSuperParametersAndArguments,
-                arguments.fileOffset,
-                noLength,
-                fileUri,
-                context: <LocatedMessage>[
-                  codeSuperInitializerParameter.withLocation(
-                    fileUri,
-                    superParameterArguments.firstPositionalOffset,
-                    noLength,
-                  ),
-                ],
-              );
-              insertNamedOnly = true;
-            }
-          }
-          if (insertNamedOnly) {
-            /// Error case: Don't insert positional argument when  positional
-            /// arguments already exist.
-            arguments.prependArguments(
-              superParameterArguments.arguments
-                  .whereType<NamedArgument>()
-                  .toList(),
-              positionalCount: 0,
-            );
-          } else {
-            arguments.prependArguments(
-              superParameterArguments.arguments,
-              positionalCount: superParameterArguments.positionalCount,
-            );
-          }
-        }
-      } else if (last is InternalRedirectingInitializer) {
-        if (bodyBuilderContext.isEnumClass &&
-            libraryFeatures.enhancedEnums.isEnabled) {
-          ActualArguments arguments = last.arguments;
-          List<Expression> enumSyntheticArguments = [
-            new VariableGet(function.positionalParameters[0])
-              ..parent = last.arguments,
-            new VariableGet(function.positionalParameters[1])
-              ..parent = last.arguments,
-          ];
-          arguments.prependArguments([
-            new PositionalArgument(enumSyntheticArguments[0]),
-            new PositionalArgument(enumSyntheticArguments[1]),
-          ], positionalCount: 2);
-        }
-      }
-
-      List<InitializerInferenceResult> inferenceResults =
-          new List<InitializerInferenceResult>.generate(
-            initializers.length,
-            (index) => bodyBuilderContext.inferInitializer(
-              typeInferrer: typeInferrer,
-              fileUri: fileUri,
-              initializer: initializers[index],
-            ),
-            growable: false,
-          );
-
-      if (!bodyBuilderContext.isExternalConstructor) {
-        for (InitializerInferenceResult result in inferenceResults) {
-          if (!initializerBuilder.addInitializer(
-            compilerContext,
-            problemReporting,
-            bodyBuilderContext,
-            result,
-            fileUri: fileUri,
-          )) {
-            // Erroneous initializer, implicit super call is not needed.
-            needsImplicitSuperInitializer = false;
-          }
-        }
-      }
-    }
-
-    if (asyncModifier != AsyncMarker.Sync) {
-      initializers.add(
-        _buildInvalidInitializer(
-          problemReporting.buildProblem(
-            compilerContext: compilerContext,
-            message: codeConstructorNotSync,
-            fileUri: fileUri,
-            fileOffset: asyncModifierFileOffset!,
-            length: noLength,
-          ),
-        ),
-      );
-      needsImplicitSuperInitializer = false;
-    }
-    if (needsImplicitSuperInitializer) {
-      /// >If no superinitializer is provided, an implicit superinitializer
-      /// >of the form super() is added at the end of the constructor's
-      /// >initializer list, unless the enclosing class is class Object.
-      Initializer? initializer;
-      ActualArguments arguments;
-      List<Argument>? argumentsOriginalOrder;
-      int positionalCount = 0;
-      if (superParameterArguments != null) {
-        argumentsOriginalOrder = superParameterArguments.arguments;
-        positionalCount += superParameterArguments.positionalCount;
-      }
-      if (bodyBuilderContext.isEnumClass) {
-        assert(
-          function.positionalParameters.length >= 2 &&
-              function.positionalParameters[0].name == "#index" &&
-              function.positionalParameters[1].name == "#name",
-        );
-        Expression indexExpression = new VariableGet(
-          function.positionalParameters[0],
-        );
-        Expression nameExpression = new VariableGet(
-          function.positionalParameters[1],
-        );
-        (argumentsOriginalOrder ??= []).insertAll(0, [
-          new PositionalArgument(indexExpression),
-          new PositionalArgument(nameExpression),
-        ]);
-        positionalCount += 2;
-      }
-
-      int argumentsOffset = -1;
-      if (superParameterArguments != null) {
-        for (Argument argument in superParameterArguments.arguments) {
-          int currentArgumentOffset = argument.expression.fileOffset;
-          argumentsOffset = argumentsOffset <= currentArgumentOffset
-              ? argumentsOffset
-              : currentArgumentOffset;
-        }
-      }
-      SuperInitializer? explicitSuperInitializer;
-      if (initializers case [..., SuperInitializer superInitializer]
-          when argumentsOffset == // Coverage-ignore(suite): Not run.
-              -1) {
-        // Coverage-ignore-block(suite): Not run.
-        argumentsOffset = superInitializer.fileOffset;
-        explicitSuperInitializer = superInitializer;
-      }
-      if (argumentsOffset == -1) {
-        argumentsOffset = bodyBuilderContext.memberNameOffset;
-      }
-
-      const Forest forest = const Forest();
-      if (argumentsOriginalOrder != null) {
-        arguments = forest.createArguments(
-          argumentsOffset,
-          arguments: argumentsOriginalOrder,
-          hasNamedBeforePositional: false,
-          positionalCount: positionalCount,
-        );
-      } else {
-        arguments = forest.createArgumentsEmpty(argumentsOffset);
-      }
-
-      MemberLookupResult? result = bodyBuilderContext.lookupSuperConstructor(
-        '',
-        libraryBuilder.nameOriginBuilder,
-      );
-      Constructor? superTarget;
-      if (result != null) {
-        if (result.isInvalidLookup) {
-          int length = bodyBuilderContext.memberNameLength;
-          if (length == 0) {
-            length = bodyBuilderContext.className.length;
-          }
-          initializer = _buildInvalidInitializer(
-            LookupResult.createDuplicateExpression(
-              result,
-              context: compilerContext,
-              name: '',
-              fileUri: fileUri,
-              fileOffset: bodyBuilderContext.memberNameOffset,
-              length: noLength,
-            ),
-          );
-          needsImplicitSuperInitializer = false;
-        } else {
-          MemberBuilder? memberBuilder = result.getable;
-          Member? member = memberBuilder?.invokeTarget;
-          if (member is Constructor) {
-            superTarget = member;
-          }
-        }
-      }
-      if (initializer == null) {
-        if (superTarget == null) {
-          String superclass = bodyBuilderContext.superClassName;
-          int length = bodyBuilderContext.memberNameLength;
-          if (length == 0) {
-            length = bodyBuilderContext.className.length;
-          }
-          initializer = _buildInvalidInitializer(
-            problemReporting.buildProblem(
-              compilerContext: compilerContext,
-              message: codeSuperclassHasNoDefaultConstructor.withArgumentsOld(
-                superclass,
-              ),
-              fileUri: fileUri,
-              fileOffset: bodyBuilderContext.memberNameOffset,
-              length: length,
-            ),
-          );
-          needsImplicitSuperInitializer = false;
-        } else if (problemReporting.checkArgumentsForFunction(
-              function: superTarget.function,
-              explicitTypeArguments: null,
-              arguments: arguments,
-              fileOffset: bodyBuilderContext.memberNameOffset,
-              fileUri: fileUri,
-              typeParameters: const <TypeParameter>[],
-            )
-            case LocatedMessage argumentIssue) {
-          Initializer? errorMessageInitializer;
-          if (superParameterArguments != null) {
-            int positionalSuperParameterCount =
-                superTarget.function.positionalParameters.length;
-            Set<String> superTargetNamedParameterNames = {
-              for (VariableDeclaration namedParameter
-                  in superTarget.function.namedParameters)
-                ?namedParameter // Coverage-ignore(suite): Not run.
-                    .name,
-            };
-            int positionalIndex = 0;
-            for (Argument argument in superParameterArguments.arguments) {
-              switch (argument) {
-                case PositionalArgument():
-                  if (positionalIndex >= positionalSuperParameterCount) {
-                    InvalidExpression errorMessageExpression = problemReporting
-                        .buildProblem(
-                          compilerContext: compilerContext,
-                          message:
-                              codeMissingPositionalSuperConstructorParameter,
-                          fileUri: fileUri,
-                          fileOffset: argument.expression.fileOffset,
-                          length: noLength,
-                        );
-                    errorMessageInitializer ??= _buildInvalidInitializer(
-                      errorMessageExpression,
-                    );
-                    needsImplicitSuperInitializer = false;
-                  }
-                  positionalIndex++;
-                case NamedArgument():
-                  if (!superTargetNamedParameterNames.contains(
-                    argument.namedExpression.name,
-                  )) {
-                    InvalidExpression errorMessageExpression = problemReporting
-                        .buildProblem(
-                          compilerContext: compilerContext,
-                          message: codeMissingNamedSuperConstructorParameter,
-                          fileUri: fileUri,
-                          fileOffset: argument.namedExpression.fileOffset,
-                          length: noLength,
-                        );
-                    errorMessageInitializer ??= _buildInvalidInitializer(
-                      errorMessageExpression,
-                    );
-                    needsImplicitSuperInitializer = false;
-                  }
-              }
-            }
-          }
-          if (explicitSuperInitializer == null) {
-            errorMessageInitializer ??= _buildInvalidInitializer(
-              problemReporting.buildProblem(
-                compilerContext: compilerContext,
-                message: codeImplicitSuperInitializerMissingArguments
-                    .withArgumentsOld(superTarget.enclosingClass.name),
-                fileUri: fileUri,
-                fileOffset: argumentIssue.charOffset,
-                length: argumentIssue.length,
-              ),
-            );
-            needsImplicitSuperInitializer = false;
-          }
-          // Coverage-ignore-block(suite): Not run.
-          errorMessageInitializer ??= _buildInvalidInitializer(
-            problemReporting.buildProblem(
-              compilerContext: compilerContext,
-              message: argumentIssue.messageObject,
-              fileUri: fileUri,
-              fileOffset: argumentIssue.charOffset,
-              length: argumentIssue.length,
-            ),
-          );
-          needsImplicitSuperInitializer = false;
-          initializer = errorMessageInitializer;
-        } else {
-          if (bodyBuilderContext.isConstConstructor && !superTarget.isConst) {
-            problemReporting.addProblem(
-              codeConstConstructorWithNonConstSuper,
-              bodyBuilderContext.memberNameOffset,
-              superTarget.name.text.length,
-              fileUri,
-            );
-          }
-          initializer = new InternalSuperInitializer(
-            superTarget,
-            arguments,
-            isSynthetic: true,
-          )..fileOffset = bodyBuilderContext.memberNameOffset;
-          needsImplicitSuperInitializer = false;
-        }
-      }
-      InitializerInferenceResult inferenceResult = bodyBuilderContext
-          .inferInitializer(
-            typeInferrer: typeInferrer,
-            fileUri: fileUri,
-            initializer: initializer,
-          );
-      if (!initializerBuilder.addInitializer(
-        compilerContext,
-        problemReporting,
-        bodyBuilderContext,
-        inferenceResult,
-        fileUri: fileUri,
-      )) {
-        // Erroneous initializer, implicit super call is not needed.
-        needsImplicitSuperInitializer = false;
-      }
-    }
-    bodyBuilderContext.registerInitializers(initializerBuilder.initializers);
-  }
-
   void _finishConstructor({
     required _ResolverContext context,
     required CompilerContext compilerContext,
@@ -1456,21 +1078,22 @@ class Resolver {
     required Statement? body,
     required _SuperParameterArguments? superParameterArguments,
     required Uri fileUri,
-    required bool needsImplicitSuperInitializer,
     required ConstantContext constantContext,
     required List<Initializer> initializers,
   }) {
-    _finishInitializers(
+    _InitializerBuilder initializerBuilder = new _InitializerBuilder(
       compilerContext: compilerContext,
       problemReporting: problemReporting,
-      libraryBuilder: libraryBuilder,
-      libraryFeatures: libraryFeatures,
       bodyBuilderContext: bodyBuilderContext,
       typeInferrer: context.typeInferrer,
+      coreTypes: _coreTypes,
       fileUri: fileUri,
-      initializers: initializers,
+    );
+    initializerBuilder.processInitializers(
+      libraryBuilder: libraryBuilder,
+      libraryFeatures: libraryFeatures,
       superParameterArguments: superParameterArguments,
-      needsImplicitSuperInitializer: needsImplicitSuperInitializer,
+      initializers: initializers,
       asyncModifier: asyncModifier,
       asyncModifierFileOffset: body?.fileOffset,
     );
@@ -1511,7 +1134,6 @@ class Resolver {
     required VariableDeclaration? thisVariable,
     required List<Initializer> initializers,
     required ConstantContext constantContext,
-    required bool needsImplicitSuperInitializer,
   }) {
     const Forest forest = const Forest();
     AssignedVariables assignedVariables = context.assignedVariables;
@@ -1595,7 +1217,6 @@ class Resolver {
         body: body,
         superParameterArguments: superParameterArguments,
         fileUri: fileUri,
-        needsImplicitSuperInitializer: needsImplicitSuperInitializer,
         constantContext: constantContext,
         initializers: initializers,
       );
@@ -1701,10 +1322,5 @@ class Resolver {
       }
       bodyBuilderContext.registerFunctionBody(body);
     }
-  }
-
-  Initializer _buildInvalidInitializer(InvalidExpression expression) {
-    return new InvalidInitializer(expression.message)
-      ..fileOffset = expression.fileOffset;
   }
 }

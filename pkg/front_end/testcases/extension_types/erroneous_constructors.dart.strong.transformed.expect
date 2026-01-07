@@ -15,9 +15,9 @@ library;
 //   E1.named(dynamic value) : this(value, value);
 //                                 ^
 //
-// pkg/front_end/testcases/extension_types/erroneous_constructors.dart:14:38: Error: A redirecting constructor can't have other initializers.
+// pkg/front_end/testcases/extension_types/erroneous_constructors.dart:14:49: Error: A redirecting constructor can't have more than one redirection.
 //   E3.named(String it1, String it2) : this(it1), this(it2);
-//                                      ^
+//                                                 ^
 //
 // pkg/front_end/testcases/extension_types/erroneous_constructors.dart:18:26: Error: A redirecting constructor can't have other initializers.
 //   E4.named(bool it) : it = false, this(it);
@@ -78,13 +78,13 @@ Try removing the extra positional arguments.
 }
 static extension-type-member synthetic method E1|constructor#_#named#tearOff(dynamic value) → self::E1% /* erasure=dynamic, declared=! */
   return self::E1|constructor#named(value);
-static extension-type-member erroneous method E2|constructor#(core::num it) → self::E2% /* erasure=core::num, declared=! */ {
+static extension-type-member method E2|constructor#(core::num it) → self::E2% /* erasure=core::num, declared=! */ {
   lowered final self::E2% /* erasure=core::num, declared=! */ #this = it;
   return #this;
 }
 static extension-type-member synthetic method E2|constructor#_#new#tearOff(core::num it) → self::E2% /* erasure=core::num, declared=! */
   return self::E2|constructor#(it);
-static extension-type-member method E2|constructor#named(invalid-type it) → self::E2% /* erasure=core::num, declared=! */ {
+static extension-type-member erroneous method E2|constructor#named(invalid-type it) → self::E2% /* erasure=core::num, declared=! */ {
   lowered final self::E2% /* erasure=core::num, declared=! */ #this;
   return #this;
 }
@@ -98,10 +98,10 @@ static extension-type-member synthetic method E3|constructor#_#new#tearOff(core:
   return self::E3|constructor#(it);
 static extension-type-member erroneous method E3|constructor#named(core::String it1, core::String it2) → self::E3% /* erasure=core::String, declared=! */ {
   lowered final self::E3% /* erasure=core::String, declared=! */ #this;
-  invalid-expression "pkg/front_end/testcases/extension_types/erroneous_constructors.dart:14:38: Error: A redirecting constructor can't have other initializers.
+  invalid-expression "pkg/front_end/testcases/extension_types/erroneous_constructors.dart:14:49: Error: A redirecting constructor can't have more than one redirection.
   E3.named(String it1, String it2) : this(it1), this(it2);
-                                     ^";
-  #this = self::E3|constructor#(it2);
+                                                ^";
+  #this = self::E3|constructor#(it1);
   return #this;
 }
 static extension-type-member synthetic method E3|constructor#_#named#tearOff(core::String it1, core::String it2) → self::E3% /* erasure=core::String, declared=! */

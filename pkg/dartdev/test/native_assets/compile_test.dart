@@ -32,9 +32,18 @@ void main() async {
       );
       expect(
         result.stderr,
-        contains(
+        stringContainsInOrder([
           "'dart compile' does not support build hooks, use 'dart build' instead.",
-        ),
+          'Packages with build hooks:',
+        ]),
+      );
+      expect(
+        result.stderr,
+        contains('native_add'),
+      );
+      expect(
+        result.stderr,
+        contains('native_subtract'),
       );
       expect(result.exitCode, 255);
     });

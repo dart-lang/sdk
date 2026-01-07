@@ -219,7 +219,6 @@ enum BenchmarkPhases {
   body_finishAllConstructors,
   body_validateDynamicModule,
   body_runBuildTransformations,
-  body_checkForUnsupportedDartColonImports,
   body_verify,
   body_installAllComponentProblems,
 
