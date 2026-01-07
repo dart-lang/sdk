@@ -19,8 +19,10 @@ class UnreachableNode {
 /// Repository for [UnreachableNode].
 class UnreachableNodeMetadataRepository
     extends MetadataRepository<UnreachableNode> {
+  static const repositoryTag = 'vm.unreachable.metadata';
+
   @override
-  final String tag = 'vm.unreachable.metadata';
+  final String tag = repositoryTag;
 
   @override
   final Map<TreeNode, UnreachableNode> mapping = <TreeNode, UnreachableNode>{};
