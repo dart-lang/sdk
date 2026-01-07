@@ -61,7 +61,7 @@ final List<Scenario> scenarios = () {
       ),
       project: GitWorktreeProjectGenerator(
         Directory.fromUri(sdkRoot),
-        'main',
+        'a8f85d3d86c36276739895bb31fb2022a6d59631',
         isSdkRepo: true,
       ),
     ),

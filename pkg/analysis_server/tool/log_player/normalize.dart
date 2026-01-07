@@ -6,6 +6,7 @@ import 'dart:io' show exit;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:cli_util/cli_util.dart';
 
 import 'log.dart';
 
@@ -31,6 +32,14 @@ void main(List<String> args) {
   var normalized = normalizeLog(inputFile);
   outputFile.writeAsStringSync(normalized);
   print('wrote normalized log to ${outputFile.path}');
+
+  var absFileMatches = normalized.allMatches('"file:///');
+  if (absFileMatches.isNotEmpty) {
+    print('found ${absFileMatches.length} absolute file paths remaining:');
+  }
+  for (var match in absFileMatches.take(5)) {
+    print('- ${match.group(0)}');
+  }
 }
 
 /// Reads an [input] log file, and attempts to normalize it so that it can work
@@ -59,5 +68,6 @@ String normalizeLog(File input) {
     var uri = Uri.parse(folder['uri'] as String);
     content = content.replaceAll(uri.path, '{{workspaceFolder-$i}}');
   }
+  content = content.replaceAll(sdkPath, '{{dartSdkRoot}}');
   return content;
 }
