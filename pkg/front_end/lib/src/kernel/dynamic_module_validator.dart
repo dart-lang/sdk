@@ -856,7 +856,11 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   }
 
   void _verifyOverride(Member ownMember, Member superMember) {
+    ownMember = _unwrapMixinCopy(ownMember);
     superMember = _unwrapMixinCopy(superMember);
+    if (identical(ownMember, superMember)) {
+      return;
+    }
     if (!_isFromDynamicModule(superMember) &&
         !_isSpecified(superMember, spec.canBeOverridden) &&
         !languageImplPragmas.canBeOverridden(superMember)) {

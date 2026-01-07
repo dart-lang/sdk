@@ -4934,6 +4934,8 @@ package:analyzer/source/line_info.dart:
     getLocation (method: CharacterLocation Function(int))
     getOffsetOfLine (method: int Function(int))
     getOffsetOfLineAfter (method: int Function(int))
+    lineNumberDifference (method: int Function(int, int))
+    onSameLine (method: bool Function(int, int))
 package:analyzer/source/source.dart:
   Source (class extends Object):
     new (constructor: Source Function())

@@ -1847,7 +1847,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     for (var (i, formalParameter) in formalParameters.indexed) {
       var isExtensionTypeRepresentation =
           i == 0 && isFirstFormalExtensionTypeRepresentation;
-      if (formalParameter.hasFinalOrVarKeyword ||
+      if (formalParameter.finalOrVarKeyword != null ||
           isExtensionTypeRepresentation) {
         var name = _getFragmentName(formalParameter.name);
         var fieldFragment = FieldFragmentImpl(name: name);
@@ -2146,19 +2146,6 @@ class _EnclosingContext {
 }
 
 extension _FormalParameterImplExtension on FormalParameterImpl {
-  bool get hasFinalOrVarKeyword {
-    switch (this) {
-      case DefaultFormalParameterImpl self:
-        return self.parameter.hasFinalOrVarKeyword;
-      case FunctionTypedFormalParameterImpl self:
-        return self.finalKeyword != null || self.varKeyword != null;
-      case SimpleFormalParameterImpl self:
-        return self.finalKeyword != null || self.varKeyword != null;
-      default:
-        return false;
-    }
-  }
-
   FormalParameterImpl get selfOrParentDefault {
     return parent.ifTypeOrNull<DefaultFormalParameterImpl>() ?? this;
   }

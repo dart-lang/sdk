@@ -141,8 +141,7 @@ class A {
       r'''
 class A({final int _p = 0}) {}
 ''',
-      // TODO(scheglov): the length is wrong
-      [error(diag.unusedFieldFromPrimaryConstructor, 19, 1)],
+      [error(diag.unusedFieldFromPrimaryConstructor, 19, 2)],
     );
   }
 
@@ -201,11 +200,7 @@ class A({this._p = 0}) {
   int? _p;
 }
 ''',
-      [
-        // TODO(scheglov): should not be reported
-        error(diag.unusedFieldFromPrimaryConstructor, 14, 1),
-        error(diag.unusedField, 32, 2),
-      ],
+      [error(diag.unusedField, 32, 2)],
     );
   }
 
@@ -218,7 +213,6 @@ class C({this._123}) {
 ''',
       [
         error(diag.privateNamedParameterWithoutPublicName, 14, 4),
-        error(diag.unusedFieldFromPrimaryConstructor, 14, 4),
         error(diag.unusedField, 30, 4),
       ],
     );
@@ -233,7 +227,6 @@ class C({this._for}) {
 ''',
       [
         error(diag.privateNamedParameterWithoutPublicName, 14, 4),
-        error(diag.unusedFieldFromPrimaryConstructor, 14, 4),
         error(diag.unusedField, 30, 4),
       ],
     );
@@ -248,8 +241,6 @@ class C({this.__extraPrivate}) {
 ''',
       [
         error(diag.privateNamedParameterWithoutPublicName, 14, 14),
-        // TODO(scheglov): should not be reported
-        error(diag.unusedFieldFromPrimaryConstructor, 14, 14),
         error(diag.unusedField, 40, 14),
       ],
     );
@@ -264,8 +255,6 @@ class C({this._}) {
 ''',
       [
         error(diag.privateNamedParameterWithoutPublicName, 14, 1),
-        // TODO(scheglov): should not be reported
-        error(diag.unusedFieldFromPrimaryConstructor, 14, 1),
         error(diag.unusedField, 27, 1),
       ],
     );

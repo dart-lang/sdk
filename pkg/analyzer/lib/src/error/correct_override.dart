@@ -6,8 +6,6 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -16,6 +14,7 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
+import 'package:analyzer/src/error/listener.dart';
 
 class CorrectOverrideHelper {
   final TypeSystemImpl _typeSystem;
@@ -45,14 +44,14 @@ class CorrectOverrideHelper {
     required ExecutableElement superMember,
     required DiagnosticReporter diagnosticReporter,
     required SyntacticEntity errorNode,
-    required DiagnosticCode diagnosticCode,
+    required InvalidOverrideDiagnosticCode diagnosticCode,
   }) {
     var isCorrect = isCorrectOverrideOf(superMember: superMember);
     if (!isCorrect) {
       var member = _thisMember;
       var memberName = member.name;
       if (memberName != null) {
-        diagnosticReporter.reportError(
+        diagnosticReporter.report(
           _diagnosticFactory.invalidOverride(
             diagnosticReporter.source,
             diagnosticCode,
@@ -122,16 +121,16 @@ class CovariantParametersVerifier {
           // always named, so we can safely assume
           // `_thisMember.enclosingElement3.name` and
           // `superMember.enclosingElement3.name` are non-`null`.
-          diagnosticReporter.atEntity(
-            errorEntity,
-            diag.invalidOverride,
-            arguments: [
-              _thisMember.name!,
-              _thisMember.enclosingElement!.name!,
-              _thisMember.type,
-              superMember.enclosingElement!.name!,
-              superMember.type,
-            ],
+          diagnosticReporter.report(
+            diag.invalidOverride
+                .withArguments(
+                  memberName: _thisMember.name!,
+                  declaringInterfaceName: _thisMember.enclosingElement!.name!,
+                  typeInDeclaringInterface: _thisMember.type,
+                  overriddenInterfaceName: superMember.enclosingElement!.name!,
+                  typeInOverriddenInterface: superMember.type,
+                )
+                .at(errorEntity),
           );
         }
       }

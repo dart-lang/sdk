@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -14,6 +15,17 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:yaml/yaml.dart';
+
+typedef InvalidOverrideDiagnosticCode =
+    DiagnosticWithArguments<
+      LocatableDiagnostic Function({
+        required String memberName,
+        required String declaringInterfaceName,
+        required DartType typeInDeclaringInterface,
+        required String overriddenInterfaceName,
+        required DartType typeInOverriddenInterface,
+      })
+    >;
 
 /// A factory used to create diagnostics.
 class DiagnosticFactory {
@@ -404,9 +416,9 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [member] is not a correct override of
   /// [superMember].
-  Diagnostic invalidOverride(
+  LocatedDiagnostic invalidOverride(
     Source source,
-    DiagnosticCode code,
+    InvalidOverrideDiagnosticCode code,
     SyntacticEntity errorNode,
     ExecutableElement member,
     ExecutableElement superMember,
@@ -417,42 +429,39 @@ class DiagnosticFactory {
     // `superMember.enclosingElement3.name` are non-`null`.
     var superElement = superMember.nonSynthetic.baseElement as ElementImpl;
     var superLocation = superElement.firstFragmentLocation;
-    return Diagnostic.tmp(
-      source: source,
-      offset: errorNode.offset,
-      length: errorNode.length,
-      diagnosticCode: code,
-      arguments: [
-        memberName,
-        member.enclosingElement!.name,
-        member.type,
-        superMember.enclosingElement!.name,
-        superMember.type,
-      ],
-      contextMessages: [
-        // Only include the context location for INVALID_OVERRIDE because for
-        // some other types this location is not ideal (for example
-        // INVALID_IMPLEMENTATION_OVERRIDE may provide the subclass as superMember
-        // if the subclass has an abstract member and the superclass has the
-        // concrete).
-        if (code == diag.invalidOverride)
-          DiagnosticMessageImpl(
-            filePath: superLocation.libraryFragment!.source.fullName,
-            message: "The member being overridden.",
-            offset: superLocation.nameOffset ?? -1,
-            length: superLocation.name!.length,
-            url: null,
-          ),
-        if (code == diag.invalidOverrideSetter)
-          DiagnosticMessageImpl(
-            filePath: superLocation.libraryFragment!.source.fullName,
-            message: "The setter being overridden.",
-            offset: superLocation.nameOffset ?? -1,
-            length: superLocation.name!.length,
-            url: null,
-          ),
-      ],
-    );
+    return code
+        .withArguments(
+          memberName: memberName,
+          declaringInterfaceName: member.enclosingElement!.name ?? '<unknown>',
+          typeInDeclaringInterface: member.type,
+          overriddenInterfaceName:
+              superMember.enclosingElement!.name ?? '<unknown>',
+          typeInOverriddenInterface: superMember.type,
+        )
+        .withContextMessages([
+          // Only include the context location for INVALID_OVERRIDE because for
+          // some other types this location is not ideal (for example
+          // INVALID_IMPLEMENTATION_OVERRIDE may provide the subclass as superMember
+          // if the subclass has an abstract member and the superclass has the
+          // concrete).
+          if (code == diag.invalidOverride)
+            DiagnosticMessageImpl(
+              filePath: superLocation.libraryFragment!.source.fullName,
+              message: "The member being overridden.",
+              offset: superLocation.nameOffset ?? -1,
+              length: superLocation.name!.length,
+              url: null,
+            ),
+          if (code == diag.invalidOverrideSetter)
+            DiagnosticMessageImpl(
+              filePath: superLocation.libraryFragment!.source.fullName,
+              message: "The setter being overridden.",
+              offset: superLocation.nameOffset ?? -1,
+              length: superLocation.name!.length,
+              url: null,
+            ),
+        ])
+        .at(errorNode);
   }
 
   /// Return a diagnostic indicating that the given [nameToken] was referenced

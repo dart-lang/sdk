@@ -2062,14 +2062,18 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     required Token leftBracket,
     required Token rightBracket,
   }) {
-    var blockStart = resolvedUnit.lineInfo.getLocation(leftBracket.offset);
-    var blockEnd = resolvedUnit.lineInfo.getLocation(rightBracket.offset);
-    var isBlockSingleLine = blockStart.lineNumber == blockEnd.lineNumber;
+    var lineInfo = resolvedUnit.lineInfo;
+    var isBlockSingleLine = lineInfo.onSameLine(
+      leftBracket.offset,
+      rightBracket.offset,
+    );
     int offset;
     if (isBlockSingleLine) {
       offset = leftBracket.isSynthetic ? rightParenthesis.end : leftBracket.end;
     } else {
-      offset = resolvedUnit.lineInfo.getOffsetOfLine(blockEnd.lineNumber - 1);
+      offset = resolvedUnit.lineInfo.getOffsetOfLine(
+        lineInfo.getLocation(rightBracket.offset).lineNumber - 1,
+      );
     }
 
     addInsertion(offset, (builder) {
@@ -2416,10 +2420,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           var lineInfo = resolvedUnit.lineInfo;
           if (prev != null) {
             var offset = prev.end;
-            var line = lineInfo.getLocation(offset).lineNumber;
             Token? comment = prev.endToken.next?.precedingComments;
             while (comment != null) {
-              if (lineInfo.getLocation(comment.offset).lineNumber == line) {
+              if (lineInfo.onSameLine(comment.offset, offset)) {
                 offset = comment.end;
               }
               comment = comment.next;
@@ -3148,11 +3151,10 @@ class _InsertionPreparer {
       return;
     }
 
-    var offsetLine = _lineInfo
-        .getLocation(_declaration.firstTokenAfterCommentAndMetadata.offset)
-        .lineNumber;
-    var endLine = _lineInfo.getLocation(_declaration.end).lineNumber;
-    var declarationIsSingleLine = endLine == offsetLine;
+    var declarationIsSingleLine = _lineInfo.onSameLine(
+      _declaration.firstTokenAfterCommentAndMetadata.offset,
+      _declaration.end,
+    );
     if (declarationIsSingleLine) {
       builder.writeln();
     }

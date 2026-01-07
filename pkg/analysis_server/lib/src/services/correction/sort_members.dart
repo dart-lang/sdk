@@ -148,6 +148,9 @@ class MemberSorter {
         } else {
           kind = _MemberKind.classMethod;
         }
+      } else if (member is PrimaryConstructorBody) {
+        kind = _MemberKind.primaryConstructorBody;
+        name = 'this';
       } else {
         throw StateError('Unsupported class of member: ${member.runtimeType}');
       }
@@ -266,6 +269,8 @@ class MemberSorter {
       _PriorityItem(false, _MemberKind.unitExtension, false),
       _PriorityItem(false, _MemberKind.unitExtension, true),
       if (codeStyle.sortConstructorsFirst)
+        _PriorityItem(false, _MemberKind.primaryConstructorBody, false),
+      if (codeStyle.sortConstructorsFirst)
         _PriorityItem(false, _MemberKind.classConstructor, false),
       if (codeStyle.sortConstructorsFirst)
         _PriorityItem(false, _MemberKind.classConstructor, true),
@@ -273,6 +278,8 @@ class MemberSorter {
       _PriorityItem(true, _MemberKind.classAccessor, false),
       _PriorityItem(true, _MemberKind.classAccessor, true),
       _PriorityItem(false, _MemberKind.classField, false),
+      if (codeStyle.sortConstructorsFirst)
+        _PriorityItem(false, _MemberKind.primaryConstructorBody, false),
       if (!codeStyle.sortConstructorsFirst)
         _PriorityItem(false, _MemberKind.classConstructor, false),
       if (!codeStyle.sortConstructorsFirst)
@@ -309,6 +316,7 @@ enum _MemberKind {
   classConstructor,
   classField,
   classMethod,
+  primaryConstructorBody,
   unitAccessor,
   unitClass,
   unitExtension,

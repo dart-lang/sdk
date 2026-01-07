@@ -131,7 +131,6 @@ class ContextBuilderImpl {
     if (definedOptionsFile && optionsFile != null) {
       analysisOptionsMap = AnalysisOptionsMap.forSharedOptions(
         _getAnalysisOptions(
-          contextRoot,
           optionsFile,
           sourceFactory,
           sdk,
@@ -273,13 +272,11 @@ class ContextBuilderImpl {
     return folderSdk;
   }
 
-  /// Return the analysis options that should be used to analyze code in the
-  /// [contextRoot].
+  /// Return the analysis options from [optionsFile].
   ///
   // TODO(scheglov): We have already loaded it once in [ContextLocatorImpl].
   AnalysisOptionsImpl _getAnalysisOptions(
-    ContextRootImpl contextRoot,
-    File? optionsFile,
+    File optionsFile,
     SourceFactory sourceFactory,
     DartSdk sdk,
     void Function({
@@ -289,21 +286,20 @@ class ContextBuilderImpl {
     updateAnalysisOptions,
     List<String> enabledExperiments,
   ) {
-    AnalysisOptionsImpl? options;
+    AnalysisOptionsImpl options;
 
-    if (optionsFile != null) {
-      try {
-        var provider = AnalysisOptionsProvider(sourceFactory);
-        options = AnalysisOptionsImpl.fromYaml(
-          optionsMap: provider.getOptionsFromFile(optionsFile),
-          file: optionsFile,
-          resourceProvider: resourceProvider,
-        );
-      } catch (e) {
-        // Ignore exception.
-      }
+    try {
+      var provider = AnalysisOptionsProvider(sourceFactory);
+      options = AnalysisOptionsImpl.fromYaml(
+        optionsMap: provider.getOptionsFromFile(optionsFile),
+        file: optionsFile,
+        resourceProvider: resourceProvider,
+      );
+    } catch (e) {
+      // Ignore exception.
+      options = AnalysisOptionsImpl(file: optionsFile);
     }
-    options ??= AnalysisOptionsImpl(file: optionsFile);
+
     options.contextFeatures = FeatureSet.fromEnableFlags2(
       sdkLanguageVersion: sdk.languageVersion,
       flags: enabledExperiments,
