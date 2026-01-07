@@ -34,9 +34,9 @@ class PluginIsolate {
   /// `null` if the isolate could not be started.
   final String? executionPath;
 
-  /// The path to the '.packages' file used to control the resolution of
+  /// The path to the package config file used to control the resolution of
   /// 'package:' URIs, or `null` if the isolate could not be started.
-  final String? packagesPath;
+  final String? packageConfigPath;
 
   /// The object used to manage the receiving and sending of notifications.
   final AbstractNotificationManager _notificationManager;
@@ -62,7 +62,7 @@ class PluginIsolate {
   PluginIsolate(
     this._path,
     this.executionPath,
-    this.packagesPath,
+    this.packageConfigPath,
     this._notificationManager,
     this._instrumentationService,
     this.sessionLogger, {
@@ -208,9 +208,9 @@ class PluginIsolate {
 
   /// Creates and returns the channel used to communicate with the server.
   ServerCommunicationChannel _createChannel() {
-    return ServerIsolateChannel.discovered(
+    return ServerIsolateChannel(
       Uri.file(executionPath!, windows: Platform.isWindows),
-      Uri.file(packagesPath!, windows: Platform.isWindows),
+      Uri.file(packageConfigPath!, windows: Platform.isWindows),
       _instrumentationService,
       sessionLogger,
     );

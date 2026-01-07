@@ -27,6 +27,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// The manifest of a single library.
 class LibraryManifest {
   final String? name;
+  final bool isOriginNotExistingFile;
   final bool isSynthetic;
   final Uint8List featureSet;
   final ManifestLibraryLanguageVersion languageVersion;
@@ -88,6 +89,7 @@ class LibraryManifest {
 
   LibraryManifest({
     required this.name,
+    required this.isOriginNotExistingFile,
     required this.isSynthetic,
     required this.featureSet,
     required this.languageVersion,
@@ -121,6 +123,7 @@ class LibraryManifest {
   factory LibraryManifest.read(BinaryReader reader) {
     return LibraryManifest(
       name: reader.readOptionalStringUtf8(),
+      isOriginNotExistingFile: reader.readBool(),
       isSynthetic: reader.readBool(),
       featureSet: reader.readUint8List(),
       languageVersion: ManifestLibraryLanguageVersion.read(reader),
@@ -217,6 +220,7 @@ class LibraryManifest {
 
   void write(BinaryWriter writer) {
     writer.writeOptionalStringUtf8(name);
+    writer.writeBool(isOriginNotExistingFile);
     writer.writeBool(isSynthetic);
     writer.writeUint8List(featureSet);
     languageVersion.write(writer);
@@ -1109,6 +1113,8 @@ class LibraryManifestBuilder {
 
       var newManifest = LibraryManifest(
         name: libraryElement.name.nullIfEmpty,
+        isOriginNotExistingFile: libraryElement.isOriginNotExistingFile,
+        // ignore: deprecated_member_use_from_same_package
         isSynthetic: libraryElement.isSynthetic,
         featureSet: (libraryElement.featureSet as ExperimentStatus).toStorage(),
         languageVersion: ManifestLibraryLanguageVersion.encode(
@@ -1216,6 +1222,7 @@ class LibraryManifestBuilder {
       }
 
       builder.addString(manifest.name ?? '');
+      builder.addBool(manifest.isOriginNotExistingFile);
       builder.addBool(manifest.isSynthetic);
       builder.addBytes(manifest.featureSet);
       addVersion(manifest.languageVersion.packageVersion);
@@ -1522,6 +1529,7 @@ class LibraryManifestBuilder {
     return inputManifests[uri] ??
         LibraryManifest(
           name: null,
+          isOriginNotExistingFile: false,
           isSynthetic: false,
           featureSet: Uint8List(0),
           languageVersion: ManifestLibraryLanguageVersion.empty(),

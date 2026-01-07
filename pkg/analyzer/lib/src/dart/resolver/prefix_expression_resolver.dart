@@ -6,7 +6,6 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -18,6 +17,7 @@ import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [PrefixExpression]s.
@@ -102,10 +102,13 @@ class PrefixExpressionResolver {
       operandWriteType,
       strictCasts: _resolver.analysisOptions.strictCasts,
     )) {
-      _resolver.diagnosticReporter.atNode(
-        node,
-        diag.invalidAssignment,
-        arguments: [type, operandWriteType],
+      _resolver.diagnosticReporter.report(
+        diag.invalidAssignment
+            .withArguments(
+              actualStaticType: type,
+              expectedStaticType: operandWriteType,
+            )
+            .at(node),
       );
     }
   }
@@ -175,7 +178,9 @@ class PrefixExpressionResolver {
         return;
       }
       if (identical(readType, NeverTypeImpl.instance)) {
-        _resolver.diagnosticReporter.atNode(operand, diag.receiverOfTypeNever);
+        _resolver.diagnosticReporter.report(
+          diag.receiverOfTypeNever.at(operand),
+        );
         return;
       }
 

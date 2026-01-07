@@ -16,28 +16,6 @@ import 'common.dart';
 sealed class NativeTypeCfe {
   NativeTypeCfe._();
 
-  /// Constructs a [NativeTypeCfe] for transformers that can refer to types
-  /// without having to know their internal layout or size.
-  factory NativeTypeCfe.withoutLayout(
-    FfiTransformer transformer,
-    DartType dartType, {
-    List<int>? arrayDimensions,
-    bool? variableLength,
-  }) {
-    if (transformer.isStructOrUnionSubtype(dartType)) {
-      return ReferencedCompoundSubtypeCfe(
-        (dartType as InterfaceType).classNode,
-      );
-    } else {
-      return NativeTypeCfe(
-        transformer,
-        dartType,
-        arrayDimensions: arrayDimensions,
-        variableLength: variableLength,
-      );
-    }
-  }
-
   factory NativeTypeCfe(
     FfiTransformer transformer,
     DartType dartType, {
@@ -45,6 +23,10 @@ sealed class NativeTypeCfe {
     bool? variableLength,
     Map<Class, NativeTypeCfe> compoundCache = const {},
     bool alreadyInAbiSpecificType = false,
+
+    /// If false, constructs a [NativeTypeCfe] for transformers that may refer
+    /// to types without having to know their internal layout or size.
+    bool withLayout = true,
   }) {
     if (transformer.isPrimitiveType(dartType)) {
       final clazz = (dartType as InterfaceType).classNode;
@@ -56,6 +38,9 @@ sealed class NativeTypeCfe {
     }
     if (transformer.isStructOrUnionSubtype(dartType)) {
       final clazz = (dartType as InterfaceType).classNode;
+      if (!withLayout) {
+        return ReferencedCompoundSubtypeCfe(clazz);
+      }
       if (compoundCache.containsKey(clazz)) {
         return compoundCache[clazz]!;
       } else {
@@ -78,6 +63,7 @@ sealed class NativeTypeCfe {
         elementType,
         compoundCache: compoundCache,
         variableLength: variableLength,
+        withLayout: withLayout,
       );
       if (elementCfeType is InvalidNativeTypeCfe) {
         return elementCfeType;
@@ -86,6 +72,7 @@ sealed class NativeTypeCfe {
         elementCfeType,
         arrayDimensions,
         variableLength,
+        withLayout: elementCfeType.withLayout,
       );
     }
     if (transformer.isAbiSpecificIntegerSubtype(dartType)) {
@@ -127,7 +114,12 @@ sealed class NativeTypeCfe {
     return InvalidNativeTypeCfe("Invalid type $dartType");
   }
 
+  /// Whether the layout is known at compile time.
+  bool get withLayout;
+
   /// The size in bytes per [Abi].
+  ///
+  /// Only available if [withLayout].
   Map<Abi, int?> get size;
 
   /// The size in bytes for [Abi].
@@ -136,6 +128,8 @@ sealed class NativeTypeCfe {
   /// The alignment inside structs in bytes per [Abi].
   ///
   /// This is not the alignment on stack, this is only calculated in the VM.
+  ///
+  /// Only available if [withLayout].
   Map<Abi, int?> get alignment;
 
   /// The alignment inside structs in bytes for [Abi].
@@ -195,6 +189,12 @@ sealed class NativeTypeCfe {
     required Expression offsetInBytes,
     bool unaligned = false,
   });
+
+  /// Generates an expression evaluating to the size of this type in bytes.
+  ///
+  /// If we know the size, we can construct a constant or a runtime lookup based
+  /// on the ABI. Otherwise, we'll look it up at runtime.
+  Expression generateSize(FfiTransformer transformer);
 
   /// Generates the return statement for a compound field getter with this type.
   ///
@@ -305,6 +305,12 @@ final class InvalidNativeTypeCfe extends NativeTypeCfe {
 
   @override
   int? getSizeFor(Abi abi) => throw reason;
+
+  @override
+  bool get withLayout => throw reason;
+
+  @override
+  Expression generateSize(FfiTransformer transformer) => throw reason;
 }
 
 class PrimitiveNativeTypeCfe extends NativeTypeCfe {
@@ -409,6 +415,13 @@ class PrimitiveNativeTypeCfe extends NativeTypeCfe {
       ]),
     )..fileOffset = fileOffset;
   }
+
+  @override
+  bool get withLayout => true;
+
+  @override
+  Expression generateSize(FfiTransformer transformer) =>
+      throw StateError('Layout known at compiletime, use `size`.');
 }
 
 class PointerNativeTypeCfe extends NativeTypeCfe {
@@ -490,6 +503,13 @@ class PointerNativeTypeCfe extends NativeTypeCfe {
       ),
     )..fileOffset = fileOffset;
   }
+
+  @override
+  bool get withLayout => true;
+
+  @override
+  Expression generateSize(FfiTransformer transformer) =>
+      throw StateError('Layout known at compiletime, use `size`.');
 }
 
 /// The layout of a `Struct` or `Union` in one [Abi].
@@ -510,7 +530,7 @@ class CompoundLayout {
 
 abstract mixin class _CompoundLoadAndStoreMixin implements NativeTypeCfe {
   Class get clazz;
-  bool get knowsLayout;
+  bool get withLayout;
 
   /// Generates an expression evaluating to the size of this compound subtype in
   /// bytes.
@@ -518,8 +538,8 @@ abstract mixin class _CompoundLoadAndStoreMixin implements NativeTypeCfe {
   /// If we know the size, we can construct a constant or a runtime lookup based
   /// on the ABI. Otherwise, we'll look it up from the `#size` field generated
   /// by the definitions transformer.
-  Expression _generateSize(FfiTransformer transformer) {
-    if (knowsLayout) {
+  Expression generateSize(FfiTransformer transformer) {
+    if (withLayout) {
       return transformer.runtimeBranchOnLayout(size);
     } else {
       return transformer.inlineSizeOf(
@@ -583,7 +603,7 @@ abstract mixin class _CompoundLoadAndStoreMixin implements NativeTypeCfe {
           VariableGet(value)..fileOffset = fileOffset,
           fileOffset,
         ),
-        _generateSize(transformer),
+        generateSize(transformer),
       ]),
     )..fileOffset = fileOffset;
   }
@@ -599,7 +619,7 @@ abstract class StructOrUnionNativeTypeCfe extends NativeTypeCfe
   final Map<Abi, CompoundLayout> layout;
 
   @override
-  bool get knowsLayout => true;
+  bool get withLayout => true;
 
   StructOrUnionNativeTypeCfe._(this.clazz, this.members, this.layout)
     : super._();
@@ -724,7 +744,7 @@ class ReferencedCompoundSubtypeCfe extends NativeTypeCfe
   }
 
   @override
-  bool get knowsLayout => false;
+  bool get withLayout => false;
 
   @override
   Map<Abi, int?> get alignment => _informationUnavailable();
@@ -747,26 +767,39 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
   final NativeTypeCfe elementType;
   final int length;
   final bool variableLength;
+  final bool withLayout;
 
-  ArrayNativeTypeCfe(this.elementType, this.length, this.variableLength)
-    : super._();
+  ArrayNativeTypeCfe(
+    this.elementType,
+    this.length,
+    this.variableLength, {
+    this.withLayout = true,
+  }) : super._();
 
   factory ArrayNativeTypeCfe.multi(
     NativeTypeCfe elementType,
     List<int> dimensions,
-    bool variableLength,
-  ) {
+    bool variableLength, {
+    bool withLayout = true,
+  }) {
     if (dimensions.length == 1) {
-      return ArrayNativeTypeCfe(elementType, dimensions.single, variableLength);
+      return ArrayNativeTypeCfe(
+        elementType,
+        dimensions.single,
+        variableLength,
+        withLayout: withLayout,
+      );
     }
     return ArrayNativeTypeCfe(
       ArrayNativeTypeCfe.multi(
         elementType,
         dimensions.sublist(1),
         variableLength,
+        withLayout: withLayout,
       ),
       dimensions.first,
       variableLength,
+      withLayout: withLayout,
     );
   }
 
@@ -886,9 +919,25 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
           VariableGet(value)..fileOffset = fileOffset,
           fileOffset,
         ),
-        transformer.runtimeBranchOnLayout(size),
+        generateSize(transformer),
       ]),
     )..fileOffset = fileOffset;
+  }
+
+  /// Generates an expression evaluating to the size of this type in bytes.
+  ///
+  /// If we know the size, we can construct a constant or a runtime lookup based
+  /// on the ABI. Otherwise, we'll look it up from the `#size` field generated
+  /// by the definitions transformer.
+  Expression generateSize(FfiTransformer transformer) {
+    if (withLayout) {
+      return transformer.runtimeBranchOnLayout(size);
+    } else {
+      return transformer.multiply(
+        ConstantExpression(IntConstant(dimensionsFlattened)),
+        elementType.generateSize(transformer),
+      );
+    }
   }
 }
 
@@ -954,6 +1003,13 @@ class AbiSpecificNativeTypeCfe extends NativeTypeCfe {
       fileOffset: fileOffset,
     );
   }
+
+  @override
+  bool get withLayout => true;
+
+  @override
+  Expression generateSize(FfiTransformer transformer) =>
+      throw StateError('Layout known at compiletime, use `size`.');
 }
 
 extension on int? {

@@ -19,6 +19,8 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
         ScannerResult,
         Token,
         scan;
+import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
+    show Importability;
 import 'package:front_end/src/kernel/internal_ast.dart'
     show VariableDeclarationImpl;
 import 'package:kernel/ast.dart';
@@ -410,6 +412,7 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
     bool isPatch = false,
     required bool mayImplementRestrictedTypes,
   }) {
+    final bool isDartLib = importUri.isScheme('dart');
     return new SourceCompilationUnitImpl(
       importUri: importUri,
       fileUri: fileUri,
@@ -421,10 +424,14 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
       resolveInLibrary: null,
       indexedLibrary: referencesFromIndex,
       referenceIsPartOwner: referenceIsPartOwner,
-      isUnsupported:
-          origin?.isUnsupported ??
-          importUri.isScheme('dart') &&
-              !target.uriTranslator.isLibrarySupported(importUri.path),
+      conditionalImportSupported:
+          origin?.conditionalImportSupported ??
+          isDartLib && target.uriTranslator.isLibrarySupported(importUri.path),
+      importability:
+          origin?.importability ??
+          (isDartLib
+              ? target.uriTranslator.isLibraryImportable(importUri.path)
+              : Importability.always),
       isAugmenting: origin != null,
       forAugmentationLibrary: isAugmentation,
       forPatchLibrary: isPatch,
@@ -460,7 +467,8 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
           libraryName,
           libraryExists: compilationUnit != null,
           isSynthetic: compilationUnit?.isSynthetic ?? true,
-          isUnsupported: compilationUnit?.isUnsupported ?? true,
+          conditionalImportSupported:
+              compilationUnit?.conditionalImportSupported ?? false,
           dartLibrarySupport: target.backendTarget.dartLibrarySupport,
         )
         ? "true"
@@ -969,10 +977,6 @@ severity: $severity
       allComponentProblems.add(formattedMessage);
     }
     return formattedMessage;
-  }
-
-  MemberBuilder getDuplicatedFieldInitializerError() {
-    return target.getDuplicatedFieldInitializerError(this);
   }
 
   MemberBuilder getNativeAnnotation() => target.getNativeAnnotation(this);

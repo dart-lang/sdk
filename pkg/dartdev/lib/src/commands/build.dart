@@ -136,14 +136,14 @@ then that is used instead.''',
     // AOT compilation isn't supported on ia32. Currently, generating an
     // executable only supports AOT runtimes, so these commands are disabled.
     if (Platform.version.contains('ia32')) {
-      stderr.write("'dart build' is not supported on x86 architectures.");
+      stderr.writeln("'dart build' is not supported on x86 architectures.");
       return 64;
     }
     final args = argResults!;
 
     var target = args.option('target');
     if (target == null) {
-      stderr.write(
+      stderr.writeln(
         'There are multiple possible targets in the `bin/` directory, '
         "and the 'target' argument wasn't specified.",
       );

@@ -717,7 +717,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           problem(
               annotation,
               "Unexpected annotation $annotation (${annotation.runtimeType}). "
-                  "Expected a ConstantExpression or InvalidExpression.");
+              "Expected a ConstantExpression or InvalidExpression.");
         }
       }
       annotation.accept(this);
@@ -956,11 +956,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  void visitForInStatement(ForInStatement node) {
-    visitWithLocalScope(node);
-  }
-
-  @override
   void visitLet(Let node) {
     if (_isCompileTimeErrorEncoding(node)) return;
     visitWithLocalScope(node);
@@ -1083,6 +1078,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       }
     }
     exitTreeNode(node);
+  }
+
+  @override
+  void visitLocalVariable(LocalVariable node) {
+    declareVariable(node);
   }
 
   @override

@@ -16169,6 +16169,31 @@ const MessageCode codeUnsupportedDartExt = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Uri uri), Message Function({required Uri uri})>
+codeUnsupportedPlatformDartLibraryImport = const Template(
+  "UnsupportedPlatformDartLibraryImport",
+  withArgumentsOld: _withArgumentsOldUnsupportedPlatformDartLibraryImport,
+  withArguments: _withArgumentsUnsupportedPlatformDartLibraryImport,
+  severity: CfeSeverity.warning,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnsupportedPlatformDartLibraryImport({required Uri uri}) {
+  var uri_0 = conversions.relativizeUri(uri);
+  return new Message(
+    codeUnsupportedPlatformDartLibraryImport,
+    problemMessage:
+        """Using stub implementations for APIs in platform-specific Dart library
+'${uri_0}', which will throw 'UnsupportedError' if invoked.""",
+    arguments: {'uri': uri},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOldUnsupportedPlatformDartLibraryImport(Uri uri) =>
+    _withArgumentsUnsupportedPlatformDartLibraryImport(uri: uri);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeUnterminatedToken = const MessageCode(
   "UnterminatedToken",
   problemMessage: """Incomplete token.""",

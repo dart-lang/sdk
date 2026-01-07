@@ -127,32 +127,32 @@ class ExtensionMemberResolver {
 
     // The most specific extension is ambiguous.
     if (mostSpecific.length == 2) {
-      _diagnosticReporter.atEntity(
-        nameEntity,
-        diag.ambiguousExtensionMemberAccessTwo,
-        arguments: [
-          name.name,
-          mostSpecific[0].extension,
-          mostSpecific[1].extension,
-        ],
+      _diagnosticReporter.report(
+        diag.ambiguousExtensionMemberAccessTwo
+            .withArguments(
+              name: name.name,
+              firstExtension: mostSpecific[0].extension,
+              secondExtension: mostSpecific[1].extension,
+            )
+            .at(nameEntity),
       );
     } else {
       var extensions = mostSpecific.map((e) => e.extension).toList();
-      _diagnosticReporter.atEntity(
-        nameEntity,
-        diag.ambiguousExtensionMemberAccessThreeOrMore,
-        arguments: [
-          name.name,
-          mostSpecific.map((e) {
-            var name = e.extension.name;
-            if (name != null) {
-              return "extension '$name'";
-            }
-            var type = e.extendedType.getDisplayString();
-            return "unnamed extension on '$type'";
-          }).commaSeparatedWithAnd,
-        ],
-        contextMessages: convertTypeNames(<Object>[...extensions]),
+      _diagnosticReporter.report(
+        diag.ambiguousExtensionMemberAccessThreeOrMore
+            .withArguments(
+              name: name.name,
+              extensions: mostSpecific.map((e) {
+                var name = e.extension.name;
+                if (name != null) {
+                  return "extension '$name'";
+                }
+                var type = e.extendedType.getDisplayString();
+                return "unnamed extension on '$type'";
+              }).commaSeparatedWithAnd,
+            )
+            .withContextMessages(convertTypeNames(<Object>[...extensions]))
+            .at(nameEntity),
       );
     }
     return ExtensionResolutionError.ambiguous;
@@ -244,16 +244,17 @@ class ExtensionMemberResolver {
 
     if (!_isValidContext(node)) {
       if (!_isCascadeTarget(node)) {
-        _diagnosticReporter.atNode(node, diag.extensionOverrideWithoutAccess);
+        _diagnosticReporter.report(
+          diag.extensionOverrideWithoutAccess.at(node),
+        );
       }
       nodeImpl.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
     }
 
     var arguments = node.argumentList.arguments;
     if (arguments.length != 1) {
-      _diagnosticReporter.atNode(
-        node.argumentList,
-        diag.invalidExtensionArgumentCount,
+      _diagnosticReporter.report(
+        diag.invalidExtensionArgumentCount.at(node.argumentList),
       );
       nodeImpl.typeArgumentTypes = _listOfDynamic(typeParameters);
       nodeImpl.extendedType = DynamicTypeImpl.instance;
@@ -292,7 +293,7 @@ class ExtensionMemberResolver {
     );
 
     if (receiverType is VoidType) {
-      _diagnosticReporter.atNode(receiverExpression, diag.useOfVoidResult);
+      _diagnosticReporter.report(diag.useOfVoidResult.at(receiverExpression));
     } else if (!_typeSystem.isAssignableTo(
       receiverType,
       extendedType,

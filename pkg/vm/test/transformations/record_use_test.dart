@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/verifier.dart';
+import 'package:record_use/record_use_internal.dart';
 import 'package:test/test.dart';
 import 'package:vm/kernel_front_end.dart'
     show runGlobalTransformations, ErrorDetector, KernelCompilationArguments;
@@ -65,11 +67,24 @@ void runTestCaseAot(Uri source, bool throws) async {
   ).replaceAll(_pkgVmDir.toString(), 'org-dartlang-test:///');
 
   compareResultWithExpectationsFile(source, actual, expectFilePostfix: '.aot');
-  compareResultWithExpectationsFile(
-    source,
-    File.fromUri(recordedUsagesFile).readAsStringSync(),
-    expectFilePostfix: '.json',
+
+  final actualSemantic = RecordedUsages.fromJson(
+    jsonDecode(File.fromUri(recordedUsagesFile).readAsStringSync()),
   );
+  final goldenFile = File('${source.toFilePath()}.json.expect');
+  final goldenContents = await goldenFile.readAsString();
+  final golden = RecordedUsages.fromJson(jsonDecode(goldenContents));
+  final semanticEquals = actualSemantic == golden;
+  final update =
+      bool.fromEnvironment('updateExpectations') ||
+      Platform.environment['UPDATE_EXPECTATIONS'] != null;
+  if (!semanticEquals || update) {
+    compareResultWithExpectationsFile(
+      source,
+      File.fromUri(recordedUsagesFile).readAsStringSync(),
+      expectFilePostfix: '.json',
+    );
+  }
 }
 
 void main(List<String> args) {

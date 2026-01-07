@@ -214,7 +214,7 @@ library
         #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           methods
-            #F2 foo (nameOffset:58) (firstTokenOffset:53) (offset:58)
+            #F2 isOriginDeclaration foo (nameOffset:58) (firstTokenOffset:53) (offset:58)
               element: dart:foo::@class::A::@method::foo
   classes
     class A
@@ -222,7 +222,7 @@ library
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       methods
-        foo
+        isOriginDeclaration foo
           reference: dart:foo::@class::A::@method::foo
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -251,7 +251,7 @@ library
         #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           methods
-            #F2 foo (nameOffset:75) (firstTokenOffset:53) (offset:75)
+            #F2 isOriginDeclaration foo (nameOffset:75) (firstTokenOffset:53) (offset:75)
               element: dart:foo::@class::A::@method::foo
   classes
     class A
@@ -259,7 +259,7 @@ library
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       methods
-        foo
+        isOriginDeclaration foo
           reference: dart:foo::@class::A::@method::foo
           firstFragment: #F2
           sinceSdkVersion: 2.16.0
@@ -288,7 +288,7 @@ library
         #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           methods
-            #F2 foo (nameOffset:75) (firstTokenOffset:53) (offset:75)
+            #F2 isOriginDeclaration foo (nameOffset:75) (firstTokenOffset:53) (offset:75)
               element: dart:foo::@class::A::@method::foo
   classes
     class A
@@ -296,7 +296,7 @@ library
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       methods
-        foo
+        isOriginDeclaration foo
           reference: dart:foo::@class::A::@method::foo
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -534,7 +534,7 @@ library
             #F5 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: dart:foo::@enum::E::@getter::values
           methods
-            #F6 foo (nameOffset:62) (firstTokenOffset:57) (offset:62)
+            #F6 isOriginDeclaration foo (nameOffset:62) (firstTokenOffset:57) (offset:62)
               element: dart:foo::@enum::E::@method::foo
   enums
     enum E
@@ -575,7 +575,7 @@ library
           returnType: List<E>
           variable: dart:foo::@enum::E::@field::values
       methods
-        foo
+        isOriginDeclaration foo
           reference: dart:foo::@enum::E::@method::foo
           firstFragment: #F6
           sinceSdkVersion: 2.15.0
@@ -603,7 +603,7 @@ library
         #F1 extension E (nameOffset:51) (firstTokenOffset:26) (offset:51)
           element: dart:foo::@extension::E
           methods
-            #F2 foo (nameOffset:69) (firstTokenOffset:64) (offset:69)
+            #F2 isOriginDeclaration foo (nameOffset:69) (firstTokenOffset:64) (offset:69)
               element: dart:foo::@extension::E::@method::foo
   extensions
     extension E
@@ -613,7 +613,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       methods
-        foo
+        isOriginDeclaration foo
           reference: dart:foo::@extension::E::@method::foo
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -641,7 +641,7 @@ library
         #F1 mixin M (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@mixin::M
           methods
-            #F2 foo (nameOffset:58) (firstTokenOffset:53) (offset:58)
+            #F2 isOriginDeclaration foo (nameOffset:58) (firstTokenOffset:53) (offset:58)
               element: dart:foo::@mixin::M::@method::foo
   mixins
     mixin M
@@ -651,7 +651,7 @@ library
       superclassConstraints
         Object
       methods
-        foo
+        isOriginDeclaration foo
           reference: dart:foo::@mixin::M::@method::foo
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -676,17 +676,17 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 foo (nameOffset:46) (firstTokenOffset:26) (offset:46)
+        #F1 isOriginDeclaration foo (nameOffset:46) (firstTokenOffset:26) (offset:46)
           element: dart:foo::@function::foo
-        #F2 bar (nameOffset:61) (firstTokenOffset:56) (offset:61)
+        #F2 isOriginDeclaration bar (nameOffset:61) (firstTokenOffset:56) (offset:61)
           element: dart:foo::@function::bar
   functions
-    foo
+    isOriginDeclaration foo
       reference: dart:foo::@function::foo
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       returnType: void
-    bar
+    isOriginDeclaration bar
       reference: dart:foo::@function::bar
       firstFragment: #F2
       returnType: void
@@ -708,10 +708,10 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 foo (nameOffset:54) (firstTokenOffset:26) (offset:54)
+        #F1 isOriginDeclaration foo (nameOffset:54) (firstTokenOffset:26) (offset:54)
           element: dart:foo::@function::foo
   functions
-    foo
+    isOriginDeclaration foo
       reference: dart:foo::@function::foo
       firstFragment: #F1
       sinceSdkVersion: 2.15.3-dev.7
@@ -734,10 +734,10 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 foo (nameOffset:48) (firstTokenOffset:26) (offset:48)
+        #F1 isOriginDeclaration foo (nameOffset:48) (firstTokenOffset:26) (offset:48)
           element: dart:foo::@function::foo
   functions
-    foo
+    isOriginDeclaration foo
       reference: dart:foo::@function::foo
       firstFragment: #F1
       sinceSdkVersion: 2.15.3
@@ -760,10 +760,10 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 foo (nameOffset:44) (firstTokenOffset:26) (offset:44)
+        #F1 isOriginDeclaration foo (nameOffset:44) (firstTokenOffset:26) (offset:44)
           element: dart:foo::@function::foo
   functions
-    foo
+    isOriginDeclaration foo
       reference: dart:foo::@function::foo
       firstFragment: #F1
       returnType: void
@@ -788,10 +788,10 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 foo (nameOffset:56) (firstTokenOffset:51) (offset:56)
+        #F1 isOriginDeclaration foo (nameOffset:56) (firstTokenOffset:51) (offset:56)
           element: dart:foo::@function::foo
   functions
-    foo
+    isOriginDeclaration foo
       reference: dart:foo::@function::foo
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
@@ -816,7 +816,7 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 f (nameOffset:31) (firstTokenOffset:26) (offset:31)
+        #F1 isOriginDeclaration f (nameOffset:31) (firstTokenOffset:26) (offset:31)
           element: dart:foo::@function::f
           formalParameters
             #F2 requiredPositional p1 (nameOffset:37) (firstTokenOffset:33) (offset:37)
@@ -824,7 +824,7 @@ library
             #F3 optionalNamed p2 (nameOffset:67) (firstTokenOffset:45) (offset:67)
               element: dart:foo::@function::f::@formalParameter::p2
   functions
-    f
+    isOriginDeclaration f
       reference: dart:foo::@function::f
       firstFragment: #F1
       formalParameters
@@ -856,7 +856,7 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 f (nameOffset:31) (firstTokenOffset:26) (offset:31)
+        #F1 isOriginDeclaration f (nameOffset:31) (firstTokenOffset:26) (offset:31)
           element: dart:foo::@function::f
           formalParameters
             #F2 requiredPositional p1 (nameOffset:37) (firstTokenOffset:33) (offset:37)
@@ -864,7 +864,7 @@ library
             #F3 optionalPositional p2 (nameOffset:67) (firstTokenOffset:45) (offset:67)
               element: dart:foo::@function::f::@formalParameter::p2
   functions
-    f
+    isOriginDeclaration f
       reference: dart:foo::@function::f
       firstFragment: #F1
       formalParameters

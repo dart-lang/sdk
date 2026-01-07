@@ -12,8 +12,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -21,6 +19,8 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Methods useful in detecting errors.  This mixin exists to allow code to be
@@ -43,7 +43,7 @@ mixin ErrorDetectionHelpers {
     Expression expression,
     TypeImpl expectedStaticType,
     TypeImpl actualStaticType,
-    DiagnosticCode diagnosticCode, {
+    NonAssignabilityReporter nonAssignabilityReporter, {
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     if (expectedStaticType is! VoidType &&
@@ -55,7 +55,7 @@ mixin ErrorDetectionHelpers {
       expression,
       actualStaticType,
       expectedStaticType,
-      diagnosticCode,
+      nonAssignabilityReporter,
       whyNotPromoted: whyNotPromoted,
     );
   }
@@ -103,7 +103,7 @@ mixin ErrorDetectionHelpers {
     Expression expression,
     TypeImpl actualStaticType,
     TypeImpl expectedStaticType,
-    DiagnosticCode diagnosticCode, {
+    NonAssignabilityReporter nonAssignabilityReporter, {
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     if (expectedStaticType is! VoidType &&
@@ -136,71 +136,24 @@ mixin ErrorDetectionHelpers {
           actualStaticType,
           strictCasts: strictCasts,
         )) {
-          diagnosticReporter.atNode(
-            expression,
-            diag.recordLiteralOnePositionalNoTrailingCommaByType,
+          diagnosticReporter.report(
+            diag.recordLiteralOnePositionalNoTrailingCommaByType.at(expression),
           );
           return;
         }
       }
-      if (diagnosticCode == diag.argumentTypeNotAssignable) {
-        var additionalInfo = <String>[];
-        if (expectedStaticType is RecordTypeImpl &&
-            actualStaticType is RecordTypeImpl) {
-          var actualPositionalFields = actualStaticType.positionalFields.length;
-          var expectedPositionalFields =
-              expectedStaticType.positionalFields.length;
-          if (expectedPositionalFields != 0 &&
-              actualPositionalFields != expectedPositionalFields) {
-            additionalInfo.add(
-              'Expected $expectedPositionalFields positional arguments, but got $actualPositionalFields instead.',
-            );
-          }
-          var actualNamedFieldsLength = actualStaticType.namedFields.length;
-          var expectedNamedFieldsLength = expectedStaticType.namedFields.length;
-          if (expectedNamedFieldsLength != 0 &&
-              actualNamedFieldsLength != expectedNamedFieldsLength) {
-            additionalInfo.add(
-              'Expected $expectedNamedFieldsLength named arguments, but got $actualNamedFieldsLength instead.',
-            );
-          }
-          var namedFields = expectedStaticType.namedFields;
-          if (namedFields.isNotEmpty) {
-            for (var field in actualStaticType.namedFields) {
-              if (!namedFields.any(
-                (element) =>
-                    element.name == field.name && field.type == element.type,
-              )) {
-                additionalInfo.add(
-                  'Unexpected named argument `${field.name}` with type `${field.type.getDisplayString()}`.',
-                );
-              }
-            }
-          }
-        }
-        diagnosticReporter.atNode(
-          getErrorNode(expression),
-          diagnosticCode,
-          arguments: [
-            actualStaticType,
-            expectedStaticType,
-            additionalInfo.join(' '),
-          ],
-          contextMessages: computeWhyNotPromotedMessages(
-            expression,
-            whyNotPromoted?.call(),
-          ),
-        );
-        return;
-      }
-      diagnosticReporter.atNode(
-        getErrorNode(expression),
-        diagnosticCode,
-        arguments: [actualStaticType, expectedStaticType],
-        contextMessages: computeWhyNotPromotedMessages(
-          expression,
-          whyNotPromoted?.call(),
-        ),
+      var whyNotPromotedMessages = computeWhyNotPromotedMessages(
+        expression,
+        whyNotPromoted?.call(),
+      );
+      diagnosticReporter.report(
+        nonAssignabilityReporter
+            .createDiagnostic(
+              expectedStaticType: expectedStaticType,
+              actualStaticType: actualStaticType,
+            )
+            .withContextMessages(whyNotPromotedMessages)
+            .at(getErrorNode(expression)),
       );
     }
   }
@@ -292,9 +245,9 @@ mixin ErrorDetectionHelpers {
 
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
-      diagnosticReporter.atNode(methodName, diag.useOfVoidResult);
+      diagnosticReporter.report(diag.useOfVoidResult.at(methodName));
     } else {
-      diagnosticReporter.atNode(expression, diag.useOfVoidResult);
+      diagnosticReporter.report(diag.useOfVoidResult.at(expression));
     }
 
     return true;
@@ -414,8 +367,89 @@ mixin ErrorDetectionHelpers {
       argument,
       staticParameterType,
       argument.typeOrThrow,
-      diag.argumentTypeNotAssignable,
+      const NonAssignabilityReporterForArgument(),
       whyNotPromoted: whyNotPromoted,
+    );
+  }
+}
+
+/// Abstract helper class for reporting an error related to non-assignability.
+///
+/// Concrete derived classes exist for handling the different varieties of
+/// non-assignability errors.
+abstract class NonAssignabilityReporter {
+  const NonAssignabilityReporter();
+
+  /// Creates the appropriate [LocatableDiagnostic] to report that the user has
+  /// tried to assign [actualStaticType] to [expectedStaticType].
+  LocatableDiagnostic createDiagnostic({
+    required TypeImpl expectedStaticType,
+    required TypeImpl actualStaticType,
+  });
+}
+
+/// Helper class for reporting the error [diag.argumentTypeNotAssignable].
+class NonAssignabilityReporterForArgument extends NonAssignabilityReporter {
+  const NonAssignabilityReporterForArgument();
+
+  @override
+  LocatableDiagnostic createDiagnostic({
+    required TypeImpl expectedStaticType,
+    required TypeImpl actualStaticType,
+  }) {
+    var additionalInfo = <String>[];
+    if (expectedStaticType is RecordTypeImpl &&
+        actualStaticType is RecordTypeImpl) {
+      var actualPositionalFields = actualStaticType.positionalFields.length;
+      var expectedPositionalFields = expectedStaticType.positionalFields.length;
+      if (expectedPositionalFields != 0 &&
+          actualPositionalFields != expectedPositionalFields) {
+        additionalInfo.add(
+          'Expected $expectedPositionalFields positional arguments, but got $actualPositionalFields instead.',
+        );
+      }
+      var actualNamedFieldsLength = actualStaticType.namedFields.length;
+      var expectedNamedFieldsLength = expectedStaticType.namedFields.length;
+      if (expectedNamedFieldsLength != 0 &&
+          actualNamedFieldsLength != expectedNamedFieldsLength) {
+        additionalInfo.add(
+          'Expected $expectedNamedFieldsLength named arguments, but got $actualNamedFieldsLength instead.',
+        );
+      }
+      var namedFields = expectedStaticType.namedFields;
+      if (namedFields.isNotEmpty) {
+        for (var field in actualStaticType.namedFields) {
+          if (!namedFields.any(
+            (element) =>
+                element.name == field.name && field.type == element.type,
+          )) {
+            additionalInfo.add(
+              'Unexpected named argument `${field.name}` with type `${field.type.getDisplayString()}`.',
+            );
+          }
+        }
+      }
+    }
+    return diag.argumentTypeNotAssignable.withArguments(
+      actualStaticType: actualStaticType,
+      expectedStaticType: expectedStaticType,
+      additionalInfo: additionalInfo.join(' '),
+    );
+  }
+}
+
+/// Helper class for reporting the error [diag.invalidAssignment].
+class NonAssignabilityReporterForAssignment extends NonAssignabilityReporter {
+  const NonAssignabilityReporterForAssignment();
+
+  @override
+  LocatableDiagnostic createDiagnostic({
+    required TypeImpl expectedStaticType,
+    required TypeImpl actualStaticType,
+  }) {
+    return diag.invalidAssignment.withArguments(
+      actualStaticType: actualStaticType,
+      expectedStaticType: expectedStaticType,
     );
   }
 }

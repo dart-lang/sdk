@@ -15,7 +15,7 @@ import 'object_access_target.dart';
 import 'type_schema.dart' show UnknownType;
 
 class ForInResult {
-  final VariableDeclaration variable;
+  final ExpressionVariable variable;
   final Expression iterable;
   final Expression? syntheticAssignment;
   final Statement? expressionSideEffects;

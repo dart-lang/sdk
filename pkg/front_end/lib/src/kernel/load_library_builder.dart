@@ -71,7 +71,7 @@ class LoadLibraryBuilder extends NamedBuilderImpl {
   LoadLibrary createLoadLibrary(
     int charOffset,
     Forest forest,
-    ArgumentsImpl? arguments,
+    ActualArguments? arguments,
   ) {
     return forest.createLoadLibrary(charOffset, importDependency, arguments);
   }

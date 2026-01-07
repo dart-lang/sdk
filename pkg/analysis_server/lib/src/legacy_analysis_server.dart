@@ -98,6 +98,7 @@ import 'package:analysis_server/src/services/execution/execution_context.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_manager.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/status/performance_logger.dart';
 import 'package:analysis_server/src/utilities/extensions/resource_provider.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
@@ -399,6 +400,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     super.providedByteStore,
     super.pluginManager,
     super.messageSchedulerListener,
+    PerformanceLogger? performanceLogger,
   }) : lspClientConfiguration = lsp.LspClientConfiguration(
          baseResourceProvider.pathContext,
        ),

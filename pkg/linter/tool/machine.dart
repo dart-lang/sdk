@@ -63,13 +63,18 @@ Future<String> getMachineListing(
       {
         'name': rule.name,
         'description': rule.description,
-        'categories': info.categories.toList(growable: false),
+        'categories': info.categories
+            .map((category) => category.name)
+            .toList(growable: false),
         'state': rule.state.label,
         'incompatible': rule.incompatibleRules,
         'sets': const [],
         'fixStatus':
-            fixStatusMap[rule.diagnosticCodes.first.uniqueName.suffix] ??
-            'unregistered',
+            fixStatusMap[rule
+                .diagnosticCodes
+                .firstOrNull
+                ?.lowerCaseUniqueName] ??
+            'noFix',
         'details': info.deprecatedDetails,
         'sinceDartSdk': _versionToString(info.states.first.since),
       },
@@ -104,20 +109,4 @@ String _versionToString(Version? version) {
   if (version == null) return '2.0';
 
   return '${version.major}.${version.minor}';
-}
-
-class _Error extends Error {
-  final String message;
-
-  _Error(this.message);
-
-  @override
-  String toString() => message;
-}
-
-extension on String {
-  String get suffix => switch (split('.')) {
-    [_, var s] => s,
-    _ => throw _Error('Expected ErrorClass.ERROR_CODE, found $this'),
-  };
 }

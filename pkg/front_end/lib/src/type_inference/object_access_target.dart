@@ -8,6 +8,7 @@ import 'package:kernel/type_algebra.dart';
 import '../base/problems.dart' show unexpected;
 import '../builder/member_builder.dart';
 import '../kernel/hierarchy/class_member.dart';
+import '../kernel/internal_ast.dart';
 import 'inference_visitor_base.dart';
 import 'type_schema_environment.dart';
 
@@ -138,8 +139,11 @@ sealed class InvocationTargetType {
   FunctionAccessKind get functionAccessKind;
 
   /// Returns the target type or computes its approximation that can take
-  /// [arguments].
-  FunctionType computeFunctionTypeForInference(Arguments arguments);
+  /// [typeArguments] and [arguments].
+  FunctionType computeFunctionTypeForInference(
+    List<DartType>? typeArguments,
+    ActualArguments arguments,
+  );
 }
 
 /// Target type that can be expressed as a fully defined [FunctionType].
@@ -185,7 +189,10 @@ class InvocationTargetFunctionType extends InvocationTargetType {
   FunctionAccessKind get functionAccessKind => FunctionAccessKind.FunctionType;
 
   @override
-  FunctionType computeFunctionTypeForInference(Arguments arguments) {
+  FunctionType computeFunctionTypeForInference(
+    List<DartType>? typeArguments,
+    ActualArguments arguments,
+  ) {
     return functionType;
   }
 }
@@ -276,25 +283,28 @@ sealed class InvocationTargetNonFunctionType extends InvocationTargetType {
   }
 
   @override
-  FunctionType computeFunctionTypeForInference(Arguments arguments) {
+  FunctionType computeFunctionTypeForInference(
+    List<DartType>? typeArguments,
+    ActualArguments arguments,
+  ) {
     return new FunctionType(
-      new List<DartType>.filled(
-        arguments.positional.length,
-        const DynamicType(),
-      ),
+      new List<DartType>.filled(arguments.positionalCount, const DynamicType()),
       this.returnType,
       Nullability.nonNullable,
-      namedParameters: <NamedType>[
-        for (NamedExpression namedExpression in arguments.named)
-          new NamedType(namedExpression.name, const DynamicType()),
-      ],
+      namedParameters: arguments.namedCount > 0
+          ? arguments.argumentList
+                .whereType<NamedArgument>()
+                .map((a) => new NamedType(a.name, const DynamicType()))
+                .toList()
+          : [],
       typeParameters: [
-        for (DartType _ in arguments.types)
-          new StructuralParameter(
-            null,
-            const DynamicType(),
-            const DynamicType(),
-          ),
+        if (typeArguments != null)
+          for (DartType _ in typeArguments)
+            new StructuralParameter(
+              null,
+              const DynamicType(),
+              const DynamicType(),
+            ),
       ],
     );
   }

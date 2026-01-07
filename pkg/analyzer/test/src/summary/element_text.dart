@@ -329,11 +329,6 @@ class _Element2Writer extends _AbstractElementWriter {
     expect(flags.where((flag) => flag).length, 1);
   }
 
-  void _assertNonSyntheticElementSelf(Element element) {
-    expect(element.isSynthetic, isFalse);
-    expect(element.nonSynthetic, same(element));
-  }
-
   void _writeConstantInitializerExpression(String name, Expression expression) {
     if (_idMap.existingExpressionId(expression) case var id?) {
       _sink.writelnWithIndent('$name: $id');
@@ -450,8 +445,13 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
-      _writeFragmentCodeRange(f);
-      // _writeDisplayName(f);
+
+      if (configuration.withCodeRanges) {
+        if (f.isOriginDeclaration) {
+          _sink.writelnWithIndent('codeOffset: ${f.codeOffset}');
+          _sink.writelnWithIndent('codeLength: ${f.codeLength}');
+        }
+      }
 
       if (f.newKeywordOffset case var newKeywordOffset?) {
         _sink.writelnWithIndent('newKeywordOffset: $newKeywordOffset');
@@ -468,6 +468,10 @@ class _Element2Writer extends _AbstractElementWriter {
 
       if (f.periodOffset case var periodOffset?) {
         _sink.writelnWithIndent('periodOffset: $periodOffset');
+      }
+
+      if (f.thisKeywordOffset case var thisKeywordOffset?) {
+        _sink.writelnWithIndent('thisKeywordOffset: $thisKeywordOffset');
       }
 
       _writeFragmentList(
@@ -590,6 +594,7 @@ class _Element2Writer extends _AbstractElementWriter {
         e.isOriginDeclaration,
         e.isOriginDeclaringFormalParameter,
         e.isOriginEnumValues,
+        e.isOriginExtensionTypeRecoveryRepresentation,
         e.isOriginGetterSetter,
       ]);
       _sink.writeIf(e.isOriginDeclaration, 'isOriginDeclaration ');
@@ -598,6 +603,10 @@ class _Element2Writer extends _AbstractElementWriter {
         'isOriginDeclaringFormalParameter ',
       );
       _sink.writeIf(e.isOriginEnumValues, 'isOriginEnumValues ');
+      _sink.writeIf(
+        e.isOriginExtensionTypeRecoveryRepresentation,
+        'isOriginExtensionTypeRecoveryRepresentation ',
+      );
       _sink.writeIf(e.isOriginGetterSetter, 'isOriginGetterSetter ');
 
       _writeElementName(e);
@@ -663,6 +672,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
+      // ignore: deprecated_member_use_from_same_package
       _sink.writeIf(f.isSynthetic, 'synthetic ');
       _sink.writeIf(f.hasInitializer, 'hasInitializer ');
 
@@ -670,6 +680,7 @@ class _Element2Writer extends _AbstractElementWriter {
         f.isOriginDeclaration,
         f.isOriginDeclaringFormalParameter,
         f.isOriginEnumValues,
+        f.isOriginExtensionTypeRecoveryRepresentation,
         f.isOriginGetterSetter,
       ]);
       _sink.writeIf(f.isOriginDeclaration, 'isOriginDeclaration ');
@@ -678,6 +689,10 @@ class _Element2Writer extends _AbstractElementWriter {
         'isOriginDeclaringFormalParameter ',
       );
       _sink.writeIf(f.isOriginEnumValues, 'isOriginEnumValues ');
+      _sink.writeIf(
+        f.isOriginExtensionTypeRecoveryRepresentation,
+        'isOriginExtensionTypeRecoveryRepresentation ',
+      );
       _sink.writeIf(f.isOriginGetterSetter, 'isOriginGetterSetter ');
 
       _writeFragmentName(f);
@@ -850,17 +865,6 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeFragmentCodeRange(Fragment f) {
-    if (configuration.withCodeRanges) {
-      if (f is FragmentImpl) {
-        if (!f.isSynthetic) {
-          _sink.writelnWithIndent('codeOffset: ${f.codeOffset}');
-          _sink.writelnWithIndent('codeLength: ${f.codeLength}');
-        }
-      }
-    }
-  }
-
   void _writeFragmentList<E extends Fragment>(
     String name,
     Fragment? expectedEnclosingFragment,
@@ -1002,6 +1006,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
+      // ignore: deprecated_member_use_from_same_package
       _sink.writeIf(f.isSynthetic, 'synthetic ');
 
       _assertHasExactlyOneTrue([f.isOriginDeclaration, f.isOriginVariable]);
@@ -1149,8 +1154,6 @@ class _Element2Writer extends _AbstractElementWriter {
           );
           expect(e.mixins, isEmpty);
           _elementPrinter.writeTypeList('interfaces', e.interfaces);
-        default:
-          throw UnimplementedError('${e.runtimeType}');
       }
 
       if (configuration.withAllSupertypes && e is InterfaceElementImpl) {
@@ -1176,8 +1179,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementList('setters', e, e.setters, _writeSetterElement);
       _writeElementList('methods', e, e.methods, _writeMethodElement);
     });
-
-    _assertNonSyntheticElementSelf(e);
   }
 
   void _writeInstanceFragment(InstanceFragmentImpl f) {
@@ -1371,11 +1372,16 @@ class _Element2Writer extends _AbstractElementWriter {
 
   void _writeMethodElement(MethodElementImpl e) {
     _sink.writeIndentedLine(() {
+      // ignore: deprecated_member_use_from_same_package
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
       _sink.writeIf(e.isExternal, 'external ');
       _sink.writeIf(e.isExtensionTypeMember, 'isExtensionTypeMember ');
+
+      _assertHasExactlyOneTrue([e.isOriginDeclaration, e.isOriginInterface]);
+      _sink.writeIf(e.isOriginDeclaration, 'isOriginDeclaration ');
+      _sink.writeIf(e.isOriginInterface, 'isOriginInterface ');
 
       _writeElementName(e);
     });
@@ -1425,6 +1431,10 @@ class _Element2Writer extends _AbstractElementWriter {
       // _sink.writeIf(f.isAbstract, 'abstract ');
       // _sink.writeIf(f.isExternal, 'external ');
 
+      _assertHasExactlyOneTrue([f.isOriginDeclaration, f.isOriginInterface]);
+      _sink.writeIf(f.isOriginDeclaration, 'isOriginDeclaration ');
+      _sink.writeIf(f.isOriginInterface, 'isOriginInterface ');
+
       _writeFragmentName(f);
       _writeFragmentBodyModifiers(f);
     });
@@ -1435,7 +1445,11 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('nextFragment', f.nextFragment);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
-      _writeFragmentCodeRange(f);
+
+      if (configuration.withCodeRanges) {
+        _sink.writelnWithIndent('codeOffset: ${f.codeOffset}');
+        _sink.writelnWithIndent('codeLength: ${f.codeLength}');
+      }
 
       _writeFragmentList(
         'typeParameters',
@@ -1613,6 +1627,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
+      // ignore: deprecated_member_use_from_same_package
       _sink.writeIf(f.isSynthetic, 'synthetic ');
 
       _assertHasExactlyOneTrue([
@@ -1672,6 +1687,11 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       // _sink.writeIf(e.isAugmentation, 'augment ');
       _sink.writeIf(e.isExternal, 'external ');
+
+      _assertHasExactlyOneTrue([e.isOriginDeclaration, e.isOriginLoadLibrary]);
+      _sink.writeIf(e.isOriginDeclaration, 'isOriginDeclaration ');
+      _sink.writeIf(e.isOriginLoadLibrary, 'isOriginLoadLibrary ');
+
       _writeElementName(e);
       // _writeBodyModifiers(e);
     });
@@ -1699,8 +1719,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeAugmentationTarget(e);
       // _writeAugmentation(e);
     });
-
-    _assertNonSyntheticElementSelf(e);
   }
 
   void _writeTopLevelFunctionFragment(TopLevelFunctionFragmentImpl f) {
@@ -1710,6 +1728,11 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeObjectId(f);
       // _sink.writeIf(e.isAugmentation, 'augment ');
       // _sink.writeIf(e.isExternal, 'external ');
+
+      _assertHasExactlyOneTrue([f.isOriginDeclaration, f.isOriginLoadLibrary]);
+      _sink.writeIf(f.isOriginDeclaration, 'isOriginDeclaration ');
+      _sink.writeIf(f.isOriginLoadLibrary, 'isOriginLoadLibrary ');
+
       _writeFragmentName(f);
       // _writeBodyModifiers(e);
     });
@@ -1813,6 +1836,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
+      // ignore: deprecated_member_use_from_same_package
       _sink.writeIf(f.isSynthetic, 'synthetic ');
       _sink.writeIf(f.hasInitializer, 'hasInitializer ');
 
@@ -1906,8 +1930,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeAugmentationTarget(e);
       // _writeAugmentation(e);
     });
-
-    _assertNonSyntheticElementSelf(e);
   }
 
   void _writeTypeAliasFragment(TypeAliasFragmentImpl f) {
@@ -1985,8 +2007,6 @@ class _Element2Writer extends _AbstractElementWriter {
 
       _writeMetadata(e.metadata);
     });
-
-    _assertNonSyntheticElementSelf(e);
   }
 
   void _writeTypeParameterFragment(TypeParameterFragmentImpl f) {

@@ -1837,11 +1837,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ addi(T3, A1, target::Object::tags_offset() - kHeapObjectTag);
     // T3: Untagged address of header word (amo's do not support offsets).
     __ li(TMP2, ~(1 << target::UntaggedObject::kNotMarkedBit));
-#if XLEN == 32
-    __ amoandw(TMP2, TMP2, Address(T3, 0));
-#else
-    __ amoandd(TMP2, TMP2, Address(T3, 0));
-#endif
+    __ amoandx(TMP2, TMP2, Address(T3, 0));
     __ andi(TMP2, TMP2, 1 << target::UntaggedObject::kNotMarkedBit);
     __ beqz(TMP2, &done);  // Was already clear -> lost race.
 
@@ -1911,11 +1907,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ addi(T3, A0, target::Object::tags_offset() - kHeapObjectTag);
     // T3: Untagged address of header word (amo's do not support offsets).
     __ li(TMP2, ~(1 << target::UntaggedObject::kOldAndNotRememberedBit));
-#if XLEN == 32
-    __ amoandw(TMP2, TMP2, Address(T3, 0));
-#else
-    __ amoandd(TMP2, TMP2, Address(T3, 0));
-#endif
+    __ amoandx(TMP2, TMP2, Address(T3, 0));
     __ andi(TMP2, TMP2, 1 << target::UntaggedObject::kOldAndNotRememberedBit);
     __ beqz(TMP2, &done);  // Was already clear -> lost race.
 
@@ -1955,11 +1947,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ srli(A6, A6, target::kBitsPerWordLog2);
     __ slli(A6, A6, target::kWordSizeLog2);
     __ add(TMP2, TMP2, A6);  // Card word address.
-#if XLEN == 32
-    __ amoorw(ZR, TMP, Address(TMP2, 0));
-#else
-    __ amoord(ZR, TMP, Address(TMP2, 0));
-#endif
+    __ amoorx(ZR, TMP, Address(TMP2, 0));
     __ ret();
   }
 }

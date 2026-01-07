@@ -244,11 +244,11 @@ Exit process messages loop
     await initialAnalysis;
     await pumpEventQueue(times: 5000);
     _assertLogContents(testView!, r'''
-Incoming RequestMessage: initialize: 0
+Incoming RequestMessage: initialize:0
 Entering process messages loop
-  Start LspMessage: initialize: 0
+  Start LspMessage: initialize:0
 Exit process messages loop
-  Complete LspMessage: initialize: 0
+  Complete LspMessage: initialize:0
 Incoming NotificationMessage: initialized
 Entering process messages loop
   Start LspMessage: initialized
@@ -330,54 +330,54 @@ Exit process messages loop
     await Future.wait(futures);
 
     _assertLogContents(testView!, r'''
-Incoming RequestMessage: initialize: 0
+Incoming RequestMessage: initialize:0
 Entering process messages loop
-  Start LspMessage: initialize: 0
+  Start LspMessage: initialize:0
 Exit process messages loop
-  Complete LspMessage: initialize: 0
+  Complete LspMessage: initialize:0
 Incoming NotificationMessage: initialized
 Entering process messages loop
   Start LspMessage: initialized
 Exit process messages loop
   Complete LspMessage: initialized
-Incoming RequestMessage: textDocument/hover: 1
-Incoming RequestMessage: textDocument/hover: 2
+Incoming RequestMessage: textDocument/hover:1
+Incoming RequestMessage: textDocument/hover:2
 Entering process messages loop
-  Start LspMessage: textDocument/hover: 1
-  Start LspMessage: textDocument/hover: 2
+  Start LspMessage: textDocument/hover:1
+  Start LspMessage: textDocument/hover:2
 Exit process messages loop
-  Complete LspMessage: textDocument/hover: 1
-  Complete LspMessage: textDocument/hover: 2
+  Complete LspMessage: textDocument/hover:1
+  Complete LspMessage: textDocument/hover:2
 Pause requested - there are now 1 pauses
-Incoming RequestMessage: textDocument/hover: 3
-Incoming RequestMessage: textDocument/hover: 4
+Incoming RequestMessage: textDocument/hover:3
+Incoming RequestMessage: textDocument/hover:4
 Entering process messages loop
 Exit process messages loop
 Pause requested - there are now 2 pauses
-Incoming RequestMessage: textDocument/hover: 5
-Incoming RequestMessage: textDocument/hover: 6
+Incoming RequestMessage: textDocument/hover:5
+Incoming RequestMessage: textDocument/hover:6
 Entering process messages loop
 Exit process messages loop
 Resume requested - there are now 1 pauses
-Incoming RequestMessage: textDocument/hover: 7
-Incoming RequestMessage: textDocument/hover: 8
+Incoming RequestMessage: textDocument/hover:7
+Incoming RequestMessage: textDocument/hover:8
 Entering process messages loop
 Exit process messages loop
 Resume requested - there are now 0 pauses
 Entering process messages loop
-  Start LspMessage: textDocument/hover: 3
-  Start LspMessage: textDocument/hover: 4
-  Start LspMessage: textDocument/hover: 5
-  Start LspMessage: textDocument/hover: 6
-  Start LspMessage: textDocument/hover: 7
-  Start LspMessage: textDocument/hover: 8
+  Start LspMessage: textDocument/hover:3
+  Start LspMessage: textDocument/hover:4
+  Start LspMessage: textDocument/hover:5
+  Start LspMessage: textDocument/hover:6
+  Start LspMessage: textDocument/hover:7
+  Start LspMessage: textDocument/hover:8
 Exit process messages loop
-  Complete LspMessage: textDocument/hover: 3
-  Complete LspMessage: textDocument/hover: 4
-  Complete LspMessage: textDocument/hover: 5
-  Complete LspMessage: textDocument/hover: 6
-  Complete LspMessage: textDocument/hover: 7
-  Complete LspMessage: textDocument/hover: 8
+  Complete LspMessage: textDocument/hover:3
+  Complete LspMessage: textDocument/hover:4
+  Complete LspMessage: textDocument/hover:5
+  Complete LspMessage: textDocument/hover:6
+  Complete LspMessage: textDocument/hover:7
+  Complete LspMessage: textDocument/hover:8
 ''');
   }
 

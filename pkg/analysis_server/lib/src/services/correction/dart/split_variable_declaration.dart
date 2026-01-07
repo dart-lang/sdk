@@ -63,12 +63,11 @@ class SplitVariableDeclaration extends ResolvedCorrectionProducer {
       if (variableList.type == null) {
         var type = variable.declaredFragment!.element.type;
         if (type is! DynamicType && keyword != null) {
-          if (!builder.canWriteType(type)) {
-            return;
+          if (builder.canWriteType(type, offset: keyword.offset)) {
+            builder.addReplacement(range.token(keyword), (builder) {
+              builder.writeType(type);
+            });
           }
-          builder.addReplacement(range.token(keyword), (builder) {
-            builder.writeType(type);
-          });
         }
       }
 

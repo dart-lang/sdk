@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -20,6 +19,7 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 
 /// Helper for resolving types.
@@ -427,13 +427,15 @@ class NamedTypeResolver with ScopeHelpers {
       if (type.nullabilitySuffix == NullabilitySuffix.question) {
         var parent = node.parent;
         if (parent is ExtendsClause || parent is ClassTypeAlias) {
-          diagnosticReporter.atNode(node, diag.nullableTypeInExtendsClause);
+          diagnosticReporter.report(diag.nullableTypeInExtendsClause.at(node));
         } else if (parent is ImplementsClause) {
-          diagnosticReporter.atNode(node, diag.nullableTypeInImplementsClause);
+          diagnosticReporter.report(
+            diag.nullableTypeInImplementsClause.at(node),
+          );
         } else if (parent is MixinOnClause) {
-          diagnosticReporter.atNode(node, diag.nullableTypeInOnClause);
+          diagnosticReporter.report(diag.nullableTypeInOnClause.at(node));
         } else if (parent is WithClause) {
-          diagnosticReporter.atNode(node, diag.nullableTypeInWithClause);
+          diagnosticReporter.report(diag.nullableTypeInWithClause.at(node));
         }
         return type.withNullability(NullabilitySuffix.none);
       }
@@ -454,17 +456,19 @@ class NamedTypeResolver with ScopeHelpers {
         var errorRange = _ErrorHelper._getErrorRange(node);
         var constructorUsage = parent.parent;
         if (constructorUsage is InstanceCreationExpression) {
-          diagnosticReporter.atOffset(
-            offset: errorRange.offset,
-            length: errorRange.length,
-            diagnosticCode: diag.instantiateTypeAliasExpandsToTypeParameter,
+          diagnosticReporter.report(
+            diag.instantiateTypeAliasExpandsToTypeParameter.atOffset(
+              offset: errorRange.offset,
+              length: errorRange.length,
+            ),
           );
         } else if (constructorUsage is ConstructorDeclaration &&
             constructorUsage.redirectedConstructor == parent) {
-          diagnosticReporter.atOffset(
-            offset: errorRange.offset,
-            length: errorRange.length,
-            diagnosticCode: diag.redirectToTypeAliasExpandsToTypeParameter,
+          diagnosticReporter.report(
+            diag.redirectToTypeAliasExpandsToTypeParameter.atOffset(
+              offset: errorRange.offset,
+              length: errorRange.length,
+            ),
           );
         } else {
           throw UnimplementedError('${constructorUsage.runtimeType}');
@@ -537,13 +541,12 @@ class _ErrorHelper {
           );
         } else {
           String className = node.name.lexeme;
-          diagnosticReporter.atOffset(
-            offset: errorRange.offset,
-            length: errorRange.length,
-            diagnosticCode: instanceCreation.isConst
-                ? diag.constWithNonType
-                : diag.newWithNonType,
-            arguments: [className],
+          diagnosticReporter.report(
+            (instanceCreation.isConst
+                    ? diag.constWithNonType
+                    : diag.newWithNonType)
+                .withArguments(name: className)
+                .atSourceRange(errorRange),
           );
         }
         return true;
@@ -581,11 +584,10 @@ class _ErrorHelper {
 
     if (_isTypeInAsExpression(node)) {
       var errorRange = _getErrorRange(node);
-      diagnosticReporter.atOffset(
-        offset: errorRange.offset,
-        length: errorRange.length,
-        diagnosticCode: diag.castToNonType,
-        arguments: [node.name.lexeme],
+      diagnosticReporter.report(
+        diag.castToNonType
+            .withArguments(name: node.name.lexeme)
+            .atOffset(offset: errorRange.offset, length: errorRange.length),
       );
       return;
     }
@@ -682,7 +684,7 @@ class _ErrorHelper {
     }
 
     if (node.importPrefix == null && node.name.lexeme == 'await') {
-      diagnosticReporter.atNode(node, diag.undefinedIdentifierAwait);
+      diagnosticReporter.report(diag.undefinedIdentifierAwait.at(node));
       return;
     }
 

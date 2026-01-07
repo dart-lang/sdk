@@ -41,17 +41,6 @@ extension type const E(int i) {
 ''');
   }
 
-  test_extensionType_declaration() async {
-    await assertErrorsInCode(
-      r'''
-import 'package:meta/meta.dart';
-@literal
-extension type const E(int i) { }
-''',
-      [error(diag.invalidLiteralAnnotation, 34, 7)],
-    );
-  }
-
   test_nonConstConstructor() async {
     await assertErrorsInCode(
       r'''
@@ -59,19 +48,6 @@ import 'package:meta/meta.dart';
 class A {
   @literal
   A() {}
-}
-''',
-      [error(diag.invalidLiteralAnnotation, 46, 7)],
-    );
-  }
-
-  test_nonConstructor() async {
-    await assertErrorsInCode(
-      r'''
-import 'package:meta/meta.dart';
-class A {
-  @literal
-  void m() {}
 }
 ''',
       [error(diag.invalidLiteralAnnotation, 46, 7)],

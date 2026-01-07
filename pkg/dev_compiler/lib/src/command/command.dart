@@ -31,6 +31,7 @@ import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 import '../kernel/compiler.dart';
 import '../kernel/compiler_new.dart';
 import '../kernel/hot_reload_delta_inspector.dart';
+import '../kernel/kernel_helpers.dart';
 import '../kernel/module_metadata.dart';
 import '../kernel/module_symbols.dart';
 import '../kernel/module_symbols_collector.dart';
@@ -723,32 +724,8 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
 /// Compute code size to embed in the generated JavaScript for this module.
 int _computeDartSize(Component component) {
   var dartSize = 0;
-  var uriToSource = component.uriToSource;
   for (var lib in component.libraries) {
-    var libUri = lib.fileUri;
-    var importUri = lib.importUri;
-    var source = uriToSource[libUri];
-    if (source == null) {
-      // Sources that only contain external declarations have nothing to add to
-      // the sum.
-      continue;
-    }
-    dartSize += source.source.length;
-    for (var part in lib.parts) {
-      var partUri = part.partUri;
-      if (partUri.startsWith(importUri.scheme)) {
-        // Convert to a relative-to-library uri in order to compute a file uri.
-        partUri = p.relative(partUri, from: p.dirname('${lib.importUri}'));
-      }
-      var fileUri = libUri.resolve(partUri);
-      var partSource = uriToSource[fileUri];
-      if (partSource == null) {
-        // Sources that only contain external declarations have nothing to add
-        // to the sum.
-        continue;
-      }
-      dartSize += partSource.source.length;
-    }
+    dartSize += lib.dartSize;
   }
   return dartSize;
 }
@@ -866,17 +843,28 @@ JSCode jsProgramToCode(
   // TODO(vsm): Ideally, this information is never sent to the browser.  I.e.,
   // our runtime metrics gathering would obtain this information from the
   // compilation server, not the browser.  We don't yet have the infra for that.
-  var compileTimeStatistics = {
-    'dartSize': _computeDartSize(component!),
-    'sourceMapSize': encodedMap.length,
-  };
-  text = text.replaceFirst(
-    ProgramCompiler.metricsLocationID,
-    '$compileTimeStatistics',
-  );
+  if (ModuleFormat.ddcLibraryBundle == format) {
+    // TODO(nshahan): Find a better solution for the size of the source map
+    // per library. For now we just use the size of the full source map and only
+    // count it once in the runtime when the first library gets defined.
+    text = text.replaceFirst(
+      ProgramCompiler.metricsLocationID,
+      '${encodedMap.length}',
+    );
+    text = text.replaceAll(LibraryCompiler.metricsLocationID, '0');
+  } else {
+    var compileTimeStatistics = {
+      'dartSize': _computeDartSize(component!),
+      'sourceMapSize': encodedMap.length,
+    };
+    text = text.replaceFirst(
+      ProgramCompiler.metricsLocationID,
+      '$compileTimeStatistics',
+    );
+  }
 
   var debugMetadata = emitDebugMetadata
-      ? _emitMetadata(moduleTree, component, mapUrl!, jsUrl!, fullDillUri)
+      ? _emitMetadata(moduleTree, component!, mapUrl!, jsUrl!, fullDillUri)
       : null;
 
   var debugSymbols = emitDebugSymbols
@@ -884,7 +872,7 @@ JSCode jsProgramToCode(
           compiler!,
           moduleTree.name!,
           nameListener!.identifierNames,
-          component,
+          component!,
         )
       : null;
 

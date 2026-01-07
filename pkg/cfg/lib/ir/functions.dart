@@ -45,7 +45,6 @@ sealed class CFunction {
 }
 
 /// Function representing a getter.
-/// Also used for implicit getters of fields.
 final class GetterFunction extends CFunction {
   GetterFunction._(super.member) : assert(member.hasGetter), super._();
 
@@ -56,8 +55,12 @@ final class GetterFunction extends CFunction {
   String toString() => 'getter $member';
 }
 
+/// Function representing an implicit getter of a field.
+final class ImplicitFieldGetter extends GetterFunction {
+  ImplicitFieldGetter._(ast.Field super.member) : super._();
+}
+
 /// Function representing a setter.
-/// Also used for implicit setters of fields.
 final class SetterFunction extends CFunction {
   SetterFunction._(super.member) : assert(member.hasSetter), super._();
 
@@ -69,6 +72,11 @@ final class SetterFunction extends CFunction {
 
   @override
   String toString() => 'setter $member';
+}
+
+/// Function representing an implicit setter of a field.
+final class ImplicitFieldSetter extends SetterFunction {
+  ImplicitFieldSetter._(ast.Field super.member) : super._();
 }
 
 /// Function representing a field initializer.
@@ -212,10 +220,14 @@ class FunctionRegistry {
     }
     if (isGetter) {
       assert(!isSetter);
-      return _getters[member] ??= GetterFunction._(member);
+      return _getters[member] ??= (member is ast.Field)
+          ? ImplicitFieldGetter._(member)
+          : GetterFunction._(member);
     }
     if (isSetter) {
-      return _setters[member] ??= SetterFunction._(member);
+      return _setters[member] ??= (member is ast.Field)
+          ? ImplicitFieldSetter._(member)
+          : SetterFunction._(member);
     }
     return _other[member] ??= switch (member) {
       ast.Constructor() => GenerativeConstructor._(member),

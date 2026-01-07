@@ -72,9 +72,8 @@ class PropertyElementResolver with ScopeHelpers {
           var enclosingElement = element.enclosingElement;
           if (enclosingElement is ClassElementImpl &&
               enclosingElement.isAbstract) {
-            _resolver.diagnosticReporter.atNode(
-              node,
-              diag.tearoffOfGenerativeConstructorOfAbstractClass,
+            _resolver.diagnosticReporter.report(
+              diag.tearoffOfGenerativeConstructorOfAbstractClass.at(node),
             );
           }
         }
@@ -126,7 +125,7 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
 
-    diagnosticReporter.atNode(node, diag.dotShorthandMissingContext);
+    diagnosticReporter.report(diag.dotShorthandMissingContext.at(node));
     return PropertyElementResolverResult();
   }
 
@@ -182,7 +181,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (identical(targetType, NeverTypeImpl.instance)) {
       // TODO(scheglov): Report directly in TypePropertyResolver?
-      diagnosticReporter.atNode(target, diag.receiverOfTypeNever);
+      diagnosticReporter.report(diag.receiverOfTypeNever.at(target));
       return PropertyElementResolverResult();
     }
 
@@ -416,9 +415,8 @@ class PropertyElementResolver with ScopeHelpers {
   ) {
     if (element != null && element.isStatic) {
       if (target is ExtensionOverride) {
-        diagnosticReporter.atNode(
-          propertyName,
-          diag.extensionOverrideAccessToStaticMember,
+        diagnosticReporter.report(
+          diag.extensionOverrideAccessToStaticMember.at(propertyName),
         );
       } else {
         var enclosingElement = element.enclosingElement;
@@ -537,7 +535,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     if (targetType is VoidType) {
-      diagnosticReporter.atNode(propertyName, diag.useOfVoidResult);
+      diagnosticReporter.report(diag.useOfVoidResult.at(propertyName));
       return PropertyElementResolverResult();
     }
 
@@ -709,9 +707,8 @@ class PropertyElementResolver with ScopeHelpers {
   }) {
     if (target.parent is CascadeExpression) {
       // Report this error and recover by treating it like a non-cascade.
-      diagnosticReporter.atToken(
-        target.name,
-        diag.extensionOverrideWithCascade,
+      diagnosticReporter.report(
+        diag.extensionOverrideWithCascade.at(target.name),
       );
     }
 

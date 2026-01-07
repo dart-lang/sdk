@@ -82,7 +82,7 @@ final class SSAComputation extends Pass {
                     graph,
                     block.sourcePosition,
                     variable,
-                    block.predecessors.length,
+                    inputCount: block.predecessors.length,
                   ).insertAfter(block, addInputsToUseLists: false);
                 case CatchBlock():
                   Parameter(

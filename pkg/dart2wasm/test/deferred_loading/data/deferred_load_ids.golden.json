@@ -3,7 +3,7 @@
     "name": "<unnamed>",
     "imports": {
       "1": [
-        "out_module3.wasm"
+        "out_module4.wasm"
       ],
       "2": [
         "out_module1.wasm",
@@ -24,7 +24,7 @@
       ],
       "4": [
         "out_module2.wasm",
-        "out_module4.wasm"
+        "out_module3.wasm"
       ]
     },
     "importPrefixToLoadId": {

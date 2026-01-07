@@ -297,7 +297,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     var element = type.element;
-    if (element.isSynthetic) return null;
 
     var elementName = element.name;
     if (elementName == null) {

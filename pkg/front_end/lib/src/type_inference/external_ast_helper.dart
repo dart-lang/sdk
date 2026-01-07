@@ -367,11 +367,7 @@ LabeledStatement createLabeledStatement(
   return new LabeledStatement(statement)..fileOffset = fileOffset;
 }
 
-Initializer createInvalidInitializer(
-  Expression expression, [
-  int charOffset = -1,
-]) {
-  return new ShadowInvalidInitializer(
-    new VariableDeclaration.forValue(expression),
-  )..fileOffset = charOffset;
+Initializer createInvalidInitializer(InvalidExpression expression) {
+  return new InvalidInitializer(expression.message)
+    ..fileOffset = expression.fileOffset;
 }

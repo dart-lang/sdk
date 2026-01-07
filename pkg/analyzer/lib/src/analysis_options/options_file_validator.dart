@@ -13,6 +13,7 @@ import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/options_validator.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
@@ -32,7 +33,7 @@ List<Diagnostic> analyzeAnalysisOptions(
   VersionConstraint? sdkVersionConstraint,
   ResourceProvider resourceProvider,
 ) {
-  List<Diagnostic> errors = [];
+  List<Diagnostic> diagnostics = [];
   Source initialSource = source;
   SourceSpan? initialIncludeSpan;
   AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider(
@@ -45,21 +46,21 @@ List<Diagnostic> analyzeAnalysisOptions(
   // functions, and should be refactored to a class maintaining state, with less
   // variable shadowing.
   void addDirectErrorOrIncludedError(
-    List<Diagnostic> validationErrors,
+    List<Diagnostic> validationDiagnostics,
     Source source, {
     required bool isSourcePrimary,
   }) {
     if (!isSourcePrimary) {
-      // [source] is an included file, and we should only report errors in
+      // [source] is an included file, and we should only report diagnostics in
       // [initialSource], noting that the included file has warnings.
-      for (Diagnostic error in validationErrors) {
+      for (Diagnostic diagnostic in validationDiagnostics) {
         var args = [
           source.fullName,
-          error.offset.toString(),
-          (error.offset + error.length - 1).toString(),
-          error.message,
+          diagnostic.offset.toString(),
+          (diagnostic.offset + diagnostic.length - 1).toString(),
+          diagnostic.message,
         ];
-        errors.add(
+        diagnostics.add(
           Diagnostic.tmp(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
@@ -70,9 +71,9 @@ List<Diagnostic> analyzeAnalysisOptions(
         );
       }
     } else {
-      // [source] is the options file for [contextRoot]. Report all errors
+      // [source] is the options file for [contextRoot]. Report all diagnostics
       // directly.
-      errors.addAll(validationErrors);
+      diagnostics.addAll(validationDiagnostics);
     }
   }
 
@@ -122,7 +123,7 @@ List<Diagnostic> analyzeAnalysisOptions(
 
       var includedSource = sourceFactory.resolveUri(source, includeUri);
       if (includedSource == initialSource) {
-        errors.add(
+        diagnostics.add(
           Diagnostic.tmp(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
@@ -134,7 +135,7 @@ List<Diagnostic> analyzeAnalysisOptions(
         return;
       }
       if (includedSource == null || !includedSource.exists()) {
-        errors.add(
+        diagnostics.add(
           Diagnostic.tmp(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
@@ -147,7 +148,7 @@ List<Diagnostic> analyzeAnalysisOptions(
       }
       var spanInChain = includeChain[includedSource];
       if (spanInChain != null) {
-        errors.add(
+        diagnostics.add(
           Diagnostic.tmp(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
@@ -189,9 +190,9 @@ List<Diagnostic> analyzeAnalysisOptions(
           e.span!.end.offset.toString(),
           e.message,
         ];
-        // Report errors for included option files on the `include` directive
+        // Report diagnostics for included option files on the `include` directive
         // located in the initial options file.
-        errors.add(
+        diagnostics.add(
           Diagnostic.tmp(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
@@ -226,7 +227,7 @@ List<Diagnostic> analyzeAnalysisOptions(
     validate(source, options, contextRoot: contextRoot);
   } on OptionsFormatException catch (e) {
     SourceSpan span = e.span!;
-    errors.add(
+    diagnostics.add(
       Diagnostic.tmp(
         source: source,
         offset: span.start.offset,
@@ -236,7 +237,7 @@ List<Diagnostic> analyzeAnalysisOptions(
       ),
     );
   }
-  return errors;
+  return diagnostics;
 }
 
 /// Returns the name of the first legacy plugin, if one is specified in
@@ -346,7 +347,7 @@ class _AnalyzerTopLevelOptionsValidator extends _TopLevelOptionValidator {
 class _CannotIgnoreOptionValidator extends OptionsValidator {
   /// Lazily populated set of diagnostic code names.
   static final Set<String> _diagnosticCodes = diagnosticCodeValues
-      .map((DiagnosticCode code) => code.name)
+      .map((DiagnosticCode code) => code.lowerCaseName.toUpperCase())
       .toSet();
 
   /// The diagnostic code names that existed, but were removed.
@@ -377,10 +378,10 @@ class _CannotIgnoreOptionValidator extends OptionsValidator {
             if (!_diagnosticCodes.contains(upperCaseName) &&
                 !_lintCodes.contains(upperCaseName) &&
                 !_removedDiagnosticCodes.contains(upperCaseName)) {
-              reporter.atSourceSpan(
-                unignorableNameNode.span,
-                diag.unrecognizedErrorCode,
-                arguments: [unignorableName],
+              reporter.report(
+                diag.unrecognizedErrorCode
+                    .withArguments(codeName: unignorableName)
+                    .atSourceSpan(unignorableNameNode.span),
               );
             } else if (listedNames.contains(upperCaseName)) {
               // TODO(srawlins): Create a "duplicate value" code and report it
@@ -389,18 +390,18 @@ class _CannotIgnoreOptionValidator extends OptionsValidator {
               listedNames.add(upperCaseName);
             }
           } else {
-            reporter.atSourceSpan(
-              unignorableNameNode.span,
-              diag.invalidSectionFormat,
-              arguments: [AnalysisOptionsFile.cannotIgnore],
+            reporter.report(
+              diag.invalidSectionFormat
+                  .withArguments(sectionName: AnalysisOptionsFile.cannotIgnore)
+                  .atSourceSpan(unignorableNameNode.span),
             );
           }
         }
       } else if (unignorableNames != null) {
-        reporter.atSourceSpan(
-          unignorableNames.span,
-          diag.invalidSectionFormat,
-          arguments: [AnalysisOptionsFile.cannotIgnore],
+        reporter.report(
+          diag.invalidSectionFormat
+              .withArguments(sectionName: AnalysisOptionsFile.cannotIgnore)
+              .atSourceSpan(unignorableNames.span),
         );
       }
     }
@@ -418,47 +419,50 @@ class _CodeStyleOptionsValidator extends OptionsValidator {
         if (key == AnalysisOptionsFile.format) {
           _validateFormat(reporter, valueNode);
         } else {
-          reporter.atSourceSpan(
-            keyNode.span,
-            diag.unsupportedOptionWithoutValues,
-            arguments: [AnalysisOptionsFile.codeStyle, keyNode.toString()],
+          reporter.report(
+            diag.unsupportedOptionWithoutValues
+                .withArguments(
+                  sectionName: AnalysisOptionsFile.codeStyle,
+                  optionKey: keyNode.toString(),
+                )
+                .atSourceSpan(keyNode.span),
           );
         }
       });
     } else if (codeStyle is YamlScalar && codeStyle.value != null) {
-      reporter.atSourceSpan(
-        codeStyle.span,
-        diag.invalidSectionFormat,
-        arguments: [AnalysisOptionsFile.codeStyle],
+      reporter.report(
+        diag.invalidSectionFormat
+            .withArguments(sectionName: AnalysisOptionsFile.codeStyle)
+            .atSourceSpan(codeStyle.span),
       );
     } else if (codeStyle is YamlList) {
-      reporter.atSourceSpan(
-        codeStyle.span,
-        diag.invalidSectionFormat,
-        arguments: [AnalysisOptionsFile.codeStyle],
+      reporter.report(
+        diag.invalidSectionFormat
+            .withArguments(sectionName: AnalysisOptionsFile.codeStyle)
+            .atSourceSpan(codeStyle.span),
       );
     }
   }
 
   void _validateFormat(DiagnosticReporter reporter, YamlNode format) {
     if (format is! YamlScalar) {
-      reporter.atSourceSpan(
-        format.span,
-        diag.invalidSectionFormat,
-        arguments: [AnalysisOptionsFile.format],
+      reporter.report(
+        diag.invalidSectionFormat
+            .withArguments(sectionName: AnalysisOptionsFile.format)
+            .atSourceSpan(format.span),
       );
       return;
     }
     var formatValue = toBool(format.valueOrThrow);
     if (formatValue == null) {
-      reporter.atSourceSpan(
-        format.span,
-        diag.unsupportedValue,
-        arguments: [
-          AnalysisOptionsFile.format,
-          format.valueOrThrow,
-          AnalysisOptionsFile.trueOrFalseProposal,
-        ],
+      reporter.report(
+        diag.unsupportedValue
+            .withArguments(
+              optionName: AnalysisOptionsFile.format,
+              invalidValue: format.valueOrThrow,
+              legalValues: AnalysisOptionsFile.trueOrFalseProposal,
+            )
+            .atSourceSpan(format.span),
       );
     }
   }
@@ -495,30 +499,30 @@ class _EnableExperimentsValidator extends OptionsValidator {
           var flagIndex = validationResult.stringIndex;
           var span = experimentNames.nodes[flagIndex].span;
           if (validationResult is UnrecognizedFlag) {
-            reporter.atSourceSpan(
-              span,
-              diag.unsupportedOptionWithoutValues,
-              arguments: [
-                AnalysisOptionsFile.enableExperiment,
-                flags[flagIndex],
-              ],
+            reporter.report(
+              diag.unsupportedOptionWithoutValues
+                  .withArguments(
+                    sectionName: AnalysisOptionsFile.enableExperiment,
+                    optionKey: flags[flagIndex],
+                  )
+                  .atSourceSpan(span),
             );
           } else {
-            reporter.atSourceSpan(
-              span,
-              diag.invalidOption,
-              arguments: [
-                AnalysisOptionsFile.enableExperiment,
-                validationResult.message,
-              ],
+            reporter.report(
+              diag.invalidOption
+                  .withArguments(
+                    optionName: AnalysisOptionsFile.enableExperiment,
+                    detailMessage: validationResult.message,
+                  )
+                  .atSourceSpan(span),
             );
           }
         }
       } else if (experimentNames != null) {
-        reporter.atSourceSpan(
-          experimentNames.span,
-          diag.invalidSectionFormat,
-          arguments: [AnalysisOptionsFile.enableExperiment],
+        reporter.report(
+          diag.invalidSectionFormat
+              .withArguments(sectionName: AnalysisOptionsFile.enableExperiment)
+              .atSourceSpan(experimentNames.span),
         );
       }
     }
@@ -591,7 +595,7 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
 
   /// Lazily populated set of diagnostic code names.
   static final Set<String> _diagnosticCodes = diagnosticCodeValues
-      .map((DiagnosticCode code) => code.name)
+      .map((DiagnosticCode code) => code.lowerCaseName.toUpperCase())
       .toSet();
 
   /// The diagnostic code names that existed, but were removed.
@@ -617,39 +621,41 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
             if (!_diagnosticCodes.contains(value) &&
                 !_lintCodes.contains(value) &&
                 !_removedDiagnosticCodes.contains(value)) {
-              reporter.atSourceSpan(
-                k.span,
-                diag.unrecognizedErrorCode,
-                arguments: [k.value.toString()],
+              reporter.report(
+                diag.unrecognizedErrorCode
+                    .withArguments(codeName: k.value.toString())
+                    .atSourceSpan(k.span),
               );
             }
           }
           if (v is YamlScalar) {
             value = toLowerCase(v.value);
             if (!legalValues.contains(value)) {
-              reporter.atSourceSpan(
-                v.span,
-                diag.unsupportedOptionWithLegalValues,
-                arguments: [
-                  AnalysisOptionsFile.errors,
-                  v.value.toString(),
-                  legalValueString,
-                ],
+              reporter.report(
+                diag.unsupportedOptionWithLegalValues
+                    .withArguments(
+                      sectionName: AnalysisOptionsFile.errors,
+                      optionKey: v.value.toString(),
+                      legalValues: legalValueString,
+                    )
+                    .atSourceSpan(v.span),
               );
             }
           } else {
-            reporter.atSourceSpan(
-              v.span,
-              diag.invalidSectionFormat,
-              arguments: [AnalysisOptionsFile.enableExperiment],
+            reporter.report(
+              diag.invalidSectionFormat
+                  .withArguments(
+                    sectionName: AnalysisOptionsFile.enableExperiment,
+                  )
+                  .atSourceSpan(v.span),
             );
           }
         });
       } else if (filters != null) {
-        reporter.atSourceSpan(
-          filters.span,
-          diag.invalidSectionFormat,
-          arguments: [AnalysisOptionsFile.enableExperiment],
+        reporter.report(
+          diag.invalidSectionFormat
+              .withArguments(sectionName: AnalysisOptionsFile.enableExperiment)
+              .atSourceSpan(filters.span),
         );
       }
     }
@@ -673,18 +679,21 @@ class _FormatterOptionsValidator extends OptionsValidator {
         } else if (keyNode.value == AnalysisOptionsFile.trailingCommas) {
           _validateTrailingCommas(keyNode, valueNode, reporter);
         } else {
-          reporter.atSourceSpan(
-            keyNode.span,
-            diag.unsupportedOptionWithoutValues,
-            arguments: [AnalysisOptionsFile.formatter, keyNode.toString()],
+          reporter.report(
+            diag.unsupportedOptionWithoutValues
+                .withArguments(
+                  sectionName: AnalysisOptionsFile.formatter,
+                  optionKey: keyNode.toString(),
+                )
+                .atSourceSpan(keyNode.span),
           );
         }
       }
     } else if (formatter.value != null) {
-      reporter.atSourceSpan(
-        formatter.span,
-        diag.invalidSectionFormat,
-        arguments: [AnalysisOptionsFile.formatter],
+      reporter.report(
+        diag.invalidSectionFormat
+            .withArguments(sectionName: AnalysisOptionsFile.formatter)
+            .atSourceSpan(formatter.span),
       );
     }
   }
@@ -696,13 +705,13 @@ class _FormatterOptionsValidator extends OptionsValidator {
   ) {
     var value = valueNode.value;
     if (value is! int || value <= 0) {
-      reporter.atSourceSpan(
-        valueNode.span,
-        diag.invalidOption,
-        arguments: [
-          keyNode.toString(),
-          '"page_width" must be a positive integer.',
-        ],
+      reporter.report(
+        diag.invalidOption
+            .withArguments(
+              optionName: keyNode.toString(),
+              detailMessage: '"page_width" must be a positive integer.',
+            )
+            .atSourceSpan(valueNode.span),
       );
     }
   }
@@ -715,13 +724,14 @@ class _FormatterOptionsValidator extends OptionsValidator {
     var value = valueNode.value;
 
     if (!TrailingCommas.values.any((item) => item.name == value)) {
-      reporter.atSourceSpan(
-        valueNode.span,
-        diag.invalidOption,
-        arguments: [
-          keyNode.toString(),
-          '"trailing_commas" must be "automate" or "preserve".',
-        ],
+      reporter.report(
+        diag.invalidOption
+            .withArguments(
+              optionName: keyNode.toString(),
+              detailMessage:
+                  '"trailing_commas" must be "automate" or "preserve".',
+            )
+            .atSourceSpan(valueNode.span),
       );
     }
   }
@@ -756,29 +766,29 @@ class _LanguageOptionValidator extends OptionsValidator {
             // `null` is not a valid key, so we can safely assume `key` is
             // non-`null`.
             if (!AnalysisOptionsFile.trueOrFalse.contains(value)) {
-              reporter.atSourceSpan(
-                v.span,
-                diag.unsupportedValue,
-                arguments: [
-                  key!,
-                  v.valueOrThrow,
-                  AnalysisOptionsFile.trueOrFalseProposal,
-                ],
+              reporter.report(
+                diag.unsupportedValue
+                    .withArguments(
+                      optionName: key!,
+                      invalidValue: v.valueOrThrow,
+                      legalValues: AnalysisOptionsFile.trueOrFalseProposal,
+                    )
+                    .atSourceSpan(v.span),
               );
             }
           }
         });
       } else if (language is YamlScalar && language.value != null) {
-        reporter.atSourceSpan(
-          language.span,
-          diag.invalidSectionFormat,
-          arguments: [AnalysisOptionsFile.language],
+        reporter.report(
+          diag.invalidSectionFormat
+              .withArguments(sectionName: AnalysisOptionsFile.language)
+              .atSourceSpan(language.span),
         );
       } else if (language is YamlList) {
-        reporter.atSourceSpan(
-          language.span,
-          diag.invalidSectionFormat,
-          arguments: [AnalysisOptionsFile.language],
+        reporter.report(
+          diag.invalidSectionFormat
+              .withArguments(sectionName: AnalysisOptionsFile.language)
+              .atSourceSpan(language.span),
         );
       }
     }
@@ -804,10 +814,10 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
     if (plugins is YamlScalar && plugins.value != null) {
       if (_firstIncludedPluginName != null &&
           _firstIncludedPluginName != plugins.value) {
-        reporter.atSourceSpan(
-          plugins.span,
-          diag.multiplePlugins,
-          arguments: [_firstIncludedPluginName],
+        reporter.report(
+          diag.multiplePlugins
+              .withArguments(firstPluginName: _firstIncludedPluginName)
+              .atSourceSpan(plugins.span),
         );
       }
     } else if (plugins is YamlList) {
@@ -816,10 +826,10 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
         // There is already at least one plugin specified in included options.
         for (var plugin in pluginValues) {
           if (plugin.value != _firstIncludedPluginName) {
-            reporter.atSourceSpan(
-              plugin.span,
-              diag.multiplePlugins,
-              arguments: [_firstIncludedPluginName],
+            reporter.report(
+              diag.multiplePlugins
+                  .withArguments(firstPluginName: _firstIncludedPluginName)
+                  .atSourceSpan(plugin.span),
             );
           }
         }
@@ -836,10 +846,10 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
               continue;
             }
           } else if (plugin.value != firstPlugin) {
-            reporter.atSourceSpan(
-              plugin.span,
-              diag.multiplePlugins,
-              arguments: [firstPlugin],
+            reporter.report(
+              diag.multiplePlugins
+                  .withArguments(firstPluginName: firstPlugin)
+                  .atSourceSpan(plugin.span),
             );
           }
         }
@@ -850,10 +860,10 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
         // There is already at least one plugin specified in included options.
         for (var plugin in pluginValues) {
           if (plugin != null && plugin.value != _firstIncludedPluginName) {
-            reporter.atSourceSpan(
-              plugin.span,
-              diag.multiplePlugins,
-              arguments: [_firstIncludedPluginName],
+            reporter.report(
+              diag.multiplePlugins
+                  .withArguments(firstPluginName: _firstIncludedPluginName)
+                  .atSourceSpan(plugin.span),
             );
           }
         }
@@ -870,10 +880,10 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
               continue;
             }
           } else if (plugin != null && plugin.value != firstPlugin) {
-            reporter.atSourceSpan(
-              plugin.span,
-              diag.multiplePlugins,
-              arguments: [firstPlugin],
+            reporter.report(
+              diag.multiplePlugins
+                  .withArguments(firstPluginName: firstPlugin)
+                  .atSourceSpan(plugin.span),
             );
           }
         }
@@ -926,24 +936,24 @@ class _OptionalChecksValueValidator extends OptionsValidator {
             } else {
               value = toLowerCase(v.value);
               if (!AnalysisOptionsFile.trueOrFalse.contains(value)) {
-                reporter.atSourceSpan(
-                  v.span,
-                  diag.unsupportedValue,
-                  arguments: [
-                    key!,
-                    v.valueOrThrow,
-                    AnalysisOptionsFile.trueOrFalseProposal,
-                  ],
+                reporter.report(
+                  diag.unsupportedValue
+                      .withArguments(
+                        optionName: key!,
+                        invalidValue: v.valueOrThrow,
+                        legalValues: AnalysisOptionsFile.trueOrFalseProposal,
+                      )
+                      .atSourceSpan(v.span),
                 );
               }
             }
           }
         });
       } else if (v != null) {
-        reporter.atSourceSpan(
-          v.span,
-          diag.invalidSectionFormat,
-          arguments: [AnalysisOptionsFile.enableExperiment],
+        reporter.report(
+          diag.invalidSectionFormat
+              .withArguments(sectionName: AnalysisOptionsFile.enableExperiment)
+              .atSourceSpan(v.span),
         );
       }
     }
@@ -982,10 +992,10 @@ class _PluginsOptionsValidator extends OptionsValidator {
         var sourceDir = _resourceProvider.pathContext.dirname(_filePath);
         var isAtContextRoot = sourceDir == _contextRoot;
         if (!isAtContextRoot && _isPrimarySource) {
-          reporter.atSourceSpan(
-            plugins.span,
-            diag.pluginsInInnerOptions,
-            arguments: [_contextRoot],
+          reporter.report(
+            diag.pluginsInInnerOptions
+                .withArguments(contextRoot: _contextRoot)
+                .atSourceSpan(plugins.span),
           );
         }
         plugins.nodes.forEach((pluginName, pluginValue) {
@@ -1000,25 +1010,27 @@ class _PluginsOptionsValidator extends OptionsValidator {
             case YamlMap():
               _validatePluginMap(reporter, pluginName, pluginValue);
             default:
-              reporter.atSourceSpan(
-                plugins.span,
-                diag.invalidSectionFormat,
-                arguments: ['${AnalysisOptionsFile.plugins}/$pluginName'],
+              reporter.report(
+                diag.invalidSectionFormat
+                    .withArguments(
+                      sectionName: '${AnalysisOptionsFile.plugins}/$pluginName',
+                    )
+                    .atSourceSpan(plugins.span),
               );
           }
         });
       case YamlList():
-        reporter.atSourceSpan(
-          plugins.span,
-          diag.invalidSectionFormat,
-          arguments: [AnalysisOptionsFile.plugins],
+        reporter.report(
+          diag.invalidSectionFormat
+              .withArguments(sectionName: AnalysisOptionsFile.plugins)
+              .atSourceSpan(plugins.span),
         );
       case YamlScalar(:var value):
         if (value != null) {
-          reporter.atSourceSpan(
-            plugins.span,
-            diag.invalidSectionFormat,
-            arguments: [AnalysisOptionsFile.plugins],
+          reporter.report(
+            diag.invalidSectionFormat
+                .withArguments(sectionName: AnalysisOptionsFile.plugins)
+                .atSourceSpan(plugins.span),
           );
         }
     }
@@ -1060,10 +1072,10 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
       if (strongModeNode is YamlMap) {
         return _validateStrongModeAsMap(reporter, strongModeNode);
       } else if (strongModeNode != null) {
-        reporter.atSourceSpan(
-          strongModeNode.span,
-          diag.invalidSectionFormat,
-          arguments: [AnalysisOptionsFile.strongMode],
+        reporter.report(
+          diag.invalidSectionFormat
+              .withArguments(sectionName: AnalysisOptionsFile.strongMode)
+              .atSourceSpan(strongModeNode.span),
         );
       }
     }
@@ -1079,28 +1091,28 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
         if (!AnalysisOptionsFile.strongModeOptions.contains(key)) {
           _builder.reportError(reporter, AnalysisOptionsFile.strongMode, k);
         } else if (key == AnalysisOptionsFile.declarationCasts) {
-          reporter.atSourceSpan(
-            v.span,
-            diag.unsupportedValue,
-            arguments: [
-              AnalysisOptionsFile.strongMode,
-              v.valueOrThrow,
-              AnalysisOptionsFile.trueOrFalseProposal,
-            ],
+          reporter.report(
+            diag.unsupportedValue
+                .withArguments(
+                  optionName: AnalysisOptionsFile.strongMode,
+                  invalidValue: v.valueOrThrow,
+                  legalValues: AnalysisOptionsFile.trueOrFalseProposal,
+                )
+                .atSourceSpan(v.span),
           );
         } else {
           // The key is valid.
           if (v is YamlScalar) {
             var value = toLowerCase(v.value);
             if (!AnalysisOptionsFile.trueOrFalse.contains(value)) {
-              reporter.atSourceSpan(
-                v.span,
-                diag.unsupportedValue,
-                arguments: [
-                  key!,
-                  v.valueOrThrow,
-                  AnalysisOptionsFile.trueOrFalseProposal,
-                ],
+              reporter.report(
+                diag.unsupportedValue
+                    .withArguments(
+                      optionName: key!,
+                      invalidValue: v.valueOrThrow,
+                      legalValues: AnalysisOptionsFile.trueOrFalseProposal,
+                    )
+                    .atSourceSpan(v.span),
               );
             }
           }
@@ -1137,10 +1149,10 @@ class _TopLevelOptionValidator extends OptionsValidator {
     if (node is YamlScalar && node.value == null) return;
 
     if (node is! YamlMap) {
-      reporter.atSourceSpan(
-        node.span,
-        diag.invalidSectionFormat,
-        arguments: [AnalysisOptionsFile.cannotIgnore],
+      reporter.report(
+        diag.invalidSectionFormat
+            .withArguments(sectionName: AnalysisOptionsFile.cannotIgnore)
+            .atSourceSpan(node.span),
       );
       return;
     }

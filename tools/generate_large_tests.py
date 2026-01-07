@@ -8,6 +8,7 @@ import os.path
 import platform
 import subprocess
 import sys
+import threading
 
 USE_PYTHON3 = True
 
@@ -29,6 +30,29 @@ def checked_in_sdk_executable():
     return os.path.join(checked_in_sdk_path(), 'bin', name)
 
 
+def generate_test(file, tools_dir, tests_dir):
+    # Create each xyz_test.dart as the output of xyz_generator.dart.
+    gen_file = os.path.join(tests_dir, file)
+    test_file = gen_file.replace('_generator.dart', '_test.dart')
+    process = subprocess.run([
+        checked_in_sdk_executable(),
+        '--packages=%s' % os.path.join(tools_dir, 'empty_package_config.json'),
+        gen_file,
+    ],
+                             capture_output=True)
+    if process.returncode != 0:
+        print("%s failed" % file)
+        print(process.stdout)
+        print(process.stderr)
+        sys.exit(process.returncode)
+    f = open(test_file, 'wb')
+    f.write(b'// GENERATED FILE: DO NOT EDIT\n')
+    f.write(('// Edit %s instead and re-run `gclient runhooks`\n' %
+             file).encode('utf-8'))
+    f.write(b'\n')
+    f.write(process.stdout)
+    f.close()
+
 def generate_tests(tools_dir, tests_dir):
     # Remove all previously existing tests in case the corresponding generator
     # is deleted or renamed.
@@ -36,33 +60,21 @@ def generate_tests(tools_dir, tests_dir):
         if file.endswith('_test.dart'):
             os.remove(os.path.join(tests_dir, file))
 
-    # Create each xyz_test.dart as the output of xyz_generator.dart.
+    # Run all the generators concurrently
+    generator_threads = []
     for file in os.listdir(tests_dir):
         if not file.endswith('_generator.dart'):
             continue
 
-        gen_file = os.path.join(tests_dir, file)
-        test_file = gen_file.replace('_generator.dart', '_test.dart')
-        process = subprocess.run([
-            checked_in_sdk_executable(),
-            '--packages=%s' %
-            os.path.join(tools_dir, 'empty_package_config.json'),
-            gen_file,
-        ],
-                                 capture_output=True)
-        if process.returncode != 0:
-            print("%s failed" % os.path.join(tests_dir, file))
-            print(process.stdout)
-            print(process.stderr)
-            sys.exit(process.returncode)
-        f = open(test_file, 'wb')
-        f.write(b'// GENERATED FILE: DO NOT EDIT\n')
-        f.write(('// Edit %s instead and re-run `gclient runhooks`\n' %
-                 file).encode('utf-8'))
-        f.write(b'\n')
-        f.write(process.stdout)
-        f.close()
+        generator_threads.append(
+            threading.Thread(target=generate_test,
+                             args=(file, tools_dir, tests_dir)))
 
+    for thread in generator_threads:
+        thread.start()
+
+    for thread in generator_threads:
+        thread.join()
 
 def Main():
     tools_dir = os.path.dirname(os.path.realpath(__file__))

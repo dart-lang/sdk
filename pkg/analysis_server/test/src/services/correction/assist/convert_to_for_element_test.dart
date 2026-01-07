@@ -63,7 +63,7 @@ f(Iterable<int> i) {
   Future<void>
   test_mapFromIterable_differentParameterNames_usedInKey_conflictInValue_noAssistWithLint() async {
     createAnalysisOptionsFile(
-      lints: [LintNames.prefer_for_elements_to_map_fromIterable],
+      lints: [LintNames.prefer_for_elements_to_map_fromiterable],
     );
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''

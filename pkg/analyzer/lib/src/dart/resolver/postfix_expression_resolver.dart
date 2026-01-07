@@ -7,7 +7,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -17,6 +16,7 @@ import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [PostfixExpression]s.
@@ -83,10 +83,13 @@ class PostfixExpressionResolver {
       operandWriteType,
       strictCasts: _resolver.analysisOptions.strictCasts,
     )) {
-      _resolver.diagnosticReporter.atNode(
-        node,
-        diag.invalidAssignment,
-        arguments: [type, operandWriteType],
+      _resolver.diagnosticReporter.report(
+        diag.invalidAssignment
+            .withArguments(
+              actualStaticType: type,
+              expectedStaticType: operandWriteType,
+            )
+            .at(node),
       );
     }
   }
@@ -130,7 +133,7 @@ class PostfixExpressionResolver {
     ExpressionImpl operand = node.operand;
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
-      _resolver.diagnosticReporter.atNode(operand, diag.receiverOfTypeNever);
+      _resolver.diagnosticReporter.report(diag.receiverOfTypeNever.at(operand));
       return;
     }
 
@@ -209,7 +212,9 @@ class PostfixExpressionResolver {
     var operand = node.operand;
 
     if (operand is SuperExpression) {
-      _resolver.diagnosticReporter.atNode(node, diag.missingAssignableSelector);
+      _resolver.diagnosticReporter.report(
+        diag.missingAssignableSelector.at(node),
+      );
       operand.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
       node.recordStaticType(DynamicTypeImpl.instance, resolver: _resolver);
       return;

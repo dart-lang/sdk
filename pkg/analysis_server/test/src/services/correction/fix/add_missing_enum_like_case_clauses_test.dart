@@ -31,7 +31,7 @@ class AddMissingEnumLikeCaseClausesTest extends FixProcessorLintTest {
       var diagnosticCode = diagnostic.diagnosticCode;
       if (!hasDiagnostic &&
           diagnosticCode is LintCode &&
-          diagnosticCode.name == lintCode) {
+          diagnosticCode.lowerCaseName == lintCode) {
         hasDiagnostic = true;
         return true;
       }

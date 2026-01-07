@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:cfg/ir/constant_value.dart';
+import 'package:cfg/ir/field.dart';
 import 'package:cfg/ir/flow_graph.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/instructions.dart';
@@ -199,8 +200,8 @@ class FlowGraphBuilder {
       graph,
       currentSourcePosition,
       target,
-      inputCount,
       type,
+      inputCount: inputCount,
     );
     popInputs(instr, 0, inputCount);
     push(instr);
@@ -218,8 +219,8 @@ class FlowGraphBuilder {
       graph,
       currentSourcePosition,
       interfaceTarget,
-      inputCount,
       type,
+      inputCount: inputCount,
     );
     popInputs(instr, 0, inputCount);
     push(instr);
@@ -238,7 +239,7 @@ class FlowGraphBuilder {
       currentSourcePosition,
       selector,
       kind,
-      inputCount,
+      inputCount: inputCount,
     );
     popInputs(instr, 0, inputCount);
     push(instr);
@@ -288,6 +289,76 @@ class FlowGraphBuilder {
       push(value);
     }
     appendInstruction(instr);
+  }
+
+  /// Append [LoadInstanceField] to the graph.
+  LoadInstanceField addLoadInstanceField(
+    CField field, {
+    bool checkInitialized = false,
+  }) {
+    final object = pop();
+    final instr = LoadInstanceField(
+      graph,
+      currentSourcePosition,
+      field,
+      object,
+      checkInitialized: checkInitialized,
+    );
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [StoreInstanceField] to the graph.
+  StoreInstanceField addStoreInstanceField(
+    CField field, {
+    bool checkNotInitialized = false,
+  }) {
+    final object = pop();
+    final value = pop();
+    final instr = StoreInstanceField(
+      graph,
+      currentSourcePosition,
+      field,
+      object,
+      value,
+      checkNotInitialized: checkNotInitialized,
+    );
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [LoadStaticField] to the graph.
+  LoadStaticField addLoadStaticField(
+    CField field, {
+    bool checkInitialized = false,
+  }) {
+    final instr = LoadStaticField(
+      graph,
+      currentSourcePosition,
+      field,
+      checkInitialized: checkInitialized,
+    );
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [StoreStaticField] to the graph.
+  StoreStaticField addStoreStaticField(
+    CField field, {
+    bool checkNotInitialized = false,
+  }) {
+    final value = pop();
+    final instr = StoreStaticField(
+      graph,
+      currentSourcePosition,
+      field,
+      value,
+      checkNotInitialized: checkNotInitialized,
+    );
+    appendInstruction(instr);
+    return instr;
   }
 
   /// Append [Throw] taking an exception as input to the graph.
@@ -376,6 +447,22 @@ class FlowGraphBuilder {
       currentSourcePosition,
       types,
       typeParameters,
+    );
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [AllocateObject] to the graph.
+  ///
+  /// Optional [typeArguments] input should be passed if allocating
+  /// an instance of a generic class.
+  AllocateObject addAllocateObject(CType type, {TypeArguments? typeArguments}) {
+    final instr = AllocateObject(
+      graph,
+      currentSourcePosition,
+      type,
+      typeArguments,
     );
     push(instr);
     appendInstruction(instr);

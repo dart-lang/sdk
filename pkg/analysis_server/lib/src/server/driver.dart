@@ -29,6 +29,7 @@ import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/session_logger/session_logger_sink.dart';
 import 'package:analysis_server/src/socket_server.dart';
+import 'package:analysis_server/src/status/performance_logger.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/starter.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -101,6 +102,10 @@ class Driver implements ServerStarter {
   /// The name of the option used to cause a log of the session to be written to
   /// a file.
   static const String sessionLogOption = 'session-log';
+
+  /// The name of the option used to cause selected data from the analysis
+  /// server to be written to a file.
+  static const String performanceLogOption = 'performance-log';
 
   /// The name of the option used to specify if [print] should print to the
   /// console instead of being intercepted.
@@ -358,6 +363,13 @@ class Driver implements ServerStarter {
       }
     }
 
+    PerformanceLogger? performanceLogger;
+    var performanceLogFilePath = results.option(performanceLogOption);
+    if (performanceLogFilePath != null) {
+      _rollLogFiles(performanceLogFilePath, 5);
+      performanceLogger = PerformanceLogger(performanceLogFilePath);
+    }
+
     // TODO(brianwilkerson): Pass the following value to the server and
     // implement the debouncing when it hasn't been disabled.
     // var disableDebouncing = results[DISABLE_STATUS_NOTIFICATION_DEBOUNCING] as bool;
@@ -376,6 +388,7 @@ class Driver implements ServerStarter {
         _sessionLogger,
         diagnosticServerPort,
         errorNotifier,
+        performanceLogger,
       );
     } else {
       startAnalysisServer(
@@ -391,6 +404,7 @@ class Driver implements ServerStarter {
         diagnosticServerPort,
         errorNotifier,
         sendPort,
+        performanceLogger,
       );
     }
 
@@ -413,6 +427,7 @@ class Driver implements ServerStarter {
     int? diagnosticServerPort,
     ErrorNotifier errorNotifier,
     SendPort? sendPort,
+    PerformanceLogger? performanceLogger,
   ) {
     var capture = results.flag(disableServerExceptionHandlingOption)
         ? (_, Function f, {void Function(String)? print}) => f()
@@ -444,6 +459,7 @@ class Driver implements ServerStarter {
       diagnosticServer,
       analyticsManager,
       detachableFileSystemManager,
+      performanceLogger,
     );
 
     diagnosticServer.httpServer = HttpAnalysisServer(socketServer);
@@ -532,6 +548,7 @@ class Driver implements ServerStarter {
     SessionLogger sessionLogger,
     int? diagnosticServerPort,
     ErrorNotifier errorNotifier,
+    PerformanceLogger? performanceLogger,
   ) {
     var capture = args.flag(disableServerExceptionHandlingOption)
         ? (_, Function f, {void Function(String)? print}) => f()
@@ -551,6 +568,7 @@ class Driver implements ServerStarter {
       instrumentationService,
       sessionLogger,
       detachableFileSystemManager,
+      performanceLogger,
     );
     errorNotifier.server = socketServer.analysisServer;
     diagnosticServer.httpServer = HttpAnalysisServer(socketServer);
@@ -847,6 +865,12 @@ class Driver implements ServerStarter {
       sessionLogOption,
       valueHelp: 'file path',
       help: 'Write a server session log to the given file.',
+    );
+
+    parser.addOption(
+      performanceLogOption,
+      valueHelp: 'file path',
+      help: 'Write a server performance log to the given file.',
     );
 
     parser.addOption(

@@ -21,7 +21,11 @@ import 'package:cfg/front_end/recognized_methods.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/ir_to_text.dart';
 import 'package:cfg/ir/ssa_computation.dart';
+import 'package:cfg/passes/constant_propagation.dart';
+import 'package:cfg/passes/control_flow_optimizations.dart';
 import 'package:cfg/passes/pass.dart';
+import 'package:cfg/passes/simplification.dart';
+import 'package:cfg/passes/value_numbering.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:test/test.dart';
 import 'package:vm/modular/target/vm.dart';
@@ -95,24 +99,60 @@ class CompileAndDumpIr extends RecursiveVisitor {
 
   @override
   void visitProcedure(Procedure node) {
-    final function = functionRegistry.getFunction(
-      node,
-      isGetter: node.isGetter,
-      isSetter: node.isSetter,
-    );
-    // TODO: enable testing of other functions
-    if (function is! RegularFunction) {
+    if (node.isAbstract) {
       return;
     }
+    compileAndDumpFunction(
+      functionRegistry.getFunction(
+        node,
+        isGetter: node.isGetter,
+        isSetter: node.isSetter,
+      ),
+    );
+  }
+
+  @override
+  void visitField(Field node) {
+    if (node.isAbstract) {
+      return;
+    }
+    if (node.hasGetter) {
+      compileAndDumpFunction(
+        functionRegistry.getFunction(node, isGetter: true),
+      );
+    }
+    if (node.hasSetter) {
+      compileAndDumpFunction(
+        functionRegistry.getFunction(node, isSetter: true),
+      );
+    }
+    if ((node.isStatic || node.isLate) && node.initializer != null) {
+      compileAndDumpFunction(
+        functionRegistry.getFunction(node, isInitializer: true),
+      );
+    }
+  }
+
+  @override
+  void visitConstructor(Constructor node) {
+    compileAndDumpFunction(functionRegistry.getFunction(node));
+  }
+
+  void compileAndDumpFunction(CFunction function) {
     final graph = AstToIr(
       function,
       functionRegistry,
       recognizedMethods,
       enableAsserts: true,
     ).buildFlowGraph();
-    final pipeline = Pipeline([SSAComputation()]);
+    final pipeline = Pipeline([
+      SSAComputation(),
+      ValueNumbering(simplification: Simplification()),
+      ConstantPropagation(),
+      ControlFlowOptimizations(),
+    ]);
     pipeline.run(graph);
-    buffer.writeln('--- ${node.name}');
+    buffer.writeln('--- $function');
     buffer.writeln(
       IrToText(graph, printDominators: true, printLoops: true).toString(),
     );

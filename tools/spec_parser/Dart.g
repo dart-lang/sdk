@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.57 Introduce augmentation related updates.
+//
 // v0.56 Update constructor declaration syntax to allow `constructorHead`.
 // Recatogerize 'factory' to be a reserved word and not a built-in identifier.
 //
@@ -305,6 +307,7 @@ topLevelDefinition
     |    AUGMENT? EXTERNAL getterSignature ';'
     |    AUGMENT? EXTERNAL setterSignature ';'
     |    AUGMENT? EXTERNAL finalVarOrType identifierList ';'
+    |    AUGMENT? ABSTRACT finalVarOrType identifierList ';'
     |    AUGMENT? getterSignature (functionBody | ';')
     |    AUGMENT? setterSignature (functionBody | ';')
     |    AUGMENT? functionSignature (functionBody | ';')
@@ -428,7 +431,8 @@ typeWithParameters
 
 classDeclaration
     :    AUGMENT? (classModifiers | mixinClassModifiers)
-         CLASS classNameMaybePrimary superclass? interfaces? classBody
+         CLASS classNameMaybePrimary superclass? interfaces?
+         memberedDeclarationBody
     |    classModifiers MIXIN? CLASS mixinApplicationClass
     ;
 
@@ -442,9 +446,13 @@ classNameMaybePrimary
     |    typeWithParameters
     ;
 
-classBody
-    :    LBRACE (metadata memberDeclaration)* RBRACE
+memberedDeclarationBody
+    :    LBRACE memberDeclarations RBRACE
     |    ';'
+    ;
+
+memberDeclarations
+    :    (metadata memberDeclaration)*
     ;
 
 classModifiers
@@ -479,29 +487,25 @@ mixinApplicationClass
     ;
 
 mixinDeclaration
-    :    AUGMENT? BASE? MIXIN typeWithParameters
+    :    BASE? MIXIN typeWithParameters
          (ON typeNotVoidNotFunctionList)? interfaces?
-         LBRACE (metadata memberDeclaration)* RBRACE
+         memberedDeclarationBody
+    |    AUGMENT BASE? MIXIN typeWithParameters interfaces?
+         memberedDeclarationBody
     ;
 
 extensionTypeDeclaration
-    :    EXTENSION TYPE primaryConstructor interfaces? extensionTypeBody
+    :    EXTENSION TYPE primaryConstructor interfaces?
+         memberedDeclarationBody
     |    AUGMENT EXTENSION TYPE typeWithParameters interfaces?
-         extensionTypeBody
-    ;
-
-extensionTypeBody
-    :    LBRACE (metadata memberDeclaration)* RBRACE
-    |    ';'
+         memberedDeclarationBody
     ;
 
 extensionDeclaration
-    :    EXTENSION typeIdentifierNotType? typeParameters? ON type extensionBody
-    |    AUGMENT EXTENSION typeIdentifierNotType typeParameters? extensionBody
-    ;
-
-extensionBody
-    :    LBRACE (metadata memberDeclaration)* RBRACE
+    :    EXTENSION typeIdentifierNotType? typeParameters? ON type
+         memberedDeclarationBody
+    |    AUGMENT EXTENSION typeIdentifierNotType typeParameters?
+         memberedDeclarationBody
     ;
 
 methodSignature
@@ -697,10 +701,13 @@ mixinApplication
     ;
 
 enumType
-    :    AUGMENT? ENUM classNameMaybePrimary mixins? interfaces? LBRACE
-         enumEntry (',' enumEntry)* ','?
-         (';' (metadata memberDeclaration)*)?
-         RBRACE
+    :    AUGMENT? ENUM classNameMaybePrimary mixins? interfaces?
+         LBRACE enumBody? RBRACE
+    ;
+
+enumBody
+    :    enumEntry (',' enumEntry)* ','? (';' memberDeclarations)?
+    |    ';' memberDeclarations
     ;
 
 enumEntry

@@ -11,11 +11,11 @@ export 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
     show resolveRelativeUri;
 
 /// If the given [node] has a documentation comment, remember its content
-/// and range into the given [element].
-void setElementDocumentationComment(FragmentImpl element, AnnotatedNode node) {
+/// and range into the given [fragment].
+void setElementDocumentationComment(FragmentImpl fragment, AnnotatedNode node) {
   var comment = node.documentationComment;
   if (comment != null) {
-    element.documentationComment = comment.tokens
+    fragment.documentationComment = comment.tokens
         .map((Token t) => t.lexeme)
         .join('\n');
   }

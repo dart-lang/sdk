@@ -51,24 +51,25 @@ B37 = TargetBlock() idom:B32
 
 --- chainedHeaders
 B0 = EntryBlock() dominates:(B2)
-  v7 = Constant(17)
+  Constant(17)
   v11 = Constant(0)
   v18 = Constant(2)
   v25 = Constant(null)
+  v29 = Constant(-17)
   v1 = Parameter(i)
   Goto(B2)
 B2 = JoinBlock(B0, B21) idom:B0 dominates:(B4) loop-header (depth:1 body:(B2, B4, B14, B21, B13) back-edges:(B21))
-  v27 = Phi(v1, v8)
+  v27 = Phi(v1, v30)
   Goto(B4)
 B4 = JoinBlock(B2, B13) idom:B2 dominates:(B14, B13) loop-header (depth:2 body:(B4, B13) back-edges:(B13))
-  v28 = Phi(v27, v8)
-  v8 = BinaryIntOp -(v28, v7)
-  v12 = Comparison int >=(v8, v11)
+  v28 = Phi(v27, v30)
+  v30 = BinaryIntOp +(v28, v29)
+  v12 = Comparison int >=(v30, v11)
   Branch(v12, true: B13, false: B14)
 B13 = TargetBlock() idom:B4 in-loop:B4
   Goto(B4)
 B14 = TargetBlock() idom:B4 dominates:(B22, B21) in-loop:B2
-  v19 = BinaryIntOp %(v8, v18)
+  v19 = BinaryIntOp %(v30, v18)
   v20 = Comparison int ==(v19, v11)
   Branch(v20, true: B21, false: B22)
 B21 = TargetBlock() idom:B14 in-loop:B2
@@ -83,12 +84,12 @@ B0 = EntryBlock() dominates:(B8, B34, B4, B3, B7)
   v27 = Constant(10)
   v38 = Constant(null)
   v1 = Parameter(i)
-  v6 = InterfaceCall Object.==(v5, v1)
+  v6 = Comparison int ==(v1, v5)
   Branch(v6, true: B7, false: B8)
 B7 = TargetBlock() idom:B0
   Goto(B3)
 B8 = TargetBlock() idom:B0 dominates:(B14, B13)
-  v12 = InterfaceCall Object.==(v11, v1)
+  v12 = Comparison int ==(v1, v11)
   Branch(v12, true: B13, false: B14)
 B13 = TargetBlock() idom:B8
   Goto(B4)
@@ -99,19 +100,15 @@ B4 = JoinBlock(B13, B3) idom:B0 dominates:(B30, B29)
   Branch(v28, true: B29, false: B30)
 B29 = TargetBlock() idom:B4
   Goto(B34)
-B30 = TargetBlock() idom:B4 dominates:(B32)
-  Goto(B32)
-B32 = JoinBlock(B30) idom:B30
+B30 = TargetBlock() idom:B4
   Goto(B3)
-B3 = JoinBlock(B32, B7) idom:B0
+B3 = JoinBlock(B30, B7) idom:B0
   v41 = Phi(v24, v1)
   v20 = BinaryIntOp +(v41, v5)
   Goto(B4)
-B14 = TargetBlock() idom:B8 dominates:(B17)
-  Goto(B17)
-B17 = JoinBlock(B14) idom:B14
+B14 = TargetBlock() idom:B8
   Goto(B34)
-B34 = JoinBlock(B17, B29) idom:B0
+B34 = JoinBlock(B14, B29) idom:B0
   Return(v38)
 
 --- main

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
@@ -224,7 +223,7 @@ class ContextRootTest with ResourceProviderMixin {
     root.excludedGlobs.add(LocatedGlob(root.root, glob));
   }
 
-  void _assertAnalyzedFiles(ContextRoot root, List<String> posixPathList) {
+  void _assertAnalyzedFiles(ContextRootImpl root, List<String> posixPathList) {
     var pathList = posixPathList.map(convertPath).toList();
 
     var analyzedFiles = root.analyzedFiles().toList();
@@ -235,7 +234,7 @@ class ContextRootTest with ResourceProviderMixin {
     }
   }
 
-  void _assertAnalyzedFiles2(ContextRoot root, List<File> files) {
+  void _assertAnalyzedFiles2(ContextRootImpl root, List<File> files) {
     var pathList = files.map((file) => file.path).toList();
     _assertAnalyzedFiles(root, pathList);
   }
@@ -253,7 +252,7 @@ class ContextRootTest with ResourceProviderMixin {
     return contextRoot;
   }
 
-  static bool _isAnalyzed(ContextRoot contextRoot, String relPosix) {
+  static bool _isAnalyzed(ContextRootImpl contextRoot, String relPosix) {
     var pathContext = contextRoot.resourceProvider.pathContext;
     var path = pathContext.join(
       contextRoot.root.path,

@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 
 VerifySuperFormalParametersResult verifySuperFormalParameters({
   required ConstructorDeclaration constructor,
@@ -25,9 +25,10 @@ VerifySuperFormalParametersResult verifySuperFormalParameters({
       } else {
         result.positionalArgumentCount++;
         if (hasExplicitPositionalArguments) {
-          diagnosticReporter?.atToken(
-            parameter.name,
-            diag.positionalSuperFormalParameterWithPositionalArgument,
+          diagnosticReporter?.report(
+            diag.positionalSuperFormalParameterWithPositionalArgument.at(
+              parameter.name,
+            ),
           );
         }
       }

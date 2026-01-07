@@ -91,7 +91,7 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     DartType type,
   ) async {
     await builder.addDartFileEdit(file, (builder) {
-      if (builder.canWriteType(type)) {
+      if (builder.canWriteType(type, offset: name.offset)) {
         if (keyword != null && keyword.keyword == Keyword.VAR) {
           builder.addReplacement(range.token(keyword), (builder) {
             builder.writeType(type);

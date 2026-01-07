@@ -105,19 +105,6 @@ class PrimaryConstructorFieldDeclaration
   }
 
   @override
-  Initializer buildErroneousInitializer(
-    Expression effect,
-    Expression value, {
-    required int fileOffset,
-  }) {
-    return _encoding.buildErroneousInitializer(
-      effect,
-      value,
-      fileOffset: fileOffset,
-    );
-  }
-
-  @override
   // Coverage-ignore(suite): Not run.
   void buildFieldInitializer({
     required TypeInferrer typeInferrer,

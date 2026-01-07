@@ -180,6 +180,9 @@ class _IsTestGroup {
   const _IsTestGroup();
 }
 
+@Target({
+  TargetKind.constructor,
+})
 class _Literal {
   const _Literal();
 }
@@ -199,6 +202,7 @@ class _MustCallSuper {
   const _MustCallSuper();
 }
 
+@Target({TargetKind.overridableMember})
 class _NonVirtual {
   const _NonVirtual();
 }
@@ -240,10 +244,26 @@ class _Virtual {
   const _Virtual();
 }
 
+@Target({TargetKind.overridableMember})
 class _VisibleForOverriding {
   const _VisibleForOverriding();
 }
 
+@Target({
+  TargetKind.constructor,
+  TargetKind.enumValue,
+  TargetKind.extension,
+  TargetKind.extensionType,
+  TargetKind.field,
+  TargetKind.function,
+  TargetKind.getter,
+  TargetKind.method,
+  TargetKind.parameter,
+  TargetKind.setter,
+  TargetKind.typedefType,
+  TargetKind.type,
+  TargetKind.topLevelVariable,
+})
 class _VisibleForTesting {
   const _VisibleForTesting();
 }

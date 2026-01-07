@@ -246,7 +246,7 @@ class VariableGet extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write(printer.getVariableName(variable));
+    printer.write(printer.getVariableName(expressionVariable));
     if (promotedType != null) {
       printer.write('{');
       printer.writeType(promotedType!);
@@ -310,7 +310,7 @@ class VariableSet extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write(printer.getVariableName(variable));
+    printer.write(printer.getVariableName(expressionVariable));
     printer.write(' = ');
     printer.writeExpression(value);
   }
@@ -4845,7 +4845,7 @@ class Let extends Expression {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
-    printer.writeVariableDeclaration(variable);
+    printer.writeVariableInitialization(variable);
     printer.write(' in ');
     printer.writeExpression(body);
   }

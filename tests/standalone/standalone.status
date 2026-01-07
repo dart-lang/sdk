@@ -8,6 +8,7 @@
 io/http_close_stack_overflow_test: Skip # The test is heavy loaded. Should be used for manual test.
 io/http_linklocal_ipv6_test: SkipByDesign # This needs manual test.
 io/large_file_read_small_file_test: Slow, Pass # Test reads small file 1M times
+io/many_pending_secure_sockets_test: Slow, Pass # Creates many TLS connections.
 io/non_utf8_directory_test: Skip # Issue 33519. Temp files causing bots to go purple.
 io/non_utf8_file_test: Skip # Issue 33519. Temp files causing bots to go purple.
 io/non_utf8_link_test: Skip # Issue 33519. Temp files causing bots to go purple.
@@ -48,6 +49,7 @@ deferred_transitive_import_error_test: Skip
 
 [ $compiler == dart2bytecode ]
 io/http_redirect_test: SkipByDesign # dart:mirrors is not supported.
+io/issue_46436_test: SkipByDesign # dart:mirrors is not supported.
 
 [ $compiler == dartkp ]
 lazy_async_stack_test: Skip # Flaky.

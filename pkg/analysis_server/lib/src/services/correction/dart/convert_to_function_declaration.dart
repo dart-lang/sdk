@@ -118,7 +118,7 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
         }
       }
 
-      if (builder.canWriteType(returnType)) {
+      if (builder.canWriteType(returnType, offset: node.offset)) {
         builder.addInsertion(node.offset, (builder) {
           builder.writeType(returnType);
           builder.write(' ');
@@ -135,13 +135,15 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
               continue;
             }
             var staticParameterType = staticParameters[index]?.type;
-            if (!builder.canWriteType(staticParameterType)) {
-              continue;
+            if (builder.canWriteType(
+              staticParameterType,
+              offset: parameter.offset,
+            )) {
+              builder.addInsertion(parameter.offset, (builder) {
+                builder.writeType(staticParameterType);
+                builder.write(' ');
+              });
             }
-            builder.addInsertion(parameter.offset, (builder) {
-              builder.writeType(staticParameterType);
-              builder.write(' ');
-            });
           }
         }
       }

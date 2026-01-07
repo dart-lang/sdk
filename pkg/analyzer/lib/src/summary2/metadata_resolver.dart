@@ -15,11 +15,11 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   final Linker _linker;
   final Scope _containerScope;
   final LibraryBuilder _libraryBuilder;
-  final LibraryFragmentImpl _unitElement;
+  final LibraryFragmentImpl _libraryFragment;
   late Scope _scope;
 
-  MetadataResolver(this._linker, this._unitElement, this._libraryBuilder)
-    : _containerScope = _unitElement.scope {
+  MetadataResolver(this._linker, this._libraryFragment, this._libraryBuilder)
+    : _containerScope = _libraryFragment.scope {
     _scope = _containerScope;
   }
 
@@ -30,7 +30,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
       var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
       var astResolver = AstResolver(
         _linker,
-        _unitElement,
+        _libraryFragment,
         _scope,
         analysisOptions,
       );
@@ -46,7 +46,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     node.metadata.accept(this);
-    node.namePart.typeParameters?.accept(this);
+    node.namePart.accept(this);
 
     _scope = LinkingNodeContext.get(node).scope;
     try {
@@ -226,12 +226,22 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitNameWithTypeParameters(NameWithTypeParameters node) {
+    node.typeParameters?.accept(this);
+  }
+
+  @override
   void visitPartDirective(PartDirective node) {
     node.metadata.accept(this);
   }
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
+    node.metadata.accept(this);
+  }
+
+  @override
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
     node.metadata.accept(this);
   }
 

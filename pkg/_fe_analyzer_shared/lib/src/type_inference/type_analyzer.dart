@@ -279,12 +279,7 @@ mixin TypeAnalyzer<
   TypeDeclarationType extends Object,
   TypeDeclaration extends Object
 >
-    implements
-        TypeAnalysisNullShortingInterface<
-          Expression,
-          Variable,
-          SharedTypeView
-        > {
+    implements TypeAnalysisNullShortingInterface<Expression, Variable> {
   /// Cached context types and their respective dot shorthand nodes.
   ///
   /// The [SharedTypeSchemaView] is used to resolve dot shorthand heads. We
@@ -292,19 +287,11 @@ mixin TypeAnalyzer<
   /// two context types for the same node.
   final _dotShorthands = <(Node, SharedTypeSchemaView)>[];
 
-  TypeAnalyzerErrors<
-    Node,
-    Statement,
-    Expression,
-    Variable,
-    SharedTypeView,
-    Pattern,
-    Error
-  >
+  TypeAnalyzerErrors<Node, Statement, Expression, Variable, Pattern, Error>
   get errors;
 
   @override
-  FlowAnalysis<Node, Statement, Expression, Variable, SharedTypeView> get flow;
+  FlowAnalysis<Node, Statement, Expression, Variable> get flow;
 
   /// Queries whether the [_dotShorthands] stack is empty, meaning that we have
   /// no cached context types.
@@ -331,7 +318,7 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: none.
   AssignedVariablePatternResult<Error> analyzeAssignedVariablePattern(
-    MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
+    MatchContext<Node, Expression, Pattern, Variable> context,
     Pattern node,
     Variable variable,
   ) {
@@ -400,8 +387,7 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Pattern innerPattern).
   PatternResult analyzeCastPattern({
-    required MatchContext<Node, Expression, Pattern, SharedTypeView, Variable>
-    context,
+    required MatchContext<Node, Expression, Pattern, Variable> context,
     required Pattern pattern,
     required Pattern innerPattern,
     required SharedTypeView requiredType,
@@ -449,7 +435,7 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Expression).
   ConstantPatternResult<Error> analyzeConstantPattern(
-    MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
+    MatchContext<Node, Expression, Pattern, Variable> context,
     Node node,
     Expression expression,
   ) {
@@ -524,7 +510,7 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: none.
   DeclaredVariablePatternResult<Error> analyzeDeclaredVariablePattern(
-    MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
+    MatchContext<Node, Expression, Pattern, Variable> context,
     Pattern node,
     Variable variable,
     String variableName,
@@ -635,7 +621,11 @@ mixin TypeAnalyzer<
     SharedTypeView type = result.type;
     if (nullShortingTargetDepth != null &&
         nullShortingDepth > nullShortingTargetDepth) {
-      type = finishNullShorting(nullShortingTargetDepth, type);
+      type = finishNullShorting(
+        nullShortingTargetDepth,
+        type,
+        wholeExpression: node,
+      );
     }
     return type;
   }
@@ -682,7 +672,7 @@ mixin TypeAnalyzer<
     Map<String, int> patternVariablePromotionKeys = {};
     // TODO(paulberry): rework handling of isFinal
     dispatchPattern(
-      new MatchContext<Node, Expression, Pattern, SharedTypeView, Variable>(
+      new MatchContext<Node, Expression, Pattern, Variable>(
         isFinal: false,
         componentVariables: componentVariables,
         patternVariablePromotionKeys: patternVariablePromotionKeys,
@@ -753,7 +743,7 @@ mixin TypeAnalyzer<
     Map<String, int> patternVariablePromotionKeys = {};
     // TODO(paulberry): rework handling of isFinal
     dispatchPattern(
-      new MatchContext<Node, Expression, Pattern, SharedTypeView, Variable>(
+      new MatchContext<Node, Expression, Pattern, Variable>(
         isFinal: false,
         componentVariables: componentVariables,
         patternVariablePromotionKeys: patternVariablePromotionKeys,
@@ -876,7 +866,7 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (n * Pattern) where n = elements.length.
   ListPatternResult<Error> analyzeListPattern(
-    MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
+    MatchContext<Node, Expression, Pattern, Variable> context,
     Pattern node, {
     SharedTypeView? elementType,
     required List<Node> elements,
@@ -1009,7 +999,7 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Pattern left, Pattern right)
   PatternResult analyzeLogicalAndPattern(
-    MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
+    MatchContext<Node, Expression, Pattern, Variable> context,
     Pattern node,
     Node lhs,
     Node rhs,
@@ -1053,7 +1043,7 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Pattern left, Pattern right)
   LogicalOrPatternResult<Error> analyzeLogicalOrPattern(
-    MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
+    MatchContext<Node, Expression, Pattern, Variable> context,
     Pattern node,
     Node lhs,
     Node rhs,
@@ -1154,7 +1144,7 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (n * MapPatternElement) where n = elements.length.
   MapPatternResult<Error> analyzeMapPattern(
-    MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
+    MatchContext<Node, Expression, Pattern, Variable> context,
     Pattern node, {
     required ({SharedTypeView keyType, SharedTypeView valueType})?
     typeArguments,
@@ -1316,7 +1306,7 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Pattern innerPattern).
   NullCheckOrAssertPatternResult<Error> analyzeNullCheckOrAssertPattern(
-    MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
+    MatchContext<Node, Expression, Pattern, Variable> context,
     Pattern node,
     Pattern innerPattern, {
     required bool isAssert,
@@ -1390,7 +1380,7 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (n * Pattern) where n = fields.length.
   ObjectPatternResult<Error> analyzeObjectPattern(
-    MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
+    MatchContext<Node, Expression, Pattern, Variable> context,
     Pattern node, {
     required List<RecordPatternField<Node, Pattern>> fields,
   }) {
@@ -1493,7 +1483,7 @@ mixin TypeAnalyzer<
     Map<String, List<Variable>> componentVariables = {};
     Map<String, int> patternVariablePromotionKeys = {};
     dispatchPattern(
-      new MatchContext<Node, Expression, Pattern, SharedTypeView, Variable>(
+      new MatchContext<Node, Expression, Pattern, Variable>(
         isFinal: false,
         irrefutableContext: node,
         assignedVariables: <Variable, Pattern>{},
@@ -1571,7 +1561,7 @@ mixin TypeAnalyzer<
     Map<String, List<Variable>> componentVariables = {};
     Map<String, int> patternVariablePromotionKeys = {};
     dispatchPattern(
-      new MatchContext<Node, Expression, Pattern, SharedTypeView, Variable>(
+      new MatchContext<Node, Expression, Pattern, Variable>(
         isFinal: false,
         irrefutableContext: node,
         componentVariables: componentVariables,
@@ -1625,7 +1615,7 @@ mixin TypeAnalyzer<
     Map<String, List<Variable>> componentVariables = {};
     Map<String, int> patternVariablePromotionKeys = {};
     dispatchPattern(
-      new MatchContext<Node, Expression, Pattern, SharedTypeView, Variable>(
+      new MatchContext<Node, Expression, Pattern, Variable>(
         isFinal: isFinal,
         irrefutableContext: node,
         componentVariables: componentVariables,
@@ -1657,7 +1647,7 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (n * Pattern) where n = fields.length.
   RecordPatternResult<Error> analyzeRecordPattern(
-    MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
+    MatchContext<Node, Expression, Pattern, Variable> context,
     Pattern node, {
     required List<RecordPatternField<Node, Pattern>> fields,
   }) {
@@ -1802,7 +1792,7 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Expression).
   RelationalPatternResult<Error> analyzeRelationalPattern(
-    MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
+    MatchContext<Node, Expression, Pattern, Variable> context,
     Pattern node,
     Expression operand,
   ) {
@@ -1959,13 +1949,7 @@ mixin TypeAnalyzer<
           Map<String, List<Variable>> componentVariables = {};
           Map<String, int> patternVariablePromotionKeys = {};
           dispatchPattern(
-            new MatchContext<
-              Node,
-              Expression,
-              Pattern,
-              SharedTypeView,
-              Variable
-            >(
+            new MatchContext<Node, Expression, Pattern, Variable>(
               isFinal: false,
               switchScrutinee: scrutinee,
               componentVariables: componentVariables,
@@ -2090,13 +2074,7 @@ mixin TypeAnalyzer<
           Map<String, List<Variable>> componentVariables = {};
           Map<String, int> patternVariablePromotionKeys = {};
           dispatchPattern(
-            new MatchContext<
-              Node,
-              Expression,
-              Pattern,
-              SharedTypeView,
-              Variable
-            >(
+            new MatchContext<Node, Expression, Pattern, Variable>(
               isFinal: false,
               switchScrutinee: scrutinee,
               componentVariables: componentVariables,
@@ -2232,8 +2210,7 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: none.
   WildcardPatternResult<Error> analyzeWildcardPattern({
-    required MatchContext<Node, Expression, Pattern, SharedTypeView, Variable>
-    context,
+    required MatchContext<Node, Expression, Pattern, Variable> context,
     required Pattern node,
     required SharedTypeView? declaredType,
   }) {
@@ -2319,7 +2296,7 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Pattern).
   PatternResult dispatchPattern(
-    MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
+    MatchContext<Node, Expression, Pattern, Variable> context,
     Node pattern,
   );
 
@@ -2820,7 +2797,6 @@ abstract class TypeAnalyzerErrors<
   Statement extends Node,
   Expression extends Node,
   Variable extends Object,
-  Type extends Object,
   Pattern extends Node,
   Error
 >
@@ -2830,8 +2806,8 @@ abstract class TypeAnalyzerErrors<
   Error caseExpressionTypeMismatch({
     required Expression scrutinee,
     required Expression caseExpression,
-    required Type scrutineeType,
-    required Type caseExpressionType,
+    required SharedTypeView scrutineeType,
+    required SharedTypeView caseExpressionType,
   });
 
   /// Called for variable that is assigned more than once.
@@ -2875,15 +2851,15 @@ abstract class TypeAnalyzerErrors<
   /// type that is strictly non-nullable, so the null check is not necessary.
   Error? matchedTypeIsStrictlyNonNullable({
     required Pattern pattern,
-    required Type matchedType,
+    required SharedTypeView matchedType,
   });
 
   /// Called when the matched type of a cast pattern is a subtype of the
   /// required type, so the cast is not necessary.
   void matchedTypeIsSubtypeOfRequired({
     required Pattern pattern,
-    required Type matchedType,
-    required Type requiredType,
+    required SharedTypeView matchedType,
+    required SharedTypeView requiredType,
   });
 
   /// Called if the static type of a condition is not assignable to `bool`.
@@ -2896,7 +2872,7 @@ abstract class TypeAnalyzerErrors<
   Error patternForInExpressionIsNotIterable({
     required Node node,
     required Expression expression,
-    required Type expressionType,
+    required SharedTypeView expressionType,
   });
 
   /// Called if, for a pattern in an irrefutable context, the matched type of
@@ -2909,8 +2885,8 @@ abstract class TypeAnalyzerErrors<
   Error patternTypeMismatchInIrrefutableContext({
     required Pattern pattern,
     required Node context,
-    required Type matchedType,
-    required Type requiredType,
+    required SharedTypeView matchedType,
+    required SharedTypeView requiredType,
   });
 
   /// Called if a refutable pattern is illegally used in an irrefutable context.
@@ -2928,15 +2904,15 @@ abstract class TypeAnalyzerErrors<
   /// is not assignable to [parameterType] of the invoked relational operator.
   Error relationalPatternOperandTypeNotAssignable({
     required Pattern pattern,
-    required Type operandType,
-    required Type parameterType,
+    required SharedTypeView operandType,
+    required SharedTypeView parameterType,
   });
 
   /// Called if the [returnType] of the invoked relational operator is not
   /// assignable to `bool`.
   Error relationalPatternOperatorReturnTypeNotAssignableToBool({
     required Pattern pattern,
-    required Type returnType,
+    required SharedTypeView returnType,
   });
 
   /// Called if a rest pattern found inside a map pattern.

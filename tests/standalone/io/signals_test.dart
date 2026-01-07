@@ -4,6 +4,7 @@
 
 // OtherResources=signal_test_script.dart
 // OtherResources=signals_test_script.dart
+// Environment=TSAN_OPTIONS=report_thread_leaks=0
 
 import "dart:io";
 import "dart:convert";

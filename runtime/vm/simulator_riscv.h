@@ -259,8 +259,6 @@ class Simulator {
   void InterpretMISCMEM(Instr instr);
   void InterpretSYSTEM(Instr instr);
   void InterpretECALL(Instr instr);
-  void InterpretEBREAK(Instr instr);
-  void InterpretEBREAK(CInstr instr);
   void InterpretAMO(Instr instr);
   void InterpretAMO8(Instr instr);
   void InterpretAMO16(Instr instr);
@@ -319,6 +317,7 @@ class Simulator {
   void InterpretOPV_CFG(Instr instr);
   DART_NORETURN void IllegalInstruction(Instr instr);
   DART_NORETURN void IllegalInstruction(CInstr instr);
+  DART_NORETURN void Fault(const char* message);
 
   template <typename type>
   type MemoryRead(uintx_t address, Register base);

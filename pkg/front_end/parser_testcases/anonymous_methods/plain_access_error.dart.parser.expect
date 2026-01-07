@@ -1,0 +1,27 @@
+NOTICE: Stream was rewritten by parser!
+
+main() => 1.{;
+main() => 1. 1; };
+main() => 1.=> *synthetic*;
+main() => 1.( {*synthetic*};
+main() => 1.) { 1; };
+main() => 1.(p) => *synthetic*;
+main() => 1.(p) {;
+main() => 1.(p) ;1; };
+main() => 1.(int p) => *synthetic*;
+main() => 1.(int p) {;
+main() => 1.(int p) ;1; };
+
+
+main[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 1[StringToken].[SimpleToken]{[BeginToken];[SimpleToken]
+main[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 1[StringToken].[SimpleToken] 1[StringToken];[SimpleToken] }[SimpleToken];[SimpleToken]
+main[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 1[StringToken].[SimpleToken]=>[SimpleToken] [SyntheticStringToken];[SimpleToken]
+main[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 1[StringToken].[SimpleToken]([BeginToken] {[BeginToken][SyntheticStringToken]}[SimpleToken];[SimpleToken]
+main[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 1[StringToken].[SimpleToken])[SimpleToken] {[BeginToken] 1[StringToken];[SimpleToken] }[SimpleToken];[SimpleToken]
+main[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 1[StringToken].[SimpleToken]([BeginToken]p[StringToken])[SimpleToken] =>[SimpleToken] [SyntheticStringToken];[SimpleToken]
+main[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 1[StringToken].[SimpleToken]([BeginToken]p[StringToken])[SimpleToken] {[BeginToken];[SimpleToken]
+main[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 1[StringToken].[SimpleToken]([BeginToken]p[StringToken])[SimpleToken] ;[SyntheticToken]1[StringToken];[SimpleToken] }[SimpleToken];[SimpleToken]
+main[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 1[StringToken].[SimpleToken]([BeginToken]int[StringToken] p[StringToken])[SimpleToken] =>[SimpleToken] [SyntheticStringToken];[SimpleToken]
+main[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 1[StringToken].[SimpleToken]([BeginToken]int[StringToken] p[StringToken])[SimpleToken] {[BeginToken];[SimpleToken]
+main[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 1[StringToken].[SimpleToken]([BeginToken]int[StringToken] p[StringToken])[SimpleToken] ;[SyntheticToken]1[StringToken];[SimpleToken] }[SimpleToken];[SimpleToken]
+[SimpleToken]

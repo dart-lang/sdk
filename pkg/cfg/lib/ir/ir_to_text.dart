@@ -101,6 +101,14 @@ final class IrToText extends VoidInstructionVisitor {
       case StoreLocal():
         _buffer.write(instr.variable.name);
         _buffer.write(', ');
+      case LoadField():
+        _buffer.write(instr.field);
+        if (instr.inputCount > 0) {
+          _buffer.write(', ');
+        }
+      case StoreField():
+        _buffer.write(instr.field);
+        _buffer.write(', ');
       case _:
     }
     for (int i = 0, n = instr.inputCount; i < n; ++i) {

@@ -282,6 +282,149 @@ DotShorthandConstructorInvocation
 ''');
   }
 
+  test_conflict_instance_getter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int value; // Same name as constructor
+  A.value(this.value);
+}
+
+void main() {
+  A _ = .value(1);
+}
+''');
+
+    assertResolvedNodeText(
+      findNode.singleDotShorthandConstructorInvocation,
+      r'''
+DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: value
+    element: <testLibrary>::@class::A::@constructor::value
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::value
+        staticType: int
+    rightParenthesis: )
+  isDotShorthand: true
+  staticType: A
+''',
+    );
+  }
+
+  test_conflict_instance_method() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int val;
+  A.value(this.val);
+  A? value() => null; // Same name as constructor
+}
+
+void main() {
+  A _ = .value(1);
+}
+''');
+
+    assertResolvedNodeText(
+      findNode.singleDotShorthandConstructorInvocation,
+      r'''
+DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: value
+    element: <testLibrary>::@class::A::@constructor::value
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::val
+        staticType: int
+    rightParenthesis: )
+  isDotShorthand: true
+  staticType: A
+''',
+    );
+  }
+
+  test_conflict_instance_method_factory() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int val;
+  A._(this.val);
+  factory A.foo() => A._(1);
+  A? foo() => A._(2); // Same name as constructor
+}
+
+void main() {
+  A _ = .foo();
+}
+''');
+
+    assertResolvedNodeText(
+      findNode.singleDotShorthandConstructorInvocation,
+      r'''
+DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@constructor::foo
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  staticType: A
+''',
+    );
+  }
+
+  test_conflict_instance_setter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int? val;
+  A.value(this.val);
+
+  // Same name as constructor
+  set value(int v) {
+    val = v;
+  }
+}
+
+void main() {
+  A _ = .value(1);
+}
+''');
+
+    assertResolvedNodeText(
+      findNode.singleDotShorthandConstructorInvocation,
+      r'''
+DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: value
+    element: <testLibrary>::@class::A::@constructor::value
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::val
+        staticType: int
+    rightParenthesis: )
+  isDotShorthand: true
+  staticType: A
+''',
+    );
+  }
+
   test_const_assert() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -944,6 +1087,76 @@ void main() {
 }
 ''',
       [error(diag.dotShorthandMissingContext, 24, 17)],
+    );
+  }
+
+  test_undefinedConstructor_message() async {
+    await assertErrorsInCode(
+      r'''
+int f() => const .foo();
+''',
+      [
+        error(
+          diag.constWithUndefinedConstructor,
+          18,
+          3,
+          messageContains: ["class 'int'", "constructor 'foo'"],
+        ),
+      ],
+    );
+  }
+
+  test_undefinedConstructor_message_equalityRhs() async {
+    await assertErrorsInCode(
+      r'''
+bool f(int x) => x == const .foo();
+''',
+      [
+        // Make sure the error message properly refers to the `int` class. See
+        // https://github.com/dart-lang/sdk/issues/62352.
+        error(
+          diag.constWithUndefinedConstructor,
+          29,
+          3,
+          messageContains: ["class 'int'", "constructor 'foo'"],
+        ),
+      ],
+    );
+  }
+
+  test_wrongNumberOfTypeArguments_message() async {
+    await assertErrorsInCode(
+      r'''
+class C {}
+
+C f() => .new<int>();
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsDotShorthandConstructor,
+          25,
+          5,
+          messageContains: ["constructor 'C.new'"],
+        ),
+      ],
+    );
+  }
+
+  test_wrongNumberOfTypeArguments_message_equalityRhs() async {
+    await assertErrorsInCode(
+      r'''
+class C {}
+
+bool f(C c) => c == .new<int>();
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsDotShorthandConstructor,
+          36,
+          5,
+          messageContains: ["constructor 'C.new'"],
+        ),
+      ],
     );
   }
 }

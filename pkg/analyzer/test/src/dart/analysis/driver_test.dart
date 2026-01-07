@@ -108,7 +108,7 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest
     useEmptyByteStore();
     registerLintRule(_AlwaysReportedLint.instance);
     writeTestPackageAnalysisOptionsFile(
-      analysisOptionsContent(rules: [_AlwaysReportedLint.code.name]),
+      analysisOptionsContent(rules: [_AlwaysReportedLint.code.lowerCaseName]),
     );
   }
 
@@ -123,7 +123,10 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest
     await resolveTestFile();
 
     // Existing/empty file triggers the lint.
-    _assertHasLintReported(result.diagnostics, _AlwaysReportedLint.code.name);
+    _assertHasLintReported(
+      result.diagnostics,
+      _AlwaysReportedLint.code.lowerCaseName,
+    );
   }
 
   test_getResolvedUnit_lint_notExistingFile() async {
@@ -136,7 +139,7 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest
   void _assertHasLintReported(List<Diagnostic> diagnostics, String name) {
     var matching = diagnostics.where((element) {
       var diagnosticCode = element.diagnosticCode;
-      return diagnosticCode is LintCode && diagnosticCode.name == name;
+      return diagnosticCode is LintCode && diagnosticCode.lowerCaseName == name;
     }).toList();
     expect(matching, hasLength(1));
   }
@@ -23901,11 +23904,11 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredFields
           foo: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo: #M2
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
     exportMapId: #M3
     exportMap
@@ -23955,17 +23958,17 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           bar: #M5
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           bar: #M6
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo: #M2
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
     exportMapId: #M3
     exportMap
@@ -24013,17 +24016,17 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredFields
           bar: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           bar: #M3
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo: #M4
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
     exportMapId: #M5
     exportMap
@@ -24073,17 +24076,17 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           bar: #M7
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: double @ dart:core
           foo: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           bar: #M8
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: double @ dart:core
           foo: #M4
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
     exportMapId: #M5
     exportMap
@@ -24131,17 +24134,17 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredFields
           bar: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           bar: #M3
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo: #M4
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
     exportMapId: #M5
     exportMap
@@ -24190,11 +24193,11 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo: #M4
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
     exportMapId: #M5
     exportMap
@@ -24470,7 +24473,7 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredMethods
           foo: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportMapId: #M2
@@ -24521,11 +24524,11 @@ extension E on int {
         extendedType: int @ dart:core
         declaredMethods
           bar: #M4
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportMapId: #M2
@@ -24574,11 +24577,11 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredMethods
           bar: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo: #M2
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportMapId: #M3
@@ -24629,13 +24632,13 @@ extension E on int {
         extendedType: int @ dart:core
         declaredMethods
           bar: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo: #M2
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportMapId: #M3
@@ -24684,11 +24687,11 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredMethods
           bar: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo: #M2
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportMapId: #M3
@@ -24738,7 +24741,7 @@ extension E on int {
         extendedType: int @ dart:core
         declaredMethods
           foo: #M2
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportMapId: #M3
@@ -24786,11 +24789,11 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredFields
           foo: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo=: #M2
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -24843,20 +24846,20 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           bar: #M5
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           bar=: #M6
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo=: #M2
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -24907,20 +24910,20 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredFields
           bar: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           bar=: #M3
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo=: #M4
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -24973,20 +24976,20 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           bar: #M7
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: double @ dart:core
           foo: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           bar=: #M8
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required double @ dart:core
               returnType: void
           foo=: #M4
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -25037,20 +25040,20 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredFields
           bar: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           bar=: #M3
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo=: #M4
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -25102,11 +25105,11 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo=: #M4
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -32970,6 +32973,7 @@ void f() {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M1
     exportMapId: #M2
@@ -32996,7 +33000,7 @@ void f() {
     hashForRequirements: #H2
     declaredFunctions
       f: #M4
-        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M5
@@ -33114,6 +33118,7 @@ void f() {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M1
     exportMapId: #M2
@@ -33141,7 +33146,7 @@ void f() {
     hashForRequirements: #H2
     declaredFunctions
       f: #M4
-        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M5
@@ -33260,14 +33265,14 @@ void f() {
     hashForRequirements: #H0
     declaredSetters
       foo=: #M0
-        flags: hasImplicitReturnType isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required int @ dart:core
           returnType: void
     declaredVariables
       foo: #M1
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
     exportMapId: #M2
     exportMap
@@ -33293,7 +33298,7 @@ void f() {
     hashForRequirements: #H2
     declaredFunctions
       f: #M4
-        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M5
@@ -33421,14 +33426,14 @@ void f() {
     hashForRequirements: #H0
     declaredSetters
       foo=: #M0
-        flags: hasImplicitReturnType isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required int @ dart:core
           returnType: void
     declaredVariables
       foo: #M1
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
     exportMapId: #M2
     exportMap
@@ -33455,7 +33460,7 @@ void f() {
     hashForRequirements: #H2
     declaredFunctions
       f: #M4
-        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M5
@@ -33584,6 +33589,7 @@ void f() {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M1
     exportMapId: #M2
@@ -33610,7 +33616,7 @@ void f() {
     hashForRequirements: #H2
     declaredFunctions
       f: #M4
-        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M5
@@ -37681,14 +37687,14 @@ typedef C = int;
     );
   }
 
-  test_dependency_libraryElement_isSynthetic() async {
+  test_dependency_libraryElement_isOriginNotExistingFile() async {
     configuration
       ..withGetErrorsEvents = false
       ..withStreamResolvedUnitResults = false;
 
     _ManualRequirements.install((state) {
       var library = state.singleUnit.importedLibraries.first;
-      library.isSynthetic;
+      library.isOriginNotExistingFile;
     });
 
     newFile('$testPackageLibPath/test.dart', r'''
@@ -37703,7 +37709,7 @@ import 'a.dart';
 [operation] linkLibraryCycle
   package:test/a.dart
     hashForRequirements: #H0
-    flags: isSynthetic
+    flags: isOriginNotExistingFile isSynthetic
     exportMapId: #M0
   requirements
 [operation] linkLibraryCycle
@@ -37719,6 +37725,85 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        isOriginNotExistingFile: true
+        libraryMetadataId: #M2
+        exportMapId: #M0
+[status] idle
+''',
+      updateFiles: () {
+        var a = newFile('$testPackageLibPath/a.dart', '');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    exportMapId: #M0
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  libraryIsOriginNotExistingFileMismatch
+    libraryUri: package:test/a.dart
+    expected: true
+    actual: false
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M2
+        exportMapId: #M0
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_isSynthetic() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      // ignore: deprecated_member_use_from_same_package
+      library.isSynthetic;
+    });
+
+    newFile('$testPackageLibPath/test.dart', r'''
+import 'a.dart';
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    flags: isOriginNotExistingFile isSynthetic
+    exportMapId: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    exportMapId: #M1
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        isOriginNotExistingFile: true
         isSynthetic: true
         libraryMetadataId: #M2
         exportMapId: #M0
@@ -37739,7 +37824,7 @@ import 'a.dart';
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
-  libraryIsSyntheticMismatch
+  libraryIsOriginNotExistingFileMismatch
     libraryUri: package:test/a.dart
     expected: true
     actual: false
@@ -37944,7 +38029,7 @@ library;
 [operation] linkLibraryCycle
   package:test/test.dart
     hashForRequirements: #H0
-    flags: isSynthetic
+    flags: isOriginNotExistingFile isSynthetic
     exportMapId: #M0
   requirements
 [operation] analyzeFile
@@ -56967,14 +57052,16 @@ class C {}
     hashForRequirements: #H0
     declaredClasses
       A: #M0
-        flags: isFinal
+        flags: isFinal isSimplyBounded
         supertype: Object @ dart:core
         allSubtypes: #M1
         interface: #M2
       B: #M1
+        flags: isSimplyBounded
         supertype: A @ package:test/test.dart
         interface: #M3
       C: #M4
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M5
     exportMapId: #M6
@@ -56995,17 +57082,20 @@ class D extends B {}
     hashForRequirements: #H1
     declaredClasses
       A: #M0
-        flags: isFinal
+        flags: isFinal isSimplyBounded
         supertype: Object @ dart:core
         allSubtypes: #M1 #M7
         interface: #M2
       B: #M1
+        flags: isSimplyBounded
         supertype: A @ package:test/test.dart
         interface: #M3
       C: #M4
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M5
       D: #M7
+        flags: isSimplyBounded
         supertype: B @ package:test/test.dart
         interface: #M8
     exportMapId: #M9
@@ -57033,7 +57123,7 @@ class extends A {}
     hashForRequirements: #H0
     declaredClasses
       A: #M0
-        flags: isFinal
+        flags: isFinal isSimplyBounded
         supertype: Object @ dart:core
         allSubtypes: []
         interface: #M1
@@ -57052,11 +57142,12 @@ class C extends A {}
     hashForRequirements: #H1
     declaredClasses
       A: #M0
-        flags: isFinal
+        flags: isFinal isSimplyBounded
         supertype: Object @ dart:core
         allSubtypes: #M3
         interface: #M1
       C: #M3
+        flags: isSimplyBounded
         supertype: A @ package:test/test.dart
         interface: #M4
     exportMapId: #M5
@@ -57082,12 +57173,13 @@ mixin B on A {}
     hashForRequirements: #H0
     declaredClasses
       A: #M0
-        flags: isFinal
+        flags: isFinal isSimplyBounded
         supertype: Object @ dart:core
         allSubtypes: #M1
         interface: #M2
     declaredMixins
       B: #M1
+        flags: isSimplyBounded
         superclassConstraints
           A @ package:test/test.dart
         interface: #M3
@@ -57107,16 +57199,18 @@ mixin C implements A {}
     hashForRequirements: #H1
     declaredClasses
       A: #M0
-        flags: isFinal
+        flags: isFinal isSimplyBounded
         supertype: Object @ dart:core
         allSubtypes: #M1 #M5
         interface: #M2
     declaredMixins
       B: #M1
+        flags: isSimplyBounded
         superclassConstraints
           A @ package:test/test.dart
         interface: #M3
       C: #M5
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         interfaces
@@ -57145,6 +57239,7 @@ class A {}
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M1
     exportMapId: #M2
@@ -57161,9 +57256,11 @@ class B extends A {}
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M1
       B: #M3
+        flags: isSimplyBounded
         supertype: A @ package:test/test.dart
         interface: #M4
     exportMapId: #M5
@@ -57190,17 +57287,18 @@ class C {}
     hashForRequirements: #H0
     declaredClasses
       A: #M0
-        flags: isAbstract isSealed
+        flags: isAbstract isSealed isSimplyBounded
         supertype: Object @ dart:core
         allSubtypes: #M1
         directSubtypesOfSealed: #M1
         interface: #M2
       B: #M1
-        flags: isFinal
+        flags: isFinal isSimplyBounded
         supertype: A @ package:test/test.dart
         allSubtypes: []
         interface: #M3
       C: #M4
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M5
     exportMapId: #M6
@@ -57221,21 +57319,22 @@ final class D extends B {}
     hashForRequirements: #H1
     declaredClasses
       A: #M0
-        flags: isAbstract isSealed
+        flags: isAbstract isSealed isSimplyBounded
         supertype: Object @ dart:core
         allSubtypes: #M1 #M7
         directSubtypesOfSealed: #M1
         interface: #M2
       B: #M1
-        flags: isFinal
+        flags: isFinal isSimplyBounded
         supertype: A @ package:test/test.dart
         allSubtypes: #M7
         interface: #M3
       C: #M4
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M5
       D: #M7
-        flags: isFinal
+        flags: isFinal isSimplyBounded
         supertype: B @ package:test/test.dart
         allSubtypes: []
         interface: #M8
@@ -58845,25 +58944,26 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredConstructors
           foo1: #M1
-              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo2: #M3
-              flags: hasEnclosingTypeParameterReference isConst isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isConst isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo3: #M4
-              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo4: #M5
-              flags: hasEnclosingTypeParameterReference isConst isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isConst isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
@@ -58886,25 +58986,26 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredConstructors
           foo1: #M1
-              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo2: #M3
-              flags: hasEnclosingTypeParameterReference isConst isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isConst isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo3: #M8
-              flags: hasEnclosingTypeParameterReference isConst isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isConst isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo4: #M9
-              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
@@ -58934,25 +59035,26 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredConstructors
           foo1: #M1
-              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo2: #M3
-              flags: hasEnclosingTypeParameterReference isExternal isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo3: #M4
-              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo4: #M5
-              flags: hasEnclosingTypeParameterReference isExternal isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
@@ -58975,25 +59077,26 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredConstructors
           foo1: #M1
-              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo2: #M3
-              flags: hasEnclosingTypeParameterReference isExternal isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo3: #M8
-              flags: hasEnclosingTypeParameterReference isExternal isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo4: #M9
-              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
@@ -59023,24 +59126,25 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredConstructors
           foo1: #M1
-              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo2: #M3
-              flags: hasEnclosingTypeParameterReference isFactory isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
           foo3: #M4
-              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo4: #M5
-              flags: hasEnclosingTypeParameterReference isFactory isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
         interface: #M6
@@ -59062,23 +59166,24 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredConstructors
           foo1: #M1
-              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo2: #M3
-              flags: hasEnclosingTypeParameterReference isFactory isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
           foo3: #M8
-              flags: hasEnclosingTypeParameterReference isFactory isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
           foo4: #M9
-              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
@@ -59384,14 +59489,16 @@ class C extends B {}
     hashForRequirements: #H0
     declaredClasses
       A: #M0
-        flags: isAbstract isSealed
+        flags: isAbstract isSealed isSimplyBounded
         supertype: Object @ dart:core
         directSubtypesOfSealed: #M1
         interface: #M2
       B: #M1
+        flags: isSimplyBounded
         supertype: A @ package:test/test.dart
         interface: #M3
       C: #M4
+        flags: isSimplyBounded
         supertype: B @ package:test/test.dart
         interface: #M5
     exportMapId: #M6
@@ -59412,17 +59519,20 @@ class D extends A {}
     hashForRequirements: #H1
     declaredClasses
       A: #M0
-        flags: isAbstract isSealed
+        flags: isAbstract isSealed isSimplyBounded
         supertype: Object @ dart:core
         directSubtypesOfSealed: #M1 #M7
         interface: #M2
       B: #M1
+        flags: isSimplyBounded
         supertype: A @ package:test/test.dart
         interface: #M3
       C: #M4
+        flags: isSimplyBounded
         supertype: B @ package:test/test.dart
         interface: #M5
       D: #M7
+        flags: isSimplyBounded
         supertype: A @ package:test/test.dart
         interface: #M8
     exportMapId: #M9
@@ -60067,35 +60177,36 @@ class A<T> {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isFinal shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: typeParameter#0?
           foo2: #M2
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isFinal shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: typeParameter#0?
           foo4: #M4
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
-            flags: hasEnclosingTypeParameterReference isSimplyBounded isSynthetic
+            flags: hasEnclosingTypeParameterReference isOriginVariable isSimplyBounded isSynthetic
             returnType: typeParameter#0?
           foo2: #M6
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo3: #M7
-            flags: hasEnclosingTypeParameterReference isSimplyBounded isSynthetic
+            flags: hasEnclosingTypeParameterReference isOriginVariable isSimplyBounded isSynthetic
             returnType: typeParameter#0?
           foo4: #M8
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         interface: #M9
           map
@@ -60126,35 +60237,36 @@ class A<T> {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isFinal shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: typeParameter#0?
           foo2: #M2
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo3: #M11
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo4: #M12
-            flags: hasEnclosingTypeParameterReference isFinal shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: typeParameter#0?
         declaredGetters
           foo1: #M5
-            flags: hasEnclosingTypeParameterReference isSimplyBounded isSynthetic
+            flags: hasEnclosingTypeParameterReference isOriginVariable isSimplyBounded isSynthetic
             returnType: typeParameter#0?
           foo2: #M6
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo3: #M13
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo4: #M14
-            flags: hasEnclosingTypeParameterReference isSimplyBounded isSynthetic
+            flags: hasEnclosingTypeParameterReference isOriginVariable isSimplyBounded isSynthetic
             returnType: typeParameter#0?
         interface: #M15
           map
@@ -60193,32 +60305,33 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasImplicitType hasInitializer isFinal
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
             type: int @ dart:core
           foo2: #M2
-            flags: hasInitializer isFinal shouldUseTypeForInitializerInference
+            flags: hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: hasImplicitType hasInitializer isFinal
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
             type: int @ dart:core
           foo4: #M4
-            flags: hasInitializer isFinal shouldUseTypeForInitializerInference
+            flags: hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
           foo2: #M6
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
           foo3: #M7
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
           foo4: #M8
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         interface: #M9
           map
@@ -60249,32 +60362,33 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasImplicitType hasInitializer isFinal
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
             type: int @ dart:core
           foo2: #M2
-            flags: hasInitializer isFinal shouldUseTypeForInitializerInference
+            flags: hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M11
-            flags: hasInitializer isFinal shouldUseTypeForInitializerInference
+            flags: hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M12
-            flags: hasImplicitType hasInitializer isFinal
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
           foo2: #M6
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
           foo3: #M7
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
           foo4: #M8
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         interface: #M9
           map
@@ -60313,32 +60427,33 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasInitializer isFinal shouldUseTypeForInitializerInference
+            flags: hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo2: #M2
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo3: #M3
-            flags: hasInitializer isFinal shouldUseTypeForInitializerInference
+            flags: hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo4: #M4
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo2: #M6
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo3: #M7
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo4: #M8
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         interface: #M9
           map
@@ -60369,32 +60484,33 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasInitializer isFinal shouldUseTypeForInitializerInference
+            flags: hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo2: #M2
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo3: #M11
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo4: #M12
-            flags: hasInitializer isFinal shouldUseTypeForInitializerInference
+            flags: hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo2: #M6
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo3: #M7
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo4: #M8
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         interface: #M9
           map
@@ -60433,55 +60549,55 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
-        flags: hasNonFinalField
+        flags: hasNonFinalField isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isAbstract shouldUseTypeForInitializerInference
+            flags: isAbstract isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo2: #M2
-            flags: shouldUseTypeForInitializerInference
+            flags: isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo3: #M3
-            flags: isAbstract shouldUseTypeForInitializerInference
+            flags: isAbstract isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo4: #M4
-            flags: shouldUseTypeForInitializerInference
+            flags: isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isAbstract isSimplyBounded isSynthetic
+            flags: isAbstract isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo2: #M6
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo3: #M7
-            flags: isAbstract isSimplyBounded isSynthetic
+            flags: isAbstract isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo4: #M8
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         declaredSetters
           foo1=: #M9
-            flags: isAbstract isSimplyBounded isSynthetic
+            flags: isAbstract isOriginVariable isSimplyBounded isSynthetic
             functionType: FunctionType
               positional
                 required int? @ dart:core
               returnType: void
           foo2=: #M10
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             functionType: FunctionType
               positional
                 required int? @ dart:core
               returnType: void
           foo3=: #M11
-            flags: isAbstract isSimplyBounded isSynthetic
+            flags: isAbstract isOriginVariable isSimplyBounded isSynthetic
             functionType: FunctionType
               positional
                 required int? @ dart:core
               returnType: void
           foo4=: #M12
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             functionType: FunctionType
               positional
                 required int? @ dart:core
@@ -60519,55 +60635,55 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
-        flags: hasNonFinalField
+        flags: hasNonFinalField isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isAbstract shouldUseTypeForInitializerInference
+            flags: isAbstract isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo2: #M2
-            flags: shouldUseTypeForInitializerInference
+            flags: isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo3: #M15
-            flags: shouldUseTypeForInitializerInference
+            flags: isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo4: #M16
-            flags: isAbstract shouldUseTypeForInitializerInference
+            flags: isAbstract isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isAbstract isSimplyBounded isSynthetic
+            flags: isAbstract isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo2: #M6
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo3: #M17
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo4: #M18
-            flags: isAbstract isSimplyBounded isSynthetic
+            flags: isAbstract isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         declaredSetters
           foo1=: #M9
-            flags: isAbstract isSimplyBounded isSynthetic
+            flags: isAbstract isOriginVariable isSimplyBounded isSynthetic
             functionType: FunctionType
               positional
                 required int? @ dart:core
               returnType: void
           foo2=: #M10
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             functionType: FunctionType
               positional
                 required int? @ dart:core
               returnType: void
           foo3=: #M19
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             functionType: FunctionType
               positional
                 required int? @ dart:core
               returnType: void
           foo4=: #M20
-            flags: isAbstract isSimplyBounded isSynthetic
+            flags: isAbstract isOriginVariable isSimplyBounded isSynthetic
             functionType: FunctionType
               positional
                 required int? @ dart:core
@@ -60671,55 +60787,55 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
-        flags: hasNonFinalField
+        flags: hasNonFinalField isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isCovariant shouldUseTypeForInitializerInference
+            flags: isCovariant isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo2: #M2
-            flags: shouldUseTypeForInitializerInference
+            flags: isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo3: #M3
-            flags: isCovariant shouldUseTypeForInitializerInference
+            flags: isCovariant isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo4: #M4
-            flags: shouldUseTypeForInitializerInference
+            flags: isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo2: #M6
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo3: #M7
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo4: #M8
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         declaredSetters
           foo1=: #M9
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             functionType: FunctionType
               positional
                 required int? @ dart:core
               returnType: void
           foo2=: #M10
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             functionType: FunctionType
               positional
                 required int? @ dart:core
               returnType: void
           foo3=: #M11
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             functionType: FunctionType
               positional
                 required int? @ dart:core
               returnType: void
           foo4=: #M12
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             functionType: FunctionType
               positional
                 required int? @ dart:core
@@ -60761,55 +60877,55 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
-        flags: hasNonFinalField
+        flags: hasNonFinalField isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isCovariant shouldUseTypeForInitializerInference
+            flags: isCovariant isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo2: #M2
-            flags: shouldUseTypeForInitializerInference
+            flags: isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo3: #M15
-            flags: shouldUseTypeForInitializerInference
+            flags: isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo4: #M16
-            flags: isCovariant shouldUseTypeForInitializerInference
+            flags: isCovariant isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo2: #M6
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo3: #M7
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo4: #M8
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         declaredSetters
           foo1=: #M9
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             functionType: FunctionType
               positional
                 required int? @ dart:core
               returnType: void
           foo2=: #M10
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             functionType: FunctionType
               positional
                 required int? @ dart:core
               returnType: void
           foo3=: #M17
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             functionType: FunctionType
               positional
                 required int? @ dart:core
               returnType: void
           foo4=: #M18
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             functionType: FunctionType
               positional
                 required int? @ dart:core
@@ -60859,32 +60975,33 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isExternal isFinal shouldUseTypeForInitializerInference
+            flags: isExternal isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo2: #M2
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo3: #M3
-            flags: isExternal isFinal shouldUseTypeForInitializerInference
+            flags: isExternal isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo4: #M4
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo2: #M6
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo3: #M7
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo4: #M8
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         interface: #M9
           map
@@ -60915,32 +61032,33 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isExternal isFinal shouldUseTypeForInitializerInference
+            flags: isExternal isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo2: #M2
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo3: #M11
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo4: #M12
-            flags: isExternal isFinal shouldUseTypeForInitializerInference
+            flags: isExternal isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo2: #M6
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo3: #M7
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo4: #M8
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         interface: #M9
           map
@@ -61140,49 +61258,51 @@ class B {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           _foo1: #M1
-            flags: isFinal isPromotable shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference
             type: int? @ dart:core
           _foo2: #M2
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           _foo3: #M3
-            flags: isFinal isPromotable shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference
             type: int? @ dart:core
           _foo4: #M4
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           _foo1: #M5
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           _foo2: #M6
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           _foo3: #M7
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           _foo4: #M8
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         interface: #M9
       B: #M10
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           _foo2: #M11
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int? @ dart:core
           _foo4: #M12
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           _foo2: #M13
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int? @ dart:core
           _foo4: #M14
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int? @ dart:core
         interface: #M15
     exportMapId: #M16
@@ -61209,49 +61329,51 @@ class B {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           _foo1: #M1
-            flags: isFinal isPromotable shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference
             type: int? @ dart:core
           _foo2: #M2
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           _foo3: #M17
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           _foo4: #M18
-            flags: isFinal isPromotable shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           _foo1: #M5
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           _foo2: #M6
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           _foo3: #M7
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           _foo4: #M8
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         interface: #M9
       B: #M10
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           _foo2: #M11
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int? @ dart:core
           _foo3: #M19
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           _foo2: #M13
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int? @ dart:core
           _foo3: #M20
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int? @ dart:core
         interface: #M15
     exportMapId: #M16
@@ -61281,32 +61403,33 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isFinal isStatic shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo2: #M2
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo3: #M3
-            flags: isFinal isStatic shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo4: #M4
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded isStatic isSynthetic
+            flags: isOriginVariable isSimplyBounded isStatic isSynthetic
             returnType: int? @ dart:core
           foo2: #M6
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo3: #M7
-            flags: isSimplyBounded isStatic isSynthetic
+            flags: isOriginVariable isSimplyBounded isStatic isSynthetic
             returnType: int? @ dart:core
           foo4: #M8
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         interface: #M9
           map
@@ -61333,32 +61456,33 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isFinal isStatic shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo2: #M2
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo3: #M11
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo4: #M12
-            flags: isFinal isStatic shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded isStatic isSynthetic
+            flags: isOriginVariable isSimplyBounded isStatic isSynthetic
             returnType: int? @ dart:core
           foo2: #M6
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo3: #M13
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo4: #M14
-            flags: isSimplyBounded isStatic isSynthetic
+            flags: isOriginVariable isSimplyBounded isStatic isSynthetic
             returnType: int? @ dart:core
         interface: #M15
           map
@@ -61393,32 +61517,33 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo2: #M2
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo4: #M4
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int? @ dart:core
           foo2: #M6
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo3: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int? @ dart:core
           foo4: #M8
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         interface: #M9
           map
@@ -61449,32 +61574,33 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo2: #M2
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo3: #M11
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
           foo4: #M12
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int? @ dart:core
           foo2: #M6
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo3: #M13
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
           foo4: #M14
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int? @ dart:core
         interface: #M15
           map
@@ -62688,36 +62814,36 @@ abstract class A<T> {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isAbstract isOriginDeclaration isSimplyBounded
             returnType: typeParameter#0
           foo2: #M6
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M7
-            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isAbstract isOriginDeclaration isSimplyBounded
             returnType: typeParameter#0
           foo4: #M8
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M9
           map
@@ -62743,36 +62869,36 @@ abstract class A<T> {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M11
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M12
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredGetters
           foo1: #M5
-            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isAbstract isOriginDeclaration isSimplyBounded
             returnType: typeParameter#0
           foo2: #M6
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M13
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M14
-            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isAbstract isOriginDeclaration isSimplyBounded
             returnType: typeParameter#0
         interface: #M15
           map
@@ -62804,26 +62930,27 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
         declaredGetters
           foo1: #M4
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             returnType: dynamic
           foo2: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M6
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             returnType: dynamic
         interface: #M7
           map
@@ -62851,26 +62978,27 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo2: #M9
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo3: #M10
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M4
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             returnType: dynamic
           foo2: #M11
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             returnType: dynamic
           foo3: #M12
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M13
           map
@@ -62912,32 +63040,33 @@ class B extends A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M6
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M8
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M9
           map
@@ -62951,32 +63080,33 @@ class B extends A {
             foo3: #M7
             foo4: #M8
       B: #M10
+        flags: isSimplyBounded
         supertype: A @ package:test/test.dart
         declaredFields
           foo1: #M11
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M12
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M13
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M14
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M15
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M16
-            flags: invokesSuperSelf isSimplyBounded
+            flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M17
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M18
-            flags: invokesSuperSelf isSimplyBounded
+            flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M19
           map
@@ -63025,32 +63155,33 @@ class B extends A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M6
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M8
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M9
           map
@@ -63064,32 +63195,33 @@ class B extends A {
             foo3: #M7
             foo4: #M8
       B: #M10
+        flags: isSimplyBounded
         supertype: A @ package:test/test.dart
         declaredFields
           foo1: #M11
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M12
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M13
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M14
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M15
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M16
-            flags: invokesSuperSelf isSimplyBounded
+            flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M21
-            flags: invokesSuperSelf isSimplyBounded
+            flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M22
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M23
           map
@@ -63139,33 +63271,33 @@ abstract class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M6
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M8
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M9
           map
@@ -63194,33 +63326,33 @@ abstract class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M6
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M11
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M12
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M13
           map
@@ -63256,32 +63388,33 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M6
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M8
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M9
           map
@@ -63312,32 +63445,33 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M6
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M11
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M12
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M13
           map
@@ -63375,32 +63509,33 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M6
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
           foo3: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M8
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
         interface: #M9
           map
@@ -63427,32 +63562,33 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M11
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M12
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M6
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
           foo3: #M13
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
           foo4: #M14
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M15
           map
@@ -63589,14 +63725,15 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo: #M2
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M3
           map
@@ -63618,14 +63755,15 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo: #M5
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: double @ dart:core
         declaredGetters
           foo: #M6
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: double @ dart:core
         interface: #M7
           map
@@ -64161,14 +64299,15 @@ class B {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           a: #M1
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           a: #M2
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         interface: #M3
           map
@@ -64176,19 +64315,19 @@ class B {
           implemented
             a: #M2
       B: #M4
-        flags: hasNonFinalField
+        flags: hasNonFinalField isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           a: #M5
-            flags: shouldUseTypeForInitializerInference
+            flags: isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           a: #M6
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         declaredSetters
           a=: #M7
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             functionType: FunctionType
               positional
                 required int? @ dart:core
@@ -64219,19 +64358,19 @@ class B {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
-        flags: hasNonFinalField
+        flags: hasNonFinalField isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           a: #M10
-            flags: shouldUseTypeForInitializerInference
+            flags: isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           a: #M2
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         declaredSetters
           a=: #M11
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             functionType: FunctionType
               positional
                 required int? @ dart:core
@@ -64244,14 +64383,15 @@ class B {
             a: #M2
             a=: #M11
       B: #M4
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           a: #M13
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           a: #M6
-            flags: isSimplyBounded isSynthetic
+            flags: isOriginVariable isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         interface: #M14
           map
@@ -66651,10 +66791,11 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           foo: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               named
                 a: required int @ dart:core
@@ -66679,10 +66820,11 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           foo: #M4
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               named
                 a: required double @ dart:core
@@ -67539,26 +67681,26 @@ abstract class A<T> {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
         supertype: Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: typeParameter#0
           foo2: #M2
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: typeParameter#0
           foo4: #M4
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M5
@@ -67585,26 +67727,26 @@ abstract class A<T> {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
         supertype: Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: typeParameter#0
           foo2: #M2
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M7
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M8
-            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: typeParameter#0
         interface: #M9
@@ -67637,18 +67779,19 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
           foo2: #M2
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M3
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
         interface: #M4
@@ -67677,18 +67820,19 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
           foo2: #M6
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
           foo3: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M8
@@ -67735,22 +67879,23 @@ class B extends A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M2
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M3
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M4
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M5
@@ -67765,22 +67910,23 @@ class B extends A {
             foo3: #M3
             foo4: #M4
       B: #M6
+        flags: isSimplyBounded
         supertype: A @ package:test/test.dart
         declaredMethods
           foo1: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M8
-            flags: invokesSuperSelf isSimplyBounded
+            flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M9
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M10
-            flags: invokesSuperSelf isSimplyBounded
+            flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M11
@@ -67834,22 +67980,23 @@ class B extends A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M2
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M3
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M4
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M5
@@ -67864,22 +68011,23 @@ class B extends A {
             foo3: #M3
             foo4: #M4
       B: #M6
+        flags: isSimplyBounded
         supertype: A @ package:test/test.dart
         declaredMethods
           foo1: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M8
-            flags: invokesSuperSelf isSimplyBounded
+            flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M13
-            flags: invokesSuperSelf isSimplyBounded
+            flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M14
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M15
@@ -67930,23 +68078,23 @@ abstract class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M2
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M3
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M4
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M5
@@ -67976,23 +68124,23 @@ abstract class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M2
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M7
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M8
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M9
@@ -68029,22 +68177,23 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M2
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M3
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M4
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M5
@@ -68076,22 +68225,23 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M2
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M7
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M8
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M9
@@ -68133,11 +68283,11 @@ abstract class B {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           ==: #M1
-            flags: isAbstract isOperatorEqualWithParameterTypeFromObject isSimplyBounded
+            flags: isAbstract isOperatorEqualWithParameterTypeFromObject isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required Object @ dart:core
@@ -68153,11 +68303,11 @@ abstract class B {
           inherited
             ==: #M3
       B: #M4
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           ==: #M5
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required Object? @ dart:core
@@ -68191,11 +68341,11 @@ abstract class B {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           ==: #M8
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required Object? @ dart:core
@@ -68211,11 +68361,11 @@ abstract class B {
           inherited
             ==: #M3
       B: #M4
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           ==: #M10
-            flags: isAbstract isOperatorEqualWithParameterTypeFromObject isSimplyBounded
+            flags: isAbstract isOperatorEqualWithParameterTypeFromObject isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required Object @ dart:core
@@ -68256,22 +68406,23 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M2
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
           foo3: #M3
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M4
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
         interface: #M5
@@ -68299,22 +68450,23 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M2
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
           foo3: #M7
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
           foo4: #M8
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M9
@@ -68353,11 +68505,11 @@ class C implements A, B {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           foo: #M1
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required double @ dart:core
@@ -68366,11 +68518,11 @@ class C implements A, B {
           map
             foo: #M1
       B: #M3
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           foo: #M4
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -68379,13 +68531,14 @@ class C implements A, B {
           map
             foo: #M4
       C: #M6
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         interfaces
           A @ package:test/test.dart
           B @ package:test/test.dart
         declaredMethods
           foo: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required dynamic
@@ -68419,11 +68572,11 @@ class C implements A, B {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           foo: #M10
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required String @ dart:core
@@ -68432,11 +68585,11 @@ class C implements A, B {
           map
             foo: #M10
       B: #M3
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           foo: #M4
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -68445,13 +68598,14 @@ class C implements A, B {
           map
             foo: #M4
       C: #M6
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         interfaces
           A @ package:test/test.dart
           B @ package:test/test.dart
         declaredMethods
           foo: #M12
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required dynamic
@@ -68636,10 +68790,11 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           foo: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: int @ dart:core
         interface: #M2
@@ -68662,10 +68817,11 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           foo: #M4
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: double @ dart:core
         interface: #M5
@@ -69217,13 +69373,14 @@ class A<T> {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
         supertype: Object @ dart:core
         declaredMethods
           foo: #M1
-            flags: hasEnclosingTypeParameterReference isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               typeParameters
                 #0 covariant
@@ -69252,17 +69409,18 @@ class A<T> {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
         supertype: Object @ dart:core
         declaredMethods
           bar: #M4
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo: #M1
-            flags: hasEnclosingTypeParameterReference isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               typeParameters
                 #0 covariant
@@ -69516,18 +69674,20 @@ final class D {}
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M1
       B: #M2
-        flags: isFinal
+        flags: isFinal isSimplyBounded
         supertype: Object @ dart:core
         allSubtypes: []
         interface: #M3
       C: #M4
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M5
       D: #M6
-        flags: isFinal
+        flags: isFinal isSimplyBounded
         supertype: Object @ dart:core
         allSubtypes: []
         interface: #M7
@@ -69550,19 +69710,21 @@ class D {}
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M1
       B: #M2
-        flags: isFinal
+        flags: isFinal isSimplyBounded
         supertype: Object @ dart:core
         allSubtypes: []
         interface: #M3
       C: #M9
-        flags: isFinal
+        flags: isFinal isSimplyBounded
         supertype: Object @ dart:core
         allSubtypes: []
         interface: #M10
       D: #M11
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M12
     exportMapId: #M13
@@ -69775,19 +69937,21 @@ sealed class D {}
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M1
       B: #M2
-        flags: isAbstract isSealed
+        flags: isAbstract isSealed isSimplyBounded
         supertype: Object @ dart:core
         allSubtypes: []
         directSubtypesOfSealed: []
         interface: #M3
       C: #M4
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M5
       D: #M6
-        flags: isAbstract isSealed
+        flags: isAbstract isSealed isSimplyBounded
         supertype: Object @ dart:core
         allSubtypes: []
         directSubtypesOfSealed: []
@@ -69811,21 +69975,23 @@ class D {}
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M1
       B: #M2
-        flags: isAbstract isSealed
+        flags: isAbstract isSealed isSimplyBounded
         supertype: Object @ dart:core
         allSubtypes: []
         directSubtypesOfSealed: []
         interface: #M3
       C: #M9
-        flags: isAbstract isSealed
+        flags: isAbstract isSealed isSimplyBounded
         supertype: Object @ dart:core
         allSubtypes: []
         directSubtypesOfSealed: []
         interface: #M10
       D: #M11
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M12
     exportMapId: #M13
@@ -71082,45 +71248,45 @@ abstract class A<T> {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required typeParameter#0
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M7
-            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required typeParameter#0
               returnType: void
           foo4=: #M8
-            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -71149,45 +71315,45 @@ abstract class A<T> {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M11
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M12
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredSetters
           foo1=: #M5
-            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required typeParameter#0
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M13
-            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M14
-            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required typeParameter#0
@@ -71229,41 +71395,42 @@ class B extends A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M7
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M8
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -71280,41 +71447,42 @@ class B extends A {
             foo3=: #M7
             foo4=: #M8
       B: #M10
+        flags: isSimplyBounded
         supertype: A @ package:test/test.dart
         declaredFields
           foo1: #M11
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M12
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M13
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M14
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M15
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M16
-            flags: hasImplicitReturnType invokesSuperSelf isSimplyBounded
+            flags: hasImplicitReturnType invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M17
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M18
-            flags: hasImplicitReturnType invokesSuperSelf isSimplyBounded
+            flags: hasImplicitReturnType invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -71366,41 +71534,42 @@ class B extends A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M7
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M8
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -71417,41 +71586,42 @@ class B extends A {
             foo3=: #M7
             foo4=: #M8
       B: #M10
+        flags: isSimplyBounded
         supertype: A @ package:test/test.dart
         declaredFields
           foo1: #M11
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M12
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M13
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M14
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M15
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M16
-            flags: hasImplicitReturnType invokesSuperSelf isSimplyBounded
+            flags: hasImplicitReturnType invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M21
-            flags: hasImplicitReturnType invokesSuperSelf isSimplyBounded
+            flags: hasImplicitReturnType invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M22
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -71504,42 +71674,42 @@ abstract class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M7
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M8
-            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -71571,42 +71741,42 @@ abstract class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M11
-            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M12
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -71645,41 +71815,42 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isExternal isSimplyBounded
+            flags: hasImplicitReturnType isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M7
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M8
-            flags: hasImplicitReturnType isExternal isSimplyBounded
+            flags: hasImplicitReturnType isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -71713,41 +71884,42 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isExternal isSimplyBounded
+            flags: hasImplicitReturnType isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M11
-            flags: hasImplicitReturnType isExternal isSimplyBounded
+            flags: hasImplicitReturnType isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M12
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -71788,41 +71960,42 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isSimplyBounded isStatic
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M7
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M8
-            flags: hasImplicitReturnType isSimplyBounded isStatic
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -71852,41 +72025,42 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M11
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M12
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isSimplyBounded isStatic
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M13
-            flags: hasImplicitReturnType isSimplyBounded isStatic
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M14
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -72535,16 +72709,16 @@ abstract class C implements A, B {}
     hashForRequirements: #H0
     declaredClasses
       A: #M0
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: List @ dart:core
               dynamic
         declaredSetters
           foo=: #M2
-            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required List @ dart:core
@@ -72554,16 +72728,16 @@ abstract class C implements A, B {}
           map
             foo=: #M2
       B: #M4
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo: #M5
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: List @ dart:core
               void
         declaredSetters
           foo=: #M6
-            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required List @ dart:core
@@ -72573,7 +72747,7 @@ abstract class C implements A, B {}
           map
             foo=: #M6
       C: #M8
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         interfaces
           A @ package:test/test.dart
@@ -72608,16 +72782,16 @@ abstract class C implements A, B {}
     hashForRequirements: #H1
     declaredClasses
       A: #M0
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: List @ dart:core
               dynamic
         declaredSetters
           foo=: #M2
-            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required List @ dart:core
@@ -72627,16 +72801,16 @@ abstract class C implements A, B {}
           map
             foo=: #M2
       B: #M4
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo: #M12
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: List @ dart:core
               int @ dart:core
         declaredSetters
           foo=: #M13
-            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required List @ dart:core
@@ -72646,7 +72820,7 @@ abstract class C implements A, B {}
           map
             foo=: #M13
       C: #M8
-        flags: isAbstract
+        flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         interfaces
           A @ package:test/test.dart
@@ -72682,14 +72856,15 @@ class A {
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo=: #M2
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -72714,14 +72889,15 @@ class A {
     hashForRequirements: #H1
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo: #M5
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: double @ dart:core
         declaredSetters
           foo=: #M6
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required double @ dart:core
@@ -74564,11 +74740,11 @@ const b = 0 + a;
     hashForRequirements: #H0
     declaredGetters
       b: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: double @ dart:core
     declaredVariables
       b: #M1
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: double @ dart:core
         constInitializer
           tokenBuffer: 0+a
@@ -74592,20 +74768,20 @@ const b = 0 + a;
     hashForRequirements: #H1
     declaredGetters
       a: #M4
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       b: #M5
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M6
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 1
           tokenLengthList: [1]
       b: #M7
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0+a
@@ -74640,20 +74816,20 @@ const b = 1 + a;
     hashForRequirements: #H0
     declaredGetters
       a: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       b: #M1
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M2
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
           tokenLengthList: [1]
       b: #M3
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 1+a
@@ -74680,11 +74856,11 @@ const b = 1 + a;
     hashForRequirements: #H1
     declaredGetters
       b: #M6
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: double @ dart:core
     declaredVariables
       b: #M7
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: double @ dart:core
         constInitializer
           tokenBuffer: 1+a
@@ -74754,11 +74930,11 @@ const a = 0..abs();
     hashForRequirements: #H0
     declaredGetters
       a: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M1
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           isValid: false
@@ -74776,19 +74952,19 @@ const b = 0;
     hashForRequirements: #H1
     declaredGetters
       a: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       b: #M3
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M4
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           isValid: false
       b: #M5
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -75101,7 +75277,7 @@ const a = -'' + 1;
         extendedType: Object @ dart:core
         declaredMethods
           unary-: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: int @ dart:core
     exportMapId: #M2
@@ -75113,11 +75289,11 @@ const a = -'' + 1;
     hashForRequirements: #H1
     declaredGetters
       a: #M3
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M4
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: -''+1
@@ -75142,11 +75318,11 @@ const a = -'' + 2;
     hashForRequirements: #H2
     declaredGetters
       a: #M3
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M7
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: -''+2
@@ -75182,11 +75358,11 @@ const b = 0.length + 1;
     hashForRequirements: #H0
     declaredGetters
       b: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       b: #M1
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0.length+1
@@ -75212,11 +75388,11 @@ const b = 0.length + 2;
     hashForRequirements: #H1
     declaredGetters
       b: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       b: #M4
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0.length+2
@@ -75251,11 +75427,11 @@ const a = -'' + 1;
     hashForRequirements: #H0
     declaredGetters
       a: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M1
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: -''+1
@@ -75281,11 +75457,11 @@ const a = -'' + 2;
     hashForRequirements: #H1
     declaredGetters
       a: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M4
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: -''+2
@@ -75357,6 +75533,7 @@ class A {}
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         metadata
           [0]
             tokenBuffer: @foo
@@ -75380,6 +75557,7 @@ class A {}
     hashForRequirements: #H1
     declaredClasses
       A: #M3
+        flags: isSimplyBounded
         metadata
           [0]
             tokenBuffer: @foo.bar
@@ -75411,6 +75589,7 @@ class A {}
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         metadata
           [0]
             tokenBuffer: @foo.bar
@@ -75435,6 +75614,7 @@ class A {}
     hashForRequirements: #H1
     declaredClasses
       A: #M3
+        flags: isSimplyBounded
         metadata
           [0]
             tokenBuffer: @foo
@@ -75465,11 +75645,11 @@ const a = 0 as core.int;
     hashForRequirements: #H0
     declaredGetters
       a: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M1
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0ascore.int
@@ -75494,14 +75674,14 @@ const b = 0;
     hashForRequirements: #H1
     declaredGetters
       a: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       b: #M4
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M1
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0ascore.int
@@ -75512,7 +75692,7 @@ const b = 0;
             3 = importPrefix
             7 = element 0
       b: #M5
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -75538,11 +75718,11 @@ const a = [0][0];
     hashForRequirements: #H0
     declaredGetters
       a: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M1
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           isValid: false
@@ -75560,19 +75740,19 @@ const b = 0;
     hashForRequirements: #H1
     declaredGetters
       a: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       b: #M3
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M4
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           isValid: false
       b: #M5
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -75928,11 +76108,11 @@ const a = 0.abs();
     hashForRequirements: #H0
     declaredGetters
       a: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M1
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           isValid: false
@@ -75950,19 +76130,19 @@ const b = 0;
     hashForRequirements: #H1
     declaredGetters
       a: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       b: #M3
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M4
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           isValid: false
       b: #M5
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -75988,11 +76168,11 @@ const a = identical(0, 1);
     hashForRequirements: #H0
     declaredGetters
       a: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: bool @ dart:core
     declaredVariables
       a: #M1
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: bool @ dart:core
         constInitializer
           tokenBuffer: identical(0,1)
@@ -76015,14 +76195,14 @@ const b = 0;
     hashForRequirements: #H1
     declaredGetters
       a: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: bool @ dart:core
       b: #M4
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M1
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: bool @ dart:core
         constInitializer
           tokenBuffer: identical(0,1)
@@ -76032,7 +76212,7 @@ const b = 0;
           elementIndexList
             7 = element 0
       b: #M5
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -76068,11 +76248,11 @@ const x = foo;
     hashForRequirements: #H0
     declaredGetters
       foo: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       foo: #M1
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -76085,11 +76265,11 @@ const x = foo;
     hashForRequirements: #H1
     declaredGetters
       foo: #M3
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       foo: #M4
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -76102,11 +76282,11 @@ const x = foo;
     hashForRequirements: #H2
     declaredGetters
       x: #M6
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: InvalidType
     declaredVariables
       x: #M7
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: InvalidType
         constInitializer
           tokenBuffer: foo
@@ -76129,15 +76309,16 @@ class A {}
     hashForRequirements: #H3
     declaredClasses
       A: #M9
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M10
     declaredGetters
       x: #M6
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: InvalidType
     declaredVariables
       x: #M7
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: InvalidType
         constInitializer
           tokenBuffer: foo
@@ -76268,20 +76449,20 @@ const b = a++;
     hashForRequirements: #H0
     declaredGetters
       a: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       b: #M1
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M2
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
           tokenLengthList: [1]
       b: #M3
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           isValid: false
@@ -76301,28 +76482,28 @@ const c = 0;
     hashForRequirements: #H1
     declaredGetters
       a: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       b: #M1
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       c: #M5
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M2
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
           tokenLengthList: [1]
       b: #M6
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           isValid: false
       c: #M7
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -76349,11 +76530,11 @@ const a = 0!;
     hashForRequirements: #H0
     declaredGetters
       a: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M1
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           isValid: false
@@ -76371,19 +76552,19 @@ const b = 0;
     hashForRequirements: #H1
     declaredGetters
       a: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       b: #M3
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M4
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           isValid: false
       b: #M5
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -76567,26 +76748,27 @@ const d = prefix.A.b;
     hashForRequirements: #H0
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           a: #M1
-            flags: hasImplicitType hasInitializer isConst isStatic
+            flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
             type: int @ dart:core
             constInitializer
               tokenBuffer: 0
               tokenLengthList: [1]
           b: #M2
-            flags: hasImplicitType hasInitializer isConst isStatic
+            flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
             type: int @ dart:core
             constInitializer
               tokenBuffer: 0
               tokenLengthList: [1]
         declaredGetters
           a: #M3
-            flags: isSimplyBounded isStatic isSynthetic
+            flags: isOriginVariable isSimplyBounded isStatic isSynthetic
             returnType: int @ dart:core
           b: #M4
-            flags: isSimplyBounded isStatic isSynthetic
+            flags: isOriginVariable isSimplyBounded isStatic isSynthetic
             returnType: int @ dart:core
         interface: #M5
     exportMapId: #M6
@@ -76597,14 +76779,14 @@ const d = prefix.A.b;
     hashForRequirements: #H1
     declaredGetters
       c: #M7
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       d: #M8
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       c: #M9
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: prefix.A.a
@@ -76619,7 +76801,7 @@ const d = prefix.A.b;
             23 = element 1
             39 = element 2
       d: #M10
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: prefix.A.b
@@ -76651,26 +76833,27 @@ class A {
     hashForRequirements: #H2
     declaredClasses
       A: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           a: #M1
-            flags: hasImplicitType hasInitializer isConst isStatic
+            flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
             type: int @ dart:core
             constInitializer
               tokenBuffer: 0
               tokenLengthList: [1]
           b: #M12
-            flags: hasImplicitType hasInitializer isConst isStatic
+            flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
             type: int @ dart:core
             constInitializer
               tokenBuffer: 1
               tokenLengthList: [1]
         declaredGetters
           a: #M3
-            flags: isSimplyBounded isStatic isSynthetic
+            flags: isOriginVariable isSimplyBounded isStatic isSynthetic
             returnType: int @ dart:core
           b: #M4
-            flags: isSimplyBounded isStatic isSynthetic
+            flags: isOriginVariable isSimplyBounded isStatic isSynthetic
             returnType: int @ dart:core
         interface: #M5
     exportMapId: #M6
@@ -76689,14 +76872,14 @@ class A {
     hashForRequirements: #H3
     declaredGetters
       c: #M7
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       d: #M8
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       c: #M9
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: prefix.A.a
@@ -76711,7 +76894,7 @@ class A {
             23 = element 1
             39 = element 2
       d: #M13
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: prefix.A.b
@@ -77337,11 +77520,11 @@ const x = A;
     hashForRequirements: #H1
     declaredGetters
       x: #M2
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: Type @ dart:core
     declaredVariables
       x: #M3
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: Type @ dart:core
         constInitializer
           tokenBuffer: A
@@ -77365,14 +77548,14 @@ const y = double;
     hashForRequirements: #H2
     declaredGetters
       x: #M2
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: Type @ dart:core
       y: #M5
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: Type @ dart:core
     declaredVariables
       x: #M3
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: Type @ dart:core
         constInitializer
           tokenBuffer: A
@@ -77382,7 +77565,7 @@ const y = double;
           elementIndexList
             7 = element 0
       y: #M6
-        flags: hasImplicitType hasInitializer isConst isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
         type: Type @ dart:core
         constInitializer
           tokenBuffer: double
@@ -79398,7 +79581,7 @@ extension A on int {
         extendedType: int @ dart:core
         declaredMethods
           foo: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportMapId: #M2
@@ -79420,7 +79603,7 @@ extension A on double {
         extendedType: double @ dart:core
         declaredMethods
           foo: #M4
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportMapId: #M5
@@ -79571,29 +79754,29 @@ extension E<T> on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: hasEnclosingTypeParameterReference isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
             returnType: typeParameter#0
           foo2: #M6
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M7
-            flags: hasEnclosingTypeParameterReference isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
             returnType: typeParameter#0
           foo4: #M8
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
     exportMapId: #M9
     exportMap
@@ -79620,29 +79803,29 @@ extension E<T> on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M10
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M11
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredGetters
           foo1: #M5
-            flags: hasEnclosingTypeParameterReference isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
             returnType: typeParameter#0
           foo2: #M6
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M12
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M13
-            flags: hasEnclosingTypeParameterReference isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
             returnType: typeParameter#0
     exportMapId: #M9
     exportMap
@@ -79672,23 +79855,23 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
         declaredGetters
           foo1: #M4
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             returnType: dynamic
           foo2: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M6
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             returnType: dynamic
     exportMapId: #M7
     exportMap
@@ -79711,23 +79894,23 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo2: #M8
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo3: #M9
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M4
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             returnType: dynamic
           foo2: #M10
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             returnType: dynamic
           foo3: #M11
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
     exportMapId: #M7
     exportMap
@@ -79758,29 +79941,29 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M6
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M8
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
     exportMapId: #M9
     exportMap
@@ -79804,29 +79987,29 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M6
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M10
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M11
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
     exportMapId: #M9
     exportMap
@@ -79857,29 +80040,29 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M6
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
           foo3: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M8
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
     exportMapId: #M9
     exportMap
@@ -79903,29 +80086,29 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M10
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M11
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M6
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
           foo3: #M12
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
           foo4: #M13
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
     exportMapId: #M9
     exportMap
@@ -80111,19 +80294,19 @@ extension E<T> on int {
         extendedType: int @ dart:core
         declaredMethods
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: typeParameter#0
           foo2: #M2
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: typeParameter#0
           foo4: #M4
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportMapId: #M5
@@ -80151,19 +80334,19 @@ extension E<T> on int {
         extendedType: int @ dart:core
         declaredMethods
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: typeParameter#0
           foo2: #M2
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M6
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M7
-            flags: hasEnclosingTypeParameterReference isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: typeParameter#0
     exportMapId: #M5
@@ -80194,15 +80377,15 @@ extension E on int {
         extendedType: int @ dart:core
         declaredMethods
           foo1: #M1
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
           foo2: #M2
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M3
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
     exportMapId: #M4
@@ -80226,15 +80409,15 @@ extension E on int {
         extendedType: int @ dart:core
         declaredMethods
           foo1: #M1
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
           foo2: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
           foo3: #M6
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportMapId: #M4
@@ -80266,19 +80449,19 @@ extension E on int {
         extendedType: int @ dart:core
         declaredMethods
           foo1: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M2
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M3
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M4
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportMapId: #M5
@@ -80303,19 +80486,19 @@ extension E on int {
         extendedType: int @ dart:core
         declaredMethods
           foo1: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M2
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M6
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportMapId: #M5
@@ -80347,19 +80530,19 @@ extension E on int {
         extendedType: int @ dart:core
         declaredMethods
           foo1: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M2
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
           foo3: #M3
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M4
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
     exportMapId: #M5
@@ -80384,19 +80567,19 @@ extension E on int {
         extendedType: int @ dart:core
         declaredMethods
           foo1: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M2
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
           foo3: #M6
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
           foo4: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportMapId: #M5
@@ -80576,38 +80759,38 @@ extension E<T> on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isSimplyBounded
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required typeParameter#0
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M7
-            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isSimplyBounded
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required typeParameter#0
               returnType: void
           foo4=: #M8
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -80637,38 +80820,38 @@ extension E<T> on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M10
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M11
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredSetters
           foo1=: #M5
-            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isSimplyBounded
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required typeParameter#0
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M12
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M13
-            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isSimplyBounded
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required typeParameter#0
@@ -80702,38 +80885,38 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isExternal isSimplyBounded
+            flags: hasImplicitReturnType isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M7
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M8
-            flags: hasImplicitReturnType isExternal isSimplyBounded
+            flags: hasImplicitReturnType isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -80760,38 +80943,38 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isExternal isSimplyBounded
+            flags: hasImplicitReturnType isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M10
-            flags: hasImplicitReturnType isExternal isSimplyBounded
+            flags: hasImplicitReturnType isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M11
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -80825,38 +81008,38 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isSimplyBounded isStatic
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M7
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M8
-            flags: hasImplicitReturnType isSimplyBounded isStatic
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -80883,38 +81066,38 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M10
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M11
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isSimplyBounded isStatic
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M12
-            flags: hasImplicitReturnType isSimplyBounded isStatic
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M13
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -81152,37 +81335,38 @@ extension type E(int it) {
     hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         declaredConstructors
           foo1: #M3
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
-              flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo3: #M5
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M6
-              flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
@@ -81210,37 +81394,38 @@ extension type E(int it) {
     hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         declaredConstructors
           foo1: #M3
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
-              flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo3: #M9
-              flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M10
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
@@ -81275,37 +81460,38 @@ extension type E(int it) {
     hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         declaredConstructors
           foo1: #M3
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
           foo3: #M5
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M6
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
@@ -81333,37 +81519,38 @@ extension type E(int it) {
     hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         declaredConstructors
           foo1: #M3
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
           foo3: #M9
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M10
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
@@ -81398,37 +81585,38 @@ extension type E(int it) {
     hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         declaredConstructors
           foo1: #M3
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
           foo3: #M5
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M6
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
@@ -81456,37 +81644,38 @@ extension type E(int it) {
     hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         declaredConstructors
           foo1: #M3
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
           foo3: #M9
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M10
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
@@ -81673,6 +81862,7 @@ extension type E<T>(T it) {
     hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
@@ -81680,35 +81870,35 @@ extension type E<T>(T it) {
         typeErasure: typeParameter#0
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M5
-            flags: hasEnclosingTypeParameterReference isFinal shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredGetters
           foo1: #M6
-            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: typeParameter#0
           foo2: #M7
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M8
-            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: typeParameter#0
           foo4: #M9
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           it: #M10
-            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: typeParameter#0
         interface: #M11
           map
@@ -81741,6 +81931,7 @@ extension type E<T>(T it) {
     hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
@@ -81748,35 +81939,35 @@ extension type E<T>(T it) {
         typeErasure: typeParameter#0
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M13
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M14
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           it: #M5
-            flags: hasEnclosingTypeParameterReference isFinal shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredGetters
           foo1: #M6
-            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: typeParameter#0
           foo2: #M7
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M15
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M16
-            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: typeParameter#0
           it: #M10
-            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: typeParameter#0
         interface: #M17
           map
@@ -81815,33 +82006,34 @@ extension type E(int it) {
     hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           it: #M4
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: dynamic
           foo2: #M6
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M7
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: dynamic
           it: #M8
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         interface: #M9
           map
@@ -81871,33 +82063,34 @@ extension type E(int it) {
     hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo2: #M11
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo3: #M12
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M4
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: dynamic
           foo2: #M13
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: dynamic
           foo3: #M14
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           it: #M8
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         interface: #M15
           map
@@ -81935,39 +82128,40 @@ extension type E(int it) {
     hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M5
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M6
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M7
-            flags: isExtensionTypeMember isExternal isSimplyBounded
+            flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M8
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M9
-            flags: isExtensionTypeMember isExternal isSimplyBounded
+            flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           it: #M10
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         interface: #M11
           map
@@ -82000,39 +82194,40 @@ extension type E(int it) {
     hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M5
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M6
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M7
-            flags: isExtensionTypeMember isExternal isSimplyBounded
+            flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M13
-            flags: isExtensionTypeMember isExternal isSimplyBounded
+            flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M14
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           it: #M10
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         interface: #M15
           map
@@ -82072,39 +82267,40 @@ extension type E(int it) {
     hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M5
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M6
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M7
-            flags: isExtensionTypeMember isSimplyBounded isStatic
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
           foo3: #M8
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M9
-            flags: isExtensionTypeMember isSimplyBounded isStatic
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
           it: #M10
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         interface: #M11
           map
@@ -82133,39 +82329,40 @@ extension type E(int it) {
     hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M13
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M14
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M5
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M6
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M7
-            flags: isExtensionTypeMember isSimplyBounded isStatic
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
           foo3: #M15
-            flags: isExtensionTypeMember isSimplyBounded isStatic
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
           foo4: #M16
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           it: #M10
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         interface: #M17
           map
@@ -82479,23 +82676,24 @@ extension type A(int it) {
     hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         declaredMethods
           bar: #M3
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: int @ dart:core
           foo: #M4
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: int @ dart:core
         interface: #M5
@@ -82523,23 +82721,24 @@ extension type A(int it) {
     hashForRequirements: #H1
     declaredExtensionTypes
       A: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         declaredMethods
           bar: #M7
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: double @ dart:core
           foo: #M4
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: int @ dart:core
         interface: #M8
@@ -82656,6 +82855,7 @@ extension type E<T>(T it) {
     hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
@@ -82663,27 +82863,27 @@ extension type E<T>(T it) {
         typeErasure: typeParameter#0
         declaredFields
           it: #M1
-            flags: hasEnclosingTypeParameterReference isFinal shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredGetters
           it: #M2
-            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: typeParameter#0
         declaredMethods
           foo1: #M3
-            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: typeParameter#0
           foo2: #M4
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M5
-            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: typeParameter#0
           foo4: #M6
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M7
@@ -82717,6 +82917,7 @@ extension type E<T>(T it) {
     hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
@@ -82724,27 +82925,27 @@ extension type E<T>(T it) {
         typeErasure: typeParameter#0
         declaredFields
           it: #M1
-            flags: hasEnclosingTypeParameterReference isFinal shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredGetters
           it: #M2
-            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: typeParameter#0
         declaredMethods
           foo1: #M3
-            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: typeParameter#0
           foo2: #M4
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M9
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M10
-            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: typeParameter#0
         interface: #M11
@@ -82784,27 +82985,28 @@ extension type E(int it) {
     hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         declaredMethods
           foo1: #M3
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
           foo2: #M4
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M5
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
         interface: #M6
@@ -82835,27 +83037,28 @@ extension type E(int it) {
     hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         declaredMethods
           foo1: #M3
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
           foo2: #M8
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
           foo3: #M9
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M10
@@ -82894,31 +83097,32 @@ extension type E(int it) {
     hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         declaredMethods
           foo1: #M3
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M4
-            flags: isExtensionTypeMember isExternal isSimplyBounded
+            flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M5
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M6
-            flags: isExtensionTypeMember isExternal isSimplyBounded
+            flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M7
@@ -82952,31 +83156,32 @@ extension type E(int it) {
     hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         declaredMethods
           foo1: #M3
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M4
-            flags: isExtensionTypeMember isExternal isSimplyBounded
+            flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M9
-            flags: isExtensionTypeMember isExternal isSimplyBounded
+            flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M10
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M11
@@ -83017,31 +83222,32 @@ extension type E(int it) {
     hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         declaredMethods
           foo1: #M3
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M4
-            flags: isExtensionTypeMember isSimplyBounded isStatic
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
           foo3: #M5
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M6
-            flags: isExtensionTypeMember isSimplyBounded isStatic
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
         interface: #M7
@@ -83071,31 +83277,32 @@ extension type E(int it) {
     hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         declaredMethods
           foo1: #M3
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M4
-            flags: isExtensionTypeMember isSimplyBounded isStatic
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
           foo3: #M9
-            flags: isExtensionTypeMember isSimplyBounded isStatic
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
           foo4: #M10
-            flags: isExtensionTypeMember isSimplyBounded
+            flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M11
@@ -83476,6 +83683,7 @@ extension type E<T>(T it) {
     hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
@@ -83483,45 +83691,45 @@ extension type E<T>(T it) {
         typeErasure: typeParameter#0
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M5
-            flags: hasEnclosingTypeParameterReference isFinal shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredGetters
           it: #M6
-            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: typeParameter#0
         declaredSetters
           foo1=: #M7
-            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required typeParameter#0
               returnType: void
           foo2=: #M8
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M9
-            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required typeParameter#0
               returnType: void
           foo4=: #M10
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -83557,6 +83765,7 @@ extension type E<T>(T it) {
     hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
@@ -83564,45 +83773,45 @@ extension type E<T>(T it) {
         typeErasure: typeParameter#0
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M13
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M14
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           it: #M5
-            flags: hasEnclosingTypeParameterReference isFinal shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredGetters
           it: #M6
-            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: typeParameter#0
         declaredSetters
           foo1=: #M7
-            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required typeParameter#0
               returnType: void
           foo2=: #M8
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M15
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M16
-            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required typeParameter#0
@@ -83645,49 +83854,50 @@ extension type E(int it) {
     hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M5
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M6
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         declaredSetters
           foo1=: #M7
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M8
-            flags: hasImplicitReturnType isExtensionTypeMember isExternal isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M9
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M10
-            flags: hasImplicitReturnType isExtensionTypeMember isExternal isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -83723,49 +83933,50 @@ extension type E(int it) {
     hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M5
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M6
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         declaredSetters
           foo1=: #M7
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M8
-            flags: hasImplicitReturnType isExtensionTypeMember isExternal isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M13
-            flags: hasImplicitReturnType isExtensionTypeMember isExternal isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M14
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -83808,49 +84019,50 @@ extension type E(int it) {
     hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M5
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M6
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         declaredSetters
           foo1=: #M7
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M8
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded isStatic
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M9
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M10
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded isStatic
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -83882,49 +84094,50 @@ extension type E(int it) {
     hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
+        flags: isSimplyBounded
         representationType: int @ dart:core
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M13
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M14
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M5
-            flags: isFinal shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M6
-            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            flags: isExtensionTypeMember isOriginVariable isSimplyBounded isSynthetic
             returnType: int @ dart:core
         declaredSetters
           foo1=: #M7
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M8
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded isStatic
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M15
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded isStatic
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M16
-            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -84107,6 +84320,60 @@ extension type A<T, U>(int it) {}
     exportMapId: #M9
     exportMap
       A: #M5
+''',
+    );
+  }
+
+  test_manifest_functionType_inferred_defaultValue_readFromBinary() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static const foo = 0;
+}
+void bar({int x = A.foo}) {}
+''');
+
+    await resolveFile(a);
+    await disposeAnalysisContextCollection();
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import 'a.dart';
+final a = bar;
+''',
+      expectedInitialEvents: r'''
+[operation] reuseLinkedBundle SDK
+[operation] reuseLinkedBundle
+  package:test/a.dart
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+    exportMapId: #M2
+    exportMap
+      a: #M0
+''',
+      updatedCode: r'''
+import 'a.dart';
+final a = bar;
+final b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredGetters
+      a: #M0
+      b: #M3
+    declaredVariables
+      a: #M1
+      b: #M4
+    exportMapId: #M5
+    exportMap
+      a: #M0
+      b: #M3
 ''',
     );
   }
@@ -85838,6 +86105,7 @@ mixin M<T> {
     hashForRequirements: #H0
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
@@ -85845,29 +86113,29 @@ mixin M<T> {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isAbstract isOriginDeclaration isSimplyBounded
             returnType: typeParameter#0
           foo2: #M6
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M7
-            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isAbstract isOriginDeclaration isSimplyBounded
             returnType: typeParameter#0
           foo4: #M8
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M9
           map
@@ -85893,6 +86161,7 @@ mixin M<T> {
     hashForRequirements: #H1
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
@@ -85900,29 +86169,29 @@ mixin M<T> {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M11
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M12
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredGetters
           foo1: #M5
-            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isAbstract isOriginDeclaration isSimplyBounded
             returnType: typeParameter#0
           foo2: #M6
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M13
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M14
-            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isAbstract isOriginDeclaration isSimplyBounded
             returnType: typeParameter#0
         interface: #M15
           map
@@ -85954,27 +86223,28 @@ mixin M {
     hashForRequirements: #H0
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
         declaredGetters
           foo1: #M4
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             returnType: dynamic
           foo2: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M6
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             returnType: dynamic
         interface: #M7
           map
@@ -86002,27 +86272,28 @@ mixin M {
     hashForRequirements: #H1
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo2: #M9
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo3: #M10
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M4
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             returnType: dynamic
           foo2: #M11
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             returnType: dynamic
           foo3: #M12
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M13
           map
@@ -86064,32 +86335,33 @@ mixin M on S {
     hashForRequirements: #H0
     declaredClasses
       S: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M6
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M8
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M9
           map
@@ -86104,33 +86376,34 @@ mixin M on S {
             foo4: #M8
     declaredMixins
       M: #M10
+        flags: isSimplyBounded
         superclassConstraints
           S @ package:test/test.dart
         declaredFields
           foo1: #M11
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M12
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M13
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M14
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M15
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M16
-            flags: invokesSuperSelf isSimplyBounded
+            flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M17
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M18
-            flags: invokesSuperSelf isSimplyBounded
+            flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M19
           map
@@ -86179,32 +86452,33 @@ mixin M on S {
     hashForRequirements: #H1
     declaredClasses
       S: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M6
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M8
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M9
           map
@@ -86219,33 +86493,34 @@ mixin M on S {
             foo4: #M8
     declaredMixins
       M: #M21
+        flags: isSimplyBounded
         superclassConstraints
           S @ package:test/test.dart
         declaredFields
           foo1: #M22
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M23
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M24
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M25
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M26
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M27
-            flags: invokesSuperSelf isSimplyBounded
+            flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M28
-            flags: invokesSuperSelf isSimplyBounded
+            flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M29
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M30
           map
@@ -86295,33 +86570,34 @@ mixin M {
     hashForRequirements: #H0
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M6
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M8
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M9
           map
@@ -86350,33 +86626,34 @@ mixin M {
     hashForRequirements: #H1
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M6
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M11
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M12
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M13
           map
@@ -86412,33 +86689,34 @@ mixin M {
     hashForRequirements: #H0
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M6
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M8
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M9
           map
@@ -86469,33 +86747,34 @@ mixin M {
     hashForRequirements: #H1
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M6
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo3: #M11
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M12
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M13
           map
@@ -86533,33 +86812,34 @@ mixin M {
     hashForRequirements: #H0
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M6
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
           foo3: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo4: #M8
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
         interface: #M9
           map
@@ -86586,33 +86866,34 @@ mixin M {
     hashForRequirements: #H1
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M11
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M12
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           foo2: #M6
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
           foo3: #M13
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
           foo4: #M14
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M15
           map
@@ -86749,15 +87030,16 @@ mixin A {
     hashForRequirements: #H0
     declaredMixins
       A: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredFields
           foo: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo: #M2
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
         interface: #M3
           map
@@ -86779,15 +87061,16 @@ mixin A {
     hashForRequirements: #H1
     declaredMixins
       A: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredFields
           foo: #M5
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: double @ dart:core
         declaredGetters
           foo: #M6
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             returnType: double @ dart:core
         interface: #M7
           map
@@ -87686,6 +87969,7 @@ mixin M<T> {
     hashForRequirements: #H0
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
@@ -87693,19 +87977,19 @@ mixin M<T> {
           Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: typeParameter#0
           foo2: #M2
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: typeParameter#0
           foo4: #M4
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M5
@@ -87732,6 +88016,7 @@ mixin M<T> {
     hashForRequirements: #H1
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
@@ -87739,19 +88024,19 @@ mixin M<T> {
           Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: typeParameter#0
           foo2: #M2
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M7
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M8
-            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: typeParameter#0
         interface: #M9
@@ -87784,19 +88069,20 @@ mixin M {
     hashForRequirements: #H0
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
           foo2: #M2
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M3
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
         interface: #M4
@@ -87825,19 +88111,20 @@ mixin M {
     hashForRequirements: #H1
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
           foo2: #M6
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
           foo3: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M8
@@ -87880,22 +88167,23 @@ mixin M on S {
     hashForRequirements: #H0
     declaredClasses
       S: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M2
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M3
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M4
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M5
@@ -87911,23 +88199,24 @@ mixin M on S {
             foo4: #M4
     declaredMixins
       M: #M6
+        flags: isSimplyBounded
         superclassConstraints
           S @ package:test/test.dart
         declaredMethods
           foo1: #M7
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M8
-            flags: invokesSuperSelf isSimplyBounded
+            flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M9
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M10
-            flags: invokesSuperSelf isSimplyBounded
+            flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M11
@@ -87977,22 +88266,23 @@ mixin M on S {
     hashForRequirements: #H1
     declaredClasses
       S: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M2
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M3
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M4
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M5
@@ -88008,23 +88298,24 @@ mixin M on S {
             foo4: #M4
     declaredMixins
       M: #M13
+        flags: isSimplyBounded
         superclassConstraints
           S @ package:test/test.dart
         declaredMethods
           foo1: #M14
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M15
-            flags: invokesSuperSelf isSimplyBounded
+            flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M16
-            flags: invokesSuperSelf isSimplyBounded
+            flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M17
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M18
@@ -88075,23 +88366,24 @@ mixin M {
     hashForRequirements: #H0
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M2
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M3
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M4
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M5
@@ -88121,23 +88413,24 @@ mixin M {
     hashForRequirements: #H1
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M2
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M7
-            flags: isAbstract isSimplyBounded
+            flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M8
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M9
@@ -88174,23 +88467,24 @@ mixin M {
     hashForRequirements: #H0
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M2
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M3
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M4
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M5
@@ -88222,23 +88516,24 @@ mixin M {
     hashForRequirements: #H1
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M2
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo3: #M7
-            flags: isExternal isSimplyBounded
+            flags: isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M8
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M9
@@ -88277,23 +88572,24 @@ mixin M {
     hashForRequirements: #H0
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M2
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
           foo3: #M3
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo4: #M4
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
         interface: #M5
@@ -88321,23 +88617,24 @@ mixin M {
     hashForRequirements: #H1
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredMethods
           foo1: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo2: #M2
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
           foo3: #M7
-            flags: isSimplyBounded isStatic
+            flags: isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
           foo4: #M8
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
         interface: #M9
@@ -88519,11 +88816,12 @@ mixin A {
     hashForRequirements: #H0
     declaredMixins
       A: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredMethods
           foo: #M1
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: int @ dart:core
         interface: #M2
@@ -88546,11 +88844,12 @@ mixin A {
     hashForRequirements: #H1
     declaredMixins
       A: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredMethods
           foo: #M4
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: double @ dart:core
         interface: #M5
@@ -88714,6 +89013,7 @@ mixin A<T> {
     hashForRequirements: #H0
     declaredMixins
       A: #M0
+        flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
@@ -88721,7 +89021,7 @@ mixin A<T> {
           Object @ dart:core
         declaredMethods
           foo: #M1
-            flags: hasEnclosingTypeParameterReference isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               typeParameters
                 #0 covariant
@@ -88750,6 +89050,7 @@ mixin A<T> {
     hashForRequirements: #H1
     declaredMixins
       A: #M0
+        flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
@@ -88757,11 +89058,11 @@ mixin A<T> {
           Object @ dart:core
         declaredMethods
           bar: #M4
-            flags: isSimplyBounded
+            flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo: #M1
-            flags: hasEnclosingTypeParameterReference isSimplyBounded
+            flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               typeParameters
                 #0 covariant
@@ -88900,20 +89201,22 @@ base mixin D {}
     hashForRequirements: #H0
     declaredMixins
       A: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         interface: #M1
       B: #M2
-        flags: isBase
+        flags: isBase isSimplyBounded
         superclassConstraints
           Object @ dart:core
         interface: #M3
       C: #M4
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         interface: #M5
       D: #M6
-        flags: isBase
+        flags: isBase isSimplyBounded
         superclassConstraints
           Object @ dart:core
         interface: #M7
@@ -88936,20 +89239,22 @@ mixin D {}
     hashForRequirements: #H1
     declaredMixins
       A: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         interface: #M1
       B: #M2
-        flags: isBase
+        flags: isBase isSimplyBounded
         superclassConstraints
           Object @ dart:core
         interface: #M3
       C: #M9
-        flags: isBase
+        flags: isBase isSimplyBounded
         superclassConstraints
           Object @ dart:core
         interface: #M10
       D: #M11
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         interface: #M12
@@ -89667,6 +89972,7 @@ mixin M<T> {
     hashForRequirements: #H0
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
@@ -89674,38 +89980,38 @@ mixin M<T> {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required typeParameter#0
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M7
-            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required typeParameter#0
               returnType: void
           foo4=: #M8
-            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -89734,6 +90040,7 @@ mixin M<T> {
     hashForRequirements: #H1
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
@@ -89741,38 +90048,38 @@ mixin M<T> {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M11
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M12
-            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredSetters
           foo1=: #M5
-            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required typeParameter#0
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M13
-            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M14
-            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required typeParameter#0
@@ -89814,41 +90121,42 @@ mixin M on S {
     hashForRequirements: #H0
     declaredClasses
       S: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M7
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M8
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -89866,42 +90174,43 @@ mixin M on S {
             foo4=: #M8
     declaredMixins
       M: #M10
+        flags: isSimplyBounded
         superclassConstraints
           S @ package:test/test.dart
         declaredFields
           foo1: #M11
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M12
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M13
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M14
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M15
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M16
-            flags: hasImplicitReturnType invokesSuperSelf isSimplyBounded
+            flags: hasImplicitReturnType invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M17
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M18
-            flags: hasImplicitReturnType invokesSuperSelf isSimplyBounded
+            flags: hasImplicitReturnType invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -89953,41 +90262,42 @@ mixin M on S {
     hashForRequirements: #H1
     declaredClasses
       S: #M0
+        flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M7
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M8
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -90005,42 +90315,43 @@ mixin M on S {
             foo4=: #M8
     declaredMixins
       M: #M21
+        flags: isSimplyBounded
         superclassConstraints
           S @ package:test/test.dart
         declaredFields
           foo1: #M22
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M23
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M24
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M25
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M26
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M27
-            flags: hasImplicitReturnType invokesSuperSelf isSimplyBounded
+            flags: hasImplicitReturnType invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M28
-            flags: hasImplicitReturnType invokesSuperSelf isSimplyBounded
+            flags: hasImplicitReturnType invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M29
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -90093,42 +90404,43 @@ mixin M {
     hashForRequirements: #H0
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M7
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M8
-            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -90160,42 +90472,43 @@ mixin M {
     hashForRequirements: #H1
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M11
-            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M12
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -90234,42 +90547,43 @@ mixin M {
     hashForRequirements: #H0
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isExternal isSimplyBounded
+            flags: hasImplicitReturnType isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M7
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M8
-            flags: hasImplicitReturnType isExternal isSimplyBounded
+            flags: hasImplicitReturnType isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -90303,42 +90617,43 @@ mixin M {
     hashForRequirements: #H1
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isExternal isSimplyBounded
+            flags: hasImplicitReturnType isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M11
-            flags: hasImplicitReturnType isExternal isSimplyBounded
+            flags: hasImplicitReturnType isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M12
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -90379,42 +90694,43 @@ mixin M {
     hashForRequirements: #H0
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isSimplyBounded isStatic
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M7
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M8
-            flags: hasImplicitReturnType isSimplyBounded isStatic
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -90444,42 +90760,43 @@ mixin M {
     hashForRequirements: #H1
     declaredMixins
       M: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M11
-            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M12
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo2=: #M6
-            flags: hasImplicitReturnType isSimplyBounded isStatic
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo3=: #M13
-            flags: hasImplicitReturnType isSimplyBounded isStatic
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo4=: #M14
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -90814,15 +91131,16 @@ mixin A {
     hashForRequirements: #H0
     declaredMixins
       A: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredFields
           foo: #M1
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo=: #M2
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -90847,15 +91165,16 @@ mixin A {
     hashForRequirements: #H1
     declaredMixins
       A: #M0
+        flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredFields
           foo: #M5
-            flags: isSynthetic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isSynthetic shouldUseTypeForInitializerInference
             type: double @ dart:core
         declaredSetters
           foo=: #M6
-            flags: hasImplicitReturnType isSimplyBounded
+            flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required double @ dart:core
@@ -93356,15 +93675,15 @@ foo3() {}
     hashForRequirements: #H0
     declaredFunctions
       foo1: #M0
-        flags: hasEnclosingTypeParameterReference hasImplicitReturnType isSimplyBounded isStatic
+        flags: hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: dynamic
       foo2: #M1
-        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo3: #M2
-        flags: hasEnclosingTypeParameterReference hasImplicitReturnType isSimplyBounded isStatic
+        flags: hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: dynamic
     exportMapId: #M3
@@ -93384,15 +93703,15 @@ void foo3() {}
     hashForRequirements: #H1
     declaredFunctions
       foo1: #M0
-        flags: hasEnclosingTypeParameterReference hasImplicitReturnType isSimplyBounded isStatic
+        flags: hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: dynamic
       foo2: #M4
-        flags: hasEnclosingTypeParameterReference hasImplicitReturnType isSimplyBounded isStatic
+        flags: hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: dynamic
       foo3: #M5
-        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M6
@@ -93420,19 +93739,19 @@ external void foo4();
     hashForRequirements: #H0
     declaredFunctions
       foo1: #M0
-        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo2: #M1
-        flags: hasEnclosingTypeParameterReference isExternal isSimplyBounded isStatic
+        flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo3: #M2
-        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo4: #M3
-        flags: hasEnclosingTypeParameterReference isExternal isSimplyBounded isStatic
+        flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M4
@@ -93454,19 +93773,19 @@ void foo4() {}
     hashForRequirements: #H1
     declaredFunctions
       foo1: #M0
-        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo2: #M1
-        flags: hasEnclosingTypeParameterReference isExternal isSimplyBounded isStatic
+        flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo3: #M5
-        flags: hasEnclosingTypeParameterReference isExternal isSimplyBounded isStatic
+        flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo4: #M6
-        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M7
@@ -93844,23 +94163,23 @@ get foo3 => 0;
     hashForRequirements: #H0
     declaredGetters
       foo1: #M0
-        flags: hasImplicitReturnType isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         returnType: dynamic
       foo2: #M1
-        flags: isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         returnType: int @ dart:core
       foo3: #M2
-        flags: hasImplicitReturnType isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         returnType: dynamic
     declaredVariables
       foo1: #M3
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: dynamic
       foo2: #M4
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo3: #M5
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: dynamic
     exportMapId: #M6
     exportMap
@@ -93879,23 +94198,23 @@ int get foo3 => 0;
     hashForRequirements: #H1
     declaredGetters
       foo1: #M0
-        flags: hasImplicitReturnType isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         returnType: dynamic
       foo2: #M7
-        flags: hasImplicitReturnType isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         returnType: dynamic
       foo3: #M8
-        flags: isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         returnType: int @ dart:core
     declaredVariables
       foo1: #M3
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: dynamic
       foo2: #M9
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: dynamic
       foo3: #M10
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
     exportMapId: #M11
     exportMap
@@ -93922,29 +94241,29 @@ external int get foo4;
     hashForRequirements: #H0
     declaredGetters
       foo1: #M0
-        flags: isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         returnType: int @ dart:core
       foo2: #M1
-        flags: isExternal isSimplyBounded isStatic
+        flags: isExternal isOriginDeclaration isSimplyBounded isStatic
         returnType: int @ dart:core
       foo3: #M2
-        flags: isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         returnType: int @ dart:core
       foo4: #M3
-        flags: isExternal isSimplyBounded isStatic
+        flags: isExternal isOriginDeclaration isSimplyBounded isStatic
         returnType: int @ dart:core
     declaredVariables
       foo1: #M4
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo2: #M5
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo3: #M6
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo4: #M7
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
     exportMapId: #M8
     exportMap
@@ -93965,29 +94284,29 @@ int get foo4 => 4;
     hashForRequirements: #H1
     declaredGetters
       foo1: #M0
-        flags: isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         returnType: int @ dart:core
       foo2: #M1
-        flags: isExternal isSimplyBounded isStatic
+        flags: isExternal isOriginDeclaration isSimplyBounded isStatic
         returnType: int @ dart:core
       foo3: #M9
-        flags: isExternal isSimplyBounded isStatic
+        flags: isExternal isOriginDeclaration isSimplyBounded isStatic
         returnType: int @ dart:core
       foo4: #M10
-        flags: isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         returnType: int @ dart:core
     declaredVariables
       foo1: #M4
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo2: #M5
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo3: #M6
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo4: #M7
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
     exportMapId: #M11
     exportMap
@@ -94249,32 +94568,32 @@ set foo3(int value) {}
     hashForRequirements: #H0
     declaredSetters
       foo1=: #M0
-        flags: hasImplicitReturnType isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required int @ dart:core
           returnType: void
       foo2=: #M1
-        flags: isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required int @ dart:core
           returnType: void
       foo3=: #M2
-        flags: hasImplicitReturnType isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required int @ dart:core
           returnType: void
     declaredVariables
       foo1: #M3
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo2: #M4
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo3: #M5
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
     exportMapId: #M6
     exportMap
@@ -94293,32 +94612,32 @@ void set foo3(int value) {}
     hashForRequirements: #H1
     declaredSetters
       foo1=: #M0
-        flags: hasImplicitReturnType isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required int @ dart:core
           returnType: void
       foo2=: #M7
-        flags: hasImplicitReturnType isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required int @ dart:core
           returnType: void
       foo3=: #M8
-        flags: isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required int @ dart:core
           returnType: void
     declaredVariables
       foo1: #M3
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo2: #M4
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo3: #M5
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
     exportMapId: #M9
     exportMap
@@ -94345,41 +94664,41 @@ external set foo4(int value);
     hashForRequirements: #H0
     declaredSetters
       foo1=: #M0
-        flags: hasImplicitReturnType isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required int @ dart:core
           returnType: void
       foo2=: #M1
-        flags: hasImplicitReturnType isExternal isSimplyBounded isStatic
+        flags: hasImplicitReturnType isExternal isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required int @ dart:core
           returnType: void
       foo3=: #M2
-        flags: hasImplicitReturnType isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required int @ dart:core
           returnType: void
       foo4=: #M3
-        flags: hasImplicitReturnType isExternal isSimplyBounded isStatic
+        flags: hasImplicitReturnType isExternal isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required int @ dart:core
           returnType: void
     declaredVariables
       foo1: #M4
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo2: #M5
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo3: #M6
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo4: #M7
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
     exportMapId: #M8
     exportMap
@@ -94400,41 +94719,41 @@ set foo4(int value) {}
     hashForRequirements: #H1
     declaredSetters
       foo1=: #M0
-        flags: hasImplicitReturnType isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required int @ dart:core
           returnType: void
       foo2=: #M1
-        flags: hasImplicitReturnType isExternal isSimplyBounded isStatic
+        flags: hasImplicitReturnType isExternal isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required int @ dart:core
           returnType: void
       foo3=: #M9
-        flags: hasImplicitReturnType isExternal isSimplyBounded isStatic
+        flags: hasImplicitReturnType isExternal isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required int @ dart:core
           returnType: void
       foo4=: #M10
-        flags: hasImplicitReturnType isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required int @ dart:core
           returnType: void
     declaredVariables
       foo1: #M4
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo2: #M5
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo3: #M6
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo4: #M7
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
     exportMapId: #M11
     exportMap
@@ -94459,14 +94778,14 @@ set a(int _) {}
     hashForRequirements: #H0
     declaredSetters
       a=: #M0
-        flags: hasImplicitReturnType isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required int @ dart:core
           returnType: void
     declaredVariables
       a: #M1
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
     exportMapId: #M2
     exportMap
@@ -94481,14 +94800,14 @@ set a(double _) {}
     hashForRequirements: #H1
     declaredSetters
       a=: #M3
-        flags: hasImplicitReturnType isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required double @ dart:core
           returnType: void
     declaredVariables
       a: #M4
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: double @ dart:core
     exportMapId: #M5
     exportMap
@@ -94720,29 +95039,29 @@ final int foo4 = 0;
     hashForRequirements: #H0
     declaredGetters
       foo1: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       foo2: #M1
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       foo3: #M2
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       foo4: #M3
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       foo1: #M4
-        flags: hasImplicitType hasInitializer isFinal isStatic
+        flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic
         type: int @ dart:core
       foo2: #M5
-        flags: hasInitializer isFinal isStatic shouldUseTypeForInitializerInference
+        flags: hasInitializer isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo3: #M6
-        flags: hasImplicitType hasInitializer isFinal isStatic
+        flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic
         type: int @ dart:core
       foo4: #M7
-        flags: hasInitializer isFinal isStatic shouldUseTypeForInitializerInference
+        flags: hasInitializer isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int @ dart:core
     exportMapId: #M8
     exportMap
@@ -94763,29 +95082,29 @@ final foo4 = 0;
     hashForRequirements: #H1
     declaredGetters
       foo1: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       foo2: #M1
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       foo3: #M2
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       foo4: #M3
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       foo1: #M4
-        flags: hasImplicitType hasInitializer isFinal isStatic
+        flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic
         type: int @ dart:core
       foo2: #M5
-        flags: hasInitializer isFinal isStatic shouldUseTypeForInitializerInference
+        flags: hasInitializer isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo3: #M9
-        flags: hasInitializer isFinal isStatic shouldUseTypeForInitializerInference
+        flags: hasInitializer isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo4: #M10
-        flags: hasImplicitType hasInitializer isFinal isStatic
+        flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic
         type: int @ dart:core
     exportMapId: #M8
     exportMap
@@ -94814,29 +95133,29 @@ final int? foo4;
     hashForRequirements: #H0
     declaredGetters
       foo1: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int? @ dart:core
       foo2: #M1
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int? @ dart:core
       foo3: #M2
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int? @ dart:core
       foo4: #M3
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int? @ dart:core
     declaredVariables
       foo1: #M4
-        flags: hasInitializer isFinal isStatic shouldUseTypeForInitializerInference
+        flags: hasInitializer isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int? @ dart:core
       foo2: #M5
-        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int? @ dart:core
       foo3: #M6
-        flags: hasInitializer isFinal isStatic shouldUseTypeForInitializerInference
+        flags: hasInitializer isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int? @ dart:core
       foo4: #M7
-        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int? @ dart:core
     exportMapId: #M8
     exportMap
@@ -94857,29 +95176,29 @@ final int? foo4 = 0;
     hashForRequirements: #H1
     declaredGetters
       foo1: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int? @ dart:core
       foo2: #M1
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int? @ dart:core
       foo3: #M2
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int? @ dart:core
       foo4: #M3
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int? @ dart:core
     declaredVariables
       foo1: #M4
-        flags: hasInitializer isFinal isStatic shouldUseTypeForInitializerInference
+        flags: hasInitializer isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int? @ dart:core
       foo2: #M5
-        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int? @ dart:core
       foo3: #M9
-        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int? @ dart:core
       foo4: #M10
-        flags: hasInitializer isFinal isStatic shouldUseTypeForInitializerInference
+        flags: hasInitializer isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int? @ dart:core
     exportMapId: #M8
     exportMap
@@ -94960,29 +95279,29 @@ final int? foo4;
     hashForRequirements: #H0
     declaredGetters
       foo1: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int? @ dart:core
       foo2: #M1
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int? @ dart:core
       foo3: #M2
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int? @ dart:core
       foo4: #M3
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int? @ dart:core
     declaredVariables
       foo1: #M4
-        flags: isExternal isFinal isStatic shouldUseTypeForInitializerInference
+        flags: isExternal isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int? @ dart:core
       foo2: #M5
-        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int? @ dart:core
       foo3: #M6
-        flags: isExternal isFinal isStatic shouldUseTypeForInitializerInference
+        flags: isExternal isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int? @ dart:core
       foo4: #M7
-        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int? @ dart:core
     exportMapId: #M8
     exportMap
@@ -95003,29 +95322,29 @@ external final int? foo4;
     hashForRequirements: #H1
     declaredGetters
       foo1: #M0
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int? @ dart:core
       foo2: #M1
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int? @ dart:core
       foo3: #M2
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int? @ dart:core
       foo4: #M3
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int? @ dart:core
     declaredVariables
       foo1: #M4
-        flags: isExternal isFinal isStatic shouldUseTypeForInitializerInference
+        flags: isExternal isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int? @ dart:core
       foo2: #M5
-        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int? @ dart:core
       foo3: #M9
-        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int? @ dart:core
       foo4: #M10
-        flags: isExternal isFinal isStatic shouldUseTypeForInitializerInference
+        flags: isExternal isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int? @ dart:core
     exportMapId: #M8
     exportMap
@@ -95164,29 +95483,29 @@ final int? foo4;
     hashForRequirements: #H0
     declaredGetters
       foo1: #M0
-        flags: isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         returnType: int? @ dart:core
       foo2: #M1
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int? @ dart:core
       foo3: #M2
-        flags: isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         returnType: int? @ dart:core
       foo4: #M3
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int? @ dart:core
     declaredVariables
       foo1: #M4
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int? @ dart:core
       foo2: #M5
-        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int? @ dart:core
       foo3: #M6
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int? @ dart:core
       foo4: #M7
-        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int? @ dart:core
     exportMapId: #M8
     exportMap
@@ -95207,29 +95526,29 @@ int? get foo4 => 0;
     hashForRequirements: #H1
     declaredGetters
       foo1: #M0
-        flags: isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         returnType: int? @ dart:core
       foo2: #M1
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int? @ dart:core
       foo3: #M9
-        flags: isSimplyBounded isStatic isSynthetic
+        flags: isOriginVariable isSimplyBounded isStatic isSynthetic
         returnType: int? @ dart:core
       foo4: #M10
-        flags: isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         returnType: int? @ dart:core
     declaredVariables
       foo1: #M4
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int? @ dart:core
       foo2: #M5
-        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int? @ dart:core
       foo3: #M11
-        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
         type: int? @ dart:core
       foo4: #M12
-        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int? @ dart:core
     exportMapId: #M13
     exportMap

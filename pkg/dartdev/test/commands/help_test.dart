@@ -89,7 +89,7 @@ Project
   compile               Compile Dart to various formats.
   create                Create a new Dart project.
   pub                   Work with packages.
-  run                   Run a Dart program from a file, a local package, or a remote package.
+  run                   Run a Dart program from a file or a local package.
   test                  Run tests for a project.
 
 Source code

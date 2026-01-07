@@ -7,9 +7,9 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
 import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_code_values.dart';
+import 'package:analyzer/src/error/listener.dart';
 
 /// An error reporter that knows how to convert a Fasta error into an analyzer
 /// error.
@@ -33,76 +33,67 @@ class FastaErrorReporter {
 
     switch (pseudoSharedCode) {
       case PseudoSharedCode.asyncForInWrongContext:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.asyncForInWrongContext,
+        diagnosticReporter?.report(
+          diag.asyncForInWrongContext.atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.asyncKeywordUsedAsIdentifier:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.asyncKeywordUsedAsIdentifier,
+        diagnosticReporter?.report(
+          diag.asyncKeywordUsedAsIdentifier.atOffset(
+            offset: offset,
+            length: length,
+          ),
         );
         return;
       case PseudoSharedCode.awaitInWrongContext:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.awaitInWrongContext,
+        diagnosticReporter?.report(
+          diag.awaitInWrongContext.atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.builtInIdentifierAsType:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.builtInIdentifierAsType,
-          arguments: [lexeme()],
+        diagnosticReporter?.report(
+          diag.builtInIdentifierAsType
+              .withArguments(token: lexeme())
+              .atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.constConstructorWithBody:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.constConstructorWithBody,
+        diagnosticReporter?.report(
+          diag.constConstructorWithBody.atOffset(
+            offset: offset,
+            length: length,
+          ),
         );
         return;
       case PseudoSharedCode.constNotInitialized:
         var name = arguments['name'] as String;
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.constNotInitialized,
-          arguments: [name],
+        diagnosticReporter?.report(
+          diag.constNotInitialized
+              .withArguments(name: name)
+              .atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.defaultValueInFunctionType:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.defaultValueInFunctionType,
+        diagnosticReporter?.report(
+          diag.defaultValueInFunctionType.atOffset(
+            offset: offset,
+            length: length,
+          ),
         );
         return;
       case PseudoSharedCode.expectedClassMember:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.expectedClassMember,
+        diagnosticReporter?.report(
+          diag.expectedClassMember.atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.expectedExecutable:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.expectedExecutable,
+        diagnosticReporter?.report(
+          diag.expectedExecutable.atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.expectedStringLiteral:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.expectedStringLiteral,
+        diagnosticReporter?.report(
+          diag.expectedStringLiteral.atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.expectedToken:
@@ -114,10 +105,8 @@ class FastaErrorReporter {
         );
         return;
       case PseudoSharedCode.expectedTypeName:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.expectedTypeName,
+        diagnosticReporter?.report(
+          diag.expectedTypeName.atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.extensionDeclaresInstanceField:
@@ -134,10 +123,8 @@ class FastaErrorReporter {
         );
         return;
       case PseudoSharedCode.getterWithParameters:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.getterWithParameters,
+        diagnosticReporter?.report(
+          diag.getterWithParameters.atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.illegalCharacter:
@@ -148,17 +135,19 @@ class FastaErrorReporter {
         );
         return;
       case PseudoSharedCode.invalidInlineFunctionType:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.invalidInlineFunctionType,
+        diagnosticReporter?.report(
+          diag.invalidInlineFunctionType.atOffset(
+            offset: offset,
+            length: length,
+          ),
         );
         return;
       case PseudoSharedCode.invalidLiteralInConfiguration:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.invalidLiteralInConfiguration,
+        diagnosticReporter?.report(
+          diag.invalidLiteralInConfiguration.atOffset(
+            offset: offset,
+            length: length,
+          ),
         );
         return;
       case PseudoSharedCode.invalidCodePoint:
@@ -178,122 +167,109 @@ class FastaErrorReporter {
         );
         return;
       case PseudoSharedCode.missingDigit:
-        diagnosticReporter?.atOffset(
-          diagnosticCode: diag.missingDigit,
-          offset: offset,
-          length: length,
+        diagnosticReporter?.report(
+          diag.missingDigit.atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.missingEnumBody:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.missingEnumBody,
+        diagnosticReporter?.report(
+          diag.missingEnumBody.atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.missingFunctionBody:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.missingFunctionBody,
+        diagnosticReporter?.report(
+          diag.missingFunctionBody.atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.missingFunctionParameters:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.missingFunctionParameters,
+        diagnosticReporter?.report(
+          diag.missingFunctionParameters.atOffset(
+            offset: offset,
+            length: length,
+          ),
         );
         return;
       case PseudoSharedCode.missingHexDigit:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.missingHexDigit,
+        diagnosticReporter?.report(
+          diag.missingHexDigit.atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.missingIdentifier:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.missingIdentifier,
+        diagnosticReporter?.report(
+          diag.missingIdentifier.atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.missingMethodParameters:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.missingMethodParameters,
+        diagnosticReporter?.report(
+          diag.missingMethodParameters.atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.missingStarAfterSync:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.missingStarAfterSync,
+        diagnosticReporter?.report(
+          diag.missingStarAfterSync.atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.missingTypedefParameters:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.missingTypedefParameters,
+        diagnosticReporter?.report(
+          diag.missingTypedefParameters.atOffset(
+            offset: offset,
+            length: length,
+          ),
         );
         return;
       case PseudoSharedCode.multipleImplementsClauses:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.multipleImplementsClauses,
+        diagnosticReporter?.report(
+          diag.multipleImplementsClauses.atOffset(
+            offset: offset,
+            length: length,
+          ),
         );
         return;
       case PseudoSharedCode.namedFunctionExpression:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.namedFunctionExpression,
+        diagnosticReporter?.report(
+          diag.namedFunctionExpression.atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.namedParameterOutsideGroup:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.namedParameterOutsideGroup,
+        diagnosticReporter?.report(
+          diag.namedParameterOutsideGroup.atOffset(
+            offset: offset,
+            length: length,
+          ),
         );
         return;
       case PseudoSharedCode.nonPartOfDirectiveInPart:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.nonPartOfDirectiveInPart,
+        diagnosticReporter?.report(
+          diag.nonPartOfDirectiveInPart.atOffset(
+            offset: offset,
+            length: length,
+          ),
         );
         return;
       case PseudoSharedCode.nonSyncFactory:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.nonSyncFactory,
+        diagnosticReporter?.report(
+          diag.nonSyncFactory.atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.positionalAfterNamedArgument:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.positionalAfterNamedArgument,
+        diagnosticReporter?.report(
+          diag.positionalAfterNamedArgument.atOffset(
+            offset: offset,
+            length: length,
+          ),
         );
         return;
       case PseudoSharedCode.returnInGenerator:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.returnInGenerator,
+        diagnosticReporter?.report(
+          diag.returnInGenerator.atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.unexpectedDollarInString:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.unexpectedDollarInString,
+        diagnosticReporter?.report(
+          diag.unexpectedDollarInString.atOffset(
+            offset: offset,
+            length: length,
+          ),
         );
         return;
       case PseudoSharedCode.unexpectedToken:
@@ -305,24 +281,27 @@ class FastaErrorReporter {
         );
         return;
       case PseudoSharedCode.unterminatedMultiLineComment:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.unterminatedMultiLineComment,
+        diagnosticReporter?.report(
+          diag.unterminatedMultiLineComment.atOffset(
+            offset: offset,
+            length: length,
+          ),
         );
         return;
       case PseudoSharedCode.unterminatedStringLiteral:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.unterminatedStringLiteral,
+        diagnosticReporter?.report(
+          diag.unterminatedStringLiteral.atOffset(
+            offset: offset,
+            length: length,
+          ),
         );
         return;
       case PseudoSharedCode.wrongSeparatorForPositionalParameter:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.wrongSeparatorForPositionalParameter,
+        diagnosticReporter?.report(
+          diag.wrongSeparatorForPositionalParameter.atOffset(
+            offset: offset,
+            length: length,
+          ),
         );
         return;
       case PseudoSharedCode.yieldInNonGenerator:
@@ -332,17 +311,19 @@ class FastaErrorReporter {
         // Reported by [ErrorVerifier._checkForBuiltInIdentifierAsName].
         return;
       case PseudoSharedCode.privateOptionalParameter:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.privateOptionalParameter,
+        diagnosticReporter?.report(
+          diag.privateOptionalParameter.atOffset(
+            offset: offset,
+            length: length,
+          ),
         );
         return;
       case PseudoSharedCode.privateNamedNonFieldParameter:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.privateNamedNonFieldParameter,
+        diagnosticReporter?.report(
+          diag.privateNamedNonFieldParameter.atOffset(
+            offset: offset,
+            length: length,
+          ),
         );
         return;
       case PseudoSharedCode.nonSyncAbstractMethod:
@@ -396,13 +377,13 @@ class FastaErrorReporter {
   void reportMessage(Message message, int offset, int length) {
     Code code = message.code;
     if (code.sharedCode case var sharedCode?) {
-      var errorCode = sharedAnalyzerCodes[sharedCode.index];
+      var diagnosticCode = sharedAnalyzerCodes[sharedCode.index];
       diagnosticReporter!.reportError(
         Diagnostic.tmp(
           source: diagnosticReporter!.source,
           offset: offset,
           length: length,
-          diagnosticCode: errorCode,
+          diagnosticCode: diagnosticCode,
           arguments: message.arguments.values.toList(),
         ),
       );
@@ -412,14 +393,14 @@ class FastaErrorReporter {
   }
 
   void reportScannerError(
-    DiagnosticCode errorCode,
+    DiagnosticCode code,
     int offset,
     List<Object>? arguments,
   ) {
     // TODO(danrubel): update client to pass length in addition to offset.
     int length = 1;
     diagnosticReporter?.atOffset(
-      diagnosticCode: errorCode,
+      diagnosticCode: code,
       offset: offset,
       length: length,
       arguments: arguments ?? const [],

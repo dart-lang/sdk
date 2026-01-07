@@ -33,13 +33,14 @@ Future<void> testCapturedLocalVarPragmaVmShared() async {
   @pragma('vm:shared')
   // ignore: unused_local_variable
   int foo_result = 42;
-  final callback = NativeCallable<CallbackNativeType>.isolateGroupBound((
-    int a,
-    int b,
-  ) {
-    foo_result += (a * b);
-  });
-  callback.close();
+  Expect.throws(() {
+    final callback = NativeCallable<CallbackNativeType>.isolateGroupBound((
+      int a,
+      int b,
+    ) {
+      foo_result += (a * b);
+    });
+  }, (e) => e.toString().contains("Only final not-late variables can be"));
 }
 
 Future<void> testCapturedLocalVarFinal() async {

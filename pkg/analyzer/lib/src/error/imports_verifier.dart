@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/file_analysis.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 
 /// Instances of the class `ImportsVerifier` visit all of the referenced
 /// libraries in the source code verifying that all of the imports are used,
@@ -65,7 +65,7 @@ class ImportsVerifier {
         if (libraryElement == null) {
           continue;
         }
-        if (libraryElement.isSynthetic) {
+        if (libraryElement.isOriginNotExistingFile) {
           continue;
         }
         _allImports.add(directive);
@@ -103,7 +103,9 @@ class ImportsVerifier {
   void generateDuplicateExportWarnings(DiagnosticReporter diagnosticReporter) {
     var length = _duplicateExports.length;
     for (var i = 0; i < length; i++) {
-      diagnosticReporter.atNode(_duplicateExports[i].uri, diag.duplicateExport);
+      diagnosticReporter.report(
+        diag.duplicateExport.at(_duplicateExports[i].uri),
+      );
     }
   }
 
@@ -114,7 +116,9 @@ class ImportsVerifier {
   void generateDuplicateImportWarnings(DiagnosticReporter diagnosticReporter) {
     var length = _duplicateImports.length;
     for (var i = 0; i < length; i++) {
-      diagnosticReporter.atNode(_duplicateImports[i].uri, diag.duplicateImport);
+      diagnosticReporter.report(
+        diag.duplicateImport.at(_duplicateImports[i].uri),
+      );
     }
   }
 
@@ -132,7 +136,7 @@ class ImportsVerifier {
       int length = identifiers.length;
       for (int i = 0; i < length; i++) {
         Identifier identifier = identifiers[i];
-        reporter.atNode(identifier, diag.duplicateHiddenName);
+        reporter.report(diag.duplicateHiddenName.at(identifier));
       }
     });
     _duplicateShownNamesMap.forEach((
@@ -142,7 +146,7 @@ class ImportsVerifier {
       int length = identifiers.length;
       for (int i = 0; i < length; i++) {
         Identifier identifier = identifiers[i];
-        reporter.atNode(identifier, diag.duplicateShownName);
+        reporter.report(diag.duplicateShownName.at(identifier));
       }
     });
   }
@@ -247,7 +251,7 @@ class ImportsVerifier {
           }
 
           // The URI target does not exist, reported this elsewhere.
-          if (uri.library.isSynthetic) {
+          if (uri.library.isOriginNotExistingFile) {
             continue;
           }
 

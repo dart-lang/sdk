@@ -5,8 +5,8 @@
 import 'dart:math' as math;
 
 import 'package:analyzer/dart/ast/doc_comment.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 
 /// Verifies various data parsed in doc comments.
 class DocCommentVerifier {
@@ -35,27 +35,28 @@ class DocCommentVerifier {
   void docImport(DocImport docImport) {
     var deferredKeyword = docImport.import.deferredKeyword;
     if (deferredKeyword != null) {
-      _diagnosticReporter.atToken(
-        deferredKeyword,
-        diag.docImportCannotBeDeferred,
+      _diagnosticReporter.report(
+        diag.docImportCannotBeDeferred.at(deferredKeyword),
       );
     }
     var configurations = docImport.import.configurations;
     if (configurations.isNotEmpty) {
-      _diagnosticReporter.atOffset(
-        offset: configurations.first.offset,
-        length: configurations.last.end - configurations.first.offset,
-        diagnosticCode: diag.docImportCannotHaveConfigurations,
+      _diagnosticReporter.report(
+        diag.docImportCannotHaveConfigurations.atOffset(
+          offset: configurations.first.offset,
+          length: configurations.last.end - configurations.first.offset,
+        ),
       );
     }
 
     // TODO(srawlins): Support combinators.
     var combinators = docImport.import.combinators;
     if (combinators.isNotEmpty) {
-      _diagnosticReporter.atOffset(
-        offset: combinators.first.offset,
-        length: combinators.last.end - combinators.first.offset,
-        diagnosticCode: diag.docImportCannotHaveCombinators,
+      _diagnosticReporter.report(
+        diag.docImportCannotHaveCombinators.atOffset(
+          offset: combinators.first.offset,
+          length: combinators.last.end - combinators.first.offset,
+        ),
       );
     }
 
@@ -64,10 +65,11 @@ class DocCommentVerifier {
     // reverted as it increased memory usage.
     var prefix = docImport.import.prefix;
     if (prefix != null) {
-      _diagnosticReporter.atOffset(
-        offset: prefix.offset,
-        length: prefix.end - prefix.offset,
-        diagnosticCode: diag.docImportCannotHavePrefix,
+      _diagnosticReporter.report(
+        diag.docImportCannotHavePrefix.atOffset(
+          offset: prefix.offset,
+          length: prefix.end - prefix.offset,
+        ),
       );
     }
   }

@@ -154,22 +154,8 @@ class _InitializerInference {
   }
 
   void _addVariableNode(PropertyInducingElementImpl element) {
-    if (element.isSynthetic) {
-      var shouldInfer = false;
-      if (element is FieldElementImpl) {
-        // For enums `values` is purely synthetic.
-        if (element.isEnumValues) {
-          shouldInfer = true;
-        }
-        // For declaring formal parameters the field is synthetic.
-        // But we want to infer the type from the default value.
-        if (element.declaringFormalParameter != null) {
-          shouldInfer = true;
-        }
-      }
-      if (!shouldInfer) {
-        return;
-      }
+    if (element.isOriginGetterSetter) {
+      return;
     }
 
     if (!element.hasImplicitType) return;
@@ -222,6 +208,7 @@ class _PropertyInducingElementTypeInference
             getInitializer = () => node.initializer!;
           }
         case DefaultFormalParameterImpl():
+          _assertElementFieldOriginDeclaringFormalParameter();
           if (node.defaultValue != null) {
             initializerLibraryFragment = fragment.libraryFragment;
             scope = LinkingNodeContext.get(node).scope;
@@ -230,6 +217,10 @@ class _PropertyInducingElementTypeInference
             _status = _InferenceStatus.inferred;
             return _element.library.typeSystem.objectQuestion;
           }
+        case SimpleFormalParameterImpl():
+          _assertElementFieldOriginDeclaringFormalParameter();
+          _status = _InferenceStatus.inferred;
+          return _element.library.typeSystem.objectQuestion;
       }
     }
 
@@ -300,6 +291,15 @@ class _PropertyInducingElementTypeInference
 
     var initializerType = getInitializer().typeOrThrow;
     return _refineType(initializerType);
+  }
+
+  void _assertElementFieldOriginDeclaringFormalParameter() {
+    assert(() {
+      if (_element case FieldElementImpl element) {
+        return element.isOriginDeclaringFormalParameter;
+      }
+      return false;
+    }());
   }
 
   TypeImpl _refineType(TypeImpl type) {

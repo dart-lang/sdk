@@ -91,7 +91,7 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final,
 
   __ EnterStubFrame();
 
-  if (FLAG_experimental_shared_data && is_shared) {
+  if (is_shared) {
     // Since initialization of shared fields has to be guarded by
     // a mutex, do the initialization in the runtime.
     __ PushObject(NullObject());  // Make room for the result
@@ -1865,6 +1865,18 @@ void StubCodeCompiler::GenerateDoubleToIntegerStub() {
   __ CallRuntime(kDoubleToIntegerRuntimeEntry, 1);
   __ Drop(1);
   __ PopRegister(DoubleToIntegerStubABI::kResultReg);
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
+void StubCodeCompiler::GenerateCheckedStoreIntoSharedStub() {
+  __ EnterStubFrame();
+  __ PushObject(NullObject());  // Make room for result.
+  __ PushRegistersInOrder({CheckedStoreIntoSharedStubABI::kFieldReg,
+                           CheckedStoreIntoSharedStubABI::kValueReg});
+  __ CallRuntime(kCheckedStoreIntoSharedRuntimeEntry, /*argument_count=*/2);
+  __ Drop(2);
+  __ PopRegister(CheckedStoreIntoSharedStubABI::kResultReg);
   __ LeaveStubFrame();
   __ Ret();
 }

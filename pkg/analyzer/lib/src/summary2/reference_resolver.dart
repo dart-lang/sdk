@@ -76,11 +76,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     var outerScope = scope;
 
-    var element = node.declaredFragment!;
+    var fragment = node.declaredFragment!;
 
     scope = TypeParameterScope(
       scope,
-      element.typeParameters.map((e) => e.asElement2).toList(),
+      fragment.typeParameters.map((e) => e.asElement2).toList(),
     );
 
     node.metadata.accept(this);
@@ -89,7 +89,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
 
-    scope = InstanceScope(scope, element.asElement2);
+    scope = InstanceScope(scope, fragment.asElement2);
     LinkingNodeContext(node, scope);
 
     node.body.accept(this);
@@ -102,11 +102,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     var outerScope = scope;
 
-    var element = node.declaredFragment!;
+    var fragment = node.declaredFragment!;
 
     scope = TypeParameterScope(
       scope,
-      element.typeParameters.map((e) => e.asElement2).toList(),
+      fragment.typeParameters.map((e) => e.asElement2).toList(),
     );
     LinkingNodeContext(node, scope);
 
@@ -503,9 +503,13 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {}
+
+  @override
   void visitPrimaryConstructorDeclaration(
     covariant PrimaryConstructorDeclarationImpl node,
   ) {
+    LinkingNodeContext(node, scope);
     node.typeParameters?.accept(this);
     node.formalParameters.accept(this);
   }

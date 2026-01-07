@@ -1826,6 +1826,7 @@ Expected parent: (${parent.runtimeType}) $parent
       _sink.writeIf(fragment.isPrivate, 'isPrivate ');
       _sink.writeIf(fragment.isPublic, 'isPublic ');
       _sink.writeIf(fragment.isStatic, 'isStatic ');
+      // ignore: deprecated_member_use_from_same_package
       _sink.writeIf(fragment.isSynthetic, 'isSynthetic ');
       _sink.write('${fragment.name ?? ''}@${fragment.nameOffset}');
     });
@@ -2125,7 +2126,6 @@ Expected parent: (${parent.runtimeType}) $parent
     _sink.writeIf(element.isPrivate, ' isPrivate');
     _sink.writeIf(element.isPublic, ' isPublic');
     _sink.writeIf(element.isStatic, ' isStatic');
-    _sink.writeIf(element.isSynthetic, ' isSynthetic');
   }
 
   static void _assertHasIdenticalElement<T>(List<T> elements, T expected) {

@@ -141,7 +141,7 @@ class NavigationCollectorImpl implements NavigationCollector {
 
 /// The element and the navigation target created for it.
 ///
-/// If code location feature is enabled, we update [target] using [element].
+/// If code location feature is enabled, we update [target] using [fragment].
 class TargetToUpdate {
   final analyzer.Fragment fragment;
   final NavigationTarget target;

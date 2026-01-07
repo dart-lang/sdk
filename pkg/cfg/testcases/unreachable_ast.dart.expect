@@ -1,4 +1,11 @@
---- foo
+--- A.
+B0 = EntryBlock()
+  v4 = Constant(null)
+  v1 = Parameter(this)
+  DirectCall Object.(v1)
+  Return(v4)
+
+--- A.foo
 B0 = EntryBlock()
   Parameter(this)
   v2 = Parameter(a)
@@ -43,7 +50,7 @@ B0 = EntryBlock() dominates:(B4)
   v24 = Constant(1)
   v1 = Parameter(n)
   Goto(B4)
-B4 = JoinBlock(B0, B18) idom:B0 dominates:(B10, B9) loop-header (depth:1 body:(B4, B9, B16, B18) back-edges:(B18))
+B4 = JoinBlock(B0, B16) idom:B0 dominates:(B10, B9) loop-header (depth:1 body:(B4, B9, B16) back-edges:(B16))
   v29 = Phi(v2, v25)
   v8 = Comparison int <(v29, v1)
   Branch(v8, true: B9, false: B10)
@@ -52,35 +59,25 @@ B9 = TargetBlock() idom:B4 dominates:(B16, B15) in-loop:B4
   Branch(v14, true: B15, false: B16)
 B15 = TargetBlock() idom:B9
   Throw(v20)
-B16 = TargetBlock() idom:B9 dominates:(B18) in-loop:B4
-  Goto(B18)
-B18 = JoinBlock(B16) idom:B16 in-loop:B4
+B16 = TargetBlock() idom:B9 in-loop:B4
   v25 = BinaryIntOp +(v29, v24)
   Goto(B4)
 B10 = TargetBlock() idom:B4
   Return(v22)
 
 --- unreachableBreak2
-B0 = EntryBlock() dominates:(B4)
+B0 = EntryBlock() dominates:(B10, B9)
   v2 = Constant(0)
-  v13 = Constant(2)
-  v20 = Constant("Bye")
+  Constant(2)
+  Constant("Bye")
   v22 = Constant(null)
+  Constant(false)
   v1 = Parameter(n)
-  Goto(B4)
-B4 = JoinBlock(B0) idom:B0 dominates:(B10, B9)
-  v8 = Comparison int <(v2, v1)
+  v8 = Comparison int >=(v1, v2)
   Branch(v8, true: B9, false: B10)
-B9 = TargetBlock() idom:B4 dominates:(B16, B15)
-  v14 = Comparison int >(v2, v13)
-  Branch(v14, true: B15, false: B16)
-B15 = TargetBlock() idom:B9
-  Throw(v20)
-B16 = TargetBlock() idom:B9 dominates:(B18)
-  Goto(B18)
-B18 = JoinBlock(B16) idom:B16
+B9 = TargetBlock() idom:B0
   Return(v22)
-B10 = TargetBlock() idom:B4
+B10 = TargetBlock() idom:B0
   Return(v22)
 
 --- unreachableFinally
@@ -91,16 +88,7 @@ B0 = EntryBlock() dominates:(B2, B1)
   v20 = Constant(3)
   v22 = Constant("Bye-bye")
   TryEntry(try-body: B1, catch-block: B2)
-B1 = TargetBlock() exception-handler:B2 idom:B0 dominates:(B5, B4)
-  TryEntry(try-body: B4, catch-block: B5)
-B4 = TargetBlock() exception-handler:B5 idom:B1 dominates:(B7)
-  Goto(B7)
-B7 = JoinBlock(B4) exception-handler:B2 idom:B4
-  DirectCall print(v11)
-  Throw(v13)
-B5 = CatchBlock() exception-handler:B2 idom:B1
-  Parameter(#exception)
-  Parameter(#stackTrace)
+B1 = TargetBlock() exception-handler:B2 idom:B0
   DirectCall print(v11)
   Throw(v13)
 B2 = CatchBlock() idom:B0
@@ -109,8 +97,78 @@ B2 = CatchBlock() idom:B0
   DirectCall print(v20)
   Throw(v22)
 
+--- unreachableTryEnd
+B0 = EntryBlock() dominates:(B2, B1)
+  v4 = Constant(1)
+  v6 = Constant("Bye-bye")
+  v8 = Constant(null)
+  v13 = Constant(3)
+  TryEntry(try-body: B1, catch-block: B2)
+B1 = TargetBlock() exception-handler:B2 idom:B0
+  DirectCall print(v4)
+  Throw(v6)
+B2 = CatchBlock() idom:B0
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v13)
+  Return(v8)
+
+--- unreachableCatchEnd
+B0 = EntryBlock() dominates:(B2, B1)
+  v4 = Constant(1)
+  v12 = Constant(2)
+  v14 = Constant("Bye-bye")
+  v16 = Constant(null)
+  TryEntry(try-body: B1, catch-block: B2)
+B1 = TargetBlock() exception-handler:B2 idom:B0
+  DirectCall print(v4)
+  Return(v16)
+B2 = CatchBlock() idom:B0
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v12)
+  Throw(v14)
+
+--- unreachableBothTryEndAndCatchEnd
+B0 = EntryBlock() dominates:(B2, B1)
+  v4 = Constant(1)
+  v6 = Constant("Bye")
+  Constant(null)
+  v13 = Constant(3)
+  v15 = Constant("Bye-bye")
+  TryEntry(try-body: B1, catch-block: B2)
+B1 = TargetBlock() exception-handler:B2 idom:B0
+  DirectCall print(v4)
+  Throw(v6)
+B2 = CatchBlock() idom:B0
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v13)
+  Throw(v15)
+
 --- main
 B0 = EntryBlock()
   v1 = Constant(null)
   Return(v1)
+
+--- getter unreachableFieldInitializer
+B0 = EntryBlock()
+  v1 = LoadStaticField(unreachableFieldInitializer)
+  Return(v1)
+
+--- setter unreachableFieldInitializer
+B0 = EntryBlock()
+  v4 = Constant(null)
+  v1 = Parameter(#value)
+  StoreStaticField(unreachableFieldInitializer, v1)
+  Return(v4)
+
+--- field-init unreachableFieldInitializer
+B0 = EntryBlock()
+  Constant(10)
+  Constant(1)
+  v4 = Constant("Bye")
+  Constant(null)
+  TypeArguments(<num>)
+  Throw(v4)
 

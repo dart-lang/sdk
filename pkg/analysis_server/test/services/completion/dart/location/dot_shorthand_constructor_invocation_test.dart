@@ -36,6 +36,44 @@ suggestions
 ''');
   }
 
+  Future<void> test_constructor_const_difference() async {
+    allowedIdentifiers = {'named', 'notConstant'};
+    await computeSuggestions('''
+class C {
+  const C.named();
+  C.notConstant();
+}
+void f() {
+  print(C() != const .^);
+}
+''');
+    assertResponse(r'''
+suggestions
+  named
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_constructor_const_difference_withPrefix() async {
+    allowedIdentifiers = {'named', 'notConstant'};
+    await computeSuggestions('''
+class C {
+  const C.named();
+  C.notConstant();
+}
+void f() {
+  print(C.named() != const .n^);
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  named
+    kind: constructorInvocation
+''');
+  }
+
   Future<void> test_constructor_const_equality() async {
     allowedIdentifiers = {'named', 'notConstant'};
     await computeSuggestions('''

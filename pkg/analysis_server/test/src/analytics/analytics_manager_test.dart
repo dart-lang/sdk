@@ -464,7 +464,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
 
   Future<void> test_startup_withPlugins() async {
     _defaultStartup();
-    manager.changedPlugins(
+    await manager.changedPlugins(
       _MockPluginManager(
         pluginIsolates: [_pluginIsolate('a'), _pluginIsolate('b')],
       ),
@@ -761,6 +761,17 @@ class _MockPluginManager implements PluginManager {
   List<PluginIsolate> pluginIsolates;
 
   _MockPluginManager({this.pluginIsolates = const []});
+
+  @override
+  Set<String> get contextRootsWithNoPlugins => {};
+
+  @override
+  List<PluginIsolate> get legacyPluginIsolates =>
+      pluginIsolates.where((i) => i.isLegacy).toList();
+
+  @override
+  List<PluginIsolate> get newPluginIsolates =>
+      pluginIsolates.where((i) => !i.isLegacy).toList();
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

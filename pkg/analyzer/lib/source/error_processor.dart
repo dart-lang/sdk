@@ -79,7 +79,7 @@ class ErrorProcessor {
   /// Check if this processor applies to the given [diagnostic].
   @visibleForTesting
   bool appliesTo(Diagnostic diagnostic) =>
-      code == diagnostic.diagnosticCode.name.toLowerCase();
+      code == diagnostic.diagnosticCode.lowerCaseName;
 
   @override
   String toString() => "ErrorProcessor[code='$code', severity=$severity]";

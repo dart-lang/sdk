@@ -18,6 +18,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/verifier.dart';
+import 'package:pool/pool.dart' as pool;
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
 import 'package:vm/transformations/mixin_deduplication.dart'
     as mixin_deduplication show transformLibraries;
@@ -39,7 +40,6 @@ import 'dynamic_modules.dart';
 import 'io_util.dart';
 import 'js/method_collector.dart' show JSMethods;
 import 'js/runtime_generator.dart' as js;
-import 'library_dependencies_pruner.dart';
 import 'modules.dart';
 import 'record_class_generator.dart';
 import 'records.dart';
@@ -300,6 +300,7 @@ Future<CompilationResult> _runCfePhase(
     }
     ..explicitExperimentalFlags = options.feExperimentalFlags
     ..verbose = false
+    ..embedSourceText = options.translatorOptions.enableAsserts
     ..onDiagnostic = diagnosticMessageHandler
     ..fileSystem = fileSystem;
 
@@ -549,30 +550,6 @@ Future<CompilationResult> _runTfaPhase(
     libraryIndex = LibraryIndex(component, _librariesToIndex);
   }
 
-  // NOTE: The [Library.dependencies] will be in a weird state after TFA:
-  //
-  //   * a library may use members of other libraries without an import that
-  //     provides the member
-  //
-  //   * a library may have many unused imports
-  //
-  // -> See https://dartbug.com/62112 & https://dartbug.com/62111 for details.
-  //
-  // At this point dart2wasm uses library dependencies only for one purpose,
-  // namely for partitioning all libraries into deferred wasm modules. So we now
-  // perform a dart2wasm specific pruning of library imports.
-  //
-  // See [pruneLibraryDependencies] for more information.
-  //
-  // NOTE: In stress test mode the component is manually split into one wasm
-  // module per library without making imports of libraries deferred. To ensure
-  // all modules get loaded before main it injects dummy [LoadLibrary]
-  // expressions that would be optimized out by [pruneLibraryDependencies]. So
-  // we disable the pruning in this case.
-  if (!options.translatorOptions.enableMultiModuleStressTestMode) {
-    pruneLibraryDependencies(libraryIndex, component);
-  }
-
   if (options.emitTfa) {
     // Store metadata needed for codegen so that it can be serialized.
     final recordClassesRepo = _RecordClassesRepository();
@@ -608,8 +585,8 @@ Future<CompilationResult> _runTfaPhase(
 
 Future<CodegenResult> _loadCodegenResult(compiler.WasmCompilerOptions options,
     CompilerPhaseInputOutputManager ioManager) async {
-  return CodegenResult(options.mainUri.toFilePath(),
-      await ioManager.getModuleCount(options.mainUri));
+  final mainUri = (await ioManager.resolveUri(options.mainUri))!.toFilePath();
+  return CodegenResult(mainUri, await ioManager.getModuleCount(mainUri));
 }
 
 Future<CompilationResult> _runCodegenPhase(
@@ -709,17 +686,31 @@ Future<CompilationResult> _runOptPhase(
     CodegenResult codegenResult,
     compiler.WasmCompilerOptions options,
     CompilerPhaseInputOutputManager ioManager) async {
-  final futures = <Future<void>>[];
   final numModules = codegenResult.numModules;
-  for (int i = 0; i < numModules; i++) {
-    futures.add(ioManager.runWasmOpt(
-        codegenResult.mainWasmFile,
-        i,
-        options.useMultiModuleOpt
-            ? _binaryenFlagsMultiModule
-            : _binaryenFlags));
+  final optPool = pool.Pool(options.maxActiveWasmOptProcesses == -1
+      ? numModules
+      : options.maxActiveWasmOptProcesses);
+
+  final iterator = options.moduleIdsToOptimize.isEmpty
+      ? List.generate(numModules, (i) => i).iterator
+      : options.moduleIdsToOptimize.iterator;
+
+  while (iterator.moveNext()) {
+    final moduleId = iterator.current;
+    if (moduleId < 0 || moduleId >= numModules) {
+      throw ArgumentError('Invalid module ID to optimize: $moduleId');
+    }
+    final resource = await optPool.request();
+    ioManager
+        .runWasmOpt(
+            codegenResult.mainWasmFile,
+            moduleId,
+            options.useMultiModuleOpt
+                ? _binaryenFlagsMultiModule
+                : _binaryenFlags)
+        .then((_) => resource.release());
   }
-  await Future.wait(futures);
+  await optPool.close();
   return OptResult(options.outputFile, numModules);
 }
 

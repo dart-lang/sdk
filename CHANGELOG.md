@@ -16,6 +16,12 @@
   but `false` on Windows. Use `FileSystemEntity.typeSync()` instead to get
   portable behavior.
 
+#### `dart:js_interop`
+
+- Added a constructor to `JSSymbol`, as well as `JSSymbol.key`,
+  `JSSymbol.description`, and static methods for all well-known ECMAScript
+  symbols.
+
 #### `dart:js_util`
 
 - dart2wasm no longer supports `dart:js_util`. Any code that imports
@@ -28,6 +34,40 @@
 [#61550]: https://github.com/dart-lang/sdk/issues/61550
 
 ### Tools
+
+#### Analyzer
+
+- The Insights pages (aka the "Analysis Server Diagnostics" pages) now show
+  data regarding the "Message Scheduler."
+- The "Fix all in workspace" command now supports a progress indicator.
+- Analysis via analyzer plugins is now faster on subsequent runs, as the
+  analysis server will now re-use an existing AOT snapshot of the plugins
+  entrypoint. This saves a constant amount of time at the start of each IDE
+  session and `dart analyze` run, on the order of 10 seconds.
+- Various fixes are made for the `call` method on a Function object, like "go
+  to definition," and completion.
+- Various fixes are made for the `error` and `stackTrace` parameters of
+  try/catch statements.
+- Various fixes are made for syntax highlighting, navigation, code completion,
+  hovers, quick fixes, assists, "rename" refactoring, and "go to imports."
+- Various fixes for IDE features with regards to "Dot Shorthand" syntax.
+- Improvements to LSP format-on-type, to not format in undesirable cases.
+- Various performance improvements.
+- Fixes to the 'Extract Widget' refactoring.
+- (Thanks [@FMorschel](https://github.com/FMorschel) and
+  [@DanTup](https://github.com/DanTup) for many of the above enhancements!)
+- A new lint rule is offered: `simplify_variable_pattern`, which encourages
+  using the pattern shorthand for variables and property names of the same
+  name.
+- The `avoid_null_checks_in_equality_operators` lint rule is now deprecated.
+- The `prefer_final_parameters` lint rule is now deprecated.
+- The `use_if_null_to_convert_nulls_to_bools` lint rule is now deprecated.
+
+#### Dart Development Compiler (dartdevc)
+- The async timing of the `Future` returned by `deferred_prefix.loadLibrary()`
+  is now consistent regardless if proper deferred imports are supported in the
+  runtime environment or not. This makes the timing more consistent with dart2js
+  where the loads are always an async operation.
 
 #### Pub
 

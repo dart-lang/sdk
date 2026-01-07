@@ -8,6 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp show Either2;
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/scheduler/message_scheduler.dart';
 import 'package:analysis_server/src/scheduler/scheduled_message.dart';
+import 'package:analysis_server/src/status/performance_logger.dart';
 
 /// The current time represented as milliseconds since the beginning of the
 /// epoch.
@@ -109,9 +110,12 @@ class SchedulerTrackingListener extends MessageSchedulerListener {
   /// ended.
   int processingEndTime = -1;
 
+  /// The performance logger to which data is to be written.
+  final PerformanceLogger? performanceLogger;
+
   /// Returns a newly created listener that will report to the
   /// [analyticsManager].
-  SchedulerTrackingListener(this.analyticsManager);
+  SchedulerTrackingListener(this.analyticsManager, this.performanceLogger);
 
   @override
   void addActiveMessage(ScheduledMessage message) {
@@ -201,30 +205,7 @@ class SchedulerTrackingListener extends MessageSchedulerListener {
       var index = (startIndex + i) % count;
       var messageData = _receivedMessageData[index];
 
-      var now = _now;
-      var pendingTime = messageData.pendingTime;
-      var activeTime = messageData.activeTime ?? now;
-      var completeTime = messageData.completeTime ?? now;
-      var id = messageData.cancelledMessageId;
-      var message = id != null
-          ? '${messageData.message.id}:$id'
-          : messageData.message.id;
-
-      var jsonData = {
-        'message': message,
-        'pendingMessageCount': messageData.pendingOnPendingMessageCount,
-        'pendingMessages': messageData.pendingOnPendingMessages,
-        'activeOnPendingMessageCount': messageData.activeOnPendingMessageCount,
-        'activeOnPendingMessages': messageData.activeOnPendingMessages,
-        'pendingOnActiveMessageCount': messageData.pendingOnActiveMessageCount,
-        'pendingOnActiveMessages': messageData.pendingOnActiveMessages,
-        'activeOnActiveMessageCount': messageData.activeOnActiveMessageCount,
-        'activeOnActiveMessages': messageData.activeOnActiveMessages,
-        'queueTime': activeTime - pendingTime,
-        'processTime': completeTime - activeTime,
-        'wasCancelled': messageData.wasCancelled,
-        'completed': messageData.completeTime != null,
-      };
+      Map<String, Object> jsonData = _getJsonMessageData(messageData);
       log.add(jsonEncode(jsonData));
     }
     return log;
@@ -241,6 +222,9 @@ class SchedulerTrackingListener extends MessageSchedulerListener {
     }
     messageData.completeTime = _now;
     messageData.cancelledMessageId = id;
+    if (performanceLogger != null) {
+      performanceLogger!.logMap(_getJsonMessageData(messageData));
+    }
     _activeMessageCount--;
     _messageDataMap.remove(message);
   }
@@ -277,5 +261,33 @@ class SchedulerTrackingListener extends MessageSchedulerListener {
       }
     }
     return (pending: pendingMessages, active: activeMessages);
+  }
+
+  Map<String, Object> _getJsonMessageData(MessageData messageData) {
+    var now = _now;
+    var pendingTime = messageData.pendingTime;
+    var activeTime = messageData.activeTime ?? now;
+    var completeTime = messageData.completeTime ?? now;
+    var id = messageData.cancelledMessageId;
+    var message = id != null
+        ? '${messageData.message.id}:$id'
+        : messageData.message.id;
+
+    var jsonData = {
+      'message': message,
+      'pendingMessageCount': messageData.pendingOnPendingMessageCount,
+      'pendingMessages': messageData.pendingOnPendingMessages,
+      'activeOnPendingMessageCount': messageData.activeOnPendingMessageCount,
+      'activeOnPendingMessages': messageData.activeOnPendingMessages,
+      'pendingOnActiveMessageCount': messageData.pendingOnActiveMessageCount,
+      'pendingOnActiveMessages': messageData.pendingOnActiveMessages,
+      'activeOnActiveMessageCount': messageData.activeOnActiveMessageCount,
+      'activeOnActiveMessages': messageData.activeOnActiveMessages,
+      'queueTime': activeTime - pendingTime,
+      'processTime': completeTime - activeTime,
+      'wasCancelled': messageData.wasCancelled,
+      'completed': messageData.completeTime != null,
+    };
+    return jsonData;
   }
 }

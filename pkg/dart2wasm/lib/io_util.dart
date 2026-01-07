@@ -120,6 +120,11 @@ class CompilerPhaseInputOutputManager {
       ],
       if (!options.stripWasm) '-g',
     ];
+
+    if (options.translatorOptions.verbose) {
+      print('Running wasm-opt $args');
+    }
+
     if (options.saveUnopt) {
       await File(wasmInName)
           .copy(path.setExtension(wasmOutName, '.unopt.wasm'));
@@ -127,7 +132,8 @@ class CompilerPhaseInputOutputManager {
     final wasmOptPath = options.wasmOptPath?.toFilePath() ?? 'wasm-opt';
     final result = await _runProcess(wasmOptPath, args);
     if (result.exitCode != 0) {
-      throw Exception('wasm-opt failed with exit code ${result.exitCode}:'
+      throw Exception(
+          'wasm-opt failed on module $inputModuleName with exit code ${result.exitCode}:'
           '\n${result.stdout}\n${result.stderr}');
     }
   }
@@ -137,10 +143,9 @@ class CompilerPhaseInputOutputManager {
     return await Process.run(executable, args);
   }
 
-  Future<int> getModuleCount(Uri mainWasmFile) async {
-    final mainPath = (await resolveUri(mainWasmFile))!.toFilePath();
-    final files = (await Directory(path.dirname(mainPath)).list().toList());
-    final prefix = path.basenameWithoutExtension(mainPath);
+  Future<int> getModuleCount(String mainWasmFile) async {
+    final files = (await Directory(path.dirname(mainWasmFile)).list().toList());
+    final prefix = path.basenameWithoutExtension(mainWasmFile);
     bool isMultiModule = false;
     int maxModuleId = 0;
     for (final file in files) {

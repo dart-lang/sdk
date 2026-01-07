@@ -928,7 +928,7 @@ abstract class AstCodeGenerator
         (i) => b.block([], [exceptionType, stackTraceType]),
         growable: true);
 
-    w.Label try_ = b.try_([], [exceptionType, stackTraceType]);
+    w.Label try_ = b.try_legacy([], [exceptionType, stackTraceType]);
     catchBlockLabels.add(try_);
 
     catchBlockLabels = catchBlockLabels.reversed.toList();
@@ -973,7 +973,7 @@ abstract class AstCodeGenerator
 
     // Insert a catch instruction which will catch any thrown Dart
     // exceptions.
-    b.catch_legacy(translator.getExceptionTag(b.moduleBuilder));
+    b.catch_legacy(translator.getDartExceptionTag(b.moduleBuilder));
 
     b.local_set(thrownStackTrace);
     b.local_set(thrownException);
@@ -996,22 +996,15 @@ abstract class AstCodeGenerator
     // Rethrow if all the catch blocks fall through
     b.rethrow_(try_);
 
-    // If we have a catches that are generic enough to catch a JavaScript
-    // error, we need to put that into a catch_all block.
     if (node.catches
         .any((c) => guardCanMatchJSException(translator, c.guard))) {
-      // This catches any objects that aren't dart exceptions, such as
-      // JavaScript exceptions or objects.
-      b.catch_all_legacy();
+      b.catch_legacy(translator.getJsExceptionTag(b.moduleBuilder));
 
-      // We can't inspect the thrown object in a catch_all and get a stack
-      // trace, so we just attach the current stack trace.
-      call(translator.stackTraceCurrent.reference);
-      b.local_set(thrownStackTrace);
-
-      // We create a generic JavaScript error in this case.
       call(translator.javaScriptErrorFactory.reference);
-      b.local_set(thrownException);
+      b.local_tee(thrownException); // ref null #Top
+
+      b.getJavaScriptErrorStackTrace(translator);
+      b.local_set(thrownStackTrace);
 
       for (int catchBlockIndex = 0;
           catchBlockIndex < node.catches.length;
@@ -1102,7 +1095,7 @@ abstract class AstCodeGenerator
     w.Label returnFinalizerBlock = b.block();
     returnFinalizers.add(TryBlockFinalizer(returnFinalizerBlock));
 
-    w.Label tryBlock = b.try_();
+    w.Label tryBlock = b.try_legacy();
     translateStatement(node.body);
 
     final bool mustHandleReturn =
@@ -1117,12 +1110,12 @@ abstract class AstCodeGenerator
     }
 
     // Handle Dart exceptions.
-    b.catch_legacy(translator.getExceptionTag(b.moduleBuilder));
+    b.catch_legacy(translator.getDartExceptionTag(b.moduleBuilder));
     translateStatement(node.finalizer);
     b.rethrow_(tryBlock);
 
     // Handle JS exceptions.
-    b.catch_all_legacy();
+    b.catch_legacy(translator.getJsExceptionTag(b.moduleBuilder));
     translateStatement(node.finalizer);
     b.rethrow_(tryBlock);
 
@@ -1538,20 +1531,10 @@ abstract class AstCodeGenerator
     return translateExpression(node.value, expectedType);
   }
 
-  w.ModuleBuilder? _activeDeferredLoadingGuard;
-
   @override
   w.ValueType visitLet(Let node, w.ValueType expectedType) {
     translateStatement(node.variable);
-
-    final oldGuard = _activeDeferredLoadingGuard;
-    final newGuard = _recognizeDeferredModuleGuard(node);
-    if (newGuard != null) {
-      _activeDeferredLoadingGuard = newGuard;
-    }
-    final result = translateExpression(node.body, expectedType);
-    _activeDeferredLoadingGuard = oldGuard;
-    return result;
+    return translateExpression(node.body, expectedType);
   }
 
   @override
@@ -1929,7 +1912,8 @@ abstract class AstCodeGenerator
     pushReceiver(signature);
 
     final targets = selector.targets(unchecked: useUncheckedEntry);
-    List<({Range range, Reference target})> targetRanges = targets.targetRanges;
+    List<({Range range, Reference target})> targetRanges =
+        targets.allTargetRanges;
     List<({Range range, Reference target})> staticDispatchRanges =
         targets.staticDispatchRanges;
 
@@ -2733,7 +2717,7 @@ abstract class AstCodeGenerator
     final exceptionLocals = tryBlockLocals.last;
     b.local_get(exceptionLocals.exceptionLocal);
     b.local_get(exceptionLocals.stackTraceLocal);
-    b.throw_(translator.getExceptionTag(b.moduleBuilder));
+    b.throw_(translator.getDartExceptionTag(b.moduleBuilder));
     return expectedType;
   }
 
@@ -2742,37 +2726,6 @@ abstract class AstCodeGenerator
       ConstantExpression node, w.ValueType expectedType) {
     instantiateConstant(node.constant, expectedType);
     return expectedType;
-  }
-
-  w.ModuleBuilder? _recognizeDeferredModuleGuard(Let let) {
-    if (!translator.options.enableDeferredLoading &&
-        !translator.options.enableMultiModuleStressTestMode) {
-      return null;
-    }
-
-    // TODO(http://dartbug.com/61764): Find better way to do this.
-    //
-    // If we have somewhere in the parent chain of [node] a
-    //
-    //   let
-    //     _ = checkLibraryIsLoadedFromLoadId(<id>)
-    //   in
-    //     <body>
-    //
-    // Then we know that the constant use in <body> can only happen after the
-    // given <id> was loaded, i.e. the constant use is deferred-load-guarded
-    // by <id>.
-    final init = let.variable.initializer;
-    if (init is StaticInvocation) {
-      final target = init.target;
-      if (target == translator.checkLibraryIsLoadedFromLoadId) {
-        final args = init.arguments.positional;
-        final loadId = (args[0] as IntLiteral).value;
-        return translator.moduleForLoadId(
-            enclosingMember.enclosingLibrary, loadId);
-      }
-    }
-    return null;
   }
 
   @override
@@ -3175,7 +3128,7 @@ abstract class AstCodeGenerator
       b,
       constant,
       expectedType,
-      deferredModuleGuard: _activeDeferredLoadingGuard,
+      deferredModuleGuard: translator.moduleForConstant(constant),
     );
   }
 }
@@ -4059,12 +4012,12 @@ class StaticFieldInitializerCodeGenerator extends AstCodeGenerator {
     w.Global global = translator.globals.getGlobalForStaticField(field);
     w.Global? flag = translator.globals.getGlobalInitializedFlag(field);
     translateExpression(field.initializer!, global.type.type);
-    b.global_set(global);
+    translator.globals.writeGlobal(b, global);
     if (flag != null) {
       b.i32_const(1);
-      b.global_set(flag);
+      translator.globals.writeGlobal(b, flag);
     }
-    b.global_get(global);
+    translator.globals.readGlobal(b, global);
     translator.convertType(b, global.type.type, outputs.single);
     b.end();
   }
@@ -4086,7 +4039,7 @@ class EagerStaticFieldInitializerCodeGenerator extends AstCodeGenerator {
     setSourceMapSourceAndFileOffset(source, field.fileOffset);
 
     translateExpression(field.initializer!, global.type.type);
-    b.global_set(global);
+    translator.globals.writeGlobal(b, global);
   }
 }
 
@@ -4116,20 +4069,20 @@ class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
       w.Global global, w.Global? flag, w.BaseFunction? initFunction) {
     if (initFunction == null) {
       // Statically initialized
-      b.global_get(global);
+      translator.globals.readGlobal(b, global);
     } else {
       if (flag != null) {
         // Explicit initialization flag
-        b.global_get(flag);
+        translator.globals.readGlobal(b, flag);
         b.if_(const [], [global.type.type]);
-        b.global_get(global);
+        translator.globals.readGlobal(b, global);
         b.else_();
         translator.callFunction(initFunction, b);
         b.end();
       } else {
         // Null signals uninitialized
         w.Label block = b.block(const [], [initFunction.type.outputs.single]);
-        b.global_get(global);
+        translator.globals.readGlobal(b, global);
         b.br_on_non_null(block);
         translator.callFunction(initFunction, b);
         b.end();
@@ -4139,10 +4092,10 @@ class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
 
   void _generateSetter(w.Global global, w.Global? flag) {
     b.local_get(paramLocals.single);
-    b.global_set(global);
+    translator.globals.writeGlobal(b, global);
     if (flag != null) {
       b.i32_const(1); // true
-      b.global_set(flag);
+      translator.globals.writeGlobal(b, flag);
     }
   }
 }
@@ -5107,18 +5060,23 @@ extension MacroAssembler on w.InstructionsBuilder {
 
   List<w.ValueType> invoke(CallTarget target, {bool forceInline = false}) {
     if (target.supportsInlining && (target.shouldInline || forceInline)) {
-      final List<w.Local> inlinedLocals =
-          target.signature.inputs.map((t) => addLocal(t)).toList();
-      for (w.Local local in inlinedLocals.reversed) {
-        local_set(local);
-      }
-      final w.Label callBlock = block(const [], target.signature.outputs);
-      comment('Inlined ${target.name}');
-      target.inliningCodeGen.generate(this, inlinedLocals, callBlock);
-    } else {
-      comment('Direct call to ${target.name}');
-      call(target.function);
+      return inlineCallTo(target);
     }
+    comment('Direct call to ${target.name}');
+    call(target.function);
+    return emitUnreachableIfNoResult(target.signature.outputs);
+  }
+
+  List<w.ValueType> inlineCallTo(CallTarget target) {
+    assert(target.supportsInlining);
+    final List<w.Local> inlinedLocals =
+        target.signature.inputs.map((t) => addLocal(t)).toList();
+    for (w.Local local in inlinedLocals.reversed) {
+      local_set(local);
+    }
+    final w.Label callBlock = block(const [], target.signature.outputs);
+    comment('Inlined ${target.name}');
+    target.inliningCodeGen.generate(this, inlinedLocals, callBlock);
     return emitUnreachableIfNoResult(target.signature.outputs);
   }
 
@@ -5144,6 +5102,24 @@ extension MacroAssembler on w.InstructionsBuilder {
     assert(receiverType.isSubtypeOf(translator.topTypeNonNullable));
     struct_get(
         translator.classInfoCollector.topInfo.struct, FieldIndex.classId);
+  }
+
+  /// Expects a `_JavaScriptError` object to be on stack, calls
+  /// `_JavaScriptError.stackTrace` getter, downcasts the stack trace to
+  /// non-null. The cast is safe as this getter doesn't return null, but its
+  /// return type in the signature is nullable as it's an override.
+  ///
+  /// This is used to get the JS stack trace of a JS exception after boxing the
+  /// exception's `externref` (caught with the tag `WebAssembly.JSTag`) as
+  /// `_JavaScriptError`.
+  void getJavaScriptErrorStackTrace(Translator translator) {
+    final stackTraceGetter =
+        translator.javaScriptErrorStackTraceGetter.reference;
+    final stackTraceGetterFunction =
+        translator.functions.getFunction(stackTraceGetter);
+    ref_cast(stackTraceGetterFunction.type.inputs[0] as w.RefType);
+    translator.callReference(stackTraceGetter, this);
+    ref_as_non_null();
   }
 }
 

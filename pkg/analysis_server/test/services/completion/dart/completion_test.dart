@@ -4327,8 +4327,6 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
-  final
-    kind: keyword
 ''');
   }
 
@@ -4346,8 +4344,6 @@ suggestions
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  final
     kind: keyword
 ''');
   }
@@ -4825,8 +4821,6 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
-  final
-    kind: keyword
 ''');
   }
 
@@ -4844,8 +4838,6 @@ suggestions
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  final
     kind: keyword
 ''');
   }
@@ -4979,10 +4971,6 @@ class q {m(Map q){var x;m(^)}n(){var x;n()}}
 suggestions
   x
     kind: localVariable
-  true
-    kind: keyword
-  false
-    kind: keyword
   this
     kind: keyword
   const
@@ -7963,10 +7951,6 @@ suggestions
     kind: constructorInvocation
   A.second
     kind: constructorInvocation
-  false
-    kind: keyword
-  true
-    kind: keyword
   const
     kind: keyword
   switch

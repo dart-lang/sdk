@@ -15,6 +15,7 @@ import 'package:vm/metadata/direct_call.dart';
 import 'package:vm/metadata/inferred_type.dart';
 import 'package:vm/metadata/procedure_attributes.dart';
 import 'package:vm/metadata/unboxing_info.dart';
+import 'package:vm/metadata/unreachable.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
@@ -184,6 +185,9 @@ class Translator with KernelNodes {
       (component.metadata[ProcedureAttributesMetadataRepository.repositoryTag]
               as ProcedureAttributesMetadataRepository)
           .mapping;
+  late final UnreachableNodeMetadataRepository unreachableMetadata =
+      component.metadata[UnreachableNodeMetadataRepository.repositoryTag]
+          as UnreachableNodeMetadataRepository;
 
   // Other parts of the global compiler state.
   @override
@@ -196,7 +200,7 @@ class Translator with KernelNodes {
   late final Globals globals;
   late final Constants constants;
   late final Types types;
-  late final ExceptionTag exceptionTag;
+  late final ExceptionTags _exceptionTags;
   late final CompilationQueue compilationQueue;
   late final FunctionCollector functions;
 
@@ -451,18 +455,33 @@ class Translator with KernelNodes {
   final Map<w.ModuleBuilder, ModuleMetadata> _builderToOutput = {};
   final Map<w.Module, w.ModuleBuilder> moduleToBuilder = {};
   bool get hasMultipleModules => _moduleOutputData.hasMultipleModules;
+  final Map<w.ModuleBuilder, w.Global> _thisModuleGlobals = {};
 
   DynamicModuleInfo? dynamicModuleInfo;
   bool get dynamicModuleSupportEnabled => dynamicModuleInfo != null;
   bool get isDynamicSubmodule => dynamicModuleInfo?.isSubmodule ?? false;
   w.ModuleBuilder get dynamicSubmodule => dynamicModuleInfo!.submodule;
 
-  w.ModuleBuilder moduleForReference(Reference reference) =>
-      _outputToBuilder[_moduleOutputData.moduleForReference(reference)]!;
+  w.ModuleBuilder moduleForReference(Reference reference) {
+    final module = _moduleOutputData.moduleForReference(reference);
+    return _outputToBuilder[module]!;
+  }
 
-  w.ModuleBuilder moduleForLoadId(Library enclosingLibrary, int loadId) {
-    return moduleForReference(
-        loadingMap.loadId2ImportedLibrary[loadId].reference);
+  /// The module where [constant] should be placed
+  ///
+  /// NOTE: This may return `null` for constants that are e.g. synthesized by
+  /// the backend. In that case the backend decides where to place the constant.
+  w.ModuleBuilder? moduleForConstant(Constant constant) {
+    final module = _moduleOutputData.moduleForConstant(constant);
+    if (module == null) return null;
+    return _outputToBuilder[module];
+  }
+
+  List<w.ModuleBuilder> modulesForLoadId(Library enclosingLibrary, int loadId) {
+    return [
+      for (final moduleMetadata in loadingMap.moduleMap[loadId])
+        _outputToBuilder[moduleMetadata]!,
+    ];
   }
 
   String nameForModule(w.ModuleBuilder module) =>
@@ -507,7 +526,7 @@ class Translator with KernelNodes {
     compilationQueue = CompilationQueue(this);
     functions = FunctionCollector(this);
     types = Types(this);
-    exceptionTag = ExceptionTag(this);
+    _exceptionTags = ExceptionTags(this);
 
     dynamicModuleConstants =
         (component.metadata[DynamicModuleConstantRepository.repositoryTag]
@@ -531,7 +550,27 @@ class Translator with KernelNodes {
       _outputToBuilder[outputModule] = builder;
       _builderToOutput[builder] = outputModule;
       moduleToBuilder[builder.module] = builder;
+      final thisModuleSetter = builder.functions.define(
+          typesBuilder.defineFunction(
+              const [w.RefType.extern(nullable: false)], const []),
+          "setThisModule");
+      builder.exports.export("\$setThisModule", thisModuleSetter);
+      final ib = thisModuleSetter.body;
+      ib.local_get(thisModuleSetter.locals[0]);
+      ib.global_set(getThisModuleGlobal(builder));
+      ib.end();
     }
+  }
+
+  w.Global getThisModuleGlobal(w.ModuleBuilder module) {
+    return _thisModuleGlobals.putIfAbsent(module, () {
+      final global =
+          module.globals.define(w.GlobalType(w.RefType.extern(nullable: true)));
+      final ib = global.initializer;
+      ib.ref_null(w.HeapType.extern);
+      ib.end();
+      return global;
+    });
   }
 
   void drainCompletionQueue() {
@@ -544,9 +583,7 @@ class Translator with KernelNodes {
   Map<ModuleMetadata, w.Module> translate(
       Uri Function(String moduleName)? sourceMapUrlGenerator) {
     _initModules(sourceMapUrlGenerator);
-    initFunction = mainModule.functions
-        .define(typesBuilder.defineFunction(const [], const []), "#init");
-    mainModule.startFunction = initFunction;
+    initFunction = mainModule.startFunction;
 
     closureLayouter.collect();
     classInfoCollector.collect();
@@ -573,7 +610,6 @@ class Translator with KernelNodes {
     constructorClosures.clear();
     dispatchTable.output();
     staticTablesPerType.outputTables();
-    initFunction.body.end();
 
     for (ConstantInfo info in constants.constantInfo.values) {
       info.printInitializer((function) {
@@ -714,10 +750,9 @@ class Translator with KernelNodes {
   /// beneficial.
   List<w.ValueType> callReference(
       Reference reference, w.InstructionsBuilder b) {
-    final targetModule = moduleForReference(reference);
-    final isLocalModuleCall = targetModule == b.moduleBuilder;
-    if (isLocalModuleCall) {
-      return b.invoke(directCallTarget(reference));
+    final callTarget = directCallTarget(reference);
+    if (callTarget.supportsInlining && callTarget.shouldInline) {
+      return b.inlineCallTo(callTarget);
     }
     return callFunction(functions.getFunction(reference), b);
   }
@@ -866,9 +901,17 @@ class Translator with KernelNodes {
         requiredParameterCount: staticType.requiredParameterCount);
   }
 
-  /// Get the exception tag reference for [module].
-  w.Tag getExceptionTag(w.ModuleBuilder module) =>
-      exceptionTag.getExceptionTag(module);
+  /// Get the Dart exception tag for [module].
+  ///
+  /// This tag catches Dart exceptions.
+  w.Tag getDartExceptionTag(w.ModuleBuilder module) =>
+      _exceptionTags.getDartExceptionTag(module);
+
+  /// Get the JS exception tag for [module].
+  ///
+  /// This tag catches JS exceptions.
+  w.Tag getJsExceptionTag(w.ModuleBuilder module) =>
+      _exceptionTags.getJsExceptionTag(module);
 
   w.ValueType translateReturnType(DartType type) {
     if (type is NeverType && !type.isPotentiallyNullable) {
@@ -963,9 +1006,7 @@ class Translator with KernelNodes {
           return (builtin as w.RefType).withNullability(nullable);
         }
         final boxedBuiltin = classInfo[boxedClasses[builtin]!]!;
-        return nullable
-            ? boxedBuiltin.nullableType
-            : boxedBuiltin.nonNullableType;
+        return boxedBuiltin.typeWithNullability(nullable);
       }
 
       // Regular class.
@@ -1695,10 +1736,13 @@ class Translator with KernelNodes {
         return null;
       }
 
+      final entryReference =
+          getFunctionEntry(member.reference, uncheckedEntry: false);
+
       return SingleClosureTarget._(
         member,
-        paramInfoForDirectCall(member.reference),
-        signatureForDirectCall(member.reference),
+        paramInfoForDirectCall(entryReference),
+        signatureForDirectCall(entryReference),
         null,
       );
     } else {
@@ -1879,7 +1923,21 @@ class Translator with KernelNodes {
     if (getPragma<bool>(member, "wasm:prefer-inline", true) == true) {
       return true;
     }
-    if (member is Field) return true;
+    if (member is Field) {
+      // Implicit getter/setter for instance fields are just loads/stores.
+      if (member.isInstanceMember) return true;
+
+      // Implicit setter for static fields are just stores.
+      if (target == member.setterReference) return true;
+
+      // Implicit getter for static fields may invoke lazy static initializer.
+      if (globals.getConstantInitializer(member) != null) {
+        // This global will get it's initializer eagerly set, so no lazy init
+        // function to be called.
+        return true;
+      }
+      return false;
+    }
     if (target.isInitializerReference) return true;
 
     final function = member.function!;
@@ -2911,7 +2969,8 @@ class PolymorphicDispatchers {
   CallTarget getPolymorphicDispatcher(SelectorInfo selector,
       {required bool useUncheckedEntry}) {
     assert(
-        selector.targets(unchecked: useUncheckedEntry).targetRanges.length > 1);
+        selector.targets(unchecked: useUncheckedEntry).allTargetRanges.length >
+            1);
     return (useUncheckedEntry && selector.useMultipleEntryPoints
             ? uncheckedCache
             : cache)
@@ -2931,7 +2990,11 @@ class PolymorphicDispatcherCallTarget extends CallTarget {
   PolymorphicDispatcherCallTarget(this.translator, this.selector,
       this.callingModule, this.useUncheckedEntry)
       : assert(!selector.isDynamicSubmoduleOverridable),
-        super(selector.signature);
+        super(
+          translator.typesBuilder.defineFunction(
+              [w.NumType.i32, ...selector.signature.inputs],
+              selector.signature.outputs),
+        );
 
   @override
   String get name => '${selector.name} (polymorphic dispatcher)';
@@ -2953,10 +3016,7 @@ class PolymorphicDispatcherCallTarget extends CallTarget {
 
   @override
   late final w.BaseFunction function = (() {
-    final function = callingModule.functions.define(
-        translator.typesBuilder.defineFunction(
-            [w.NumType.i32, ...signature.inputs], signature.outputs),
-        name);
+    final function = callingModule.functions.define(signature, name);
     translator.compilationQueue.add(CompilationTask(function, inliningCodeGen));
     return function;
   })();
@@ -2983,7 +3043,7 @@ class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
         .toList();
 
     final bool needFallback =
-        targets.targetRanges.length > targets.staticDispatchRanges.length;
+        targets.allTargetRanges.length > targets.staticDispatchRanges.length;
 
     // First parameter to the dispatcher is the class id.
     const int classIdParameterOffset = 1;

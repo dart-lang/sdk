@@ -9,6 +9,7 @@ import 'package:analysis_server_plugin/plugin.dart';
 import 'package:analysis_server_plugin/registry.dart';
 import 'package:analysis_server_plugin/src/plugin_server.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
@@ -32,13 +33,13 @@ void main() {
 class PluginServerTest extends PluginServerTestBase {
   protocol.ContextRoot get contextRoot => protocol.ContextRoot(packagePath, []);
 
-  String get filePath => join(packagePath, 'lib', 'test.dart');
-
   String get file2Path => join(packagePath, 'lib', 'test2.dart');
 
-  String get testFilePath => join(packagePath, 'test', 'test.dart');
+  String get filePath => join(packagePath, 'lib', 'test.dart');
 
   String get packagePath => convertPath('/package1');
+
+  String get testFilePath => join(packagePath, 'test', 'test.dart');
 
   StreamQueue<protocol.AnalysisErrorsParams> get _analysisErrorsParams {
     return StreamQueue(
@@ -141,6 +142,26 @@ bool b = false;
     expect(result.assists, hasLength(1));
   }
 
+  Future<void> test_handleEditGetAssists_viaSendRequest_part() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(file2Path, 'part \'test.dart\';');
+    var code = TestCode.parseNormalized('''
+part of 'test2.dart';
+bool b = [!false!];
+''');
+    newFile(filePath, code.code);
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var range = code.range.sourceRange;
+    var response = await channel.sendRequest(
+      protocol.EditGetAssistsParams(filePath, range.offset, range.length),
+    );
+    var result = protocol.EditGetAssistsResult.fromResponse(response);
+    expect(result.assists, hasLength(1));
+  }
+
   Future<void> test_handleEditGetFixes() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
@@ -199,20 +220,24 @@ bool b = false;
     expect(result.fixes.first.fixes, hasLength(4));
   }
 
-  Future<void> test_lintCodesCanHaveCustomSeverity() async {
-    writeAnalysisOptionsWithPlugin({'no_doubles_custom_severity': 'enable'});
-    newFile(filePath, 'double x = 3.14;');
+  Future<void> test_handleEditGetFixes_viaSendRequest_part() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(file2Path, 'part \'test.dart\';');
+    var code = TestCode.parseNormalized('''
+part of 'test2.dart';
+bool b = ^false;
+''');
+    newFile(filePath, code.code);
+
     await channel.sendRequest(
       protocol.AnalysisSetContextRootsParams([contextRoot]),
     );
-    var paramsQueue = _analysisErrorsParams;
-    var params = await paramsQueue.next;
-    expect(params.errors, hasLength(1));
-    _expectAnalysisError(
-      params.errors.single,
-      message: 'No doubles message',
-      severity: protocol.AnalysisErrorSeverity.WARNING,
+
+    var response = await channel.sendRequest(
+      protocol.EditGetFixesParams(filePath, code.position.offset),
     );
+    var result = protocol.EditGetFixesResult.fromResponse(response);
+    expect(result.fixes.first.fixes, hasLength(4));
   }
 
   Future<void> test_lintCodesCanHaveConfigurableSeverity() async {
@@ -228,6 +253,22 @@ bool b = false;
       params.errors.single,
       message: 'No doubles message',
       severity: protocol.AnalysisErrorSeverity.ERROR,
+    );
+  }
+
+  Future<void> test_lintCodesCanHaveCustomSeverity() async {
+    writeAnalysisOptionsWithPlugin({'no_doubles_custom_severity': 'enable'});
+    newFile(filePath, 'double x = 3.14;');
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(
+      params.errors.single,
+      message: 'No doubles message',
+      severity: protocol.AnalysisErrorSeverity.WARNING,
     );
   }
 
@@ -379,37 +420,46 @@ int b = 1;
     _expectAnalysisError(params.errors.single, message: 'No bools message');
   }
 
-  Future<void> test_updateContent_changeOverlay() async {
-    writeAnalysisOptionsWithPlugin();
-    newFile(filePath, 'int b = 7;');
+  Future<void> test_updateContent_addOverlay_affectedLibrary() async {
+    writeAnalysisOptionsWithPlugin({'no_references_to_strings': 'enable'});
+    newFile(filePath, '''
+int s = 7;
+void f() {
+  print(s);
+}
+''');
+    newFile(file2Path, '''
+import 'test.dart';
+void f() {
+  print(s);
+}
+''');
     await channel.sendRequest(
       protocol.AnalysisSetContextRootsParams([contextRoot]),
     );
 
     var paramsQueue = _analysisErrorsParams;
-    var params = await paramsQueue.next;
+    var params = await paramsQueue.next; // test.dart
+    expect(params.errors, isEmpty);
+    params = await paramsQueue.next; // test2.dart
     expect(params.errors, isEmpty);
 
     await channel.sendRequest(
       protocol.AnalysisUpdateContentParams({
-        filePath: protocol.AddContentOverlay('int b = 0;'),
+        filePath: protocol.AddContentOverlay('''
+String s = "hello";
+'''),
       }),
     );
 
-    params = await paramsQueue.next;
-    expect(params.errors, isEmpty);
-
-    await channel.sendRequest(
-      protocol.AnalysisUpdateContentParams({
-        filePath: protocol.ChangeContentOverlay([
-          protocol.SourceEdit(0, 9, 'bool b = false'),
-        ]),
-      }),
-    );
-
-    params = await paramsQueue.next;
+    params = await paramsQueue.next; // test.dart
+    params = await paramsQueue.next; // test2.dart
     expect(params.errors, hasLength(1));
-    _expectAnalysisError(params.errors.single, message: 'No bools message');
+    expect(params.file, file2Path);
+    _expectAnalysisError(
+      params.errors.single,
+      message: 'No references to Strings',
+    );
   }
 
   Future<void> test_updateContent_addOverlay_affectedPart() async {
@@ -456,46 +506,37 @@ String s = "hello";
     );
   }
 
-  Future<void> test_updateContent_addOverlay_affectedLibrary() async {
-    writeAnalysisOptionsWithPlugin({'no_references_to_strings': 'enable'});
-    newFile(filePath, '''
-int s = 7;
-void f() {
-  print(s);
-}
-''');
-    newFile(file2Path, '''
-import 'test.dart';
-void f() {
-  print(s);
-}
-''');
+  Future<void> test_updateContent_changeOverlay() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'int b = 7;');
     await channel.sendRequest(
       protocol.AnalysisSetContextRootsParams([contextRoot]),
     );
 
     var paramsQueue = _analysisErrorsParams;
-    var params = await paramsQueue.next; // test.dart
-    expect(params.errors, isEmpty);
-    params = await paramsQueue.next; // test2.dart
+    var params = await paramsQueue.next;
     expect(params.errors, isEmpty);
 
     await channel.sendRequest(
       protocol.AnalysisUpdateContentParams({
-        filePath: protocol.AddContentOverlay('''
-String s = "hello";
-'''),
+        filePath: protocol.AddContentOverlay('int b = 0;'),
       }),
     );
 
-    params = await paramsQueue.next; // test.dart
-    params = await paramsQueue.next; // test2.dart
-    expect(params.errors, hasLength(1));
-    expect(params.file, file2Path);
-    _expectAnalysisError(
-      params.errors.single,
-      message: 'No references to Strings',
+    params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+
+    await channel.sendRequest(
+      protocol.AnalysisUpdateContentParams({
+        filePath: protocol.ChangeContentOverlay([
+          protocol.SourceEdit(0, 9, 'bool b = false'),
+        ]),
+      }),
     );
+
+    params = await paramsQueue.next;
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(params.errors.single, message: 'No bools message');
   }
 
   Future<void> test_updateContent_removeOverlay() async {

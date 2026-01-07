@@ -747,20 +747,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (host is! String && host is! InternetAddress) {
       throw ArgumentError("host is not a String or an InternetAddress");
     }
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(requestedPort, "requestedPort");
     if (requestedPort < 0 || requestedPort > 65535) {
       throw ArgumentError("requestedPort is not in the range 0..65535");
     }
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(
-      requestClientCertificate,
-      "requestClientCertificate",
-    );
-    ArgumentError.checkNotNull(
-      requireClientCertificate,
-      "requireClientCertificate",
-    );
   }
 
   int get port => _socket.port;
@@ -869,8 +858,6 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     throw UnsupportedError("Message-passing not supported by secure sockets");
   }
 
-  static int _fixOffset(int? offset) => offset ?? 0;
-
   // Write the data to the socket, and schedule the filter to encrypt it.
   int write(List<int> data, [int offset = 0, int? bytes]) {
     if (bytes != null && bytes < 0) {
@@ -878,8 +865,6 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         "Invalid bytes parameter in SecureSocket.read (bytes: $bytes)",
       );
     }
-    // TODO(40614): Remove once non-nullability is sound.
-    offset = _fixOffset(offset);
     if (offset < 0) {
       throw ArgumentError(
         "Invalid offset parameter in SecureSocket.read (offset: $offset)",

@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -16,6 +15,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 
 /// State information captured by [NullSafetyDeadCodeVerifier.for_conditionEnd]
 /// for later use by [NullSafetyDeadCodeVerifier.for_updaterBegin].
@@ -61,7 +61,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     if (libraryExport != null) {
       // The element is null when the URI is invalid.
       var library = libraryExport.exportedLibrary;
-      if (library != null && !library.isSynthetic) {
+      if (library != null && !library.isOriginNotExistingFile) {
         for (Combinator combinator in node.combinators) {
           _checkCombinator(library, combinator);
         }
@@ -77,7 +77,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     if (_wildCardVariablesEnabled &&
         element is LocalFunctionElement &&
         element.name == '_') {
-      _diagnosticReporter.atNode(node, diag.deadCode);
+      _diagnosticReporter.report(diag.deadCode.at(node));
     }
     super.visitFunctionDeclaration(node);
   }
@@ -89,7 +89,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       // The element is null when the URI is invalid, but not when the URI is
       // valid but refers to a nonexistent file.
       var library = libraryImport.importedLibrary;
-      if (library != null && !library.isSynthetic) {
+      if (library != null && !library.isOriginNotExistingFile) {
         for (Combinator combinator in node.combinators) {
           _checkCombinator(library, combinator);
         }
@@ -125,9 +125,8 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       if (_wildCardVariablesEnabled &&
           element is LocalVariableElement &&
           element.name == '_') {
-        _diagnosticReporter.atNode(
-          initializer,
-          diag.deadCodeLateWildcardVariableInitializer,
+        _diagnosticReporter.report(
+          diag.deadCodeLateWildcardVariableInitializer.at(initializer),
         );
       }
     }
@@ -232,7 +231,7 @@ class NullSafetyDeadCodeVerifier {
     }
 
     if (node is SwitchMember && node == firstDeadNode) {
-      _diagnosticReporter.atToken(node.keyword, diag.deadCode);
+      _diagnosticReporter.report(diag.deadCode.at(node.keyword));
       _firstDeadNode = null;
       return;
     }
@@ -279,10 +278,11 @@ class NullSafetyDeadCodeVerifier {
         offset = parent.operator.offset;
       }
       if (parent is ConstructorInitializer) {
-        _diagnosticReporter.atOffset(
-          offset: parent.offset,
-          length: parent.end - parent.offset,
-          diagnosticCode: diag.deadCode,
+        _diagnosticReporter.report(
+          diag.deadCode.atOffset(
+            offset: parent.offset,
+            length: parent.end - parent.offset,
+          ),
         );
         offset = node.end;
       } else if (parent is DoStatement) {
@@ -292,10 +292,11 @@ class NullSafetyDeadCodeVerifier {
         if (body is Block) {
           whileOffset = body.rightBracket.offset;
         }
-        _diagnosticReporter.atOffset(
-          offset: whileOffset,
-          length: whileEnd - whileOffset,
-          diagnosticCode: diag.deadCode,
+        _diagnosticReporter.report(
+          diag.deadCode.atOffset(
+            offset: whileOffset,
+            length: whileEnd - whileOffset,
+          ),
         );
         offset = parent.semicolon.next!.offset;
         if (parent.hasBreakStatement) {
@@ -313,10 +314,8 @@ class NullSafetyDeadCodeVerifier {
 
       var length = node.end - offset;
       if (length > 0) {
-        _diagnosticReporter.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.deadCode,
+        _diagnosticReporter.report(
+          diag.deadCode.atOffset(offset: offset, length: length),
         );
       }
     }
@@ -355,10 +354,11 @@ class NullSafetyDeadCodeVerifier {
       var beginToken = updaters.beginToken;
       var endToken = updaters.endToken;
       if (beginToken != null && endToken != null) {
-        _diagnosticReporter.atOffset(
-          offset: beginToken.offset,
-          length: endToken.end - beginToken.offset,
-          diagnosticCode: diag.deadCode,
+        _diagnosticReporter.report(
+          diag.deadCode.atOffset(
+            offset: beginToken.offset,
+            length: endToken.end - beginToken.offset,
+          ),
         );
       }
     }
@@ -376,7 +376,7 @@ class NullSafetyDeadCodeVerifier {
     var verifier = _CatchClausesVerifier(_typeSystem, (
       first,
       last,
-      errorCode,
+      diagnosticCode,
       arguments,
     ) {
       var offset = first.offset;
@@ -384,7 +384,7 @@ class NullSafetyDeadCodeVerifier {
       _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
-        diagnosticCode: errorCode,
+        diagnosticCode: diagnosticCode,
         arguments: arguments,
       );
       _deadCatchClauseRanges.add(SourceRange(offset, length));
@@ -493,10 +493,11 @@ class NullSafetyDeadCodeVerifier {
           node = parent!;
           parent = node.parent;
         }
-        _diagnosticReporter.atOffset(
-          offset: operator.offset,
-          length: node.end - operator.offset,
-          diagnosticCode: diag.deadCode,
+        _diagnosticReporter.report(
+          diag.deadCode.atOffset(
+            offset: operator.offset,
+            length: node.end - operator.offset,
+          ),
         );
       }
     }
@@ -542,7 +543,7 @@ class _CatchClausesVerifier {
     var currentType = catchClause.exceptionType?.type;
 
     // Found catch clause that doesn't have an exception type.
-    // Generate an error on any following catch clauses.
+    // Generate a diagnostic on any following catch clauses.
     if (currentType == null || currentType.isDartCoreObject) {
       if (catchClause != catchClauses.last) {
         var index = catchClauses.indexOf(catchClause);

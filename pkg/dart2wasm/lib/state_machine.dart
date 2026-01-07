@@ -35,7 +35,7 @@ class StateTarget {
   @override
   String toString() {
     String place = _placement == _StateTargetPlacement.Inner ? "in" : "after";
-    return "$index: $place $node";
+    return "$index: $place ${node.runtimeType} (${node.location})";
   }
 }
 
@@ -305,7 +305,7 @@ class ExceptionHandlerStack {
       return;
     }
 
-    b.try_();
+    b.try_legacy();
     _tryBlockNumHandlers.add(handlersToCover);
   }
 
@@ -329,7 +329,7 @@ class ExceptionHandlerStack {
 
       void generateCatchBody() {
         // Set continuations of finalizers that can be reached by this `catch`
-        // (or `catch_all`) as "rethrow".
+        // as "rethrow".
         for (int i = 0; i < nCoveredHandlers; i += 1) {
           final handler = _handlers[nextHandlerIdx - i];
           if (handler is Finalizer) {
@@ -355,7 +355,7 @@ class ExceptionHandlerStack {
         codeGen._jumpToTarget(_handlers[nextHandlerIdx].target);
       }
 
-      b.catch_legacy(codeGen.translator.getExceptionTag(b.moduleBuilder));
+      b.catch_legacy(codeGen.translator.getDartExceptionTag(b.moduleBuilder));
       b.local_set(stackTraceLocal);
       b.local_set(exceptionLocal);
 
@@ -372,16 +372,13 @@ class ExceptionHandlerStack {
       }
 
       if (canHandleJSExceptions) {
-        b.catch_all_legacy();
+        b.catch_legacy(codeGen.translator.getJsExceptionTag(b.moduleBuilder));
 
-        // We can't inspect the thrown object in a `catch_all` and get a stack
-        // trace, so we just attach the current stack trace.
-        codeGen.call(codeGen.translator.stackTraceCurrent.reference);
-        b.local_set(stackTraceLocal);
-
-        // We create a generic JavaScript error.
         codeGen.call(codeGen.translator.javaScriptErrorFactory.reference);
-        b.local_set(exceptionLocal);
+        b.local_tee(exceptionLocal); // ref null #Top
+
+        b.getJavaScriptErrorStackTrace(codeGen.translator);
+        b.local_set(stackTraceLocal);
 
         generateCatchBody();
       }
@@ -789,6 +786,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
         'target.node.location = ${target.node.location}');
     exceptionHandlers._terminateTryBlocks();
     b.end();
+    b.comment(target.toString());
     exceptionHandlers._generateTryBlocks(b);
   }
 
@@ -1037,7 +1035,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
                     () => _getVariableBoxed(catch_.exception!),
                     () => _getVariable(catch_.stackTrace!),
                   ));
-          b.throw_(translator.getExceptionTag(b.moduleBuilder));
+          b.throw_(translator.getDartExceptionTag(b.moduleBuilder));
         }
         b.end();
       }
@@ -1087,7 +1085,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     b.ref_as_non_null();
     getSuspendStateCurrentStackTrace();
     b.ref_as_non_null();
-    b.throw_(translator.getExceptionTag(b.moduleBuilder));
+    b.throw_(translator.getDartExceptionTag(b.moduleBuilder));
 
     emitTargetLabel(afterCatch);
 
@@ -1149,7 +1147,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
       b.ref_as_non_null();
       finalizer.pushStackTrace();
       b.ref_as_non_null();
-      b.throw_(translator.getExceptionTag(b.moduleBuilder));
+      b.throw_(translator.getDartExceptionTag(b.moduleBuilder));
       b.end();
 
       // Any other value: jump to the target.
@@ -1268,7 +1266,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     b.ref_as_non_null();
     getSuspendStateCurrentStackTrace();
     b.ref_as_non_null();
-    b.throw_(translator.getExceptionTag(b.moduleBuilder));
+    b.throw_(translator.getDartExceptionTag(b.moduleBuilder));
     b.unreachable();
     return expectedType;
   }

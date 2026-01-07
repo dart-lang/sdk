@@ -1031,7 +1031,10 @@ class DartObjectImpl implements DartObject, Constant {
 
   /// Set the `index` and `_name` fields for this enum constant.
   void updateEnumConstant({required int index, required String name}) {
-    var fields = state.fields!;
+    var state = this.state as GenericState;
+    state._hashCode = null;
+
+    var fields = state.fields;
     fields['index'] = DartObjectImpl(
       _typeSystem,
       _typeSystem.typeProvider.intType,
@@ -1486,6 +1489,9 @@ class GenericState extends InstanceState {
   /// The values of the fields of this instance.
   final Map<String, DartObjectImpl> _fieldMap;
 
+  /// The cached hash code.
+  int? _hashCode;
+
   /// Information about the constructor invoked to generate this instance.
   final ConstructorInvocationImpl? invocation;
 
@@ -1499,11 +1505,10 @@ class GenericState extends InstanceState {
 
   @override
   int get hashCode {
-    int hashCode = 0;
-    for (DartObjectImpl value in _fieldMap.values) {
-      hashCode += value.hashCode;
-    }
-    return hashCode;
+    return _hashCode ??= Object.hashAll([
+      ..._fieldMap.keys,
+      ..._fieldMap.values,
+    ]);
   }
 
   @override
@@ -2552,6 +2557,9 @@ class ListState extends InstanceState {
   @override
   final bool isUnknown;
 
+  @override
+  late final int hashCode = Object.hashAll(elements);
+
   ListState({
     required TypeImpl elementType,
     required this.elements,
@@ -2561,16 +2569,6 @@ class ListState extends InstanceState {
   /// Creates a state that represents a list whose value is not known.
   factory ListState.unknown(TypeImpl elementType) =>
       ListState(elementType: elementType, elements: [], isUnknown: true);
-
-  @override
-  int get hashCode {
-    int value = 0;
-    int count = elements.length;
-    for (int i = 0; i < count; i++) {
-      value = (value << 3) ^ elements[i].hashCode;
-    }
-    return value;
-  }
 
   @override
   String get typeName => "List";
@@ -2651,6 +2649,12 @@ class MapState extends InstanceState {
   /// Whether the map contains an entry that has an unknown value.
   final bool _isUnknown;
 
+  @override
+  late final int hashCode = Object.hashAll([
+    ...entries.keys,
+    ...entries.values,
+  ]);
+
   /// Initializes a newly created state to represent a set with the given
   /// [entries].
   MapState({
@@ -2669,15 +2673,6 @@ class MapState extends InstanceState {
     entries: {},
     isUnknown: true,
   );
-
-  @override
-  int get hashCode {
-    int value = 0;
-    for (DartObjectImpl key in entries.keys.toSet()) {
-      value = (value << 3) ^ key.hashCode;
-    }
-    return value;
-  }
 
   @override
   bool get isUnknown => _isUnknown;
@@ -2830,7 +2825,7 @@ class RecordState extends InstanceState {
   final Map<String, DartObjectImpl> namedFields;
 
   @override
-  late final hashCode = Object.hashAll([
+  late final int hashCode = Object.hashAll([
     ...positionalFields,
     ...namedFields.values,
   ]);
@@ -2957,6 +2952,9 @@ class SetState extends InstanceState {
   /// Whether the set contains an entry that has an unknown value.
   final bool _isUnknown;
 
+  @override
+  late final int hashCode = Object.hashAll(elements);
+
   /// Initializes a newly created state to represent a set with the given
   /// [elements].
   SetState({
@@ -2969,15 +2967,6 @@ class SetState extends InstanceState {
   /// Creates a state that represents a list whose value is not known.
   factory SetState.unknown(TypeImpl elementType) =>
       SetState(elementType: elementType, elements: {}, isUnknown: true);
-
-  @override
-  int get hashCode {
-    int value = 0;
-    for (DartObjectImpl element in elements) {
-      value = (value << 3) ^ element.hashCode;
-    }
-    return value;
-  }
 
   @override
   bool get isUnknown => _isUnknown;

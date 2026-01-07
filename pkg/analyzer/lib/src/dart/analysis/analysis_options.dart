@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
@@ -288,13 +289,13 @@ final class AnalysisOptionsBuilder {
           // If the severity of [error] is also changed in this options file,
           // use the changed severity.
           var processors = errorProcessors.where(
-            (processor) => processor.code == diagnostic.name.toLowerCase(),
+            (processor) => processor.code == diagnostic.lowerCaseName,
           );
           DiagnosticSeverity? diagnosticSeverity = processors.isNotEmpty
               ? processors.first.severity
               : diagnostic.severity;
           if (diagnosticSeverity == severity) {
-            unignorableDiagnosticCodeNames.add(diagnostic.name.toLowerCase());
+            unignorableDiagnosticCodeNames.add(diagnostic.lowerCaseName);
           }
         }
       } else {
@@ -557,7 +558,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// even if the package does not specify the language version.
   Version get nonPackageLanguageVersion => ExperimentStatus.currentVersion;
 
-  @override
   List<PluginConfiguration> get pluginConfigurations =>
       pluginsOptions.configurations;
 
@@ -766,11 +766,19 @@ final class PluginConfiguration {
   PluginConfiguration({
     required this.name,
     required this.source,
-    this.diagnosticConfigs = const {},
+    Map<String, DiagnosticConfig> diagnosticConfigs = const {},
     this.isEnabled = true,
-  });
+  }) : diagnosticConfigs = LinkedHashMap(
+         equals: _caseInsensitiveEquals,
+         hashCode: _caseInsensitiveHash,
+       )..addAll(diagnosticConfigs);
 
   String sourceYaml() => source.toYaml(name: name);
+
+  static bool _caseInsensitiveEquals(String s1, String s2) =>
+      s1.toLowerCase() == s2.toLowerCase();
+
+  static int _caseInsensitiveHash(String s) => s.toLowerCase().hashCode;
 }
 
 /// The analysis options for plugins, as specified in the top-level `plugins`

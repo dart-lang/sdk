@@ -43,7 +43,7 @@ class ErrorCodeValuesTest {
     StringBuffer missingCodes = StringBuffer();
     errorTypeMap.forEach((Type errorType, List<DiagnosticCode> codes) {
       var listedNames = codes
-          .map((DiagnosticCode code) => code.uniqueName)
+          .map((DiagnosticCode code) => code.lowerCaseUniqueName)
           .toSet();
 
       var declaredNames = reflectClass(errorType).declarations.values
@@ -240,7 +240,7 @@ analyzer:
     );
     expect(
       diagnostics.single.problemMessage.messageText(includeUrl: false),
-      contains("'not_supported' isn't a recognized error code"),
+      contains("'not_supported' isn't a recognized diagnostic code"),
     );
   }
 
@@ -255,7 +255,7 @@ analyzer:
     );
     expect(
       diagnostics.single.problemMessage.messageText(includeUrl: false),
-      contains("'null' isn't a recognized error code"),
+      contains("'null' isn't a recognized diagnostic code"),
     );
   }
 

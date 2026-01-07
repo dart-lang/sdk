@@ -5,9 +5,9 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 
 /// Helper for verifying resolution of assignments, in form of explicit
 /// an [AssignmentExpression], or a [PrefixExpression] or [PostfixExpression]
@@ -36,7 +36,7 @@ class AssignmentVerifier {
     if (requested != null) {
       if (requested is VariableElement) {
         if (requested.isConst) {
-          _diagnosticReporter.atNode(node, diag.assignmentToConst);
+          _diagnosticReporter.report(diag.assignmentToConst.at(node));
         }
       }
       return;
@@ -46,12 +46,12 @@ class AssignmentVerifier {
         recovery is InterfaceElement ||
         recovery is TypeAliasElement ||
         recovery is TypeParameterElement) {
-      _diagnosticReporter.atNode(node, diag.assignmentToType);
+      _diagnosticReporter.report(diag.assignmentToType.at(node));
     } else if (recovery is LocalFunctionElement ||
         recovery is TopLevelFunctionElement) {
-      _diagnosticReporter.atNode(node, diag.assignmentToFunction);
+      _diagnosticReporter.report(diag.assignmentToFunction.at(node));
     } else if (recovery is MethodElement) {
-      _diagnosticReporter.atNode(node, diag.assignmentToMethod);
+      _diagnosticReporter.report(diag.assignmentToMethod.at(node));
     } else if (recovery is PrefixElement) {
       if (recovery.name case var prefixName?) {
         _diagnosticReporter.atNode(
@@ -68,18 +68,21 @@ class AssignmentVerifier {
       }
 
       if (variable.isConst) {
-        _diagnosticReporter.atNode(node, diag.assignmentToConst);
+        _diagnosticReporter.report(diag.assignmentToConst.at(node));
       } else if (variable is FieldElement && variable.isOriginGetterSetter) {
-        _diagnosticReporter.atNode(
-          node,
-          diag.assignmentToFinalNoSetter,
-          arguments: [variableName, variable.enclosingElement.displayName],
+        _diagnosticReporter.report(
+          diag.assignmentToFinalNoSetter
+              .withArguments(
+                variableName: variableName,
+                className: variable.enclosingElement.displayName,
+              )
+              .at(node),
         );
       } else {
-        _diagnosticReporter.atNode(
-          node,
-          diag.assignmentToFinal,
-          arguments: [variableName],
+        _diagnosticReporter.report(
+          diag.assignmentToFinal
+              .withArguments(variableName: variableName)
+              .at(node),
         );
       }
     } else if (recovery is MultiplyDefinedElementImpl) {

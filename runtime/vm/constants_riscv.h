@@ -448,6 +448,13 @@ struct DoubleToIntegerStubABI {
   static constexpr Register kResultReg = A0;
 };
 
+// ABI for CheckedStoreIntoSharedStub.
+struct CheckedStoreIntoSharedStubABI {
+  static constexpr Register kFieldReg = T1;
+  static constexpr Register kValueReg = T2;
+  static constexpr Register kResultReg = A0;
+};
+
 // ABI for SuspendStub (AwaitStub, AwaitWithTypeCheckStub, YieldAsyncStarStub,
 // SuspendSyncStarAtStartStub, SuspendSyncStarAtYieldStub).
 struct SuspendStubABI {
@@ -786,6 +793,9 @@ enum Funct12 {
   ECALL = 0,
   EBREAK = 1,
 
+  WRS_NTO = 0x0d,
+  WRS_STO = 0x1d,
+
   MOP_R_MASK = 0b101100111100,
   MOP_R = 0b100000011100,
   SSPOPCHK = 0b110011011100,
@@ -1057,6 +1067,7 @@ enum HartEffects {
   kMemory = kWrite | kRead,
   kIO = kOutput | kInput,
   kAll = kMemory | kIO,
+  kNullSet = 0,
 };
 
 const intptr_t kReleaseShift = 25;
@@ -1959,13 +1970,14 @@ static constexpr Extension RV_Zcb(13);     // More compressed instructions
 static constexpr Extension RV_Zfa(14);     // Additional floating-point
 static constexpr Extension RV_Zimop(15);   // May-be-operations
 static constexpr Extension RV_Zcmop(16);   // Compressed may-be-operations
+static constexpr Extension RV_Zawrs(17);   // Wait on reservation set
 static constexpr ExtensionSet RVA23 =
-    RVA22 | RV_V | RV_Zicond | RV_Zcb | RV_Zfa | RV_Zimop | RV_Zcmop;
-static constexpr Extension RV_Zicfiss(17);  // Shadow stack
-static constexpr Extension RV_Zabha(18);    // Byte and halfword AMOs
-static constexpr Extension RV_Zalasr(19);   // Load-acquire, store-release
-static constexpr Extension RV_Zfhmin(20);   // Load-acquire, store-release
-static constexpr Extension RV_Zacas(21);    // Compare-and-swap
+    RVA22 | RV_V | RV_Zicond | RV_Zcb | RV_Zfa | RV_Zimop | RV_Zcmop | RV_Zawrs;
+static constexpr Extension RV_Zicfiss(18);  // Shadow stack
+static constexpr Extension RV_Zabha(19);    // Byte and halfword AMOs
+static constexpr Extension RV_Zalasr(20);   // Load-acquire, store-release
+static constexpr Extension RV_Zfhmin(21);   // Load-acquire, store-release
+static constexpr Extension RV_Zacas(22);    // Compare-and-swap
 
 #if defined(DART_TARGET_OS_ANDROID)
 static constexpr ExtensionSet RV_baseline = RVA23;

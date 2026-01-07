@@ -731,6 +731,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Convert to wildcard variable',
   );
+  static const convertToWildcardVariableMulti = FixKind(
+    'dart.fix.convert.toWildcardVariable.multi',
+    DartFixKindPriority.inFile,
+    'Convert to wildcard variables everywhere in file',
+  );
   static const createClassUppercase = FixKind(
     'dart.fix.create.class.uppercase',
     DartFixKindPriority.standard + 2,
@@ -1654,6 +1659,16 @@ abstract final class DartFixKind {
     'dart.fix.remove.unnecessaryCast.multi',
     DartFixKindPriority.inFile,
     'Remove all unnecessary casts in file',
+  );
+  static const removeUnnecessaryName = FixKind(
+    'dart.fix.remove.unnecessaryName',
+    DartFixKindPriority.standard,
+    'Remove unnecessary name from pattern',
+  );
+  static const removeUnnecessaryNameMulti = FixKind(
+    'dart.fix.remove.unnecessaryName.multi',
+    DartFixKindPriority.inFile,
+    'Remove unnecessary names from patterns in file',
   );
   static const removeUnnecessaryFinal = FixKind(
     'dart.fix.remove.unnecessaryFinal',

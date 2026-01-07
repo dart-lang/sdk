@@ -1729,11 +1729,11 @@ package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart:
     getIndent (method: String Function(int))
     writeClassDeclaration (method: void Function(String, {Iterable<DartType>? interfaces, bool isAbstract, void Function()? membersWriter, Iterable<DartType>? mixins, String? nameGroupName, DartType? superclass, String? superclassGroupName}))
     writeConstructorDeclaration (method: void Function(String, {ArgumentList? argumentList, void Function()? bodyWriter, String? classNameGroupName, String? constructorName, String? constructorNameGroupName, List<String>? fieldNames, void Function()? initializerWriter, bool isConst, void Function()? parameterWriter}))
-    writeFieldDeclaration (method: void Function(String, {void Function()? initializerWriter, bool isConst, bool isFinal, bool isStatic, String? nameGroupName, DartType? type, String? typeGroupName}))
+    writeFieldDeclaration (method: void Function(String, {bool alwaysWriteType, void Function()? initializerWriter, bool isConst, bool isFinal, bool isStatic, String? nameGroupName, DartType? type, String? typeGroupName, List<TypeParameterElement>? typeParametersInScope}))
     writeFormalParameter (method: void Function(String, {bool isCovariant, bool isRequiredNamed, bool isRequiredType, String? nameGroupName, DartType? type, String? typeGroupName, List<TypeParameterElement>? typeParametersInScope}))
     writeFormalParameters (method: void Function(Iterable<FormalParameterElement>, {bool fillParameterNames, String? groupNamePrefix, bool includeDefaultValues, bool requiredTypes, List<TypeParameterElement>? typeParametersInScope}))
     writeFunctionDeclaration (method: void Function(String, {void Function()? bodyWriter, bool isStatic, String? nameGroupName, void Function()? parameterWriter, DartType? returnType, String? returnTypeGroupName}))
-    writeGetterDeclaration (method: void Function(String, {void Function() bodyWriter, bool isStatic, String nameGroupName, DartType returnType, String returnTypeGroupName}))
+    writeGetterDeclaration (method: void Function(String, {bool alwaysWriteType, void Function() bodyWriter, bool isStatic, String nameGroupName, DartType returnType, String returnTypeGroupName, List<TypeParameterElement>? typeParametersInScope}))
     writeImportedName (method: void Function(List<Uri>, String))
     writeIndent (method: void Function([int]))
     writeLocalVariableDeclaration (method: void Function(String, {void Function()? initializerWriter, bool isConst, bool isFinal, String? nameGroupName, DartType? type, String? typeGroupName}))
@@ -1743,7 +1743,7 @@ package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart:
     writeParameterMatchingArgument (method: void Function(Expression, int, Set<String>, {bool isOptional, List<TypeParameterElement>? typeParametersInScope}))
     writeParametersMatchingArguments (method: void Function(ArgumentList, {List<TypeParameterElement>? typeParametersInScope}))
     writeReference (method: void Function(Element@2))
-    writeSetterDeclaration (method: void Function(String, {void Function()? bodyWriter, bool isStatic, String? nameGroupName, DartType? parameterType, String? parameterTypeGroupName, List<TypeParameterElement>? typeParametersInScope}))
+    writeSetterDeclaration (method: void Function(String, {bool alwaysWriteType, void Function()? bodyWriter, bool isStatic, String? nameGroupName, DartType? parameterType, String? parameterTypeGroupName, List<TypeParameterElement>? typeParametersInScope}))
     writeType (method: bool Function(DartType?, {bool addSupertypeProposals, String? groupName, bool required, bool shouldWriteDynamic, List<TypeParameterElement>? typeParametersInScope}))
     writeTypeParameter (method: void Function(TypeParameterElement, {List<TypeParameterElement>? typeParametersInScope}))
     writeTypeParameters (method: void Function(List<TypeParameterElement>, {List<TypeParameterElement>? typeParametersInScope}))
@@ -1754,7 +1754,7 @@ package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart:
     requiredImports (getter: List<Uri>)
     addInsertion (method: void Function(int, void Function(DartEditBuilder)))
     addReplacement (method: void Function(SourceRange, void Function(DartEditBuilder)))
-    canWriteType (method: bool Function(DartType?, {List<TypeParameterElement>? typeParametersInScope}))
+    canWriteType (method: bool Function(DartType?, {required int offset, List<TypeParameterElement>? typeParametersInScope}))
     convertFunctionFromAsyncToSync (method: void Function({required FunctionBody body, required TypeProvider typeProvider, required TypeSystem typeSystem}))
     convertFunctionFromSyncToAsync (method: void Function({required FunctionBody body, required TypeProvider typeProvider, required TypeSystem typeSystem}))
     format (method: void Function(SourceRange))
@@ -2072,6 +2072,8 @@ package:_fe_analyzer_shared/src/base/errors.dart:
   Diagnostic (referenced)
   DiagnosticSeverity (referenced)
   DiagnosticType (referenced)
+package:_fe_analyzer_shared/src/base/source_range.dart:
+  SourceRange (referenced)
 package:_fe_analyzer_shared/src/base/syntactic_entity.dart:
   SyntacticEntity (referenced)
 package:_fe_analyzer_shared/src/scanner/token.dart:
@@ -2107,8 +2109,6 @@ package:analyzer/file_system/overlay_file_system.dart:
   OverlayResourceProvider (referenced)
 package:analyzer/source/line_info.dart:
   LineInfo (referenced)
-package:analyzer/source/source_range.dart:
-  SourceRange (referenced)
 package:analyzer/src/dart/analysis/byte_store.dart:
   ByteStore (referenced)
 package:analyzer/src/dart/ast/ast.dart:

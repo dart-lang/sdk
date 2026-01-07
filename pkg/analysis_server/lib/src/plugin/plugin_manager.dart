@@ -124,6 +124,9 @@ class PluginManager {
 
   final ProcessRunner _processRunner;
 
+  /// The set of context root paths with no configured _new_ plugins.
+  final contextRootsWithNoPlugins = <String>{};
+
   /// Initializes a newly created plugin manager.
   ///
   /// The notifications from the running plugins will be handled by the given
@@ -165,58 +168,62 @@ class PluginManager {
     required bool isLegacyPlugin,
   }) async {
     var pluginIsolate = _pluginMap[path];
-    var isNew = false;
-    if (pluginIsolate == null) {
-      isNew = true;
-      PluginFiles pluginFiles;
-      try {
-        pluginFiles = filesFor(path, isLegacyPlugin: isLegacyPlugin);
-      } catch (exception, stackTrace) {
-        pluginIsolate = PluginIsolate(
-          path,
-          null,
-          null,
-          _notificationManager,
-          instrumentationService,
-          sessionLogger,
-          isLegacy: isLegacyPlugin,
-        );
-        pluginIsolate.reportException(CaughtException(exception, stackTrace));
-        _pluginMap[path] = pluginIsolate;
-        return;
-      }
+    if (pluginIsolate != null) {
+      pluginIsolate.addContextRoot(contextRoot);
+      return;
+    }
+
+    var startedSuccessfully = true;
+    PluginFiles pluginFiles;
+    try {
+      pluginFiles = filesFor(path, isLegacyPlugin: isLegacyPlugin);
+    } catch (exception, stackTrace) {
       pluginIsolate = PluginIsolate(
         path,
-        pluginFiles.execution.path,
-        pluginFiles.packageConfig.path,
+        null,
+        null,
         _notificationManager,
         instrumentationService,
         sessionLogger,
         isLegacy: isLegacyPlugin,
       );
+      pluginIsolate.reportException(CaughtException(exception, stackTrace));
       _pluginMap[path] = pluginIsolate;
-      try {
-        instrumentationService.logInfo('Starting plugin "$pluginIsolate"');
-        var session = await pluginIsolate.start(_byteStorePath, _sdkPath);
-        unawaited(
-          session?.onDone.then((_) {
-            if (_pluginMap[path] == pluginIsolate) {
-              _pluginMap.remove(path);
-              _notifyPluginsChanged();
-            }
-          }),
-        );
-      } catch (exception, stackTrace) {
-        // Record the exception (for debugging purposes) and record the fact
-        // that we should not try to communicate with the plugin.
-        pluginIsolate.reportException(CaughtException(exception, stackTrace));
-        isNew = false;
-      }
-
-      _notifyPluginsChanged();
+      return;
     }
+    pluginIsolate = PluginIsolate(
+      path,
+      pluginFiles.execution.path,
+      pluginFiles.packageConfig.path,
+      _notificationManager,
+      instrumentationService,
+      sessionLogger,
+      isLegacy: isLegacyPlugin,
+    );
+    try {
+      instrumentationService.logInfo('Starting plugin "$pluginIsolate"');
+      var session = await pluginIsolate.start(_byteStorePath, _sdkPath);
+      unawaited(
+        session?.onDone.then((_) {
+          if (_pluginMap[path] == pluginIsolate) {
+            _pluginMap.remove(path);
+            _notifyPluginsChanged();
+          }
+        }),
+      );
+    } catch (exception, stackTrace) {
+      // Record the exception (for debugging purposes) and record the fact
+      // that we should not try to communicate with the plugin.
+      pluginIsolate.reportException(CaughtException(exception, stackTrace));
+      startedSuccessfully = false;
+    }
+
+    _pluginMap[path] = pluginIsolate;
+
+    _notifyPluginsChanged();
+
     pluginIsolate.addContextRoot(contextRoot);
-    if (isNew) {
+    if (startedSuccessfully) {
       var analysisSetSubscriptionsParams = _analysisSetSubscriptionsParams;
       if (analysisSetSubscriptionsParams != null) {
         pluginIsolate.sendRequest(analysisSetSubscriptionsParams);
@@ -377,6 +384,10 @@ class PluginManager {
     return stateFolder.getChildAssumingFolder(stateName);
   }
 
+  /// The path to the "plugin state" folder for a plugin at [pluginPath].
+  String pluginStateFolderPath(String pluginPath) =>
+      pluginStateFolder(pluginPath).path;
+
   /// The given [contextRoot] is no longer being analyzed.
   void removedContextRoot(analyzer.ContextRoot contextRoot) {
     var plugins = _pluginMap.values.toList();
@@ -515,15 +526,16 @@ class PluginManager {
 
   /// Compiles [entrypoint] to an AOT snapshot and records timing to the
   /// instrumentation log.
-  ProcessResult _compileAotSnapshot(String entrypoint) {
+  ProcessResult _compileAotSnapshot(File entrypoint) {
     instrumentationService.logInfo(
       'Running "dart compile aot-snapshot $entrypoint".',
     );
 
     var stopwatch = Stopwatch()..start();
+    var depfile = entrypoint.parent.getChildAssumingFile('depfile.txt');
     var result = _processRunner.runSync(
       sdk.dart,
-      ['compile', 'aot-snapshot', entrypoint],
+      ['compile', 'aot-snapshot', '--depfile', depfile.path, entrypoint.path],
       stderrEncoding: utf8,
       stdoutEncoding: utf8,
     );
@@ -539,9 +551,30 @@ class PluginManager {
   /// Compiles [pluginFile], in [pluginFolder], to an AOT snapshot, and returns
   /// the [File] for the snapshot.
   File _compileAsAot({required File pluginFile, required Folder pluginFolder}) {
+    try {
+      // Potentially use existing snapshot.
+      var aotSnapshotFile = _existingAotSnapshot(
+        resourceProvider: _resourceProvider,
+        pluginFile: pluginFile,
+        pluginFolder: pluginFolder,
+      );
+      if (aotSnapshotFile != null) {
+        instrumentationService.logInfo(
+          'Using existing plugin AOT snapshot at '
+          "'${aotSnapshotFile.path}'",
+        );
+        return aotSnapshotFile;
+      }
+    } catch (error, stackTrace) {
+      instrumentationService.logException(
+        'Exception while checking an existing plugin AOT snapshot: '
+        '"$error"\n$stackTrace',
+      );
+    }
+
     // When the Dart Analysis Server is built as AOT, then all spawned
     // Isolates must also be built as AOT.
-    var aotResult = _compileAotSnapshot(pluginFile.path);
+    var aotResult = _compileAotSnapshot(pluginFile);
     if (aotResult.exitCode != 0) {
       var buffer = StringBuffer();
       buffer.writeln(
@@ -564,7 +597,7 @@ class PluginManager {
   /// Computes the plugin files, given that the plugin should exist in
   /// [pluginFolder].
   ///
-  /// Runs `pub` if [pubCommand] is not `null`.
+  /// Runs `pub <pubCommand>` in [pluginFolder] if [pubCommand] is not `null`.
   PluginFiles _computeFiles(
     Folder pluginFolder, {
     required bool builtAsAot,
@@ -582,7 +615,10 @@ class PluginManager {
         .getChildAssumingFile(file_paths.packageConfigJson);
 
     if (pubCommand != null) {
-      var pubResult = _runPubCommand(pubCommand, pluginFolder);
+      var pubResult = _runPubCommand(
+        pubCommand,
+        workingDirectory: pluginFolder,
+      );
       String? exceptionReason;
       if (pubResult.exitCode != 0) {
         var buffer = StringBuffer();
@@ -722,6 +758,56 @@ class PluginManager {
     return packageConfigFile;
   }
 
+  /// Returns a viable existing plugin AOT snapshot, if it exists and its
+  /// modification timestamp is newer than all of its dependencies, and `null`
+  /// otherwise.
+  ///
+  /// The dependencies of an AOT snapshot are the pubspec file, the
+  /// entrypoint file, and all of the files referenced in the depfile which
+  /// is generated by the `dart compile` command.
+  File? _existingAotSnapshot({
+    required ResourceProvider resourceProvider,
+    required File pluginFile,
+    required Folder pluginFolder,
+  }) {
+    var aotSnapshotFile = pluginFolder
+        .getChildAssumingFolder('bin')
+        .getChildAssumingFile('plugin.aot');
+    if (!aotSnapshotFile.exists) return null;
+    var snapshotModificationStamp = aotSnapshotFile.modificationStamp;
+
+    if (pluginFile.modificationStamp > snapshotModificationStamp) return null;
+    var pubspecFile = pluginFolder.getChildAssumingFile(file_paths.pubspecYaml);
+    if (pubspecFile.modificationStamp > snapshotModificationStamp) return null;
+
+    var depfile = pluginFolder
+        .getChildAssumingFolder('bin')
+        .getChildAssumingFile('depfile.txt');
+    if (!depfile.exists) return null;
+
+    var content = depfile.readAsStringSync();
+    var dependencies = parseDepfile(content);
+    if (dependencies == null) {
+      // Malformed depfile content.
+      return null;
+    }
+
+    for (var dependencyPath in dependencies) {
+      var file = _resourceProvider.getFile(dependencyPath);
+      if (!file.exists) {
+        // Something has certainly changed on disk; do not use the cached
+        // snapshot.
+        return null;
+      }
+      if (file.modificationStamp > snapshotModificationStamp) {
+        // Snapshot is stale.
+        return null;
+      }
+    }
+
+    return aotSnapshotFile;
+  }
+
   void _notifyPluginsChanged() => _pluginsChanged.add(null);
 
   /// Return the names of packages that are listed as dependencies in the given
@@ -742,17 +828,20 @@ class PluginManager {
   }
 
   /// Runs (and records timing to the instrumentation log) a Pub command
-  /// [pubCommand] in [folder].
-  ProcessResult _runPubCommand(String pubCommand, Folder folder) {
+  /// [pubCommand] in [workingDirectory].
+  ProcessResult _runPubCommand(
+    String pubCommand, {
+    required Folder workingDirectory,
+  }) {
     instrumentationService.logInfo(
-      'Running "pub $pubCommand" in "${folder.path}".',
+      'Running "pub $pubCommand" in "${workingDirectory.path}".',
     );
 
     var stopwatch = Stopwatch()..start();
     var result = _processRunner.runSync(
       sdk.dart,
       ['pub', pubCommand],
-      workingDirectory: folder.path,
+      workingDirectory: workingDirectory.path,
       environment: {_pubEnvironmentKey: _getPubEnvironmentValue()},
       stderrEncoding: utf8,
       stdoutEncoding: utf8,
@@ -770,6 +859,50 @@ class PluginManager {
   String _uniqueDirectoryName(String path) {
     var bytes = md5.convert(path.codeUnits).bytes;
     return hex.encode(bytes);
+  }
+
+  /// Parses Ninja-style depfile content, returning a list of dependency paths.
+  ///
+  /// Returns `null` if the text is not valid depfile content.
+  ///
+  /// The format is:
+  ///
+  ///     target: dependency1 dependency2 ...
+  ///
+  /// See https://ninja-build.org/manual.html#_depfile.
+  @visibleForTesting
+  static List<String>? parseDepfile(String content) {
+    var colonIndex = content.indexOf(': ');
+    if (colonIndex < 0) {
+      // Not a valid depfile.
+      return null;
+    }
+    var dependenciesString = content
+        .substring(colonIndex + 1)
+        .trimLeft()
+        .replaceAll(RegExp(r'[\r\n]'), '');
+    var dependencies = <String>[];
+    var start = 0;
+    while (start < dependenciesString.length) {
+      var index = start;
+      while (index < dependenciesString.length) {
+        var char = dependenciesString[index];
+        if (char == ' ') {
+          break;
+        } else if (char == r'\') {
+          index++;
+        }
+        index++;
+      }
+      dependencies.add(
+        dependenciesString
+            .substring(start, index)
+            .replaceAll(r'\\', r'\')
+            .replaceAll(r'\ ', ' '),
+      );
+      start = index + 1;
+    }
+    return dependencies.where((p) => p.isNotEmpty).toList();
   }
 
   /// Record the fact that the given [pluginIsolate] responded to a request with

@@ -462,7 +462,7 @@ ContextScopePtr LocalScope::PreserveOuterScope(
 
   LocalVariable* awaiter_link = nullptr;
 
-  bool does_capture_only_final_and_shared_vars = true;
+  bool captures_only_final_not_late_vars = true;
 
   // Create a descriptor for each referenced captured variable of enclosing
   // functions to preserve its name and its context allocation information.
@@ -505,8 +505,9 @@ ContextScopePtr LocalScope::PreserveOuterScope(
 
       bool is_shared = variable->ComputeIfShared(library);
       context_scope.SetIsSharedAt(captured_idx, is_shared);
-      if (!is_shared && !variable->is_final()) {
-        does_capture_only_final_and_shared_vars = false;
+      // late final variables are not allowed, only final are.
+      if (!variable->is_final() || variable->is_late()) {
+        captures_only_final_not_late_vars = false;
       }
 
       captured_idx++;
@@ -533,8 +534,8 @@ ContextScopePtr LocalScope::PreserveOuterScope(
   }
 
   if (!function.IsNull()) {
-    function.set_does_close_over_only_final_and_shared_vars(
-        does_capture_only_final_and_shared_vars);
+    function.set_captures_only_final_not_late_vars(
+        captures_only_final_not_late_vars);
   }
 
   return context_scope.ptr();

@@ -74,8 +74,10 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
 import 'package:analyzer/src/error/base_or_final_type_verifier.dart';
 import 'package:analyzer/src/error/bool_expression_verifier.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/inference_error.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/error/super_formal_parameters_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
@@ -99,7 +101,6 @@ typedef SharedMatchContext =
       AstNodeImpl,
       ExpressionImpl,
       DartPatternImpl,
-      SharedTypeView,
       PromotableElementImpl
     >;
 
@@ -133,12 +134,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           InterfaceTypeImpl,
           InterfaceElementImpl
         >,
-        NullShortingMixin<
-          Null,
-          ExpressionImpl,
-          PromotableElementImpl,
-          SharedTypeView
-        > {
+        NullShortingMixin<Null, ExpressionImpl, PromotableElementImpl> {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
   /// [popRewrite], [pushRewrite], and [replaceExpression] will be printed.
   static const bool _debugRewriteStack = false;
@@ -372,6 +368,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
        baseOrFinalTypeVerifier = BaseOrFinalTypeVerifier(
          definingLibrary: definingLibrary,
          diagnosticReporter: diagnosticReporter,
+         diagnosticSource: source,
        ) {
     inferenceHelper = InvocationInferenceHelper(
       resolver: this,
@@ -413,8 +410,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     AstNodeImpl,
     StatementImpl,
     ExpressionImpl,
-    PromotableElementImpl,
-    SharedTypeView
+    PromotableElementImpl
   >
   get flow => flowAnalysis.flow!;
 
@@ -487,11 +483,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             variablePattern.fieldNameWithImplicitName = fieldName;
             nameToken = variablePattern.name;
           } else {
-            diagnosticReporter.atNode(field, diag.missingNamedPatternFieldName);
+            diagnosticReporter.report(
+              diag.missingNamedPatternFieldName.at(field),
+            );
           }
         }
       } else if (mustBeNamed) {
-        diagnosticReporter.atNode(field, diag.positionalFieldInObjectPattern);
+        diagnosticReporter.report(
+          diag.positionalFieldInObjectPattern.at(field),
+        );
       }
       return shared.RecordPatternField(
         node: field,
@@ -568,9 +568,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
       }
 
-      DiagnosticCode diagnosticCode;
+      LocatableDiagnostic locatableDiagnostic;
       if (typeSystem.isPotentiallyNonNullable(returnType)) {
-        diagnosticCode = diag.bodyMightCompleteNormally;
+        locatableDiagnostic = diag.bodyMightCompleteNormally.withArguments(
+          returnType: returnType,
+        );
       } else {
         var returnTypeBase = typeSystem.futureOrBase(returnType);
         if (returnTypeBase is DynamicType ||
@@ -580,28 +582,17 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             returnTypeBase.isDartCoreNull) {
           return;
         } else {
-          diagnosticCode = diag.bodyMightCompleteNormallyNullable;
+          locatableDiagnostic = diag.bodyMightCompleteNormallyNullable
+              .withArguments(returnType: returnType);
         }
       }
-      if (errorNode is ConstructorDeclaration) {
-        diagnosticReporter.atConstructorDeclaration(
-          errorNode,
-          diagnosticCode,
-          arguments: [returnType],
-        );
-      } else if (errorNode is BlockFunctionBody) {
-        diagnosticReporter.atToken(
-          errorNode.block.leftBracket,
-          diagnosticCode,
-          arguments: [returnType],
-        );
-      } else if (errorNode is Token) {
-        diagnosticReporter.atToken(
-          errorNode,
-          diagnosticCode,
-          arguments: [returnType],
-        );
-      }
+      diagnosticReporter.report(
+        locatableDiagnostic.atSourceRange(switch (errorNode) {
+          ConstructorDeclaration() => errorNode.errorRange,
+          BlockFunctionBody() => errorNode.block.leftBracket.sourceRange,
+          _ => errorNode.sourceRange,
+        }),
+      );
     }
   }
 
@@ -1382,17 +1373,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var flow = this.flow;
       if (element.isLate) {
         if (flow.isAssigned(element)) {
-          diagnosticReporter.atToken(
-            node.name,
-            diag.lateFinalLocalAlreadyAssigned,
+          diagnosticReporter.report(
+            diag.lateFinalLocalAlreadyAssigned.at(node.name),
           );
         }
       } else {
         if (!flow.isUnassigned(element)) {
-          diagnosticReporter.atToken(
-            node.name,
-            diag.assignmentToFinalLocal,
-            arguments: [node.name.lexeme],
+          diagnosticReporter.report(
+            diag.assignmentToFinalLocal
+                .withArguments(variableName: node.name.lexeme)
+                .at(node.name),
           );
         }
       }
@@ -1757,7 +1747,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         node is PropertyAccess ||
         node is SimpleIdentifier) {
       if (element is InternalSetterElement) {
-        if (element.isSynthetic) {
+        if (element.isOriginVariable) {
           writeType = element.variable.type;
         } else {
           var parameters = element.formalParameters;
@@ -2080,7 +2070,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     typeAnalyzer.visitCascadeExpression(node);
 
     if (node.isNullAware) {
-      flowAnalysis.flow!.nullAwareAccess_end();
+      flowAnalysis.flow!.nullAwareAccess_end(wholeExpression: node);
     }
     flowAnalysis.flow!.cascadeExpression_end(node);
     _insertImplicitCallReference(node, contextType: contextType);
@@ -2293,7 +2283,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     analyzeExpression(expression, SharedTypeSchemaView(fieldType));
     expression = popRewrite()!;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(expression);
-    if (fieldElement != null) {
+    if (fieldElement != null && enclosingFunction != null) {
       var enclosingConstructor = enclosingFunction as ConstructorElementImpl;
       checkForFieldInitializerNotAssignable(
         node,
@@ -2561,9 +2551,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         if (constructorElement.isFactory) {
           var constructorName = node.arguments?.constructorSelector?.name;
           var errorTarget = constructorName ?? node.name;
-          diagnosticReporter.atEntity(
-            errorTarget,
-            diag.enumConstantInvokesFactoryConstructor,
+          diagnosticReporter.report(
+            diag.enumConstantInvokesFactoryConstructor.at(errorTarget),
           );
         }
       } else {
@@ -2576,9 +2565,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
               arguments: [nameNode.name],
             );
           } else {
-            diagnosticReporter.atToken(
-              node.name,
-              diag.undefinedEnumConstructorUnnamed,
+            diagnosticReporter.report(
+              diag.undefinedEnumConstructorUnnamed.at(node.name),
             );
           }
         }
@@ -3683,6 +3671,55 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       contextType: contextType,
     );
     inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
+    var primaryConstructorDeclaration = node.declaration;
+    if (primaryConstructorDeclaration == null) {
+      diagnosticReporter.report(
+        diag.primaryConstructorBodyWithoutDeclaration.at(node),
+      );
+    }
+
+    var fragment = primaryConstructorDeclaration?.declaredFragment;
+    var element = fragment?.element;
+
+    var returnType = element?.type.returnType;
+    var outerFunction = enclosingFunction;
+
+    try {
+      enclosingFunction = element;
+      assert(_thisType == null);
+      _setupThisType();
+      checkUnreachableNode(node);
+      node.documentationComment?.accept(this);
+      node.metadata.accept(this);
+
+      if (primaryConstructorDeclaration != null) {
+        flowAnalysis.bodyOrInitializer_enter(
+          node,
+          primaryConstructorDeclaration.formalParameters,
+        );
+        flowAnalysis.executableDeclaration_enter(
+          node,
+          primaryConstructorDeclaration.formalParameters,
+          isClosure: false,
+        );
+      }
+
+      node.initializers.accept(this);
+      node.body.resolve(this, returnType is DynamicType ? null : returnType);
+
+      if (primaryConstructorDeclaration != null) {
+        flowAnalysis.executableDeclaration_exit(node.body, false);
+        flowAnalysis.bodyOrInitializer_exit();
+      }
+      nullSafetyDeadCodeVerifier.flowEnd(node);
+    } finally {
+      enclosingFunction = outerFunction;
+      _thisType = null;
+    }
   }
 
   @override
@@ -5431,6 +5468,30 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
+    var outerScope = nameScope;
+    try {
+      var fragment = node.declaration?.declaredFragment;
+      var element = fragment?.element;
+
+      node.metadata.accept(this);
+
+      if (element != null) {
+        nameScope = ConstructorInitializerScope(outerScope, element);
+      }
+      node.initializers.accept(this);
+
+      if (element != null) {
+        nameScope = PrimaryParameterScope(outerScope, element);
+      }
+      _visitDocumentationComment(node.documentationComment);
+      node.body.accept(this);
+    } finally {
+      nameScope = outerScope;
+    }
+  }
+
+  @override
   void visitPropertyAccess(PropertyAccess node) {
     // Do not visit the property name, since it is not meant to be looked up in
     // the current scope.
@@ -5488,9 +5549,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       if (node.inSetterContext()) {
         if (element is PatternVariableElementImpl &&
             element.isVisitingWhenClause) {
-          diagnosticReporter.atNode(
-            node,
-            diag.patternVariableAssignmentInsideGuard,
+          diagnosticReporter.report(
+            diag.patternVariableAssignmentInsideGuard.at(node),
           );
         }
         _localVariableInfo.potentiallyMutatedInScope.add(element);
@@ -5666,7 +5726,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
           node is! ForStatement &&
           node is! SwitchMember &&
           node is! WhileStatement) {
-        diagnosticReporter.atNode(parentNode, diag.continueLabelInvalid);
+        diagnosticReporter.report(diag.continueLabelInvalid.at(parentNode));
       }
       return node;
     }

@@ -1,0 +1,54 @@
+--- test1
+B0 = EntryBlock()
+  v9 = Constant(1)
+  Constant(3)
+  Constant(5)
+  Constant(true)
+  v34 = Constant(2)
+  v1 = Parameter(x)
+  BinaryIntOp +(v1, v9)
+  Return(v34)
+
+--- test2
+B0 = EntryBlock()
+  Constant(0)
+  Constant(1)
+  v19 = Constant(null)
+  Constant(true)
+  Return(v19)
+
+--- test3
+B0 = EntryBlock()
+  Constant(true)
+  Constant(10)
+  Constant(20)
+  v30 = Constant(1)
+  Constant(30)
+  Constant("I can throw")
+  v53 = Constant(null)
+  Constant(false)
+  Parameter(x)
+  v2 = Parameter(y)
+  BinaryIntOp +(v2, v30)
+  Return(v53)
+
+--- test4
+B0 = EntryBlock()
+  Constant(true)
+  Constant(10)
+  Constant(1)
+  Constant(2)
+  Constant(20)
+  v49 = Constant(null)
+  Constant(-1)
+  Constant(false)
+  Parameter(x)
+  v2 = Parameter(z)
+  DirectCall print(v2)
+  Return(v49)
+
+--- main
+B0 = EntryBlock()
+  v1 = Constant(null)
+  Return(v1)
+

@@ -1156,6 +1156,7 @@ class Thread : public AllStatic {
   static uword exit_through_ffi();
   static word dart_stream_offset();
   static word service_extension_stream_offset();
+  static word thread_locals_offset();
   static word predefined_symbols_address_offset();
   static word optimize_entry_offset();
   static word deoptimize_entry_offset();
@@ -1215,6 +1216,7 @@ class Thread : public AllStatic {
   static word jump_to_frame_entry_point_offset();
 
   static word AllocateArray_entry_point_offset();
+  static word DeoptimizeCopyFrame_entry_point_offset();
   static word write_barrier_code_offset();
   static word array_write_barrier_code_offset();
   static word fix_callers_target_code_offset();

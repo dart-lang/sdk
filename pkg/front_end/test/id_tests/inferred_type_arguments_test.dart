@@ -57,6 +57,7 @@ class InferredTypeArgumentDataComputer extends CfeDataComputer<List<DartType>> {
     member.accept(
       new InferredTypeArgumentDataExtractor(
         testResultData.compilerResult,
+        memberBuilder.dataForTesting!.inferenceData.externalToInternalNodeMap,
         memberBuilder.dataForTesting!.inferenceData.typeInferenceResult,
         actualMap,
       ),
@@ -66,10 +67,12 @@ class InferredTypeArgumentDataComputer extends CfeDataComputer<List<DartType>> {
 
 class InferredTypeArgumentDataExtractor
     extends CfeDataExtractor<List<DartType>> {
+  final Map<Node, Node> externalToInternalNodeMap;
   final TypeInferenceResultForTesting typeInferenceResult;
 
   InferredTypeArgumentDataExtractor(
     InternalCompilerResult compilerResult,
+    this.externalToInternalNodeMap,
     this.typeInferenceResult,
     Map<Id, ActualData<List<DartType>>> actualMap,
   ) : super(compilerResult, actualMap);
@@ -80,7 +83,8 @@ class InferredTypeArgumentDataExtractor
         node is ListLiteral ||
         node is SetLiteral ||
         node is MapLiteral) {
-      return typeInferenceResult.inferredTypeArguments[node];
+      return typeInferenceResult
+          .inferredTypeArguments[externalToInternalNodeMap[node] ?? node];
     }
     return null;
   }

@@ -35,7 +35,7 @@ class SC4<A extends self::SC4::B% = dynamic, B extends core::List<self::SC4::A%>
 static method main() → dynamic {}
 
 
-library;
+library /*!conditionalImportSupported*/;
 import self as self;
 import "dart:core" as core;
 import "file:pkg/vm/testcases/transformations/mixin_deduplication/generic_recursive_bounds.dart" as #lib;

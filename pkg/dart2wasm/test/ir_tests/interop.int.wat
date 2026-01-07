@@ -4,14 +4,10 @@
   (type $BoxedInt (sub final $#Top (struct
     (field $field0 i32)
     (field $value i64))))
-  (func $"dart2wasm._274 (import)" (import "dart2wasm" "_274") (param externref) (result externref))
-  (func $"dart2wasm._275 (import)" (import "dart2wasm" "_275") (param externref) (result externref))
-  (global $"intValue initialized" (mut i32) <...>)
+  (func $"dart2wasm._295 (import)" (import "dart2wasm" "_295") (param externref) (result externref))
+  (func $"dart2wasm._296 (import)" (import "dart2wasm" "_296") (param externref) (result externref))
   (global $"intValueNullable initialized" (mut i32) <...>)
-  (global $"ktrue initialized" (mut i32) <...>)
-  (global $intValue (mut i64) <...>)
   (global $intValueNullable (mut (ref null $BoxedInt)) <...>)
-  (global $ktrue (mut i32) <...>)
   (func $_throwArgumentNullError <noInline>  <...>)
   (func $intValue implicit getter (result i64) <...>)
   (func $ktrue implicit getter (result i32) <...>)
@@ -21,7 +17,7 @@
     (local $var0 externref)
     i64.const 1
     call $jsifyInt
-    call $"dart2wasm._274 (import)"
+    call $"dart2wasm._295 (import)"
     local.tee $var0
     call $isDartNull
     if (result i64)
@@ -36,13 +32,13 @@
   (func $"testIntConstantNullable <noInline>"
     (local $var0 externref)
     ref.null noextern
-    call $"dart2wasm._275 (import)"
+    call $"dart2wasm._296 (import)"
     local.tee $var0
     call $isDartNull
     if (result (ref null $BoxedInt))
       ref.null none
     else
-      i32.const 65
+      i32.const 68
       local.get $var0
       call $dartifyInt
       struct.new $BoxedInt
@@ -51,14 +47,9 @@
   )
   (func $"testIntValue <noInline>"
     (local $var0 externref)
-    global.get $"intValue initialized"
-    if (result i64)
-      global.get $intValue
-    else
-      call $"intValue implicit getter"
-    end
+    call $"intValue implicit getter"
     call $jsifyInt
-    call $"dart2wasm._274 (import)"
+    call $"dart2wasm._295 (import)"
     local.tee $var0
     call $isDartNull
     if (result i64)
@@ -76,20 +67,10 @@
     global.get $"intValueNullable initialized"
     i32.eqz
     if
-      global.get $"ktrue initialized"
-      if (result i32)
-        global.get $ktrue
-      else
-        call $"ktrue implicit getter"
-      end
+      call $"ktrue implicit getter"
       if (result (ref null $BoxedInt))
-        i32.const 65
-        global.get $"intValue initialized"
-        if (result i64)
-          global.get $intValue
-        else
-          call $"intValue implicit getter"
-        end
+        i32.const 68
+        call $"intValue implicit getter"
         struct.new $BoxedInt
       else
         ref.null none
@@ -107,13 +88,13 @@
       local.get $var0
       call $jsifyRaw
     end
-    call $"dart2wasm._275 (import)"
+    call $"dart2wasm._296 (import)"
     local.tee $var1
     call $isDartNull
     if (result (ref null $BoxedInt))
       ref.null none
     else
-      i32.const 65
+      i32.const 68
       local.get $var1
       call $dartifyInt
       struct.new $BoxedInt

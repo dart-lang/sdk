@@ -6,6 +6,8 @@ import 'dart:convert' show jsonEncode;
 
 import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
+import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
+    show Importability;
 import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
@@ -204,7 +206,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     LibraryBuilder? nameOrigin,
     IndexedLibrary? indexedLibrary,
     bool? referenceIsPartOwner,
-    required bool isUnsupported,
+    required bool conditionalImportSupported,
     required bool isAugmentation,
     required bool isPatch,
     required NameSpace importNameSpace,
@@ -238,7 +240,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       libraryName: libraryName,
       nameOrigin: nameOrigin,
       indexedLibrary: indexedLibrary,
-      isUnsupported: isUnsupported,
+      conditionalImportSupported: conditionalImportSupported,
       isAugmentation: isAugmentation,
       isPatch: isPatch,
     );
@@ -260,7 +262,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     required this.libraryName,
     required LibraryBuilder? nameOrigin,
     required IndexedLibrary? indexedLibrary,
-    required bool isUnsupported,
+    required bool conditionalImportSupported,
     required bool isAugmentation,
     required bool isPatch,
   }) : _packageUri = packageUri,
@@ -342,7 +344,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool get isPatchLibrary => compilationUnit.forPatchLibrary;
 
   @override
-  bool get isUnsupported => compilationUnit.isUnsupported;
+  bool get conditionalImportSupported =>
+      compilationUnit.conditionalImportSupported;
+
+  @override
+  Importability get importability => compilationUnit.importability;
 
   /// Returns the state of the experimental features within this library.
   LibraryFeatures get libraryFeatures => compilationUnit.libraryFeatures;
@@ -572,7 +578,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     state = SourceLibraryBuilderState.outlineNodesBuilt;
 
     library.isSynthetic = isSynthetic;
-    library.isUnsupported = isUnsupported;
+    library.conditionalImportSupported = conditionalImportSupported;
+    library.importability = importability;
     addDependencies(library, new Set<SourceCompilationUnit>());
 
     library.name = compilationUnit.libraryDirective?.name;
@@ -1485,7 +1492,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             typeEnvironment: typeEnvironment,
             fileUri: pendingBoundsCheck.fileUri,
             fileOffset: pendingBoundsCheck.charOffset,
-            inferred: pendingBoundsCheck.inferred,
+            hasInferredTypeArguments: pendingBoundsCheck.inferred,
             allowSuperBounded: true,
           );
           break;
@@ -1503,7 +1510,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             typeEnvironment: typeEnvironment,
             fileUri: pendingBoundsCheck.fileUri,
             fileOffset: pendingBoundsCheck.charOffset,
-            inferred: pendingBoundsCheck.inferred,
+            hasInferredTypeArguments: pendingBoundsCheck.inferred,
             allowSuperBounded: false,
           );
           break;
@@ -1516,7 +1523,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             typeEnvironment: typeEnvironment,
             fileUri: pendingBoundsCheck.fileUri,
             fileOffset: pendingBoundsCheck.charOffset,
-            inferred: pendingBoundsCheck.inferred,
+            hasInferredTypeArguments: pendingBoundsCheck.inferred,
             allowSuperBounded: true,
           );
           break;

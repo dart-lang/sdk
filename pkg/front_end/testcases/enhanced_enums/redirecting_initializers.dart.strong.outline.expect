@@ -32,8 +32,8 @@ class E2 extends core::_Enum /*isEnum*/  {
   const constructor •(core::int #index, core::String #name, core::int foo) → self::E2
     : self::E2::foo = foo, super core::_Enum::•(#index, #name)
     ;
-  const erroneous constructor named(core::int #index, core::String #name, core::int value) → self::E2
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/enhanced_enums/redirecting_initializers.dart:22:35: Error: Too many positional arguments: 3 allowed, but 4 found.
+  const constructor named(core::int #index, core::String #name, core::int value) → self::E2
+    : invalid-initializer "pkg/front_end/testcases/enhanced_enums/redirecting_initializers.dart:22:35: Error: Too many positional arguments: 3 allowed, but 4 found.
 Try removing the extra positional arguments.
   const E2.named(int value) : this(value, value); // Error.
                                   ^"

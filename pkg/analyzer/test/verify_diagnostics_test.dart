@@ -7,6 +7,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:analyzer_utilities/analyzer_messages.dart';
+import 'package:analyzer_utilities/lint_messages.dart';
 import 'package:analyzer_utilities/messages.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -32,6 +33,28 @@ class DocumentationValidator {
   /// ony include docs that cannot be verified because of missing support in the
   /// verifier.
   static const List<String> unverifiedDocs = [
+    //
+    // The following can't currently be verified because the examples aren't
+    // Dart code.
+    //
+    'included_file_parse_error',
+    'parse_error',
+    'analysis_option_deprecated',
+    'deprecated_lint',
+    'duplicate_rule',
+    'included_file_warning',
+    'include_file_not_found',
+    'incompatible_lint',
+    'invalid_option',
+    'invalid_section_format',
+    'plugins_in_inner_options',
+    'recursive_include_file',
+    'removed_lint',
+    'undefined_lint',
+    'unrecognized_error_code',
+    'unsupported_option_with_legal_value',
+    'unsupported_value',
+
     // Needs to be able to specify two expected diagnostics.
     'ambiguous_import',
     // Produces two diagnostics when it should only produce one.
@@ -353,7 +376,7 @@ class DocumentationValidator {
       );
       if (docs != null) {
         codeName = (message.sharedName ?? message.analyzerCode).snakeCaseName;
-        variableName = message.analyzerCode.lowerSnakeCaseName;
+        variableName = message.analyzerCode.snakeCaseName;
         if (unverifiedDocs.contains(variableName)) {
           continue;
         }
@@ -421,7 +444,7 @@ class DocumentationValidator {
         _reportProblem('Expected one error but found none ($section $index).');
       } else if (errorCount == 1) {
         Diagnostic diagnostic = diagnostics[0];
-        if (diagnostic.diagnosticCode.name != codeName) {
+        if (diagnostic.diagnosticCode.lowerCaseName != codeName) {
           _reportProblem(
             'Expected an error with code $codeName, '
             'found ${diagnostic.diagnosticCode} ($section $index).',
@@ -468,7 +491,7 @@ class VerifyDiagnosticsTest {
     var nameToCodeMap = <String, List<DiagnosticCode>>{};
     var nameToPublishedMap = <String, bool>{};
     for (var code in diagnosticCodeValues) {
-      var name = code.name;
+      var name = code.lowerCaseName;
       nameToCodeMap.putIfAbsent(name, () => []).add(code);
       nameToPublishedMap[name] =
           (nameToPublishedMap[name] ?? false) || code.hasPublishedDocs;
@@ -492,7 +515,7 @@ class VerifyDiagnosticsTest {
       );
       for (var code in unpublished) {
         buffer.writeln();
-        buffer.write('- ${code.runtimeType}.${code.uniqueName}');
+        buffer.write('- ${code.runtimeType}.${code.lowerCaseUniqueName}');
       }
       fail(buffer.toString());
     }

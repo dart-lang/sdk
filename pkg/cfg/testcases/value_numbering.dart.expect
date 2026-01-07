@@ -1,0 +1,92 @@
+--- test1
+B0 = EntryBlock() dominates:(B11, B10)
+  Constant(1)
+  v8 = Constant(0)
+  v21 = Constant(-1)
+  v1 = Parameter(data)
+  v2 = Parameter(i)
+  v22 = BinaryIntOp +(v2, v21)
+  v7 = InterfaceCall List.[](v1, v22)
+  v9 = Comparison int >(v7, v8)
+  Branch(v9, true: B10, false: B11)
+B10 = TargetBlock() idom:B0
+  v18 = InterfaceCall List.[](v1, v22)
+  Return(v18)
+B11 = TargetBlock() idom:B0
+  Return(v8)
+
+--- test2
+B0 = EntryBlock() dominates:(B5, B7, B4)
+  v23 = Constant(0)
+  v28 = Constant(null)
+  v1 = Parameter(obj)
+  v3 = TypeTest(v1, String)
+  Branch(v3, true: B4, false: B5)
+B4 = TargetBlock() idom:B0 dominates:(B17, B19, B16)
+  v10 = TypeCast(v1, String, unchecked)
+  v11 = InterfaceCall getter String.length(v10)
+  DirectCall print(v11)
+  v15 = InterfaceCall getter String.isNotEmpty(v10)
+  Branch(v15, true: B16, false: B17)
+B16 = TargetBlock() idom:B4
+  v24 = InterfaceCall String.codeUnitAt(v10, v23)
+  DirectCall print(v24)
+  Goto(B19)
+B17 = TargetBlock() idom:B4
+  Goto(B19)
+B19 = JoinBlock(B17, B16) idom:B4
+  Goto(B7)
+B5 = TargetBlock() idom:B0
+  Goto(B7)
+B7 = JoinBlock(B5, B19) idom:B0
+  Return(v28)
+
+--- test3
+B0 = EntryBlock() dominates:(B7, B23, B29, B6)
+  v11 = Constant(5)
+  v18 = Constant(10)
+  v27 = Constant("case 1")
+  v45 = Constant("case 2")
+  v49 = Constant(null)
+  v1 = Parameter(value)
+  v5 = TypeTest(v1, int)
+  Branch(v5, true: B6, false: B7)
+B6 = TargetBlock() idom:B0 dominates:(B14, B13)
+  v10 = TypeCast(v1, int, unchecked)
+  v12 = Comparison int >(v10, v11)
+  Branch(v12, true: B13, false: B14)
+B13 = TargetBlock() idom:B6 dominates:(B21, B20)
+  v19 = Comparison int <(v10, v18)
+  Branch(v19, true: B20, false: B21)
+B20 = TargetBlock() idom:B13
+  DirectCall print(v27)
+  Goto(B29)
+B21 = TargetBlock() idom:B13
+  Goto(B23)
+B14 = TargetBlock() idom:B6
+  Goto(B23)
+B7 = TargetBlock() idom:B0
+  Goto(B23)
+B23 = JoinBlock(B7, B14, B21) idom:B0 dominates:(B34, B42, B33)
+  Branch(v5, true: B33, false: B34)
+B33 = TargetBlock() idom:B23 dominates:(B40, B39)
+  v37 = TypeCast(v1, int, unchecked)
+  v38 = Comparison int >(v37, v11)
+  Branch(v38, true: B39, false: B40)
+B39 = TargetBlock() idom:B33
+  DirectCall print(v45)
+  Goto(B42)
+B40 = TargetBlock() idom:B33
+  Goto(B42)
+B34 = TargetBlock() idom:B23
+  Goto(B42)
+B42 = JoinBlock(B34, B40, B39) idom:B23
+  Goto(B29)
+B29 = JoinBlock(B42, B20) idom:B0
+  Return(v49)
+
+--- main
+B0 = EntryBlock()
+  v1 = Constant(null)
+  Return(v1)
+

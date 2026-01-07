@@ -66,10 +66,10 @@ class DartSnippetRequest {
     required this.offset,
     required this.file,
   }) : analysisSession = unit.analysisSession,
-       typeProvider = unit.unitElement.element.typeProvider,
+       typeProvider = unit.libraryFragment.element.typeProvider,
        content = unit.content,
        compilationUnit = unit.parsedUnit,
-       libraryElement = unit.unitElement.element,
+       libraryElement = unit.libraryFragment.element,
        filePath = unit.path {
     var target = CompletionTarget.forOffset(unit.parsedUnit, offset);
     context = _getContext(target);
@@ -118,11 +118,19 @@ class DartSnippetRequest {
       }
 
       if (node is VariableDeclaration) {
-        return SnippetContext.inExpression;
+        return node.isConst
+            ? SnippetContext.inConstantExpression
+            : SnippetContext.inExpression;
       }
 
       if (node is VariableDeclarationList) {
         return SnippetContext.inIdentifierDeclaration;
+      }
+
+      if (node is DotShorthandInvocation ||
+          node is DotShorthandConstructorInvocation ||
+          node is DotShorthandPropertyAccess) {
+        return SnippetContext.inDotShorthand;
       }
 
       if (node is PropertyAccess ||
@@ -150,7 +158,9 @@ class DartSnippetRequest {
       }
 
       if (node is Expression) {
-        return SnippetContext.inExpression;
+        return node.inConstantContext
+            ? SnippetContext.inConstantExpression
+            : SnippetContext.inExpression;
       }
 
       if (node is Annotation) {
@@ -163,9 +173,19 @@ class DartSnippetRequest {
 
       if (node is ClassDeclaration ||
           node is ExtensionDeclaration ||
-          node is MixinDeclaration ||
-          node is EnumDeclaration) {
+          node is MixinDeclaration) {
         return SnippetContext.inClass;
+      }
+
+      if (node is EnumConstantArguments) {
+        return SnippetContext.inConstantExpression;
+      }
+
+      if (node is EnumDeclaration) {
+        var semicolon = node.body.semicolon;
+        return semicolon == null || target.offset <= semicolon.offset
+            ? SnippetContext.inEnumConstants
+            : SnippetContext.inEnumMembers;
       }
 
       node = node.parent;

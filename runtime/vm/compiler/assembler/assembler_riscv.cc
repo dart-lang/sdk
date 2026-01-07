@@ -466,11 +466,11 @@ void MicroAssembler::srai(Register rd, Register rs1, intptr_t shamt) {
 void MicroAssembler::add(Register rd, Register rs1, Register rs2) {
   ASSERT(Supports(RV_I));
   if (Supports(RV_C)) {
-    if (rd == rs1) {
+    if ((rd == rs1) && (rs2 != ZR)) {
       c_add(rd, rs1, rs2);
       return;
     }
-    if (rd == rs2) {
+    if ((rd == rs2) && (rs1 != ZR)) {
       c_add(rd, rs2, rs1);
       return;
     }
@@ -2172,6 +2172,24 @@ void MicroAssembler::sd(Register rs2, Address addr, std::memory_order order) {
 }
 #endif
 
+void MicroAssembler::amocasb(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zacas | RV_Zabha));
+  EmitRType(AMOCAS, order, rs2, addr.base(), WIDTH8, rd, AMO);
+}
+
+void MicroAssembler::amocash(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zacas | RV_Zabha));
+  EmitRType(AMOCAS, order, rs2, addr.base(), WIDTH16, rd, AMO);
+}
+
 void MicroAssembler::amocasw(Register rd,
                              Register rs2,
                              Address addr,
@@ -2208,6 +2226,16 @@ void MicroAssembler::amocasq(Register rd,
   EmitRType(AMOCAS, order, rs2, addr.base(), WIDTH128, rd, AMO);
 }
 #endif
+
+void MicroAssembler::wrsnto() {
+  ASSERT(Supports(RV_Zawrs));
+  EmitIType(WRS_NTO, ZR, PRIV, ZR, SYSTEM);
+}
+
+void MicroAssembler::wrssto() {
+  ASSERT(Supports(RV_Zawrs));
+  EmitIType(WRS_STO, ZR, PRIV, ZR, SYSTEM);
+}
 
 void MicroAssembler::c_lwsp(Register rd, Address addr) {
   ASSERT(rd != ZR);
@@ -2426,7 +2454,6 @@ void MicroAssembler::c_mv(Register rd, Register rs2) {
 
 void MicroAssembler::c_add(Register rd, Register rs1, Register rs2) {
   ASSERT(Supports(RV_C));
-  ASSERT(rd != ZR);
   ASSERT(rd == rs1);
   ASSERT(rs2 != ZR);
   Emit16(C_ADD | EncodeCRd(rd) | EncodeCRs2(rs2));
@@ -3720,26 +3747,23 @@ void Assembler::SetIf(Condition condition, Register rd) {
     }
   } else if (deferred_compare_ == kTestImm) {
     uintx_t uimm = deferred_imm_;
-    if (deferred_imm_ == 1) {
-      switch (condition) {
-        case ZERO:
-          andi(rd, deferred_left_, 1);
-          xori(rd, rd, 1);
-          break;
-        case NOT_ZERO:
-          andi(rd, deferred_left_, 1);
-          break;
-        default:
-          UNREACHABLE();
+    if (Utils::IsPowerOfTwo(uimm)) {
+      int shamt = Utils::ShiftForPowerOfTwo(uimm);
+      if (shamt == 0) {
+        andi(rd, deferred_left_, 1);
+      } else if (shamt == XLEN - 1) {
+        sltz(rd, deferred_left_);
+      } else if (Supports(RV_Zbs)) {
+        bexti(rd, deferred_left_, shamt);
+      } else {
+        srli(rd, deferred_left_, shamt);
+        andi(rd, rd, 1);
       }
-    } else if (Supports(RV_Zbs) && Utils::IsPowerOfTwo(uimm)) {
       switch (condition) {
         case ZERO:
-          bexti(rd, deferred_left_, Utils::ShiftForPowerOfTwo(uimm));
           xori(rd, rd, 1);
           break;
         case NOT_ZERO:
-          bexti(rd, deferred_left_, Utils::ShiftForPowerOfTwo(uimm));
           break;
         default:
           UNREACHABLE();
@@ -3765,6 +3789,171 @@ void Assembler::SetIf(Condition condition, Register rd) {
         break;
       case NOT_ZERO:
         snez(rd, rd);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    UNREACHABLE();
+  }
+
+  deferred_compare_ = kNone;  // Consumed.
+}
+
+void Assembler::ZeroIf(Condition condition, Register rd, Register otherwise) {
+  ASSERT(deferred_compare_ != kNone);
+  ASSERT(rd != otherwise);
+
+  if (deferred_compare_ == kCompareImm) {
+    if (deferred_imm_ == 0) {
+      deferred_compare_ = kCompareReg;
+      deferred_reg_ = ZR;
+      ZeroIf(condition, rd, otherwise);
+      return;
+    }
+    if (!IsITypeImm(deferred_imm_) || !IsITypeImm(deferred_imm_ + 1)) {
+      LoadImmediate(TMP2, deferred_imm_);
+      deferred_compare_ = kCompareReg;
+      deferred_reg_ = TMP2;
+      ZeroIf(condition, rd, otherwise);
+      return;
+    }
+    Register left = deferred_left_;
+    intx_t right = deferred_imm_;
+    switch (condition) {
+      case EQUAL:
+        subi(rd, left, right);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case NOT_EQUAL:
+        subi(rd, left, right);
+        czeronez(rd, otherwise, rd);
+        break;
+      case LESS:
+        slti(rd, left, right);
+        czeronez(rd, otherwise, rd);
+        break;
+      case LESS_EQUAL:
+        slti(rd, left, right + 1);
+        czeronez(rd, otherwise, rd);
+        break;
+      case GREATER_EQUAL:
+        slti(rd, left, right);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case GREATER:
+        slti(rd, left, right + 1);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case UNSIGNED_LESS:
+        sltiu(rd, left, right);
+        czeronez(rd, otherwise, rd);
+        break;
+      case UNSIGNED_LESS_EQUAL:
+        sltiu(rd, left, right + 1);
+        czeronez(rd, otherwise, rd);
+        break;
+      case UNSIGNED_GREATER_EQUAL:
+        sltiu(rd, left, right);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case UNSIGNED_GREATER:
+        sltiu(rd, left, right + 1);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else if (deferred_compare_ == kCompareReg) {
+    Register left = deferred_left_;
+    Register right = deferred_reg_;
+    switch (condition) {
+      case EQUAL:
+        if (right == ZR) {
+          czeroeqz(rd, otherwise, left);
+        } else {
+          xor_(rd, left, right);
+          czeroeqz(rd, otherwise, rd);
+        }
+        break;
+      case NOT_EQUAL:
+        if (right == ZR) {
+          czeronez(rd, otherwise, left);
+        } else {
+          xor_(rd, left, right);
+          czeronez(rd, otherwise, rd);
+        }
+        break;
+      case LESS:
+        slt(rd, left, right);
+        czeronez(rd, otherwise, rd);
+        break;
+      case LESS_EQUAL:
+        slt(rd, right, left);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case GREATER_EQUAL:
+        slt(rd, left, right);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case GREATER:
+        slt(rd, right, left);
+        czeronez(rd, otherwise, rd);
+        break;
+      case UNSIGNED_LESS:
+        sltu(rd, left, right);
+        czeronez(rd, otherwise, rd);
+        break;
+      case UNSIGNED_LESS_EQUAL:
+        sltu(rd, right, left);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case UNSIGNED_GREATER_EQUAL:
+        sltu(rd, left, right);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case UNSIGNED_GREATER:
+        sltu(rd, right, left);
+        czeronez(rd, otherwise, rd);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else if (deferred_compare_ == kTestImm) {
+    uintx_t uimm = deferred_imm_;
+    if (IsITypeImm(deferred_imm_)) {
+      andi(rd, deferred_left_, deferred_imm_);
+    } else if (Utils::IsPowerOfTwo(uimm)) {
+      int shamt = Utils::ShiftForPowerOfTwo(uimm);
+      if (shamt == XLEN - 1) {
+        sltz(rd, deferred_left_);
+      } else if (Supports(RV_Zbs)) {
+        bexti(rd, deferred_left_, shamt);
+      } else {
+        srli(rd, deferred_left_, shamt);
+        andi(rd, rd, 1);
+      }
+    } else {
+      AndImmediate(rd, deferred_left_, deferred_imm_);
+    }
+    switch (condition) {
+      case ZERO:
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case NOT_ZERO:
+        czeronez(rd, otherwise, rd);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else if (deferred_compare_ == kTestReg) {
+    and_(rd, deferred_left_, deferred_reg_);
+    switch (condition) {
+      case ZERO:
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case NOT_ZERO:
+        czeronez(rd, otherwise, rd);
         break;
       default:
         UNREACHABLE();
@@ -4403,6 +4592,11 @@ void Assembler::LoadIsolateGroup(Register dst) {
 void Assembler::LoadImmediate(Register reg, intx_t imm) {
 #if XLEN > 32
   if (!Utils::IsInt(32, imm)) {
+    if (Supports(RV_Zbs) && Utils::IsPowerOfTwo(imm)) {
+      bseti(reg, ZR, Utils::ShiftForPowerOfTwo(imm));
+      return;
+    }
+
     int shift = Utils::CountTrailingZeros64(imm);
     if (IsITypeImm(imm >> shift)) {
       li(reg, imm >> shift);
@@ -4462,6 +4656,22 @@ void Assembler::LoadSImmediate(FRegister reg, float imms) {
           return;
         }
       }
+      uint32_t nimm = imm ^ 0x80000000;
+      for (intptr_t i = 0; i < 32; i++) {
+        if (kFlisConstants[i] == nimm) {
+          flis(reg, i);
+          fnegs(reg, reg);
+          return;
+        }
+      }
+    }
+
+    int32_t immi = imms;
+    if (IsITypeImm(immi) &&
+        imm == bit_cast<uint32_t, float>(static_cast<float>(immi))) {
+      li(TMP2, immi);
+      fcvtsw(reg, TMP2);  // static_cast int32_t -> float
+      return;
     }
 
     ASSERT(constant_pool_allowed());
@@ -4487,6 +4697,22 @@ void Assembler::LoadDImmediate(FRegister reg, double immd) {
           return;
         }
       }
+      uint64_t nimm = imm ^ 0x8000000000000000;
+      for (intptr_t i = 0; i < 32; i++) {
+        if (kFlidConstants[i] == nimm) {
+          flid(reg, i);
+          fnegd(reg, reg);
+          return;
+        }
+      }
+    }
+
+    int32_t immi = immd;
+    if (IsITypeImm(immi) &&
+        imm == bit_cast<uint64_t, double>(static_cast<double>(immi))) {
+      li(TMP2, immi);
+      fcvtdw(reg, TMP2);  // static_cast int32_t -> double
+      return;
     }
 
     ASSERT(constant_pool_allowed());
@@ -4547,8 +4773,8 @@ void Assembler::CompareObject(Register reg, const Object& object) {
   } else if (target::IsSmi(object)) {
     CompareImmediate(reg, target::ToRawSmi(object), kObjectBytes);
   } else {
-    LoadObject(TMP, object);
-    CompareObjectRegisters(reg, TMP);
+    LoadObject(TMP2, object);
+    CompareObjectRegisters(reg, TMP2);
   }
 }
 
@@ -4753,12 +4979,12 @@ void Assembler::EnterFullSafepoint(Register state) {
 
   addi(addr, THR, target::Thread::safepoint_state_offset());
   Bind(&retry);
-  lr(state, Address(addr, 0));
+  lrx(state, Address(addr, 0));
   subi(state, state, target::Thread::native_safepoint_state_unacquired());
   bnez(state, &slow_path, Assembler::kNearJump);
 
   li(state, target::Thread::native_safepoint_state_acquired());
-  sc(state, state, Address(addr, 0));
+  scx(state, state, Address(addr, 0));
   beqz(state, &done, Assembler::kNearJump);  // 0 means sc was successful.
 
   if (!FLAG_use_slow_path && !FLAG_target_thread_sanitizer) {
@@ -4788,12 +5014,12 @@ void Assembler::ExitFullSafepoint(Register state) {
 
   addi(addr, THR, target::Thread::safepoint_state_offset());
   Bind(&retry);
-  lr(state, Address(addr, 0));
+  lrx(state, Address(addr, 0));
   subi(state, state, target::Thread::native_safepoint_state_acquired());
   bnez(state, &slow_path, Assembler::kNearJump);
 
   li(state, target::Thread::native_safepoint_state_unacquired());
-  sc(state, state, Address(addr, 0));
+  scx(state, state, Address(addr, 0));
   beqz(state, &done, Assembler::kNearJump);  // 0 means sc was successful.
 
   if (!FLAG_use_slow_path && !FLAG_target_thread_sanitizer) {

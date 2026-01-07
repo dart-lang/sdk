@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -313,6 +314,120 @@ void f() {
 }
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_getter_generic() async {
+    await resolveTestCode('''
+class A {}
+
+T? g<T>(A a) => a.field;
+''');
+    await assertHasFix('''
+class A {
+  Object? field;
+}
+
+T? g<T>(A a) => a.field;
+''');
+  }
+
+  Future<void> test_getter_generic_bound() async {
+    await resolveTestCode('''
+class A {}
+
+T? g<T extends int>(A a) => a.field;
+''');
+    await assertHasFix('''
+class A {
+  int? field;
+}
+
+T? g<T extends int>(A a) => a.field;
+''');
+  }
+
+  Future<void> test_getter_generic_class() async {
+    await resolveTestCode('''
+class A<T> {}
+
+O? g<O>(A<O> a) => a.field;
+''');
+    await assertHasFix('''
+class A<T> {
+  T? field;
+}
+
+O? g<O>(A<O> a) => a.field;
+''');
+  }
+
+  Future<void> test_getter_generic_class_unqualified() async {
+    await resolveTestCode('''
+class A<T> {
+  T? m() => field;
+}
+''');
+    await assertHasFix('''
+class A<T> {
+  T? field;
+
+  T? m() => field;
+}
+''');
+  }
+
+  Future<void> test_getter_generic_lint() async {
+    createAnalysisOptionsFile(lints: [LintNames.always_specify_types]);
+    await resolveTestCode('''
+class A {}
+
+T? g<T extends dynamic>(A a) => a.field;
+''');
+    await assertHasFix('''
+class A {
+  dynamic field;
+}
+
+T? g<T extends dynamic>(A a) => a.field;
+''');
+  }
+
+  Future<void> test_getter_generic_noLint() async {
+    await resolveTestCode('''
+class A {}
+
+T? g<T extends dynamic>(A a) => a.field;
+''');
+    await assertHasFix('''
+class A {
+  var field;
+}
+
+T? g<T extends dynamic>(A a) => a.field;
+''');
+  }
+
+  Future<void> test_getter_generics_class_pattern() async {
+    await resolveTestCode('''
+class A<O> {}
+
+void foo<T extends A<O>, O>(T a) {
+  if (a case T(:O field)) {
+    print(field);
+  }
+}
+''');
+    await assertHasFix('''
+class A<O> {
+  O field;
+}
+
+void foo<T extends A<O>, O>(T a) {
+  if (a case T(:O field)) {
+    print(field);
+  }
+}
+''');
   }
 
   Future<void> test_getter_multiLevel() async {
@@ -972,6 +1087,52 @@ class A {
 
   static void f() {
     test = 5;
+  }
+}
+''');
+  }
+
+  Future<void> test_switchExpression_expression() async {
+    await resolveTestCode('''
+class A {
+  void f() {
+    int _ = switch (test) {
+      _ => 0,
+    };
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  Object? test;
+
+  void f() {
+    int _ = switch (test) {
+      _ => 0,
+    };
+  }
+}
+''');
+  }
+
+  Future<void> test_switchExpression_result() async {
+    await resolveTestCode('''
+class A {
+  void f(int value) {
+    int _ = switch (value) {
+      _ => test,
+    };
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int test;
+
+  void f(int value) {
+    int _ = switch (value) {
+      _ => test,
+    };
   }
 }
 ''');

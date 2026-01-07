@@ -667,10 +667,6 @@ f({a, , b}) {}
       '''
 f({a, _s_, b}) {}
 ''',
-      expectedDiagnosticsInValidCode: [
-        // The synthesized identifier has a private name which isn't valid here.
-        diag.privateOptionalParameter,
-      ],
     );
   }
 

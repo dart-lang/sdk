@@ -5,17 +5,17 @@
 #include "platform/globals.h"  // NOLINT
 #if defined(DART_HOST_OS_WINDOWS) && !defined(DART_USE_ABSL)
 
-#include "vm/growable_array.h"
-#include "vm/lockers.h"
 #include "vm/os_thread.h"
 
-#include <process.h>  // NOLINT
+#include <process.h>
+#include <processthreadsapi.h>
 
 #include "platform/address_sanitizer.h"
 #include "platform/assert.h"
 #include "platform/safe_stack.h"
-
 #include "vm/flags.h"
+#include "vm/growable_array.h"
+#include "vm/lockers.h"
 
 namespace dart {
 
@@ -101,7 +101,10 @@ const ThreadJoinId OSThread::kInvalidThreadJoinId = nullptr;
 ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
   ThreadLocalKey key = TlsAlloc();
   if (key == kUnsetThreadLocalKey) {
-    FATAL("TlsAlloc failed %d", GetLastError());
+    int error = GetLastError();
+    char buffer[1024];
+    FATAL("TlsAlloc failed %d (%s)\n", error,
+          Utils::StrError(error, buffer, sizeof(buffer)));
   }
   ThreadLocalData::AddThreadLocal(key, destructor);
   return key;
@@ -111,7 +114,10 @@ void OSThread::DeleteThreadLocal(ThreadLocalKey key) {
   ASSERT(key != kUnsetThreadLocalKey);
   BOOL result = TlsFree(key);
   if (!result) {
-    FATAL("TlsFree failed %d", GetLastError());
+    int error = GetLastError();
+    char buffer[1024];
+    FATAL("TlsFree failed %d (%s)\n", error,
+          Utils::StrError(error, buffer, sizeof(buffer)));
   }
   ThreadLocalData::RemoveThreadLocal(key);
 }
@@ -172,29 +178,9 @@ ThreadId OSThread::ThreadIdFromIntPtr(intptr_t id) {
 }
 
 bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
-  // On Windows stack limits for the current thread are available in
-  // the thread information block (TIB).
-  NT_TIB* tib = reinterpret_cast<NT_TIB*>(NtCurrentTeb());
-  *upper = reinterpret_cast<uword>(tib->StackBase);
-  // Notice that we cannot use the TIB's StackLimit for the stack end, as it
-  // tracks the end of the committed range. We're after the end of the reserved
-  // stack area (most of which will be uncommitted, most times).
-  MEMORY_BASIC_INFORMATION stack_info;
-  memset(&stack_info, 0, sizeof(MEMORY_BASIC_INFORMATION));
-  size_t result_size =
-      VirtualQuery(&stack_info, &stack_info, sizeof(MEMORY_BASIC_INFORMATION));
-  ASSERT(result_size >= sizeof(MEMORY_BASIC_INFORMATION));
-  *lower = reinterpret_cast<uword>(stack_info.AllocationBase);
-  ASSERT(*upper > *lower);
-  // When the third last page of the reserved stack is accessed as a
-  // guard page, the second last page will be committed (along with removing
-  // the guard bit on the third last) _and_ a stack overflow exception
-  // is raised.
-  //
-  // http://blogs.msdn.com/b/satyem/archive/2012/08/13/thread-s-stack-memory-management.aspx
-  // explains the details.
-  ASSERT((*upper - *lower) >= (4u * 0x1000));
-  *lower += 4 * 0x1000;
+  // PULONG and uword are sometimes different fundamental types.
+  ::GetCurrentThreadStackLimits(reinterpret_cast<PULONG_PTR>(lower),
+                                reinterpret_cast<PULONG_PTR>(upper));
   return true;
 }
 
@@ -217,7 +203,10 @@ void OSThread::SetThreadLocal(ThreadLocalKey key, uword value) {
   ASSERT(key != kUnsetThreadLocalKey);
   BOOL result = TlsSetValue(key, reinterpret_cast<void*>(value));
   if (!result) {
-    FATAL("TlsSetValue failed %d", GetLastError());
+    int error = GetLastError();
+    char buffer[1024];
+    FATAL("TlsSetValue failed %d (%s)\n", error,
+          Utils::StrError(error, buffer, sizeof(buffer)));
   }
 }
 

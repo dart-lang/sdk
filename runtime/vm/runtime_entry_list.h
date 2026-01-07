@@ -67,7 +67,7 @@ namespace dart {
   V(InitInstanceField)                                                         \
   V(InitStaticField)                                                           \
   V(StaticFieldAccessedWithoutIsolateError)                                    \
-  V(ThrowIfValueCantBeShared)                                                  \
+  V(CheckedStoreIntoShared)                                                    \
   V(LateFieldAlreadyInitializedError)                                          \
   V(LateFieldAssignedDuringInitializationError)                                \
   V(LateFieldNotInitializedError)                                              \
@@ -88,7 +88,8 @@ namespace dart {
   V(InterpretedInstanceCallMissHandler)                                        \
   V(InvokeNoSuchMethod)                                                        \
   V(ResumeInterpreter)                                                         \
-  V(InitializeSharedField)
+  V(InitializeSharedField)                                                     \
+  V(FatalError)
 
 // Note: Leaf runtime function have C linkage, so they cannot pass C++ struct
 // values like ObjectPtr.
@@ -133,16 +134,16 @@ namespace dart {
   V(void, TsanAtomic32Store, void*, uint32_t, int)                             \
   V(uint64_t, TsanAtomic64Load, void*, int)                                    \
   V(void, TsanAtomic64Store, void*, uint64_t, int)                             \
-  V(void, TsanRead1, void*)                                                    \
-  V(void, TsanRead2, void*)                                                    \
-  V(void, TsanRead4, void*)                                                    \
-  V(void, TsanRead8, void*)                                                    \
-  V(void, TsanRead16, void*)                                                   \
-  V(void, TsanWrite1, void*)                                                   \
-  V(void, TsanWrite2, void*)                                                   \
-  V(void, TsanWrite4, void*)                                                   \
-  V(void, TsanWrite8, void*)                                                   \
-  V(void, TsanWrite16, void*)                                                  \
+  V(void, SanRead1, void*)                                                     \
+  V(void, SanRead2, void*)                                                     \
+  V(void, SanRead4, void*)                                                     \
+  V(void, SanRead8, void*)                                                     \
+  V(void, SanRead16, void*)                                                    \
+  V(void, SanWrite1, void*)                                                    \
+  V(void, SanWrite2, void*)                                                    \
+  V(void, SanWrite4, void*)                                                    \
+  V(void, SanWrite8, void*)                                                    \
+  V(void, SanWrite16, void*)                                                   \
   V(void, TsanFuncEntry, void*)                                                \
   V(void, TsanFuncExit)                                                        \
   V(bool, TryDoubleAsInteger, Thread*)                                         \

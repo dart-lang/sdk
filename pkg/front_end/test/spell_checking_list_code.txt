@@ -383,6 +383,7 @@ counted
 counters
 covariances
 coverage
+covering
 cp
 cpu
 cr
@@ -865,6 +866,7 @@ implementers
 impls
 imply
 implying
+importability
 importantly
 imprecise
 improperly
@@ -907,6 +909,7 @@ initializations
 initializer's
 injecting
 inlines
+insensitive
 insertion
 insists
 inspect
@@ -1751,6 +1754,7 @@ sortable
 sourcemap
 sourcemaps
 spaced
+spanned
 spans
 sparse
 spawn
@@ -1967,6 +1971,7 @@ tolerant
 tolerate
 tolerated
 tolerates
+tooling
 toplevel
 topmost
 topological

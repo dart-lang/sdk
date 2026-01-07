@@ -16,7 +16,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 import 'package:front_end/src/base/command_line_reporting.dart'
     as command_line_reporting;
 import 'package:front_end/src/builder/declaration_builders.dart'
-    show TypeDeclarationBuilder;
+    show TypeDeclarationBuilder, TypeAliasBuilder;
 import 'package:front_end/src/builder/type_builder.dart' show TypeBuilder;
 import 'package:front_end/src/codes/cfe_codes.dart' as cfe show codeUnspecified;
 import 'package:front_end/src/kernel/body_builder.dart' show BodyBuilderImpl;
@@ -246,13 +246,14 @@ mixin BodyBuilderTestMixin on BodyBuilderImpl {
     TypeDeclarationBuilder? type,
     Token nameToken,
     Token nameLastToken,
-    ArgumentsImpl arguments,
+    ActualArguments arguments,
     String name,
-    List<TypeBuilder>? typeArguments,
+    List<TypeBuilder>? typeArgumentBuilders,
+    TypeArguments? typeArguments,
     int charOffset,
     Constness constness, {
     bool isTypeArgumentsInForest = false,
-    TypeDeclarationBuilder? typeAliasBuilder,
+    TypeAliasBuilder? typeAliasBuilder,
     required UnresolvedKind unresolvedKind,
   }) {
     Token maybeNewOrConst = nameToken.previous!;
@@ -300,9 +301,11 @@ mixin BodyBuilderTestMixin on BodyBuilderImpl {
       nameLastToken,
       arguments,
       name,
+      typeArgumentBuilders,
       typeArguments,
       charOffset,
       constness,
+      typeAliasBuilder: typeAliasBuilder,
       isTypeArgumentsInForest: isTypeArgumentsInForest,
       unresolvedKind: unresolvedKind,
     );

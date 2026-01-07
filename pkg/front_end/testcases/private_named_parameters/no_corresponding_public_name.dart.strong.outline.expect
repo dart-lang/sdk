@@ -1,4 +1,23 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/private_named_parameters/no_corresponding_public_name.dart:11:26: Error: A private named parameter must have a corresponding public name.
+//   C.onlyUnderscore({this._}); // Error
+//                          ^
+//
+// pkg/front_end/testcases/private_named_parameters/no_corresponding_public_name.dart:12:24: Error: A private named parameter must have a corresponding public name.
+//   C.stillPrivate({this.__extraPrivate}); // Error
+//                        ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/private_named_parameters/no_corresponding_public_name.dart:13:25: Error: A private named parameter must have a corresponding public name.
+//   C.notIdentifier({this._123}); // Error
+//                         ^^^^
+//
+// pkg/front_end/testcases/private_named_parameters/no_corresponding_public_name.dart:14:24: Error: A private named parameter must have a corresponding public name.
+//   C.reservedWord({this._for}); // Error
+//                        ^^^^
+//
 import self as self;
 import "dart:core" as core;
 

@@ -121,7 +121,7 @@ class CallHierarchyItem {
   static SourceRange _codeRangeForElement(Element element) {
     // For synthetic items (like implicit constructors), use the nonSynthetic
     // element for the location.
-    element = _nonSynthetic(element);
+    element = element.nonSynthetic;
     var fragment = element.firstFragment as FragmentImpl;
 
     // Non-synthetic elements should always have code locations.
@@ -134,7 +134,7 @@ class CallHierarchyItem {
   static SourceRange _nameRangeForElement(Element element) {
     // For synthetic items (like implicit constructors), use the nonSynthetic
     // element for the location.
-    element = _nonSynthetic(element);
+    element = element.nonSynthetic;
     var fragment = element.firstFragment as FragmentImpl;
 
     var nameOffset = fragment.nameOffset;
@@ -153,14 +153,6 @@ class CallHierarchyItem {
     }
 
     return SourceRange(0, 0);
-  }
-
-  static Element _nonSynthetic(Element element) {
-    element = element.nonSynthetic;
-    if (element.isSynthetic) {
-      element = element.enclosingElement ?? element;
-    }
-    return element;
   }
 }
 

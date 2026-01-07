@@ -102,7 +102,7 @@ void verifySharingOfStructsAndUnions() {
       myArray = switharrays.a;
     },
     (e) {
-      return e.toString().contains("Attempt to place");
+      return e.toString().contains("Only trivially-immutable values");
     },
   );
 }

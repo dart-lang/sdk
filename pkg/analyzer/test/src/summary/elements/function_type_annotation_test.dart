@@ -123,10 +123,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f (nameOffset:30) (firstTokenOffset:0) (offset:30)
+        #F1 isOriginDeclaration f (nameOffset:30) (firstTokenOffset:0) (offset:30)
           element: <testLibrary>::@function::f
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       returnType: int Function(int, String)
@@ -144,7 +144,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isOriginDeclaration f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
             #F2 requiredPositional p (nameOffset:37) (firstTokenOffset:7) (offset:37)
@@ -153,7 +153,7 @@ library
                 #F3 requiredPositional c (nameOffset:43) (firstTokenOffset:39) (offset:43)
                   element: c@43
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
@@ -209,7 +209,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 m (nameOffset:42) (firstTokenOffset:12) (offset:42)
+            #F3 isOriginDeclaration m (nameOffset:42) (firstTokenOffset:12) (offset:42)
               element: <testLibrary>::@class::C::@method::m
   classes
     class C
@@ -220,7 +220,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
       methods
-        m
+        isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F3
           returnType: int Function(int, String)
@@ -238,13 +238,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isOriginDeclaration f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
             #F2 requiredPositional p (nameOffset:37) (firstTokenOffset:7) (offset:37)
               element: <testLibrary>::@function::f::@formalParameter::p
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters

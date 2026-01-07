@@ -26,9 +26,10 @@ include: analysis_options.yaml
           9,
           21,
           text:
-              "The include file 'analysis_options.yaml' "
-              "in '${convertPath('/analysis_options.yaml')}' includes itself "
-              'recursively.',
+              "The URI 'analysis_options.yaml' included in "
+              "'${convertPath('/analysis_options.yaml')}' includes "
+              "'${convertPath('/analysis_options.yaml')}', "
+              "creating a circular reference.",
         ),
       ],
     );
@@ -46,9 +47,10 @@ include:
           13,
           21,
           text:
-              "The include file 'analysis_options.yaml' "
-              "in '${convertPath('/analysis_options.yaml')}' includes itself "
-              'recursively.',
+              "The URI 'analysis_options.yaml' included in "
+              "'${convertPath('/analysis_options.yaml')}' includes "
+              "'${convertPath('/analysis_options.yaml')}', "
+              "creating a circular reference.",
         ),
       ],
     );
@@ -83,8 +85,10 @@ include: a.yaml
           9,
           6,
           text:
-              "The include file 'analysis_options.yaml' "
-              "in '${convertPath('/b.yaml')}' includes itself recursively.",
+              "The URI 'analysis_options.yaml' included in "
+              "'${convertPath('/b.yaml')}' includes "
+              "'${convertPath('/b.yaml')}', "
+              "creating a circular reference.",
         ),
       ],
     );
@@ -133,8 +137,10 @@ include:
           28,
           6,
           text:
-              "The include file 'analysis_options.yaml' "
-              "in '${convertPath('/b.yaml')}' includes itself recursively.",
+              "The URI 'analysis_options.yaml' included in "
+              "'${convertPath('/b.yaml')}' includes "
+              "'${convertPath('/b.yaml')}', "
+              "creating a circular reference.",
         ),
       ],
     );
@@ -161,8 +167,10 @@ include: a.yaml
           9,
           6,
           text:
-              "The include file 'analysis_options.yaml' "
-              "in '${convertPath('/b.yaml')}' includes itself recursively.",
+              "The URI 'analysis_options.yaml' included in "
+              "'${convertPath('/b.yaml')}' includes "
+              "'${convertPath('/b.yaml')}', "
+              "creating a circular reference.",
         ),
       ],
     );

@@ -111,15 +111,6 @@ class EnumElementDeclaration
   UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
-  Initializer buildErroneousInitializer(
-    Expression effect,
-    Expression value, {
-    required int fileOffset,
-  }) {
-    throw new UnsupportedError("${runtimeType}.buildErroneousInitializer");
-  }
-
-  @override
   void buildFieldOutlineExpressions({
     required ClassHierarchy classHierarchy,
     required SourceLibraryBuilder libraryBuilder,
@@ -334,16 +325,17 @@ class EnumElementDeclaration
       new IntLiteral(elementIndex),
       new StringLiteral(constant),
     ];
-    List<DartType>? typeArguments;
+    TypeArguments? typeArguments;
     List<TypeBuilder>? typeArgumentBuilders =
         _fragment.constructorReferenceBuilder?.typeArguments;
     if (typeArgumentBuilders != null) {
-      typeArguments = <DartType>[];
+      List<DartType> types = [];
       for (TypeBuilder typeBuilder in typeArgumentBuilders) {
-        typeArguments.add(
+        types.add(
           typeBuilder.build(libraryBuilder, TypeUse.constructorTypeArgument),
         );
       }
+      typeArguments = new TypeArguments(types);
     }
     if (result != null && result.isInvalidLookup) {
       assert(
@@ -368,7 +360,10 @@ class EnumElementDeclaration
             extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
             scope: _fragment.enclosingScope,
             token: token,
-            enumSyntheticArguments: enumSyntheticArguments,
+            enumSyntheticArguments: [
+              new PositionalArgument(enumSyntheticArguments[0]),
+              new PositionalArgument(enumSyntheticArguments[1]),
+            ],
             enumTypeParameterCount: sourceEnumBuilder.typeParametersCount,
             typeArguments: typeArguments,
             constructorBuilder: constructorBuilder,

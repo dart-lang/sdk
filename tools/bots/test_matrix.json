@@ -3571,7 +3571,7 @@
     "ASAN_OPTIONS": "abort_on_error=1:halt_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0",
     "LSAN_OPTIONS": "abort_on_error=1:halt_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0",
     "MSAN_OPTIONS": "abort_on_error=1:halt_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0",
-    "TSAN_OPTIONS": "abort_on_error=1:halt_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0:report_thread_leaks=0",
+    "TSAN_OPTIONS": "abort_on_error=1:halt_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0",
     "UBSAN_OPTIONS": "abort_on_error=1:halt_on_error=1:symbolize=1:disable_coredump=0:handle_segv=0:print_stacktrace=1"
   },
   "sanitizer_symbolizer": {

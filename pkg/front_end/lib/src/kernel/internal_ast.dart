@@ -21,7 +21,6 @@ library;
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/names.dart';
 import 'package:kernel/src/printer.dart';
@@ -34,13 +33,7 @@ import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
 
 typedef SharedMatchContext =
-    shared.MatchContext<
-      TreeNode,
-      Expression,
-      Pattern,
-      SharedTypeView,
-      ExpressionVariable
-    >;
+    shared.MatchContext<TreeNode, Expression, Pattern, ExpressionVariable>;
 
 mixin InternalTreeNode implements TreeNode {
   @override
@@ -106,7 +99,7 @@ abstract class InternalStatement extends AuxiliaryStatement {
 }
 
 class ForInStatementWithSynthesizedVariable extends InternalStatement {
-  VariableDeclaration? variable;
+  ExpressionVariable? variable;
   Expression iterable;
   Expression? syntheticAssignment;
   Statement? expressionEffects;
@@ -264,7 +257,7 @@ abstract class InternalExpression extends AuxiliaryExpression {
 
 // Coverage-ignore(suite): Not run.
 /// Common base class for internal initializers.
-abstract class InternalInitializer extends AuxiliaryInitializer {
+sealed class InternalInitializer extends AuxiliaryInitializer {
   @override
   void visitChildren(Visitor<dynamic> v) =>
       unsupported("${runtimeType}.visitChildren", -1, null);
@@ -280,53 +273,168 @@ abstract class InternalInitializer extends AuxiliaryInitializer {
   InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor);
 }
 
+// TODO(johnniwinther): Add offsets. Maybe add `isExplicit` property, since this
+// is currently used to pass converted/computed type arguments for type alias
+// constructor invocation.
+class TypeArguments {
+  final List<DartType> types;
+
+  TypeArguments(this.types);
+
+  // Coverage-ignore(suite): Not run.
+  void toText(AstPrinter printer) {
+    printer.writeTypeArguments(types);
+  }
+}
+
+sealed class Argument {
+  TreeNode get node;
+
+  abstract Expression expression;
+
+  bool get isSuperParameter => false;
+
+  void toTextInternal(AstPrinter printer);
+}
+
+class PositionalArgument extends Argument {
+  @override
+  Expression expression;
+
+  PositionalArgument(this.expression);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  TreeNode get node => expression;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    expression.toTextInternal(printer);
+  }
+
+  @override
+  String toString() => 'PositionalArgument($expression)';
+}
+
+class SuperPositionalArgument extends PositionalArgument {
+  SuperPositionalArgument(super.expression);
+
+  @override
+  bool get isSuperParameter => true;
+}
+
+class NamedArgument extends Argument {
+  NamedExpression namedExpression;
+
+  NamedArgument(this.namedExpression);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  TreeNode get node => namedExpression;
+
+  String get name => namedExpression.name;
+
+  @override
+  Expression get expression => namedExpression.value;
+
+  @override
+  void set expression(Expression value) {
+    namedExpression.value = value..parent = namedExpression;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    namedExpression.toTextInternal(printer);
+  }
+
+  @override
+  String toString() => 'NamedArgument($namedExpression)';
+}
+
+class SuperNamedArgument extends NamedArgument {
+  SuperNamedArgument(super.expression);
+
+  @override
+  bool get isSuperParameter => true;
+}
+
 /// Front end specific implementation of [Argument].
-class ArgumentsImpl extends Arguments {
-  bool _hasExplicitTypeArguments;
+class ActualArguments extends TreeNode with InternalTreeNode {
+  final List<Argument> argumentList;
 
-  List<Object?>? argumentsOriginalOrder;
+  bool _hasNamedBeforePositional;
+  int _positionalCount;
 
-  /// True if the arguments are passed to the super-constructor in a
-  /// super-initializer, and the positional parameters are super-initializer
-  /// parameters. It is true that either all of the positional parameters are
-  /// super-initializer parameters or none of them, so a simple boolean
-  /// accurately reflects the state.
-  bool positionalAreSuperParameters = false;
+  ActualArguments({
+    required this.argumentList,
+    required bool hasNamedBeforePositional,
+    required int positionalCount,
+  }) : _hasNamedBeforePositional = hasNamedBeforePositional,
+       _positionalCount = positionalCount;
 
-  /// Names of the named positional parameters. If none of the parameters are
-  /// super-positional, the field is null.
-  Set<String>? namedSuperParameterNames;
+  // Coverage-ignore(suite): Not run.
+  ActualArguments.empty()
+    : this.argumentList = [],
+      this._hasNamedBeforePositional = false,
+      this._positionalCount = 0;
 
-  ArgumentsImpl(
-    List<Expression> positional, {
-    List<NamedExpression>? named,
-    this.argumentsOriginalOrder,
-  }) : _hasExplicitTypeArguments = false,
-       super(positional, named: named);
+  int get positionalCount => _positionalCount;
 
-  ArgumentsImpl.empty() : _hasExplicitTypeArguments = false, super.empty();
+  int get namedCount => argumentList.length - positionalCount;
 
-  List<DartType>? get explicitTypeArguments =>
-      _hasExplicitTypeArguments ? types : null;
+  bool get hasNamedBeforePositional => _hasNamedBeforePositional;
 
-  void setExplicitTypeArguments(List<DartType> types) {
-    assert(this.types.isEmpty);
-    assert(!_hasExplicitTypeArguments);
-    this.types.clear();
-    this.types.addAll(types);
-    _hasExplicitTypeArguments = types.isNotEmpty;
+  void prependArguments(List<Argument> list, {required int positionalCount}) {
+    assert(list.whereType<PositionalArgument>().length == positionalCount);
+    argumentList.insertAll(0, list);
+    if (!_hasNamedBeforePositional &&
+        _positionalCount > 0 &&
+        positionalCount < list.length) {
+      _hasNamedBeforePositional = true;
+    }
+    _positionalCount += positionalCount;
   }
 
-  void resetExplicitTypeArguments() {
-    types.clear();
-    _hasExplicitTypeArguments = false;
+  Arguments toArguments(
+    List<DartType> typeArguments,
+    List<Expression> positionalArguments,
+    List<NamedExpression> namedArguments,
+  ) {
+    return new Arguments(
+      positionalArguments,
+      types: typeArguments,
+      named: namedArguments,
+    )..fileOffset = fileOffset;
   }
 
-  bool get hasExplicitTypeArguments => _hasExplicitTypeArguments;
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('(');
+    for (int index = 0; index < argumentList.length; index++) {
+      if (index > 0) {
+        printer.write(', ');
+      }
+      argumentList[index].toTextInternal(printer);
+    }
+    printer.write(')');
+  }
 
   @override
   String toString() {
     return "ArgumentsImpl(${toStringInternal()})";
+  }
+
+  @override
+  R accept<R>(TreeVisitor<R> v) {
+    throw new UnimplementedError('${runtimeType}.accept');
+  }
+
+  @override
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
+    throw new UnimplementedError('${runtimeType}.accept1');
   }
 }
 
@@ -385,7 +493,7 @@ class Cascade extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
-    printer.writeVariableDeclaration(variable);
+    printer.writeVariableInitialization(variable);
     printer.write(' in cascade {');
     printer.incIndentation();
     for (Expression expression in expressions) {
@@ -431,7 +539,7 @@ class DeferredCheck extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
-    printer.writeVariableDeclaration(variable);
+    printer.writeVariableInitialization(variable);
     printer.write(' in ');
     printer.writeExpression(expression);
   }
@@ -452,13 +560,15 @@ abstract class ExpressionJudgment extends AuxiliaryExpression {
 class FactoryConstructorInvocation extends InternalExpression {
   bool hasBeenInferred = false;
   final Procedure target;
-  ArgumentsImpl arguments;
+  final TypeArguments? typeArguments;
+  ActualArguments arguments;
 
   /// If `true`, this invocation is constant, either explicit or inferred.
   final bool isConst;
 
   FactoryConstructorInvocation(
     this.target,
+    this.typeArguments,
     this.arguments, {
     required this.isConst,
   }) {
@@ -487,12 +597,12 @@ class FactoryConstructorInvocation extends InternalExpression {
       printer.write('new ');
     }
     printer.writeClassName(target.enclosingClass?.reference);
-    printer.writeTypeArguments(arguments.types);
+    typeArguments?.toText(printer);
     if (target.name.text.isNotEmpty) {
       printer.write('.');
       printer.write(target.name.text);
     }
-    printer.writeArguments(arguments, includeTypeArguments: false);
+    arguments.toTextInternal(printer);
   }
 }
 
@@ -501,12 +611,14 @@ class TypeAliasedConstructorInvocation extends InternalExpression {
   bool hasBeenInferred = false;
   final TypeAliasBuilder typeAliasBuilder;
   final Constructor target;
-  ArgumentsImpl arguments;
+  final TypeArguments? typeArguments;
+  ActualArguments arguments;
   final bool isConst;
 
   TypeAliasedConstructorInvocation(
     this.typeAliasBuilder,
     this.target,
+    this.typeArguments,
     this.arguments, {
     this.isConst = false,
   }) {
@@ -535,12 +647,12 @@ class TypeAliasedConstructorInvocation extends InternalExpression {
       printer.write('new ');
     }
     printer.writeTypedefName(typeAliasBuilder.typedef.reference);
-    printer.writeTypeArguments(arguments.types);
+    typeArguments?.toText(printer);
     if (target.name.text.isNotEmpty) {
       printer.write('.');
       printer.write(target.name.text);
     }
-    printer.writeArguments(arguments, includeTypeArguments: false);
+    arguments.toTextInternal(printer);
   }
 }
 
@@ -549,7 +661,8 @@ class TypeAliasedFactoryInvocation extends InternalExpression {
   bool hasBeenInferred = false;
   final TypeAliasBuilder typeAliasBuilder;
   final Procedure target;
-  ArgumentsImpl arguments;
+  final TypeArguments? typeArguments;
+  ActualArguments arguments;
 
   /// If `true`, this invocation is constant, either explicit or inferred.
   final bool isConst;
@@ -557,6 +670,7 @@ class TypeAliasedFactoryInvocation extends InternalExpression {
   TypeAliasedFactoryInvocation(
     this.typeAliasBuilder,
     this.target,
+    this.typeArguments,
     this.arguments, {
     required this.isConst,
   }) {
@@ -585,12 +699,12 @@ class TypeAliasedFactoryInvocation extends InternalExpression {
       printer.write('new ');
     }
     printer.writeTypedefName(typeAliasBuilder.typedef.reference);
-    printer.writeTypeArguments(arguments.types);
+    typeArguments?.toText(printer);
     if (target.name.text.isNotEmpty) {
       printer.write('.');
       printer.write(target.name.text);
     }
-    printer.writeArguments(arguments, includeTypeArguments: false);
+    arguments.toTextInternal(printer);
   }
 }
 
@@ -652,14 +766,6 @@ class IfNullExpression extends InternalExpression {
       minimumPrecedence: Precedence.CONDITIONAL + 1,
     );
   }
-}
-
-/// Common base class for shadow objects representing initializers in kernel
-/// form.
-abstract class InitializerJudgment implements AuxiliaryInitializer {
-  /// Performs type inference for whatever concrete type of
-  /// [InitializerJudgment] this is.
-  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor);
 }
 
 /// Concrete shadow object representing an integer literal in kernel form.
@@ -756,49 +862,12 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
   }
 }
 
-/// Concrete shadow object representing an invalid initializer in kernel form.
-class ShadowInvalidInitializer extends LocalInitializer
-    implements InitializerJudgment {
-  ShadowInvalidInitializer(VariableDeclaration variable) : super(variable);
-
-  @override
-  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitShadowInvalidInitializer(this);
-  }
-
-  @override
-  String toString() {
-    return "ShadowInvalidInitializer(${toStringInternal()})";
-  }
-}
-
-/// Concrete shadow object representing an invalid initializer in kernel form.
-class ShadowInvalidFieldInitializer extends LocalInitializer
-    implements InitializerJudgment {
-  DartType fieldType;
-  Expression value;
-
-  ShadowInvalidFieldInitializer(this.fieldType, this.value, Expression effect)
-    : super(new VariableDeclaration.forValue(effect)) {
-    value.parent = this;
-  }
-
-  @override
-  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitShadowInvalidFieldInitializer(this);
-  }
-
-  @override
-  String toString() {
-    return "ShadowInvalidFieldInitializer(${toStringInternal()})";
-  }
-}
-
 class ExpressionInvocation extends InternalExpression {
   Expression expression;
-  ArgumentsImpl arguments;
+  final TypeArguments? typeArguments;
+  ActualArguments arguments;
 
-  ExpressionInvocation(this.expression, this.arguments) {
+  ExpressionInvocation(this.expression, this.typeArguments, this.arguments) {
     expression.parent = this;
     arguments.parent = this;
   }
@@ -820,7 +889,8 @@ class ExpressionInvocation extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(expression);
-    printer.writeArguments(arguments);
+    typeArguments?.toText(printer);
+    arguments.toTextInternal(printer);
   }
 }
 
@@ -934,7 +1004,7 @@ class VariableDeclarationImpl extends VariableStatement
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeVariableDeclaration(
+    printer.writeVariableInitialization(
       this,
       isLate: isLate || lateGetter != null,
       type: lateType ?? type,
@@ -948,8 +1018,7 @@ class VariableDeclarationImpl extends VariableStatement
   }
 }
 
-// Coverage-ignore(suite): Not run.
-class InternalLocalVariable
+class InternalLocalVariable extends TreeNode
     with InternalExpressionVariableMixin, DelegatingVariableMixin
     implements LocalVariable, InternalExpressionVariable {
   @override
@@ -970,12 +1039,30 @@ class InternalLocalVariable
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
   });
+
+  @override
+  String toString() {
+    return "InternalLocalVariable(${toStringInternal()})";
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpressionVariable(astVariable);
+    List<String> modifiers = [
+      if (forSyntheticToken) "forSyntheticToken",
+      if (isImplicitlyTyped) "isImplicitlyTyped",
+      if (isLocalFunction) "isLocalFunction",
+    ];
+    if (modifiers.isNotEmpty) {
+      printer.write("[${modifiers.join(",")}]");
+    }
+  }
 }
 
 mixin DelegatingVariableMixin on InternalExpressionVariableMixin
     implements InternalExpressionVariable {
   @override
-  // Coverage-ignore(suite): Not run.
   String? get cosmeticName => astVariable.cosmeticName;
 
   @override
@@ -1005,7 +1092,6 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isConst => astVariable.isConst;
 
   @override
@@ -1047,7 +1133,6 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isFinal => astVariable.isFinal;
 
   @override
@@ -1077,11 +1162,9 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isLate => astVariable.isLate;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void set isLate(bool value) {
     astVariable.isLate = value;
   }
@@ -1127,7 +1210,6 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isWildcard => astVariable.isWildcard;
 
   @override
@@ -1137,7 +1219,6 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   DartType get type => astVariable.type;
 
   @override
@@ -1152,41 +1233,87 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
       astVariable.variableInitialization;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void set variableInitialization(VariableInitialization? value) {
     astVariable.variableInitialization = value;
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isAssignable => astVariable.isAssignable;
 
   @override
-  int get fileOffset {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsFinal => astVariable.hasIsFinal;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsConst => astVariable.hasIsConst;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsLate => astVariable.hasIsLate;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsInitializingFormal => astVariable.hasIsInitializingFormal;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsSynthesized => astVariable.hasIsSynthesized;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsHoisted => astVariable.hasIsHoisted;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasHasDeclaredInitializer => astVariable.hasHasDeclaredInitializer;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsCovariantByClass => astVariable.hasIsCovariantByClass;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsRequired => astVariable.hasIsRequired;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsCovariantByDeclaration =>
+      astVariable.hasIsCovariantByDeclaration;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsLowered => astVariable.hasIsLowered;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsWildcard => astVariable.hasIsWildcard;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsSuperInitializingFormal =>
+      astVariable.hasIsSuperInitializingFormal;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasIsErroneouslyInitialized =>
+      astVariable.hasIsErroneouslyInitialized;
+
+  @override
+  int get fileOffset => astVariable.fileOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   void set fileOffset(int value) {
-    throw new UnsupportedError("${this.runtimeType}");
+    astVariable.fileOffset = value;
   }
 
-  int get flags {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
+  // Coverage-ignore(suite): Not run.
+  int get flags => astVariable.flags;
 
+  // Coverage-ignore(suite): Not run.
   void set flags(int value) {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  TreeNode? get parent {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  void set parent(TreeNode? value) {
-    throw new UnsupportedError("${this.runtimeType}");
+    astVariable.flags = value;
   }
 
   @override
@@ -1238,13 +1365,15 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   String toStringInternal() {
-    throw new UnsupportedError("${this.runtimeType}");
+    return super.toStringInternal();
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   String toText(AstTextStrategy strategy) {
-    throw new UnsupportedError("${this.runtimeType}");
+    return super.toText(strategy);
   }
 
   @override
@@ -1332,7 +1461,8 @@ abstract interface class InternalExpressionVariable
   abstract String? lateName;
 }
 
-mixin InternalExpressionVariableMixin implements InternalExpressionVariable {
+mixin InternalExpressionVariableMixin on TreeNode
+    implements InternalExpressionVariable {
   @override
   bool get forSyntheticToken;
 
@@ -1361,13 +1491,12 @@ mixin InternalExpressionVariableMixin implements InternalExpressionVariable {
   String? lateName;
 
   @override
-  // Coverage-ignore(suite): Not run.
   ExpressionVariable get asExpressionVariable => this as ExpressionVariable;
 }
 
 /// Front end specific implementation of [LoadLibrary].
 class LoadLibraryImpl extends LoadLibrary {
-  final ArgumentsImpl? arguments;
+  final ActualArguments? arguments;
 
   LoadLibraryImpl(LibraryDependency import, this.arguments) : super(import);
 
@@ -1382,7 +1511,7 @@ class LoadLibraryImpl extends LoadLibrary {
     printer.write(import.name!);
     printer.write('.loadLibrary');
     if (arguments != null) {
-      printer.writeArguments(arguments!);
+      arguments!.toTextInternal(printer);
     } else {
       printer.write('()');
     }
@@ -2693,7 +2822,7 @@ class ExtensionIndexGet extends InternalExpression {
 
   /// The explicit type arguments for the type parameters declared in
   /// [extension].
-  final List<DartType>? explicitTypeArguments;
+  final TypeArguments? explicitTypeArguments;
 
   /// The receiver of the extension access.
   Expression receiver;
@@ -2721,7 +2850,8 @@ class ExtensionIndexGet extends InternalExpression {
     required this.extensionTypeArgumentOffset,
   }) : assert(
          explicitTypeArguments == null ||
-             explicitTypeArguments.length == extension.typeParameters.length,
+             explicitTypeArguments.types.length ==
+                 extension.typeParameters.length,
        ) {
     receiver.parent = this;
     index.parent = this;
@@ -2745,7 +2875,7 @@ class ExtensionIndexGet extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.write(extension.name);
     if (explicitTypeArguments != null) {
-      printer.writeTypeArguments(explicitTypeArguments!);
+      printer.writeTypeArguments(explicitTypeArguments!.types);
     }
     printer.write('(');
     printer.writeExpression(receiver);
@@ -2781,7 +2911,7 @@ class ExtensionIndexSet extends InternalExpression {
 
   /// The explicit type arguments for the type parameters declared in
   /// [extension].
-  final List<DartType>? explicitTypeArguments;
+  final TypeArguments? explicitTypeArguments;
 
   /// The receiver of the extension access.
   Expression receiver;
@@ -2817,7 +2947,8 @@ class ExtensionIndexSet extends InternalExpression {
     required this.extensionTypeArgumentOffset,
   }) : assert(
          explicitTypeArguments == null ||
-             explicitTypeArguments.length == extension.typeParameters.length,
+             explicitTypeArguments.types.length ==
+                 extension.typeParameters.length,
        ) {
     receiver.parent = this;
     index.parent = this;
@@ -2842,7 +2973,7 @@ class ExtensionIndexSet extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.write(extension.name);
     if (explicitTypeArguments != null) {
-      printer.writeTypeArguments(explicitTypeArguments!);
+      printer.writeTypeArguments(explicitTypeArguments!.types);
     }
     printer.write('(');
     printer.writeExpression(receiver);
@@ -3374,7 +3505,7 @@ class ExtensionCompoundIndexSet extends InternalExpression {
 
   /// The explicit type arguments for the type parameters declared in
   /// [extension], if provided.
-  final List<DartType>? explicitTypeArguments;
+  final TypeArguments? explicitTypeArguments;
 
   /// The receiver used for the read/write operations.
   Expression receiver;
@@ -3434,7 +3565,8 @@ class ExtensionCompoundIndexSet extends InternalExpression {
     required this.extensionTypeArgumentOffset,
   }) : assert(
          explicitTypeArguments == null ||
-             explicitTypeArguments.length == extension.typeParameters.length,
+             explicitTypeArguments.types.length ==
+                 extension.typeParameters.length,
        ) {
     receiver.parent = this;
     index.parent = this;
@@ -3455,7 +3587,7 @@ class ExtensionCompoundIndexSet extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.write(extension.name);
     if (explicitTypeArguments != null) {
-      printer.writeTypeArguments(explicitTypeArguments!);
+      printer.writeTypeArguments(explicitTypeArguments!.types);
     }
     printer.write('(');
     printer.writeExpression(receiver);
@@ -3798,8 +3930,11 @@ class ExtensionMethodInvocation extends InternalExpression {
   /// The extension method called for the assignment.
   Procedure method;
 
+  /// The type arguments provided to the method, if any.
+  final TypeArguments? typeArguments;
+
   /// The arguments provided to the method.
-  ArgumentsImpl arguments;
+  ActualArguments arguments;
 
   /// `true` if the extension access is explicit, i.e. `E(o).a()` and
   /// not implicit like `a()` inside the extension `E`.
@@ -3818,12 +3953,14 @@ class ExtensionMethodInvocation extends InternalExpression {
     required Expression thisAccess,
     required Name name,
     required Procedure target,
-    required ArgumentsImpl arguments,
+    required TypeArguments? typeArguments,
+    required ActualArguments arguments,
   }) : this._(
          extension,
          thisAccess,
          name,
          target,
+         typeArguments,
          arguments,
          isExplicit: false,
          knownTypeArguments: thisTypeArguments,
@@ -3836,7 +3973,8 @@ class ExtensionMethodInvocation extends InternalExpression {
     required Expression receiver,
     required Name name,
     required Procedure target,
-    required ArgumentsImpl arguments,
+    required TypeArguments? typeArguments,
+    required ActualArguments arguments,
     required List<DartType>? explicitTypeArguments,
     required int? extensionTypeArgumentOffset,
     required bool isNullAware,
@@ -3845,6 +3983,7 @@ class ExtensionMethodInvocation extends InternalExpression {
          receiver,
          name,
          target,
+         typeArguments,
          arguments,
          isExplicit: true,
          knownTypeArguments: explicitTypeArguments,
@@ -3857,6 +3996,7 @@ class ExtensionMethodInvocation extends InternalExpression {
     this.receiver,
     this.name,
     this.method,
+    this.typeArguments,
     this.arguments, {
     required this.knownTypeArguments,
     required bool isExplicit,
@@ -3899,7 +4039,8 @@ class ExtensionMethodInvocation extends InternalExpression {
     }
     printer.write('.');
     printer.writeName(name);
-    printer.writeArguments(arguments);
+    typeArguments?.toText(printer);
+    arguments.toTextInternal(printer);
   }
 
   @override
@@ -3936,8 +4077,11 @@ class ExtensionGetterInvocation extends InternalExpression {
   /// The extension getter called for the assignment.
   Procedure getter;
 
+  /// The type arguments provided to the getter, if any.
+  final TypeArguments? typeArguments;
+
   /// The arguments provided to the getter.
-  ArgumentsImpl arguments;
+  ActualArguments arguments;
 
   /// `true` if the extension access is explicit, i.e. `E(o).a()` and
   /// not implicit like `a()` inside the extension `E`.
@@ -3956,12 +4100,14 @@ class ExtensionGetterInvocation extends InternalExpression {
     required Expression thisAccess,
     required Name name,
     required Procedure target,
-    required ArgumentsImpl arguments,
+    required TypeArguments? typeArguments,
+    required ActualArguments arguments,
   }) : this._(
          extension,
          thisAccess,
          name,
          target,
+         typeArguments,
          arguments,
          isExplicit: false,
          knownTypeArguments: thisTypeArguments,
@@ -3974,7 +4120,8 @@ class ExtensionGetterInvocation extends InternalExpression {
     required Expression receiver,
     required Name name,
     required Procedure target,
-    required ArgumentsImpl arguments,
+    required TypeArguments? typeArguments,
+    required ActualArguments arguments,
     required List<DartType>? explicitTypeArguments,
     required int? extensionTypeArgumentOffset,
     required bool isNullAware,
@@ -3983,6 +4130,7 @@ class ExtensionGetterInvocation extends InternalExpression {
          receiver,
          name,
          target,
+         typeArguments,
          arguments,
          isExplicit: true,
          knownTypeArguments: explicitTypeArguments,
@@ -3995,6 +4143,7 @@ class ExtensionGetterInvocation extends InternalExpression {
     this.receiver,
     this.name,
     this.getter,
+    this.typeArguments,
     this.arguments, {
     required this.knownTypeArguments,
     required bool isExplicit,
@@ -4037,7 +4186,8 @@ class ExtensionGetterInvocation extends InternalExpression {
     }
     printer.write('.');
     printer.writeName(name);
-    printer.writeArguments(arguments);
+    typeArguments?.toText(printer);
+    arguments.toTextInternal(printer);
   }
 
   @override
@@ -4364,8 +4514,11 @@ class MethodInvocation extends InternalExpression {
   /// The name of the invoked method or property.
   Name name;
 
+  /// The type arguments applied at the invocation, if any.
+  final TypeArguments? typeArguments;
+
   /// The arguments applied at the invocation.
-  ArgumentsImpl arguments;
+  ActualArguments arguments;
 
   /// `true` if the access is null-aware, i.e. of the form `o?.a()`.
   final bool isNullAware;
@@ -4373,6 +4526,7 @@ class MethodInvocation extends InternalExpression {
   MethodInvocation(
     this.receiver,
     this.name,
+    this.typeArguments,
     this.arguments, {
     required this.isNullAware,
   }) {
@@ -4406,7 +4560,8 @@ class MethodInvocation extends InternalExpression {
     }
     printer.write('.');
     printer.writeName(name);
-    printer.writeArguments(arguments);
+    typeArguments?.toText(printer);
+    arguments.toTextInternal(printer);
   }
 }
 
@@ -4530,10 +4685,13 @@ class PropertySet extends InternalExpression {
 class AugmentSuperInvocation extends InternalExpression {
   final Member target;
 
-  ArgumentsImpl arguments;
+  final TypeArguments? typeArguments;
+
+  ActualArguments arguments;
 
   AugmentSuperInvocation(
     this.target,
+    this.typeArguments,
     this.arguments, {
     required int fileOffset,
   }) {
@@ -4560,7 +4718,8 @@ class AugmentSuperInvocation extends InternalExpression {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write('augment super');
-    printer.writeArguments(arguments);
+    typeArguments?.toText(printer);
+    arguments.toTextInternal(printer);
   }
 }
 
@@ -4718,10 +4877,19 @@ class ObjectPatternInternal extends ObjectPattern {
 
 class ExtensionTypeRedirectingInitializer extends InternalInitializer {
   Reference targetReference;
-  ArgumentsImpl arguments;
+  ActualArguments arguments;
 
-  ExtensionTypeRedirectingInitializer(Procedure target, ArgumentsImpl arguments)
-    : this.byReference(
+  /// Redirecting initializers are encoded as calls to top-level functions.
+  /// The type arguments for this call are inferred.
+  List<DartType> inferredTypeArguments = [];
+
+  List<Expression> positional = [];
+  List<NamedExpression> named = [];
+
+  ExtensionTypeRedirectingInitializer(
+    Procedure target,
+    ActualArguments arguments,
+  ) : this.byReference(
         // Getter vs setter doesn't matter for procedures.
         getNonNullableMemberReferenceGetter(target),
         arguments,
@@ -4755,7 +4923,7 @@ class ExtensionTypeRedirectingInitializer extends InternalInitializer {
       printer.write('.');
       printer.write(target.name.text);
     }
-    printer.writeArguments(arguments, includeTypeArguments: false);
+    arguments.toTextInternal(printer);
   }
 
   @override
@@ -4840,13 +5008,15 @@ class DotShorthand extends InternalExpression {
 class DotShorthandInvocation extends InternalExpression {
   final Name name;
   final int nameOffset;
-  final ArgumentsImpl arguments;
+  final TypeArguments? typeArguments;
+  final ActualArguments arguments;
 
   /// If `true`, this invocation is constant, either explicit or inferred.
   final bool isConst;
 
   DotShorthandInvocation(
     this.name,
+    this.typeArguments,
     this.arguments, {
     required this.nameOffset,
     required this.isConst,
@@ -4873,7 +5043,8 @@ class DotShorthandInvocation extends InternalExpression {
     }
     printer.write('.');
     printer.writeName(name);
-    printer.writeArguments(arguments);
+    typeArguments?.toText(printer);
+    arguments.toTextInternal(printer);
   }
 }
 
@@ -4920,11 +5091,13 @@ class DotShorthandPropertyGet extends InternalExpression {
 
 class InternalConstructorInvocation extends InternalExpression {
   final Constructor target;
-  final ArgumentsImpl arguments;
+  final TypeArguments? typeArguments;
+  final ActualArguments arguments;
   final bool isConst;
 
   InternalConstructorInvocation(
     this.target,
+    this.typeArguments,
     this.arguments, {
     required this.isConst,
   }) {
@@ -4948,12 +5121,12 @@ class InternalConstructorInvocation extends InternalExpression {
       printer.write('new ');
     }
     printer.writeClassName(target.enclosingClass.reference);
-    printer.writeTypeArguments(arguments.types);
+    typeArguments?.toText(printer);
     if (target.name.text.isNotEmpty) {
       printer.write('.');
       printer.write(target.name.text);
     }
-    arguments.toTextInternal(printer, includeTypeArguments: false);
+    arguments.toTextInternal(printer);
   }
 
   @override
@@ -4965,9 +5138,15 @@ class InternalConstructorInvocation extends InternalExpression {
 class InternalStaticInvocation extends InternalExpression {
   final Name name;
   final Procedure target;
-  final ArgumentsImpl arguments;
+  final TypeArguments? typeArguments;
+  final ActualArguments arguments;
 
-  InternalStaticInvocation(this.name, this.target, this.arguments) {
+  InternalStaticInvocation(
+    this.name,
+    this.target,
+    this.typeArguments,
+    this.arguments,
+  ) {
     arguments.parent = this;
   }
 
@@ -4983,6 +5162,7 @@ class InternalStaticInvocation extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeName(name);
+    typeArguments?.toText(printer);
     arguments.toTextInternal(printer);
   }
 
@@ -4995,9 +5175,15 @@ class InternalStaticInvocation extends InternalExpression {
 class InternalSuperMethodInvocation extends InternalExpression {
   final Name name;
   final Procedure target;
-  final ArgumentsImpl arguments;
+  final TypeArguments? typeArguments;
+  final ActualArguments arguments;
 
-  InternalSuperMethodInvocation(this.name, this.arguments, this.target) {
+  InternalSuperMethodInvocation(
+    this.name,
+    this.typeArguments,
+    this.arguments,
+    this.target,
+  ) {
     arguments.parent = this;
   }
 
@@ -5014,11 +5200,79 @@ class InternalSuperMethodInvocation extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.write('super.');
     printer.writeName(name);
+    typeArguments?.toText(printer);
     arguments.toTextInternal(printer);
   }
 
   @override
   String toString() {
     return "InternalSuperMethodInvocation(${toStringInternal()})";
+  }
+}
+
+class InternalRedirectingInitializer extends InternalInitializer {
+  final Constructor target;
+  ActualArguments arguments;
+
+  InternalRedirectingInitializer(this.target, this.arguments) {
+    arguments.parent = this;
+  }
+
+  @override
+  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitInternalRedirectingInitializer(this);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('this');
+    if (target.name.text.isNotEmpty) {
+      printer.write('.');
+      printer.write(target.name.text);
+    }
+    arguments.toTextInternal(printer);
+  }
+
+  @override
+  String toString() {
+    return "InternalRedirectingInitializer(${toStringInternal()})";
+  }
+}
+
+class InternalSuperInitializer extends InternalInitializer {
+  final Constructor target;
+  ActualArguments arguments;
+
+  @override
+  final bool isSynthetic;
+
+  InternalSuperInitializer(
+    this.target,
+    this.arguments, {
+    required this.isSynthetic,
+  }) {
+    arguments.parent = this;
+  }
+
+  @override
+  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitInternalSuperInitializer(this);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('super');
+    if (target.name.text.isNotEmpty) {
+      printer.write('.');
+      printer.write(target.name.text);
+    }
+    arguments.toTextInternal(printer);
+  }
+
+  @override
+  String toString() {
+    return "InternalSuperInitializer(${toStringInternal()})";
   }
 }

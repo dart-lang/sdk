@@ -798,6 +798,35 @@ class PrefixScopeLookupResult extends ScopeLookupResultImpl {
       (_deprecatedBits & setterIsFromDeprecatedExportBit) != 0;
 }
 
+/// The primary parameter scope.
+///
+/// It includes every primary formal parameter which is not declaring, not
+/// initializing, and not a super parameter.
+class PrimaryParameterScope extends EnclosedScope {
+  PrimaryParameterScope(super.parent, ConstructorElement element) {
+    assert(element.isPrimary);
+
+    var hasWildcardVariables = element.library.featureSet.isEnabled(
+      Feature.wildcard_variables,
+    );
+
+    for (var formalParameter in element.formalParameters) {
+      // Skip wildcards.
+      if (hasWildcardVariables && formalParameter.name == '_') {
+        continue;
+      }
+
+      // Note, declaring formal parameters are field formals.
+      if (formalParameter is FieldFormalParameterElement ||
+          formalParameter is SuperFormalParameterElement) {
+        continue;
+      }
+
+      _addGetter(formalParameter);
+    }
+  }
+}
+
 class ScopeLookupResultImpl extends ScopeLookupResult {
   @override
   final Element? getter;

@@ -68,6 +68,18 @@ class A {
     );
   }
 
+  test_class_primaryConstructor_fieldFormalParameter_initializer_initInDeclarationAndBody() async {
+    await assertErrorsInCode(
+      r'''
+class A(this.f) {
+  int f = 0;
+  this : f = 0;
+}
+''',
+      [error(diag.fieldInitializedInParameterAndInitializer, 40, 1)],
+    );
+  }
+
   test_enum_fieldFormalParameter_initializer() async {
     await assertErrorsInCode(
       r'''

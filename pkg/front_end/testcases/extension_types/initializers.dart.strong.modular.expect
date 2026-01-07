@@ -110,7 +110,7 @@ static extension-type-member synthetic method Class5|constructor#_#_#tearOff(cor
   return self::Class5|constructor#_(field);
 static extension-type-member method Class5|constructor#(core::int field) → self::Class5% /* erasure=core::int, declared=! */ {
   lowered final self::Class5% /* erasure=core::int, declared=! */ #this = field;
-  final dynamic #t1 = invalid-expression "pkg/front_end/testcases/extension_types/initializers.dart:20:35: Error: 'field' was already initialized by this constructor.
+  invalid-expression "pkg/front_end/testcases/extension_types/initializers.dart:20:35: Error: 'field' was already initialized by this constructor.
   Class5(this.field) : this.field = 42; // Error
                                   ^";
   return #this;

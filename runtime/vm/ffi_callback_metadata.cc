@@ -4,6 +4,7 @@
 
 #include "vm/ffi_callback_metadata.h"
 
+#include "vm/allocation.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/dart_api_state.h"
 #include "vm/flag_list.h"
@@ -351,63 +352,93 @@ PersistentHandle* FfiCallbackMetadata::CreatePersistentHandle(
   return handle;
 }
 
-static void ValidateTriviallyImmutabilityOfAnObject(Zone* zone,
-                                                    Object* p_obj,
-                                                    ObjectPtr object_ptr) {
-  *p_obj = object_ptr;
-  if (p_obj->IsSmi() || p_obj->IsNull()) {
-    return;
+class WorkSet : public StackResource {
+ public:
+  explicit WorkSet(Thread* thread, Zone* zone)
+      : StackResource(thread),
+        thread_(thread),
+        list_(GrowableObjectArray::Handle(zone)) {
+    ASSERT(thread->forward_table_new() == nullptr);
+    set_ = new WeakTable();
+    list_ = GrowableObjectArray::New(16);
+    list_pos_ = 0;
+    thread->set_forward_table_new(set_);
   }
-  if (p_obj->IsClosure()) {
-    FfiCallbackMetadata::EnsureOnlyTriviallyImmutableValuesInClosure(
-        zone, Closure::RawCast(p_obj->ptr()));
-    return;
-  }
-  if (p_obj->IsImmutable()) {
-    return;
-  }
-  if (IsTypedDataBaseClassId(p_obj->GetClassId())) {
-    return;
-  }
-  const String& error = String::Handle(
-      zone,
-      String::NewFormatted("Only trivially-immutable values are allowed: %s.",
-                           p_obj->ToCString()));
-  Exceptions::ThrowArgumentError(error);
-  UNREACHABLE();
-}
 
-void FfiCallbackMetadata::EnsureOnlyTriviallyImmutableValuesInClosure(
-    Zone* zone,
-    ClosurePtr closure_ptr) {
-  Closure& closure = Closure::Handle(zone, closure_ptr);
-  if (closure.IsNull()) {
-    return;
+  ~WorkSet() { thread_->set_forward_table_new(nullptr); }
+
+  void Add(const Object& object) {
+    if (!IsMarked(object.ptr())) {
+      Mark(object.ptr());
+      list_.Add(object);
+    }
   }
+
+  bool Take(Object* object) {
+    if (list_pos_ >= list_.Length()) {
+      return false;
+    }
+    *object = list_.At(list_pos_++);
+    return true;
+  }
+
+ private:
+  bool IsMarked(ObjectPtr object) {
+    return set_->GetValueExclusive(object) != 0;
+  }
+  void Mark(ObjectPtr object) { set_->SetValueExclusive(object, 1); }
+
+  Thread* thread_;
+  WeakTable* set_;
+  GrowableObjectArray& list_;
+  intptr_t list_pos_;
+};
+
+void FfiCallbackMetadata::EnsureTriviallyImmutable(Zone* zone,
+                                                   const Object& object) {
+  WorkSet workset(Thread::Current(), zone);
+  workset.Add(object);
+
+  Object& current = Object::Handle(zone);
+  Function& function = Function::Handle(zone);
   Object& obj = Object::Handle(zone);
-  const auto& function = Function::Handle(closure.function());
-  if (function.IsImplicitClosureFunction()) {
-    ValidateTriviallyImmutabilityOfAnObject(
-        zone, &obj, closure.GetImplicitClosureReceiver());
-  } else {
-    const Context& context = Context::Handle(zone, closure.GetContext());
-    if (context.IsNull()) {
-      return;
+  while (workset.Take(&current)) {
+    if (current.IsSmi() || current.IsNull() || current.IsCanonical()) {
+      continue;
     }
-    // Iterate through all elements of the context.
-    for (intptr_t i = 0; i < context.num_variables(); i++) {
-      ValidateTriviallyImmutabilityOfAnObject(zone, &obj, context.At(i));
+    if (current.IsClosure()) {
+      const Closure& closure = Closure::Cast(current);
+      function = closure.function();
+      if (!function.IsImplicitClosureFunction() &&
+          !function.captures_only_final_not_late_vars()) {
+        Exceptions::ThrowArgumentError(String::Handle(String::New(
+            "Only final not-late variables can be captured by isolate "
+            "group callbacks.")));
+        UNREACHABLE();
+      }
+      obj = closure.RawContext();
+      workset.Add(obj);
+      continue;
     }
-
-    if (!function.does_close_over_only_final_and_shared_vars()) {
-      const String& error = String::Handle(
-          zone,
-          String::New(
-              "Only final and 'vm:shared' variables can be captured by isolate "
-              "group callbacks."));
-      Exceptions::ThrowArgumentError(error);
-      UNREACHABLE();
+    if (current.IsImmutable()) {
+      continue;
     }
+    if (IsTypedDataBaseClassId(current.GetClassId())) {
+      continue;
+    }
+    if (current.IsContext()) {
+      const Context& context = Context::Cast(current);
+      // Iterate through all elements of the context.
+      for (intptr_t i = 0; i < context.num_variables(); i++) {
+        obj = context.At(i);
+        workset.Add(obj);
+      }
+      continue;
+    }
+    Exceptions::ThrowArgumentError(String::Handle(
+        String::NewFormatted("Only trivially-immutable values are allowed: %s.",
+                             current.ToCString())));
+    UNREACHABLE();
   }
 }
 
@@ -438,7 +469,7 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateLocalFfiCallback(
 
     if (function.GetFfiCallbackKind() ==
         FfiCallbackKind::kIsolateGroupBoundClosureCallback) {
-      EnsureOnlyTriviallyImmutableValuesInClosure(zone, closure.ptr());
+      EnsureTriviallyImmutable(zone, closure);
     }
 
     handle = CreatePersistentHandle(

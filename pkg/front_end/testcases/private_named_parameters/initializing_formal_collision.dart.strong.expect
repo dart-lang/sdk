@@ -101,7 +101,7 @@ import "dart:core" as core;
 class C1 extends core::Object {
   final field core::String? _foo;
   constructor •({required core::String? foo, required core::String? foo}) → self::C1
-    : self::C1::_foo = foo, final dynamic #t1 = invalid-expression "pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:8:41: Error: '_foo' was already initialized by this constructor.
+    : self::C1::_foo = foo, invalid-initializer "pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:8:41: Error: '_foo' was already initialized by this constructor.
   C1({required this._foo, required this._foo}) {}
                                         ^", super core::Object::•() {}
 }

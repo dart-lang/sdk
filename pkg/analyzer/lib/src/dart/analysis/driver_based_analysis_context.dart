@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
-import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show AnalysisDriver;
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptions;
@@ -16,7 +16,7 @@ class DriverBasedAnalysisContext implements AnalysisContext {
   final ResourceProvider resourceProvider;
 
   @override
-  final ContextRoot contextRoot;
+  final ContextRootImpl contextRoot;
 
   /// The driver on which this context is based.
   late final AnalysisDriver driver;

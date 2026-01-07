@@ -385,11 +385,10 @@ class InstanceMemberInferrer {
     }
   }
 
-  /// If the given [element] represents a non-synthetic instance method,
-  /// getter or setter, infer the return type and any parameter type(s) where
-  /// they were not provided.
+  /// If the given [element] represents an instance method, infer the return
+  /// type and any parameter type(s) where they were not provided.
   void _inferExecutable(MethodElementImpl element) {
-    if (element.isSynthetic || element.isStatic) {
+    if (!element.isOriginDeclaration || element.isStatic) {
       return;
     }
 

@@ -4,12 +4,14 @@
 
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -21,6 +23,7 @@ class UseIfNullToConvertNullsToBools extends AnalysisRule {
     : super(
         name: LintNames.use_if_null_to_convert_nulls_to_bools,
         description: _desc,
+        state: RuleState.deprecated(since: Version(3, 11, 0)),
       );
 
   @override

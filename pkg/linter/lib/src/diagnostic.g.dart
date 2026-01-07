@@ -1873,12 +1873,12 @@ const LinterLintWithoutArguments noopPrimitiveOperations =
 /// No parameters.
 const LinterLintWithoutArguments noRuntimetypeTostring =
     LinterLintWithoutArguments(
-      name: 'no_runtimeType_toString',
+      name: 'no_runtimetype_tostring',
       problemMessage:
           "Using 'toString' on a 'Type' is not safe in production code.",
       correctionMessage:
           "Try removing the usage of 'toString' or restructuring the code.",
-      uniqueName: 'no_runtimeType_toString',
+      uniqueName: 'no_runtimetype_tostring',
       expectedTypes: [],
     );
 
@@ -2350,11 +2350,11 @@ const LinterLintWithoutArguments preferForeach = LinterLintWithoutArguments(
 /// No parameters.
 const LinterLintWithoutArguments preferForElementsToMapFromiterable =
     LinterLintWithoutArguments(
-      name: 'prefer_for_elements_to_map_fromIterable',
+      name: 'prefer_for_elements_to_map_fromiterable',
       problemMessage: "Use 'for' elements when building maps from iterables.",
       correctionMessage: "Try using a collection literal with a 'for' element.",
       hasPublishedDocs: true,
-      uniqueName: 'prefer_for_elements_to_map_fromIterable',
+      uniqueName: 'prefer_for_elements_to_map_fromiterable',
       expectedTypes: [],
     );
 
@@ -2546,11 +2546,11 @@ const LinterLintWithoutArguments preferIsNotOperator =
 /// No parameters.
 const LinterLintWithoutArguments preferIterableWheretype =
     LinterLintWithoutArguments(
-      name: 'prefer_iterable_whereType',
+      name: 'prefer_iterable_wheretype',
       problemMessage: "Use 'whereType' to select elements of a given type.",
       correctionMessage: "Try rewriting the expression to use 'whereType'.",
       hasPublishedDocs: true,
-      uniqueName: 'prefer_iterable_whereType',
+      uniqueName: 'prefer_iterable_wheretype',
       expectedTypes: [],
     );
 
@@ -2735,6 +2735,26 @@ securePubspecUrls = LinterLintTemplate(
   uniqueName: 'secure_pubspec_urls',
   withArguments: _withArgumentsSecurePubspecUrls,
   expectedTypes: [ExpectedType.object],
+);
+
+/// Parameters:
+/// String memberName: The redundant member name.
+/// String memberType: The type of the matched object. Whether a field,
+///                    getter, or method.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String memberName,
+    required String memberType,
+  })
+>
+simplifyVariablePattern = LinterLintTemplate(
+  name: 'simplify_variable_pattern',
+  problemMessage:
+      "The {1} identification '{0}:' is redundant and can be removed.",
+  correctionMessage: "Try removing the redundant {1} identification.",
+  uniqueName: 'simplify_variable_pattern',
+  withArguments: _withArgumentsSimplifyVariablePattern,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// No parameters.
@@ -4224,6 +4244,16 @@ LocatableDiagnostic _withArgumentsRecursiveGetters({required Object p0}) {
 
 LocatableDiagnostic _withArgumentsSecurePubspecUrls({required Object p0}) {
   return LocatableDiagnosticImpl(diag.securePubspecUrls, [p0]);
+}
+
+LocatableDiagnostic _withArgumentsSimplifyVariablePattern({
+  required String memberName,
+  required String memberType,
+}) {
+  return LocatableDiagnosticImpl(diag.simplifyVariablePattern, [
+    memberName,
+    memberType,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsSizedBoxShrinkExpand({required Object p0}) {

@@ -35,7 +35,14 @@ abstract class A {
 }
 class B implements A {}
 ''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 51, 1)],
+      [
+        error(
+          diag.nonAbstractClassInheritsAbstractMemberOne,
+          51,
+          1,
+          messageContains: ["'getter A.x'"],
+        ),
+      ],
     );
   }
 
@@ -73,7 +80,14 @@ abstract class A {
 }
 class B implements A {}
 ''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberTwo, 45, 1)],
+      [
+        error(
+          diag.nonAbstractClassInheritsAbstractMemberTwo,
+          45,
+          1,
+          messageContains: ["'getter A.x' and 'setter A.x'"],
+        ),
+      ],
     );
   }
 
@@ -87,7 +101,14 @@ class B implements A {
   void set x(int value) {}
 }
 ''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 45, 1)],
+      [
+        error(
+          diag.nonAbstractClassInheritsAbstractMemberOne,
+          45,
+          1,
+          messageContains: ["'getter A.x'"],
+        ),
+      ],
     );
   }
 
@@ -328,7 +349,14 @@ class A {
 }
 class B implements A {}
 ''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberTwo, 36, 1)],
+      [
+        error(
+          diag.nonAbstractClassInheritsAbstractMemberTwo,
+          36,
+          1,
+          messageContains: ["'getter A.x' and 'setter A.x'"],
+        ),
+      ],
     );
   }
 
@@ -359,7 +387,14 @@ abstract class A {
 class C extends A {
 }
 ''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberFivePlus, 62, 1)],
+      [
+        error(
+          diag.nonAbstractClassInheritsAbstractMemberFivePlus,
+          62,
+          1,
+          messageContains: ["'A.m', 'A.n', 'A.o', 'A.p'"],
+        ),
+      ],
     );
   }
 
@@ -375,7 +410,14 @@ abstract class A {
 class C extends A {
 }
 ''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberFour, 55, 1)],
+      [
+        error(
+          diag.nonAbstractClassInheritsAbstractMemberFour,
+          55,
+          1,
+          messageContains: ["'A.m', 'A.n', 'A.o', and 'A.p'"],
+        ),
+      ],
     );
   }
 
@@ -793,7 +835,14 @@ abstract class A {
 class C extends A {
 }
 ''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberThree, 48, 1)],
+      [
+        error(
+          diag.nonAbstractClassInheritsAbstractMemberThree,
+          48,
+          1,
+          messageContains: ["'A.m', 'A.n', and 'A.o'"],
+        ),
+      ],
     );
   }
 
@@ -807,7 +856,14 @@ abstract class A {
 class C extends A {
 }
 ''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberTwo, 41, 1)],
+      [
+        error(
+          diag.nonAbstractClassInheritsAbstractMemberTwo,
+          41,
+          1,
+          messageContains: ["'A.m' and 'A.n'"],
+        ),
+      ],
     );
   }
 
@@ -821,7 +877,14 @@ class I {
 class C implements I {
 }
 ''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberTwo, 27, 1)],
+      [
+        error(
+          diag.nonAbstractClassInheritsAbstractMemberTwo,
+          27,
+          1,
+          messageContains: ["'getter I.v' and 'setter I.v'."],
+        ),
+      ],
     );
   }
 }

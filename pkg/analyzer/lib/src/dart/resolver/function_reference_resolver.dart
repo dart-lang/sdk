@@ -7,13 +7,13 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// A resolver for [FunctionReference] nodes.
@@ -92,22 +92,22 @@ class FunctionReferenceResolver {
     TypeArgumentList typeArgumentList,
     String? name,
     List<TypeParameterElement> typeParameters,
-    DiagnosticCode errorCode,
+    DiagnosticCode diagnosticCode,
   ) {
     if (typeArgumentList.arguments.length != typeParameters.length) {
       if (name == null &&
-          errorCode == diag.wrongNumberOfTypeArgumentsFunction) {
-        errorCode = diag.wrongNumberOfTypeArgumentsAnonymousFunction;
+          diagnosticCode == diag.wrongNumberOfTypeArgumentsFunction) {
+        diagnosticCode = diag.wrongNumberOfTypeArgumentsAnonymousFunction;
         _diagnosticReporter.atNode(
           typeArgumentList,
-          errorCode,
+          diagnosticCode,
           arguments: [typeParameters.length, typeArgumentList.arguments.length],
         );
       } else {
         assert(name != null);
         _diagnosticReporter.atNode(
           typeArgumentList,
-          errorCode,
+          diagnosticCode,
           arguments: [
             name!,
             typeParameters.length,
@@ -246,9 +246,8 @@ class FunctionReferenceResolver {
       if (_resolver.isConstructorTearoffsEnabled) {
         // Only report constructor tearoff-related errors if the constructor
         // tearoff feature is enabled.
-        _diagnosticReporter.atNode(
-          node.function,
-          diag.disallowedTypeInstantiationExpression,
+        _diagnosticReporter.report(
+          diag.disallowedTypeInstantiationExpression.at(node.function),
         );
         node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
       } else if (rawType is DynamicType) {
@@ -321,9 +320,8 @@ class FunctionReferenceResolver {
     if (_resolver.isConstructorTearoffsEnabled) {
       // Only report constructor tearoff-related errors if the constructor
       // tearoff feature is enabled.
-      _diagnosticReporter.atNode(
-        node.function,
-        diag.disallowedTypeInstantiationExpression,
+      _diagnosticReporter.report(
+        diag.disallowedTypeInstantiationExpression.at(node.function),
       );
     }
     _resolve(node: node, rawType: rawType);
@@ -347,17 +345,15 @@ class FunctionReferenceResolver {
     }
 
     if (member.isStatic) {
-      _resolver.diagnosticReporter.atNode(
-        function.propertyName,
-        diag.extensionOverrideAccessToStaticMember,
+      _resolver.diagnosticReporter.report(
+        diag.extensionOverrideAccessToStaticMember.at(function.propertyName),
       );
       // Continue to resolve type.
     }
 
     if (function.isCascaded) {
-      _resolver.diagnosticReporter.atToken(
-        override.name,
-        diag.extensionOverrideWithCascade,
+      _resolver.diagnosticReporter.report(
+        diag.extensionOverrideWithCascade.at(override.name),
       );
       // Continue to resolve type.
     }
@@ -421,9 +417,8 @@ class FunctionReferenceResolver {
     }
 
     if (propertyType is DynamicTypeImpl) {
-      _diagnosticReporter.atNode(
-        function,
-        diag.genericMethodTypeInstantiationOnDynamic,
+      _diagnosticReporter.report(
+        diag.genericMethodTypeInstantiationOnDynamic.at(function),
       );
       node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
       return;
@@ -449,9 +444,8 @@ class FunctionReferenceResolver {
       }
     }
 
-    _diagnosticReporter.atNode(
-      function.identifier,
-      diag.disallowedTypeInstantiationExpression,
+    _diagnosticReporter.report(
+      diag.disallowedTypeInstantiationExpression.at(function.identifier),
     );
     node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
   }
@@ -491,9 +485,8 @@ class FunctionReferenceResolver {
     } else {
       var targetType = target.staticType;
       if (targetType is DynamicType) {
-        _diagnosticReporter.atNode(
-          node,
-          diag.genericMethodTypeInstantiationOnDynamic,
+        _diagnosticReporter.report(
+          diag.genericMethodTypeInstantiationOnDynamic.at(node),
         );
         node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
         return;
@@ -518,9 +511,8 @@ class FunctionReferenceResolver {
       } else if (functionType != null) {
         // If the property is unknown, [UNDEFINED_GETTER] is reported elsewhere.
         // If it is known, we must report the bad type instantiation here.
-        _diagnosticReporter.atNode(
-          function.propertyName,
-          diag.disallowedTypeInstantiationExpression,
+        _diagnosticReporter.report(
+          diag.disallowedTypeInstantiationExpression.at(function.propertyName),
         );
       }
 

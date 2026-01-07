@@ -245,6 +245,8 @@ class InstructionsBuilder with Builder<ir.Instructions> {
 
   bool get recordSourceMaps => _sourceMappings != null;
 
+  bool get isEmpty => _instructions.isEmpty;
+
   void collectUsedTypes(Set<ir.DefType> usedTypes) {
     for (final local in locals) {
       final localDefType = local.type.containedDefType;
@@ -682,8 +684,8 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(const ir.Else());
   }
 
-  /// Emit a `try` instruction.
-  Label try_(
+  /// Emit a legacy `try` instruction.
+  Label try_legacy(
           [List<ir.ValueType> inputs = const [],
           List<ir.ValueType> outputs = const []]) =>
       _beginBlock(
@@ -703,17 +705,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     try_.hasCatch = true;
     _reachable = try_.reachable;
     _add(ir.CatchLegacy(tag));
-  }
-
-  void catch_all_legacy() {
-    assert(_topOfLabelStack is Try ||
-        _reportError("Unexpected 'catch_all' (not in 'try' block)"));
-    final Try try_ = _topOfLabelStack as Try;
-    assert(_verifyEndOfBlock([],
-        trace: ['catch_all'], reachableAfter: try_.reachable, reindent: true));
-    try_.hasCatch = true;
-    _reachable = try_.reachable;
-    _add(const ir.CatchAllLegacy());
   }
 
   /// Emit a `throw` instruction.
@@ -865,7 +856,8 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Emit a `local.get` instruction.
   void local_get(ir.Local local) {
     assert(locals[local.index] == local);
-    assert(_verifyTypes(const [], [local.type], trace: ['local.get', local]));
+    assert(_verifyTypes(const [], [local.type],
+        trace: ['local.get', _localTraceString(local)]));
     assert(_localIsInitialized(local) ||
         _reportError("Uninitialized local with non-defaultable type"));
     _add(ir.LocalGet(local));
@@ -874,7 +866,8 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Emit a `local.set` instruction.
   void local_set(ir.Local local) {
     assert(locals[local.index] == local);
-    assert(_verifyTypes([local.type], const [], trace: ['local.set', local]));
+    assert(_verifyTypes([local.type], const [],
+        trace: ['local.set', _localTraceString(local)]));
     assert(_initializeLocal(local));
     _add(ir.LocalSet(local));
   }
@@ -882,8 +875,8 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Emit a `local.tee` instruction.
   void local_tee(ir.Local local) {
     assert(locals[local.index] == local);
-    assert(
-        _verifyTypes([local.type], [local.type], trace: ['local.tee', local]));
+    assert(_verifyTypes([local.type], [local.type],
+        trace: ['local.tee', _localTraceString(local)]));
     assert(_initializeLocal(local));
     _add(ir.LocalTee(local));
   }
@@ -921,6 +914,14 @@ class InstructionsBuilder with Builder<ir.Instructions> {
         trace: ['table.set', table.name]));
     assert(table.enclosingModule == module);
     _add(ir.TableSet(table));
+  }
+
+  /// Emit a `table.size` instruction.
+  void table_fill(ir.Table table) {
+    assert(_verifyTypes([ir.NumType.i32, table.type, ir.NumType.i32], const [],
+        trace: ['table.fill', table.name]));
+    assert(table.enclosingModule == module);
+    _add(ir.TableFill(table));
   }
 
   /// Emit a `table.size` instruction.
@@ -2552,6 +2553,15 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     assert(_verifyTypes(const [ir.NumType.f64], const [ir.NumType.i64],
         trace: const ['i64.trunc_sat_f64_u']));
     _add(const ir.I64TruncSatF64U());
+  }
+
+  String _localTraceString(ir.Local local) {
+    final localName = localNames[local.index];
+    if (localName == null) {
+      return local.toString();
+    } else {
+      return '$local ($localName)';
+    }
   }
 }
 

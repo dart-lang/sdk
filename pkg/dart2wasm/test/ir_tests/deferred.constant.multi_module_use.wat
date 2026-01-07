@@ -15,8 +15,11 @@
   (type $type0 (func 
     (param $var0 i32)
     (result (ref $MyConstClass))))
+  (type $type2 (func 
+    (result (ref $MyConstClass))))
   (table $static0-0 (export "static0-0") 2 (ref null $type0))
-  (global $"C378 \"bad\"" (ref $JSStringImpl) <...>)
+  (table $static1-0 (export "static1-0") 1 (ref null $type2))
+  (global $"C381 \"bad\"" (ref $JSStringImpl) <...>)
   (func $"mainImpl <noInline>" (param $var0 i32)
     (local $var1 (ref $MyConstClass))
     i64.const 0
@@ -32,7 +35,7 @@
     ref.eq
     i32.eqz
     if
-      global.get $"C378 \"bad\""
+      global.get $"C381 \"bad\""
       call $Error._throwWithCurrentStackTrace
       unreachable
     end

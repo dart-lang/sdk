@@ -1,5 +1,24 @@
 library;
 import self as self;
+import "dart:core" as core;
 
-static method test() → dynamic
+static method testNotCaptured() → dynamic
+  ;
+static method testCaptured() → dynamic
+  ;
+static method testForCounterNotCaptured() → dynamic
+  ;
+static method testForCounterCaptured() → dynamic
+  ;
+static method testForInCounterNotCaptured(core::List<core::int> list) → dynamic
+  ;
+static method testForInCounterCaptured(core::List<core::int> list) → dynamic
+  ;
+static method testForInElementCounterNotCaptured(core::List<core::int> list) → dynamic
+  ;
+static method testForInElementCounterCaptured(core::List<core::int> list) → dynamic
+  ;
+static method testForInMapEntryCounterNotCaptured(core::List<core::int> list) → dynamic
+  ;
+static method testForInMapEntryCounterCaptured(core::List<core::int> list) → dynamic
   ;

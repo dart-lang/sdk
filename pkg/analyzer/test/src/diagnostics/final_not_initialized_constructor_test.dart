@@ -204,6 +204,18 @@ augment class A {
     assertErrorsInResult([error(diag.finalNotInitializedConstructor1, 42, 1)]);
   }
 
+  test_class_named() async {
+    await assertErrorsInCode(
+      '''
+class A {
+  final int x;
+  A.named() {}
+}
+''',
+      [error(diag.finalNotInitializedConstructor1, 27, 7)],
+    );
+  }
+
   Future<void> test_class_redirecting_error() async {
     await assertErrorsInCode(
       '''

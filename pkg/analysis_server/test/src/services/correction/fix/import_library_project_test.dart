@@ -33,6 +33,40 @@ class ImportLibraryProject1PrefixedTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.importLibraryProject1Prefixed;
 
+  Future<void> test_annotation_constructor() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class MyAnnotation {
+  const MyAnnotation();
+}
+''');
+    await resolveTestCode('''
+@a.MyAnnotation()
+void f() {}
+''');
+    await assertHasFix('''
+import 'package:test/a.dart' as a;
+
+@a.MyAnnotation()
+void f() {}
+''');
+  }
+
+  Future<void> test_annotation_variable() async {
+    newFile('$testPackageLibPath/a.dart', '''
+const myAnnotation = 42;
+''');
+    await resolveTestCode('''
+@a.myAnnotation
+void f() {}
+''');
+    await assertHasFix('''
+import 'package:test/a.dart' as a;
+
+@a.myAnnotation
+void f() {}
+''');
+  }
+
   Future<void> test_prefixed_class() async {
     newFile('$testPackageLibPath/lib.dart', '''
 class A {}

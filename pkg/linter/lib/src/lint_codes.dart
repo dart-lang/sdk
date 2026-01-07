@@ -17,9 +17,9 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   @override
   String get url {
     if (hasPublishedDocs) {
-      return 'https://dart.dev/diagnostics/$name';
+      return 'https://dart.dev/diagnostics/$lowerCaseName';
     }
-    return 'https://dart.dev/lints/$name';
+    return 'https://dart.dev/lints/$lowerCaseName';
   }
 }
 

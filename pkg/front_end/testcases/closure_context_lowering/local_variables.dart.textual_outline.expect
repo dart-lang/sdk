@@ -1,1 +1,19 @@
-test() {}
+testNotCaptured() {}
+
+testCaptured() {}
+
+testForCounterNotCaptured() {}
+
+testForCounterCaptured() {}
+
+testForInCounterNotCaptured(List<int> list) {}
+
+testForInCounterCaptured(List<int> list) {}
+
+testForInElementCounterNotCaptured(List<int> list) {}
+
+testForInElementCounterCaptured(List<int> list) {}
+
+testForInMapEntryCounterNotCaptured(List<int> list) {}
+
+testForInMapEntryCounterCaptured(List<int> list) {}

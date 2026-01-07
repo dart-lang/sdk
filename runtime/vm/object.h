@@ -527,7 +527,9 @@ class Object {
   V(Bytecode, implicit_getter_bytecode)                                        \
   V(Bytecode, implicit_setter_bytecode)                                        \
   V(Bytecode, implicit_static_getter_bytecode)                                 \
+  V(Bytecode, implicit_shared_static_getter_bytecode)                          \
   V(Bytecode, implicit_static_setter_bytecode)                                 \
+  V(Bytecode, implicit_shared_static_setter_bytecode)                          \
   V(Bytecode, method_extractor_bytecode)                                       \
   V(Bytecode, invoke_closure_bytecode)                                         \
   V(Bytecode, invoke_field_bytecode)                                           \
@@ -3319,8 +3321,8 @@ class Function : public Object {
            (awaiter_link().depth != UntaggedClosureData::kNoAwaiterLinkDepth);
   }
 
-  void set_does_close_over_only_final_and_shared_vars(bool value) const;
-  bool does_close_over_only_final_and_shared_vars() const;
+  void set_captures_only_final_not_late_vars(bool value) const;
+  bool captures_only_final_not_late_vars() const;
 
   // Enclosing function of this local function.
   FunctionPtr parent_function() const;
@@ -4415,8 +4417,8 @@ class ClosureData : public Object {
   Function::AwaiterLink awaiter_link() const;
   void set_awaiter_link(Function::AwaiterLink link) const;
 
-  bool does_close_over_only_final_and_shared_vars() const;
-  void set_does_close_over_only_final_and_shared_vars(bool value) const;
+  bool captures_only_final_not_late_vars() const;
+  void set_captures_only_final_not_late_vars(bool value) const;
 
   // Enclosing function of this local function.
   PRECOMPILER_WSR_FIELD_DECLARATION(Function, parent_function)

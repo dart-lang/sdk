@@ -260,6 +260,14 @@ mixin _FieldFragmentImplMixin {
     setModifier(Modifier.ORIGIN_ENUM_VALUES, value);
   }
 
+  bool get isOriginExtensionTypeRecoveryRepresentation {
+    return hasModifier(Modifier.ORIGIN_EXTENSION_TYPE_RECOVERY_REPRESENTATION);
+  }
+
+  set isOriginExtensionTypeRecoveryRepresentation(bool value) {
+    setModifier(Modifier.ORIGIN_EXTENSION_TYPE_RECOVERY_REPRESENTATION, value);
+  }
+
   bool get isPromotable {
     return hasModifier(Modifier.PROMOTABLE);
   }
@@ -283,6 +291,14 @@ mixin _FormalParameterFragmentImplMixin {
     setModifier(Modifier.EXPLICITLY_COVARIANT, value);
   }
 
+  bool get isOriginDeclaration {
+    return hasModifier(Modifier.ORIGIN_DECLARATION);
+  }
+
+  set isOriginDeclaration(bool value) {
+    setModifier(Modifier.ORIGIN_DECLARATION, value);
+  }
+
   bool hasModifier(Modifier modifier);
 
   void setModifier(Modifier modifier, bool value);
@@ -297,6 +313,7 @@ mixin _FragmentImplMixin {
     setModifier(Modifier.AUGMENTATION, value);
   }
 
+  @Deprecated('Use isOriginX instead')
   /// A synthetic element is an element that is not represented in the source
   /// code explicitly, but is implied by the source code, such as the default
   /// constructor for a class that does not explicitly define any constructors.
@@ -306,6 +323,28 @@ mixin _FragmentImplMixin {
 
   set isSynthetic(bool value) {
     setModifier(Modifier.SYNTHETIC, value);
+  }
+
+  bool hasModifier(Modifier modifier);
+
+  void setModifier(Modifier modifier, bool value);
+}
+
+mixin _MethodFragmentImplMixin {
+  bool get isOriginDeclaration {
+    return hasModifier(Modifier.ORIGIN_DECLARATION);
+  }
+
+  set isOriginDeclaration(bool value) {
+    setModifier(Modifier.ORIGIN_DECLARATION, value);
+  }
+
+  bool get isOriginInterface {
+    return hasModifier(Modifier.ORIGIN_INTERFACE);
+  }
+
+  set isOriginInterface(bool value) {
+    setModifier(Modifier.ORIGIN_INTERFACE, value);
   }
 
   bool hasModifier(Modifier modifier);
@@ -386,6 +425,28 @@ mixin _PropertyInducingFragmentImplMixin {
 
   set isOriginGetterSetter(bool value) {
     setModifier(Modifier.ORIGIN_GETTER_SETTER, value);
+  }
+
+  bool hasModifier(Modifier modifier);
+
+  void setModifier(Modifier modifier, bool value);
+}
+
+mixin _TopLevelFunctionFragmentImplMixin {
+  bool get isOriginDeclaration {
+    return hasModifier(Modifier.ORIGIN_DECLARATION);
+  }
+
+  set isOriginDeclaration(bool value) {
+    setModifier(Modifier.ORIGIN_DECLARATION, value);
+  }
+
+  bool get isOriginLoadLibrary {
+    return hasModifier(Modifier.ORIGIN_LOAD_LIBRARY);
+  }
+
+  set isOriginLoadLibrary(bool value) {
+    setModifier(Modifier.ORIGIN_LOAD_LIBRARY, value);
   }
 
   bool hasModifier(Modifier modifier);

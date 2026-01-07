@@ -7,7 +7,7 @@ import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 final foundationAssertionsLibrary = MockLibraryUnit(
   'lib/src/foundation/assertions.dart',
   r'''
-class FlutterErrorDetails {
+class FlutterErrorDetails with Diagnosticable {
   const FlutterErrorDetails({
     required Object exception,
     StackTrace? stack,
@@ -19,7 +19,9 @@ class FlutterErrorDetails {
   });
 }
 
-class FlutterError extends Error implements AssertionError {
+class FlutterError extends Error
+    with DiagnosticableTreeMixin
+    implements AssertionError {
   static void reportError(FlutterErrorDetails details) {}
 }
 ''',

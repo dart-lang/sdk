@@ -345,8 +345,10 @@ class _LibraryBuilder {
       );
       libraryFragment.addFunction(functionFragment);
     }
-    libraryElement.topLevelFunctions = libraryFragment.functions.map((element) {
-      return element.element;
+    libraryElement.topLevelFunctions = libraryFragment.functions.map((
+      fragment,
+    ) {
+      return fragment.element;
     }).toList();
   }
 }

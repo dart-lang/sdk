@@ -2474,6 +2474,16 @@ class RemovingTransformer extends TreeVisitor1Default<TreeNode, TreeNode?> {
     transformList(nodes, parent, dummyVariableDeclaration);
   }
 
+  /// Transforms or removes [VariableInitialization] nodes in [nodes] as
+  /// children of [parent].
+  ///
+  /// This is convenience method for calling [transformList] with removal
+  /// sentinel for [VariableInitialization] nodes.
+  void transformVariableInitializationList(
+      List<VariableInitialization> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyVariableDeclaration);
+  }
+
   /// Transforms or removes [T] nodes in [nodes] as children of [parent] by
   /// calling [transformOrRemove] using [removalSentinel] as the removal
   /// sentinel.

@@ -56,17 +56,19 @@ String? verifyErrorFixStatus() {
   var lintRuleCodes = {
     for (var rule in Registry.ruleRegistry.rules) ...rule.diagnosticCodes,
   };
-  var lintRuleNames = {for (var lintCode in lintRuleCodes) lintCode.uniqueName};
+  var lintRuleNames = {
+    for (var lintCode in lintRuleCodes) lintCode.lowerCaseUniqueName,
+  };
 
   var errorData = ErrorData();
   for (var code in diagnosticCodeValues) {
-    var name = code.uniqueName;
+    var name = code.lowerCaseUniqueName;
     if (code.type == .TODO) {
       // To-do codes are ignored.
       continue;
     }
 
-    var info = statusInfo.nodes[name];
+    var info = statusInfo.nodes[name.toLowerCase()];
     if (info == null) {
       errorData.codesWithNoEntry.add(name);
     } else if (info is YamlMap) {
@@ -83,8 +85,8 @@ String? verifyErrorFixStatus() {
     }
   }
   for (var lintCode in lintRuleCodes) {
-    var name = lintCode.uniqueName;
-    var info = statusInfo.nodes[name];
+    var name = lintCode.lowerCaseUniqueName;
+    var info = statusInfo.nodes[name.toLowerCase()];
     if (info == null) {
       errorData.codesWithNoEntry.add(name);
     } else if (info is YamlMap) {
@@ -101,7 +103,9 @@ String? verifyErrorFixStatus() {
     }
   }
 
-  var codeNames = {for (var code in diagnosticCodeValues) code.uniqueName};
+  var codeNames = {
+    for (var code in diagnosticCodeValues) code.lowerCaseUniqueName,
+  };
   for (var key in statusInfo.keys) {
     if (key is String) {
       if (!codeNames.contains(key) && !lintRuleNames.contains(key)) {

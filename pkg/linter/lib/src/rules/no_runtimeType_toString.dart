@@ -19,7 +19,7 @@ const _desc = r'Avoid calling `toString()` on `runtimeType`.';
 
 class NoRuntimeTypeToString extends AnalysisRule {
   NoRuntimeTypeToString()
-    : super(name: LintNames.no_runtimeType_toString, description: _desc);
+    : super(name: LintNames.no_runtimetype_tostring, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.noRuntimetypeTostring;

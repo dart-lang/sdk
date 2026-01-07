@@ -20,6 +20,7 @@ dependencies:
   vm: any
   wasm_builder: any
   path: any
+  pool: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:

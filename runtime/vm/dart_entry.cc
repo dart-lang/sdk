@@ -111,21 +111,14 @@ static ObjectPtr InvokeDartCode(uword entry_point,
                                 const Array& arguments_descriptor,
                                 const Array& arguments,
                                 Thread* thread) {
-  DartEntryScope dart_entry_scope(thread);
-
   const uword stub = StubCode::InvokeDartCode().EntryPoint();
 #if defined(DART_INCLUDE_SIMULATOR)
   if (FLAG_use_simulator) {
-    auto invoke = [&](uword entry_point, uword arguments_descriptor,
-                      uword arguments, Thread* thread) -> uword {
-      return Simulator::Current()->Call(stub, entry_point, arguments_descriptor,
-                                        arguments,
-                                        reinterpret_cast<int64_t>(thread));
-    };
-    uword result =
-        invoke(entry_point, static_cast<uword>(arguments_descriptor.ptr()),
-               static_cast<uword>(arguments.ptr()), thread);
-    return static_cast<ObjectPtr>(result);
+    return static_cast<ObjectPtr>(
+        static_cast<intptr_t>(Simulator::Current()->Call(
+            stub, entry_point, static_cast<uword>(arguments_descriptor.ptr()),
+            static_cast<uword>(arguments.ptr()),
+            reinterpret_cast<uword>(thread))));
   }
 #endif
   auto invoke = reinterpret_cast<invokestub>(stub);
@@ -167,6 +160,10 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
   }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
+  // Loading the function's current code must be after the safepoint transition,
+  // otherwise it might have already been replaced before we call it.
+  DartEntryScope dart_entry_scope(thread);
+
   ASSERT(function.HasCode());
 
   // Note: InvokeFunction takes Arguments then ArgumentsDescriptor,
@@ -194,6 +191,10 @@ ObjectPtr DartEntry::InvokeCode(const Code& code,
 
   ASSERT(!code.IsNull());
   ASSERT(thread->no_callback_scope_depth() == 0);
+
+  // Loading the code's raw pointer must be after the safepoint transition,
+  // otherwise it might have been moved before we call it.
+  DartEntryScope dart_entry_scope(thread);
 
   return InvokeDartCode(
 #if defined(DART_PRECOMPILED_RUNTIME)

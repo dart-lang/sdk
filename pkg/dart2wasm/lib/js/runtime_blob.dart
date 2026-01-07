@@ -107,6 +107,9 @@ class CompiledApp {
       Object: Object,
       Array: Array,
       Reflect: Reflect,
+      WebAssembly: {
+        JSTag: WebAssembly.JSTag,
+      },
       <<IMPORTED_JS_STRINGS_IN_MJS>>
     };
 
@@ -119,8 +122,8 @@ class CompiledApp {
       ...additionalImports,
       <<MODULE_LOADING_IMPORT>>
       <<JS_POLYFILL_IMPORT>>
-      "$moduleHelpers": {"this": () => dartInstance},
     });
+    dartInstance.exports.$setThisModule(dartInstance);
 
     return new InstantiatedApp(this, dartInstance);
   }
@@ -197,14 +200,13 @@ final moduleLoadingHelperTemplate = Template(r'''
           const module = await ((source instanceof Response)
               ? WebAssembly.compileStreaming(source, builtins)
               : WebAssembly.compile(source, builtins));
-          let moduleInstance;
-          moduleInstance = await WebAssembly.instantiate(module, {
+          let moduleInstance = await WebAssembly.instantiate(module, {
             ...baseImports,
             ...additionalImports,
             <<JS_POLYFILL_IMPORT>>
             "<<MAIN_MODULE_NAME>>": dartInstance.exports,
-            "$moduleHelpers": {"this": () => moduleInstance},
           });
+          moduleInstance.exports.$setThisModule(moduleInstance);
         }
         const promises = [];
         for (const moduleName of moduleNames) {
@@ -221,14 +223,13 @@ final moduleLoadingHelperTemplate = Template(r'''
           const module = await ((source instanceof Response)
               ? WebAssembly.compileStreaming(source, this.builtins)
               : WebAssembly.compile(source, this.builtins));
-          let moduleInstance;
-          moduleInstance = await WebAssembly.instantiate(module, {
+          let moduleInstance = await WebAssembly.instantiate(module, {
             ...baseImports,
             ...additionalImports,
             <<JS_POLYFILL_IMPORT>>
             "<<MAIN_MODULE_NAME>>": dartInstance.exports,
-            "$moduleHelpers": {"this": () => moduleInstance},
           });
+          moduleInstance.exports.$setThisModule(moduleInstance);
         }
       },
       "loadDynamicModuleFromUri": async (wasmUri, jsUri) => {
@@ -236,15 +237,14 @@ final moduleLoadingHelperTemplate = Template(r'''
           throw "No implementation of loadDynamicModule provided.";
         }
         const [source, jsModule] = await loadDynamicModule(wasmUri, jsUri);
-        let moduleInstance;
         const module = await ((source instanceof Response)
             ? WebAssembly.compileStreaming(source, this.builtins)
             : WebAssembly.compile(source, this.builtins));
-        moduleInstance = await WebAssembly.instantiate(module, {
+        let moduleInstance = await WebAssembly.instantiate(module, {
           "<<MAIN_MODULE_NAME>>": dartInstance.exports,
-            "$moduleHelpers": {"this": () => moduleInstance},
           ...jsModule.imports(finalizeWrapper),
         });
+        moduleInstance.exports.$setThisModule(moduleInstance);
         return moduleInstance.exports.$invokeEntryPoint;
       },
     };

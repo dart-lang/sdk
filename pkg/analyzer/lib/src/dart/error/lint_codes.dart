@@ -65,7 +65,7 @@ class LintCode extends DiagnosticCode {
        );
 
   @override
-  int get hashCode => uniqueName.hashCode;
+  int get hashCode => lowerCaseUniqueName.hashCode;
 
   @override
   DiagnosticType get type => DiagnosticType.LINT;
@@ -75,7 +75,7 @@ class LintCode extends DiagnosticCode {
 
   @override
   bool operator ==(Object other) =>
-      other is LintCode && uniqueName == other.uniqueName;
+      other is LintCode && lowerCaseUniqueName == other.lowerCaseUniqueName;
 }
 
 /// Private subtype of [LintCode] that supports runtime checking of parameter
@@ -92,14 +92,14 @@ abstract class LintCodeWithExpectedTypes extends DiagnosticCodeWithExpectedTypes
   }) : super(type: DiagnosticType.LINT);
 
   @override
-  int get hashCode => uniqueName.hashCode;
+  int get hashCode => lowerCaseUniqueName.hashCode;
 
   @override
   String? get url => null;
 
   @override
   bool operator ==(Object other) =>
-      other is LintCode && uniqueName == other.uniqueName;
+      other is LintCode && lowerCaseUniqueName == other.lowerCaseUniqueName;
 }
 
 /// Defines security-related best practice recommendations.

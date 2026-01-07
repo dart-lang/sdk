@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -48,83 +48,72 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicateFragment] reuses a name
   /// already used by [originalElement].
-  Diagnostic duplicateDefinition(
-    DiagnosticCode code,
+  LocatedDiagnostic duplicateDefinition(
+    LocatableDiagnostic locatableDiagnostic,
     FragmentImpl duplicateFragment,
     ElementImpl originalElement,
-    List<Object> arguments,
   ) {
     var originalFragment = originalElement.nonSynthetic.firstFragment;
-    return Diagnostic.tmp(
-      source: duplicateFragment.libraryFragment!.source,
-      offset: duplicateFragment.nameOffset ?? -1,
-      length: duplicateFragment.name!.length,
-      diagnosticCode: code,
-      arguments: arguments,
-      contextMessages: [
-        DiagnosticMessageImpl(
-          filePath: originalFragment.libraryFragment!.source.fullName,
-          message: "The first definition of this name.",
-          offset: originalFragment.nameOffset ?? -1,
-          length: originalElement.nonSynthetic.name!.length,
-          url: null,
-        ),
-      ],
-    );
+    return locatableDiagnostic
+        .withContextMessages([
+          DiagnosticMessageImpl(
+            filePath: originalFragment.libraryFragment!.source.fullName,
+            message: "The first definition of this name.",
+            offset: originalFragment.offset,
+            length: originalElement.nonSynthetic.name!.length,
+            url: null,
+          ),
+        ])
+        // TODO(paulberry): consider encapsulating this logic in an extension
+        // method, similar to `Element2Extension.diagnosticRange`.
+        .atOffset(
+          offset: duplicateFragment.nameOffset ?? -1,
+          length: duplicateFragment.name!.length,
+        );
   }
 
   /// Return a diagnostic indicating that [duplicateNode] reuses a name
   /// already used by [originalNode].
-  Diagnostic duplicateDefinitionForNodes(
+  LocatedDiagnostic duplicateDefinitionForNodes(
     Source source,
-    DiagnosticCode code,
+    LocatableDiagnostic locatableDiagnostic,
     SyntacticEntity duplicateNode,
     SyntacticEntity originalNode,
-    List<Object> arguments,
   ) {
-    return Diagnostic.tmp(
-      source: source,
-      offset: duplicateNode.offset,
-      length: duplicateNode.length,
-      diagnosticCode: code,
-      arguments: arguments,
-      contextMessages: [
-        DiagnosticMessageImpl(
-          filePath: source.fullName,
-          message: "The first definition of this name.",
-          offset: originalNode.offset,
-          length: originalNode.length,
-          url: null,
-        ),
-      ],
-    );
+    return locatableDiagnostic
+        .withContextMessages([
+          DiagnosticMessageImpl(
+            filePath: source.fullName,
+            message: "The first definition of this name.",
+            offset: originalNode.offset,
+            length: originalNode.length,
+            url: null,
+          ),
+        ])
+        .at(duplicateNode);
   }
 
   /// Return a diagnostic indicating that [duplicateField] reuses a name
   /// already used by [originalField].
-  Diagnostic duplicateFieldDefinitionInLiteral(
+  LocatedDiagnostic duplicateFieldDefinitionInLiteral(
     Source source,
     NamedExpression duplicateField,
     NamedExpression originalField,
   ) {
     var duplicateNode = duplicateField.name.label;
     var duplicateName = duplicateNode.name;
-    return Diagnostic.tmp(
-      source: source,
-      offset: duplicateNode.offset,
-      length: duplicateNode.length,
-      diagnosticCode: diag.duplicateFieldName,
-      arguments: [duplicateName],
-      contextMessages: [
-        DiagnosticMessageImpl(
-          filePath: source.fullName,
-          length: duplicateName.length,
-          message: 'The first ',
-          offset: originalField.name.label.offset,
-          url: source.uri.toString(),
-        ),
-      ],
-    );
+    return diag.duplicateFieldName
+        .withArguments(name: duplicateName)
+        .withContextMessages([
+          DiagnosticMessageImpl(
+            filePath: source.fullName,
+            length: duplicateName.length,
+            message: 'The first ',
+            offset: originalField.name.label.offset,
+            url: source.uri.toString(),
+          ),
+        ])
+        .at(duplicateNode);
   }
 
   /// Return a diagnostic indicating that [duplicateField] reuses a name
@@ -132,29 +121,25 @@ class DiagnosticFactory {
   ///
   /// This method requires that both the [duplicateField] and [originalField]
   /// have a non-null `name`.
-  Diagnostic duplicateFieldDefinitionInType(
+  LocatedDiagnostic duplicateFieldDefinitionInType(
     Source source,
     RecordTypeAnnotationField duplicateField,
     RecordTypeAnnotationField originalField,
   ) {
     var duplicateNode = duplicateField.name!;
     var duplicateName = duplicateNode.lexeme;
-    return Diagnostic.tmp(
-      source: source,
-      offset: duplicateNode.offset,
-      length: duplicateNode.length,
-      diagnosticCode: diag.duplicateFieldName,
-      arguments: [duplicateName],
-      contextMessages: [
-        DiagnosticMessageImpl(
-          filePath: source.fullName,
-          length: duplicateName.length,
-          message: 'The first ',
-          offset: originalField.name!.offset,
-          url: source.uri.toString(),
-        ),
-      ],
-    );
+    return diag.duplicateFieldName
+        .withArguments(name: duplicateName)
+        .withContextMessages([
+          DiagnosticMessageImpl(
+            filePath: source.fullName,
+            length: duplicateName.length,
+            message: 'The first ',
+            offset: originalField.name!.offset,
+            url: source.uri.toString(),
+          ),
+        ])
+        .at(duplicateNode);
   }
 
   /// Return a diagnostic indicating that [duplicateField] reuses a name

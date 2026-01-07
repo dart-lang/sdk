@@ -34,6 +34,7 @@
 //     by passing a value of the given Type in the range from First to Last to
 //     Class::Name() if Filter returns true for that value.
 // CONSTANT(Class, Name) Miscellaneous constant.
+// ENUM(Name, Elements) List of named elements.
 //
 // COMMON_OFFSETS_LIST is for declarations that are valid in all contexts.
 // JIT_OFFSETS_LIST is for declarations that are only valid in JIT mode.
@@ -50,7 +51,7 @@
 #endif
 
 #define COMMON_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF,                \
-                            PAYLOAD_SIZEOF, RANGE, CONSTANT)                   \
+                            PAYLOAD_SIZEOF, RANGE, CONSTANT, ENUM)             \
   ARRAY(Array, element_offset)                                                 \
   NOT_IN_PRODUCT(ARRAY(ClassTable, AllocationTracingStateSlotOffsetFor))       \
   ARRAY(Code, element_offset)                                                  \
@@ -232,6 +233,7 @@
   FIELD(SuspendState, pc_offset)                                               \
   FIELD(SuspendState, then_callback_offset)                                    \
   FIELD(Thread, AllocateArray_entry_point_offset)                              \
+  FIELD(Thread, DeoptimizeCopyFrame_entry_point_offset)                        \
   FIELD(Thread, active_exception_offset)                                       \
   FIELD(Thread, active_stacktrace_offset)                                      \
   FIELD(Thread, array_write_barrier_entry_point_offset)                        \
@@ -254,6 +256,7 @@
   FIELD(Thread, dispatch_table_array_offset)                                   \
   FIELD(Thread, double_truncate_round_supported_offset)                        \
   FIELD(Thread, service_extension_stream_offset)                               \
+  FIELD(Thread, thread_locals_offset)                                          \
   FIELD(Thread, optimize_entry_offset)                                         \
   FIELD(Thread, optimize_stub_offset)                                          \
   FIELD(Thread, deoptimize_entry_offset)                                       \
@@ -493,17 +496,20 @@
   PAYLOAD_SIZEOF(InstructionsSection, InstanceSize, HeaderSize)                \
   PAYLOAD_SIZEOF(PcDescriptors, InstanceSize, HeaderSize)                      \
   PAYLOAD_SIZEOF(SuspendState, InstanceSize, HeaderSize)                       \
-  PAYLOAD_SIZEOF(TypedData, InstanceSize, HeaderSize)
+  PAYLOAD_SIZEOF(TypedData, InstanceSize, HeaderSize)                          \
+  ENUM(StubCode, StubCode::StubNames)                                          \
+  ENUM(RuntimeEntry, RuntimeEntry::RuntimeEntryNames)                          \
+  ENUM(LeafRuntimeEntry, RuntimeEntry::LeafRuntimeEntryNames)
 
 #define JIT_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF, PAYLOAD_SIZEOF,   \
-                         RANGE, CONSTANT)                                      \
+                         RANGE, CONSTANT, ENUM)                                \
   FIELD(Code, active_instructions_offset)                                      \
   FIELD(Function, usage_counter_offset)                                        \
   FIELD(ICData, receivers_static_type_offset)                                  \
   FIELD(SuspendState, frame_capacity_offset)
 
 #define AOT_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF, PAYLOAD_SIZEOF,   \
-                         RANGE, CONSTANT)                                      \
+                         RANGE, CONSTANT, ENUM)                                \
   FIELD(Closure, entry_point_offset)
 
 #endif  // RUNTIME_VM_COMPILER_RUNTIME_OFFSETS_LIST_H_

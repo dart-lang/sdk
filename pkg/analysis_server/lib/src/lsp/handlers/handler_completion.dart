@@ -380,7 +380,7 @@ class CompletionHandler
       fileState: unit.fileState,
       filePath: unit.path,
       fileContent: unit.content,
-      libraryFragment: unit.unitElement,
+      libraryFragment: unit.libraryFragment,
       offset: offset,
       unit: unit.parsedUnit,
       dartdocDirectiveInfo: server.getDartdocDirectiveInfoForSession(

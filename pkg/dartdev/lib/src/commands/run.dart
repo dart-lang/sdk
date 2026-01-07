@@ -58,9 +58,9 @@ class RunCommand extends DartdevCommand {
     this.dataAssetsExperimentEnabled = false,
   }) : super(
           cmdName,
-          '''Run a Dart program from a file, a local package, or a remote package.
+          '''Run a Dart program from a file or a local package.
 
-Usage: dart [vm-options] run [arguments] [<dart-file>|<local-package>|<remote-executable> [args]]
+Usage: dart [vm-options] run [arguments] <dart-file>|<local-package> [args]
 
 <dart-file>
   A path to a Dart script (e.g., `bin/main.dart`).
@@ -68,34 +68,7 @@ Usage: dart [vm-options] run [arguments] [<dart-file>|<local-package>|<remote-ex
 <local-package>
   An executable from a local package dependency, in the format <package>[:<executable>].
   For example, `test:test` runs the `test` executable from the `test` package.
-  If the executable is not specified, the package name is used.
-
-<remote-executable>
-  An executable from a remote package. This can be from a hosted package server
-  (like pub.dev) or a git repository.
-
-  When running a remote executable, all other command-line flags are disabled,
-  except for the options for remote executables. `dart run <remote-executable>`
-  uses `dart install` under the hood and compiles the app into a standalone
-  executable, preventing passing VM options.
-
-  From a hosted package server:
-    <hosted-url>/<package>[@<version>][:<executable>]
-
-    Downloads the package from a hosted package server and runs the specified
-    executable.
-    If a version is provided, the specified version is downloaded.
-    If an executable is not specified, the package name is used.
-    For example, `https://pub.dev/dcli@1.0.0:dcli_complete` runs the
-    `dcli_complete` executable from version 1.0.0 of the `dcli` package.
-
-  From a git repository:
-    <git-url>[:<executable>]
-
-    Clones the git repository and runs the specified executable from it.
-    If an executable is not specified, the package name from the cloned
-    repository's pubspec.yaml is used.
-    The git url can be any valid git url.''',
+  If the executable is not specified, the package name is used.''',
           verbose,
         ) {
     argParser
@@ -344,13 +317,46 @@ Usage: dart [vm-options] run [arguments] [<dart-file>|<local-package>|<remote-ex
         hide: true,
       )
       ..addExperimentalFlags(verbose: verbose)
-      ..addSeparator('Options for remote executables:')
+      ..addFlag(
+        'enable-experiment-remote-run',
+        negatable: false,
+        hide: !verbose,
+        help: '''
+Enables running executables from remote packages.
+
+  When running a remote executable, all other command-line flags are disabled,
+  except for the options for remote executables. `dart run <remote-executable>`
+  uses `dart install` under the hood and compiles the app into a standalone
+  executable, preventing passing VM options.
+
+  (Syntax is expected to change in the future.)
+
+  From a hosted package server:
+    <hosted-url>/<package>[@<version>][:<executable>]
+
+    Downloads the package from a hosted package server and runs the specified
+    executable.
+    If a version is provided, the specified version is downloaded.
+    If an executable is not specified, the package name is used.
+    For example, `https://pub.dev/dcli@1.0.0:dcli_complete` runs the
+    `dcli_complete` executable from version 1.0.0 of the `dcli` package.
+
+  From a git repository:
+    <git-url>[:<executable>]
+
+    Clones the git repository and runs the specified executable from it.
+    If an executable is not specified, the package name from the cloned
+    repository's pubspec.yaml is used.
+    The git url can be any valid git url.''',
+      )
       ..addOption(
+        hide: !verbose,
         gitPathOption,
         help: 'Path of git package in repository. '
             'Only applies when using a git url for <remote-executable>.',
       )
       ..addOption(
+        hide: !verbose,
         gitRefOption,
         help: 'Git branch or commit to be retrieved. '
             'Only applies when using a git url for <remote-executable>.',
@@ -443,7 +449,8 @@ Usage: dart [vm-options] run [arguments] [<dart-file>|<local-package>|<remote-ex
       runArgs = args.rest.skip(1).toList();
     }
 
-    if (_isRemoteRun(mainCommand)) {
+    if (args.flag('enable-experiment-remote-run') &&
+        _isRemoteRun(mainCommand)) {
       return _runRemote(args, mainCommand, runArgs);
     }
     return _runLocal(args, mainCommand, runArgs);
@@ -665,7 +672,8 @@ Usage: dart [vm-options] run [arguments] [<dart-file>|<local-package>|<remote-ex
       if (argResults.wasParsed(option) &&
           option != gitPathOption &&
           option != gitRefOption &&
-          option != verbosityOption) {
+          option != verbosityOption &&
+          option != 'enable-experiment-remote-run') {
         usageException(
           'Option $option cannot be used in remote runs. '
           '`dart run <remote-executable>` uses `dart install` under the hood '
@@ -699,6 +707,9 @@ Usage: dart [vm-options] run [arguments] [<dart-file>|<local-package>|<remote-ex
                 ?.split(_colonButNoSlashes)
                 .first ??
             'any';
+        if (versionConstraint.isEmpty) {
+          versionConstraint = 'any';
+        }
       case RemoteSourceKind.path:
         throw StateError('Unreachable');
     }

@@ -99,8 +99,9 @@ abstract class ExpressionGeneratorHelper {
 
   Expression_Generator_Initializer finishSend(
     Object receiver,
-    List<TypeBuilder>? typeArguments,
-    ArgumentsImpl arguments,
+    List<TypeBuilder>? typeArgumentBuilders,
+    TypeArguments? typeArguments,
+    ActualArguments arguments,
     int offset, {
     bool isTypeArgumentsInForest = false,
   });
@@ -118,19 +119,20 @@ abstract class ExpressionGeneratorHelper {
   Initializer buildSuperInitializer(
     bool isSynthetic,
     Constructor constructor,
-    ArgumentsImpl arguments, [
+    ActualArguments arguments, [
     int offset = TreeNode.noOffset,
   ]);
 
   Initializer buildRedirectingInitializer(
     Name name,
-    ArgumentsImpl arguments, {
+    ActualArguments arguments, {
     required int fileOffset,
   });
 
   Expression buildStaticInvocation({
     required Procedure target,
-    required ArgumentsImpl arguments,
+    required TypeArguments? typeArguments,
+    required ActualArguments arguments,
     required int fileOffset,
   });
 
@@ -154,7 +156,8 @@ abstract class ExpressionGeneratorHelper {
   Expression buildMethodInvocation(
     Expression receiver,
     Name name,
-    ArgumentsImpl arguments,
+    TypeArguments? typeArguments,
+    ActualArguments arguments,
     int offset, {
     bool isConstantExpression = false,
     bool isNullAware = false,
@@ -162,7 +165,8 @@ abstract class ExpressionGeneratorHelper {
 
   Expression buildSuperInvocation(
     Name name,
-    ArgumentsImpl arguments,
+    TypeArguments? typeArguments,
+    ActualArguments arguments,
     int offset, {
     bool isConstantExpression = false,
     bool isNullAware = false,
@@ -173,13 +177,14 @@ abstract class ExpressionGeneratorHelper {
     TypeDeclarationBuilder type,
     Token nameToken,
     Token nameLastToken,
-    ArgumentsImpl arguments,
+    ActualArguments arguments,
     String name,
-    List<TypeBuilder>? typeArguments,
+    List<TypeBuilder>? typeArgumentBuilders,
+    TypeArguments? typeArguments,
     int charOffset,
     Constness constness, {
-    bool isTypeArgumentsInForest = false,
-    TypeDeclarationBuilder? typeAliasBuilder,
+    required bool isTypeArgumentsInForest,
+    TypeAliasBuilder? typeAliasBuilder,
     required UnresolvedKind unresolvedKind,
   });
 
@@ -197,7 +202,7 @@ abstract class ExpressionGeneratorHelper {
   );
 
   Expression evaluateArgumentsBefore(
-    ArgumentsImpl arguments,
+    ActualArguments arguments,
     Expression expression,
   );
 
@@ -264,7 +269,7 @@ abstract class ExpressionGeneratorHelper {
     List<TypeBuilder>? typeArguments,
     String className,
     String constructorName,
-    ArgumentsImpl arguments, {
+    ActualArguments arguments, {
     required int instantiationOffset,
     required int invocationOffset,
     required bool inImplicitCreationContext,

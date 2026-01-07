@@ -1298,8 +1298,14 @@ void Object::Init(IsolateGroup* isolate_group) {
   *implicit_static_getter_bytecode_ = CreateVMInternalBytecode(
       KernelBytecode::kVMInternal_ImplicitStaticGetter);
 
+  *implicit_shared_static_getter_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ImplicitSharedStaticGetter);
+
   *implicit_static_setter_bytecode_ = CreateVMInternalBytecode(
       KernelBytecode::kVMInternal_ImplicitStaticSetter);
+
+  *implicit_shared_static_setter_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ImplicitSharedStaticSetter);
 
   *method_extractor_bytecode_ =
       CreateVMInternalBytecode(KernelBytecode::kVMInternal_MethodExtractor);
@@ -8599,22 +8605,20 @@ void Function::set_awaiter_link(Function::AwaiterLink link) const {
   UNREACHABLE();
 }
 
-bool Function::does_close_over_only_final_and_shared_vars() const {
+bool Function::captures_only_final_not_late_vars() const {
   if (IsClosureFunction()) {
     const Object& obj = Object::Handle(untag()->data());
     ASSERT(!obj.IsNull());
-    return ClosureData::Cast(obj).does_close_over_only_final_and_shared_vars();
+    return ClosureData::Cast(obj).captures_only_final_not_late_vars();
   }
   UNREACHABLE();
 }
 
-void Function::set_does_close_over_only_final_and_shared_vars(
-    bool value) const {
+void Function::set_captures_only_final_not_late_vars(bool value) const {
   if (IsClosureFunction()) {
     const Object& obj = Object::Handle(untag()->data());
     ASSERT(!obj.IsNull());
-    ClosureData::Cast(obj).set_does_close_over_only_final_and_shared_vars(
-        value);
+    ClosureData::Cast(obj).set_captures_only_final_not_late_vars(value);
     return;
   }
   UNREACHABLE();
@@ -12202,17 +12206,14 @@ void ClosureData::set_awaiter_link(Function::AwaiterLink link) const {
       link.index);
 }
 
-bool ClosureData::does_close_over_only_final_and_shared_vars() const {
+bool ClosureData::captures_only_final_not_late_vars() const {
   return untag()
-      ->packed_fields_
-      .Read<UntaggedClosureData::DoesCloseOverOnlySharedFields>();
+      ->packed_fields_.Read<UntaggedClosureData::CapturesOnlySharedFields>();
 }
 
-void ClosureData::set_does_close_over_only_final_and_shared_vars(
-    bool value) const {
-  untag()
-      ->packed_fields_
-      .Update<UntaggedClosureData::DoesCloseOverOnlySharedFields>(value);
+void ClosureData::set_captures_only_final_not_late_vars(bool value) const {
+  untag()->packed_fields_.Update<UntaggedClosureData::CapturesOnlySharedFields>(
+      value);
 }
 
 ClosureDataPtr ClosureData::New() {
@@ -13495,14 +13496,8 @@ void Field::SetStaticValue(const Object& value) const {
   const intptr_t id = field_id();
   ASSERT(id >= 0);
 
-  if (is_shared() && !value.IsSmi() && !value.IsImmutable() &&
-      !IsTypedDataBaseClassId(value.GetClassId())) {
-    const String& error = String::Handle(
-        thread->zone(),
-        String::NewFormatted("Only trivially-immutable values are allowed: %s.",
-                             value.ToCString()));
-    Exceptions::ThrowArgumentError(error);
-    UNREACHABLE();
+  if (FLAG_experimental_shared_data && is_shared()) {
+    FfiCallbackMetadata::EnsureTriviallyImmutable(thread->zone(), value);
   }
   SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (is_shared()) {
@@ -19456,8 +19451,14 @@ static const char* BytecodeStubName(const Bytecode& bytecode) {
              Object::implicit_static_getter_bytecode().ptr()) {
     return "[Bytecode Stub] VMInternal_ImplicitStaticGetter";
   } else if (bytecode.ptr() ==
+             Object::implicit_shared_static_getter_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_ImplicitSharedStaticGetter";
+  } else if (bytecode.ptr() ==
              Object::implicit_static_setter_bytecode().ptr()) {
     return "[Bytecode Stub] VMInternal_ImplicitStaticSetter";
+  } else if (bytecode.ptr() ==
+             Object::implicit_shared_static_setter_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_ImplicitSharedStaticSetter";
   } else if (bytecode.ptr() == Object::method_extractor_bytecode().ptr()) {
     return "[Bytecode Stub] VMInternal_MethodExtractor";
   } else if (bytecode.ptr() == Object::invoke_closure_bytecode().ptr()) {

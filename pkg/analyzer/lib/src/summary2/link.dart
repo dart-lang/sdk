@@ -18,6 +18,7 @@ import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/detach_nodes.dart';
 import 'package:analyzer/src/summary2/enclosing_type_parameters_flag.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/summary2/extension_type.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -92,10 +93,10 @@ class Linker {
     return builders.containsKey(dartCoreUri);
   }
 
-  /// If the [element] is part of a library being linked, return the node
+  /// If the [fragment] is part of a library being linked, return the node
   /// from which it was created.
-  ast.AstNode? getLinkingNode(FragmentImpl element) {
-    return elementNodes[element];
+  ast.AstNode? getLinkingNode(FragmentImpl fragment) {
+    return elementNodes[fragment];
   }
 
   /// If the [fragment] is part of a library being linked, return the node
@@ -259,6 +260,7 @@ class Linker {
     _computeFieldPromotability();
     SuperConstructorResolver(this).perform();
     _performTopLevelInference();
+    buildExtensionTypes(this);
     _resolveConstructors();
     _resolveConstantInitializers();
     _resolveDefaultValues();
@@ -308,7 +310,7 @@ class Linker {
           .where((field) => field.isInstanceField)
           .every((field) {
             // If has storage...
-            if (field.isOriginDeclaration ||
+            if ((field.isOriginDeclaration && !field.isAbstract) ||
                 field.isOriginDeclaringFormalParameter) {
               // ...then must be final
               return field.isFinal || field.isConst;

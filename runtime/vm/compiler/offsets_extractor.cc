@@ -118,20 +118,33 @@ class OffsetsExtractor : public AllStatic {
                "\", \"value\": \""                                             \
             << Class::Name << "\"},\n";
 
+#define PRINT_ENUM(Name, Elements)                                             \
+  {                                                                            \
+    std::cout << "{\"kind\": \"enum\","                                        \
+                 " \"name\": \"" #Name "\", \"elements\": [";                  \
+    bool comma = false;                                                        \
+    for (auto elem : Elements) {                                               \
+      std::cout << (comma ? ", " : "");                                        \
+      std::cout << "\"" << elem << "\"";                                       \
+      comma = true;                                                            \
+    }                                                                          \
+    std::cout << "]},\n";                                                      \
+  }
+
 #if defined(DART_PRECOMPILED_RUNTIME)
     AOT_OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT, PRINT_SIZEOF,
                      PRINT_ARRAY_SIZEOF, PRINT_PAYLOAD_SIZEOF, PRINT_RANGE,
-                     PRINT_CONSTANT)
+                     PRINT_CONSTANT, PRINT_ENUM)
 #else  // defined(DART_PRECOMPILED_RUNTIME)
     JIT_OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT, PRINT_SIZEOF,
                      PRINT_ARRAY_SIZEOF, PRINT_PAYLOAD_SIZEOF, PRINT_RANGE,
-                     PRINT_CONSTANT)
+                     PRINT_CONSTANT, PRINT_ENUM)
 
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
     COMMON_OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT, PRINT_SIZEOF,
                         PRINT_ARRAY_SIZEOF, PRINT_PAYLOAD_SIZEOF, PRINT_RANGE,
-                        PRINT_CONSTANT)
+                        PRINT_CONSTANT, PRINT_ENUM)
 
 #undef PRINT_FIELD_OFFSET
 #undef PRINT_ARRAY_LAYOUT
@@ -140,6 +153,7 @@ class OffsetsExtractor : public AllStatic {
 #undef PRINT_CONSTANT
 #undef PRINT_ARRAY_SIZEOF
 #undef PRINT_PAYLOAD_SIZEOF
+#undef PRINT_ENUM
   }
 };
 

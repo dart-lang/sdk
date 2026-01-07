@@ -173,55 +173,14 @@ class IndexElementInfo {
 
   factory IndexElementInfo(Element element) {
     IndexSyntheticElementKind kind = IndexSyntheticElementKind.notSynthetic;
-    ElementKind elementKind = element.kind;
-    if (elementKind == ElementKind.LIBRARY ||
-        elementKind == ElementKind.COMPILATION_UNIT) {
-      kind = IndexSyntheticElementKind.unit;
-    } else if (element.isSynthetic) {
-      if (elementKind == ElementKind.CONSTRUCTOR) {
-        kind = IndexSyntheticElementKind.constructor;
-        element = element.enclosingElement!;
-      } else if (element is TopLevelFunctionElement &&
-          element.name == TopLevelFunctionElement.LOAD_LIBRARY_NAME) {
-        kind = IndexSyntheticElementKind.loadLibrary;
-        element = element.library;
-      } else if (elementKind == ElementKind.FIELD) {
-        var field = element as FieldElement;
-        kind = IndexSyntheticElementKind.field;
-        element = (field.getter ?? field.setter)!;
-      } else if (elementKind == ElementKind.GETTER ||
-          elementKind == ElementKind.SETTER) {
-        var accessor = element as PropertyAccessorElement;
-        var enclosing = element.enclosingElement;
-        bool isEnumGetter = enclosing is EnumElement;
-        if (isEnumGetter && accessor.name == 'index') {
-          kind = IndexSyntheticElementKind.enumIndex;
-          element = enclosing;
-        } else if (isEnumGetter && accessor.name == 'values') {
-          kind = IndexSyntheticElementKind.enumValues;
-          element = enclosing;
-        } else {
-          kind = accessor is GetterElement
-              ? IndexSyntheticElementKind.getter
-              : IndexSyntheticElementKind.setter;
-          element = accessor.variable;
-        }
-      } else if (element is MethodElement) {
-        var enclosing = element.enclosingElement;
-        bool isEnumMethod = enclosing is EnumElement;
-        if (isEnumMethod && element.name == 'toString') {
-          kind = IndexSyntheticElementKind.enumToString;
-          element = enclosing;
-        }
-      } else if (element is TopLevelVariableElement) {
-        kind = IndexSyntheticElementKind.topLevelVariable;
-        element = (element.getter ?? element.setter)!;
-      } else {
-        throw ArgumentError(
-          'Unsupported synthetic element ${element.runtimeType}',
-        );
-      }
+    if (element is GetterElement) {
+      kind = IndexSyntheticElementKind.getter;
+      element = element.variable;
+    } else if (element is SetterElement) {
+      kind = IndexSyntheticElementKind.setter;
+      element = element.variable;
     }
+
     return IndexElementInfo._(element, kind);
   }
 
@@ -529,8 +488,8 @@ class _IndexAssembler {
   _ElementInfo _getElementInfo(Element element) {
     element = element.baseElement;
     return elementMap.putIfAbsent(element, () {
-      var unitElement = getUnitElement(element);
-      int unitId = _getUnitId(unitElement);
+      var libraryFragment = getUnitElement(element);
+      int unitId = _getUnitId(libraryFragment);
       return _newElementInfo(unitId, element);
     });
   }
@@ -547,15 +506,15 @@ class _IndexAssembler {
     });
   }
 
-  /// Add information about [unitElement] to [unitUnitUris] and
+  /// Add information about [libraryFragment] to [unitUnitUris] and
   /// [unitLibraryUris] if necessary, and return the location in those
-  /// arrays representing [unitElement].
-  int _getUnitId(LibraryFragmentImpl unitElement) {
-    return unitMap.putIfAbsent(unitElement, () {
+  /// arrays representing [libraryFragment].
+  int _getUnitId(LibraryFragmentImpl libraryFragment) {
+    return unitMap.putIfAbsent(libraryFragment, () {
       assert(unitLibraryUris.length == unitUnitUris.length);
       int id = unitUnitUris.length;
-      unitLibraryUris.add(_getUriInfo(unitElement.library.uri));
-      unitUnitUris.add(_getUriInfo(unitElement.source.uri));
+      unitLibraryUris.add(_getUriInfo(libraryFragment.library.uri));
+      unitUnitUris.add(_getUriInfo(libraryFragment.source.uri));
       return id;
     });
   }
@@ -657,10 +616,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
     // Ignore named parameters of synthetic functions, e.g. created for LUB.
     // These functions are not bound to a source, we cannot index them.
-    if (elementKind == ElementKind.PARAMETER &&
-        element is FormalParameterElement) {
-      var enclosingElement = element.enclosingElement;
-      if (enclosingElement == null || enclosingElement.isSynthetic) {
+    if (element is FormalParameterElement) {
+      if (element.enclosingElement == null) {
         return;
       }
     }

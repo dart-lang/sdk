@@ -102,7 +102,7 @@ class Tags {
   /// All tags imported into this module.
   final List<ImportedTag> imported;
 
-  Tags(this.defined, this.imported);
+  Tags(this.imported, this.defined);
 
   Tag operator [](int index) => index < imported.length
       ? imported[index]

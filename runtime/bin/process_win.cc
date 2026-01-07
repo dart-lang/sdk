@@ -170,7 +170,10 @@ class ProcessInfoList {
     int exit_code;
     ok = GetExitCodeProcess(handle, reinterpret_cast<DWORD*>(&exit_code));
     if (!ok) {
-      FATAL("GetExitCodeProcess failed %d\n", GetLastError());
+      int error = GetLastError();
+      char buffer[1024];
+      FATAL("GetExitCodeProcess failed %d (%s)\n", error,
+            Utils::StrError(error, buffer, sizeof(buffer)));
     }
     int negative = 0;
     if (exit_code < 0) {
@@ -235,7 +238,10 @@ static bool CreateProcessPipe(HANDLE handles[2],
                          nullptr);
 
     if (handles[kWriteHandle] == INVALID_HANDLE_VALUE) {
-      Syslog::PrintErr("CreateNamedPipe failed %d\n", GetLastError());
+      int error = GetLastError();
+      char buffer[1024];
+      Syslog::PrintErr("CreateNamedPipe failed %d (%s)\n", error,
+                       Utils::StrError(error, buffer, sizeof(buffer)));
       return false;
     }
 
@@ -243,7 +249,10 @@ static bool CreateProcessPipe(HANDLE handles[2],
         CreateFileW(pipe_name, GENERIC_READ, 0, &inherit_handle, OPEN_EXISTING,
                     FILE_READ_ATTRIBUTES | FILE_FLAG_OVERLAPPED, nullptr);
     if (handles[kReadHandle] == INVALID_HANDLE_VALUE) {
-      Syslog::PrintErr("CreateFile failed %d\n", GetLastError());
+      int error = GetLastError();
+      char buffer[1024];
+      Syslog::PrintErr("CreateFile failed %d (%s)\n", error,
+                       Utils::StrError(error, buffer, sizeof(buffer)));
       return false;
     }
   } else {
@@ -258,7 +267,10 @@ static bool CreateProcessPipe(HANDLE handles[2],
                          nullptr);
 
     if (handles[kReadHandle] == INVALID_HANDLE_VALUE) {
-      Syslog::PrintErr("CreateNamedPipe failed %d\n", GetLastError());
+      int error = GetLastError();
+      char buffer[1024];
+      Syslog::PrintErr("CreateNamedPipe failed %d (%s)\n", error,
+                       Utils::StrError(error, buffer, sizeof(buffer)));
       return false;
     }
 
@@ -267,7 +279,10 @@ static bool CreateProcessPipe(HANDLE handles[2],
         (type == kInheritWrite) ? &inherit_handle : nullptr, OPEN_EXISTING,
         FILE_WRITE_ATTRIBUTES | FILE_FLAG_OVERLAPPED, nullptr);
     if (handles[kWriteHandle] == INVALID_HANDLE_VALUE) {
-      Syslog::PrintErr("CreateFile failed %d\n", GetLastError());
+      int error = GetLastError();
+      char buffer[1024];
+      Syslog::PrintErr("CreateFile failed %d (%s)\n", error,
+                       Utils::StrError(error, buffer, sizeof(buffer)));
       return false;
     }
   }
@@ -278,7 +293,10 @@ static void CloseProcessPipe(HANDLE handles[2]) {
   for (int i = kReadHandle; i < kWriteHandle; i++) {
     if (handles[i] != INVALID_HANDLE_VALUE) {
       if (!CloseHandle(handles[i])) {
-        Syslog::PrintErr("CloseHandle failed %d\n", GetLastError());
+        int error = GetLastError();
+        char buffer[1024];
+        Syslog::PrintErr("CloseHandle failed %d (%s)\n", error,
+                         Utils::StrError(error, buffer, sizeof(buffer)));
       }
       handles[i] = INVALID_HANDLE_VALUE;
     }
@@ -302,8 +320,10 @@ static int SetOsErrorMessage(
   const int kMaxMessageLength = 256;
   wchar_t message[kMaxMessageLength];
   FormatMessageIntoBuffer(error_code, message, kMaxMessageLength);
-  os_error_message->reset(Utils::SCreate(
-      "%ls (at %s:%d)", message, location.file_name(), location.line()));
+  WideToUtf8Scope utf8_message(message);
+  os_error_message->reset(Utils::SCreate("%s (at %s:%d)", utf8_message.utf8(),
+                                         location.file_name(),
+                                         location.line()));
   return error_code;
 }
 
@@ -316,7 +336,10 @@ static HANDLE OpenNul() {
   HANDLE nul = CreateFile(L"NUL", GENERIC_READ | GENERIC_WRITE, 0,
                           &inherit_handle, OPEN_EXISTING, 0, nullptr);
   if (nul == INVALID_HANDLE_VALUE) {
-    Syslog::PrintErr("CloseHandle failed %d\n", GetLastError());
+    int error = GetLastError();
+    char buffer[1024];
+    Syslog::PrintErr("CloseHandle failed %d (%s)\n", error,
+                     Utils::StrError(error, buffer, sizeof(buffer)));
   }
   return nul;
 }
@@ -677,7 +700,10 @@ class ProcessStarter {
     int status = GenerateNames<4>(pipe_names);
     if (status != 0) {
       SetOsErrorMessage(os_error_message_);
-      Syslog::PrintErr("UuidCreateSequential failed %d\n", status);
+      int error = GetLastError();
+      char buffer[1024];
+      Syslog::PrintErr("UuidCreateSequential failed %d (%s)\n", error,
+                       Utils::StrError(error, buffer, sizeof(buffer)));
       return status;
     }
 
@@ -997,7 +1023,10 @@ int Process::Exec(Namespace* namespc,
   HANDLE hjob = CreateJobObject(nullptr, nullptr);
   if (hjob == nullptr) {
     BufferFormatter f(errmsg, errmsg_len);
-    f.Printf("Process::Exec - CreateJobObject failed %d", GetLastError());
+    int error = GetLastError();
+    char buffer[1024];
+    f.Printf("Process::Exec - CreateJobObject failed %d %(s)", error,
+             Utils::StrError(error, buffer, sizeof(buffer)));
     return -1;
   }
   JOBOBJECT_EXTENDED_LIMIT_INFORMATION info;
@@ -1007,8 +1036,10 @@ int Process::Exec(Namespace* namespc,
                                  sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION),
                                  &qresult)) {
     BufferFormatter f(errmsg, errmsg_len);
-    f.Printf("Process::Exec - QueryInformationJobObject failed %d",
-             GetLastError());
+    int error = GetLastError();
+    char buffer[1024];
+    f.Printf("Process::Exec - QueryInformationJobObject failed %d (%s)", error,
+             Utils::StrError(error, buffer, sizeof(buffer)));
     return -1;
   }
   // Ensure that a child process that adds itself to this job object will
@@ -1021,8 +1052,10 @@ int Process::Exec(Namespace* namespc,
   if (!SetInformationJobObject(hjob, JobObjectExtendedLimitInformation, &info,
                                sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION))) {
     BufferFormatter f(errmsg, errmsg_len);
-    f.Printf("Process::Exec - SetInformationJobObject failed %d",
-             GetLastError());
+    int error = GetLastError();
+    char buffer[1024];
+    f.Printf("Process::Exec - SetInformationJobObject failed %d (%s)", error,
+             Utils::StrError(error, buffer, sizeof(buffer)));
     return -1;
   }
 
@@ -1031,8 +1064,10 @@ int Process::Exec(Namespace* namespc,
   // we haven't spawned any children yet this race is harmless)
   if (!AssignProcessToJobObject(hjob, GetCurrentProcess())) {
     BufferFormatter f(errmsg, errmsg_len);
-    f.Printf("Process::Exec - AssignProcessToJobObject failed %d",
-             GetLastError());
+    int error = GetLastError();
+    char buffer[1024];
+    f.Printf("Process::Exec - AssignProcessToJobObject failed %d (%s)", error,
+             Utils::StrError(error, buffer, sizeof(buffer)));
     return -1;
   }
 
@@ -1063,14 +1098,20 @@ int Process::Exec(Namespace* namespc,
   DWORD wait_result = WaitForSingleObject(child_process, INFINITE);
   if (wait_result != WAIT_OBJECT_0) {
     BufferFormatter f(errmsg, errmsg_len);
-    f.Printf("Process::Exec - WaitForSingleObject failed %d", GetLastError());
+    int error = GetLastError();
+    char buffer[1024];
+    f.Printf("Process::Exec - WaitForSingleObject failed %d (%s)", error,
+             Utils::StrError(error, buffer, sizeof(buffer)));
     CloseHandle(child_process);
     return -1;
   }
   int retval;
   if (!GetExitCodeProcess(child_process, reinterpret_cast<DWORD*>(&retval))) {
     BufferFormatter f(errmsg, errmsg_len);
-    f.Printf("Process::Exec - GetExitCodeProcess failed %d", GetLastError());
+    int error = GetLastError();
+    char buffer[1024];
+    f.Printf("Process::Exec - GetExitCodeProcess failed %d (%s)", error,
+             Utils::StrError(error, buffer, sizeof(buffer)));
     CloseHandle(child_process);
     return -1;
   }

@@ -44,8 +44,6 @@ enum EnumOptionalParameters([final int x = 1, var int y = 2]) {
   e(3, 4), f(3), g();
 }
 
-// TODO(kallentu): Add tests for the type being inferred from the default value.
-
 void main() {
   var p1 = Point(1, 2);
   Expect.equals(1, p1.x);

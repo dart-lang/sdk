@@ -14,6 +14,11 @@ class ForwardingListener implements Listener {
   ForwardingListener([this.listener]);
 
   @override
+  void beginAnonymousMethodInvocation(Token token) {
+    listener?.beginAnonymousMethodInvocation(token);
+  }
+
+  @override
   void beginArguments(Token token) {
     listener?.beginArguments(token);
   }
@@ -1498,6 +1503,26 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void endAnonymousMethodInvocation(
+    Token beginToken,
+    Token? functionDefinition,
+    Token endToken, {
+    required bool isExpression,
+  }) {
+    listener?.endAnonymousMethodInvocation(
+      beginToken,
+      functionDefinition,
+      endToken,
+      isExpression: isExpression,
+    );
+  }
+
+  @override
+  void handleImplicitFormalParameters(Token token) {
+    listener?.handleImplicitFormalParameters(token);
+  }
+
+  @override
   void handleAsyncModifier(Token? asyncToken, Token? starToken) {
     listener?.handleAsyncModifier(asyncToken, starToken);
   }
@@ -1895,6 +1920,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handlePositionalArgument(Token token) {
+    listener?.handlePositionalArgument(token);
+  }
+
+  @override
   void handlePatternField(Token? colon) {
     listener?.handlePatternField(colon);
   }
@@ -1902,6 +1932,11 @@ class ForwardingListener implements Listener {
   @override
   void handleNamedRecordField(Token colon) {
     listener?.handleNamedRecordField(colon);
+  }
+
+  @override
+  void handlePositionalRecordField(Token token) {
+    listener?.handlePositionalRecordField(token);
   }
 
   @override

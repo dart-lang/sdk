@@ -110,13 +110,17 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     if (element is ConstructorElement) {
       // should be 'const' constructor
       if (!element.isConst) {
-        _diagnosticReporter.atNode(node, diag.nonConstantAnnotationConstructor);
+        _diagnosticReporter.report(
+          diag.nonConstantAnnotationConstructor.at(node),
+        );
         return;
       }
       // should have arguments
       var argumentList = node.arguments;
       if (argumentList == null) {
-        _diagnosticReporter.atNode(node, diag.noAnnotationConstructorArguments);
+        _diagnosticReporter.report(
+          diag.noAnnotationConstructorArguments.at(node),
+        );
         return;
       }
       // arguments should be constants
@@ -353,6 +357,14 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorDeclaration(
+    covariant PrimaryConstructorDeclarationImpl node,
+  ) {
+    super.visitPrimaryConstructorDeclaration(node);
+    _validateDefaultValues(node.formalParameters);
+  }
+
+  @override
   void visitRecordLiteral(RecordLiteral node) {
     super.visitRecordLiteral(node);
 
@@ -528,6 +540,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           return _canBeEqual(constantType, lowestBound);
         }
       } else if (valueType is FunctionType) {
+        if (constantType.isDartCoreNull) {
+          return _typeSystem.isNullable(valueType);
+        }
+        return false;
+      } else if (valueType is RecordType) {
         if (constantType.isDartCoreNull) {
           return _typeSystem.isNullable(valueType);
         }
@@ -753,7 +770,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     if (notPotentiallyConstants.isEmpty) return;
 
     for (var notConst in notPotentiallyConstants) {
-      _diagnosticReporter.atNode(notConst, diag.invalidConstant);
+      _diagnosticReporter.report(diag.invalidConstant.at(notConst));
     }
   }
 
@@ -903,10 +920,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             // TODO(kallentu): Report the specific error we got from the
             // evaluator to make it clear to the user what's wrong.
             if (result is! DartObjectImpl) {
-              _diagnosticReporter.atToken(
-                constKeyword,
-                diag.constConstructorWithFieldInitializedByNonConst,
-                arguments: [variableDeclaration.name.lexeme],
+              _diagnosticReporter.report(
+                diag.constConstructorWithFieldInitializedByNonConst
+                    .withArguments(fieldName: variableDeclaration.name.lexeme)
+                    .at(constKeyword),
               );
             }
           }
@@ -982,7 +999,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           SwitchExpressionCaseImpl() => caseNode.arrow,
           SwitchPatternCaseImpl() => caseNode.keyword,
         };
-        _diagnosticReporter.atToken(errorToken, diag.unreachableSwitchCase);
+        _diagnosticReporter.report(diag.unreachableSwitchCase.at(errorToken));
       }
       if (nonExhaustiveness != null) {
         if (reportNonExhaustive) {
@@ -1041,9 +1058,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       } else {
         if (defaultNode != null && mustBeExhaustive) {
           // Default node is unreachable
-          _diagnosticReporter.atToken(
-            defaultNode.keyword,
-            diag.unreachableSwitchDefault,
+          _diagnosticReporter.report(
+            diag.unreachableSwitchDefault.at(defaultNode.keyword),
           );
         }
       }
@@ -1084,10 +1100,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       if (!featureSet.isEnabled(Feature.patterns)) {
         var expressionType = expressionValue.type;
         if (!expressionValue.hasPrimitiveEquality(featureSet)) {
-          _diagnosticReporter.atNode(
-            expression,
-            diag.caseExpressionTypeImplementsEquals,
-            arguments: [expressionType],
+          _diagnosticReporter.report(
+            diag.caseExpressionTypeImplementsEquals
+                .withArguments(type: expressionType)
+                .at(expression),
           );
         }
       }
@@ -1159,7 +1175,7 @@ class _ConstLiteralVerifier {
 
       return true;
     } else if (element is ForElement) {
-      verifier._diagnosticReporter.atNode(element, diag.constEvalForElement);
+      verifier._diagnosticReporter.report(diag.constEvalForElement.at(element));
       return false;
     } else if (element is IfElement) {
       var conditionConstant = verifier._evaluateAndReportError(
@@ -1262,11 +1278,11 @@ class _ConstLiteralVerifier {
     if (notPotentiallyConstants.isEmpty) return true;
 
     for (var notConst in notPotentiallyConstants) {
-      DiagnosticCode errorCode;
+      DiagnosticCode diagnosticCode;
       if (listElementType != null) {
-        errorCode = diag.nonConstantListElement;
+        diagnosticCode = diag.nonConstantListElement;
       } else if (mapConfig != null) {
-        errorCode = diag.nonConstantMapElement;
+        diagnosticCode = diag.nonConstantMapElement;
         for (
           AstNode? parent = notConst;
           parent != null;
@@ -1274,19 +1290,19 @@ class _ConstLiteralVerifier {
         ) {
           if (parent is MapLiteralEntry) {
             if (parent.key == notConst) {
-              errorCode = diag.nonConstantMapKey;
+              diagnosticCode = diag.nonConstantMapKey;
             } else {
-              errorCode = diag.nonConstantMapValue;
+              diagnosticCode = diag.nonConstantMapValue;
             }
             break;
           }
         }
       } else if (setConfig != null) {
-        errorCode = diag.nonConstantSetElement;
+        diagnosticCode = diag.nonConstantSetElement;
       } else {
         throw UnimplementedError();
       }
-      verifier._diagnosticReporter.atNode(notConst, errorCode);
+      verifier._diagnosticReporter.atNode(notConst, diagnosticCode);
     }
 
     return false;
@@ -1332,9 +1348,8 @@ class _ConstLiteralVerifier {
       // TODO(kallentu): Consolidate this with
       // [ConstantVisitor._addElementsToList] and the other similar
       // _addElementsTo methods..
-      verifier._diagnosticReporter.atNode(
-        element.expression,
-        diag.constSpreadExpectedListOrSet,
+      verifier._diagnosticReporter.report(
+        diag.constSpreadExpectedListOrSet.at(element.expression),
       );
       return false;
     }
@@ -1347,10 +1362,10 @@ class _ConstLiteralVerifier {
     if (listValue != null) {
       var featureSet = verifier._currentLibrary.featureSet;
       if (!listValue.every((e) => e.hasPrimitiveEquality(featureSet))) {
-        verifier._diagnosticReporter.atNode(
-          element,
-          diag.constSetElementNotPrimitiveEquality,
-          arguments: [value.type],
+        verifier._diagnosticReporter.report(
+          diag.constSetElementNotPrimitiveEquality
+              .withArguments(type: value.type)
+              .at(element),
         );
         return false;
       }
@@ -1417,10 +1432,10 @@ class _ConstLiteralVerifier {
 
       var featureSet = verifier._currentLibrary.featureSet;
       if (!keyValue.hasPrimitiveEquality(featureSet)) {
-        verifier._diagnosticReporter.atNode(
-          keyExpression,
-          diag.constMapKeyNotPrimitiveEquality,
-          arguments: [keyType],
+        verifier._diagnosticReporter.report(
+          diag.constMapKeyNotPrimitiveEquality
+              .withArguments(keyType: keyType)
+              .at(keyExpression),
         );
       }
 
@@ -1493,9 +1508,8 @@ class _ConstLiteralVerifier {
       }
       return true;
     }
-    verifier._diagnosticReporter.atNode(
-      element.expression,
-      diag.constSpreadExpectedMap,
+    verifier._diagnosticReporter.report(
+      diag.constSpreadExpectedMap.at(element.expression),
     );
     return false;
   }
@@ -1527,10 +1541,10 @@ class _ConstLiteralVerifier {
 
     var featureSet = verifier._currentLibrary.featureSet;
     if (!value.hasPrimitiveEquality(featureSet)) {
-      verifier._diagnosticReporter.atNode(
-        expression,
-        diag.constSetElementNotPrimitiveEquality,
-        arguments: [value.type],
+      verifier._diagnosticReporter.report(
+        diag.constSetElementNotPrimitiveEquality
+            .withArguments(type: value.type)
+            .at(expression),
       );
       return false;
     }

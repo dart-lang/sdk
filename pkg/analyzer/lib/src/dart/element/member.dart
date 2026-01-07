@@ -179,6 +179,7 @@ abstract class SubstitutedElementImpl implements Element {
   @override
   bool get isPublic => baseElement.isPublic;
 
+  @Deprecated('Use isOriginX instead')
   @override
   bool get isSynthetic => baseElement.isSynthetic;
 
@@ -469,6 +470,10 @@ class SubstitutedFieldElementImpl extends SubstitutedVariableElementImpl
 
   @override
   bool get isOriginEnumValues => baseElement.isOriginEnumValues;
+
+  @override
+  bool get isOriginExtensionTypeRecoveryRepresentation =>
+      baseElement.isOriginExtensionTypeRecoveryRepresentation;
 
   @override
   bool get isOriginGetterSetter => baseElement.isOriginGetterSetter;
@@ -788,7 +793,7 @@ class SubstitutedGetterElementImpl
 
   @override
   Element get nonSynthetic {
-    if (isSynthetic) {
+    if (isOriginVariable) {
       return variable.nonSynthetic;
     } else {
       return this;
@@ -856,6 +861,12 @@ class SubstitutedMethodElementImpl extends SubstitutedExecutableElementImpl
 
   @override
   bool get isOperator => baseElement.isOperator;
+
+  @override
+  bool get isOriginDeclaration => baseElement.isOriginDeclaration;
+
+  @override
+  bool get isOriginInterface => baseElement.isOriginInterface;
 
   @override
   LibraryElement get library => baseElement.library;
@@ -992,7 +1003,7 @@ class SubstitutedSetterElementImpl
 
   @override
   Element get nonSynthetic {
-    if (isSynthetic) {
+    if (isOriginVariable) {
       return variable.nonSynthetic;
     } else {
       return this;

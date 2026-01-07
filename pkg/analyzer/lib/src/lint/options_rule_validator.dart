@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_state.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -11,6 +10,7 @@ import 'package:analyzer/src/analysis_options/options_validator.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/util/yaml.dart';
@@ -65,10 +65,8 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     this.isPrimarySource = true,
   });
 
-  AbstractAnalysisRule? getRegisteredLint(String value) => Registry
-      .ruleRegistry
-      .rules
-      .firstWhereOrNull((rule) => rule.name == value);
+  AbstractAnalysisRule? getRegisteredLint(String value) =>
+      Registry.ruleRegistry[value];
 
   bool isDeprecatedInCurrentOrEarlierSdk(RuleState state) =>
       state.isDeprecated && _beforeCurrentConstraint(state.since);
@@ -182,8 +180,13 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     List<_IncompatibleRuleData> incompatibleRules = [];
     for (var incompatibleRule in rule.incompatibleRules) {
       for (var MapEntry(:key, value: rules) in rules.entries) {
-        if (rules.map((node) => node.value).contains(incompatibleRule)) {
-          var list = rules.where((scalar) => scalar.value == incompatibleRule);
+        if (rules
+            .map((node) => _safeToLower(node.value))
+            .contains(incompatibleRule.toLowerCase())) {
+          var list = rules.where(
+            (scalar) =>
+                _safeToLower(scalar.value) == incompatibleRule.toLowerCase(),
+          );
           for (var scalar in list) {
             var rule = getRegisteredLint(scalar.value.toString())!;
             incompatibleRules.add(
@@ -259,11 +262,13 @@ class LinterRuleOptionsValidator extends OptionsValidator {
         );
       }
     }
-    if (rules[null]!.map((e) => e.value).contains(ruleData.node.value)) {
-      reporter.atSourceSpan(
-        ruleData.node.span,
-        diag.duplicateRule,
-        arguments: [value],
+    if (rules[null]!
+        .map((e) => _safeToLower(e.value))
+        .contains(_safeToLower(ruleData.node.value))) {
+      reporter.report(
+        diag.duplicateRule
+            .withArguments(ruleName: value)
+            .atSourceSpan(ruleData.node.span),
       );
     }
   }
@@ -357,6 +362,9 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     return seenRules;
   }
 
+  Object? _safeToLower(Object? value) =>
+      value is String ? value.toLowerCase() : value;
+
   void _validateRules(
     YamlNode? rules,
     DiagnosticReporter reporter,
@@ -380,10 +388,10 @@ class LinterRuleOptionsValidator extends OptionsValidator {
 
       var rule = getRegisteredLint(value);
       if (rule == null) {
-        reporter.atSourceSpan(
-          node.span,
-          diag.undefinedLint,
-          arguments: [value],
+        reporter.report(
+          diag.undefinedLint
+              .withArguments(ruleName: value)
+              .atSourceSpan(node.span),
         );
         return null;
       }
@@ -408,14 +416,14 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       } else {
         enabledValue = false;
         var warningNode = enabled is YamlNode ? enabled : node;
-        reporter.atSourceSpan(
-          warningNode.span,
-          diag.unsupportedValue,
-          arguments: [
-            value,
-            ruleValue,
-            validLintValues.quotedAndCommaSeparatedWithOr,
-          ],
+        reporter.report(
+          diag.unsupportedValue
+              .withArguments(
+                optionName: value,
+                invalidValue: ruleValue,
+                legalValues: validLintValues.quotedAndCommaSeparatedWithOr,
+              )
+              .atSourceSpan(warningNode.span),
         );
       }
 
@@ -426,32 +434,39 @@ class LinterRuleOptionsValidator extends OptionsValidator {
         if (state.isDeprecated && isDeprecatedInCurrentOrEarlierSdk(state)) {
           var replacedBy = state.replacedBy;
           if (replacedBy != null) {
-            reporter.atSourceSpan(
-              node.span,
-              diag.deprecatedLintWithReplacement,
-              arguments: [value, replacedBy],
+            reporter.report(
+              diag.deprecatedLintWithReplacement
+                  .withArguments(
+                    deprecatedRuleName: value,
+                    replacementRuleName: replacedBy,
+                  )
+                  .atSourceSpan(node.span),
             );
           } else {
-            reporter.atSourceSpan(
-              node.span,
-              diag.deprecatedLint,
-              arguments: [value],
+            reporter.report(
+              diag.deprecatedLint
+                  .withArguments(ruleName: value)
+                  .atSourceSpan(node.span),
             );
           }
         } else if (isRemovedInCurrentOrEarlierSdk(state)) {
           var since = state.since.toString();
           var replacedBy = state.replacedBy;
           if (replacedBy != null) {
-            reporter.atSourceSpan(
-              node.span,
-              diag.replacedLint,
-              arguments: [value, since, replacedBy],
+            reporter.report(
+              diag.replacedLint
+                  .withArguments(
+                    ruleName: value,
+                    sdkVersion: since,
+                    replacingLintName: replacedBy,
+                  )
+                  .atSourceSpan(node.span),
             );
           } else {
-            reporter.atSourceSpan(
-              node.span,
-              diag.removedLint,
-              arguments: [value, since],
+            reporter.report(
+              diag.removedLint
+                  .withArguments(ruleName: value, sdkVersion: since)
+                  .atSourceSpan(node.span),
             );
           }
         }

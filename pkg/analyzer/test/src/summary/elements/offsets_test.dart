@@ -1631,12 +1631,12 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 raw (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isOriginDeclaration raw (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::raw
-        #F2 hasDocComment (nameOffset:50) (firstTokenOffset:15) (offset:50)
+        #F2 isOriginDeclaration hasDocComment (nameOffset:50) (firstTokenOffset:15) (offset:50)
           element: <testLibrary>::@function::hasDocComment
           documentationComment: /// Comment 1.\n/// Comment 2.
-        #F3 hasAnnotation (nameOffset:85) (firstTokenOffset:70) (offset:85)
+        #F3 isOriginDeclaration hasAnnotation (nameOffset:85) (firstTokenOffset:70) (offset:85)
           element: <testLibrary>::@function::hasAnnotation
           metadata
             Annotation
@@ -1649,7 +1649,7 @@ library
                 leftParenthesis: ( @77
                 rightParenthesis: ) @78
               element: dart:core::@class::Object::@constructor::new
-        #F4 annotationThenComment (nameOffset:150) (firstTokenOffset:105) (offset:150)
+        #F4 isOriginDeclaration annotationThenComment (nameOffset:150) (firstTokenOffset:105) (offset:150)
           element: <testLibrary>::@function::annotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -1663,7 +1663,7 @@ library
                 leftParenthesis: ( @112
                 rightParenthesis: ) @113
               element: dart:core::@class::Object::@constructor::new
-        #F5 commentThenAnnotation (nameOffset:223) (firstTokenOffset:178) (offset:223)
+        #F5 isOriginDeclaration commentThenAnnotation (nameOffset:223) (firstTokenOffset:178) (offset:223)
           element: <testLibrary>::@function::commentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -1677,7 +1677,7 @@ library
                 leftParenthesis: ( @215
                 rightParenthesis: ) @216
               element: dart:core::@class::Object::@constructor::new
-        #F6 commentAroundAnnotation (nameOffset:296) (firstTokenOffset:266) (offset:296)
+        #F6 isOriginDeclaration commentAroundAnnotation (nameOffset:296) (firstTokenOffset:266) (offset:296)
           element: <testLibrary>::@function::commentAroundAnnotation
           documentationComment: /// Comment 2.
           metadata
@@ -1692,16 +1692,16 @@ library
                 rightParenthesis: ) @274
               element: dart:core::@class::Object::@constructor::new
   functions
-    raw
+    isOriginDeclaration raw
       reference: <testLibrary>::@function::raw
       firstFragment: #F1
       returnType: void
-    hasDocComment
+    isOriginDeclaration hasDocComment
       reference: <testLibrary>::@function::hasDocComment
       firstFragment: #F2
       documentationComment: /// Comment 1.\n/// Comment 2.
       returnType: void
-    hasAnnotation
+    isOriginDeclaration hasAnnotation
       reference: <testLibrary>::@function::hasAnnotation
       firstFragment: #F3
       metadata
@@ -1716,7 +1716,7 @@ library
             rightParenthesis: ) @78
           element: dart:core::@class::Object::@constructor::new
       returnType: void
-    annotationThenComment
+    isOriginDeclaration annotationThenComment
       reference: <testLibrary>::@function::annotationThenComment
       firstFragment: #F4
       documentationComment: /// Comment 1.\n/// Comment 2.
@@ -1732,7 +1732,7 @@ library
             rightParenthesis: ) @113
           element: dart:core::@class::Object::@constructor::new
       returnType: void
-    commentThenAnnotation
+    isOriginDeclaration commentThenAnnotation
       reference: <testLibrary>::@function::commentThenAnnotation
       firstFragment: #F5
       documentationComment: /// Comment 1.\n/// Comment 2.
@@ -1748,7 +1748,7 @@ library
             rightParenthesis: ) @216
           element: dart:core::@class::Object::@constructor::new
       returnType: void
-    commentAroundAnnotation
+    isOriginDeclaration commentAroundAnnotation
       reference: <testLibrary>::@function::commentAroundAnnotation
       firstFragment: #F6
       documentationComment: /// Comment 2.
@@ -1810,16 +1810,16 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 raw (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration raw (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@class::C::@method::raw
               codeOffset: 12
               codeLength: 13
-            #F4 hasDocComment (nameOffset:68) (firstTokenOffset:29) (offset:68)
+            #F4 isOriginDeclaration hasDocComment (nameOffset:68) (firstTokenOffset:29) (offset:68)
               element: <testLibrary>::@class::C::@method::hasDocComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               codeOffset: 29
               codeLength: 57
-            #F5 hasAnnotation (nameOffset:107) (firstTokenOffset:90) (offset:107)
+            #F5 isOriginDeclaration hasAnnotation (nameOffset:107) (firstTokenOffset:90) (offset:107)
               element: <testLibrary>::@class::C::@method::hasAnnotation
               metadata
                 Annotation
@@ -1834,7 +1834,7 @@ library
                   element: dart:core::@class::Object::@constructor::new
               codeOffset: 90
               codeLength: 35
-            #F6 annotationThenComment (nameOffset:180) (firstTokenOffset:129) (offset:180)
+            #F6 isOriginDeclaration annotationThenComment (nameOffset:180) (firstTokenOffset:129) (offset:180)
               element: <testLibrary>::@class::C::@method::annotationThenComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
@@ -1850,7 +1850,7 @@ library
                   element: dart:core::@class::Object::@constructor::new
               codeOffset: 129
               codeLength: 77
-            #F7 commentThenAnnotation (nameOffset:261) (firstTokenOffset:210) (offset:261)
+            #F7 isOriginDeclaration commentThenAnnotation (nameOffset:261) (firstTokenOffset:210) (offset:261)
               element: <testLibrary>::@class::C::@method::commentThenAnnotation
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
@@ -1866,7 +1866,7 @@ library
                   element: dart:core::@class::Object::@constructor::new
               codeOffset: 210
               codeLength: 77
-            #F8 commentAroundAnnotation (nameOffset:342) (firstTokenOffset:308) (offset:342)
+            #F8 isOriginDeclaration commentAroundAnnotation (nameOffset:342) (firstTokenOffset:308) (offset:342)
               element: <testLibrary>::@class::C::@method::commentAroundAnnotation
               documentationComment: /// Comment 2.
               metadata
@@ -1891,16 +1891,16 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
       methods
-        raw
+        isOriginDeclaration raw
           reference: <testLibrary>::@class::C::@method::raw
           firstFragment: #F3
           returnType: void
-        hasDocComment
+        isOriginDeclaration hasDocComment
           reference: <testLibrary>::@class::C::@method::hasDocComment
           firstFragment: #F4
           documentationComment: /// Comment 1.\n/// Comment 2.
           returnType: void
-        hasAnnotation
+        isOriginDeclaration hasAnnotation
           reference: <testLibrary>::@class::C::@method::hasAnnotation
           firstFragment: #F5
           metadata
@@ -1915,7 +1915,7 @@ library
                 rightParenthesis: ) @98
               element: dart:core::@class::Object::@constructor::new
           returnType: void
-        annotationThenComment
+        isOriginDeclaration annotationThenComment
           reference: <testLibrary>::@class::C::@method::annotationThenComment
           firstFragment: #F6
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -1931,7 +1931,7 @@ library
                 rightParenthesis: ) @137
               element: dart:core::@class::Object::@constructor::new
           returnType: void
-        commentThenAnnotation
+        isOriginDeclaration commentThenAnnotation
           reference: <testLibrary>::@class::C::@method::commentThenAnnotation
           firstFragment: #F7
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -1947,7 +1947,7 @@ library
                 rightParenthesis: ) @252
               element: dart:core::@class::Object::@constructor::new
           returnType: void
-        commentAroundAnnotation
+        isOriginDeclaration commentAroundAnnotation
           reference: <testLibrary>::@class::C::@method::commentAroundAnnotation
           firstFragment: #F8
           documentationComment: /// Comment 2.
@@ -1978,7 +1978,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 main (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 isOriginDeclaration main (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::main
           formalParameters
             #F2 optionalNamed a (nameOffset:10) (firstTokenOffset:6) (offset:10)
@@ -1996,7 +1996,7 @@ library
                   literal: 2 @32
                   staticType: int
   functions
-    main
+    isOriginDeclaration main
       reference: <testLibrary>::@function::main
       firstFragment: #F1
       formalParameters
@@ -2031,7 +2031,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 main (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 isOriginDeclaration main (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::main
           formalParameters
             #F2 requiredPositional a (nameOffset:19) (firstTokenOffset:5) (offset:19)
@@ -2063,7 +2063,7 @@ library
                     rightParenthesis: ) @37
                   element: dart:core::@class::Object::@constructor::new
   functions
-    main
+    isOriginDeclaration main
       reference: <testLibrary>::@function::main
       firstFragment: #F1
       formalParameters
@@ -2816,7 +2816,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       functions
-        #F4 f (nameOffset:19) (firstTokenOffset:14) (offset:19)
+        #F4 isOriginDeclaration f (nameOffset:19) (firstTokenOffset:14) (offset:19)
           element: <testLibrary>::@function::f
           typeParameters
             #F5 U (nameOffset:21) (firstTokenOffset:21) (offset:21)
@@ -2833,7 +2833,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F4
       typeParameters
@@ -3055,7 +3055,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@class::A::@method::foo
               typeParameters
                 #F4 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
@@ -3072,7 +3072,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@method::foo
           firstFragment: #F3
           typeParameters
@@ -3214,7 +3214,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isOriginDeclaration f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
             #F2 requiredPositional f (nameOffset:12) (firstTokenOffset:7) (offset:12)
@@ -3226,7 +3226,7 @@ library
                 #F4 requiredPositional a (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: a@21
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
@@ -3255,7 +3255,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isOriginDeclaration f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
             #F2 requiredNamed f (nameOffset:22) (firstTokenOffset:8) (offset:22)
@@ -3267,7 +3267,7 @@ library
                 #F4 requiredPositional a (nameOffset:31) (firstTokenOffset:27) (offset:31)
                   element: a@31
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
@@ -3296,13 +3296,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isOriginDeclaration f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           typeParameters
             #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
   functions
-    f
+    isOriginDeclaration f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       typeParameters

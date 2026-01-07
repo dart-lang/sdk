@@ -1733,6 +1733,29 @@ abstract class Listener implements UnescapeErrorListener {
     logEvent("AssignmentExpression");
   }
 
+  void beginAnonymousMethodInvocation(Token token) {}
+
+  /// Called after the parser has consumed an anonymous method invocation.
+  /// Substructures:
+  /// - The target of the invocation.
+  /// - A formal parameter list (can be implicit, see
+  ///   [handleImplicitFormalParameters]).
+  /// - The body of the anonymous method (either an expression or a block).
+  void endAnonymousMethodInvocation(
+    Token beginToken,
+    Token? functionDefinition,
+    Token endToken, {
+    required bool isExpression,
+  }) {
+    logEvent("AnonymousMethodInvocation");
+  }
+
+  /// Called when an anonymous method invocation does not have
+  /// an explicit formal parameter list.
+  void handleImplicitFormalParameters(Token token) {
+    logEvent("ImplicitFormalParameters");
+  }
+
   /// Called when the parser encounters a binary operator, in between the LHS
   /// and RHS subexpressions.
   ///
@@ -2005,6 +2028,8 @@ abstract class Listener implements UnescapeErrorListener {
     logEvent("NamedArgument");
   }
 
+  void handlePositionalArgument(Token token) {}
+
   /// Called after the parser has consumed a patternField, consisting of an
   /// optional identifier, optional `:`, and a pattern.
   void handlePatternField(Token? colon) {
@@ -2014,6 +2039,8 @@ abstract class Listener implements UnescapeErrorListener {
   void handleNamedRecordField(Token colon) {
     logEvent("NamedRecordField");
   }
+
+  void handlePositionalRecordField(Token token) {}
 
   void beginNewExpression(Token token) {}
 

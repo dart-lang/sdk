@@ -31,7 +31,7 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
 class DefiningLinkingUnit extends LinkingUnit {
-  DefiningLinkingUnit({required super.node, required super.element});
+  DefiningLinkingUnit({required super.node, required super.fragment});
 }
 
 class ImplicitEnumNodes {
@@ -178,14 +178,14 @@ class LibraryBuilder {
     _buildDirectives(kind: kind, containerUnit: element.firstFragment);
 
     for (var linkingUnit in units) {
-      var elementBuilder = FragmentBuilder(
+      var fragmentBuilder = FragmentBuilder(
         libraryBuilder: this,
-        unitElement: linkingUnit.element,
+        libraryFragment: linkingUnit.fragment,
       );
-      elementBuilder.buildDirectives(linkingUnit.node);
-      elementBuilder.buildDeclarationFragments(linkingUnit.node);
+      fragmentBuilder.buildDirectives(linkingUnit.node);
+      fragmentBuilder.buildDeclarationFragments(linkingUnit.node);
       if (linkingUnit is DefiningLinkingUnit) {
-        elementBuilder.buildLibraryMetadata(linkingUnit.node);
+        fragmentBuilder.buildLibraryMetadata(linkingUnit.node);
       }
     }
 
@@ -196,7 +196,7 @@ class LibraryBuilder {
 
     for (var linkingUnit in units) {
       InformativeDataApplier().applyFromNode(
-        linkingUnit.element,
+        linkingUnit.fragment,
         linkingUnit.node,
       );
     }
@@ -351,7 +351,7 @@ class LibraryBuilder {
 
   void resolveMetadata() {
     for (var linkingUnit in units) {
-      var resolver = MetadataResolver(linker, linkingUnit.element, this);
+      var resolver = MetadataResolver(linker, linkingUnit.fragment, this);
       linkingUnit.node.accept(resolver);
     }
   }
@@ -362,7 +362,7 @@ class LibraryBuilder {
         linker,
         nodesToBuildType,
         element.typeSystem,
-        linkingUnit.element.scope,
+        linkingUnit.fragment.scope,
       );
       linkingUnit.node.accept(resolver);
     }
@@ -652,23 +652,23 @@ class LibraryBuilder {
           var partUnitNode = partFile.parse(
             performance: OperationPerformanceImpl('<root>'),
           );
-          var unitElement = LibraryFragmentImpl(
+          var libraryFragment = LibraryFragmentImpl(
             library: containerLibrary,
             source: partFile.source,
             lineInfo: partUnitNode.lineInfo,
           );
-          partUnitNode.declaredFragment = unitElement;
-          unitElement.isSynthetic = !partFile.exists;
-          unitElement.setCodeRange(0, partUnitNode.length);
+          partUnitNode.declaredFragment = libraryFragment;
+          libraryFragment.isSynthetic = !partFile.exists;
+          libraryFragment.setCodeRange(0, partUnitNode.length);
 
-          units.add(LinkingUnit(node: partUnitNode, element: unitElement));
+          units.add(LinkingUnit(node: partUnitNode, fragment: libraryFragment));
 
-          _buildDirectives(kind: includedPart, containerUnit: unitElement);
+          _buildDirectives(kind: includedPart, containerUnit: libraryFragment);
 
           directiveUri = DirectiveUriWithUnitImpl(
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
-            libraryFragment: unitElement,
+            libraryFragment: libraryFragment,
           );
         } else {
           directiveUri = DirectiveUriWithSourceImpl(
@@ -773,27 +773,30 @@ class LibraryBuilder {
       nameLength,
       libraryUnitNode.featureSet,
     );
-    libraryElement.isSynthetic = !libraryFile.exists;
+    if (!libraryFile.exists) {
+      libraryElement.isOriginNotExistingFile = true;
+      libraryElement.isSynthetic = true;
+    }
     libraryElement.languageVersion = libraryUnitNode.languageVersion;
     libraryElement.reference = libraryReference;
     libraryReference.element = libraryElement;
 
     var linkingUnits = <LinkingUnit>[];
     {
-      var unitElement = LibraryFragmentImpl(
+      var libraryFragment = LibraryFragmentImpl(
         library: libraryElement,
         source: libraryFile.source,
         lineInfo: libraryUnitNode.lineInfo,
       );
-      libraryUnitNode.declaredFragment = unitElement;
-      unitElement.isSynthetic = !libraryFile.exists;
-      unitElement.setCodeRange(0, libraryUnitNode.length);
+      libraryUnitNode.declaredFragment = libraryFragment;
+      libraryFragment.isSynthetic = !libraryFile.exists;
+      libraryFragment.setCodeRange(0, libraryUnitNode.length);
 
       linkingUnits.add(
-        DefiningLinkingUnit(node: libraryUnitNode, element: unitElement),
+        DefiningLinkingUnit(node: libraryUnitNode, fragment: libraryFragment),
       );
 
-      libraryElement.firstFragment = unitElement;
+      libraryElement.firstFragment = libraryFragment;
     }
 
     var builder = LibraryBuilder._(
@@ -814,9 +817,9 @@ class LibraryBuilder {
 
 class LinkingUnit {
   final ast.CompilationUnitImpl node;
-  final LibraryFragmentImpl element;
+  final LibraryFragmentImpl fragment;
 
-  LinkingUnit({required this.node, required this.element});
+  LinkingUnit({required this.node, required this.fragment});
 }
 
 /// This class examines all the [InterfaceElementImpl]s in a library and

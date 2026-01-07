@@ -851,7 +851,7 @@ class _FunctionLiteralDependencies
 class _IdenticalArgumentInfo {
   /// The [ExpressionInfo] returned by [FlowAnalysis.equalityOperand_end] for
   /// the argument.
-  final ExpressionInfo<SharedTypeView>? expressionInfo;
+  final ExpressionInfo? expressionInfo;
 
   /// The static type of the argument.
   final TypeImpl staticType;

@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -20,6 +19,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 
@@ -100,7 +100,7 @@ class BinaryExpressionResolver {
 
     var flowAnalysis = _resolver.flowAnalysis;
     var flow = flowAnalysis.flow;
-    ExpressionInfo<SharedTypeView>? leftInfo;
+    ExpressionInfo? leftInfo;
     var leftExtensionOverride = left is ExtensionOverride;
     if (!leftExtensionOverride) {
       leftInfo = flow?.equalityOperand_end(left);
@@ -146,14 +146,14 @@ class BinaryExpressionResolver {
     );
 
     void reportNullComparison(SyntacticEntity start, SyntacticEntity end) {
-      var errorCode = notEqual
+      var diagnosticCode = notEqual
           ? diag.unnecessaryNullComparisonAlwaysNullFalse
           : diag.unnecessaryNullComparisonAlwaysNullTrue;
       var offset = start.offset;
       _diagnosticReporter.atOffset(
         offset: offset,
         length: end.end - offset,
-        diagnosticCode: errorCode,
+        diagnosticCode: diagnosticCode,
       );
     }
 
@@ -417,9 +417,8 @@ class BinaryExpressionResolver {
     var leftType = leftOperand.typeOrThrow;
 
     if (identical(leftType, NeverTypeImpl.instance)) {
-      _resolver.diagnosticReporter.atNode(
-        leftOperand,
-        diag.receiverOfTypeNever,
+      _resolver.diagnosticReporter.report(
+        diag.receiverOfTypeNever.at(leftOperand),
       );
       return;
     }

@@ -4,6 +4,8 @@
 
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 import '../utilities/git.dart';
 import 'project_generator.dart';
 
@@ -16,7 +18,18 @@ class GitWorktreeProjectGenerator implements ProjectGenerator {
   /// The ref (commit sha, tag, or branch) to check out into a new working tree.
   final String ref;
 
-  GitWorktreeProjectGenerator(this.originalRepo, this.ref);
+  /// Whether or not this is an SDK repo. If it is, we use gclient and set things
+  /// up a bit differently.
+  final bool isSdkRepo;
+
+  /// The root temp dir to clean up, if it isn't the same as the project dir.
+  Directory? tmpDir;
+
+  GitWorktreeProjectGenerator(
+    this.originalRepo,
+    this.ref, {
+    this.isSdkRepo = false,
+  });
 
   @override
   String get description =>
@@ -25,12 +38,27 @@ class GitWorktreeProjectGenerator implements ProjectGenerator {
   @override
   Future<Iterable<Directory>> setUp() async {
     var projectDir = await Directory.systemTemp.createTemp('as_git_worktree');
+    if (isSdkRepo) {
+      if (tmpDir != null) {
+        throw StateError(
+          'Project already set up, must wait for tearDown to complete to call '
+          'setUp again',
+        );
+      }
+      tmpDir = projectDir;
+      projectDir = Directory(p.join(projectDir.path, 'sdk'));
+    }
     await runGitCommand([
       'worktree',
       'add',
       '-d',
       projectDir.path,
     ], originalRepo);
+    if (isSdkRepo) {
+      await _setUpSdk(projectDir);
+    } else {
+      await runPubGet(projectDir);
+    }
     return [projectDir];
   }
 
@@ -45,5 +73,27 @@ class GitWorktreeProjectGenerator implements ProjectGenerator {
       '-f',
       workspaceDirs.single.path,
     ], originalRepo);
+    await tmpDir?.delete(recursive: true);
+    tmpDir = null;
+  }
+
+  Future<void> _setUpSdk(Directory projectDir) async {
+    print('Running gclient sync in ${projectDir.path}');
+    var newGclientDir = p.dirname(projectDir.path);
+    var oldGclientDir = p.dirname(p.normalize(originalRepo.path));
+    for (var file in ['.gclient', '.gclient_entries']) {
+      await File(p.join(oldGclientDir, file)).copy(p.join(newGclientDir, file));
+    }
+
+    var gclientSyncResult = await Process.run('gclient', [
+      'sync',
+    ], workingDirectory: projectDir.path);
+    if (gclientSyncResult.exitCode != 0) {
+      throw StateError(
+        'Failed to run `gclient sync`:\n'
+        'StdOut:\n${gclientSyncResult.stdout}\n'
+        'StdErr:\n${gclientSyncResult.stderr}',
+      );
+    }
   }
 }

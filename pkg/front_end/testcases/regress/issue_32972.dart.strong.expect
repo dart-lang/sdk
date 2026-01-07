@@ -61,7 +61,7 @@ static method main() → dynamic {
   self::Foo f = new self::Foo::•();
   invalid-expression "pkg/front_end/testcases/regress/issue_32972.dart:27:5: Error: Expected 1 type arguments.
   f.bar<double, double>(42.42);
-    ^" in f.{self::Foo::bar}{<inapplicable>}.<core::double, core::double>(42.42){(invalid-type) → invalid-type};
+    ^" in f.{self::Foo::bar}{<inapplicable>}.(42.42){(invalid-type) → invalid-type};
   f.{self::Foo::bar}<core::double>(42.42){(core::double) → dynamic};
   invalid-expression "pkg/front_end/testcases/regress/issue_32972.dart:29:7: Error: Expected 2 type arguments.
   new Bar<String>();

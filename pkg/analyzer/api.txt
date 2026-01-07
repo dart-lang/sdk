@@ -329,30 +329,11 @@ package:analyzer/dart/analysis/analysis_options.dart:
     formatterOptions (getter: FormatterOptions)
     lint (getter: bool)
     lintRules (getter: List<AbstractAnalysisRule>)
-    pluginConfigurations (getter: List<PluginConfiguration>, deprecated)
     strictCasts (getter: bool)
     strictInference (getter: bool)
     strictRawTypes (getter: bool)
     warning (getter: bool)
     isLintEnabled (method: bool Function(String))
-  GitPluginSource (class extends Object implements PluginSource):
-    new (constructor: GitPluginSource Function({String? path, String? ref, required String url}))
-    toYaml (method: String Function({required String name}))
-  PathPluginSource (class extends Object implements PluginSource):
-    new (constructor: PathPluginSource Function({required String path}))
-    toYaml (method: String Function({required String name}))
-  PluginConfiguration (class extends Object):
-    new (constructor: PluginConfiguration Function({Map<String, RuleConfig> diagnosticConfigs, bool isEnabled, required String name, required PluginSource source}))
-    diagnosticConfigs (getter: Map<String, RuleConfig>)
-    isEnabled (getter: bool)
-    name (getter: String)
-    source (getter: PluginSource)
-    sourceYaml (method: String Function())
-  PluginSource (class extends Object, sealed (immediate subtypes: GitPluginSource, PathPluginSource, VersionedPluginSource)):
-    toYaml (method: String Function({required String name}))
-  VersionedPluginSource (class extends Object implements PluginSource):
-    new (constructor: VersionedPluginSource Function({required String constraint}))
-    toYaml (method: String Function({required String name}))
 package:analyzer/dart/analysis/code_style_options.dart:
   CodeStyleOptions (class extends Object):
     new (constructor: CodeStyleOptions Function())
@@ -394,7 +375,7 @@ package:analyzer/dart/analysis/declared_variables.dart:
     get (method: String? Function(String))
 package:analyzer/dart/analysis/features.dart:
   Feature (class extends Object):
-    anonymous_methods (static getter: ExperimentalFeature)
+    anonymous_methods (static getter: ExperimentalFeature, experimental)
     augmentations (static getter: ExperimentalFeature)
     class_modifiers (static getter: ExperimentalFeature)
     constant_update_2018 (static getter: ExperimentalFeature)
@@ -1943,6 +1924,7 @@ package:analyzer/dart/ast/syntactic_entity.dart:
     end (getter: int)
     length (getter: int)
     offset (getter: int)
+    sourceRange (getter: SourceRange)
 package:analyzer/dart/ast/token.dart:
   CommentToken (class extends StringToken):
     new (constructor: CommentToken Function(TokenType, String, int))
@@ -3422,6 +3404,7 @@ package:analyzer/dart/element/element.dart:
     offset (getter: int)
     periodOffset (getter: int?)
     previousFragment (getter: ConstructorFragment?)
+    thisKeywordOffset (getter: int?)
     typeName (getter: String?)
     typeNameOffset (getter: int?)
   DirectiveUri (class extends Object):
@@ -3453,7 +3436,7 @@ package:analyzer/dart/element/element.dart:
     id (getter: int)
     isPrivate (getter: bool)
     isPublic (getter: bool)
-    isSynthetic (getter: bool)
+    isSynthetic (getter: bool, deprecated)
     kind (getter: ElementKind)
     library (getter: LibraryElement?)
     lookupName (getter: String?)
@@ -3611,7 +3594,7 @@ package:analyzer/dart/element/element.dart:
     isAugmentation (getter: bool)
     isGenerator (getter: bool)
     isSynchronous (getter: bool)
-    isSynthetic (getter: bool)
+    isSynthetic (getter: bool, deprecated)
     libraryFragment (getter: LibraryFragment)
     nextFragment (getter: ExecutableFragment?)
     previousFragment (getter: ExecutableFragment?)
@@ -3651,6 +3634,7 @@ package:analyzer/dart/element/element.dart:
     isExternal (getter: bool)
     isOriginDeclaringFormalParameter (getter: bool)
     isOriginEnumValues (getter: bool)
+    isOriginExtensionTypeRecoveryRepresentation (getter: bool)
     isPromotable (getter: bool)
   FieldFormalParameterElement (class extends Object implements FormalParameterElement):
     new (constructor: FieldFormalParameterElement Function())
@@ -3847,6 +3831,7 @@ package:analyzer/dart/element/element.dart:
     isDartAsync (getter: bool)
     isDartCore (getter: bool)
     isInSdk (getter: bool)
+    isOriginNotExistingFile (getter: bool)
     languageVersion (getter: LibraryLanguageVersion)
     library (getter: LibraryElement)
     loadLibraryFunction (getter: TopLevelFunctionElement)
@@ -3979,6 +3964,8 @@ package:analyzer/dart/element/element.dart:
     firstFragment (getter: MethodFragment)
     fragments (getter: List<MethodFragment>)
     isOperator (getter: bool)
+    isOriginDeclaration (getter: bool)
+    isOriginInterface (getter: bool)
   MethodFragment (class extends Object implements ExecutableFragment):
     new (constructor: MethodFragment Function())
     element (getter: MethodElement)
@@ -4125,6 +4112,8 @@ package:analyzer/dart/element/element.dart:
     fragments (getter: List<TopLevelFunctionFragment>)
     isDartCoreIdentical (getter: bool)
     isEntryPoint (getter: bool)
+    isOriginDeclaration (getter: bool)
+    isOriginLoadLibrary (getter: bool)
   TopLevelFunctionFragment (class extends Object implements ExecutableFragment):
     new (constructor: TopLevelFunctionFragment Function())
     element (getter: TopLevelFunctionElement)
@@ -4574,12 +4563,14 @@ package:analyzer/error/error.dart:
     hasPublishedDocs (getter: bool)
     isIgnorable (getter: bool)
     isUnresolvedIdentifier (getter: bool)
-    name (getter: String)
+    lowerCaseName (getter: String)
+    lowerCaseUniqueName (getter: String)
+    name (getter: String, deprecated)
     numParameters (getter: int)
     problemMessage (getter: String)
     severity (getter: DiagnosticSeverity)
     type (getter: DiagnosticType)
-    uniqueName (getter: String)
+    uniqueName (getter: String, deprecated)
     url (getter: String?)
     toString (method: String Function())
   DiagnosticSeverity (class extends Object implements Comparable<DiagnosticSeverity>):
@@ -4641,6 +4632,7 @@ package:analyzer/error/listener.dart:
     atEntity (method: Diagnostic Function(SyntacticEntity, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages}))
     atNode (method: Diagnostic Function(AstNode, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages}))
     atOffset (method: Diagnostic Function({List<Object>? arguments, List<DiagnosticMessage>? contextMessages, required DiagnosticCode diagnosticCode, required int length, required int offset}))
+    atSourceRange (method: Diagnostic Function(SourceRange, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages}))
     atSourceSpan (method: Diagnostic Function(SourceSpan, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages}))
     atToken (method: Diagnostic Function(Token, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages}))
     reportError (method: void Function(Diagnostic))
@@ -5006,8 +4998,6 @@ package:analyzer/src/dart/resolver/scope.dart:
     definedNames2 (getter: Map<String, Element>)
     get2 (method: Element? Function(String))
     getPrefixed2 (method: Element? Function(String, String))
-package:analyzer/src/lint/config.dart:
-  RuleConfig (non-public)
 package:analyzer/src/workspace/workspace.dart:
   Workspace (non-public)
 package:analyzer/utilities/extensions/element.dart:
@@ -5062,7 +5052,7 @@ package:_fe_analyzer_shared/src/scanner/token.dart:
     pseudo (static getter: KeywordStyle)
     reserved (static getter: KeywordStyle)
     values (static getter: List<KeywordStyle>)
-  SimpleToken (class extends Object implements Token):
+  SimpleToken (class extends SyntacticEntity implements Token):
     new (constructor: SimpleToken Function(TokenType, int, [CommentToken?]))
     beforeSynthetic (getter: Token?)
     beforeSynthetic= (setter: Token?)

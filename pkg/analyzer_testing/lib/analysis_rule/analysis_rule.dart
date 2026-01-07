@@ -20,6 +20,9 @@ import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:meta/meta.dart';
 
+export 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart'
+    show PackageBuilder;
+
 ExpectedContextMessage contextMessage(
   File file,
   int offset,
@@ -124,8 +127,8 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
         buffer.write('  error(${actual.diagnosticCode}, ');
       }
       buffer.write('${actual.offset}, ${actual.length}');
-      if (actual.diagnosticCode.name != _analysisRule) {
-        buffer.write(", name: '${actual.diagnosticCode.name}'");
+      if (actual.diagnosticCode.lowerCaseName != _analysisRule) {
+        buffer.write(", name: '${actual.diagnosticCode.lowerCaseName}'");
       }
       buffer.writeln('),');
     }
@@ -197,7 +200,7 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
     }
     buffer.writeln('Found but did not expect:');
     for (var actual in unmatchedActual) {
-      buffer.write('  $_analysisRule.${actual.diagnosticCode.name} [');
+      buffer.write('  $_analysisRule.${actual.diagnosticCode.lowerCaseName} [');
       buffer.write('${actual.offset}, ${actual.length}, ${actual.message}');
       if (actual.correctionMessage case Pattern correctionMessage) {
         buffer.write(', ');

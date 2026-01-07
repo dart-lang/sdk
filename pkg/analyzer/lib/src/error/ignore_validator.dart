@@ -9,14 +9,13 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:meta/meta.dart';
 
 /// Used to validate the ignore comments in a single file.
 class IgnoreValidator {
   /// A list of known diagnostic codes used to ensure we don't over-report
   /// `unnecessary_ignore`s on error codes that may be contributed by a plugin.
   static final Set<String> _validDiagnosticCodeNames = diagnosticCodeValues
-      .map((d) => d.name.toLowerCase())
+      .map((d) => d.lowerCaseName)
       .toSet();
 
   /// Diagnostic codes used to report `unnecessary_ignore`s.
@@ -27,20 +26,6 @@ class IgnoreValidator {
   static late DiagnosticCode unnecessaryIgnoreFileLintCode;
   static late DiagnosticCode unnecessaryIgnoreNameLocationLintCode;
   static late DiagnosticCode unnecessaryIgnoreNameFileLintCode;
-
-  /// Whether to report `unignorable_ignore` warnings.
-  ///
-  /// `unignorable_ignore` warnings were introduced in
-  /// https://dart-review.googlesource.com/c/sdk/+/156402 but not enabled until
-  /// https://dart-review.googlesource.com/c/sdk/+/463504.
-  ///
-  /// This flag allows the logic for reporting these warnings to be easily
-  /// disabled again in case this leads to problems, without interfering with
-  /// the ability to unit test the functionality.
-  // TODO(paulberry): remove this flag once sufficient time has elapsed after
-  // rolling https://dart-review.googlesource.com/c/sdk/+/463504 into Flutter.
-  @visibleForTesting
-  static bool enableUnignorableIgnore = true;
 
   /// The diagnostic reporter to which diagnostics are to be reported.
   final DiagnosticReporter _diagnosticReporter;
@@ -169,18 +154,16 @@ class IgnoreValidator {
     List<IgnoredElement> duplicated,
     List<IgnoredElement> list,
   ) {
-    if (enableUnignorableIgnore) {
-      for (var unignorableName in unignorable) {
-        if (unignorableName is IgnoredDiagnosticName) {
-          var name = unignorableName.name;
-          _diagnosticReporter.atOffset(
-            diagnosticCode: diag.unignorableIgnore,
-            offset: unignorableName.offset,
-            length: name.length,
-            arguments: [name],
-          );
-          list.remove(unignorableName);
-        }
+    for (var unignorableName in unignorable) {
+      if (unignorableName is IgnoredDiagnosticName) {
+        var name = unignorableName.name;
+        _diagnosticReporter.atOffset(
+          diagnosticCode: diag.unignorableIgnore,
+          offset: unignorableName.offset,
+          length: name.length,
+          arguments: [name],
+        );
+        list.remove(unignorableName);
       }
     }
     for (var ignoredElement in duplicated) {
@@ -301,7 +284,7 @@ class IgnoreValidator {
 }
 
 extension on Diagnostic {
-  String get ignoreName => diagnosticCode.name.toLowerCase();
+  String get ignoreName => diagnosticCode.lowerCaseName;
 }
 
 extension on List<IgnoredElement> {

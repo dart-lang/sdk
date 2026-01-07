@@ -1,0 +1,10 @@
+typedef T<X> = void;
+
+T<int> value = null;
+
+class C {
+  T<int> field1;
+  T<int> field2 = value;
+  T<int> field3;
+  C(this.field1) : field3 = value;
+}

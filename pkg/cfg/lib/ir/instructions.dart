@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' as ast show DartType, Name;
+import 'package:cfg/ir/field.dart';
+import 'package:kernel/ast.dart' as ast show DartType, InterfaceType, Name;
 import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/flow_graph.dart';
 import 'package:cfg/ir/functions.dart';
@@ -45,7 +46,7 @@ abstract base class Instruction {
   ///
   /// The newly created instruction belongs to [graph] but not linked into
   /// a basic block and uses lists.
-  Instruction(this.graph, this.sourcePosition, int inputCount)
+  Instruction(this.graph, this.sourcePosition, {required int inputCount})
     : id = graph.instructions.length,
       _inputs = inputCount == 0
           ? graph.emptyUsesArray
@@ -233,9 +234,9 @@ abstract base class Instruction {
   /// Whether this instruction can have any visible side-effects.
   bool get hasSideEffects;
 
-  /// Returns true if this instruction is idempotent (i.e.
-  /// repeating this instruction does not have any effect),
-  /// and it is a subject to value numbering.
+  /// Returns true if this instruction is idempotent (i.e. repeating this
+  /// instruction with the same inputs does not have any effects after
+  /// executing it once), and it is a subject to value numbering.
   bool get isIdempotent => false;
 
   /// Returns true if extra instruction attributes are equal.
@@ -281,7 +282,7 @@ abstract base class Definition extends Instruction {
   Use _inputUses = Use.Null;
   Use _implicitUses = Use.Null;
 
-  Definition(super.graph, super.sourcePosition, super.inputCount);
+  Definition(super.graph, super.sourcePosition, {required super.inputCount});
 
   UsesIterable get inputUses => UsesIterable(graph, _inputUses);
   UsesIterable get implicitUses => UsesIterable(graph, _implicitUses);
@@ -411,8 +412,7 @@ abstract base class Block extends Instruction
   int preorderNumber = -1;
   int postorderNumber = -1;
 
-  Block(FlowGraph graph, SourcePosition sourcePosition)
-    : super(graph, sourcePosition, 0) {
+  Block(super.graph, super.sourcePosition) : super(inputCount: 0) {
     this.block = this;
     this.lastInstruction = this;
   }
@@ -532,8 +532,7 @@ abstract class ControlFlowInstruction {}
 final class Goto extends Instruction
     with NoThrow, Pure
     implements ControlFlowInstruction {
-  Goto(FlowGraph graph, SourcePosition sourcePosition)
-    : super(graph, sourcePosition, 0);
+  Goto(super.graph, super.sourcePosition) : super(inputCount: 0);
 
   Block get target => block!.successors.single;
 
@@ -545,8 +544,8 @@ final class Goto extends Instruction
 final class Branch extends Instruction
     with NoThrow, Pure
     implements ControlFlowInstruction {
-  Branch(FlowGraph graph, SourcePosition sourcePosition, Definition condition)
-    : super(graph, sourcePosition, 1) {
+  Branch(super.graph, super.sourcePosition, Definition condition)
+    : super(inputCount: 1) {
     setInputAt(0, condition);
   }
 
@@ -563,8 +562,7 @@ final class Branch extends Instruction
 final class TryEntry extends Instruction
     with NoThrow, Pure
     implements ControlFlowInstruction {
-  TryEntry(FlowGraph graph, SourcePosition sourcePosition)
-    : super(graph, sourcePosition, 0);
+  TryEntry(super.graph, super.sourcePosition) : super(inputCount: 0);
 
   TargetBlock get tryBody => block!.successors[0] as TargetBlock;
   CatchBlock get catchBlock => block!.successors[1] as CatchBlock;
@@ -581,7 +579,12 @@ final class Phi extends Definition with NoThrow, Pure {
   /// Local variable for which this [Phi] was originally created.
   final LocalVariable variable;
 
-  Phi(super.graph, super.sourcePosition, this.variable, super.inputCount);
+  Phi(
+    super.graph,
+    super.sourcePosition,
+    this.variable, {
+    required super.inputCount,
+  });
 
   @override
   CType get type => variable.type;
@@ -594,8 +597,8 @@ final class Phi extends Definition with NoThrow, Pure {
 final class Return extends Instruction
     with NoThrow, Pure
     implements ControlFlowInstruction {
-  Return(FlowGraph graph, SourcePosition sourcePosition, Definition value)
-    : super(graph, sourcePosition, 1) {
+  Return(super.graph, super.sourcePosition, Definition value)
+    : super(inputCount: 1) {
     setInputAt(0, value);
   }
 
@@ -709,12 +712,12 @@ final class Comparison extends Definition with NoThrow, Pure, Idempotent {
   ComparisonOpcode op;
 
   Comparison(
-    FlowGraph graph,
-    SourcePosition sourcePosition,
+    super.graph,
+    super.sourcePosition,
     this.op,
     Definition left,
     Definition right,
-  ) : super(graph, sourcePosition, 2) {
+  ) : super(inputCount: 2) {
     setInputAt(0, left);
     setInputAt(1, right);
   }
@@ -738,7 +741,8 @@ final class Comparison extends Definition with NoThrow, Pure, Idempotent {
 final class Constant extends Definition with NoThrow, Pure {
   final ConstantValue value;
 
-  Constant(FlowGraph graph, this.value) : super(graph, noPosition, 0);
+  Constant(FlowGraph graph, this.value)
+    : super(graph, noPosition, inputCount: 0);
 
   @override
   bool get canBeZero => value.isZero;
@@ -756,7 +760,11 @@ final class Constant extends Definition with NoThrow, Pure {
 /// Base class for various calls.
 abstract base class CallInstruction extends Definition
     with CanThrow, HasSideEffects {
-  CallInstruction(super.graph, super.sourcePosition, super.inputCount);
+  CallInstruction(
+    super.graph,
+    super.sourcePosition, {
+    required super.inputCount,
+  });
 
   bool get hasTypeArguments => inputCount > 0 && inputDefAt(0) is TypeArguments;
   TypeArguments? get typeArguments =>
@@ -774,9 +782,9 @@ final class DirectCall extends CallInstruction {
     super.graph,
     super.sourcePosition,
     this.target,
-    super.inputCount,
-    this.type,
-  );
+    this.type, {
+    required super.inputCount,
+  });
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitDirectCall(this);
@@ -793,9 +801,9 @@ final class InterfaceCall extends CallInstruction {
     super.graph,
     super.sourcePosition,
     this.interfaceTarget,
-    super.inputCount,
-    this.type,
-  );
+    this.type, {
+    required super.inputCount,
+  });
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitInterfaceCall(this);
@@ -812,9 +820,9 @@ final class DynamicCall extends CallInstruction {
     super.graph,
     super.sourcePosition,
     this.selector,
-    this.kind,
-    super.inputCount,
-  );
+    this.kind, {
+    required super.inputCount,
+  });
 
   @override
   CType get type => const TopType();
@@ -827,8 +835,8 @@ final class DynamicCall extends CallInstruction {
 final class Parameter extends Definition with NoThrow, Pure {
   final LocalVariable variable;
 
-  Parameter(FlowGraph graph, SourcePosition sourcePosition, this.variable)
-    : super(graph, sourcePosition, 0);
+  Parameter(super.graph, super.sourcePosition, this.variable)
+    : super(inputCount: 0);
 
   bool get isFunctionParameter => block is EntryBlock;
   bool get isCatchParameter => block is CatchBlock;
@@ -847,8 +855,8 @@ final class Parameter extends Definition with NoThrow, Pure {
 final class LoadLocal extends Definition with NoThrow, Pure {
   final LocalVariable variable;
 
-  LoadLocal(FlowGraph graph, SourcePosition sourcePosition, this.variable)
-    : super(graph, sourcePosition, 0);
+  LoadLocal(super.graph, super.sourcePosition, this.variable)
+    : super(inputCount: 0);
 
   @override
   CType get type => variable.type;
@@ -864,12 +872,8 @@ final class LoadLocal extends Definition with NoThrow, Pure {
 final class StoreLocal extends Instruction with NoThrow, HasSideEffects {
   final LocalVariable variable;
 
-  StoreLocal(
-    FlowGraph graph,
-    SourcePosition sourcePosition,
-    this.variable,
-    Definition value,
-  ) : super(graph, sourcePosition, 1) {
+  StoreLocal(super.graph, super.sourcePosition, this.variable, Definition value)
+    : super(inputCount: 1) {
     setInputAt(0, value);
   }
 
@@ -879,17 +883,157 @@ final class StoreLocal extends Instruction with NoThrow, HasSideEffects {
   R accept<R>(InstructionVisitor<R> v) => v.visitStoreLocal(this);
 }
 
+/// Load value from a field.
+///
+/// Check if field is initialized if [checkInitialized].
+/// If it is not, then either call initializer or throw exception.
+abstract base class LoadField extends Definition {
+  final CField field;
+  bool checkInitialized;
+
+  LoadField(
+    super.graph,
+    super.sourcePosition,
+    this.field, {
+    required super.inputCount,
+    required this.checkInitialized,
+  });
+
+  @override
+  bool get canThrow => checkInitialized;
+
+  @override
+  bool get hasSideEffects => checkInitialized && field.hasInitializer;
+
+  @override
+  bool get isIdempotent => field.isFinal;
+
+  @override
+  bool attributesEqual(covariant LoadField other) =>
+      // 'checkInitialized' is not taken into account as checked and unchecked loads
+      // of the same field are congruent wrt value numbering.
+      this.field == other.field;
+
+  @override
+  CType get type => field.type;
+}
+
+/// Store value to a field.
+///
+/// For late final fields, check if field is not initialized if [checkNotInitialized].
+/// If it is already initialized, then throw exception.
+abstract base class StoreField extends Instruction with HasSideEffects {
+  final CField field;
+  bool checkNotInitialized;
+
+  StoreField(
+    super.graph,
+    super.sourcePosition,
+    this.field, {
+    required super.inputCount,
+    required this.checkNotInitialized,
+  }) {
+    assert((field.isLate && field.isFinal) || !checkNotInitialized);
+  }
+
+  @override
+  bool get canThrow => checkNotInitialized;
+}
+
+/// Load value from an instance field.
+///
+/// For late fields, check if field is initialized if [checkInitialized].
+/// If it is not, then either call initializer or throw exception.
+final class LoadInstanceField extends LoadField {
+  LoadInstanceField(
+    super.graph,
+    super.sourcePosition,
+    super.field,
+    Definition object, {
+    bool checkInitialized = false,
+  }) : super(inputCount: 1, checkInitialized: checkInitialized) {
+    assert(field.isLate || !checkInitialized);
+    setInputAt(0, object);
+  }
+
+  Definition get object => inputDefAt(0);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitLoadInstanceField(this);
+}
+
+/// Store value to an instance field.
+///
+/// For late final fields, check if field is not initialized if [checkNotInitialized].
+/// If it is already initialized, then throw exception.
+final class StoreInstanceField extends StoreField {
+  StoreInstanceField(
+    super.graph,
+    super.sourcePosition,
+    super.field,
+    Definition object,
+    Definition value, {
+    bool checkNotInitialized = false,
+  }) : super(inputCount: 2, checkNotInitialized: checkNotInitialized) {
+    setInputAt(0, object);
+    setInputAt(1, value);
+  }
+
+  Definition get object => inputDefAt(0);
+  Definition get value => inputDefAt(1);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitStoreInstanceField(this);
+}
+
+/// Load value from a static field.
+///
+/// Check if field is initialized if [checkInitialized].
+/// If it is not, then either call initializer or throw exception.
+final class LoadStaticField extends LoadField {
+  LoadStaticField(
+    super.graph,
+    super.sourcePosition,
+    super.field, {
+    bool checkInitialized = false,
+  }) : super(inputCount: 0, checkInitialized: checkInitialized);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitLoadStaticField(this);
+}
+
+/// Store value to a static field.
+///
+/// For late final fields, check if field is not initialized if [checkNotInitialized].
+/// If it is already initialized, then throw exception.
+final class StoreStaticField extends StoreField {
+  StoreStaticField(
+    super.graph,
+    super.sourcePosition,
+    super.field,
+    Definition value, {
+    bool checkNotInitialized = false,
+  }) : super(inputCount: 1, checkNotInitialized: checkNotInitialized) {
+    setInputAt(0, value);
+  }
+
+  Definition get value => inputDefAt(0);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitStoreStaticField(this);
+}
+
 /// Throw given exception object. Also takes optional stack trace
 /// input to rethrow exception object without collecting a new stack trace.
 final class Throw extends Instruction
     with CanThrow, HasSideEffects
     implements ControlFlowInstruction {
   Throw(
-    FlowGraph graph,
-    SourcePosition sourcePosition,
+    super.graph,
+    super.sourcePosition,
     Definition exception,
     Definition? stackTrace,
-  ) : super(graph, sourcePosition, stackTrace != null ? 2 : 1) {
+  ) : super(inputCount: stackTrace != null ? 2 : 1) {
     setInputAt(0, exception);
     if (stackTrace != null) {
       setInputAt(1, stackTrace);
@@ -902,11 +1046,8 @@ final class Throw extends Instruction
 
 /// Represents collection of class and function type parameters.
 final class TypeParameters extends Definition with NoThrow, Pure {
-  TypeParameters(
-    FlowGraph graph,
-    SourcePosition sourcePosition,
-    Definition? receiver,
-  ) : super(graph, sourcePosition, receiver != null ? 1 : 0) {
+  TypeParameters(super.graph, super.sourcePosition, Definition? receiver)
+    : super(inputCount: receiver != null ? 1 : 0) {
     if (receiver != null) {
       setInputAt(0, receiver);
     }
@@ -931,13 +1072,13 @@ final class TypeCast extends Definition with CanThrow, Pure, Idempotent {
   bool isChecked;
 
   TypeCast(
-    FlowGraph graph,
-    SourcePosition sourcePosition,
+    super.graph,
+    super.sourcePosition,
     Definition object,
     this.testedType,
     Definition? typeParameters, {
     this.isChecked = true,
-  }) : super(graph, sourcePosition, typeParameters != null ? 2 : 1) {
+  }) : super(inputCount: typeParameters != null ? 2 : 1) {
     setInputAt(0, object);
     if (typeParameters != null) {
       setInputAt(1, typeParameters);
@@ -968,12 +1109,12 @@ final class TypeTest extends Definition with NoThrow, Pure, Idempotent {
   final CType testedType;
 
   TypeTest(
-    FlowGraph graph,
-    SourcePosition sourcePosition,
+    super.graph,
+    super.sourcePosition,
     Definition object,
     this.testedType,
     Definition? typeParameters,
-  ) : super(graph, sourcePosition, typeParameters != null ? 2 : 1) {
+  ) : super(inputCount: typeParameters != null ? 2 : 1) {
     setInputAt(0, object);
     if (typeParameters != null) {
       setInputAt(1, typeParameters);
@@ -994,17 +1135,18 @@ final class TypeTest extends Definition with NoThrow, Pure, Idempotent {
   R accept<R>(InstructionVisitor<R> v) => v.visitTypeTest(this);
 }
 
-/// Represents a list of type arguments passed to a call.
+/// Represents a list of type arguments passed to a call or an instance
+/// allocation.
 ///
-/// Only used as the first input of call instructions.
+/// Only used as the first input of call instructions and [AllocateObject].
 final class TypeArguments extends Definition with NoThrow, Pure, Idempotent {
   final List<ast.DartType> types;
   TypeArguments(
-    FlowGraph graph,
-    SourcePosition sourcePosition,
+    super.graph,
+    super.sourcePosition,
     this.types,
     Definition? typeParameters,
-  ) : super(graph, sourcePosition, typeParameters != null ? 1 : 0) {
+  ) : super(inputCount: typeParameters != null ? 1 : 0) {
     if (typeParameters != null) {
       setInputAt(0, typeParameters);
     }
@@ -1021,6 +1163,37 @@ final class TypeArguments extends Definition with NoThrow, Pure, Idempotent {
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitTypeArguments(this);
+}
+
+/// Allocate an instance of given type.
+///
+/// If type is a generic class, then [AllocateObject] can take [TypeArguments] as an input.
+final class AllocateObject extends Definition with CanThrow, Pure {
+  @override
+  final CType type;
+
+  AllocateObject(
+    super.graph,
+    super.sourcePosition,
+    this.type,
+    TypeArguments? typeArguments,
+  ) : super(inputCount: typeArguments != null ? 1 : 0) {
+    if (typeArguments != null) {
+      assert(
+        (type.dartType as ast.InterfaceType)
+            .classNode
+            .typeParameters
+            .isNotEmpty,
+      );
+      setInputAt(0, typeArguments);
+    }
+  }
+
+  TypeArguments? get typeArguments =>
+      (inputCount > 0) ? inputDefAt(0) as TypeArguments : null;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitAllocateObject(this);
 }
 
 enum BinaryIntOpcode {
@@ -1051,12 +1224,12 @@ final class BinaryIntOp extends Definition with Pure, Idempotent {
   BinaryIntOpcode op;
 
   BinaryIntOp(
-    FlowGraph graph,
-    SourcePosition sourcePosition,
+    super.graph,
+    super.sourcePosition,
     this.op,
     Definition left,
     Definition right,
-  ) : super(graph, sourcePosition, 2) {
+  ) : super(inputCount: 2) {
     setInputAt(0, left);
     setInputAt(1, right);
   }
@@ -1100,12 +1273,8 @@ enum UnaryIntOpcode {
 final class UnaryIntOp extends Definition with NoThrow, Pure, Idempotent {
   UnaryIntOpcode op;
 
-  UnaryIntOp(
-    FlowGraph graph,
-    SourcePosition sourcePosition,
-    this.op,
-    Definition operand,
-  ) : super(graph, sourcePosition, 1) {
+  UnaryIntOp(super.graph, super.sourcePosition, this.op, Definition operand)
+    : super(inputCount: 1) {
     setInputAt(0, operand);
   }
 
@@ -1147,12 +1316,12 @@ final class BinaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
   BinaryDoubleOpcode op;
 
   BinaryDoubleOp(
-    FlowGraph graph,
-    SourcePosition sourcePosition,
+    super.graph,
+    super.sourcePosition,
     this.op,
     Definition left,
     Definition right,
-  ) : super(graph, sourcePosition, 2) {
+  ) : super(inputCount: 2) {
     setInputAt(0, left);
     setInputAt(1, right);
   }
@@ -1195,12 +1364,8 @@ enum UnaryDoubleOpcode {
 final class UnaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
   UnaryDoubleOpcode op;
 
-  UnaryDoubleOp(
-    FlowGraph graph,
-    SourcePosition sourcePosition,
-    this.op,
-    Definition operand,
-  ) : super(graph, sourcePosition, 1) {
+  UnaryDoubleOp(super.graph, super.sourcePosition, this.op, Definition operand)
+    : super(inputCount: 1) {
     setInputAt(0, operand);
   }
 
@@ -1234,12 +1399,12 @@ final class CompareAndBranch extends Instruction
   ComparisonOpcode op;
 
   CompareAndBranch(
-    FlowGraph graph,
-    SourcePosition sourcePosition,
+    super.graph,
+    super.sourcePosition,
     this.op,
     Definition left,
     Definition right,
-  ) : super(graph, sourcePosition, 2) {
+  ) : super(inputCount: 2) {
     setInputAt(0, left);
     setInputAt(1, right);
   }
@@ -1263,7 +1428,7 @@ final class ParallelMove extends Instruction
     with NoThrow, HasSideEffects, BackendInstruction {
   final List<MoveOp> moves = [];
 
-  ParallelMove(FlowGraph graph) : super(graph, noPosition, 0);
+  ParallelMove(FlowGraph graph) : super(graph, noPosition, inputCount: 0);
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitParallelMove(this);

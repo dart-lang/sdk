@@ -110,6 +110,7 @@ const linterLintCodeInfo = DiagnosticClassInfo(
 /// Decoded messages from the analysis server's `messages.yaml` file.
 final List<AnalyzerMessage> analysisServerMessages = decodeAnalyzerMessagesYaml(
   analysisServerPkgPath,
+  decodeMessage: AnalyzerMessage.new,
   package: AnalyzerDiagnosticPackage.analysisServer,
 );
 
@@ -121,6 +122,7 @@ final String analysisServerPkgPath = normalize(
 /// Decoded messages from the analyzer's `messages.yaml` file.
 final List<AnalyzerMessage> analyzerMessages = decodeAnalyzerMessagesYaml(
   analyzerPkgPath,
+  decodeMessage: AnalyzerMessage.new,
   package: AnalyzerDiagnosticPackage.analyzer,
 );
 
@@ -132,21 +134,19 @@ final String analyzerPkgPath = normalize(
 /// The path to the `linter` package.
 final String linterPkgPath = normalize(join(pkg_root.packageRoot, 'linter'));
 
-/// Decoded messages from the linter's `messages.yaml` file.
-final List<AnalyzerMessage> lintMessages = decodeAnalyzerMessagesYaml(
-  linterPkgPath,
-  allowLinterKeys: true,
-  package: AnalyzerDiagnosticPackage.linter,
-);
-
 /// Decodes a YAML object (in analyzer style `messages.yaml` format) into a list
 /// of [AnalyzerMessage]s.
 ///
 /// If [allowLinterKeys], error checking logic will not reject key/value pairs
 /// that are used by the linter.
-List<AnalyzerMessage> decodeAnalyzerMessagesYaml(
+List<M> decodeAnalyzerMessagesYaml<M extends AnalyzerMessage>(
   String packagePath, {
-  bool allowLinterKeys = false,
+  required M Function(
+    MessageYaml, {
+    required DiagnosticCodeName analyzerCode,
+    required AnalyzerDiagnosticPackage package,
+  })
+  decodeMessage,
   required AnalyzerDiagnosticPackage package,
 }) {
   var path = join(packagePath, 'messages.yaml');
@@ -155,7 +155,7 @@ List<AnalyzerMessage> decodeAnalyzerMessagesYaml(
     sourceUrl: Uri.file(path),
   );
 
-  var result = <AnalyzerMessage>[];
+  var result = <M>[];
   if (yaml is! YamlMap) {
     throw LocatedError('root node is not a map', span: yaml.span);
   }
@@ -192,15 +192,20 @@ List<AnalyzerMessage> decodeAnalyzerMessagesYaml(
         );
       }
 
-      AnalyzerMessage message = MessageYaml.decode(
+      M message = MessageYaml.decode(
         key: keyNode,
         value: diagnosticValue,
         decoder: (messageYaml) {
-          var analyzerCode = AnalyzerCode(snakeCaseName: diagnosticName);
-          return AnalyzerMessage(
+          if (!diagnosticName.isCamelCase) {
+            throw LocatedError(
+              'Message names should be camelCase',
+              span: keyNode.span,
+            );
+          }
+          var analyzerCode = DiagnosticCodeName.fromCamelCase(diagnosticName);
+          return decodeMessage(
             messageYaml,
             analyzerCode: analyzerCode,
-            allowLinterKeys: allowLinterKeys,
             package: package,
           );
         },
@@ -281,9 +286,8 @@ class AliasMessage extends AnalyzerMessage {
     super.messageYaml, {
     required this.aliasFor,
     required super.analyzerCode,
-    required super.allowLinterKeys,
     required super.package,
-  }) : super._();
+  }) : super.internal();
 
   String get aliasForClass => aliasFor.split('.').first;
 
@@ -411,7 +415,7 @@ enum AnalyzerDiagnosticType {
 /// analyzer's `messages.yaml` file.
 class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
   @override
-  final AnalyzerCode analyzerCode;
+  final DiagnosticCodeName analyzerCode;
 
   @override
   final bool hasPublishedDocs;
@@ -424,8 +428,7 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
 
   factory AnalyzerMessage(
     MessageYaml messageYaml, {
-    required AnalyzerCode analyzerCode,
-    required bool allowLinterKeys,
+    required DiagnosticCodeName analyzerCode,
     required AnalyzerDiagnosticPackage package,
   }) {
     if (messageYaml.getOptionalString('aliasFor') case var aliasFor?) {
@@ -433,23 +436,20 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
         messageYaml,
         aliasFor: aliasFor,
         analyzerCode: analyzerCode,
-        allowLinterKeys: allowLinterKeys,
         package: package,
       );
     } else {
-      return AnalyzerMessage._(
+      return AnalyzerMessage.internal(
         messageYaml,
         analyzerCode: analyzerCode,
-        allowLinterKeys: allowLinterKeys,
         package: package,
       );
     }
   }
 
-  AnalyzerMessage._(
+  AnalyzerMessage.internal(
     MessageYaml messageYaml, {
     required this.analyzerCode,
-    required bool allowLinterKeys,
     required this.package,
   }) : hasPublishedDocs = messageYaml.getBool('hasPublishedDocs'),
        type = messageYaml.get(
@@ -459,10 +459,6 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
        super(messageYaml) {
     // Ignore extra keys related to analyzer example-based tests.
     messageYaml.allowExtraKeys({'experiment'});
-    if (allowLinterKeys) {
-      // Ignore extra keys understood by the linter.
-      messageYaml.allowExtraKeys({'categories', 'deprecatedDetails', 'state'});
-    }
   }
 }
 
@@ -581,7 +577,7 @@ mixin MessageWithAnalyzerCode on Message {
   }();
 
   /// The code used by the analyzer to refer to this diagnostic message.
-  AnalyzerCode get analyzerCode;
+  DiagnosticCodeName get analyzerCode;
 
   /// The name of the constant in analyzer code that should be used to refer to
   /// this message.
@@ -729,6 +725,6 @@ LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     YamlScalar(:String value) =>
       AnalyzerDiagnosticType.fromString(value) ??
           (throw 'Unknown analyzer diagnostic type'),
-    _ => throw 'Must be a bool',
+    _ => throw 'Must be a string',
   };
 }

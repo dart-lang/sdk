@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// Information about a single language feature whose presence or absence
@@ -10,6 +11,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// experimental flags.
 abstract class Feature {
   /// Feature information for anonymous methods.
+  @experimental
   static final anonymous_methods = ExperimentalFeatures.anonymous_methods;
 
   /// Feature information for augmentations.

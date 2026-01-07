@@ -685,7 +685,7 @@ Errors were found in 'pubspec.yaml' and/or 'analysis_options.yaml' which might r
 Analyzing myapp...
 
   error - lib${path.separator}main.dart:1:16 - A value of type 'Null' can't be returned from the function 'foo' because it has a return type of 'int'. - return_of_invalid_type
-warning - analysis_options.yaml:1:10 - The include file 'package:lints/recommended.yaml' in '${p.analysisOptionsPath}' can't be found when analyzing '${p.dirPath}'. - include_file_not_found
+warning - analysis_options.yaml:1:10 - The URI 'package:lints/recommended.yaml' included in '${p.analysisOptionsPath}' can't be found when analyzing '${p.dirPath}'. - include_file_not_found
 
 2 issues found.
 ''';

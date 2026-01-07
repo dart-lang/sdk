@@ -1,10 +1,120 @@
---- foo1
+--- A.
 B0 = EntryBlock()
   v4 = Constant(null)
-  Parameter(this)
-  Parameter(a)
-  Parameter(b)
+  v1 = Parameter(this)
+  DirectCall Object.(v1)
   Return(v4)
+
+--- B.
+B0 = EntryBlock()
+  v5 = Constant(42)
+  v9 = Constant(null)
+  v1 = Parameter(this)
+  v2 = Parameter(x)
+  DirectCall C.(v1, v2, v5)
+  DirectCall print(v2)
+  Return(v9)
+
+--- B.superCalls
+B0 = EntryBlock()
+  v9 = Constant(42)
+  v12 = Constant(null)
+  v1 = Parameter(this)
+  v2 = Parameter(arg)
+  DirectCall C.m1(v1, v2)
+  v8 = DirectCall getter C.m2(v1)
+  v10 = BinaryIntOp +(v8, v9)
+  DirectCall setter C.m3(v1, v10)
+  Return(v12)
+
+--- B.m1
+B0 = EntryBlock()
+  v4 = Constant(1)
+  v7 = Constant(null)
+  Parameter(this)
+  v2 = Parameter(a)
+  v5 = BinaryIntOp +(v2, v4)
+  DirectCall print(v5)
+  Return(v7)
+
+--- getter B.m2
+B0 = EntryBlock()
+  v4 = Constant(1)
+  v1 = Parameter(this)
+  v3 = InterfaceCall getter C.x(v1)
+  v5 = BinaryIntOp +(v3, v4)
+  Return(v5)
+
+--- setter B.m3
+B0 = EntryBlock()
+  v5 = Constant(1)
+  v8 = Constant(null)
+  v1 = Parameter(this)
+  v2 = Parameter(b)
+  v6 = BinaryIntOp +(v2, v5)
+  InterfaceCall setter C.y(v1, v6)
+  Return(v8)
+
+--- C.
+B0 = EntryBlock()
+  Constant(1)
+  v14 = Constant(null)
+  Constant(-1)
+  v1 = Parameter(this)
+  v2 = Parameter(x)
+  v3 = Parameter(y)
+  StoreInstanceField(C.x, v2, v1)
+  StoreInstanceField(C.y, v3, v1)
+  DirectCall Object.(v1)
+  Return(v14)
+
+--- C.m1
+B0 = EntryBlock()
+  v4 = Constant(2)
+  v7 = Constant(null)
+  Parameter(this)
+  v2 = Parameter(a)
+  v5 = BinaryIntOp +(v2, v4)
+  DirectCall print(v5)
+  Return(v7)
+
+--- getter C.m2
+B0 = EntryBlock()
+  v4 = Constant(2)
+  v1 = Parameter(this)
+  v3 = InterfaceCall getter C.x(v1)
+  v5 = BinaryIntOp +(v3, v4)
+  Return(v5)
+
+--- setter C.m3
+B0 = EntryBlock()
+  v5 = Constant(2)
+  v8 = Constant(null)
+  v1 = Parameter(this)
+  v2 = Parameter(b)
+  v6 = BinaryIntOp +(v2, v5)
+  InterfaceCall setter C.y(v1, v6)
+  Return(v8)
+
+--- getter C.x
+B0 = EntryBlock()
+  v1 = Parameter(this)
+  v3 = LoadInstanceField(C.x, v1)
+  Return(v3)
+
+--- getter C.y
+B0 = EntryBlock()
+  v1 = Parameter(this)
+  v3 = LoadInstanceField(C.y, v1)
+  Return(v3)
+
+--- setter C.y
+B0 = EntryBlock()
+  v6 = Constant(null)
+  v1 = Parameter(this)
+  v2 = Parameter(#value)
+  StoreInstanceField(C.y, v2, v1)
+  Return(v6)
 
 --- instanceCalls
 B0 = EntryBlock() dominates:(B20, B22, B19)
@@ -42,13 +152,14 @@ B0 = EntryBlock() dominates:(B7, B9, B6)
   v4 = Constant(0)
   v12 = Constant(1)
   v20 = Constant(null)
+  v22 = Constant(-1)
   v1 = Parameter(a)
   v2 = Parameter(b)
   v5 = Comparison int >(v1, v4)
   Branch(v5, true: B6, false: B7)
 B6 = TargetBlock() idom:B0
-  v13 = BinaryIntOp -(v1, v12)
-  DirectCall staticCalls(v13, v2)
+  v23 = BinaryIntOp +(v1, v22)
+  DirectCall staticCalls(v23, v2)
   Goto(B9)
 B7 = TargetBlock() idom:B0
   Goto(B9)
@@ -71,8 +182,37 @@ B0 = EntryBlock()
   DynamicCall set baz(v3, v14)
   Return(v16)
 
+--- objectAllocation
+B0 = EntryBlock()
+  v13 = Constant(null)
+  v1 = Parameter(a)
+  v2 = AllocateObject()
+  DirectCall B.(v2, v1)
+  v8 = InterfaceCall getter C.y(v2)
+  v10 = InterfaceCall getter C.x(v2)
+  v11 = BinaryIntOp +(v8, v10)
+  InterfaceCall setter C.y(v2, v11)
+  Return(v13)
+
 --- main
 B0 = EntryBlock()
   v1 = Constant(null)
+  Return(v1)
+
+--- getter sField
+B0 = EntryBlock()
+  v1 = LoadStaticField(sField)
+  Return(v1)
+
+--- setter sField
+B0 = EntryBlock()
+  v4 = Constant(null)
+  v1 = Parameter(#value)
+  StoreStaticField(sField, v1)
+  Return(v4)
+
+--- field-init sField
+B0 = EntryBlock()
+  v1 = Constant(42)
   Return(v1)
 

@@ -351,6 +351,10 @@ abstract class ConstructorFragment implements ExecutableFragment {
   @override
   ConstructorFragment? get previousFragment;
 
+  /// The offset of the `this` keyword, if this fragment is based on
+  /// [PrimaryConstructorDeclaration] and has [PrimaryConstructorBody].
+  int? get thisKeywordOffset;
+
   /// The specified name of the type (e.g. class).
   ///
   /// In valid code it is the name of the [enclosingFragment], however it
@@ -507,6 +511,7 @@ abstract class Element {
   /// A synthetic element is an element that is not represented in the source
   /// code explicitly, but is implied by the source code, such as the default
   /// constructor for a class that does not explicitly define any constructors.
+  @Deprecated('Use isOriginX instead')
   bool get isSynthetic;
 
   /// The kind of this element.
@@ -1155,6 +1160,7 @@ abstract class ExecutableFragment implements FunctionTypedFragment {
   /// A synthetic fragment is a fragment that is not represented in the source
   /// code explicitly, but is implied by the source code, such as the default
   /// constructor for a class that does not explicitly define any constructors.
+  @Deprecated('Use isOriginX instead')
   bool get isSynthetic;
 
   @override
@@ -1286,6 +1292,10 @@ abstract class FieldElement implements PropertyInducingElement {
   /// When this is `true`, [isOriginDeclaration], [isOriginGetterSetter],
   /// and [isOriginDeclaringFormalParameter] are `false`.
   bool get isOriginEnumValues;
+
+  /// Whether the field is an extension type representation field, created only
+  /// for recovery purposes, and does not correspond to a formal parameter.
+  bool get isOriginExtensionTypeRecoveryRepresentation;
 
   /// Whether the field can be type promoted.
   bool get isPromotable;
@@ -2233,6 +2243,9 @@ abstract class LibraryElement implements Element {
   /// Whether the library is part of the SDK.
   bool get isInSdk;
 
+  /// Whether the library is created from a file that does not exist.
+  bool get isOriginNotExistingFile;
+
   /// The language version for this library.
   LibraryLanguageVersion get languageVersion;
 
@@ -2688,6 +2701,16 @@ abstract class MethodElement implements ExecutableElement {
   /// The test might be based on the name of the executable element, in which
   /// case the result will be correct when the name is legal.
   bool get isOperator;
+
+  /// Whether the method is from an explicit [MethodDeclaration].
+  ///
+  /// When this is `true`, [isOriginInterface] is `false`.
+  bool get isOriginDeclaration;
+
+  /// Whether the method is created while building interface.
+  ///
+  /// When this is `true`, [isOriginDeclaration] is `false`.
+  bool get isOriginInterface;
 }
 
 /// The portion of a [MethodElement] contributed by a single declaration.
@@ -3190,6 +3213,16 @@ abstract class TopLevelFunctionElement implements ExecutableElement {
   ///
   /// A top-level function is an entry point if it has the name `main`.
   bool get isEntryPoint;
+
+  /// Whether the function is from an explicit [FunctionDeclaration].
+  ///
+  /// When this is `true`, [isOriginLoadLibrary] is `false`.
+  bool get isOriginDeclaration;
+
+  /// Whether the function is the synthetic `loadLibrary` function.
+  ///
+  /// When this is `true`, [isOriginDeclaration] is `false`.
+  bool get isOriginLoadLibrary;
 }
 
 /// The portion of a [TopLevelFunctionElement] contributed by a single

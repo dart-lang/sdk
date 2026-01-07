@@ -531,6 +531,12 @@ class FlowGraph : public ZoneAllocated {
   // Once this is done, no intra-block code motion should be performed.
   void ExtractNonInternalTypedDataPayloads();
 
+  // Insert calls informing the sanitizers about loads and stores as separate IL
+  // instructions. Separate IL instructions allow for much less spilling via the
+  // regular register alloctor compared to internal spilling within the load or
+  // store instructions. This transformation must happen very late in the
+  // pipeline, after no more loads or store can be added or moved around.
+  void AddAsanMsanInstrumentation();
   void AddTsanInstrumentation();
 
   bool IsReceiver(Definition* def) const;

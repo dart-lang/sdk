@@ -8,26 +8,30 @@ part of "core_patch.dart";
 class StackTrace {
   @patch
   @pragma("wasm:entry-point")
-  static StackTrace get current {
-    // `Error` should be supported in most browsers.  A possible future
-    // optimization we could do is to just save the `Error` object here, and
-    // stringify the stack trace when it is actually used.
-    //
-    // Note: We remove the first two frames to prevent including
-    // `getCurrentStackTrace` and `StackTrace.current`. On Chrome, the first
-    // line is not a frame but a line with just "Error", which we also remove.
-    return _StringStackTrace(
-      JSStringImpl.fromRefUnchecked(
-        JS<WasmExternRef?>(r"""() => {
-          let stackString = new Error().stack.toString();
-          let frames = stackString.split('\n');
-          let drop = 2;
-          if (frames[0] === 'Error') {
-              drop += 1;
-          }
-          return frames.slice(drop).join('\n');
-        }"""),
-      ),
-    );
-  }
+  static StackTrace get current =>
+      _JavaScriptStack(JS<WasmExternRef?>("() => new Error().stack"));
+}
+
+class _JavaScriptStack implements StackTrace {
+  final WasmExternRef? stack;
+
+  // Note: We remove the first two frames to prevent including
+  // `getCurrentStackTrace` and `StackTrace.current`. On Chrome, the first line
+  // is not a frame but a line with just "Error", which we also remove.
+  late final String _stringified = JSStringImpl.fromRefUnchecked(
+    JS<WasmExternRef?>(r"""(exn) => {
+      let stackString = exn.toString();
+      let frames = stackString.split('\n');
+      let drop = 2;
+      if (frames[0] === 'Error') {
+          drop += 1;
+      }
+      return frames.slice(drop).join('\n');
+    }""", stack),
+  );
+
+  _JavaScriptStack(this.stack);
+
+  @override
+  String toString() => _stringified;
 }

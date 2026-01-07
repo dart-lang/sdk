@@ -7,7 +7,7 @@ import 'dart:io';
 /// Runs `git` with [args] in the specified [workingDirectory].
 ///
 /// Throws a [StateError] if it has a non-zero exit code.
-Future<void> runGitCommand(
+Future<ProcessResult> runGitCommand(
   List<String> args,
   Directory workingDirectory,
 ) async {
@@ -26,4 +26,5 @@ ${result.stderr}
 Stdout:
 ${result.stdout}''');
   }
+  return result;
 }

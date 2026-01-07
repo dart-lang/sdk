@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -430,16 +431,18 @@ class ConstantEvaluationEngine {
     ConstantEvaluationTarget constant,
   ) {
     if (constant is VariableElementImpl) {
+      var diagnosticSource = constant.libraryFragment!.source;
       DiagnosticReporter diagnosticReporter = DiagnosticReporter(
         RecordingDiagnosticListener(),
-        constant.libraryFragment!.source,
+        diagnosticSource,
       );
       // TODO(paulberry): It would be really nice if we could extract enough
       // information from the 'cycle' argument to provide the user with a
       // description of the cycle.
-      diagnosticReporter.atElement2(
-        constant,
-        diag.recursiveCompileTimeConstant,
+      diagnosticReporter.report(
+        diag.recursiveCompileTimeConstant.atSourceRange(
+          constant.diagnosticRange(diagnosticSource),
+        ),
       );
       constant.evaluationResult = InvalidConstant.forElement(
         element: constant,

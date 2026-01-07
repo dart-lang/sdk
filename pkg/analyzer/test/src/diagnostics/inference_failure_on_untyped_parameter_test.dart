@@ -14,7 +14,7 @@ main() {
   });
 }
 
-/// Tests of WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER with the
+/// Tests of [diag.inferenceFailureOnUntypedParameter] with the
 /// "strict-inference" static analysis option.
 @reflectiveTest
 class InferenceFailureOnUntypedParameterTest extends PubPackageResolutionTest {
@@ -26,11 +26,26 @@ class InferenceFailureOnUntypedParameterTest extends PubPackageResolutionTest {
     );
   }
 
+  test_declaringParameter() async {
+    await assertErrorsInCode(
+      r'''
+class C(final a);
+''',
+      [error(diag.inferenceFailureOnUntypedParameter, 8, 7)],
+    );
+  }
+
+  test_declaringParameter_withType() async {
+    await assertNoErrorsInCode(r'''
+class C(final int a);
+''');
+  }
+
   test_fieldParameter() async {
     await assertNoErrorsInCode(r'''
 class C {
   int a;
-  C(this.a) {}
+  C(this.a);
 }
 ''');
   }
@@ -333,5 +348,17 @@ void fn([var a = 7]) => print(a);
 ''',
       [error(diag.inferenceFailureOnUntypedParameter, 9, 5)],
     );
+  }
+
+  test_superParameter() async {
+    await assertNoErrorsInCode(r'''
+abstract class C {
+  int a;
+  C(this.a);
+}
+class D extends C {
+  D(super.a);
+}
+''');
   }
 }

@@ -90,8 +90,6 @@ class Process {
 
   @patch
   static bool killPid(int pid, [ProcessSignal signal = ProcessSignal.sigterm]) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(signal, "signal");
     return _ProcessUtils._killPid(pid, signal.signalNumber);
   }
 }
@@ -237,14 +235,6 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
     bool runInShell,
     this._mode,
   ) : super() {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(path, "path");
-    ArgumentError.checkNotNull(arguments, "arguments");
-    for (int i = 0; i < arguments.length; i++) {
-      ArgumentError.checkNotNull(arguments[i], "arguments[]");
-    }
-    ArgumentError.checkNotNull(_mode, "mode");
-
     if (!const bool.fromEnvironment("dart.vm.product") &&
         !connectedResourceHandler) {
       registerExtension(
@@ -583,8 +573,6 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
       _exitCode?.future ?? (throw StateError("Process is detached"));
 
   bool kill([ProcessSignal signal = ProcessSignal.sigterm]) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(kill, "kill");
     assert(_started);
     if (_ended) return false;
     return _ProcessUtils._killPid(pid, signal.signalNumber);

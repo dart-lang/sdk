@@ -215,6 +215,7 @@ class ModifierContext {
     switch (memberKind) {
       case MemberKind.StaticMethod:
       case MemberKind.TopLevelMethod:
+      case MemberKind.AnonymousMethod:
         reportExtraneousModifier(this.covariantToken);
       case MemberKind.ExtensionNonStaticMethod:
       case MemberKind.ExtensionStaticMethod:

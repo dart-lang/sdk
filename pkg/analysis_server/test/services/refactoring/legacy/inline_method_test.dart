@@ -332,6 +332,19 @@ void f(A a) {
     return _assertInvalidSelection();
   }
 
+  Future<void> test_bad_propertyAccessor_topLevel_synthetic() async {
+    await indexTestUnit(r'''
+int fff = 0;
+
+void f() {
+  print(^fff);
+}
+''');
+    _createRefactoring();
+    // error
+    return _assertInvalidSelection();
+  }
+
   Future<void> test_bad_reference_toClassMethod() async {
     await indexTestUnit(r'''
 class A {

@@ -50,6 +50,8 @@ abstract class ConstructorEncoding {
 
   List<TypeParameter>? get thisTypeParameters;
 
+  void registerInitializers(List<Initializer> initializers);
+
   /// Mark the constructor as erroneous.
   ///
   /// This is used during the compilation phase to set the appropriate flag on
@@ -150,8 +152,18 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   List<Initializer> get initializers => _constructor.initializers;
 
   @override
+  void registerInitializers(List<Initializer> initializers) {
+    _constructor.initializers.addAll(initializers);
+    setParents(initializers, _constructor);
+  }
+
+  @override
   bool get isRedirecting {
     for (Initializer initializer in initializers) {
+      assert(
+        initializer is! AuxiliaryInitializer,
+        "Unexpected auxiliary initializer $initializer.",
+      );
       if (initializer is RedirectingInitializer) {
         return true;
       }
@@ -342,10 +354,6 @@ class RegularConstructorEncoding implements ConstructorEncoding {
     // Note: this method clears both initializers from the target Kernel node
     // and internal state associated with parsing initializers.
     _constructor.initializers = [];
-    // TODO(johnniwinther): Can these be moved here from the
-    //  [SourceConstructorBuilder]?
-    //redirectingInitializer = null;
-    //superInitializer = null;
   }
 
   @override
@@ -488,6 +496,11 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
 
   @override
   List<Initializer> get initializers => _initializers;
+
+  @override
+  void registerInitializers(List<Initializer> initializers) {
+    this.initializers.addAll(initializers);
+  }
 
   @override
   void registerFunctionBody(Statement value) {
@@ -798,8 +811,14 @@ class _ExtensionTypeInitializerToStatementConverter
         new ExpressionStatement(
           new VariableSet(
             thisVariable,
-            new StaticInvocation(node.target, node.arguments)
-              ..fileOffset = node.fileOffset,
+            new StaticInvocation(
+              node.target,
+              node.arguments.toArguments(
+                node.inferredTypeArguments,
+                node.positional,
+                node.named,
+              ),
+            )..fileOffset = node.fileOffset,
           )..fileOffset = node.fileOffset,
         )..fileOffset = node.fileOffset,
       );

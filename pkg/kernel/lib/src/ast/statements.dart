@@ -530,7 +530,10 @@ class DoStatement extends Statement implements LoopStatement {
 }
 
 class ForStatement extends Statement implements LoopStatement, ScopeProvider {
-  final List<VariableDeclaration> variables; // May be empty, but not null.
+  // May be empty, but not null.
+  final List<VariableInitialization> variableInitializations;
+  List<VariableDeclaration> get variables => variableInitializations.cast();
+
   Expression? condition; // May be null.
   final List<Expression> updates; // May be empty, but not null.
 
@@ -540,8 +543,9 @@ class ForStatement extends Statement implements LoopStatement, ScopeProvider {
   @override
   Scope? scope;
 
-  ForStatement(this.variables, this.condition, this.updates, this.body) {
-    setParents(variables, this);
+  ForStatement(
+      this.variableInitializations, this.condition, this.updates, this.body) {
+    setParents(variableInitializations, this);
     condition?.parent = this;
     setParents(updates, this);
     body.parent = this;
@@ -556,7 +560,7 @@ class ForStatement extends Statement implements LoopStatement, ScopeProvider {
 
   @override
   void visitChildren(Visitor v) {
-    visitList(variables, v);
+    visitList(variableInitializations, v);
     condition?.accept(v);
     visitList(updates, v);
     body.accept(v);
@@ -564,7 +568,7 @@ class ForStatement extends Statement implements LoopStatement, ScopeProvider {
 
   @override
   void transformChildren(Transformer v) {
-    v.transformList(variables, this);
+    v.transformList(variableInitializations, this);
     if (condition != null) {
       condition = v.transform(condition!);
       condition?.parent = this;
@@ -576,7 +580,7 @@ class ForStatement extends Statement implements LoopStatement, ScopeProvider {
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    v.transformVariableDeclarationList(variables, this);
+    v.transformVariableInitializationList(variableInitializations, this);
     if (condition != null) {
       condition = v.transformOrRemoveExpression(condition!);
       condition?.parent = this;
@@ -594,11 +598,11 @@ class ForStatement extends Statement implements LoopStatement, ScopeProvider {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write('for (');
-    for (int index = 0; index < variables.length; index++) {
+    for (int index = 0; index < variableInitializations.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableDeclaration(variables[index],
+      printer.writeVariableInitialization(variableInitializations[index],
           includeModifiersAndType: index == 0);
     }
     printer.write('; ');
@@ -622,7 +626,15 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   @override
   List<int>? get fileOffsetsIfMultiple => [fileOffset, bodyOffset];
 
-  VariableDeclaration variable; // Has no initializer.
+  ExpressionVariable expressionVariable;
+
+  // Has no initializer.
+  VariableDeclaration get variable => expressionVariable as VariableDeclaration;
+
+  void set variable(VariableDeclaration value) {
+    expressionVariable = value;
+  }
+
   Expression iterable;
 
   @override
@@ -633,9 +645,9 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   @override
   Scope? scope;
 
-  ForInStatement(this.variable, this.iterable, this.body,
+  ForInStatement(this.expressionVariable, this.iterable, this.body,
       {this.isAsync = false}) {
-    variable.parent = this;
+    expressionVariable.parent = this;
     iterable.parent = this;
     body.parent = this;
   }
@@ -649,15 +661,15 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
 
   @override
   void visitChildren(Visitor v) {
-    variable.accept(v);
+    expressionVariable.accept(v);
     iterable.accept(v);
     body.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
-    variable = v.transform(variable);
-    variable.parent = this;
+    expressionVariable = v.transform(expressionVariable);
+    expressionVariable.parent = this;
     iterable = v.transform(iterable);
     iterable.parent = this;
     body = v.transform(body);
@@ -666,8 +678,8 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    variable = v.transform(variable);
-    variable.parent = this;
+    expressionVariable = v.transform(expressionVariable);
+    expressionVariable.parent = this;
     iterable = v.transform(iterable);
     iterable.parent = this;
     body = v.transform(body);
@@ -761,7 +773,7 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write('for (');
-    printer.writeVariableDeclaration(variable);
+    printer.writeExpressionVariable(expressionVariable);
 
     printer.write(' in ');
     printer.writeExpression(iterable);
@@ -1274,11 +1286,11 @@ class Catch extends TreeNode implements ScopeProvider {
         printer.write(' ');
       }
       printer.write('catch (');
-      printer.writeVariableDeclaration(exception!,
+      printer.writeVariableInitialization(exception!,
           includeModifiersAndType: false);
       if (stackTrace != null) {
         printer.write(', ');
-        printer.writeVariableDeclaration(stackTrace!,
+        printer.writeVariableInitialization(stackTrace!,
             includeModifiersAndType: false);
       }
       printer.write(') ');
@@ -1898,13 +1910,13 @@ class VariableStatement extends Statement implements VariableDeclaration {
   @override
   String toStringInternal() {
     AstPrinter printer = new AstPrinter(defaultAstTextStrategy);
-    printer.writeVariableDeclaration(this, includeInitializer: false);
+    printer.writeVariableInitialization(this, includeInitializer: false);
     return printer.getText();
   }
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeVariableDeclaration(this);
+    printer.writeVariableInitialization(this);
     printer.write(';');
   }
 
@@ -1941,6 +1953,48 @@ class VariableStatement extends Statement implements VariableDeclaration {
   void set variable(ExpressionVariable value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
+
+  @override
+  bool get hasHasDeclaredInitializer => true;
+
+  @override
+  bool get hasIsConst => true;
+
+  @override
+  bool get hasIsCovariantByClass => true;
+
+  @override
+  bool get hasIsCovariantByDeclaration => true;
+
+  @override
+  bool get hasIsErroneouslyInitialized => true;
+
+  @override
+  bool get hasIsFinal => true;
+
+  @override
+  bool get hasIsHoisted => true;
+
+  @override
+  bool get hasIsInitializingFormal => true;
+
+  @override
+  bool get hasIsLate => true;
+
+  @override
+  bool get hasIsLowered => true;
+
+  @override
+  bool get hasIsRequired => true;
+
+  @override
+  bool get hasIsSuperInitializingFormal => true;
+
+  @override
+  bool get hasIsSynthesized => true;
+
+  @override
+  bool get hasIsWildcard => true;
 }
 
 /// Declaration a local function.

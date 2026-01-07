@@ -26,7 +26,7 @@ import 'helpers.dart';
 
 const runTestsArg = 'run-tests';
 
-main(List<String> args, Object? message) async {
+void main(List<String> args, Object? message) async {
   return await selfInvokingTest(
     doOnOuterInvocation: selfInvokes,
     doOnProcessInvocation: () async {
@@ -124,6 +124,10 @@ external Array<Int> globalArray;
 @Array(3, 3)
 external final Array<Array<Double>> identity3x3;
 
+@Array.multi([2])
+@Native<Array<Coord>>()
+external Array<Coord> globalStructArray;
+
 void testFfiTestFieldsDll() {
   SetGlobalVar(42);
   Expect.equals(globalInt, 42);
@@ -171,4 +175,9 @@ void testFfiTestFieldsDll() {
       }
     }
   }
+
+  globalStructArray[0].x = 10.0;
+  // Trigger the field write.
+  globalStructArray = globalStructArray;
+  Expect.equals(globalStructArray[1].x, /*initial value*/ 3.0);
 }

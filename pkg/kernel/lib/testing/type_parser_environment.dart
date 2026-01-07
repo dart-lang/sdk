@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
+    show Importability;
+
 import "package:kernel/ast.dart" hide Visitor;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -20,7 +23,9 @@ Component parseComponent(String source, Uri uri) {
   TypeParserEnvironment coreEnvironment =
       new TypeParserEnvironment(coreUri, coreUri);
   Library coreLibrary =
-      parseLibrary(coreUri, mockSdk, environment: coreEnvironment);
+      parseLibrary(coreUri, mockSdk, environment: coreEnvironment)
+        ..conditionalImportSupported = true
+        ..importability = Importability.always;
   TypeParserEnvironment libraryEnvironment = new TypeParserEnvironment(uri, uri)
       ._extend(coreEnvironment._declarations);
   Library library = parseLibrary(uri, source, environment: libraryEnvironment);
@@ -84,7 +89,9 @@ class Env {
     TypeParserEnvironment coreEnvironment =
         new TypeParserEnvironment(coreUri, coreUri);
     Library coreLibrary =
-        parseLibrary(coreUri, mockSdk, environment: coreEnvironment);
+        parseLibrary(coreUri, mockSdk, environment: coreEnvironment)
+          ..conditionalImportSupported = true
+          ..importability = Importability.always;
     _libraryEnvironment = new TypeParserEnvironment(libraryUri, libraryUri)
         ._extend(coreEnvironment._declarations);
     Library library =

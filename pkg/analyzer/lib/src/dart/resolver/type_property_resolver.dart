@@ -125,27 +125,27 @@ class TypePropertyResolver {
         }
       }
 
-      DiagnosticCode errorCode;
+      DiagnosticCode diagnosticCode;
       List<String> arguments;
       if (parentNode == null) {
-        errorCode = diag.uncheckedInvocationOfNullableValue;
+        diagnosticCode = diag.uncheckedInvocationOfNullableValue;
         arguments = [];
       } else {
         if (parentNode is CascadeExpression) {
           parentNode = parentNode.cascadeSections.first;
         }
         if (parentNode is BinaryExpression || parentNode is RelationalPattern) {
-          errorCode = diag.uncheckedOperatorInvocationOfNullableValue;
+          diagnosticCode = diag.uncheckedOperatorInvocationOfNullableValue;
           arguments = [name];
         } else if (parentNode is MethodInvocation ||
             parentNode is MethodReferenceExpression) {
-          errorCode = diag.uncheckedMethodInvocationOfNullableValue;
+          diagnosticCode = diag.uncheckedMethodInvocationOfNullableValue;
           arguments = [name];
         } else if (parentNode is FunctionExpressionInvocation) {
-          errorCode = diag.uncheckedInvocationOfNullableValue;
+          diagnosticCode = diag.uncheckedInvocationOfNullableValue;
           arguments = [];
         } else {
-          errorCode = diag.uncheckedPropertyAccessOfNullableValue;
+          diagnosticCode = diag.uncheckedPropertyAccessOfNullableValue;
           arguments = [name];
         }
       }
@@ -169,7 +169,7 @@ class TypePropertyResolver {
         }
       }
       _resolver.nullableDereferenceVerifier.report(
-        errorCode,
+        diagnosticCode,
         propertyErrorEntity,
         receiverType,
         arguments: arguments,

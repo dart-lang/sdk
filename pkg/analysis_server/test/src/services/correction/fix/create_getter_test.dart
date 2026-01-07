@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -326,6 +327,135 @@ class C {
       print(v);
     }
   }
+}
+''');
+  }
+
+  Future<void> test_generics() async {
+    await resolveTestCode('''
+class A {}
+
+T? g<T>(A a) => a.getter;
+''');
+    await assertHasFix('''
+class A {
+  Object? get getter => null;
+}
+
+T? g<T>(A a) => a.getter;
+''');
+  }
+
+  Future<void> test_generics_bound() async {
+    await resolveTestCode('''
+class A {}
+
+T? g<T extends int>(A a) => a.getter;
+''');
+    await assertHasFix('''
+class A {
+  int? get getter => null;
+}
+
+T? g<T extends int>(A a) => a.getter;
+''');
+  }
+
+  Future<void> test_generics_class() async {
+    await resolveTestCode('''
+class A<T> {}
+
+O? g<O>(A<O> a) => a.getter;
+''');
+    await assertHasFix('''
+class A<T> {
+  T? get getter => null;
+}
+
+O? g<O>(A<O> a) => a.getter;
+''');
+  }
+
+  Future<void> test_generics_class_ambiguous() async {
+    await resolveTestCode('''
+class A<T, U> {}
+
+O? g<O extends num>(A<O, O> a) => a.getter;
+''');
+    await assertHasFix('''
+class A<T, U> {
+  num? get getter => null;
+}
+
+O? g<O extends num>(A<O, O> a) => a.getter;
+''');
+  }
+
+  Future<void> test_generics_lint() async {
+    createAnalysisOptionsFile(lints: [LintNames.always_declare_return_types]);
+    await resolveTestCode('''
+class A {}
+
+T? g<T extends dynamic>(A a) => a.getter;
+''');
+    await assertHasFix('''
+class A {
+  dynamic get getter => null;
+}
+
+T? g<T extends dynamic>(A a) => a.getter;
+''');
+  }
+
+  Future<void> test_generics_noLint() async {
+    await resolveTestCode('''
+class A {}
+
+T? g<T extends dynamic>(A a) => a.getter;
+''');
+    await assertHasFix('''
+class A {
+  get getter => null;
+}
+
+T? g<T extends dynamic>(A a) => a.getter;
+''');
+  }
+
+  Future<void> test_generics_pattern() async {
+    await resolveTestCode('''
+class A<O> {}
+
+void foo<T extends A<O>, O>(T a) {
+  if (a case T(:O getter)) {
+    print(getter);
+  }
+}
+''');
+    await assertHasFix('''
+class A<O> {
+  O get getter => null;
+}
+
+void foo<T extends A<O>, O>(T a) {
+  if (a case T(:O getter)) {
+    print(getter);
+  }
+}
+''');
+  }
+
+  Future<void> test_generics_unqualified() async {
+    await resolveTestCode('''
+class A<T> {
+  T? m() => getter;
+}
+''');
+    await assertHasFix('''
+class A<T> {
+  T? get getter => null;
+
+  T? m() => getter;
 }
 ''');
   }

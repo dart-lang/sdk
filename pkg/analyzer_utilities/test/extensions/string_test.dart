@@ -22,9 +22,24 @@ class StringExtensionTest {
     expect('UPPER_CASE_WITH_UNDERSCORES'.isCamelCase, false);
     expect('lower_case_with_underscores'.isCamelCase, false);
     expect('camelCase'.isCamelCase, true);
+    expect('PascalCase'.isCamelCase, false);
     expect('alllowercase'.isCamelCase, true);
+    expect('ALLUPPERCASE'.isCamelCase, false);
     expect('foo123Bar'.isCamelCase, true);
+    expect('Foo123Bar'.isCamelCase, false);
     expect('123'.isCamelCase, false);
+  }
+
+  void test_isPascalCase() {
+    expect('UPPER_CASE_WITH_UNDERSCORES'.isPascalCase, false);
+    expect('lower_case_with_underscores'.isPascalCase, false);
+    expect('camelCase'.isPascalCase, false);
+    expect('PascalCase'.isPascalCase, true);
+    expect('alllowercase'.isPascalCase, false);
+    expect('ALLUPPERCASE'.isPascalCase, true);
+    expect('foo123Bar'.isPascalCase, false);
+    expect('Foo123Bar'.isPascalCase, true);
+    expect('123'.isPascalCase, false);
   }
 
   void test_toCamelCase() {

@@ -4,26 +4,19 @@
 
 import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph;
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/summary2/link.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// Builds extension types, in particular representation types. There might be
 /// dependencies between them, so they all should be processed simultaneously.
-void buildExtensionTypes(Linker linker, List<AstNode> declarations) {
+void buildExtensionTypes(Linker linker) {
   var walker = _Walker(linker);
   var nodes = <_Node>[];
-  var elements = <ExtensionTypeElementImpl>[];
-  for (var declaration in declarations) {
-    if (declaration is ExtensionTypeDeclarationImpl) {
-      var element = declaration.declaredFragment!.element;
-      var node = walker.getNode(declaration);
-      nodes.add(node);
-      elements.add(element);
+  for (var builder in linker.builders.values) {
+    for (var element in builder.element.extensionTypes) {
+      nodes.add(walker.getNode(element));
     }
   }
 
@@ -51,32 +44,24 @@ class _DependenciesCollector extends RecursiveTypeVisitor {
 
 class _Node extends graph.Node<_Node> {
   final _Walker walker;
-  final ExtensionTypeDeclarationImpl node;
   final ExtensionTypeElementImpl element;
 
   @override
   bool isEvaluated = false;
 
-  _Node(this.walker, this.node, this.element);
-
-  TypeImpl get _fieldType {
-    return node.fieldType.typeOrThrow;
-  }
+  _Node(this.walker, this.element);
 
   @override
   List<_Node> computeDependencies() {
-    var type = _fieldType;
+    var type = element.representation.type;
     var visitor = _DependenciesCollector();
     type.accept(visitor);
 
     var dependencies = <_Node>[];
     for (var element in visitor.dependencies) {
       if (walker.linker.isLinkingElement(element)) {
-        var declaration = walker.linker.getLinkingNode2(element.firstFragment);
-        if (declaration is ExtensionTypeDeclarationImpl) {
-          var node = walker.getNode(declaration);
-          dependencies.add(node);
-        }
+        var node = walker.getNode(element);
+        dependencies.add(node);
       }
     }
 
@@ -84,27 +69,22 @@ class _Node extends graph.Node<_Node> {
   }
 
   void _evaluate() {
-    var type = _fieldType;
+    var type = element.representation.type;
     _evaluateWithType(type);
   }
 
   void _evaluateWithType(TypeImpl type) {
-    var typeSystem = element.library.typeSystem;
-
-    element.representation.type = type;
-    element.primaryFormalParameter.type = type;
-
     element.typeErasure = type.extensionTypeErasure;
-    element.interfaces = element.interfaces
-        .whereType<InterfaceType>()
-        .where(typeSystem.isValidExtensionTypeSuperinterface)
-        .toFixedList();
-
     isEvaluated = true;
   }
 
   void _markCircular() {
     element.hasRepresentationSelfReference = true;
+
+    var representation = element.representation;
+    representation.type = InvalidTypeImpl.instance;
+    representation.declaringFormalParameter?.type = InvalidTypeImpl.instance;
+
     _evaluateWithType(InvalidTypeImpl.instance);
   }
 }
@@ -127,8 +107,7 @@ class _Walker extends graph.DependencyWalker<_Node> {
     }
   }
 
-  _Node getNode(ExtensionTypeDeclarationImpl node) {
-    var element = node.declaredFragment!.element;
-    return nodeMap[element] ??= _Node(this, node, element);
+  _Node getNode(ExtensionTypeElementImpl element) {
+    return nodeMap[element] ??= _Node(this, element);
   }
 }

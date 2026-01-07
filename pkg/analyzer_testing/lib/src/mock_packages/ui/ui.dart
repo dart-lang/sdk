@@ -206,4 +206,6 @@ enum TextAlign { left, right, center, justify, start, end }
 enum TextBaseline { alphabetic, ideographic }
 
 enum TextDirection { rtl, ltr }
+
+typedef VoidCallback = void Function();
 ''');

@@ -33,7 +33,7 @@ class ContextRootImpl implements ContextRoot {
   final File? optionsFile;
 
   /// Maintains a mapping of folders to associated analysis options files.
-  final Map<Folder, File> optionsFileMap = {};
+  final Map<File, Set<Folder>> optionsFileMap = {};
 
   @override
   final File? packagesFile;
@@ -60,7 +60,7 @@ class ContextRootImpl implements ContextRoot {
 
   @override
   bool operator ==(Object other) {
-    return other is ContextRoot && root.path == other.root.path;
+    return other is ContextRootImpl && root.path == other.root.path;
   }
 
   @override

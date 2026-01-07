@@ -188,12 +188,53 @@ class A {}
 ''', SnippetContext.inComment);
   }
 
-  Future<void> test_enum() async {
+  Future<void> test_dotShorthand_constructor() async {
+    await testRequest(r'''
+String _ = .[!^fromCharCode!]('42');
+''', SnippetContext.inDotShorthand);
+  }
+
+  Future<void> test_dotShorthand_invocation() async {
+    await testRequest(r'''
+int _ = .[!^parse!]('42');
+''', SnippetContext.inDotShorthand);
+  }
+
+  Future<void> test_dotShorthand_noIdentifier() async {
+    await testRequest(r'''
+String _ = .[!^!];
+''', SnippetContext.inDotShorthand);
+  }
+
+  Future<void> test_dotShorthand_propertyAccess() async {
+    await testRequest(r'''
+Duration _ = .[!^zero!];
+''', SnippetContext.inDotShorthand);
+  }
+
+  Future<void> test_enum_constants() async {
     await testRequest(r'''
 enum A {
   [!^!]
 }
-''', SnippetContext.inClass);
+''', SnippetContext.inEnumConstants);
+  }
+
+  Future<void> test_enum_constants_args() async {
+    await testRequest(r'''
+enum A {
+  a([!^!]);
+}
+''', SnippetContext.inConstantExpression);
+  }
+
+  Future<void> test_enum_members() async {
+    await testRequest(r'''
+enum A {
+  a;
+  [!^!]
+}
+''', SnippetContext.inEnumMembers);
   }
 
   Future<void> test_expression_constructor() async {
@@ -597,6 +638,14 @@ foo() {
   var [!^!]
 }
 ''', SnippetContext.inIdentifierDeclaration);
+  }
+
+  Future<void> test_variableDeclaration_constant() async {
+    await testRequest(r'''
+foo() {
+  const a = [!^!]
+}
+''', SnippetContext.inConstantExpression);
   }
 
   Future<void> test_variableDeclaration_partialIdentifier() async {

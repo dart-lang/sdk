@@ -57,4 +57,38 @@ void unreachableFinally() {
   }
 }
 
+void unreachableTryEnd() {
+  try {
+    print(1);
+    throw 'Bye-bye';
+    print(2);
+  } catch (_) {
+    print(3);
+  }
+}
+
+void unreachableCatchEnd() {
+  try {
+    print(1);
+  } catch (_) {
+    print(2);
+    throw 'Bye-bye';
+    print(3);
+  }
+}
+
+void unreachableBothTryEndAndCatchEnd() {
+  try {
+    print(1);
+    throw 'Bye';
+    print(2);
+  } catch (_) {
+    print(3);
+    throw 'Bye-bye';
+    print(4);
+  }
+}
+
+List<num> unreachableFieldInitializer = [10, 1 + (throw 'Bye') + 2, 20];
+
 void main() {}

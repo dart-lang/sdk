@@ -186,6 +186,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_final.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_late.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_library_directive.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_name.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_parentheses.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_raw_string.dart';
@@ -412,6 +413,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.preferVoidToNull: [ReplaceNullWithVoid.new],
   diag.requireTrailingCommas: [AddTrailingComma.new],
+  diag.simplifyVariablePattern: [RemoveUnnecessaryName.new],
   diag.sizedBoxForWhitespace: [ReplaceContainerWithSizedBox.new],
   diag.slashForDocComments: [ConvertDocumentationIntoLine.new],
   diag.sortChildPropertiesLast: [SortChildPropertyLast.new],
@@ -461,7 +463,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.unnecessaryToListInSpreads: [RemoveToList.new],
   diag.unnecessaryThis: [RemoveThisExpression.new],
   diag.unnecessaryUnawaited: [RemoveUnawaited.new],
-  diag.unnecessaryUnderscores: [ConvertToWildcardVariable.new],
+  diag.unnecessaryUnderscores: [ConvertToWildcardVariable.automatically],
   diag.unreachableFromMain: [RemoveUnusedElement.new],
   diag.useColoredBox: [ReplaceContainerWithColoredBox.new],
   diag.useDecoratedBox: [ReplaceWithDecoratedBox.new],
@@ -525,6 +527,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     RemoveDefaultValue.new,
     RemoveRequired.new,
   ],
+  diag.deprecatedFactoryMethod: [AddReturnType.new],
   diag.dotShorthandUndefinedGetter: [
     AddEnumConstant.new,
     ChangeTo.getterOrSetter,
@@ -972,7 +975,6 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.invalidNonVirtualAnnotation: [RemoveAnnotation.new],
   diag.invalidReopenAnnotation: [RemoveAnnotation.new],
   diag.invalidVisibilityAnnotation: [RemoveAnnotation.new],
-  diag.invalidVisibleForOverridingAnnotation: [RemoveAnnotation.new],
   diag.missingOverrideOfMustBeOverriddenOne: [CreateMissingOverrides.new],
   diag.missingOverrideOfMustBeOverriddenTwo: [CreateMissingOverrides.new],
   diag.missingOverrideOfMustBeOverriddenThreePlus: [CreateMissingOverrides.new],

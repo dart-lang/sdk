@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -170,6 +171,66 @@ void f(A a) {
 ''');
   }
 
+  Future<void> test_generics() async {
+    await resolveTestCode('''
+class A {}
+
+void g<T>(T? v) => A().setter = v;
+''');
+    await assertHasFix('''
+class A {
+  set setter(Object? setter) {}
+}
+
+void g<T>(T? v) => A().setter = v;
+''');
+  }
+
+  Future<void> test_generics_bound() async {
+    await resolveTestCode('''
+class A {}
+
+void g<T extends int>(T? v) => A().setter = v;
+''');
+    await assertHasFix('''
+class A {
+  set setter(int? setter) {}
+}
+
+void g<T extends int>(T? v) => A().setter = v;
+''');
+  }
+
+  Future<void> test_generics_class() async {
+    await resolveTestCode('''
+class A<O> {}
+
+void g<T>(T? v) => A<T>().setter = v;
+''');
+    await assertHasFix('''
+class A<O> {
+  set setter(O? setter) {}
+}
+
+void g<T>(T? v) => A<T>().setter = v;
+''');
+  }
+
+  Future<void> test_generics_unqualified() async {
+    await resolveTestCode('''
+class A<T> {
+  void m(T? v) => setter = v;
+}
+''');
+    await assertHasFix('''
+class A<T> {
+  set setter(T? setter) {}
+
+  void m(T? v) => setter = v;
+}
+''');
+  }
+
   Future<void> test_getterContext() async {
     await resolveTestCode('''
 class A {
@@ -210,14 +271,34 @@ void f(List p) {
     await assertNoFix();
   }
 
+  Future<void> test_internal_extension_instance() async {
+    await resolveTestCode('''
+extension E on String {
+  int m(int x) => s = x;
+}
+''');
+    // This should be handled by create extension member fixes
+    await assertNoFix();
+  }
+
+  Future<void> test_internal_extension_static() async {
+    await resolveTestCode('''
+extension E on String {
+  static int m(int x) => s = x;
+}
+''');
+    // This should be handled by create extension member fixes
+    await assertNoFix();
+  }
+
   Future<void> test_internal_instance() async {
     await resolveTestCode('''
-class C {
+class A {
   int m(int x) => s = x;
 }
 ''');
     await assertHasFix('''
-class C {
+class A {
   set s(int s) {}
 
   int m(int x) => s = x;
@@ -227,16 +308,32 @@ class C {
 
   Future<void> test_internal_static() async {
     await resolveTestCode('''
-class C {
+class A {
   static int m(int x) => s = x;
 }
 ''');
     await assertHasFix('''
-class C {
+class A {
   static set s(int s) {}
 
   static int m(int x) => s = x;
 }
+''');
+  }
+
+  Future<void> test_lint() async {
+    createAnalysisOptionsFile(lints: [LintNames.always_specify_types]);
+    await resolveTestCode('''
+class A {}
+
+void g(dynamic v) => A().setter = v;
+''');
+    await assertHasFix('''
+class A {
+  set setter(dynamic setter) {}
+}
+
+void g(dynamic v) => A().setter = v;
 ''');
   }
 
@@ -323,6 +420,21 @@ void f(C c) {
 ''');
   }
 
+  Future<void> test_noLint() async {
+    await resolveTestCode('''
+class A {}
+
+void g(dynamic v) => A().setter = v;
+''');
+    await assertHasFix('''
+class A {
+  set setter(setter) {}
+}
+
+void g(dynamic v) => A().setter = v;
+''');
+  }
+
   Future<void> test_override() async {
     await resolveTestCode('''
 extension E on String {
@@ -334,6 +446,29 @@ void f(String s) {
 ''');
     // This should be handled by create extension member fixes
     await assertNoFix();
+  }
+
+  Future<void> test_override_userType() async {
+    await resolveTestCode('''
+class A {}
+
+extension E on A {}
+
+void f(A a) {
+  E(a).test = '0';
+}
+''');
+    await assertHasFix('''
+class A {
+  set test(String test) {}
+}
+
+extension E on A {}
+
+void f(A a) {
+  E(a).test = '0';
+}
+''');
   }
 
   Future<void> test_part_main() async {
@@ -502,22 +637,35 @@ void f() {
 
   Future<void> test_static() async {
     await resolveTestCode('''
-class C {
+class A {
 }
 
-void f(String s) {
-  C.test = 0;
+void f() {
+  A.test = 0;
 }
 ''');
     await assertHasFix('''
-class C {
+class A {
   static set test(int test) {}
 }
 
-void f(String s) {
-  C.test = 0;
+void f() {
+  A.test = 0;
 }
 ''');
+  }
+
+  Future<void> test_static_extension() async {
+    await resolveTestCode('''
+extension E on String {
+}
+
+void f(String s) {
+  E.test = 0;
+}
+''');
+    // This should be handled by create extension member fixes
+    await assertNoFix();
   }
 
   Future<void> test_unqualified_instance_assignmentLhs() async {

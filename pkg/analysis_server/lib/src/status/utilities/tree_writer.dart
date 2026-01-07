@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:analyzer/dart/element/element.dart';
@@ -36,22 +37,18 @@ mixin TreeWriter {
   }
 
   /// Write a representation of the given [properties] to the buffer.
-  void writeProperties(Map<String, Object?> properties) {
-    var propertyNames = properties.keys.toList();
-    propertyNames.sort();
-    for (var propertyName in propertyNames) {
-      writeProperty(propertyName, properties[propertyName]);
+  void writeProperties(Map<String, Object> properties) {
+    for (var MapEntry(:key, :value) in SplayTreeMap.of(properties).entries) {
+      writeProperty(key, value);
     }
   }
 
   /// Write the [value] of the property with the given [name].
-  void writeProperty(String name, Object? value) {
-    if (value != null) {
-      indent(2);
-      buffer.write('$name = ');
-      _writePropertyValue(value, indentLevel);
-      buffer.write('<br>');
-    }
+  void writeProperty(String name, Object value) {
+    indent(2);
+    buffer.write('$name = ');
+    _writePropertyValue(value, indentLevel);
+    buffer.write('<br>');
   }
 
   String? _toString(Object? value) {

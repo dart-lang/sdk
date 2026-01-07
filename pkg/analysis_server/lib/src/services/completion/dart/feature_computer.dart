@@ -627,7 +627,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   DartType? visitBinaryExpression(BinaryExpression node) {
     if (node.operator.end <= offset) {
       if (node.operator.type == TokenType.EQ_EQ ||
-          node.operator.type == TokenType.BANG_EQ_EQ) {
+          node.operator.type == TokenType.BANG_EQ) {
         // TODO(kallentu): Fix the parser implementation where dot shorthand
         // const constructor declarations recover with a wrapping function
         // expression invocation and then remove this.
@@ -1430,6 +1430,12 @@ extension on ArgumentList {
       if (parent.element case ConstructorElement constructorElement) {
         return constructorElement.type;
       }
+    } else if (parent is EnumConstantArguments) {
+      if (parent.parent case EnumConstantDeclaration enumConstantDeclaration) {
+        return enumConstantDeclaration.constructorElement?.type;
+      }
+    } else if (parent case Annotation(:ExecutableElement element)) {
+      return element.type;
     }
     return null;
   }

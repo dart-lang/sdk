@@ -2571,7 +2571,7 @@ class ConstantEvaluator
             library.importUri.path,
             libraryExists: true,
             isSynthetic: library.isSynthetic,
-            isUnsupported: library.isUnsupported,
+            conditionalImportSupported: library.conditionalImportSupported,
             dartLibrarySupport: dartLibrarySupport,
           ))
         (DartLibrarySupport.dartLibraryPrefix + library.importUri.path): "true",
@@ -6052,7 +6052,7 @@ class StatementConstantEvaluator
 
   @override
   ExecutionStatus visitForStatement(ForStatement node) {
-    for (VariableDeclaration variable in node.variables) {
+    for (VariableInitialization variable in node.variableInitializations) {
       final ExecutionStatus status = variable.accept(this);
       if (status is! ProceedStatus) return status;
     }

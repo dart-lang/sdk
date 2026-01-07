@@ -14,8 +14,13 @@ class PluginData {
   /// The number of times that plugin information has been recorded.
   int recordCount = 0;
 
-  /// A table mapping the ids of running plugins to the number of context roots
-  /// associated with each of the plugins.
+  /// A table mapping the IDs of running "new" plugin isolates to various
+  /// percentile-based analytics for each plugin.
+  Map<String, PluginDataPerIsolate> counts = {};
+
+  /// A table mapping the IDs of running legacy plugins to the percentile-based
+  /// analytics regarding the number of context roots associated with each of
+  /// the plugins.
   Map<String, PercentileCalculator> usageCounts = {};
 
   String get usageCountData {
@@ -27,12 +32,46 @@ class PluginData {
 
   /// Records data about the plugins that are currently running, via info from
   /// [pluginManager].
-  void recordPlugins(PluginManager pluginManager) {
+  Future<void> recordPlugins(PluginManager pluginManager) async {
     recordCount++;
-    for (var isolate in pluginManager.pluginIsolates) {
+    for (var isolate in pluginManager.legacyPluginIsolates) {
       usageCounts
           .putIfAbsent(isolate.safePluginId, () => PercentileCalculator())
           .addValue(isolate.contextRoots.length);
+    }
+
+    // Record a data point for each context root with _no_ configured new
+    // plugins.
+    for (var contextRootPath in pluginManager.contextRootsWithNoPlugins) {
+      // Plugin analytics are keyed to safe plugin IDs, which are derived from
+      // the context root path.
+      var pluginEntrypointPath = pluginManager.pluginStateFolderPath(
+        contextRootPath,
+      );
+      var safePluginId = pluginEntrypointPath.asSafePluginId;
+      counts.putIfAbsent(
+        safePluginId,
+        () => PluginDataPerIsolate(pluginCount: 0),
+      );
+    }
+
+    for (var isolate in pluginManager.newPluginIsolates) {
+      var details = await isolate.requestDetails();
+      if (details == null) continue;
+
+      var pluginDataPerIsolate = counts.putIfAbsent(
+        isolate.safePluginId,
+        () => PluginDataPerIsolate(pluginCount: details.plugins.length),
+      );
+
+      for (var plugin in details.plugins) {
+        pluginDataPerIsolate.lintRuleCounts.addValue(plugin.lintRules.length);
+        pluginDataPerIsolate.warningRuleCounts.addValue(
+          plugin.warningRules.length,
+        );
+        pluginDataPerIsolate.fixCounts.addValue(plugin.fixes.length);
+        pluginDataPerIsolate.assistCounts.addValue(plugin.assists.length);
+      }
     }
   }
 
@@ -42,15 +81,35 @@ class PluginData {
   };
 }
 
-extension PluginIsolateExtension on PluginIsolate {
-  /// An ID for this plugin that doesn't contain any PII.
-  ///
-  /// If the plugin is installed in the pub cache and hosted on `pub.dev`, then
-  /// the returned name will be the name and version of the containing package
-  /// as listed on `pub.dev`. If not, then it might be an internal name so we
-  /// default to 'unknown'.
-  String get safePluginId {
-    var components = path.split(pluginId);
+/// Plugin data (for "new" plugins) for a given plugin isolate.
+///
+/// Only one plugin isolate runs for a given analysis context.
+class PluginDataPerIsolate {
+  /// The number of running plugins.
+  final int pluginCount;
+
+  /// The percentile-based analytics regarding the number of lint rules which
+  /// are registered in each plugin.
+  PercentileCalculator lintRuleCounts = PercentileCalculator();
+
+  /// The percentile-based analytics regarding the number of warning rules which
+  /// are registered in each plugin.
+  PercentileCalculator warningRuleCounts = PercentileCalculator();
+
+  /// The percentile-based analytics regarding the number of quick fixes which
+  /// are registered in each plugin.
+  PercentileCalculator fixCounts = PercentileCalculator();
+
+  /// The percentile-based analytics regarding the number of quick assists which
+  /// are registered in each plugin.
+  PercentileCalculator assistCounts = PercentileCalculator();
+
+  PluginDataPerIsolate({required this.pluginCount});
+}
+
+extension on String {
+  String get asSafePluginId {
+    var components = path.split(this);
     if (components.contains('.pub-cache')) {
       var index = components.lastIndexOf('analyzer_plugin');
       if (index > 2 &&
@@ -61,4 +120,14 @@ extension PluginIsolateExtension on PluginIsolate {
     }
     return 'unknown';
   }
+}
+
+extension PluginIsolateExtension on PluginIsolate {
+  /// An ID for this plugin that doesn't contain any PII.
+  ///
+  /// If the plugin is installed in the pub cache and hosted on `pub.dev`, then
+  /// the returned name will be the name and version of the containing package
+  /// as listed on `pub.dev`. If not, then it might be an internal name so we
+  /// default to 'unknown'.
+  String get safePluginId => pluginId.asSafePluginId;
 }

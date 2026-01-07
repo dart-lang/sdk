@@ -97,7 +97,7 @@ extension CheckHelper on ProblemReporting {
     );
   }
 
-  Expression buildProblemFromLocatedMessage({
+  InvalidExpression buildProblemFromLocatedMessage({
     required CompilerContext compilerContext,
     required LocatedMessage message,
   }) {
@@ -112,7 +112,8 @@ extension CheckHelper on ProblemReporting {
 
   LocatedMessage? checkArgumentsForFunction({
     required FunctionNode function,
-    required Arguments arguments,
+    required TypeArguments? explicitTypeArguments,
+    required ActualArguments arguments,
     required int fileOffset,
     required Uri fileUri,
     required List<TypeParameter> typeParameters,
@@ -121,7 +122,7 @@ extension CheckHelper on ProblemReporting {
     int typeParameterCount = typeParameters.length;
     int requiredParameterCount = function.requiredParameterCount;
     int positionalParameterCount = function.positionalParameters.length;
-    int positionalArgumentsCount = arguments.positional.length;
+    int positionalArgumentsCount = arguments.positionalCount;
     if (extension != null) {
       // Extension member invocations have additional synthetic parameter for
       // `this`.
@@ -139,22 +140,32 @@ extension CheckHelper on ProblemReporting {
           .withArgumentsOld(positionalParameterCount, positionalArgumentsCount)
           .withLocation(fileUri, arguments.fileOffset, noLength);
     }
-    List<NamedExpression> named = arguments.named;
-    if (named.isNotEmpty) {
+    Set<String> argumentNames = {};
+    if (arguments.namedCount > 0) {
       Set<String?> parameterNames = new Set.of(
         function.namedParameters.map((a) => a.name),
       );
-      for (int i = 0; i < named.length; i++) {
-        NamedExpression argument = named[i];
-        if (!parameterNames.contains(argument.name)) {
-          return codeNoSuchNamedParameter
-              .withArgumentsOld(argument.name)
-              .withLocation(fileUri, argument.fileOffset, argument.name.length);
+      for (Argument argument in arguments.argumentList) {
+        switch (argument) {
+          case NamedArgument():
+            NamedExpression namedExpression = argument.namedExpression;
+            String name = namedExpression.name;
+            argumentNames.add(name);
+            if (!parameterNames.contains(name)) {
+              return codeNoSuchNamedParameter
+                  .withArgumentsOld(name)
+                  .withLocation(
+                    fileUri,
+                    namedExpression.fileOffset,
+                    name.length,
+                  );
+            }
+          case PositionalArgument():
+            break;
         }
       }
     }
     if (function.namedParameters.isNotEmpty) {
-      Set<String> argumentNames = new Set.of(named.map((a) => a.name));
       for (int i = 0; i < function.namedParameters.length; i++) {
         VariableDeclaration parameter = function.namedParameters[i];
         if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
@@ -165,12 +176,8 @@ extension CheckHelper on ProblemReporting {
       }
     }
 
-    List<DartType> types = arguments.types;
-    if (typeParameterCount != types.length) {
-      if (types.length == 0) {
-        // Expected `typeParameters.length` type arguments, but none given, so
-        // we use type inference.
-      } else {
+    if (explicitTypeArguments != null) {
+      if (typeParameterCount != explicitTypeArguments.types.length) {
         // A wrong (non-zero) amount of type arguments given. That's an error.
         // TODO(jensj): Position should be on type arguments instead.
         return codeTypeArgumentMismatch
@@ -184,15 +191,16 @@ extension CheckHelper on ProblemReporting {
 
   LocatedMessage? checkArgumentsForType({
     required FunctionType function,
-    required Arguments arguments,
+    required TypeArguments? explicitTypeArguments,
+    required ActualArguments arguments,
     required Uri fileUri,
     required int fileOffset,
   }) {
     int requiredPositionalParameterCountToReport =
         function.requiredParameterCount;
     int positionalParameterCountToReport = function.positionalParameters.length;
-    int positionalArgumentCountToReport = arguments.positional.length;
-    if (arguments.positional.length < function.requiredParameterCount) {
+    int positionalArgumentCountToReport = arguments.positionalCount;
+    if (positionalArgumentCountToReport < function.requiredParameterCount) {
       return codeTooFewArguments
           .withArgumentsOld(
             requiredPositionalParameterCountToReport,
@@ -200,7 +208,8 @@ extension CheckHelper on ProblemReporting {
           )
           .withLocation(fileUri, arguments.fileOffset, noLength);
     }
-    if (arguments.positional.length > function.positionalParameters.length) {
+    if (positionalArgumentCountToReport >
+        function.positionalParameters.length) {
       return codeTooManyArguments
           .withArgumentsOld(
             positionalParameterCountToReport,
@@ -208,22 +217,32 @@ extension CheckHelper on ProblemReporting {
           )
           .withLocation(fileUri, arguments.fileOffset, noLength);
     }
-    List<NamedExpression> named = arguments.named;
-    if (named.isNotEmpty) {
+    Set<String> argumentNames = {};
+    if (arguments.namedCount > 0) {
       Set<String> names = new Set.of(
         function.namedParameters.map((a) => a.name),
       );
-      for (int i = 0; i < named.length; i++) {
-        NamedExpression argument = named[i];
-        if (!names.contains(argument.name)) {
-          return codeNoSuchNamedParameter
-              .withArgumentsOld(argument.name)
-              .withLocation(fileUri, argument.fileOffset, argument.name.length);
+      for (Argument argument in arguments.argumentList) {
+        switch (argument) {
+          case NamedArgument():
+            NamedExpression namedExpression = argument.namedExpression;
+            String name = namedExpression.name;
+            argumentNames.add(name);
+            if (!names.contains(name)) {
+              return codeNoSuchNamedParameter
+                  .withArgumentsOld(name)
+                  .withLocation(
+                    fileUri,
+                    namedExpression.fileOffset,
+                    name.length,
+                  );
+            }
+          case PositionalArgument():
+            break;
         }
       }
     }
     if (function.namedParameters.isNotEmpty) {
-      Set<String> argumentNames = new Set.of(named.map((a) => a.name));
       for (int i = 0; i < function.namedParameters.length; i++) {
         NamedType parameter = function.namedParameters[i];
         if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
@@ -233,9 +252,9 @@ extension CheckHelper on ProblemReporting {
         }
       }
     }
-    List<Object> types = arguments.types;
     List<StructuralParameter> typeParameters = function.typeParameters;
-    if (typeParameters.length != types.length && types.length != 0) {
+    if (explicitTypeArguments != null &&
+        typeParameters.length != explicitTypeArguments.types.length) {
       // A wrong (non-zero) amount of type arguments given. That's an error.
       // TODO(jensj): Position should be on type arguments instead.
       return codeTypeArgumentMismatch
@@ -308,18 +327,18 @@ extension CheckHelper on ProblemReporting {
   void checkBoundsInConstructorInvocation({
     required LibraryFeatures libraryFeatures,
     required Constructor constructor,
-    required List<DartType> typeArguments,
+    required List<DartType> explicitOrInferredTypeArguments,
     required TypeEnvironment typeEnvironment,
     required Uri fileUri,
     required int fileOffset,
-    bool inferred = false,
+    required bool hasInferredTypeArguments,
   }) {
-    if (typeArguments.isEmpty) return;
+    if (explicitOrInferredTypeArguments.isEmpty) return;
     Class klass = constructor.enclosingClass;
     DartType constructedType = new InterfaceType(
       klass,
       klass.enclosingLibrary.nonNullable,
-      typeArguments,
+      explicitOrInferredTypeArguments,
     );
     checkBoundsInType(
       libraryFeatures: libraryFeatures,
@@ -327,7 +346,7 @@ extension CheckHelper on ProblemReporting {
       typeEnvironment: typeEnvironment,
       fileUri: fileUri,
       fileOffset: fileOffset,
-      inferred: inferred,
+      hasInferredTypeArguments: hasInferredTypeArguments,
       allowSuperBounded: false,
     );
   }
@@ -335,17 +354,19 @@ extension CheckHelper on ProblemReporting {
   void checkBoundsInFactoryInvocation({
     required LibraryFeatures libraryFeatures,
     required Procedure factory,
-    required List<DartType> typeArguments,
+    required List<DartType> explicitOrInferredTypeArguments,
     required TypeEnvironment typeEnvironment,
     required Uri fileUri,
     required int fileOffset,
-    bool inferred = false,
+    required bool hasInferredTypeArguments,
   }) {
-    if (typeArguments.isEmpty) return;
+    if (explicitOrInferredTypeArguments.isEmpty) {
+      return;
+    }
     assert(factory.isFactory || factory.isExtensionTypeMember);
     DartType constructedType = Substitution.fromPairs(
       factory.function.typeParameters,
-      typeArguments,
+      explicitOrInferredTypeArguments,
     ).substituteType(factory.function.returnType);
     checkBoundsInType(
       libraryFeatures: libraryFeatures,
@@ -353,7 +374,7 @@ extension CheckHelper on ProblemReporting {
       typeEnvironment: typeEnvironment,
       fileUri: fileUri,
       fileOffset: fileOffset,
-      inferred: inferred,
+      hasInferredTypeArguments: hasInferredTypeArguments,
       allowSuperBounded: false,
     );
   }
@@ -364,13 +385,19 @@ extension CheckHelper on ProblemReporting {
     required TypeEnvironment typeEnvironment,
     required FunctionType functionType,
     required String? localName,
-    required ArgumentsImpl arguments,
+    required List<DartType> explicitOrInferredTypeArguments,
+    required ActualArguments arguments,
     required Uri fileUri,
     required int fileOffset,
+    required bool hasInferredTypeArguments,
   }) {
-    if (arguments.types.isEmpty) return;
+    if (explicitOrInferredTypeArguments.isEmpty) {
+      return;
+    }
 
-    if (functionType.typeParameters.length != arguments.types.length) {
+    if (functionType.typeParameters.length !=
+        explicitOrInferredTypeArguments.length) {
+      // Coverage-ignore-block(suite): Not run.
       assert(
         problemReportingHelper.assertProblemReportedElsewhere(
           "SourceLibraryBuilder.checkBoundsInFunctionInvocation: "
@@ -385,7 +412,7 @@ extension CheckHelper on ProblemReporting {
       getFreshTypeParametersFromStructuralParameters(
         functionType.typeParameters,
       ).freshTypeParameters,
-      arguments.types,
+      explicitOrInferredTypeArguments,
       typeEnvironment,
       bottomType,
       areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled,
@@ -394,7 +421,7 @@ extension CheckHelper on ProblemReporting {
       issues,
       fileUri,
       fileOffset,
-      inferred: !arguments.hasExplicitTypeArguments,
+      inferred: hasInferredTypeArguments,
       // TODO(johnniwinther): Special-case messaging on function type
       //  invocation to avoid reference to 'call' and use the function type
       //  instead.
@@ -407,14 +434,17 @@ extension CheckHelper on ProblemReporting {
     required LibraryFeatures libraryFeatures,
     required TypeEnvironment typeEnvironment,
     required FunctionType functionType,
-    required List<DartType> typeArguments,
+    required List<DartType> explicitOrInferredTypeArguments,
     required Uri fileUri,
     required int fileOffset,
-    required bool inferred,
+    required bool hasInferredTypeArguments,
   }) {
-    if (typeArguments.isEmpty) return;
+    if (explicitOrInferredTypeArguments.isEmpty) {
+      return;
+    }
 
-    if (functionType.typeParameters.length != typeArguments.length) {
+    if (functionType.typeParameters.length !=
+        explicitOrInferredTypeArguments.length) {
       // Coverage-ignore-block(suite): Not run.
       assert(
         problemReportingHelper.assertProblemReportedElsewhere(
@@ -430,7 +460,7 @@ extension CheckHelper on ProblemReporting {
       getFreshTypeParametersFromStructuralParameters(
         functionType.typeParameters,
       ).freshTypeParameters,
-      typeArguments,
+      explicitOrInferredTypeArguments,
       typeEnvironment,
       bottomType,
       areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled,
@@ -440,7 +470,7 @@ extension CheckHelper on ProblemReporting {
       fileUri,
       fileOffset,
       targetReceiver: functionType,
-      inferred: inferred,
+      inferred: hasInferredTypeArguments,
     );
   }
 
@@ -453,11 +483,15 @@ extension CheckHelper on ProblemReporting {
     required ClassHierarchyMembers membersHierarchy,
     required Name name,
     required Member? interfaceTarget,
-    required ArgumentsImpl arguments,
+    required List<DartType> explicitOrInferredTypeArguments,
+    required ActualArguments arguments,
     required Uri fileUri,
     required int fileOffset,
+    required bool hasInferredTypeArguments,
   }) {
-    if (arguments.types.isEmpty) return;
+    if (explicitOrInferredTypeArguments.isEmpty) {
+      return;
+    }
     Class klass;
     List<DartType> receiverTypeArguments;
     Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
@@ -493,7 +527,8 @@ extension CheckHelper on ProblemReporting {
       }
     }
     List<TypeParameter> methodParameters = method.function.typeParameters;
-    if (methodParameters.length != arguments.types.length) {
+    if (methodParameters.length != explicitOrInferredTypeArguments.length) {
+      // Coverage-ignore-block(suite): Not run.
       assert(
         problemReportingHelper.assertProblemReportedElsewhere(
           "SourceLibraryBuilder.checkBoundsInMethodInvocation: "
@@ -516,7 +551,7 @@ extension CheckHelper on ProblemReporting {
     final DartType bottomType = const NeverType.nonNullable();
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
       methodTypeParametersOfInstantiated,
-      arguments.types,
+      explicitOrInferredTypeArguments,
       typeEnvironment,
       bottomType,
       areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled,
@@ -525,7 +560,7 @@ extension CheckHelper on ProblemReporting {
       issues,
       fileUri,
       fileOffset,
-      inferred: !arguments.hasExplicitTypeArguments,
+      inferred: hasInferredTypeArguments,
       targetReceiver: receiverType,
       targetName: name.text,
     );
@@ -538,12 +573,13 @@ extension CheckHelper on ProblemReporting {
     required TypeEnvironment typeEnvironment,
     required Uri fileUri,
     required List<TypeParameter> typeParameters,
-    required List<DartType> typeArguments,
-    required bool explicitTypeArguments,
+    required List<DartType> explicitOrInferredTypeArguments,
+    required bool hasInferredTypeArguments,
     required int fileOffset,
   }) {
-    if (typeArguments.isEmpty) return;
-    if (typeParameters.length != typeArguments.length) {
+    if (explicitOrInferredTypeArguments.isEmpty) return;
+    if (typeParameters.length != explicitOrInferredTypeArguments.length) {
+      // Coverage-ignore-block(suite): Not run.
       assert(
         problemReportingHelper.assertProblemReportedElsewhere(
           "SourceLibraryBuilder.checkBoundsInStaticInvocation: "
@@ -557,7 +593,7 @@ extension CheckHelper on ProblemReporting {
     final DartType bottomType = const NeverType.nonNullable();
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
       typeParameters,
-      typeArguments,
+      explicitOrInferredTypeArguments,
       typeEnvironment,
       bottomType,
       areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled,
@@ -567,7 +603,7 @@ extension CheckHelper on ProblemReporting {
         issues,
         fileUri,
         fileOffset,
-        inferred: !explicitTypeArguments,
+        inferred: hasInferredTypeArguments,
         targetName: targetName,
       );
     }
@@ -579,7 +615,7 @@ extension CheckHelper on ProblemReporting {
     required TypeEnvironment typeEnvironment,
     required Uri fileUri,
     required int fileOffset,
-    bool? inferred,
+    required bool hasInferredTypeArguments,
     bool allowSuperBounded = true,
   }) {
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
@@ -588,7 +624,12 @@ extension CheckHelper on ProblemReporting {
       allowSuperBounded: allowSuperBounded,
       areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled,
     );
-    _reportTypeArgumentIssues(issues, fileUri, fileOffset, inferred: inferred);
+    _reportTypeArgumentIssues(
+      issues,
+      fileUri,
+      fileOffset,
+      inferred: hasInferredTypeArguments,
+    );
   }
 
   /// Reports an error if [type] contains is a generic function type used as
@@ -698,7 +739,8 @@ extension CheckHelper on ProblemReporting {
   Expression? checkStaticArguments({
     required CompilerContext compilerContext,
     required Member target,
-    required Arguments arguments,
+    required TypeArguments? explicitTypeArguments,
+    required ActualArguments arguments,
     required int fileOffset,
     required Uri fileUri,
   }) {
@@ -709,6 +751,7 @@ extension CheckHelper on ProblemReporting {
     }
     LocatedMessage? argMessage = checkArgumentsForFunction(
       function: target.function!,
+      explicitTypeArguments: explicitTypeArguments,
       arguments: arguments,
       fileOffset: fileOffset,
       fileUri: fileUri,
@@ -894,7 +937,7 @@ extension CheckHelper on ProblemReporting {
     List<TypeArgumentIssue> issues,
     Uri fileUri,
     int offset, {
-    bool? inferred,
+    required bool inferred,
     DartType? targetReceiver,
     String? targetName,
   }) {
@@ -904,9 +947,8 @@ extension CheckHelper on ProblemReporting {
       TypeParameter? typeParameter = issue.typeParameter;
 
       Message message;
-      bool issueInferred = inferred ?? false;
       if (issue.isGenericTypeAsArgumentIssue) {
-        if (issueInferred) {
+        if (inferred) {
           message = codeGenericFunctionTypeInferredAsActualTypeArgument
               .withArgumentsOld(argument);
         } else {
@@ -916,7 +958,7 @@ extension CheckHelper on ProblemReporting {
       } else {
         if (issue.enclosingType == null && targetReceiver != null) {
           if (targetName != null) {
-            if (issueInferred) {
+            if (inferred) {
               message = codeIncorrectTypeArgumentQualifiedInferred
                   .withArgumentsOld(
                     argument,
@@ -935,7 +977,7 @@ extension CheckHelper on ProblemReporting {
               );
             }
           } else {
-            if (issueInferred) {
+            if (inferred) {
               message = codeIncorrectTypeArgumentInstantiationInferred
                   .withArgumentsOld(
                     argument,
@@ -956,7 +998,7 @@ extension CheckHelper on ProblemReporting {
           String enclosingName = issue.enclosingType == null
               ? targetName!
               : getGenericTypeName(issue.enclosingType!);
-          if (issueInferred) {
+          if (inferred) {
             message = codeIncorrectTypeArgumentInferred.withArgumentsOld(
               argument,
               typeParameter.bound,

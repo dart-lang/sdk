@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -19,6 +18,7 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
+import 'package:analyzer/src/error/listener.dart';
 
 class TypeArgumentsVerifier {
   final AnalysisOptions _options;
@@ -247,10 +247,10 @@ class TypeArgumentsVerifier {
   }
 
   /// Checks a type annotation for a raw generic type, and reports the
-  /// appropriate error if [AnalysisOptions.strictRawTypes] is set.
+  /// appropriate diagnostic if [AnalysisOptions.strictRawTypes] is set.
   ///
   /// This checks if [node] refers to a generic type and does not have explicit
-  /// or inferred type arguments. When that happens, it reports error code
+  /// or inferred type arguments. When that happens, it reports diagnostic code
   /// [diag.strictRawType].
   void _checkForRawTypeName(NamedType node) {
     AstNode parentEscapingTypeArguments(NamedType node) {
@@ -277,7 +277,7 @@ class TypeArgumentsVerifier {
           unwrappedParent is CastPattern ||
           unwrappedParent is IsExpression ||
           unwrappedParent is ObjectPattern) {
-        // Do not report a "Strict raw type" error in this case; too noisy.
+        // Do not report a "Strict raw type" warning in this case; too noisy.
         // See https://github.com/dart-lang/language/blob/master/resources/type-system/strict-raw-types.md#conditions-for-a-raw-type-hint
       } else {
         _diagnosticReporter.atNode(node, diag.strictRawType, arguments: [type]);
@@ -332,9 +332,10 @@ class TypeArgumentsVerifier {
       if (typeArgument is FunctionTypeImpl &&
           typeArgument.typeParameters.isNotEmpty) {
         if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
-          _diagnosticReporter.atNode(
-            _typeArgumentErrorNode(namedType, i),
-            diag.genericFunctionTypeCannotBeTypeArgument,
+          _diagnosticReporter.report(
+            diag.genericFunctionTypeCannotBeTypeArgument.at(
+              _typeArgumentErrorNode(namedType, i),
+            ),
           );
           continue;
         }
@@ -508,9 +509,10 @@ class TypeArgumentsVerifier {
 
       if (argType is FunctionTypeImpl && argType.typeParameters.isNotEmpty) {
         if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
-          _diagnosticReporter.atNode(
-            typeArgumentList[i],
-            diag.genericFunctionTypeCannotBeTypeArgument,
+          _diagnosticReporter.report(
+            diag.genericFunctionTypeCannotBeTypeArgument.at(
+              typeArgumentList[i],
+            ),
           );
           continue;
         }
@@ -541,25 +543,25 @@ class TypeArgumentsVerifier {
 
   /// Checks whether the given [typeAnnotation] contains a type parameter.
   ///
-  /// The [errorCode] is either
+  /// The [diagnosticCode] is either
   /// [diag.invalidTypeArgumentInConstList],
   /// [diag.invalidTypeArgumentInConstMap], or
   /// [diag.invalidTypeArgumentInConstSet].
   void _checkTypeArgumentConst(
     TypeAnnotation typeAnnotation,
-    DiagnosticCode errorCode,
+    DiagnosticCode diagnosticCode,
   ) {
     switch (typeAnnotation) {
       case NamedType(:var type, :var typeArguments):
         if (type is TypeParameterType) {
           _diagnosticReporter.atNode(
             typeAnnotation,
-            errorCode,
+            diagnosticCode,
             arguments: [typeAnnotation.name.lexeme],
           );
         } else if (typeArguments != null) {
           for (var argument in typeArguments.arguments) {
-            _checkTypeArgumentConst(argument, errorCode);
+            _checkTypeArgumentConst(argument, diagnosticCode);
           }
         }
       case GenericFunctionType(:var returnType, :var parameters):
@@ -568,11 +570,11 @@ class TypeArgumentsVerifier {
             if (typeAnnotation case TypeAnnotation(:TypeParameterType type)) {
               _diagnosticReporter.atNode(
                 typeAnnotation,
-                errorCode,
+                diagnosticCode,
                 arguments: [type],
               );
             } else {
-              _checkTypeArgumentConst(typeAnnotation, errorCode);
+              _checkTypeArgumentConst(typeAnnotation, diagnosticCode);
             }
           }
           // `parameter` cannot legally be a DefaultFormalParameter,
@@ -583,11 +585,11 @@ class TypeArgumentsVerifier {
           if (type is TypeParameterType) {
             _diagnosticReporter.atNode(
               returnType,
-              errorCode,
+              diagnosticCode,
               arguments: [type],
             );
           } else {
-            _checkTypeArgumentConst(returnType, errorCode);
+            _checkTypeArgumentConst(returnType, diagnosticCode);
           }
         }
       case RecordTypeAnnotation(:var fields):
@@ -596,11 +598,11 @@ class TypeArgumentsVerifier {
           if (typeAnnotation case TypeAnnotation(:TypeParameterType type)) {
             _diagnosticReporter.atNode(
               typeAnnotation,
-              errorCode,
+              diagnosticCode,
               arguments: [type],
             );
           } else {
-            _checkTypeArgumentConst(typeAnnotation, errorCode);
+            _checkTypeArgumentConst(typeAnnotation, diagnosticCode);
           }
         }
     }
@@ -646,7 +648,7 @@ class TypeArgumentsVerifier {
     }
 
     // Check if this type has type arguments and at least one is dynamic.
-    // If so, we may need to issue a strict-raw-types error.
+    // If so, we may need to issue a strict-raw-types warning.
     if (typeArguments.any((t) => t is DynamicType)) {
       if (element.metadata.hasOptionalTypeArgs) {
         return false;

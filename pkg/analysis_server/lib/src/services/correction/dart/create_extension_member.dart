@@ -188,8 +188,9 @@ class CreateExtensionMethod extends _CreateExtensionMember {
       targetType = target.extendedType;
       extensionElement = target.element;
     } else if (target == null) {
-      extensionElement = node.enclosingInstanceElement?.ifTypeOrNull();
-      targetType = extensionElement?.thisType;
+      var enclosingInstanceElement = node.enclosingInstanceElement;
+      extensionElement = enclosingInstanceElement?.ifTypeOrNull();
+      targetType = enclosingInstanceElement?.thisType;
     } else {
       // We need the type for the extension.
       targetType = target.staticType;
@@ -237,7 +238,11 @@ class CreateExtensionMethod extends _CreateExtensionMember {
       if (builder.writeType(
         isInvocation ? returnType : functionType?.returnType,
         groupName: 'RETURN_TYPE',
-        typeParametersInScope: methodBeingCopied?.typeParameters,
+        typeParametersInScope:
+            methodBeingCopied?.typeParameters ??
+            (isInvocation
+                ? [if (returnType is TypeParameterType) returnType.element]
+                : functionType?.typeParameters),
       )) {
         builder.write(' ');
       }

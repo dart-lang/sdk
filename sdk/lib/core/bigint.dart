@@ -39,8 +39,8 @@ part of "dart:core";
 /// * [int]: An integer number.
 /// * [double]: A double-precision floating point number.
 /// * [num]: The super class for [int] and [double].
-/// * [Numbers](https://dart.dev/guides/language/numbers) in
-/// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
+/// * [Built-in number types](https://dart.dev/language/built-in-types#numbers)
+/// * [Number representation](https://dart.dev/resources/language/number-representation)
 abstract final class BigInt implements Comparable<BigInt> {
   /// A big integer with the numerical value 0.
   external static BigInt get zero;

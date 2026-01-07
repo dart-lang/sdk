@@ -109,7 +109,7 @@ extension type A(int i) {
 extension type A(int i) {
   int get a => null;
 }
-''');
+''', filter: (error) => error.offset == testCode.indexOf('a;'));
   }
 
   Future<void> test_late() async {

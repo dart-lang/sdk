@@ -2328,6 +2328,23 @@ declared
 ''');
   }
 
+  test_getOverridden() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo() {}
+}
+
+extension type B(A it) implements A {
+  void foo() {}
+}
+''');
+
+    var element = library.getExtensionType('B')!;
+    _assertGetOverridden(element, 'foo', r'''
+A.foo: void Function()
+''');
+  }
+
   test_noDeclaration_implementClass_generic_method() async {
     var library = await buildLibrary(r'''
 class A<T> {
@@ -3092,6 +3109,37 @@ class _InheritanceManager3Base2 extends ElementsBaseTest {
       NodeTextExpectationsCollector.add(actual);
     }
     expect(actual, expected);
+  }
+
+  // TODO(scheglov): this is duplicate
+  void _assertExecutableList(
+    List<ExecutableElement>? elements,
+    String? expected,
+  ) {
+    var elementsString = elements == null
+        ? '<null>\n'
+        : [
+            for (var element in elements)
+              '${element.enclosingElement?.name}.${element.lookupName}: '
+                  '${typeString(element.type)}\n',
+          ].sorted().join();
+    if (elementsString != expected) {
+      print('-------- Actual --------');
+      print('$elementsString------------------------');
+    }
+    expect(elementsString, expected);
+  }
+
+  // TODO(scheglov): this is duplicate
+  void _assertGetOverridden(
+    InterfaceElementImpl element,
+    String name,
+    String expected,
+  ) {
+    var library = element.library;
+    var inheritance = library.session.inheritanceManager;
+    var overridden = inheritance.getOverridden(element, Name(null, name));
+    _assertExecutableList(overridden, expected);
   }
 
   String _interfaceText(InterfaceElementImpl element) {

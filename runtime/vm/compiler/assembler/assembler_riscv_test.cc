@@ -2595,6 +2595,25 @@ ASSEMBLER_TEST_RUN(LoadReserveStoreConditionalWord_Failure, test) {
   EXPECT_EQ(0b1100, *value);
 }
 
+ASSEMBLER_TEST_GENERATE(LoadReserveStoreConditionalWord_Failure2, assembler) {
+  __ SetExtensions(RV_G);
+  __ subi(A2, SP, 8);
+  __ lrw(A1, Address(A2));
+  __ scw(A0, A1, Address(A2));  // May fail or succeed.
+  __ scw(A0, A1, Address(A2));  // Must fail.
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadReserveStoreConditionalWord_Failure2, test) {
+  EXPECT_DISASSEMBLY(
+      "ff810613 addi a2, sp, -8\n"
+      "100625af lr.w a1, (a2)\n"
+      "18b6252f sc.w a0, a1, (a2)\n"
+      "18b6252f sc.w a0, a1, (a2)\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(false, 0 == Call(test->entry()));
+}
+
 ASSEMBLER_TEST_GENERATE(AmoSwapWord, assembler) {
   __ SetExtensions(RV_G);
   __ amoswapw(A0, A1, Address(A0));
@@ -8852,6 +8871,64 @@ ASSEMBLER_TEST_RUN(StoreDoubleWordRelease, test) {
 }
 #endif  // XLEN >= 64
 
+ASSEMBLER_TEST_GENERATE(AmoCompareAndSwapByte, assembler) {
+  __ SetExtensions(RV_GC | RV_Zacas | RV_Zabha);
+  __ lb(A1, Address(A0));
+  Label retry;
+  __ Bind(&retry);
+  __ addi(A2, A1, 1);
+  __ mv(A3, A1);
+  __ amocasb(A1, A2, Address(A0), std::memory_order_relaxed);
+  __ bne(A1, A3, &retry);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoCompareAndSwapByte, test) {
+  EXPECT_DISASSEMBLY(
+      "00050583 lb a1, 0(a0)\n"
+      "00158613 addi a2, a1, 1\n"
+      "    86ae mv tmp, a1\n"
+      "28c505af amocas.h a1, a2, (a0)\n"
+      "fed59be3 bne a1, tmp, -10\n"
+      "    8082 ret\n");
+
+  int8_t counter = 0;
+  Call(test->entry(), reinterpret_cast<intx_t>(&counter));
+  EXPECT_EQ(1, counter);
+  Call(test->entry(), reinterpret_cast<intx_t>(&counter));
+  EXPECT_EQ(2, counter);
+  Call(test->entry(), reinterpret_cast<intx_t>(&counter));
+  EXPECT_EQ(3, counter);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoCompareAndSwapHalfWord, assembler) {
+  __ SetExtensions(RV_GC | RV_Zacas | RV_Zabha);
+  __ lh(A1, Address(A0));
+  Label retry;
+  __ Bind(&retry);
+  __ addi(A2, A1, 1);
+  __ mv(A3, A1);
+  __ amocash(A1, A2, Address(A0), std::memory_order_relaxed);
+  __ bne(A1, A3, &retry);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoCompareAndSwapHalfWord, test) {
+  EXPECT_DISASSEMBLY(
+      "00051583 lh a1, 0(a0)\n"
+      "00158613 addi a2, a1, 1\n"
+      "    86ae mv tmp, a1\n"
+      "28c515af amocas.h a1, a2, (a0)\n"
+      "fed59be3 bne a1, tmp, -10\n"
+      "    8082 ret\n");
+
+  int16_t counter = 0;
+  Call(test->entry(), reinterpret_cast<intx_t>(&counter));
+  EXPECT_EQ(1, counter);
+  Call(test->entry(), reinterpret_cast<intx_t>(&counter));
+  EXPECT_EQ(2, counter);
+  Call(test->entry(), reinterpret_cast<intx_t>(&counter));
+  EXPECT_EQ(3, counter);
+}
+
 ASSEMBLER_TEST_GENERATE(AmoCompareAndSwapWord, assembler) {
   __ SetExtensions(RV_GC | RV_Zacas);
   __ lw(A1, Address(A0));
@@ -8919,6 +8996,32 @@ ASSEMBLER_TEST_RUN(AmoCompareAndSwapQuadWord, test) {
   EXPECT_DISASSEMBLY("2fc5432f amocas.q.aqrl t1, t3, (a0)\n");
 }
 #endif
+
+ASSEMBLER_TEST_GENERATE(WaitOnReservationSet_NoTimeout, assembler) {
+  __ SetExtensions(RV_GC | RV_Zawrs);
+  __ wrsnto();
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(WaitOnReservationSet_NoTimeout, test) {
+  EXPECT_DISASSEMBLY(
+      "00d00073 wrs.nto\n"
+      "    8082 ret\n");
+
+  Call(test->entry());
+}
+
+ASSEMBLER_TEST_GENERATE(WaitOnReservationSet_ShortTimeout, assembler) {
+  __ SetExtensions(RV_GC | RV_Zawrs);
+  __ wrssto();
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(WaitOnReservationSet_ShortTimeout, test) {
+  EXPECT_DISASSEMBLY(
+      "01d00073 wrs.sto\n"
+      "    8082 ret\n");
+
+  Call(test->entry());
+}
 
 ASSEMBLER_TEST_GENERATE(MayBeOp_OneSource, assembler) {
   __ SetExtensions(RV_G | RV_Zimop);
@@ -9221,6 +9324,18 @@ ASSEMBLER_TEST_RUN(LoadImmediate_LiSlliAddi, test) {
       "    8082 ret\n");
   EXPECT_EQ(static_cast<int64_t>(0xFF000000000000FF), Call(test->entry()));
 }
+
+ASSEMBLER_TEST_GENERATE(LoadImmediate_Bseti, assembler) {
+  __ SetExtensions(RV_GCB);
+  __ LoadImmediate(A0, static_cast<intx_t>(1) << 62);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadImmediate_Bseti, test) {
+  EXPECT_DISASSEMBLY(
+      "2be01513 bseti a0, zero, 0x3e\n"
+      "    8082 ret\n");
+  EXPECT_EQ(static_cast<intx_t>(1) << 62, Call(test->entry()));
+}
 #endif
 
 ASSEMBLER_TEST_GENERATE(BitwiseImmediates_GC, assembler) {
@@ -9267,6 +9382,58 @@ ASSEMBLER_TEST_RUN(BitwiseImmediates_GCB, test) {
       "29c59513 bseti a0, a1, 0x1c\n"
       "69c59513 binvi a0, a1, 0x1c\n"
       "    8082 ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(LoadSImmediate_IntCast, assembler) {
+  __ SetExtensions(RV_GC);
+  __ LoadSImmediate(FA0, 10.0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadSImmediate_IntCast, test) {
+  EXPECT_DISASSEMBLY(
+      "    4729 li tmp2, 10\n"
+      "d0070553 fcvt.s.w fa0, tmp2\n"
+      "    8082 ret\n");
+  EXPECT_EQ(10.0f, CallF(test->entry(), 0.0f));
+}
+
+ASSEMBLER_TEST_GENERATE(LoadSImmediate_NegLi, assembler) {
+  __ SetExtensions(RV_GC | RV_Zfa);
+  __ LoadSImmediate(FA0, -2.0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadSImmediate_NegLi, test) {
+  EXPECT_DISASSEMBLY(
+      "f01a0553 flis fa0, 2.000000\n"
+      "20a51553 fneg.s fa0, fa0\n"
+      "    8082 ret\n");
+  EXPECT_EQ(-2.0f, CallF(test->entry(), 0.0f));
+}
+
+ASSEMBLER_TEST_GENERATE(LoadDImmediate_IntCast, assembler) {
+  __ SetExtensions(RV_GC);
+  __ LoadDImmediate(FA0, 10.0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadDImmediate_IntCast, test) {
+  EXPECT_DISASSEMBLY(
+      "    4729 li tmp2, 10\n"
+      "d2070553 fcvt.d.w fa0, tmp2\n"
+      "    8082 ret\n");
+  EXPECT_EQ(10.0, CallD(test->entry(), 0.0));
+}
+
+ASSEMBLER_TEST_GENERATE(LoadDImmediate_NegLi, assembler) {
+  __ SetExtensions(RV_GC | RV_Zfa);
+  __ LoadDImmediate(FA0, -2.0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadDImmediate_NegLi, test) {
+  EXPECT_DISASSEMBLY(
+      "f21a0553 flid fa0, 2.000000\n"
+      "22a51553 fneg.d fa0, fa0\n"
+      "    8082 ret\n");
+  EXPECT_EQ(-2.0, CallD(test->entry(), 0.0));
 }
 
 ASSEMBLER_TEST_GENERATE(AddImmediateBranchOverflow, assembler) {
@@ -9553,6 +9720,46 @@ ASSEMBLER_TEST_RUN(MultiplyBranchOverflow_Destructive, test) {
   EXPECT_EQ(0, Call(test->entry(), kMinIntX, 0));
   EXPECT_EQ(kMinIntX, Call(test->entry(), kMinIntX, 1));
   EXPECT_EQ(42, Call(test->entry(), kMinIntX, 2));
+}
+
+ASSEMBLER_TEST_GENERATE(Hints, assembler) {
+  __ SetExtensions(RV_G);
+  __ add(ZR, ZR, Register(2));
+  __ add(ZR, ZR, Register(3));
+  __ add(ZR, ZR, Register(4));
+  __ add(ZR, ZR, Register(5));
+  __ auipc(ZR, 0xFF000);
+  __ fence(kWrite, kNullSet);
+  __ ori(ZR, A0, 0);
+  __ ori(ZR, A0, 1);
+  __ ori(ZR, A0, 3);
+}
+ASSEMBLER_TEST_RUN(Hints, test) {
+  EXPECT_DISASSEMBLY(
+      "00200033 ntl.p1\n"
+      "00300033 ntl.pall\n"
+      "00400033 ntl.s1\n"
+      "00500033 ntl.all\n"
+      "000ff017 lpad 1044480\n"
+      "0100000f pause\n"
+      "00056013 prefetch.i 0(a0)\n"
+      "00156013 prefetch.r 0(a0)\n"
+      "00356013 prefetch.w 0(a0)\n");
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedHints, assembler) {
+  __ SetExtensions(RV_GC);
+  __ add(ZR, ZR, Register(2));
+  __ add(ZR, ZR, Register(3));
+  __ add(ZR, ZR, Register(4));
+  __ add(ZR, ZR, Register(5));
+}
+ASSEMBLER_TEST_RUN(CompressedHints, test) {
+  EXPECT_DISASSEMBLY(
+      "    900a ntl.p1\n"
+      "    900e ntl.pall\n"
+      "    9012 ntl.s1\n"
+      "    9016 ntl.all\n");
 }
 
 #define TEST_ENCODING(type, name)                                              \

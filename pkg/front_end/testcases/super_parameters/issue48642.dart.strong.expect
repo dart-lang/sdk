@@ -42,10 +42,10 @@ class A1 extends core::Object {
 }
 class B1 extends self::A1 {
   constructor foo({dynamic x = #C1}) → self::B1
-    : super self::A1::•(y: new self::Test::foo(), x: x)
+    : super self::A1::•(x: x, y: new self::Test::foo())
     ;
   constructor bar({dynamic x = #C1}) → self::B1
-    : super self::A1::•(y: self::Test::bar(), x: x)
+    : super self::A1::•(x: x, y: self::Test::bar())
     ;
 }
 class A2 extends core::Object {
@@ -68,10 +68,10 @@ class A3 extends core::Object {
 }
 class B3 extends self::A3 {
   constructor foo({dynamic y = #C1}) → self::B3
-    : super self::A3::•(new self::Test::foo(), y: y)
+    : final dynamic #t1 = y, super self::A3::•(new self::Test::foo(), y: #t1)
     ;
   constructor bar({dynamic y = #C1}) → self::B3
-    : super self::A3::•(self::Test::bar(), y: y)
+    : final dynamic #t2 = y, super self::A3::•(self::Test::bar(), y: #t2)
     ;
 }
 class A4 extends core::Object /*hasConstConstructor*/  {
@@ -81,10 +81,10 @@ class A4 extends core::Object /*hasConstConstructor*/  {
 }
 class B4 extends self::A4 {
   constructor foo({dynamic x = #C1}) → self::B4
-    : super self::A4::•(y: new self::Test::foo(), x: x)
+    : super self::A4::•(x: x, y: new self::Test::foo())
     ;
   constructor bar({dynamic x = #C1}) → self::B4
-    : super self::A4::•(y: self::Test::bar(), x: x)
+    : super self::A4::•(x: x, y: self::Test::bar())
     ;
 }
 class A5 extends core::Object /*hasConstConstructor*/  {
@@ -107,10 +107,10 @@ class A6 extends core::Object /*hasConstConstructor*/  {
 }
 class B6 extends self::A6 {
   constructor foo({dynamic y = #C1}) → self::B6
-    : super self::A6::•(new self::Test::foo(), y: y)
+    : final dynamic #t3 = y, super self::A6::•(new self::Test::foo(), y: #t3)
     ;
   constructor bar({dynamic y = #C1}) → self::B6
-    : super self::A6::•(self::Test::bar(), y: y)
+    : final dynamic #t4 = y, super self::A6::•(self::Test::bar(), y: #t4)
     ;
 }
 class A7 extends core::Object /*hasConstConstructor*/  {
@@ -120,14 +120,14 @@ class A7 extends core::Object /*hasConstConstructor*/  {
 }
 class B7 extends self::A7 /*hasConstConstructor*/  {
   const constructor foo({dynamic x = #C1}) → self::B7
-    : super self::A7::•(y: invalid-expression "pkg/front_end/testcases/super_parameters/issue48642.dart:69:38: Error: New expression is not a constant expression.
+    : super self::A7::•(x: x, y: invalid-expression "pkg/front_end/testcases/super_parameters/issue48642.dart:69:38: Error: New expression is not a constant expression.
   const B7.foo({super.x}) : super(y: new Test.foo()); // Error.
-                                     ^^^", x: x)
+                                     ^^^")
     ;
   const constructor bar({dynamic x = #C1}) → self::B7
-    : super self::A7::•(y: invalid-expression "pkg/front_end/testcases/super_parameters/issue48642.dart:70:38: Error: New expression is not a constant expression.
+    : super self::A7::•(x: x, y: invalid-expression "pkg/front_end/testcases/super_parameters/issue48642.dart:70:38: Error: New expression is not a constant expression.
   const B7.bar({super.x}) : super(y: new Test.bar()); // Error.
-                                     ^^^", x: x)
+                                     ^^^")
     ;
 }
 class A8 extends core::Object /*hasConstConstructor*/  {
@@ -154,14 +154,14 @@ class A9 extends core::Object /*hasConstConstructor*/  {
 }
 class B9 extends self::A9 /*hasConstConstructor*/  {
   const constructor foo({dynamic y = #C1}) → self::B9
-    : super self::A9::•(invalid-expression "pkg/front_end/testcases/super_parameters/issue48642.dart:87:35: Error: New expression is not a constant expression.
+    : final dynamic #t5 = y, super self::A9::•(invalid-expression "pkg/front_end/testcases/super_parameters/issue48642.dart:87:35: Error: New expression is not a constant expression.
   const B9.foo({super.y}) : super(new Test.foo()); // Error.
-                                  ^^^", y: y)
+                                  ^^^", y: #t5)
     ;
   const constructor bar({dynamic y = #C1}) → self::B9
-    : super self::A9::•(invalid-expression "pkg/front_end/testcases/super_parameters/issue48642.dart:88:35: Error: New expression is not a constant expression.
+    : final dynamic #t6 = y, super self::A9::•(invalid-expression "pkg/front_end/testcases/super_parameters/issue48642.dart:88:35: Error: New expression is not a constant expression.
   const B9.bar({super.y}) : super(new Test.bar()); // Error.
-                                  ^^^", y: y)
+                                  ^^^", y: #t6)
     ;
 }
 static method main() → dynamic {}

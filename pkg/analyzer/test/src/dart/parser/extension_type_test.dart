@@ -435,219 +435,6 @@ ConstructorDeclaration
 ''');
   }
 
-  test_error_fieldModifier_const() {
-    var parseResult = parseStringWithErrors(r'''
-extension type A(const int it) {}
-''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 17, 5)]);
-
-    var node = parseResult.findNode.singleExtensionTypeDeclaration;
-    assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
-  extensionKeyword: extension
-  typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
-    typeName: A
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: SimpleFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
-  body: BlockClassBody
-    leftBracket: {
-    rightBracket: }
-''');
-  }
-
-  test_error_fieldModifier_covariant() {
-    var parseResult = parseStringWithErrors(r'''
-extension type A(covariant int it) {}
-''');
-    parseResult.assertErrors([
-      error(diag.extraneousModifierInPrimaryConstructor, 17, 9),
-    ]);
-
-    var node = parseResult.findNode.singleExtensionTypeDeclaration;
-    assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
-  extensionKeyword: extension
-  typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
-    typeName: A
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: SimpleFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
-  body: BlockClassBody
-    leftBracket: {
-    rightBracket: }
-''');
-  }
-
-  test_error_fieldModifier_covariant_final() {
-    var parseResult = parseStringWithErrors(r'''
-extension type A(covariant final int it) {}
-''');
-    parseResult.assertErrors([
-      error(diag.extraneousModifierInPrimaryConstructor, 17, 9),
-    ]);
-
-    var node = parseResult.findNode.singleExtensionTypeDeclaration;
-    assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
-  extensionKeyword: extension
-  typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
-    typeName: A
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: SimpleFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
-  body: BlockClassBody
-    leftBracket: {
-    rightBracket: }
-''');
-  }
-
-  test_error_fieldModifier_final() {
-    var parseResult = parseStringWithErrors(r'''
-extension type A(final int it) {}
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.singleExtensionTypeDeclaration;
-    assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
-  extensionKeyword: extension
-  typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
-    typeName: A
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: SimpleFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
-  body: BlockClassBody
-    leftBracket: {
-    rightBracket: }
-''');
-  }
-
-  test_error_fieldModifier_final_language310() {
-    var parseResult = parseStringWithErrors(r'''
-// @dart = 3.10
-extension type A(final int it) {}
-''');
-    parseResult.assertErrors([error(diag.representationFieldModifier, 33, 5)]);
-
-    var node = parseResult.findNode.singleExtensionTypeDeclaration;
-    assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
-  extensionKeyword: extension
-  typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
-    typeName: A
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: SimpleFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
-  body: BlockClassBody
-    leftBracket: {
-    rightBracket: }
-''');
-  }
-
-  test_error_fieldModifier_required() {
-    var parseResult = parseStringWithErrors(r'''
-extension type A(required int it) {}
-''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 17, 8)]);
-
-    var node = parseResult.findNode.singleExtensionTypeDeclaration;
-    assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
-  extensionKeyword: extension
-  typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
-    typeName: A
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: SimpleFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
-  body: BlockClassBody
-    leftBracket: {
-    rightBracket: }
-''');
-  }
-
-  test_error_fieldModifier_static() {
-    var parseResult = parseStringWithErrors(r'''
-extension type A(static int it) {}
-''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 17, 6)]);
-
-    var node = parseResult.findNode.singleExtensionTypeDeclaration;
-    assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
-  extensionKeyword: extension
-  typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
-    typeName: A
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: SimpleFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
-  body: BlockClassBody
-    leftBracket: {
-    rightBracket: }
-''');
-  }
-
-  test_error_fieldName_asDeclaration() {
-    var parseResult = parseStringWithErrors(r'''
-extension type A(int A) {}
-''');
-    parseResult.assertErrors([error(diag.memberWithClassName, 21, 1)]);
-
-    var node = parseResult.findNode.singleExtensionTypeDeclaration;
-    assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
-  extensionKeyword: extension
-  typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
-    typeName: A
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: SimpleFormalParameter
-        type: NamedType
-          name: int
-        name: A
-      rightParenthesis: )
-  body: BlockClassBody
-    leftBracket: {
-    rightBracket: }
-''');
-  }
-
   test_error_formalParameterModifier_covariant_method_instance() {
     var parseResult = parseStringWithErrors(r'''
 extension type A(int it) {
@@ -743,204 +530,6 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_error_multipleFields() {
-    var parseResult = parseStringWithErrors(r'''
-extension type A(int a, String b) {}
-''');
-    parseResult.assertErrors([error(diag.multipleRepresentationFields, 22, 1)]);
-
-    var node = parseResult.findNode.singleExtensionTypeDeclaration;
-    assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
-  extensionKeyword: extension
-  typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
-    typeName: A
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: SimpleFormalParameter
-        type: NamedType
-          name: int
-        name: a
-      rightParenthesis: )
-  body: BlockClassBody
-    leftBracket: {
-    rightBracket: }
-''');
-  }
-
-  test_error_noField() {
-    var parseResult = parseStringWithErrors(r'''
-extension type A() {}
-''');
-    parseResult.assertErrors([error(diag.expectedRepresentationField, 17, 1)]);
-
-    var node = parseResult.findNode.singleExtensionTypeDeclaration;
-    assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
-  extensionKeyword: extension
-  typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
-    typeName: A
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: SimpleFormalParameter
-        type: NamedType
-          name: <empty> <synthetic>
-        name: <empty> <synthetic>
-      rightParenthesis: )
-  body: BlockClassBody
-    leftBracket: {
-    rightBracket: }
-''');
-  }
-
-  test_error_noFieldType() {
-    var parseResult = parseStringWithErrors(r'''
-extension type A(it) {}
-''');
-    parseResult.assertErrors([error(diag.expectedRepresentationType, 17, 2)]);
-
-    var node = parseResult.findNode.singleExtensionTypeDeclaration;
-    assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
-  extensionKeyword: extension
-  typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
-    typeName: A
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: SimpleFormalParameter
-        type: NamedType
-          name: <empty> <synthetic>
-        name: it
-      rightParenthesis: )
-  body: BlockClassBody
-    leftBracket: {
-    rightBracket: }
-''');
-  }
-
-  test_error_noFieldType_var() {
-    var parseResult = parseStringWithErrors(r'''
-extension type A(var it) {}
-''');
-    parseResult.assertErrors([
-      error(diag.expectedRepresentationType, 17, 3),
-      error(diag.representationFieldModifier, 17, 3),
-    ]);
-
-    var node = parseResult.findNode.singleExtensionTypeDeclaration;
-    assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
-  extensionKeyword: extension
-  typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
-    typeName: A
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: SimpleFormalParameter
-        type: NamedType
-          name: <empty> <synthetic>
-        name: it
-      rightParenthesis: )
-  body: BlockClassBody
-    leftBracket: {
-    rightBracket: }
-''');
-  }
-
-  test_error_superFormalParameter() {
-    var parseResult = parseStringWithErrors(r'''
-extension type A(super.it) {}
-''');
-    parseResult.assertErrors([error(diag.expectedRepresentationField, 17, 5)]);
-
-    var node = parseResult.findNode.singleExtensionTypeDeclaration;
-    assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
-  extensionKeyword: extension
-  typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
-    typeName: A
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: SimpleFormalParameter
-        type: NamedType
-          name: <empty> <synthetic>
-        name: <empty> <synthetic>
-      rightParenthesis: )
-  body: BlockClassBody
-    leftBracket: {
-    rightBracket: }
-''');
-  }
-
-  test_error_trailingComma() {
-    var parseResult = parseStringWithErrors(r'''
-extension type A(int it,) {}
-''');
-    parseResult.assertErrors([
-      error(diag.representationFieldTrailingComma, 23, 1),
-    ]);
-
-    var node = parseResult.findNode.singleExtensionTypeDeclaration;
-    assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
-  extensionKeyword: extension
-  typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
-    typeName: A
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: SimpleFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
-  body: BlockClassBody
-    leftBracket: {
-    rightBracket: }
-''');
-  }
-
-  test_error_typeParameters_afterConstructorName() {
-    var parseResult = parseStringWithErrors(r'''
-extension type A._<T>(T _) {}
-''');
-    parseResult.assertErrors([
-      error(diag.expectedRepresentationField, 16, 0),
-      error(diag.missingPrimaryConstructorParameters, 17, 1),
-      error(diag.expectedExtensionTypeBody, 17, 1),
-      error(diag.expectedExecutable, 18, 1),
-      error(diag.missingConstFinalVarOrType, 19, 1),
-      error(diag.expectedToken, 19, 1),
-      error(diag.topLevelOperator, 20, 1),
-    ]);
-
-    var node = parseResult.findNode.singleExtensionTypeDeclaration;
-    assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
-  extensionKeyword: extension
-  typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
-    typeName: A
-    constructorName: PrimaryConstructorName
-      period: .
-      name: _
-    formalParameters: FormalParameterList
-      leftParenthesis: ( <synthetic>
-      parameter: SimpleFormalParameter
-        type: NamedType
-          name: <empty> <synthetic>
-        name: <empty> <synthetic>
-      rightParenthesis: ) <synthetic>
-  body: BlockClassBody
-    leftBracket: { <synthetic>
-    rightBracket: } <synthetic>
-''');
-  }
-
   test_featureNotEnabled() {
     var parseResult = parseStringWithErrors(r'''
 // @dart = 3.1
@@ -968,37 +557,6 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         rightBracket: }
-''');
-  }
-
-  test_field_metadata() {
-    var parseResult = parseStringWithErrors(r'''
-extension type A(@foo int it) {}
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.singleExtensionTypeDeclaration;
-    assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
-  extensionKeyword: extension
-  typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
-    typeName: A
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: SimpleFormalParameter
-        metadata
-          Annotation
-            atSign: @
-            name: SimpleIdentifier
-              token: foo
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
-  body: BlockClassBody
-    leftBracket: {
-    rightBracket: }
 ''');
   }
 
@@ -1423,14 +981,9 @@ ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
   primaryConstructor: PrimaryConstructorDeclaration
-    constKeyword: const
     typeName: E
     formalParameters: FormalParameterList
       leftParenthesis: ( <synthetic>
-      parameter: SimpleFormalParameter
-        type: NamedType
-          name: <empty> <synthetic>
-        name: <empty> <synthetic>
       rightParenthesis: ) <synthetic>
   body: BlockClassBody
     leftBracket: {
@@ -1438,7 +991,1408 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  void test_primaryConstructor_missing() {
+  test_primaryConstructor_formalParameters_defaultValue_optionalNamed() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A({int a = 0}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+          name: a
+        separator: =
+        defaultValue: IntegerLiteral
+          literal: 0
+      rightDelimiter: }
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_defaultValue_optionalPositional() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A([int a = 0]) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: [
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+          name: a
+        separator: =
+        defaultValue: IntegerLiteral
+          literal: 0
+      rightDelimiter: ]
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_fieldFormalParameter() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(this.it) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: FieldFormalParameter
+        thisKeyword: this
+        period: .
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_functionTypedFormalParameter() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int it()) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: FunctionTypedFormalParameter
+        returnType: NamedType
+          name: int
+        name: it
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_keyword_const() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(const int it) {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 17, 5)]);
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        keyword: const
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_keyword_covariant() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(covariant int it) {}
+''');
+    parseResult.assertErrors([
+      error(diag.extraneousModifierInPrimaryConstructor, 17, 9),
+    ]);
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        covariantKeyword: covariant
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_keyword_covariant_final() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(covariant final int it) {}
+''');
+    parseResult.assertErrors([
+      error(diag.extraneousModifierInPrimaryConstructor, 17, 9),
+    ]);
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        covariantKeyword: covariant
+        keyword: final
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_keyword_covariant_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+extension type A(covariant int it) {}
+''');
+    parseResult.assertErrors([
+      error(diag.extraneousModifierInPrimaryConstructor, 33, 9),
+    ]);
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        covariantKeyword: covariant
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_keyword_final_hasType() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(final int it) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        keyword: final
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_keyword_final_hasType_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+extension type A(final int it) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        keyword: final
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_keyword_final_noType() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(final it) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        keyword: final
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_keyword_final_noType_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+extension type A(final it) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        keyword: final
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_keyword_required() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(required int it) {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 17, 8)]);
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        requiredKeyword: required
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_keyword_static() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(static int it) {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 17, 6)]);
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_keyword_var() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(var it) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        keyword: var
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_keyword_var_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+extension type A(var it) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        keyword: var
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_optionalNamed() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A({int it = 0}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+          name: it
+        separator: =
+        defaultValue: IntegerLiteral
+          literal: 0
+      rightDelimiter: }
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_optionalNamed_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+extension type A({int it = 0}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+          name: it
+        separator: =
+        defaultValue: IntegerLiteral
+          literal: 0
+      rightDelimiter: }
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_optionalNamed_optionalNamed() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A({int? a, int? b}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+            question: ?
+          name: a
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+            question: ?
+          name: b
+      rightDelimiter: }
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_optionalNamed_optionalNamed_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+extension type A({int? a, int? b}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+            question: ?
+          name: a
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+            question: ?
+          name: b
+      rightDelimiter: }
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_optionalNamed_requiredNamed() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A({int? a, required int b}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+            question: ?
+          name: a
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          requiredKeyword: required
+          type: NamedType
+            name: int
+          name: b
+      rightDelimiter: }
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_optionalPositional() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A([int it = 0]) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: [
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+          name: it
+        separator: =
+        defaultValue: IntegerLiteral
+          literal: 0
+      rightDelimiter: ]
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_optionalPositional_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+extension type A([int it = 0]) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: [
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+          name: it
+        separator: =
+        defaultValue: IntegerLiteral
+          literal: 0
+      rightDelimiter: ]
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_optionalPositional_optionalPositional() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A([int? a, int? b]) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: [
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+            question: ?
+          name: a
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+            question: ?
+          name: b
+      rightDelimiter: ]
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_optionalPositional_optionalPositional_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+extension type A([int? a, int? b]) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: [
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+            question: ?
+          name: a
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+            question: ?
+          name: b
+      rightDelimiter: ]
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_requiredNamed() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A({required int it}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          requiredKeyword: required
+          type: NamedType
+            name: int
+          name: it
+      rightDelimiter: }
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_requiredNamed_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+extension type A({required int it}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          requiredKeyword: required
+          type: NamedType
+            name: int
+          name: it
+      rightDelimiter: }
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_requiredNamed_optionalNamed() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A({required int a, int? b}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          requiredKeyword: required
+          type: NamedType
+            name: int
+          name: a
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+            question: ?
+          name: b
+      rightDelimiter: }
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_requiredNamed_requiredNamed() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A({required int a, required int b}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          requiredKeyword: required
+          type: NamedType
+            name: int
+          name: a
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          requiredKeyword: required
+          type: NamedType
+            name: int
+          name: b
+      rightDelimiter: }
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_requiredPositional() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int it) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_requiredPositional_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+extension type A(int it) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_requiredPositional_optionalNamed() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int a, {int? b}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+        name: a
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+            question: ?
+          name: b
+      rightDelimiter: }
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_requiredPositional_optionalNamed_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+extension type A(int a, {int? b}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+        name: a
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+            question: ?
+          name: b
+      rightDelimiter: }
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_requiredPositional_optionalPositional() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int a, [int? b]) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+        name: a
+      leftDelimiter: [
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+            question: ?
+          name: b
+      rightDelimiter: ]
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_requiredPositional_optionalPositional_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+extension type A(int a, [int? b]) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+        name: a
+      leftDelimiter: [
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+            question: ?
+          name: b
+      rightDelimiter: ]
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_requiredPositional_requiredPositional() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int a, int b) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+        name: a
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+        name: b
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_kind_requiredPositional_requiredPositional_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+extension type A(int a, int b) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+        name: a
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+        name: b
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_memberWithClassName() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int A) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+        name: A
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_metadata() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(@foo int it) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        metadata
+          Annotation
+            atSign: @
+            name: SimpleIdentifier
+              token: foo
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_noFormalParameters() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A() {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_noFormalParameters_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+extension type A() {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_noTypeAnnotation() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(it) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_noTypeAnnotation_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+extension type A(it) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_noTypeAnnotation_withMetadata() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(@foo it) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        metadata
+          Annotation
+            atSign: @
+            name: SimpleIdentifier
+              token: foo
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_superFormalParameter() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(super.it) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SuperFormalParameter
+        superKeyword: super
+        period: .
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_trailingComma() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int it,) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_trailingComma_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+extension type A(int it,) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_missing() {
     var parseResult = parseStringWithErrors(r'''
 extension type E {}
 ''');
@@ -1453,10 +2407,6 @@ ExtensionTypeDeclaration
     typeName: E @15
     formalParameters: FormalParameterList
       leftParenthesis: ( @17 <synthetic>
-      parameter: SimpleFormalParameter
-        type: NamedType
-          name: <empty> @17 <synthetic>
-        name: <empty> @17 <synthetic>
       rightParenthesis: ) @17 <synthetic>
   body: BlockClassBody
     leftBracket: { @17

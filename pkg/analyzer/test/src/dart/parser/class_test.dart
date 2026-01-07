@@ -1626,6 +1626,35 @@ ClassDeclaration
 ''');
   }
 
+  test_primaryConstructorBody_assertInitializer() {
+    var parseResult = parseStringWithErrors(r'''
+class A(final int x) {
+  this : assert(x > 0);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singlePrimaryConstructorBody;
+    assertParsedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: x
+        operator: >
+        rightOperand: IntegerLiteral
+          literal: 0
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   test_primaryConstructorBody_body_blockFunctionBody() {
     var parseResult = parseStringWithErrors(r'''
 class A() {

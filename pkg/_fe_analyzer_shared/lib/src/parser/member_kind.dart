@@ -23,6 +23,9 @@ enum MemberKind {
   /// A local function.
   Local,
 
+  /// An anonymous method.
+  AnonymousMethod,
+
   /// A non-static method in a class (including constructors).
   NonStaticMethod,
 

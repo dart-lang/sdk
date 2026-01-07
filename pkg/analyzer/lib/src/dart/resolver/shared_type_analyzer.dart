@@ -6,11 +6,12 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
+import 'package:analyzer/src/error/listener.dart';
 
 typedef SharedPatternField =
     shared.RecordPatternField<PatternFieldImpl, DartPatternImpl>;
@@ -24,7 +25,6 @@ class SharedTypeAnalyzerErrors
           StatementImpl,
           ExpressionImpl,
           PromotableElementImpl,
-          SharedTypeView,
           DartPatternImpl,
           void
         > {
@@ -42,10 +42,13 @@ class SharedTypeAnalyzerErrors
     required SharedTypeView scrutineeType,
     required SharedTypeView caseExpressionType,
   }) {
-    _diagnosticReporter.atNode(
-      caseExpression,
-      diag.caseExpressionTypeIsNotSwitchExpressionSubtype,
-      arguments: [caseExpressionType, scrutineeType],
+    _diagnosticReporter.report(
+      diag.caseExpressionTypeIsNotSwitchExpressionSubtype
+          .withArguments(
+            caseExpressionType: caseExpressionType.unwrapTypeView<TypeImpl>(),
+            scrutineeType: scrutineeType.unwrapTypeView<TypeImpl>(),
+          )
+          .at(caseExpression),
     );
   }
 
@@ -102,7 +105,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   void emptyMapPattern({required DartPattern pattern}) {
-    _diagnosticReporter.atNode(pattern, diag.emptyMapPattern);
+    _diagnosticReporter.report(diag.emptyMapPattern.at(pattern));
   }
 
   @override
@@ -110,10 +113,14 @@ class SharedTypeAnalyzerErrors
     required PromotableElementImpl variable,
     required PromotableElementImpl component,
   }) {
-    _diagnosticReporter.atElement2(
-      component,
-      diag.inconsistentPatternVariableLogicalOr,
-      arguments: [variable.name!],
+    // Local variables are never synthetic.
+    assert(identical(component.nonSynthetic, component));
+    var offset = component.firstFragment.nameOffset ?? 0;
+    var length = component.name?.length ?? 1;
+    _diagnosticReporter.report(
+      diag.inconsistentPatternVariableLogicalOr
+          .withArguments(name: variable.name!)
+          .atOffset(offset: offset, length: length),
     );
   }
 
@@ -123,14 +130,12 @@ class SharedTypeAnalyzerErrors
     required SharedTypeView matchedType,
   }) {
     if (pattern is NullAssertPattern) {
-      _diagnosticReporter.atToken(
-        pattern.operator,
-        diag.unnecessaryNullAssertPattern,
+      _diagnosticReporter.report(
+        diag.unnecessaryNullAssertPattern.at(pattern.operator),
       );
     } else if (pattern is NullCheckPattern) {
-      _diagnosticReporter.atToken(
-        pattern.operator,
-        diag.unnecessaryNullCheckPattern,
+      _diagnosticReporter.report(
+        diag.unnecessaryNullCheckPattern.at(pattern.operator),
       );
     } else {
       throw UnimplementedError('(${pattern.runtimeType}) $pattern');
@@ -143,12 +148,12 @@ class SharedTypeAnalyzerErrors
     required SharedTypeView matchedType,
     required SharedTypeView requiredType,
   }) {
-    _diagnosticReporter.atToken(pattern.asToken, diag.unnecessaryCastPattern);
+    _diagnosticReporter.report(diag.unnecessaryCastPattern.at(pattern.asToken));
   }
 
   @override
   void nonBooleanCondition({required Expression node}) {
-    _diagnosticReporter.atNode(node, diag.nonBoolCondition);
+    _diagnosticReporter.report(diag.nonBoolCondition.at(node));
   }
 
   @override
@@ -157,10 +162,13 @@ class SharedTypeAnalyzerErrors
     required Expression expression,
     required SharedTypeView expressionType,
   }) {
-    _diagnosticReporter.atNode(
-      expression,
-      diag.forInOfInvalidType,
-      arguments: [expressionType, 'Iterable'],
+    _diagnosticReporter.report(
+      diag.forInOfInvalidType
+          .withArguments(
+            expressionType: expressionType.unwrapTypeView<TypeImpl>(),
+            expectedType: 'Iterable',
+          )
+          .at(expression),
     );
   }
 
@@ -171,10 +179,13 @@ class SharedTypeAnalyzerErrors
     required SharedTypeView matchedType,
     required SharedTypeView requiredType,
   }) {
-    _diagnosticReporter.atNode(
-      pattern,
-      diag.patternTypeMismatchInIrrefutableContext,
-      arguments: [matchedType, requiredType],
+    _diagnosticReporter.report(
+      diag.patternTypeMismatchInIrrefutableContext
+          .withArguments(
+            matchedType: matchedType.unwrapTypeView<TypeImpl>(),
+            requiredType: requiredType.unwrapTypeView<TypeImpl>(),
+          )
+          .at(pattern),
     );
   }
 
@@ -183,9 +194,8 @@ class SharedTypeAnalyzerErrors
     required AstNode pattern,
     required AstNode context,
   }) {
-    _diagnosticReporter.atNode(
-      pattern,
-      diag.refutablePatternInIrrefutableContext,
+    _diagnosticReporter.report(
+      diag.refutablePatternInIrrefutableContext.at(pattern),
     );
   }
 
@@ -195,10 +205,14 @@ class SharedTypeAnalyzerErrors
     required SharedTypeView operandType,
     required SharedTypeView parameterType,
   }) {
-    _diagnosticReporter.atNode(
-      pattern.operand,
-      diag.relationalPatternOperandTypeNotAssignable,
-      arguments: [operandType, parameterType, pattern.operator.lexeme],
+    _diagnosticReporter.report(
+      diag.relationalPatternOperandTypeNotAssignable
+          .withArguments(
+            operandType: operandType.unwrapTypeView<TypeImpl>(),
+            parameterType: parameterType.unwrapTypeView<TypeImpl>(),
+            operator: pattern.operator.lexeme,
+          )
+          .at(pattern.operand),
     );
   }
 
@@ -207,9 +221,10 @@ class SharedTypeAnalyzerErrors
     required covariant RelationalPatternImpl pattern,
     required SharedTypeView returnType,
   }) {
-    _diagnosticReporter.atToken(
-      pattern.operator,
-      diag.relationalPatternOperatorReturnTypeNotAssignableToBool,
+    _diagnosticReporter.report(
+      diag.relationalPatternOperatorReturnTypeNotAssignableToBool.at(
+        pattern.operator,
+      ),
     );
   }
 
@@ -218,7 +233,7 @@ class SharedTypeAnalyzerErrors
     required covariant MapPatternImpl node,
     required covariant RestPatternElementImpl element,
   }) {
-    _diagnosticReporter.atNode(element, diag.restElementInMapPattern);
+    _diagnosticReporter.report(diag.restElementInMapPattern.at(element));
   }
 
   @override
@@ -226,9 +241,8 @@ class SharedTypeAnalyzerErrors
     required covariant SwitchStatementImpl node,
     required int caseIndex,
   }) {
-    _diagnosticReporter.atToken(
-      node.members[caseIndex].keyword,
-      diag.switchCaseCompletesNormally,
+    _diagnosticReporter.report(
+      diag.switchCaseCompletesNormally.at(node.members[caseIndex].keyword),
     );
   }
 
@@ -239,7 +253,7 @@ class SharedTypeAnalyzerErrors
   }) {
     switch (kind) {
       case UnnecessaryWildcardKind.logicalAndPatternOperand:
-        _diagnosticReporter.atNode(pattern, diag.unnecessaryWildcardPattern);
+        _diagnosticReporter.report(diag.unnecessaryWildcardPattern.at(pattern));
     }
   }
 }

@@ -25,6 +25,7 @@ Future<int> generateWasm(WasmCompilerOptions options,
     print('  - librariesSpecPath = ${options.librariesSpecPath}');
     print('  - packagesPath file = ${options.packagesPath}');
     print('  - platformPath file = ${options.platformPath}');
+    print('  - strip wasm = ${options.stripWasm}');
     print('');
     print('Translator options:');
     print('  - enable asserts = ${translatorOptions.enableAsserts}');

@@ -1301,6 +1301,8 @@ class DeclarationHelper {
         case FunctionExpression():
           _visitParameterList(currentNode.parameters);
           _visitTypeParameterList(currentNode.typeParameters);
+        case GuardedPattern():
+          _visitPattern(currentNode.pattern);
         case IfElement():
           _visitIfElement(currentNode);
         case IfStatement():
@@ -1780,6 +1782,11 @@ class DeclarationHelper {
   /// Returns `true` if the [identifier] is a wildcard (a single `_`).
   bool _isWildcard(String? identifier) => identifier == '_';
 
+  bool _matchesContextType(ExecutableElement element) {
+    return request.contextType == element.type ||
+        (request.contextType?.isDartCoreFunction ?? false);
+  }
+
   /// Record that the given [operation] should be performed in the second pass.
   void _recordOperation(NotImportedOperation operation) {
     notImportedOperations.add(operation);
@@ -1857,6 +1864,10 @@ class DeclarationHelper {
       return;
     }
 
+    if (mustBeConstant && !element.isConst) {
+      return;
+    }
+
     if (!element.isVisibleIn(request.libraryElement)) {
       return;
     }
@@ -1884,16 +1895,26 @@ class DeclarationHelper {
     // TODO(keertip): Compute the completion string.
     var matcherScore = state.matcher.score(matcherName);
     if (matcherScore != -1) {
-      var isTearOff =
-          preferNonInvocation || (mustBeConstant && !element.isConst);
+      if (_matchesContextType(element) && !preferNonInvocation) {
+        var suggestion = ConstructorSuggestion(
+          importData: importData,
+          element: element,
+          hasClassName: hasClassName,
+          isTearOff: true,
+          isRedirect: isConstructorRedirect,
+          suggestUnnamedAsNew: true,
+          matcherScore: matcherScore,
+        );
+        collector.addSuggestion(suggestion);
+      }
 
       var suggestion = ConstructorSuggestion(
         importData: importData,
         element: element,
         hasClassName: hasClassName,
-        isTearOff: isTearOff,
+        isTearOff: preferNonInvocation,
         isRedirect: isConstructorRedirect,
-        suggestUnnamedAsNew: suggestUnnamedAsNew || isTearOff,
+        suggestUnnamedAsNew: suggestUnnamedAsNew || preferNonInvocation,
         matcherScore: matcherScore,
       );
       collector.addSuggestion(suggestion);
@@ -2068,6 +2089,14 @@ class DeclarationHelper {
       if (_isWildcard(element.name)) return;
       var matcherScore = state.matcher.score(element.displayName);
       if (matcherScore != -1) {
+        if (_matchesContextType(element) && !preferNonInvocation) {
+          var suggestion = LocalFunctionSuggestion(
+            kind: CompletionSuggestionKind.IDENTIFIER,
+            element: element,
+            matcherScore: matcherScore,
+          );
+          collector.addSuggestion(suggestion);
+        }
         var suggestion = LocalFunctionSuggestion(
           kind: _executableSuggestionKind,
           element: element,
@@ -2099,7 +2128,7 @@ class DeclarationHelper {
     if (ignoreVisibility ||
         visibilityTracker.isVisible(element: method, importData: importData)) {
       if (mustBeAssignable ||
-          mustBeConstant ||
+          mustBeConstant && !method.isStatic ||
           (mustBeNonVoid && method.returnType is VoidType)) {
         return;
       }
@@ -2118,6 +2147,21 @@ class DeclarationHelper {
         if (method.name == 'setState' &&
             enclosingElement is ClassElement &&
             enclosingElement.isExactState) {
+          if (_matchesContextType(method) && !preferNonInvocation) {
+            var suggestion = SetStateMethodSuggestion(
+              kind: CompletionSuggestionKind.IDENTIFIER,
+              element: method,
+              replacementRange: state.request.replacementRange,
+              importData: importData,
+              referencingInterface: referencingInterface,
+              matcherScore: matcherScore,
+              indent: state.indent,
+              endOfLine: state.endOfLine,
+              addTypeAnnotation: addTypeAnnotation,
+              keyword: keyword,
+            );
+            collector.addSuggestion(suggestion);
+          }
           var suggestion = SetStateMethodSuggestion(
             element: method,
             replacementRange: state.request.replacementRange,
@@ -2130,6 +2174,22 @@ class DeclarationHelper {
             keyword: keyword,
           );
           collector.addSuggestion(suggestion);
+          return;
+        }
+        if (_matchesContextType(method) && !preferNonInvocation) {
+          var suggestion = MethodSuggestion(
+            kind: CompletionSuggestionKind.IDENTIFIER,
+            replacementRange: state.request.replacementRange,
+            element: method,
+            importData: importData,
+            matcherScore: matcherScore,
+            referencingInterface: referencingInterface,
+            addTypeAnnotation: addTypeAnnotation,
+            keyword: keyword,
+          );
+          collector.addSuggestion(suggestion);
+        }
+        if (mustBeConstant && (method.isStatic || !preferNonInvocation)) {
           return;
         }
         var suggestion = MethodSuggestion(
@@ -2405,13 +2465,24 @@ class DeclarationHelper {
   ) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if (mustBeAssignable ||
-          mustBeConstant ||
           (mustBeNonVoid && element.returnType is VoidType) ||
           mustBeType) {
         return;
       }
       var matcherScore = state.matcher.score(element.displayName);
       if (matcherScore != -1) {
+        if (_matchesContextType(element) && !preferNonInvocation) {
+          var suggestion = TopLevelFunctionSuggestion(
+            kind: CompletionSuggestionKind.IDENTIFIER,
+            importData: importData,
+            element: element,
+            matcherScore: matcherScore,
+          );
+          collector.addSuggestion(suggestion);
+        }
+        if (!preferNonInvocation && mustBeConstant) {
+          return;
+        }
         var suggestion = TopLevelFunctionSuggestion(
           importData: importData,
           element: element,

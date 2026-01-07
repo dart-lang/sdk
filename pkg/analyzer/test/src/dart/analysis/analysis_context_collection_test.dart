@@ -335,7 +335,7 @@ contexts
         workspacePackage_0_0
       /home/test/lib/nestedNoYaml/a.dart
         uri: package:test/nestedNoYaml/a.dart
-        analysisOptions_1
+        analysisOptions_0
         workspacePackage_0_0
   /home/test/lib/nested
     packagesFile: /home/test/lib/nested/.dart_tool/package_config.json
@@ -344,12 +344,11 @@ contexts
     analyzedFiles
       /home/test/lib/nested/lib/c.dart
         uri: package:nested/c.dart
-        analysisOptions_2
+        analysisOptions_1
         workspacePackage_1_0
 analysisOptions
   analysisOptions_0: /home/test/lib/analysis_options.yaml
   analysisOptions_1: /home/test/lib/analysis_options.yaml
-  analysisOptions_2: /home/test/lib/analysis_options.yaml
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/test
@@ -641,7 +640,11 @@ name: test
       name: 'test',
     );
 
-    newAnalysisOptionsYamlFile(testPackageRootPath, '');
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
+analyzer:
+  exclude:
+    - foo/**
+''');
     newFile('$testPackageLibPath/a.dart', '');
 
     var nestedPath = '$testPackageLibPath/nested';
@@ -662,6 +665,11 @@ analyzer:
     newFile('$nestedNestedPath/c.dart', '');
     newFile('$nestedNestedPath/excluded2/d.dart', '');
 
+    // There's still an issue here with these exclude globs being there twice:
+    // - foo/** in /home/test
+    // - foo in /home/test
+    // But at least that's it.
+    configuration.withExcludedGlobs = true;
     _assertWorkspaceCollectionText(workspaceRootPath, r'''
 contexts
   /home/test
@@ -680,6 +688,15 @@ contexts
         uri: package:test/nested/nested/c.dart
         analysisOptions_2
         workspacePackage_0_0
+    excludedGlobs
+      foo/** in /home/test
+      foo in /home/test
+      foo/** in /home/test
+      foo in /home/test
+      excluded/** in /home/test/lib/nested
+      excluded in /home/test/lib/nested
+      excluded2/** in /home/test/lib/nested/nested
+      excluded2 in /home/test/lib/nested/nested
 analysisOptions
   analysisOptions_0: /home/test/analysis_options.yaml
   analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
@@ -1809,6 +1826,13 @@ class _AnalysisContextCollectionPrinter {
           _writeDartFile(fsState, file);
         }
       });
+      if (configuration.withExcludedGlobs) {
+        sink.writeElements('excludedGlobs', contextRoot.excludedGlobs, (glob) {
+          sink.writelnWithIndent(
+            '${glob.glob.pattern} in ${glob.parent.posixPath}',
+          );
+        });
+      }
     });
   }
 
@@ -1944,4 +1968,5 @@ class _AnalysisContextCollectionPrinterConfiguration {
   bool withEnabledFeatures = false;
   bool withLintRules = false;
   bool withOptionFilesForContext = false;
+  bool withExcludedGlobs = false;
 }

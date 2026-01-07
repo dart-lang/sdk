@@ -521,6 +521,11 @@ class BytecodeGenerator extends RecursiveVisitor {
       flags |= FieldDeclaration.hasAnnotationsFlag;
       if (annotations.hasPragma) {
         flags |= FieldDeclaration.hasPragmaFlag;
+        if (pragmaParser
+            .parsedPragmas<ParsedVmSharedPragma>(field.annotations)
+            .isNotEmpty) {
+          flags |= FieldDeclaration.isShared;
+        }
       }
     }
     ObjectHandle? script;
@@ -814,12 +819,28 @@ class BytecodeGenerator extends RecursiveVisitor {
     // because it needs to be initialized lazily.
     if (_hasNonTrivialInitializer(field)) return true;
 
+    // Avoid runtime check of field type as part of (more frequently used)
+    // non-shared fields inline getter code.
+    if (pragmaParser
+        .parsedPragmas<ParsedVmSharedPragma>(field.annotations)
+        .isNotEmpty) {
+      return true;
+    }
+
     // Static late fields with no initializer also need a getter, to check if
     // it's been initialized.
     return field.isLate && field.initializer == null;
   }
 
   bool _needsSetter(Field field) {
+    // Avoid runtime check of field type as part of (more frequently used)
+    // non-shared fields inline setter code.
+    if (pragmaParser
+        .parsedPragmas<ParsedVmSharedPragma>(field.annotations)
+        .isNotEmpty) {
+      return true;
+    }
+
     // Final fields don't have a setter, except late final fields
     // without initializer.
     if (field.isFinal) {
@@ -2487,10 +2508,14 @@ class BytecodeGenerator extends RecursiveVisitor {
     currentLoopDepth = savedLoopDepth;
     asyncTryBlock = savedAsyncTryBlock;
 
+    bool capturesOnlyFinalNotLateVars =
+        locals.capturesOnlyFinalNotLateVars;
+
     locals.leaveScope();
 
     closure.code = new ClosureCode(asm.bytecode, asm.exceptionsTable,
-        finalizeSourcePositions(), finalizeLocalVariables());
+        finalizeSourcePositions(), finalizeLocalVariables(),
+        capturesOnlyFinalNotLateVars);
 
     _popAssemblerState();
 

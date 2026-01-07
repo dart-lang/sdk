@@ -560,6 +560,7 @@ class LibraryRequirements {
   Hash hashForRequirements;
 
   String? name;
+  bool? isOriginNotExistingFile;
   bool? isSynthetic;
   Uint8List? featureSet;
   ManifestLibraryLanguageVersion? languageVersion;
@@ -618,6 +619,7 @@ class LibraryRequirements {
   LibraryRequirements({
     required this.hashForRequirements,
     required this.name,
+    required this.isOriginNotExistingFile,
     required this.isSynthetic,
     required this.featureSet,
     required this.languageVersion,
@@ -655,6 +657,7 @@ class LibraryRequirements {
     return LibraryRequirements(
       hashForRequirements: manifest.hashForRequirements,
       name: null,
+      isOriginNotExistingFile: null,
       isSynthetic: null,
       featureSet: null,
       languageVersion: null,
@@ -693,6 +696,7 @@ class LibraryRequirements {
     return LibraryRequirements(
       hashForRequirements: Hash.read(reader),
       name: reader.readOptionalStringUtf8(),
+      isOriginNotExistingFile: reader.readOptionalBool(),
       isSynthetic: reader.readOptionalBool(),
       featureSet: reader.readOptionalUint8List(),
       languageVersion: ManifestLibraryLanguageVersion.readOptional(reader),
@@ -739,6 +743,7 @@ class LibraryRequirements {
   void write(BinaryWriter writer) {
     hashForRequirements.write(writer);
     writer.writeOptionalStringUtf8(name);
+    writer.writeOptionalBool(isOriginNotExistingFile);
     writer.writeOptionalBool(isSynthetic);
     writer.writeOptionalUint8List(featureSet);
     writer.writeOptionalObject(languageVersion, (it) => it.write(writer));
@@ -986,6 +991,17 @@ class RequirementsManifest {
         var actual = libraryManifest.name;
         if (expected != actual) {
           return LibraryNameMismatch(
+            libraryUri: libraryUri,
+            expected: expected,
+            actual: actual,
+          );
+        }
+      }
+
+      if (libraryRequirements.isOriginNotExistingFile case var expected?) {
+        var actual = libraryManifest.isOriginNotExistingFile;
+        if (expected != actual) {
+          return LibraryIsOriginNotExistingFileMismatch(
             libraryUri: libraryUri,
             expected: expected,
             actual: actual,
@@ -2442,6 +2458,22 @@ class RequirementsManifest {
     var lookupName = name.asLookupName;
     var id = manifest.declaredTypeAliases[lookupName]?.id;
     requirements.requestedDeclaredTypeAliases[lookupName] = id;
+  }
+
+  void record_library_isOriginNotExistingFile({
+    required LibraryElementImpl element,
+  }) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest?.instance;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    requirements.isOriginNotExistingFile = manifest.isOriginNotExistingFile;
   }
 
   void record_library_isSynthetic({required LibraryElementImpl element}) {

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -26,8 +27,9 @@ class ServerDriver {
   /// server has not been connected to DTD using [connectToDtd].
   WebSocket? _dtdSocket;
 
-  /// The messages read from the analysis server's stdout.
-  final List<String> _messagesFromServer = [];
+  /// Stream controller for analysis server output messages.
+  final StreamController<Message> _serverMessagesController =
+      StreamController();
 
   /// Creates a new driver that can be used to communicate with a server.
   ///
@@ -68,6 +70,9 @@ class ServerDriver {
   ServerDriver._({required this.arguments, required ServerProtocol protocol})
     : _protocol = protocol;
 
+  /// The messages read from the analysis server's stdout.
+  Stream<Message> get serverMessages => _serverMessagesController.stream;
+
   /// Returns the path to the `dart` executable.
   String get _dartExecutable {
     return Platform.resolvedExecutable;
@@ -100,6 +105,7 @@ class ServerDriver {
     _stdinSink = null;
     _dtdSocket?.close();
     _dtdSocket = null;
+    _serverMessagesController.close();
   }
 
   void sendMessageFromDTD(Message message) {
@@ -203,7 +209,11 @@ class ServerDriver {
   }
 
   void _receiveMessageFromServer(String message) {
-    _messagesFromServer.add(message);
+    if (_serverMessagesController.isClosed) {
+      stderr.writeln('Got analysis server message after shutdown:\n$message');
+    } else {
+      _serverMessagesController.add(jsonDecode(message) as Message);
+    }
   }
 }
 

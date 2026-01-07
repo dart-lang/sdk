@@ -9,7 +9,6 @@
 
 #include "bin/security_context.h"
 
-#include <Availability.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <Security/SecureTransport.h>
 #include <Security/Security.h>
@@ -289,11 +288,6 @@ static void TrustEvaluateHandler(Dart_Port dest_port_id,
   }
 
   // Perform the certificate verification.
-  // The result is ignored as we get more information from the following call
-  // to SecTrustGetTrustResult which also happens to match the information we
-  // got from calling SecTrustEvaluate before macOS 10.14.
-  bool res = SecTrustEvaluateWithError(trust.get(), nullptr);
-  USE(res);
   OSStatus status = SecTrustGetTrustResult(trust.get(), &trust_result);
 
   postReply(reply_port_id,

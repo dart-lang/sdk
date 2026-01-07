@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/text/ast_to_text.dart';
+import 'package:kernel/src/printer.dart';
 
 import '../base/combinator.dart';
 import '../base/configuration.dart';
@@ -33,6 +34,7 @@ import '../fragment/fragment.dart';
 import '../source/fragment_factory.dart';
 import '../source/source_type_parameter_builder.dart';
 import 'body_builder.dart';
+import 'internal_ast.dart';
 
 /// The name for the synthesized field used to store information of
 /// unserializable exports in a [Library].
@@ -51,12 +53,11 @@ const String exportDynamicSentinel = '<dynamic>';
 const String exportNeverSentinel = '<Never>';
 
 // Coverage-ignore(suite): Not run.
-void printNodeOn(Node? node, StringSink sink, {NameSystem? syntheticNames}) {
+void printNodeOn(Node? node, StringSink sink) {
   if (node == null) {
     sink.write("null");
   } else {
-    syntheticNames ??= new NameSystem();
-    new Printer(sink, syntheticNames: syntheticNames).writeNode(node);
+    sink.write(node.toText(defaultAstTextStrategy));
   }
 }
 
@@ -364,3 +365,5 @@ class _DummyExtensionScope implements ExtensionScope {
   @override
   void forEachExtension(void Function(ExtensionBuilder) f) {}
 }
+
+final Argument dummyArgument = new PositionalArgument(dummyExpression);

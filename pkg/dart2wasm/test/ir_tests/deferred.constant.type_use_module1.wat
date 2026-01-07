@@ -7,14 +7,14 @@
   (type $JSStringImpl <...>)
   (type $Object <...>)
   (global $".Foo called " (import "" "Foo called ") (ref extern))
-  (global $"C462 \"Foo called \"" (ref $JSStringImpl)
+  (global $"C465 \"Foo called \"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
     (global.get $".Foo called ")
     (struct.new $JSStringImpl))
   (func $"useFooAsObject <noInline>" (result (ref null $#Top))
     (local $var0 (ref $Foo))
-    i32.const 114
+    i32.const 116
     i32.const 0
     i64.const 0
     struct.new $Foo

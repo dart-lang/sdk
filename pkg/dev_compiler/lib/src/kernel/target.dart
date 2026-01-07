@@ -55,7 +55,7 @@ class DevCompilerTarget extends Target {
   String get name => 'dartdevc';
 
   @override
-  List<String> get extraRequiredLibraries => const [
+  List<String> get extraRequiredLibraries => [
     'dart:_ddc_only',
     'dart:_runtime',
     'dart:_async_status_codes',
@@ -78,6 +78,7 @@ class DevCompilerTarget extends Target {
     'dart:collection',
     'dart:convert',
     'dart:developer',
+    if (flags.includeUnsupportedPlatformLibraryStubs) 'dart:ffi',
     'dart:io',
     'dart:isolate',
     'dart:js',
@@ -93,6 +94,9 @@ class DevCompilerTarget extends Target {
     'dart:web_audio',
     'dart:web_gl',
   ];
+
+  @override
+  List<String> get extraRequiredLibrariesPlatform => const ['dart:ffi'];
 
   // The libraries required to be indexed via CoreTypes.
   @override

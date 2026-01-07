@@ -11,6 +11,7 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
+import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
@@ -44,6 +45,7 @@ import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/lint/constants.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
@@ -1339,7 +1341,7 @@ abstract final class AstNode implements SyntacticEntity {
   void visitChildren(AstVisitor visitor);
 }
 
-sealed class AstNodeImpl implements AstNode {
+sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   AstNode? _parent;
 
   @override
@@ -3304,6 +3306,9 @@ sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
   /// Either or both of the [comment] and [metadata] can be `null` if the member
   /// doesn't have the corresponding attribute.
   ClassMemberImpl({required super.comment, required super.metadata});
+
+  /// The `augment` keyword, or `null` if the keyword was absent.
+  Token? get augmentKeyword;
 }
 
 /// The name of a class, enum, or extension type declaration.
@@ -8964,13 +8969,6 @@ final class ExtensionTypeDeclarationImpl
     return body.endToken;
   }
 
-  /// The type annotation of the only formal parameter of the primary
-  /// constructor. It is always present, ensured by the AST builder.
-  TypeAnnotationImpl get fieldType {
-    var formal = primaryConstructor.formalParameters.parameters.first;
-    return (formal as SimpleFormalParameterImpl).type!;
-  }
-
   @generated
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -9018,12 +9016,51 @@ final class ExtensionTypeDeclarationImpl
   @Deprecated('Use primaryConstructor instead')
   @override
   RepresentationDeclarationImpl get representation {
-    var formal = primaryConstructor.formalParameters.parameters.first;
-    formal as SimpleFormalParameterImpl;
+    Token syntheticName() {
+      return StringToken(TokenType.IDENTIFIER, '', 0);
+    }
+
+    TypeAnnotationImpl syntheticType() {
+      return NamedTypeImpl(
+        importPrefix: null,
+        name: StringToken(TokenType.IDENTIFIER, 'InvalidType', 0),
+        question: null,
+        typeArguments: null,
+      );
+    }
+
+    var parameters = primaryConstructor.formalParameters.parameters;
+    var formal = parameters.firstOrNull;
+    if (formal is DefaultFormalParameterImpl) {
+      formal = formal.parameter;
+    }
 
     var representation = _representation;
     if (representation == null) {
       var constructorName = primaryConstructor.constructorName;
+
+      if (formal is DefaultFormalParameterImpl) {
+        formal = formal.parameter;
+      }
+
+      TypeAnnotationImpl fieldType;
+      Token fieldName;
+      List<AnnotationImpl> fieldMetadata;
+
+      if (formal is SimpleFormalParameterImpl) {
+        fieldType = formal.type ?? syntheticType();
+        fieldName = formal.name ?? syntheticName();
+        fieldMetadata = formal.metadata;
+      } else if (formal is FieldFormalParameterImpl) {
+        fieldType = formal.type ?? syntheticType();
+        fieldName = formal.name;
+        fieldMetadata = formal.metadata;
+      } else {
+        fieldType = syntheticType();
+        fieldName = formal?.name ?? syntheticName();
+        fieldMetadata = formal?.metadata ?? const [];
+      }
+
       representation = RepresentationDeclarationImpl(
         constructorName: constructorName != null
             ? RepresentationConstructorNameImpl(
@@ -9032,20 +9069,27 @@ final class ExtensionTypeDeclarationImpl
               )
             : null,
         leftParenthesis: primaryConstructor.formalParameters.leftParenthesis,
-        fieldMetadata: formal.metadata,
-        fieldType: formal.type!,
-        fieldName: formal.name!,
+        fieldMetadata: fieldMetadata,
+        fieldType: fieldType,
+        fieldName: fieldName,
         rightParenthesis: primaryConstructor.formalParameters.rightParenthesis,
       );
       _representation = _becomeParentOf(representation);
     }
-    representation.fieldFragment =
-        (formal.declaredFragment as FieldFormalParameterFragmentImpl?)
-            ?.element
-            .field
-            ?.firstFragment;
-    representation.constructorFragment = declaredFragment?.constructors.first;
+    representation.constructorFragment = primaryConstructor.declaredFragment;
+    if (declaredFragment case var declaredFragment?) {
+      representation.fieldFragment = declaredFragment.fields
+          .where((f) => !f.isStatic)
+          .firstOrNull;
+    }
     return representation;
+  }
+
+  /// Usually, the only formal parameter of the primary constructor.
+  /// But could be `null` in invalid code.
+  SimpleFormalParameterImpl? get representationFormalParameter {
+    var formalParameters = primaryConstructor.formalParameters;
+    return formalParameters.parameters.firstOrNull.ifTypeOrNull();
   }
 
   @Deprecated('Use body instead')
@@ -19634,6 +19678,9 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
     _becomeParentOf(body);
   }
 
+  @override
+  Token? get augmentKeyword => null;
+
   @generated
   @override
   FunctionBodyImpl get body => _body;
@@ -19641,6 +19688,19 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   @generated
   set body(FunctionBodyImpl body) {
     _body = _becomeParentOf(body);
+  }
+
+  PrimaryConstructorDeclarationImpl? get declaration {
+    switch (parent?.parent) {
+      case ClassDeclarationImpl parent:
+        return parent.namePart.ifTypeOrNull();
+      case EnumDeclarationImpl parent:
+        return parent.namePart.ifTypeOrNull();
+      case ExtensionTypeDeclarationImpl parent:
+        return parent.primaryConstructor;
+      default:
+        return null;
+    }
   }
 
   @generated
@@ -19769,6 +19829,9 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
     }
     return typeName;
   }
+
+  PrimaryConstructorBodyImpl? get body =>
+      parent.classMembers.whereType<PrimaryConstructorBodyImpl>().firstOrNull;
 
   @generated
   @override
@@ -25162,8 +25225,7 @@ class UriValidationCode {
 abstract final class VariableDeclaration implements Declaration {
   /// The fragment declared by this declaration.
   ///
-  /// Returns `null` if the AST structure hasn't been resolved or if this node
-  /// represents the declaration of a local variable.
+  /// Returns `null` if the AST structure hasn't been resolved.
   @override
   VariableFragment? get declaredFragment;
 
@@ -26169,8 +26231,7 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
   @override
   List<AstNode> get sortedCommentAndAnnotations {
     var comment = _documentationComment;
-    return <AstNode>[if (comment != null) comment, ..._metadata]
-      ..sort(AstNode.LEXICAL_ORDER);
+    return <AstNode>[?comment, ..._metadata]..sort(AstNode.LEXICAL_ORDER);
   }
 
   @override

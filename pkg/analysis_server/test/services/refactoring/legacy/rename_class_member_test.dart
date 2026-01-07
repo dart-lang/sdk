@@ -812,6 +812,120 @@ void f() {
   }
 
   Future<void>
+  test_createChange_FieldElement_fieldFormalParameter_named_fieldOverride_both() async {
+    await indexTestUnit('''
+class A {
+  int foo = 0;
+  A({required this.foo});
+}
+
+class B extends A {
+  // ignore:overridden_fields
+  int f^oo = 0;
+  B({required this.foo}) : super(foo: 0);
+}
+
+class C extends B {
+  // ignore:overridden_fields
+  int foo = 0;
+  C({required this.foo}) : super(foo: 0);
+}
+''');
+
+    createRenameRefactoring();
+    expect(refactoring.refactoringName, 'Rename Field');
+    expect(refactoring.elementKindName, 'field');
+    refactoring.newName = 'bar';
+
+    return assertSuccessfulRefactoring('''
+class A {
+  int bar = 0;
+  A({required this.bar});
+}
+
+class B extends A {
+  // ignore:overridden_fields
+  int bar = 0;
+  B({required this.bar}) : super(bar: 0);
+}
+
+class C extends B {
+  // ignore:overridden_fields
+  int bar = 0;
+  C({required this.bar}) : super(bar: 0);
+}
+''');
+  }
+
+  Future<void>
+  test_createChange_FieldElement_fieldFormalParameter_named_fieldOverride_subClass() async {
+    await indexTestUnit('''
+class A {
+  int foo = 0;
+  A({required this.foo});
+}
+
+class B extends A {
+  // ignore:overridden_fields
+  int f^oo = 0;
+  B({required this.foo}) : super(foo: 0);
+}
+''');
+
+    createRenameRefactoring();
+    expect(refactoring.refactoringName, 'Rename Field');
+    expect(refactoring.elementKindName, 'field');
+    refactoring.newName = 'bar';
+
+    return assertSuccessfulRefactoring('''
+class A {
+  int bar = 0;
+  A({required this.bar});
+}
+
+class B extends A {
+  // ignore:overridden_fields
+  int bar = 0;
+  B({required this.bar}) : super(bar: 0);
+}
+''');
+  }
+
+  Future<void>
+  test_createChange_FieldElement_fieldFormalParameter_named_fieldOverride_superClass() async {
+    await indexTestUnit('''
+class A {
+  int f^oo = 0;
+  A({required this.foo});
+}
+
+class B extends A {
+  // ignore:overridden_fields
+  int foo = 0;
+  B({required this.foo}) : super(foo: 0);
+}
+''');
+
+    createRenameRefactoring();
+    expect(refactoring.refactoringName, 'Rename Field');
+    expect(refactoring.elementKindName, 'field');
+    refactoring.newName = 'bar';
+
+    return assertSuccessfulRefactoring('''
+class A {
+  int bar = 0;
+  A({required this.bar});
+}
+
+class B extends A {
+  // ignore:overridden_fields
+  int bar = 0;
+  B({required this.bar}) : super(bar: 0);
+}
+''');
+  }
+
+  Future<void>
   test_createChange_FieldElement_fieldFormalParameter_named_superChain() async {
     await indexTestUnit('''
 class A {

@@ -338,6 +338,64 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterColon_betweenStatements() async {
+    await computeSuggestions('''
+void f(int x) {
+  switch (x) {
+    case 0:
+      0;
+    ca^
+      1;
+  }
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  case
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterColon_notEmpty_case() async {
+    await computeSuggestions('''
+void f(int x) {
+  switch (x) {
+    case 0:
+      0;
+    ca^
+  }
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  case
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterColon_notEmpty_default() async {
+    await computeSuggestions('''
+void f(int x) {
+  switch (x) {
+    case 0:
+      0;
+    de^
+  }
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  default:
+    kind: keyword
+''');
+  }
+
   Future<void> test_afterFinal() async {
     await computeSuggestions('''
 void f(Object x) {

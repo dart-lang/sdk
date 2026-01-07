@@ -122,7 +122,6 @@ nnbd/platform_nonnullable_fields/main: SemiFuzzFailure
 nnbd/platform_optional_parameters/main: SemiFuzzFailure
 
 # UNSORTED ONES:
-coverage/static2_test: TypeCheckError
 constructor_tearoffs/explicit_instantiation: SemiFuzzFailure
 enhanced_parts/export_part_file: SemiFuzzFailure
 general/error_recovery/issue_39058.crash: SemiFuzzFailure
@@ -258,5 +257,4 @@ wildcard_variables/local_var_no_shadowing: semiFuzzFailureOnForceRebuildBodies #
 wildcard_variables/top_level_function_no_shadow: semiFuzzFailureOnForceRebuildBodies # Expected
 
 # Temporarily unimplemented binary serialization, see https://github.com/dart-lang/sdk/issues/61765
-closure_context_lowering/local_functions: ExpectationFileMismatchSerialized
 closure_context_lowering/local_variables: Crash

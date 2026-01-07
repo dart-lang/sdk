@@ -55,7 +55,7 @@ class A {
 }
 ''',
       filter: (e) =>
-          e.diagnosticCode.name ==
+          e.diagnosticCode.lowerCaseName ==
           LintNames.avoid_single_cascade_in_expression_statements,
     );
   }
@@ -98,7 +98,7 @@ f() {
 }
 ''',
       filter: (e) =>
-          e.diagnosticCode.name ==
+          e.diagnosticCode.lowerCaseName ==
           LintNames.avoid_single_cascade_in_expression_statements,
     );
   }

@@ -60,7 +60,7 @@ class SnippetTester {
   bool isAllowedLint(Diagnostic diagnostic) {
     var errorCode = diagnostic.diagnosticCode;
     return errorCode is LintCode &&
-        errorCode.name == 'non_constant_identifier_names' &&
+        errorCode.lowerCaseName == 'non_constant_identifier_names' &&
         diagnostic.message.contains("'test_");
   }
 

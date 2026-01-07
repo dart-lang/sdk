@@ -6,6 +6,8 @@
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show Token, scanString;
+import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
+    show Importability;
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/base/constant_context.dart';
@@ -74,7 +76,12 @@ Future<void> main() async {
     CoreTypes coreTypes = new CoreTypes(component);
     ClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes);
 
-    ArgumentsImpl arguments = new ArgumentsImpl([new StringLiteral("arg")]);
+    Expression argument = new StringLiteral("arg");
+    ActualArguments arguments = new ActualArguments(
+      argumentList: [new PositionalArgument(argument)],
+      hasNamedBeforePositional: false,
+      positionalCount: 1,
+    );
     Expression expression = new VariableGet(
       new VariableDeclaration("expression"),
     );
@@ -107,9 +114,10 @@ Future<void> main() async {
       referenceIsPartOwner: null,
       forPatchLibrary: false,
       isAugmenting: false,
-      isUnsupported: false,
+      conditionalImportSupported: true,
       loader: loader,
       mayImplementRestrictedTypes: false,
+      importability: Importability.always,
     );
     SourceLibraryBuilder libraryBuilder = new SourceLibraryBuilder(
       compilationUnit: compilationUnit,
@@ -121,7 +129,7 @@ Future<void> main() async {
         defaultLanguageVersion,
       ),
       loader: loader,
-      isUnsupported: false,
+      conditionalImportSupported: true,
       isAugmentation: false,
       isPatch: false,
       importNameSpace: new ComputedMutableNameSpace(),
@@ -239,7 +247,7 @@ Future<void> main() async {
       new DelayedPostfixIncrement(helper, token, generator, binaryOperator),
     );
     check(
-      "VariableUseGenerator(offset: 4, variable: dynamic #t1;\n)",
+      "VariableUseGenerator(offset: 4, variable: dynamic #0;)",
       new VariableUseGenerator(helper, token, variable),
     );
     check(
@@ -311,7 +319,7 @@ Future<void> main() async {
     );
     check(
       "InvocationSelector(offset: 4, name: bar, arguments: (\"arg\"))",
-      new InvocationSelector(helper, token, name, null, arguments),
+      new InvocationSelector(helper, token, name, null, null, arguments),
     );
     check(
       "PropertySelector(offset: 4, name: bar)",

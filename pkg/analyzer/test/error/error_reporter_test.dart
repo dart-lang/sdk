@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -85,10 +85,14 @@ main() {
       firstType.element.firstFragment.libraryFragment.source,
     );
 
-    reporter.atNode(
-      findNode.simple('x'),
-      diag.argumentTypeNotAssignable,
-      arguments: [firstType, secondType, ''],
+    reporter.report(
+      diag.argumentTypeNotAssignable
+          .withArguments(
+            actualStaticType: firstType,
+            expectedStaticType: secondType,
+            additionalInfo: '',
+          )
+          .at(findNode.simple('x')),
     );
 
     var diagnostic = listener.diagnostics[0];
@@ -126,10 +130,14 @@ main() {
       listener,
       firstType.element.firstFragment.libraryFragment.source,
     );
-    reporter.atNode(
-      findNode.simple('x'),
-      diag.argumentTypeNotAssignable,
-      arguments: [firstType, secondType, ''],
+    reporter.report(
+      diag.argumentTypeNotAssignable
+          .withArguments(
+            actualStaticType: firstType,
+            expectedStaticType: secondType,
+            additionalInfo: '',
+          )
+          .at(findNode.simple('x')),
     );
 
     var diagnostic = listener.diagnostics[0];
@@ -155,10 +163,14 @@ main() {
 
     var source = result.unit.declaredFragment!.source;
     var reporter = DiagnosticReporter(listener, source);
-    reporter.atNode(
-      findNode.simple('x'),
-      diag.argumentTypeNotAssignable,
-      arguments: [fa.variables.type!.type!, fb.variables.type!.type!, ''],
+    reporter.report(
+      diag.argumentTypeNotAssignable
+          .withArguments(
+            actualStaticType: fa.variables.type!.type!,
+            expectedStaticType: fb.variables.type!.type!,
+            additionalInfo: '',
+          )
+          .at(findNode.simple('x')),
     );
 
     var diagnostic = listener.diagnostics[0];
@@ -186,10 +198,14 @@ main() {
 
     var source = result.unit.declaredFragment!.source;
     var reporter = DiagnosticReporter(listener, source);
-    reporter.atNode(
-      findNode.simple('x'),
-      diag.argumentTypeNotAssignable,
-      arguments: [ba.variables.type!.type!, bb.variables.type!.type!, ''],
+    reporter.report(
+      diag.argumentTypeNotAssignable
+          .withArguments(
+            actualStaticType: ba.variables.type!.type!,
+            expectedStaticType: bb.variables.type!.type!,
+            additionalInfo: '',
+          )
+          .at(findNode.simple('x')),
     );
 
     var diagnostic = listener.diagnostics[0];
@@ -215,10 +231,14 @@ zap: baz
       'baz',
     );
 
-    reporter.atSourceSpan(
-      span,
-      diag.unsupportedOptionWithLegalValue,
-      arguments: ['test', 'zip', 'zap'],
+    reporter.report(
+      diag.unsupportedOptionWithLegalValue
+          .withArguments(
+            sectionName: 'test',
+            optionKey: 'zip',
+            legalValue: 'zap',
+          )
+          .atSourceSpan(span),
     );
     expect(listener.diagnostics, hasLength(1));
     expect(listener.diagnostics.first.offset, offset);

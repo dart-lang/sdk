@@ -6,13 +6,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 
 class ReturnTypeVerifier {
@@ -56,9 +56,8 @@ class ReturnTypeVerifier {
 
     if (enclosingExecutable.isGenerativeConstructor) {
       if (expression != null) {
-        _diagnosticReporter.atNode(
-          expression,
-          diag.returnInGenerativeConstructor,
+        _diagnosticReporter.report(
+          diag.returnInGenerativeConstructor.at(expression),
         );
       }
       return;
@@ -218,9 +217,10 @@ class ReturnTypeVerifier {
             S,
             strictCasts: _strictCasts,
           )) {
-            _diagnosticReporter.atNode(
-              expression,
-              diag.recordLiteralOnePositionalNoTrailingCommaByType,
+            _diagnosticReporter.report(
+              diag.recordLiteralOnePositionalNoTrailingCommaByType.at(
+                expression,
+              ),
             );
             return;
           }
@@ -281,9 +281,8 @@ class ReturnTypeVerifier {
       }
     }
 
-    _diagnosticReporter.atToken(
-      statement.returnKeyword,
-      diag.returnWithoutValue,
+    _diagnosticReporter.report(
+      diag.returnWithoutValue.at(statement.returnKeyword),
     );
   }
 

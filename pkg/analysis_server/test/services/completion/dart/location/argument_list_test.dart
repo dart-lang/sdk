@@ -67,10 +67,6 @@ replacement
 suggestions
   l0
     kind: parameter
-  true
-    kind: keyword
-  false
-    kind: keyword
   const
     kind: keyword
   switch
@@ -96,10 +92,6 @@ replacement
 suggestions
   random
     kind: localVariable
-  false
-    kind: keyword
-  true
-    kind: keyword
   const
     kind: keyword
   switch
@@ -234,10 +226,87 @@ suggestions
 ''');
   }
 
+  Future<void> test_booleansDynamic() async {
+    await computeSuggestions('''
+void f(dynamic o) => f(^);
+''');
+    assertResponse(r'''
+suggestions
+  const
+    kind: keyword
+  true
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_booleansForNullableObject() async {
+    await computeSuggestions('''
+void f(Object? o) => f(^);
+''');
+    assertResponse(r'''
+suggestions
+  true
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  const
+    kind: keyword
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_booleansForObject() async {
+    await computeSuggestions('''
+void f(Object o) => f(^);
+''');
+    assertResponse(r'''
+suggestions
+  true
+    kind: keyword
+  false
+    kind: keyword
+  const
+    kind: keyword
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_closure_coreFunction() async {
+    includeClosures = true;
+    await computeSuggestions('''
+void f(Function p0) {
+  f(^);
+}
+''');
+    assertResponse('''
+suggestions
+  () => ^,
+    kind: invocation
+  () {
+    ^
+  },
+    kind: invocation
+  p0
+    kind: parameter
+  switch
+    kind: keyword
+''');
+  }
+
   Future<void> test_closure_namedParameters() async {
     includeClosures = true;
     await computeSuggestions('''
-void f(void Function(int i) x) {
+void f(void Function(int i) p0) {
   f(^);
 }
 ''');
@@ -249,6 +318,8 @@ suggestions
     ^
   },
     kind: invocation
+  p0
+    kind: parameter
   switch
     kind: keyword
 ''');
@@ -257,7 +328,7 @@ suggestions
   Future<void> test_closure_unnamedParameters() async {
     includeClosures = true;
     await computeSuggestions('''
-void f(void Function(int) x) {
+void f(void Function(int) p0) {
   f(^);
 }
 ''');
@@ -269,6 +340,8 @@ suggestions
     ^
   },
     kind: invocation
+  p0
+    kind: parameter
   switch
     kind: keyword
 ''');
@@ -277,7 +350,7 @@ suggestions
   Future<void> test_closure_unnamedParameters_equal() async {
     includeClosures = true;
     await computeSuggestions('''
-void f(void Function(int p2, int p2_1, int) x) {
+void f(void Function(int p2, int p2_1, int) p0) {
   f(^);
 }
 ''');
@@ -291,6 +364,8 @@ suggestions
     ^
   },
     kind: invocation
+  p0
+    kind: parameter
   switch
     kind: keyword
 ''');
@@ -330,6 +405,131 @@ suggestions
 ''');
   }
 
+  Future<void> test_functionTearoff() async {
+    identifierRegExp = RegExp(r'^myFunction');
+    await computeSuggestions('''
+void f(void Function(int) x) {
+  f(^);
+}
+
+void myFunction(int i) {}
+''');
+    assertResponse(r'''
+suggestions
+  myFunction
+    kind: function
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_functionTearoff_coreFunction() async {
+    identifierRegExp = RegExp(r'^myFunction');
+    await computeSuggestions('''
+class RaisedButton {
+  RaisedButton({Function? onPressed});
+}
+
+void x() {
+  RaisedButton(onPressed: ^);
+}
+
+void myFunction() {}
+''');
+    assertResponse(r'''
+suggestions
+  myFunction
+    kind: function
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_noClosure_const() async {
+    includeClosures = true;
+    await computeSuggestions('''
+class C {
+  const C(void Function() f);
+}
+void f0() {
+  const C(^);
+}
+''');
+    assertResponse('''
+suggestions
+  f0
+    kind: function
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_noClosure_const_named() async {
+    includeClosures = true;
+    await computeSuggestions('''
+class C {
+  const C({required void Function() f});
+}
+void f0() {
+  const C(f: ^);
+}
+''');
+    assertResponse('''
+suggestions
+  f0
+    kind: function
+''');
+  }
+
+  Future<void> test_notDeclaredFunction() async {
+    await computeSuggestions('''
+void f() {foo(^);}
+''');
+    assertResponse(r'''
+suggestions
+  const
+    kind: keyword
+  true
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_null() async {
+    await computeSuggestions('''
+void f(Null n) => f(^);
+''');
+    assertResponse(r'''
+suggestions
+  null
+    kind: keyword
+  const
+    kind: keyword
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_null_named() async {
+    await computeSuggestions('''
+void f({Null n}) => f(n: ^);
+''');
+    assertResponse(r'''
+suggestions
+  null
+    kind: keyword
+  const
+    kind: keyword
+  switch
+    kind: keyword
+''');
+  }
+
   Future<void> test_nullableClosure() async {
     await computeSuggestions('''
 void f(void Function(int i)? x) {
@@ -342,6 +542,29 @@ suggestions
     kind: keyword
   switch
     kind: keyword
+''');
+  }
+
+  Future<void> test_staticMethod_constConstructor_const() async {
+    allowedIdentifiers = {'new', 'other', 'staticMethod'};
+    await computeSuggestions('''
+class C {
+  const C({void Function()? f});
+  C.other();
+  static void staticMethod() {}
+}
+void f0() {
+  const C(f: C.^);
+}
+''');
+    assertResponse('''
+suggestions
+  new
+    kind: constructor
+  other
+    kind: constructor
+  staticMethod
+    kind: method
 ''');
   }
 }
@@ -995,6 +1218,24 @@ suggestions
 ''', where: where);
       },
     );
+  }
+
+  Future<void> test_privateNamed() async {
+    await computeSuggestions('''
+class A {
+  final int? _foo;
+  A({this._foo});
+}
+
+f() {
+  A(^);
+}
+''');
+    assertResponse(r'''
+suggestions
+  |foo: |
+    kind: namedArgument
+''');
   }
 
   Future<void> test_superCall_excludesSuperParams() async {

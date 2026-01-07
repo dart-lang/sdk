@@ -25,7 +25,7 @@ abstract interface class TypeAnalyzerOperations<
   TypeDeclaration extends Object,
   AstNode extends Object
 >
-    implements FlowAnalysisOperations<Variable, SharedTypeView> {
+    implements FlowAnalysisOperations<Variable> {
   /// Returns the type `double`.
   SharedTypeView get doubleType;
 

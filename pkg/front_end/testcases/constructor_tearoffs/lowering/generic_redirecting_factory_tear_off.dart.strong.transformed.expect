@@ -106,7 +106,7 @@ static method testGeneric() → dynamic {
   () → Null {
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_redirecting_factory_tear_off.dart:27:8: Error: Expected 1 type arguments.
     f1a<int, String>(); // error
-       ^" in f1a{<inapplicable>}.<core::int, core::String>();
+       ^" in f1a{<inapplicable>}.();
   };
   () → self::Class1<core::int> f1b = f1a<core::int>;
   self::Class1<core::int> c1c = f1b(){() → self::Class1<core::int>};
@@ -115,7 +115,7 @@ static method testGeneric() → dynamic {
   () → Null {
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_redirecting_factory_tear_off.dart:35:8: Error: Expected 0 type arguments.
     f1b<int>(); // error
-       ^" in f1b{<inapplicable>}.<core::int>();
+       ^" in f1b{<inapplicable>}.();
   };
   dynamic f1c = #C1;
   dynamic c1d = f1c{dynamic}();
@@ -135,7 +135,7 @@ static method testBounded() → dynamic {
     f2a<core::String>(){() → self::Class2<core::String>};
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_redirecting_factory_tear_off.dart:75:8: Error: Expected 1 type arguments.
     f2a<int, String>(); // error
-       ^" in f2a{<inapplicable>}.<core::int, core::String>();
+       ^" in f2a{<inapplicable>}.();
   };
   dynamic f2b = #C2;
   dynamic c2c = f2b{dynamic}();

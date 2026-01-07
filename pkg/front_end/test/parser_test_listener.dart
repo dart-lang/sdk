@@ -3246,6 +3246,45 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void beginAnonymousMethodInvocation(Token token) {
+    seen(token);
+    doPrint(
+      'beginAnonymousMethodInvocation('
+      '$token)',
+    );
+    indent++;
+  }
+
+  @override
+  void endAnonymousMethodInvocation(
+    Token beginToken,
+    Token? functionDefinition,
+    Token endToken, {
+    required bool isExpression,
+  }) {
+    indent--;
+    seen(beginToken);
+    seen(functionDefinition);
+    seen(endToken);
+    doPrint(
+      'endAnonymousMethodInvocation('
+      '$beginToken, '
+      '$functionDefinition, '
+      '$endToken, '
+      '$isExpression)',
+    );
+  }
+
+  @override
+  void handleImplicitFormalParameters(Token token) {
+    seen(token);
+    doPrint(
+      'handleImplicitFormalParameters('
+      '$token)',
+    );
+  }
+
+  @override
   void beginBinaryExpression(Token token) {
     seen(token);
     doPrint(
@@ -3770,6 +3809,15 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handlePositionalArgument(Token token) {
+    seen(token);
+    doPrint(
+      'handlePositionalArgument('
+      '$token)',
+    );
+  }
+
+  @override
   void handlePatternField(Token? colon) {
     seen(colon);
     doPrint(
@@ -3784,6 +3832,15 @@ class ParserTestListener implements Listener {
     doPrint(
       'handleNamedRecordField('
       '$colon)',
+    );
+  }
+
+  @override
+  void handlePositionalRecordField(Token token) {
+    seen(token);
+    doPrint(
+      'handlePositionalRecordField('
+      '$token)',
     );
   }
 

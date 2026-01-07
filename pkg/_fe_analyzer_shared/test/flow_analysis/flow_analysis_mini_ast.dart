@@ -31,8 +31,7 @@ Expression implicitThis_whyNotPromoted(
 /// Test harness for creating flow analysis tests.  This class provides all
 /// the [FlowAnalysisOperations] needed by flow analysis, as well as other
 /// methods needed for testing.
-class FlowAnalysisTestHarness extends Harness
-    with FlowModelHelper<SharedTypeView> {
+class FlowAnalysisTestHarness extends Harness with FlowModelHelper {
   @override
   final PromotionKeyStore<Var> promotionKeyStore = PromotionKeyStore();
 
@@ -43,8 +42,7 @@ class FlowAnalysisTestHarness extends Harness
   TypeAnalyzerOptions get typeAnalyzerOptions => computeTypeAnalyzerOptions();
 
   @override
-  FlowAnalysisOperations<Var, SharedTypeView> get typeOperations =>
-      typeAnalyzer.operations;
+  FlowAnalysisOperations<Var> get typeOperations => typeAnalyzer.operations;
 
   @override
   bool isFinal(int variableKey) {
@@ -72,20 +70,19 @@ class FlowAnalysisTestHarness extends Harness
 
 /// Helper class allowing tests to examine the values of variables' SSA nodes.
 class SsaNodeHarness {
-  final FlowAnalysis<Node, Statement, Expression, Var, SharedTypeView> _flow;
+  final FlowAnalysis<Node, Statement, Expression, Var> _flow;
 
   SsaNodeHarness(this._flow);
 
   /// Gets the SSA node associated with [variable] at the current point in
   /// control flow, or `null` if the variable has been write captured.
-  SsaNode<SharedTypeView>? operator [](Var variable) =>
-      _flow.ssaNodeForTesting(variable);
+  SsaNode? operator [](Var variable) => _flow.ssaNodeForTesting(variable);
 }
 
 class _GetExpressionInfo extends Expression {
   final Expression target;
 
-  final void Function(ExpressionInfo<SharedTypeView>?) callback;
+  final void Function(ExpressionInfo?) callback;
 
   _GetExpressionInfo(this.target, this.callback, {required super.location});
 
@@ -184,9 +181,7 @@ extension ExpressionExtensionForFlowAnalysisTesting on ProtoExpression {
   /// [ExpressionInfo] associated with it.  If the expression has no flow
   /// analysis information associated with it, `null` will be passed to
   /// [callback].
-  Expression getExpressionInfo(
-    void Function(ExpressionInfo<SharedTypeView>?) callback,
-  ) {
+  Expression getExpressionInfo(void Function(ExpressionInfo?) callback) {
     var location = computeLocation();
     return new _GetExpressionInfo(
       asExpression(location: location),

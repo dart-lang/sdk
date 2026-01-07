@@ -15,7 +15,7 @@ import "dart:core" as core;
 
 abstract class A extends core::Object {
   constructor •({required invalid-type field}) → self::A
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/issue49357a.dart:6:3: Error: Can't use 'new' because it is declared more than once.
+    : invalid-initializer "pkg/front_end/testcases/general/issue49357a.dart:6:3: Error: Can't use 'new' because it is declared more than once.
   A({
   ^"
     ;

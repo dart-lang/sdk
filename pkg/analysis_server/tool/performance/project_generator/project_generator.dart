@@ -4,6 +4,31 @@
 
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
+/// Runs `dart pub get` in [projectDir] if it contains a pubspec.
+//
+// TODO(jakemac): Support flutter projects and workspaces.
+Future<void> runPubGet(Directory projectDir) async {
+  var pubspec = File(p.join(p.normalize(projectDir.path), 'pubspec.yaml'));
+  if (pubspec.existsSync()) {
+    print('Fetching dependencies with pub in ${projectDir.path}');
+    var pubGetResult = await Process.run('dart', [
+      'pub',
+      'get',
+    ], workingDirectory: projectDir.path);
+    if (pubGetResult.exitCode != 0) {
+      throw StateError(
+        'Failed to run `dart pub get`:\n'
+        'StdOut:\n${pubGetResult.stdout}\n'
+        'StdErr:\n${pubGetResult.stderr}',
+      );
+    }
+  } else {
+    print('No pubspec.yaml found in ${projectDir.path}, skipping `pub get`');
+  }
+}
+
 /// A [ProjectGenerator] represents a reproducible way to create a pristine
 /// copy of a codebase.
 ///

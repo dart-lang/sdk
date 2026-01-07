@@ -458,37 +458,39 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     void Function(FormalParameterElement first, FormalParameterElement second)
     f,
   ) {
-    Map<String, FormalParameterElement>? firstNamed;
-    Map<String, FormalParameterElement>? secondNamed;
-    var firstPositional = <FormalParameterElement>[];
-    var secondPositional = <FormalParameterElement>[];
-    for (var element in firstList) {
-      if (element.isNamed) {
-        (firstNamed ??= {})[element.name!] = element;
-      } else {
-        firstPositional.add(element);
+    (List<FormalParameterElement>?, Map<String, FormalParameterElement>?)
+    segregate(List<FormalParameterElement> elements) {
+      List<FormalParameterElement>? positional;
+      Map<String, FormalParameterElement>? named;
+      for (var element in elements) {
+        if (element.isNamed) {
+          if (element.name case var name?) {
+            (named ??= {})[name] = element;
+          }
+        } else {
+          assert(element.isPositional);
+          (positional ??= []).add(element);
+        }
       }
-    }
-    for (var element in secondList) {
-      if (element.isNamed) {
-        (secondNamed ??= {})[element.name!] = element;
-      } else {
-        secondPositional.add(element);
-      }
+      return (positional, named);
     }
 
-    var positionalLength = math.min(
-      firstPositional.length,
-      secondPositional.length,
-    );
-    for (var i = 0; i < positionalLength; i++) {
-      f(firstPositional[i], secondPositional[i]);
+    var (firstPositional, firstNamed) = segregate(firstList);
+    var (secondPositional, secondNamed) = segregate(secondList);
+
+    if (firstPositional != null && secondPositional != null) {
+      var positionalLength = math.min(
+        firstPositional.length,
+        secondPositional.length,
+      );
+      for (var i = 0; i < positionalLength; i++) {
+        f(firstPositional[i], secondPositional[i]);
+      }
     }
 
     if (firstNamed != null && secondNamed != null) {
       for (var firstEntry in firstNamed.entries) {
-        var second = secondNamed[firstEntry.key];
-        if (second != null) {
+        if (secondNamed[firstEntry.key] case var second?) {
           f(firstEntry.value, second);
         }
       }
@@ -712,6 +714,34 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    // Do not report a field declared in a primary constructor which is declared
+    // in an extension type, since it cannot be removed, and renaming it to be
+    // public is not an improvement.
+    if (node.parent is! ExtensionTypeDeclaration) {
+      for (var parameter in node.formalParameters.parameters) {
+        var fragment = parameter.declaredFragment;
+        var element = fragment!.element;
+        if (element is! FieldFormalParameterElement) continue;
+        var field = element.field;
+        if (field == null) continue;
+        if (!_isReadMember(field)) {
+          var keyword = switch (parameter.notDefault) {
+            SimpleFormalParameter p => p.keyword!.lexeme,
+            _ => '',
+          };
+          _reportDiagnosticForElement(
+            diag.unusedFieldFromPrimaryConstructor,
+            element,
+            [field.displayName, keyword],
+          );
+        }
+      }
+    }
+    super.visitPrimaryConstructorDeclaration(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       var element = node.element;
@@ -846,9 +876,6 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         return true;
       }
     }
-    if (element.isSynthetic) {
-      return true;
-    }
     if (element is FieldElement) {
       var getter = element.getter;
       if (getter == null) {
@@ -868,9 +895,6 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   bool _isUsedElement(Element element) {
-    if (element.isSynthetic) {
-      return true;
-    }
     if (element is LocalVariableElement ||
         element is LocalFunctionElement && !element.isStatic) {
       // local variable or function
@@ -939,9 +963,6 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   bool _isUsedMember(ExecutableElement element) {
     if (_isPubliclyAccessible(element)) {
-      return true;
-    }
-    if (element.isSynthetic) {
       return true;
     }
     if (_hasPragmaVmEntryPoint(element)) {

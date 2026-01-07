@@ -372,7 +372,7 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
           final location = result.lineInfo.getLocation(diagnostic.offset);
           print(
             '  ${_severity(diagnostic.severity)}: ${diagnostic.message} '
-            '[$location] (${diagnostic.diagnosticCode.name.toLowerCase()})',
+            '[$location] (${diagnostic.diagnosticCode.lowerCaseName})',
           );
         }
         print('');

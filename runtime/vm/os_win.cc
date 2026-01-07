@@ -281,6 +281,10 @@ void OS::DebugBreak() {
 #endif
 }
 
+void OS::NotifyBeforeGC() {}
+
+void OS::NotifyAfterGC() {}
+
 DART_NOINLINE uintptr_t OS::GetProgramCounter() {
   return reinterpret_cast<uintptr_t>(_ReturnAddress());
 }

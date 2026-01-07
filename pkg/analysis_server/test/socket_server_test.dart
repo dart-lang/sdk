@@ -88,6 +88,7 @@ class SocketServerTest {
       null,
       AnalyticsManager(NoOpAnalytics()),
       null,
+      null,
     );
 
     server.createAnalysisServer(channel);
