@@ -119,14 +119,21 @@ class DartNativeAssetsBuilder {
     );
   }
 
+  /// The packages with build hooks in the project.
+  ///
+  /// Fine to run together with the other methods, this is stateful, no work is
+  /// duplicated.
+  Future<List<String>> packagesWithBuildHooks() async {
+    final builder = await _nativeAssetsBuildRunner;
+    return await builder.packagesWithBuildHooks();
+  }
+
   /// Check whether there are build hooks in the project.
   ///
   /// Fine to run together with the other methods, this is stateful, no work is
   /// duplicated.
   Future<bool> hasHooks() async {
-    final builder = await _nativeAssetsBuildRunner;
-    final packageNames = await builder.packagesWithBuildHooks();
-    return packageNames.isNotEmpty;
+    return (await packagesWithBuildHooks()).isNotEmpty;
   }
 
   Future<bool> warnOnNativeAssets() async {
