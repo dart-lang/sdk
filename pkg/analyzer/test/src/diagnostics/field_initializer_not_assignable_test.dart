@@ -68,4 +68,16 @@ class A {
       [error(diag.fieldInitializerNotAssignable, 40, 1)],
     );
   }
+
+  test_constructorInitializer_primaryConstructor() async {
+    await assertErrorsWithStrictCasts(
+      '''
+class A(dynamic a) {
+  int i;
+  this : i = a;
+}
+''',
+      [error(diag.fieldInitializerNotAssignable, 43, 1)],
+    );
+  }
 }
