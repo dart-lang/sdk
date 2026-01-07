@@ -12,7 +12,6 @@ import 'package:analysis_server/src/status/utilities/library_cycle_extensions.da
 import 'package:analysis_server/src/status/utilities/string_extensions.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/source.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
@@ -78,13 +77,12 @@ class ContextsPage extends DiagnosticPageWithNav {
 
     // Display analysis options entries inside this context root.
     var separator = folder.provider.pathContext.separator;
-    var optionsInContextRoot = driver.analysisOptionsMap.entries.where(
+    var foldersInContextRoot = driver.analysisOptionsMap.folders.where(
       (e) =>
-          contextPath == e.folder.path ||
-          contextPath.startsWith('${e.folder.path}$separator'),
+          contextPath == e.path ||
+          contextPath.startsWith('${e.path}$separator'),
     );
-    ul(optionsInContextRoot, (OptionsMapEntry entry) {
-      var folder = entry.folder;
+    ul(foldersInContextRoot, (folder) {
       buf.write(escape(folder.path));
       var optionsPath = path.join(folder.path, 'analysis_options.yaml');
       var contentsPath =
