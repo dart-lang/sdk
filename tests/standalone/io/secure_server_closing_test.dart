@@ -118,6 +118,7 @@ testPauseServerSocket() {
     var subscription;
     subscription = server.listen((connection) {
       Expect.isTrue(resumed);
+      connection.drain();
       connection.close();
       if (++acceptCount == 2 * socketCount) {
         server.close();
@@ -133,6 +134,7 @@ testPauseServerSocket() {
       SecureSocket.connect(HOST, server.port, context: clientContext).then((
         connection,
       ) {
+        connection.drain();
         connection.close();
       });
     }
@@ -143,6 +145,7 @@ testPauseServerSocket() {
         SecureSocket.connect(HOST, server.port, context: clientContext).then((
           connection,
         ) {
+          connection.drain();
           connection.close();
         });
       }
