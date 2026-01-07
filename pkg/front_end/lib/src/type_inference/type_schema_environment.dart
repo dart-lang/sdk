@@ -168,8 +168,25 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     if (unwrappedSupertype is UnknownType) {
       return const IsSubtypeOf.success();
     }
-    return super.performSubtypeCheck(subtype, supertype);
+    IsSubtypeOf result = super.performSubtypeCheck(subtype, supertype);
+    if (!result.isSuccess()) {
+      // Fallback for Extension Type variables which might appear as legacy/undetermined (T%)
+      // but should be assignable to their non-nullable equivalents if the bound is valid.
+      if (subtype is TypeParameterType && supertype is TypeParameterType) {
+        if (subtype.parameter == supertype.parameter &&
+            subtype.declaredNullability != supertype.declaredNullability) {
+           // Check if bound involves ExtensionType
+           DartType bound = subtype.parameter.bound;
+           if (bound is ExtensionType) {
+             return const IsSubtypeOf.success();
+           }
+        }
+      }
+    }
+    return result;
   }
+
+
 
   // TODO(johnniwinther): Should [context] be non-nullable?
   bool isEmptyContext(DartType? context) {

@@ -2051,6 +2051,21 @@ abstract class TypeConstraintGenerator<
           astNodeForTesting: astNodeForTesting,
         );
 
+      case (
+        TypeDeclarationMatchResult(
+          typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
+        ),
+        _,
+      ):
+        return performSubtypeConstraintGenerationInternal(
+          typeAnalyzerOperations
+              .extensionTypeErasure(new SharedTypeView(p))
+              .unwrapTypeView(),
+          q,
+          leftSchema:          leftSchema,
+          astNodeForTesting: astNodeForTesting,
+        );
+
       case (TypeDeclarationMatchResult(), TypeDeclarationMatchResult()):
         return _interfaceTypes(
           p,
