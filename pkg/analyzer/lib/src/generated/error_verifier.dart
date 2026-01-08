@@ -5282,7 +5282,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _hiddenElements != null &&
         _hiddenElements!.contains(element)) {
       _hiddenElements!.contains(element);
-      diagnosticReporter.reportError(
+      diagnosticReporter.report(
         _diagnosticFactory.referencedBeforeDeclaration(
           diagnosticReporter.source,
           nameToken: nameToken,

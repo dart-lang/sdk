@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -34,28 +33,24 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicate] uses the same [variable]
   /// as a previous [original] node in a pattern assignment.
-  Diagnostic duplicateAssignmentPatternVariable({
+  LocatedDiagnostic duplicateAssignmentPatternVariable({
     required Source source,
     required PromotableElementImpl variable,
     required AssignedVariablePatternImpl original,
     required AssignedVariablePatternImpl duplicate,
   }) {
-    return Diagnostic.tmp(
-      source: source,
-      offset: duplicate.offset,
-      length: duplicate.length,
-      diagnosticCode: diag.duplicatePatternAssignmentVariable,
-      arguments: [variable.name!],
-      contextMessages: [
-        DiagnosticMessageImpl(
-          filePath: source.fullName,
-          length: original.length,
-          message: 'The first assigned variable pattern.',
-          offset: original.offset,
-          url: source.uri.toString(),
-        ),
-      ],
-    );
+    return diag.duplicatePatternAssignmentVariable
+        .withArguments(name: variable.name!)
+        .withContextMessages([
+          DiagnosticMessageImpl(
+            filePath: source.fullName,
+            length: original.length,
+            message: 'The first assigned variable pattern.',
+            offset: original.offset,
+            url: source.uri.toString(),
+          ),
+        ])
+        .at(duplicate);
   }
 
   /// Return a diagnostic indicating that [duplicateFragment] reuses a name
@@ -156,7 +151,7 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicateField] reuses a name
   /// already used by [originalField].
-  Diagnostic duplicatePatternField({
+  LocatedDiagnostic duplicatePatternField({
     required Source source,
     required String name,
     required PatternField duplicateField,
@@ -166,192 +161,164 @@ class DiagnosticFactory {
     var originalTarget = originalNode.name ?? originalNode.colon;
     var duplicateNode = duplicateField.name!;
     var duplicateTarget = duplicateNode.name ?? duplicateNode.colon;
-    return Diagnostic.tmp(
-      source: source,
-      offset: duplicateTarget.offset,
-      length: duplicateTarget.length,
-      diagnosticCode: diag.duplicatePatternField,
-      arguments: [name],
-      contextMessages: [
-        DiagnosticMessageImpl(
-          filePath: source.fullName,
-          length: originalTarget.length,
-          message: 'The first field.',
-          offset: originalTarget.offset,
-          url: source.uri.toString(),
-        ),
-      ],
-    );
+    return diag.duplicatePatternField
+        .withArguments(name: name)
+        .withContextMessages([
+          DiagnosticMessageImpl(
+            filePath: source.fullName,
+            length: originalTarget.length,
+            message: 'The first field.',
+            offset: originalTarget.offset,
+            url: source.uri.toString(),
+          ),
+        ])
+        .at(duplicateTarget);
   }
 
   /// Return a diagnostic indicating that [duplicateElement] reuses a name
   /// already used by [originalElement].
-  Diagnostic duplicateRestElementInPattern({
+  LocatedDiagnostic duplicateRestElementInPattern({
     required Source source,
     required RestPatternElement originalElement,
     required RestPatternElement duplicateElement,
   }) {
-    return Diagnostic.tmp(
-      source: source,
-      offset: duplicateElement.offset,
-      length: duplicateElement.length,
-      diagnosticCode: diag.duplicateRestElementInPattern,
-      contextMessages: [
-        DiagnosticMessageImpl(
-          filePath: source.fullName,
-          length: originalElement.length,
-          message: 'The first rest element.',
-          offset: originalElement.offset,
-          url: source.uri.toString(),
-        ),
-      ],
-    );
+    return diag.duplicateRestElementInPattern
+        .withContextMessages([
+          DiagnosticMessageImpl(
+            filePath: source.fullName,
+            length: originalElement.length,
+            message: 'The first rest element.',
+            offset: originalElement.offset,
+            url: source.uri.toString(),
+          ),
+        ])
+        .at(duplicateElement);
   }
 
   /// Return a diagnostic indicating that the [duplicateElement] (in a constant
   /// set) is a duplicate of the [originalElement].
-  Diagnostic equalElementsInConstSet(
+  LocatedDiagnostic equalElementsInConstSet(
     Source source,
     Expression duplicateElement,
     Expression originalElement,
   ) {
-    return Diagnostic.tmp(
-      source: source,
-      offset: duplicateElement.offset,
-      length: duplicateElement.length,
-      diagnosticCode: diag.equalElementsInConstSet,
-      contextMessages: [
-        DiagnosticMessageImpl(
-          filePath: source.fullName,
-          message: "The first element with this value.",
-          offset: originalElement.offset,
-          length: originalElement.length,
-          url: null,
-        ),
-      ],
-    );
+    return diag.equalElementsInConstSet
+        .withContextMessages([
+          DiagnosticMessageImpl(
+            filePath: source.fullName,
+            message: "The first element with this value.",
+            offset: originalElement.offset,
+            length: originalElement.length,
+            url: null,
+          ),
+        ])
+        .at(duplicateElement);
   }
 
   /// Return a diagnostic indicating that the [duplicateKey] (in a constant map)
   /// is a duplicate of the [originalKey].
-  Diagnostic equalKeysInConstMap(
+  LocatedDiagnostic equalKeysInConstMap(
     Source source,
     Expression duplicateKey,
     Expression originalKey,
   ) {
-    return Diagnostic.tmp(
-      source: source,
-      offset: duplicateKey.offset,
-      length: duplicateKey.length,
-      diagnosticCode: diag.equalKeysInConstMap,
-      contextMessages: [
-        DiagnosticMessageImpl(
-          filePath: source.fullName,
-          message: "The first key with this value.",
-          offset: originalKey.offset,
-          length: originalKey.length,
-          url: null,
-        ),
-      ],
-    );
+    return diag.equalKeysInConstMap
+        .withContextMessages([
+          DiagnosticMessageImpl(
+            filePath: source.fullName,
+            message: "The first key with this value.",
+            offset: originalKey.offset,
+            length: originalKey.length,
+            url: null,
+          ),
+        ])
+        .at(duplicateKey);
   }
 
   /// Return a diagnostic indicating that the [duplicateKey] (in a map pattern)
   /// is a duplicate of the [originalKey].
-  Diagnostic equalKeysInMapPattern(
+  LocatedDiagnostic equalKeysInMapPattern(
     Source source,
     Expression duplicateKey,
     Expression originalKey,
   ) {
-    return Diagnostic.tmp(
-      source: source,
-      offset: duplicateKey.offset,
-      length: duplicateKey.length,
-      diagnosticCode: diag.equalKeysInMapPattern,
-      contextMessages: [
-        DiagnosticMessageImpl(
-          filePath: source.fullName,
-          message: "The first key with this value.",
-          offset: originalKey.offset,
-          length: originalKey.length,
-          url: null,
-        ),
-      ],
-    );
+    return diag.equalKeysInMapPattern
+        .withContextMessages([
+          DiagnosticMessageImpl(
+            filePath: source.fullName,
+            message: "The first key with this value.",
+            offset: originalKey.offset,
+            length: originalKey.length,
+            url: null,
+          ),
+        ])
+        .at(duplicateKey);
   }
 
-  Diagnostic incompatibleLint({
+  LocatedDiagnostic incompatibleLint({
     required Source source,
     required YamlScalar reference,
     required Map<String, YamlScalar> incompatibleRules,
   }) {
     assert(reference.value is String);
     assert(incompatibleRules.values.every((node) => node.value is String));
-    return Diagnostic.tmp(
-      source: source,
-      offset: reference.span.start.offset,
-      length: reference.span.length,
-      diagnosticCode: diag.incompatibleLint,
-      arguments: [
-        reference.value as String,
-        incompatibleRules.values
-            .map((node) => node.value as String)
-            .quotedAndCommaSeparatedWithAnd,
-      ],
-      contextMessages: [
-        for (var MapEntry(key: file, value: incompatible)
-            in incompatibleRules.entries)
-          DiagnosticMessageImpl(
-            filePath: file,
-            message:
-                "The rule '${incompatible.value.toString()}' is enabled here.",
-            offset: incompatible.span.start.offset,
-            length: incompatible.span.length,
-            url: file,
-          ),
-      ],
-    );
+    return diag.incompatibleLint
+        .withArguments(
+          ruleName: reference.value as String,
+          incompatibleRules: incompatibleRules.values
+              .map((node) => node.value as String)
+              .quotedAndCommaSeparatedWithAnd,
+        )
+        .withContextMessages([
+          for (var MapEntry(key: file, value: incompatible)
+              in incompatibleRules.entries)
+            DiagnosticMessageImpl(
+              filePath: file,
+              message:
+                  "The rule '${incompatible.value.toString()}' is enabled here.",
+              offset: incompatible.span.start.offset,
+              length: incompatible.span.length,
+              url: file,
+            ),
+        ])
+        .atSourceSpan(reference.span);
   }
 
   /// Returns a diagnostic indicating that incompatible rules were found between
   /// the current list and one or more of the included files.
-  Diagnostic incompatibleLintFiles({
+  LocatedDiagnostic incompatibleLintFiles({
     required Source source,
     required YamlScalar reference,
     required Map<String, YamlScalar> incompatibleRules,
   }) {
     assert(reference.value is String);
     assert(incompatibleRules.values.every((node) => node.value is String));
-    return Diagnostic.tmp(
-      source: source,
-      offset: reference.span.start.offset,
-      length: reference.span.length,
-      diagnosticCode: diag.incompatibleLintFiles,
-      arguments: [
-        reference.value as String,
-        incompatibleRules.values
-            .map((node) => node.value as String)
-            .quotedAndCommaSeparatedWithAnd,
-      ],
-      contextMessages: [
-        for (var MapEntry(key: file, value: incompatible)
-            in incompatibleRules.entries)
-          DiagnosticMessageImpl(
-            filePath: file,
-            message:
-                "The rule '${incompatible.value.toString()}' is enabled here "
-                "in the file '$file'.",
-            offset: incompatible.span.start.offset,
-            length: incompatible.span.length,
-            url: file,
-          ),
-      ],
-    );
+    return diag.incompatibleLintFiles
+        .withArguments(
+          ruleName: reference.value as String,
+          incompatibleRules: incompatibleRules.values
+              .map((node) => node.value as String)
+              .quotedAndCommaSeparatedWithAnd,
+        )
+        .withContextMessages([
+          for (var MapEntry(key: file, value: incompatible)
+              in incompatibleRules.entries)
+            DiagnosticMessageImpl(
+              filePath: file,
+              message:
+                  "The rule '${incompatible.value.toString()}' is enabled here "
+                  "in the file '$file'.",
+              offset: incompatible.span.start.offset,
+              length: incompatible.span.length,
+              url: file,
+            ),
+        ])
+        .atSourceSpan(reference.span);
   }
 
   /// Returns a diagnostic indicating that incompatible rules were found between
   /// the included files.
-  Diagnostic incompatibleLintIncluded({
+  LocatedDiagnostic incompatibleLintIncluded({
     required Source source,
     required YamlScalar reference,
     required Map<String, YamlScalar> incompatibleRules,
@@ -360,32 +327,28 @@ class DiagnosticFactory {
     assert(fileCount > 0);
     assert(reference.value is String);
     assert(incompatibleRules.values.every((node) => node.value is String));
-    return Diagnostic.tmp(
-      source: source,
-      offset: reference.span.start.offset,
-      length: reference.span.length,
-      diagnosticCode: diag.incompatibleLintIncluded,
-      arguments: [
-        reference.value as String,
-        incompatibleRules.values
-            .map((node) => node.value as String)
-            .quotedAndCommaSeparatedWithAnd,
-        fileCount,
-        fileCount == 1 ? '' : 's',
-      ],
-      contextMessages: [
-        for (var MapEntry(key: file, value: incompatible)
-            in incompatibleRules.entries)
-          DiagnosticMessageImpl(
-            filePath: file,
-            message:
-                "The rule '${incompatible.value.toString()}' is enabled here.",
-            offset: incompatible.span.start.offset,
-            length: incompatible.span.length,
-            url: file,
-          ),
-      ],
-    );
+    return diag.incompatibleLintIncluded
+        .withArguments(
+          ruleName: reference.value as String,
+          incompatibleRules: incompatibleRules.values
+              .map((node) => node.value as String)
+              .quotedAndCommaSeparatedWithAnd,
+          numIncludingFiles: fileCount,
+          pluralSuffix: fileCount == 1 ? '' : 's',
+        )
+        .withContextMessages([
+          for (var MapEntry(key: file, value: incompatible)
+              in incompatibleRules.entries)
+            DiagnosticMessageImpl(
+              filePath: file,
+              message:
+                  "The rule '${incompatible.value.toString()}' is enabled here.",
+              offset: incompatible.span.start.offset,
+              length: incompatible.span.length,
+              url: file,
+            ),
+        ])
+        .atSourceSpan(reference.span);
   }
 
   /// Return a diagnostic indicating that [member] is not a correct override of
@@ -440,16 +403,18 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that the given [nameToken] was referenced
   /// before it was declared.
-  Diagnostic referencedBeforeDeclaration(
+  LocatedDiagnostic referencedBeforeDeclaration(
     Source source, {
     required Token nameToken,
     required Element element2,
   }) {
     String name = nameToken.lexeme;
-    List<DiagnosticMessage>? contextMessages;
+    var locatableDiagnostic = diag.referencedBeforeDeclaration.withArguments(
+      name: name,
+    );
     int declarationOffset = element2.firstFragment.nameOffset ?? -1;
     if (declarationOffset >= 0) {
-      contextMessages = [
+      locatableDiagnostic = locatableDiagnostic.withContextMessages([
         DiagnosticMessageImpl(
           filePath: source.fullName,
           message: "The declaration of '$name' is here.",
@@ -457,15 +422,8 @@ class DiagnosticFactory {
           length: name.length,
           url: null,
         ),
-      ];
+      ]);
     }
-    return Diagnostic.tmp(
-      source: source,
-      offset: nameToken.offset,
-      length: nameToken.length,
-      diagnosticCode: diag.referencedBeforeDeclaration,
-      arguments: [name],
-      contextMessages: contextMessages ?? const [],
-    );
+    return locatableDiagnostic.at(nameToken);
   }
 }

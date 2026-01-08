@@ -5016,8 +5016,8 @@ CompileTimeErrorCode:
   duplicatePatternAssignmentVariable:
     type: compileTimeError
     parameters:
-      Object p0: the name of the variable
-    problemMessage: The variable '#p0' is already assigned in this pattern.
+      String name: the name of the variable
+    problemMessage: The variable '#name' is already assigned in this pattern.
     correctionMessage: Try renaming the variable.
     hasPublishedDocs: true
     documentation: |-
@@ -5065,8 +5065,8 @@ CompileTimeErrorCode:
   duplicatePatternField:
     type: compileTimeError
     parameters:
-      Object p0: the name of the field
-    problemMessage: The field '#p0' is already matched in this pattern.
+      String name: the name of the field
+    problemMessage: The field '#name' is already matched in this pattern.
     correctionMessage: Try removing the duplicate field.
     hasPublishedDocs: true
     documentation: |-
@@ -15782,8 +15782,8 @@ CompileTimeErrorCode:
   referencedBeforeDeclaration:
     type: compileTimeError
     parameters:
-      Object p0: the name of the variable
-    problemMessage: "Local variable '#p0' can't be referenced before it is declared."
+      String name: the name of the variable
+    problemMessage: "Local variable '#name' can't be referenced before it is declared."
     correctionMessage: "Try moving the declaration to before the first use, or renaming the local variable so that it doesn't hide a name from an enclosing scope."
     hasPublishedDocs: true
     documentation: |-

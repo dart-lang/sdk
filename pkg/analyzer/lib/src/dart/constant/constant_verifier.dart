@@ -340,7 +340,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     }
 
     for (var duplicateEntry in duplicateKeys.entries) {
-      _diagnosticReporter.reportError(
+      _diagnosticReporter.report(
         _diagnosticFactory.equalKeysInMapPattern(
           _diagnosticReporter.source,
           duplicateEntry.key,
@@ -402,7 +402,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           verifier.verify(element);
         }
         for (var duplicateEntry in config.duplicateElements.entries) {
-          _diagnosticReporter.reportError(
+          _diagnosticReporter.report(
             _diagnosticFactory.equalElementsInConstSet(
               _diagnosticReporter.source,
               duplicateEntry.key,
@@ -426,7 +426,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           verifier.verify(entry);
         }
         for (var duplicateEntry in config.duplicateKeys.entries) {
-          _diagnosticReporter.reportError(
+          _diagnosticReporter.report(
             _diagnosticFactory.equalKeysInConstMap(
               _diagnosticReporter.source,
               duplicateEntry.key,

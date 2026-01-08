@@ -4012,9 +4012,9 @@ duplicatePart = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Object p0: the name of the variable
+/// String name: the name of the variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 duplicatePatternAssignmentVariable = DiagnosticWithArguments(
   name: 'duplicate_pattern_assignment_variable',
@@ -4024,13 +4024,13 @@ duplicatePatternAssignmentVariable = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'duplicate_pattern_assignment_variable',
   withArguments: _withArgumentsDuplicatePatternAssignmentVariable,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object p0: the name of the field
+/// String name: the name of the field
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 duplicatePatternField = DiagnosticWithArguments(
   name: 'duplicate_pattern_field',
@@ -4040,7 +4040,7 @@ duplicatePatternField = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'duplicate_pattern_field',
   withArguments: _withArgumentsDuplicatePatternField,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -14125,9 +14125,9 @@ redirectToTypeAliasExpandsToTypeParameter = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Object p0: the name of the variable
+/// String name: the name of the variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 referencedBeforeDeclaration = DiagnosticWithArguments(
   name: 'referenced_before_declaration',
@@ -14141,7 +14141,7 @@ referencedBeforeDeclaration = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'referenced_before_declaration',
   withArguments: _withArgumentsReferencedBeforeDeclaration,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -18722,13 +18722,17 @@ LocatableDiagnostic _withArgumentsDuplicatePart({required Uri uri}) {
 }
 
 LocatableDiagnostic _withArgumentsDuplicatePatternAssignmentVariable({
-  required Object p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.duplicatePatternAssignmentVariable, [p0]);
+  return LocatableDiagnosticImpl(diag.duplicatePatternAssignmentVariable, [
+    name,
+  ]);
 }
 
-LocatableDiagnostic _withArgumentsDuplicatePatternField({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.duplicatePatternField, [p0]);
+LocatableDiagnostic _withArgumentsDuplicatePatternField({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.duplicatePatternField, [name]);
 }
 
 LocatableDiagnostic _withArgumentsDuplicateRule({required String ruleName}) {
@@ -20658,9 +20662,9 @@ LocatableDiagnostic _withArgumentsRedirectToNonClass({required String p0}) {
 }
 
 LocatableDiagnostic _withArgumentsReferencedBeforeDeclaration({
-  required Object p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.referencedBeforeDeclaration, [p0]);
+  return LocatableDiagnosticImpl(diag.referencedBeforeDeclaration, [name]);
 }
 
 LocatableDiagnostic _withArgumentsRelationalPatternOperandTypeNotAssignable({
