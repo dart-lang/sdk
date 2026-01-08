@@ -6856,9 +6856,9 @@ CompileTimeErrorCode:
   extraPositionalArguments:
     type: compileTimeError
     parameters:
-      int p0: the maximum number of positional arguments
-      int p1: the actual number of positional arguments given
-    problemMessage: "Too many positional arguments: #p0 expected, but #p1 found."
+      int expected: the maximum number of positional arguments
+      int found: the actual number of positional arguments given
+    problemMessage: "Too many positional arguments: #expected expected, but #found found."
     correctionMessage: Try removing the extra arguments.
     hasPublishedDocs: true
     documentation: |-
@@ -6892,9 +6892,9 @@ CompileTimeErrorCode:
   extraPositionalArgumentsCouldBeNamed:
     type: compileTimeError
     parameters:
-      int p0: the maximum number of positional arguments
-      int p1: the actual number of positional arguments given
-    problemMessage: "Too many positional arguments: #p0 expected, but #p1 found."
+      int expected: the maximum number of positional arguments
+      int found: the actual number of positional arguments given
+    problemMessage: "Too many positional arguments: #expected expected, but #found found."
     correctionMessage: Try removing the extra positional arguments, or specifying the name for named arguments.
     hasPublishedDocs: true
     documentation: |-
