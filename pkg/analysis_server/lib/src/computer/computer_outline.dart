@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/collections.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -26,7 +27,10 @@ class DartUnitOutlineComputer {
       if (unitMember is ClassDeclaration) {
         if (unitMember.body case BlockClassBody body) {
           unitContents.add(
-            _newClassOutline(unitMember, _outlinesForMembers(body.members)),
+            _newClassOutline(unitMember, [
+              ...?_outlinesForPrimaryConstructor(unitMember.namePart),
+              ..._outlinesForMembers(body.members),
+            ]),
           );
         }
       } else if (unitMember is MixinDeclaration) {
@@ -172,7 +176,6 @@ class DartUnitOutlineComputer {
       offset = typeName.offset;
       length = typeName.length;
     } else {
-      // TODO(scheglov): support primary constructors
       name = '<unknown>';
       offset = constructor.offset;
       length = constructor.length;
@@ -200,6 +203,34 @@ class DartUnitOutlineComputer {
     );
     var contents = _addFunctionBodyOutlines(constructor.body);
     return _nodeOutline(constructor, element, contents);
+  }
+
+  Outline _newDeclaredFieldOutline(FormalParameter parameter) {
+    String typeName;
+    if (parameter is SimpleFormalParameter) {
+      typeName = _safeToSource(parameter.type);
+    } else if (parameter is FunctionTypedFormalParameter) {
+      var returnType = _safeToSource(parameter.returnType);
+      var typeParameters = _safeToSource(parameter.typeParameters);
+      var formalParameters = _safeToSource(parameter.parameters);
+      typeName = '$returnType Function$typeParameters$formalParameters';
+    } else {
+      throw StateError('Unhandled parameter type: ${parameter.runtimeType}');
+    }
+    var nameToken = parameter.name!;
+    var name = nameToken.lexeme;
+    var element = Element(
+      ElementKind.FIELD,
+      name,
+      Element.makeFlags(
+        isPrivate: Identifier.isPrivateName(name),
+        isDeprecated: _hasDeprecated(parameter.metadata),
+        isFinal: parameter.isFinal,
+      ),
+      location: _getLocationToken(nameToken),
+      returnType: typeName,
+    );
+    return _nodeOutline(parameter, element);
   }
 
   Outline _newEnumConstant(EnumConstantDeclaration node) {
@@ -420,6 +451,44 @@ class DartUnitOutlineComputer {
     return _nodeOutline(node, element, mixinContents);
   }
 
+  Outline _newPrimaryConstructorOutline(
+    PrimaryConstructorDeclaration constructor,
+  ) {
+    String name;
+    int offset;
+    int length;
+    var typeName = constructor.typeName;
+    name = typeName.lexeme;
+    offset = typeName.offset;
+    length = typeName.length;
+    var constructorName = constructor.constructorName;
+    var isPrivate = false;
+    if (constructorName != null) {
+      var constructorNameName = constructorName.name.lexeme;
+      isPrivate = Identifier.isPrivateName(constructorNameName);
+      name += '.$constructorNameName';
+      offset = constructorName.offset;
+      length = constructorName.length;
+    }
+    var metadata = <Annotation>[];
+    if (constructor.body case PrimaryConstructorBody body) {
+      metadata = body.metadata;
+    }
+    var parameters = constructor.formalParameters;
+    var parametersStr = _safeToSource(parameters);
+    var element = Element(
+      ElementKind.CONSTRUCTOR,
+      name,
+      Element.makeFlags(
+        isPrivate: isPrivate,
+        isDeprecated: _hasDeprecated(metadata),
+      ),
+      location: _getLocationOffsetLength(offset, length),
+      parameters: parametersStr,
+    );
+    return _nodeOutline(constructor, element, []);
+  }
+
   Outline _newUnitOutline(List<Outline> unitContents) {
     var unit = resolvedUnit.unit;
     var element = Element(
@@ -523,6 +592,24 @@ class DartUnitOutlineComputer {
       }
     }
     return memberOutlines;
+  }
+
+  List<Outline>? _outlinesForPrimaryConstructor(ClassNamePart namePart) {
+    if (namePart is! PrimaryConstructorDeclaration) {
+      return null;
+    }
+    var constructor = namePart.declaredFragment;
+    if (constructor == null) {
+      return null;
+    }
+    var outlines = <Outline>[];
+    outlines.add(_newPrimaryConstructorOutline(namePart));
+    for (var parameter in namePart.formalParameters.parameters) {
+      if (parameter.isDeclaringParameter) {
+        outlines.add(_newDeclaredFieldOutline(parameter));
+      }
+    }
+    return outlines;
   }
 
   static String? _getTypeParametersStr(TypeParameterList? parameters) {
@@ -678,5 +765,21 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
   bool _isInsideTestPackage(engine.TopLevelFunctionElement element) {
     var parent = element.library;
     return parent.firstFragment.source.fullName.endsWith('test.dart');
+  }
+}
+
+extension on PrimaryConstructorDeclaration {
+  /// Returns the body of the constructor.
+  ///
+  /// Returns `null` if the constructor doesn't have a body.
+  PrimaryConstructorBody? get body {
+    if (parent case BlockClassBody parent) {
+      for (var member in parent.members) {
+        if (member is PrimaryConstructorBody) {
+          return member;
+        }
+      }
+    }
+    return null;
   }
 }

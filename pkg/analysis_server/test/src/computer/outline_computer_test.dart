@@ -1355,6 +1355,52 @@ mixin M<N> {
     }
   }
 
+  Future<void> test_primaryConstructor() async {
+    var unitOutline = await _computeOutline('''
+abstract class C(var int x, final int y, int z) {}
+''');
+    var topOutlines = unitOutline.children!;
+
+    // The class `C`.
+    expect(topOutlines, hasLength(1));
+    var outline_C = topOutlines[0];
+    var element_C = outline_C.element;
+    expect(element_C.kind, ElementKind.CLASS);
+    expect(element_C.name, 'C');
+    var location = element_C.location!;
+    expect(location.offset, testCode.indexOf('C('));
+    expect(location.length, 1);
+
+    var outlines_A = outline_C.children!;
+    expect(outlines_A, hasLength(3));
+
+    // The primary constructor
+    var outline_A_new = outlines_A[0];
+    var element_A_new = outline_A_new.element;
+    expect(element_A_new.kind, ElementKind.CONSTRUCTOR);
+    expect(element_A_new.name, 'C');
+    expect(element_A_new.parameters, '(var int x, final int y, int z)');
+    expect(element_A_new.returnType, isNull);
+
+    // The field `x`
+    var outline_x = outlines_A[1];
+    var element_x = outline_x.element;
+    expect(element_x.kind, ElementKind.FIELD);
+    expect(element_x.isFinal, false);
+    expect(element_x.name, 'x');
+    expect(element_x.parameters, isNull);
+    expect(element_x.returnType, 'int');
+
+    // The field `y`
+    var outline_y = outlines_A[2];
+    var element_y = outline_y.element;
+    expect(element_y.kind, ElementKind.FIELD);
+    expect(element_y.isFinal, true);
+    expect(element_y.name, 'y');
+    expect(element_y.parameters, isNull);
+    expect(element_y.returnType, 'int');
+  }
+
   Future<void> test_sourceRanges_fields() async {
     var unitOutline = await _computeOutline('''
 class A {

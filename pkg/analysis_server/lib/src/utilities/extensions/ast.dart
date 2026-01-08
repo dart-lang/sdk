@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
@@ -351,6 +352,23 @@ extension ExtensionTypeDeclarationExtension on ExtensionTypeDeclaration {
       default:
         return [];
     }
+  }
+}
+
+extension FormalParameterExtension on FormalParameter? {
+  /// Whether this parameter is a declaring parameter.
+  bool get isDeclaringParameter {
+    var normalParameter = switch (this) {
+      DefaultFormalParameter parameter => parameter.parameter,
+      NormalFormalParameter parameter => parameter,
+      _ => null,
+    };
+    var keywordType = switch (normalParameter) {
+      SimpleFormalParameter parameter => parameter.keyword?.type,
+      FunctionTypedFormalParameter parameter => parameter.keyword?.type,
+      _ => null,
+    };
+    return keywordType == Keyword.FINAL || keywordType == Keyword.VAR;
   }
 }
 
