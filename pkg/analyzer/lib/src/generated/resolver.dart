@@ -451,7 +451,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  SharedTypeView analyzeExpression(
+  ExpressionTypeAnalysisResult analyzeExpression(
     ExpressionImpl node,
     SharedTypeSchemaView schema, {
     bool continueNullShorting = false,
@@ -3253,7 +3253,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var keyType = analyzeExpression(
       node.key,
       SharedTypeSchemaView(keyTypeContext ?? UnknownInferredType.instance),
-    );
+    ).type;
     popRewrite();
 
     flowAnalysis.flow?.nullAwareMapEntry_valueBegin(

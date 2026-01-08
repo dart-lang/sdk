@@ -863,7 +863,7 @@ class Cascade extends Expression {
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
     // Form the IR for evaluating the LHS
-    var targetType = h.typeAnalyzer.analyzeExpression(target, schema);
+    var targetType = h.typeAnalyzer.analyzeExpression(target, schema).type;
     var previousCascadeTargetIR = h.typeAnalyzer._currentCascadeTargetIR;
     var previousCascadeType = h.typeAnalyzer._currentCascadeTargetType;
     // Create a let-variable that will be initialized to the value of the LHS
@@ -1742,6 +1742,7 @@ class ForEach extends Statement {
     var iteratedType = h._getIteratedType(
       h.typeAnalyzer
           .analyzeExpression(iterable, h.operations.unknownType)
+          .type
           .unwrapTypeView<Type>(),
     );
     h.flow.forEach_bodyBegin(this);
@@ -2819,7 +2820,7 @@ class MapEntry extends CollectionElement {
       default:
         keySchema = valueSchema = h.operations.unknownType;
     }
-    var keyType = h.typeAnalyzer.analyzeExpression(key, keySchema);
+    var keyType = h.typeAnalyzer.analyzeExpression(key, keySchema).type;
     h.flow.nullAwareMapEntry_valueBegin(
       key,
       keyType,
@@ -4363,6 +4364,7 @@ class PostIncDec extends Expression {
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
     Type type = h.typeAnalyzer
         .analyzeExpression(lhs, h.operations.unknownType)
+        .type
         .unwrapTypeView();
     lhs._visitPostIncDec(h, this, type);
     return new ExpressionTypeAnalysisResult(type: SharedTypeView(type));
@@ -4450,6 +4452,7 @@ class Property extends PromotableLValue {
     }
     var receiverType = h.typeAnalyzer
         .analyzeExpression(target, h.operations.unknownType)
+        .type
         .unwrapTypeView<Type>();
     var member = h.typeAnalyzer._lookupMember(receiverType, propertyName);
     return member;
@@ -5028,7 +5031,7 @@ class Second extends Expression {
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
     h.typeAnalyzer.analyzeExpression(first, h.operations.unknownType);
-    var type = h.typeAnalyzer.analyzeExpression(second, schema);
+    var type = h.typeAnalyzer.analyzeExpression(second, schema).type;
     h.irBuilder.apply(
       'second',
       [Kind.expression, Kind.expression],
@@ -5718,6 +5721,7 @@ class VariableDeclaration extends Statement {
             declaredType?.wrapSharedTypeSchemaView() ??
                 h.operations.unknownType,
           )
+          .type
           .unwrapTypeView<Type>();
       if (isLate) h.flow.lateInitializer_end();
       staticType = variable.type =
@@ -6038,7 +6042,9 @@ class WrappedExpression extends Expression {
       );
       beforeTmp = h.irBuilder.allocateTmp(location: location);
     }
-    var type = h.typeAnalyzer.analyzeExpression(expr, h.operations.unknownType);
+    var type = h.typeAnalyzer
+        .analyzeExpression(expr, h.operations.unknownType)
+        .type;
     if (after != null) {
       var exprTmp = h.irBuilder.allocateTmp(location: location);
       h.typeAnalyzer.dispatchStatement(after!);
@@ -6090,10 +6096,12 @@ class Write extends Expression {
       // TODO(paulberry): Make a separate node type for this.
       type = h.typeAnalyzer
           .analyzeExpression(lhs, h.operations.unknownType)
+          .type
           .unwrapTypeView();
     } else {
       type = h.typeAnalyzer
           .analyzeExpression(rhs, h.operations.unknownType)
+          .type
           .unwrapTypeView();
     }
     lhs._visitWrite(h, this, type, rhs);
@@ -6490,14 +6498,14 @@ class _MiniAstTypeAnalyzer
     if (isLogical) {
       flow.logicalBinaryOp_begin();
     }
-    var leftType = analyzeExpression(lhs, operations.unknownType);
+    var leftType = analyzeExpression(lhs, operations.unknownType).type;
     ExpressionInfo? leftInfo;
     if (isEquals) {
       leftInfo = flow.equalityOperand_end(lhs);
     } else if (isLogical) {
       flow.logicalBinaryOp_rightBegin(lhs, node, isAnd: isAnd);
     }
-    var rightType = analyzeExpression(rhs, operations.unknownType);
+    var rightType = analyzeExpression(rhs, operations.unknownType).type;
     if (isEquals) {
       flow.equalityOperation_end(
         node,
@@ -6537,9 +6545,9 @@ class _MiniAstTypeAnalyzer
     flow.conditional_conditionBegin();
     analyzeExpression(condition, operations.unknownType);
     flow.conditional_thenBegin(condition, node);
-    var ifTrueType = analyzeExpression(ifTrue, operations.unknownType);
+    var ifTrueType = analyzeExpression(ifTrue, operations.unknownType).type;
     flow.conditional_elseBegin(ifTrue, ifTrueType);
-    var ifFalseType = analyzeExpression(ifFalse, operations.unknownType);
+    var ifFalseType = analyzeExpression(ifFalse, operations.unknownType).type;
     var lubType = operations.lub(ifTrueType, ifFalseType);
     flow.conditional_end(node, lubType, ifFalse, ifFalseType);
     return new ExpressionTypeAnalysisResult(type: lubType);
@@ -6585,9 +6593,9 @@ class _MiniAstTypeAnalyzer
     Expression lhs,
     Expression rhs,
   ) {
-    var leftType = analyzeExpression(lhs, operations.unknownType);
+    var leftType = analyzeExpression(lhs, operations.unknownType).type;
     flow.ifNullExpression_rightBegin(lhs, leftType);
-    var rightType = analyzeExpression(rhs, operations.unknownType);
+    var rightType = analyzeExpression(rhs, operations.unknownType).type;
     flow.ifNullExpression_end();
     return new ExpressionTypeAnalysisResult(
       type: operations.lub(
@@ -6678,7 +6686,7 @@ class _MiniAstTypeAnalyzer
       expression,
       operations.unknownType,
       continueNullShorting: true,
-    );
+    ).type;
     flow.nonNullAssert_end(expression);
     return new ExpressionTypeAnalysisResult(
       type: flow.operations.promoteToNonNull(type),
@@ -6695,9 +6703,9 @@ class _MiniAstTypeAnalyzer
     Expression expression,
     SharedTypeSchemaView schema,
   ) {
-    var type = analyzeExpression(expression, schema);
+    var analysisResult = analyzeExpression(expression, schema);
     flow.parenthesizedExpression(node, expression);
-    return new ExpressionTypeAnalysisResult(type: type);
+    return analysisResult;
   }
 
   /// Invokes the appropriate flow analysis methods, and creates the IR
@@ -6811,7 +6819,7 @@ class _MiniAstTypeAnalyzer
     var subExpressionType = analyzeExpression(
       expression,
       operations.unknownType,
-    );
+    ).type;
     flow.asExpression_end(
       expression,
       subExpressionType: subExpressionType,
@@ -6829,7 +6837,7 @@ class _MiniAstTypeAnalyzer
     var subExpressionType = analyzeExpression(
       expression,
       operations.unknownType,
-    );
+    ).type;
     flow.isExpression_end(
       node,
       expression,
@@ -7247,8 +7255,13 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void handleNullShortingStep(MiniIRTmp guard, SharedTypeView inferredType) {
+  ExpressionTypeAnalysisResult handleNullShortingStep(
+    ExpressionTypeAnalysisResult innerResult,
+    MiniIRTmp guard,
+    SharedTypeView inferredType,
+  ) {
     _irBuilder.ifNotNull(guard, location: guard.location);
+    return ExpressionTypeAnalysisResult(type: inferredType);
   }
 
   @override
@@ -7383,7 +7396,7 @@ class _MiniAstTypeAnalyzer
         target,
         operations.unknownType,
         continueNullShorting: true,
-      );
+      ).type;
       if (isNullAware) targetType = createNullAwareGuard(target, targetType);
     }
     // Look up the type of the member, applying type promotion if necessary.
