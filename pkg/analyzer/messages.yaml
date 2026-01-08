@@ -4615,9 +4615,9 @@ CompileTimeErrorCode:
   duplicateConstructorName:
     type: compileTimeError
     parameters:
-      String p0: the name of the duplicate entity
+      String name: the name of the duplicate entity
     sharedName: duplicateConstructor
-    problemMessage: "The constructor with name '#p0' is already defined."
+    problemMessage: "The constructor with name '#name' is already defined."
     correctionMessage: Try renaming one of the constructors.
     hasPublishedDocs: true
   dotShorthandMissingContext:

@@ -3808,9 +3808,9 @@ const DiagnosticWithoutArguments duplicateConstructorDefault =
     );
 
 /// Parameters:
-/// String p0: the name of the duplicate entity
+/// String name: the name of the duplicate entity
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 duplicateConstructorName = DiagnosticWithArguments(
   name: 'duplicate_constructor',
@@ -18690,9 +18690,9 @@ LocatableDiagnostic _withArgumentsDotShorthandUndefinedInvocation({
 }
 
 LocatableDiagnostic _withArgumentsDuplicateConstructorName({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.duplicateConstructorName, [p0]);
+  return LocatableDiagnosticImpl(diag.duplicateConstructorName, [name]);
 }
 
 LocatableDiagnostic _withArgumentsDuplicateDefinition({required String name}) {

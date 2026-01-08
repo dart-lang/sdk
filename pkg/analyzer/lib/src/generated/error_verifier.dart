@@ -2868,9 +2868,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (classElement is! ClassElement || !classElement.hasNonFinalField) {
       return;
     }
-    diagnosticReporter.atConstructorDeclaration(
-      constructor,
-      diag.constConstructorWithNonFinalField,
+    diagnosticReporter.report(
+      diag.constConstructorWithNonFinalField.atSourceRange(
+        constructor.errorRange,
+      ),
     );
   }
 
@@ -4835,9 +4836,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (_enclosingClass is EnumElement &&
         node.constKeyword == null &&
         node.factoryKeyword == null) {
-      diagnosticReporter.atConstructorDeclaration(
-        node,
-        diag.nonConstGenerativeEnumConstructor,
+      diagnosticReporter.report(
+        diag.nonConstGenerativeEnumConstructor.atSourceRange(node.errorRange),
       );
     }
   }
@@ -4933,9 +4933,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    diagnosticReporter.atConstructorDeclaration(
-      node,
-      diag.nonRedirectingGenerativeConstructorWithPrimary,
+    diagnosticReporter.report(
+      diag.nonRedirectingGenerativeConstructorWithPrimary.atSourceRange(
+        node.errorRange,
+      ),
     );
   }
 
