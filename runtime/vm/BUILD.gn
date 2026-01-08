@@ -48,9 +48,8 @@ config("libdart_vm_config") {
   } else if (is_win) {
     libs = [
       "advapi32.lib",
-      "ntdll.lib",
-      "onecore.lib",
       "shell32.lib",
+      "ntdll.lib",
     ]
     if (target_os != "winuwp") {
       libs += [ "dbghelp.lib" ]
