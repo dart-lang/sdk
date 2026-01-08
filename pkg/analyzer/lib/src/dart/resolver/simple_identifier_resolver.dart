@@ -326,10 +326,8 @@ class SimpleIdentifierResolver with ScopeHelpers {
       return;
     }
 
-    _resolver.diagnosticReporter.atNode(
-      node,
-      diag.extensionAsExpression,
-      arguments: [node.name],
+    _resolver.diagnosticReporter.report(
+      diag.extensionAsExpression.withArguments(name: node.name).at(node),
     );
 
     if (node is PrefixedIdentifierImpl) {

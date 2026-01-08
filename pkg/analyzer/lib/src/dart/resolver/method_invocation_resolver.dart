@@ -282,10 +282,13 @@ class MethodInvocationResolver with ScopeHelpers {
       );
     }
 
-    _resolver.diagnosticReporter.atNode(
-      node.memberName,
-      diag.dotShorthandUndefinedInvocation,
-      arguments: [node.memberName.name, contextType.getDisplayString()],
+    _resolver.diagnosticReporter.report(
+      diag.dotShorthandUndefinedInvocation
+          .withArguments(
+            name: node.memberName.name,
+            contextType: contextType.getDisplayString(),
+          )
+          .at(node.memberName),
     );
     _setInvalidTypeResolutionForDotShorthand(
       node,
@@ -1283,10 +1286,10 @@ class MethodInvocationResolver with ScopeHelpers {
       return replacement;
     }
 
-    _resolver.diagnosticReporter.atNode(
-      nameNode,
-      diag.dotShorthandUndefinedInvocation,
-      arguments: [nameNode.name, receiver.displayName],
+    _resolver.diagnosticReporter.report(
+      diag.dotShorthandUndefinedInvocation
+          .withArguments(name: nameNode.name, contextType: receiver.displayName)
+          .at(nameNode),
     );
     _setInvalidTypeResolutionForDotShorthand(
       node,

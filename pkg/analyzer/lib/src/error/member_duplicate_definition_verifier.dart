@@ -448,10 +448,10 @@ class MemberDuplicateDefinitionVerifier {
             var identifier = field.name;
             var name = identifier.lexeme;
             if (instanceScope.containsKey(name)) {
-              _diagnosticReporter.atToken(
-                identifier,
-                diag.extensionConflictingStaticAndInstance,
-                arguments: [name],
+              _diagnosticReporter.report(
+                diag.extensionConflictingStaticAndInstance
+                    .withArguments(name: name)
+                    .at(identifier),
               );
             }
           }
@@ -461,10 +461,10 @@ class MemberDuplicateDefinitionVerifier {
           var identifier = member.name;
           var name = identifier.lexeme;
           if (instanceScope.containsKey(name)) {
-            _diagnosticReporter.atToken(
-              identifier,
-              diag.extensionConflictingStaticAndInstance,
-              arguments: [name],
+            _diagnosticReporter.report(
+              diag.extensionConflictingStaticAndInstance
+                  .withArguments(name: name)
+                  .at(identifier),
             );
           }
         }

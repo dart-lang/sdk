@@ -814,10 +814,13 @@ class PropertyElementResolver with ScopeHelpers {
         if (resolvingDotShorthand) {
           // We didn't resolve to any static getter or static field using the
           // context type.
-          diagnosticReporter.atNode(
-            propertyName,
-            diag.dotShorthandUndefinedGetter,
-            arguments: [propertyName.name, typeReference.name!],
+          diagnosticReporter.report(
+            diag.dotShorthandUndefinedGetter
+                .withArguments(
+                  getterName: propertyName.name,
+                  typeName: typeReference.name!,
+                )
+                .at(propertyName),
           );
         } else {
           var code = typeReference is EnumElement

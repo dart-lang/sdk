@@ -3258,10 +3258,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // because the only time it is `null` is if the URI contains a string
     // interpolation, in which case the export would never have resolved in the
     // first place.
-    diagnosticReporter.atNode(
-      directive,
-      diag.exportInternalLibrary,
-      arguments: [directive.uri.stringValue!],
+    diagnosticReporter.report(
+      diag.exportInternalLibrary
+          .withArguments(uri: directive.uri.stringValue!)
+          .at(directive),
     );
   }
 

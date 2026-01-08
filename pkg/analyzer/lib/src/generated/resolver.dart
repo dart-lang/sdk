@@ -651,10 +651,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
       if (element.isLate) {
         if (unassigned) {
-          diagnosticReporter.atNode(
-            node,
-            diag.definitelyUnassignedLateLocalVariable,
-            arguments: [node.name],
+          diagnosticReporter.report(
+            diag.definitelyUnassignedLateLocalVariable
+                .withArguments(name: node.name)
+                .at(node),
           );
         }
         return;
@@ -1546,10 +1546,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           valueType: SharedTypeView(typeArgumentsList.arguments[1].typeOrThrow),
         );
       } else {
-        diagnosticReporter.atNode(
-          typeArgumentsList,
-          diag.expectedTwoMapPatternTypeArguments,
-          arguments: [length],
+        diagnosticReporter.report(
+          diag.expectedTwoMapPatternTypeArguments
+              .withArguments(count: length)
+              .at(typeArgumentsList),
         );
       }
     }
@@ -4641,10 +4641,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
         usedNames ??= <String>{};
         if (!usedNames.add(name)) {
-          diagnosticReporter?.atNode(
-            nameNode,
-            diag.duplicateNamedArgument,
-            arguments: [name],
+          diagnosticReporter?.report(
+            diag.duplicateNamedArgument.withArguments(name: name).at(nameNode),
           );
         }
       }

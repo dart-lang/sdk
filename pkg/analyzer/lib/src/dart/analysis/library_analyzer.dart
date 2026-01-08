@@ -930,10 +930,10 @@ class LibraryAnalyzer {
           errorCode.withArguments(uriStr: selectedUriStr).at(directive.uri),
         );
       } else if (state.exportedLibrarySource == null) {
-        diagnosticReporter.atNode(
-          directive.uri,
-          diag.exportOfNonLibrary,
-          arguments: [selectedUriStr],
+        diagnosticReporter.report(
+          diag.exportOfNonLibrary
+              .withArguments(uri: selectedUriStr)
+              .at(directive.uri),
         );
       }
     } else if (state is LibraryExportWithUriStr) {
