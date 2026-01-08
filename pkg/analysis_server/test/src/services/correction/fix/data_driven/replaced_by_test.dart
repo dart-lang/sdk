@@ -1218,6 +1218,39 @@ var x = sin(1);
 ''');
   }
 
+  Future<void> test_new_class_uris_single() async {
+    setPackageContent('');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace A'
+    date: 2022-05-12
+    element:
+      uris: ['$importUri']
+      class: 'A'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:matcher/expect.dart']
+          class: 'A'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(A a) {
+  print(a);
+}
+''');
+    await assertHasFix('''
+import 'package:matcher/expect.dart';
+import '$importUri';
+
+void f(A a) {
+  print(a);
+}
+''');
+  }
+
   Future<void> test_new_element_uris_multiple() async {
     setPackageContent('');
     newFile('$workspaceRootPath/p/lib/expect.dart', '''
