@@ -7440,9 +7440,9 @@ CompileTimeErrorCode:
   finalNotInitializedConstructor1:
     type: compileTimeError
     parameters:
-      String p0: the name of the uninitialized final variable
+      String name: the name of the uninitialized final variable
     sharedName: finalNotInitializedConstructor
-    problemMessage: "All final variables must be initialized, but '#p0' isn't."
+    problemMessage: "All final variables must be initialized, but '#name' isn't."
     correctionMessage: Try adding an initializer for the field.
     hasPublishedDocs: true
     documentation: |-
@@ -7530,20 +7530,20 @@ CompileTimeErrorCode:
   finalNotInitializedConstructor2:
     type: compileTimeError
     parameters:
-      String p0: the name of the uninitialized final variable
-      String p1: the name of the uninitialized final variable
+      String name1: the name of the first uninitialized final variable
+      String name2: the name of the second uninitialized final variable
     sharedName: finalNotInitializedConstructor
-    problemMessage: "All final variables must be initialized, but '#p0' and '#p1' aren't."
+    problemMessage: "All final variables must be initialized, but '#name1' and '#name2' aren't."
     correctionMessage: Try adding initializers for the fields.
     hasPublishedDocs: true
   finalNotInitializedConstructor3Plus:
     type: compileTimeError
     parameters:
-      String p0: the name of the uninitialized final variable
-      String p1: the name of the uninitialized final variable
-      int p2: the number of additional not initialized variables that aren't listed
+      String name1: the name of the first uninitialized final variable
+      String name2: the name of the second uninitialized final variable
+      int remainingCount: the number of additional not initialized variables that aren't listed
     sharedName: finalNotInitializedConstructor
-    problemMessage: "All final variables must be initialized, but '#p0', '#p1', and #p2 others aren't."
+    problemMessage: "All final variables must be initialized, but '#name1', '#name2', and #remainingCount others aren't."
     correctionMessage: Try adding initializers for the fields.
     hasPublishedDocs: true
   forInOfInvalidElementType:

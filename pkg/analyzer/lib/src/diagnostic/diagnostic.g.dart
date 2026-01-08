@@ -6081,9 +6081,9 @@ finalNotInitialized = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the uninitialized final variable
+/// String name: the name of the uninitialized final variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 finalNotInitializedConstructor1 = DiagnosticWithArguments(
   name: 'final_not_initialized_constructor',
@@ -6097,10 +6097,10 @@ finalNotInitializedConstructor1 = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the uninitialized final variable
-/// String p1: the name of the uninitialized final variable
+/// String name1: the name of the first uninitialized final variable
+/// String name2: the name of the second uninitialized final variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({required String name1, required String name2})
 >
 finalNotInitializedConstructor2 = DiagnosticWithArguments(
   name: 'final_not_initialized_constructor',
@@ -6115,15 +6115,15 @@ finalNotInitializedConstructor2 = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the uninitialized final variable
-/// String p1: the name of the uninitialized final variable
-/// int p2: the number of additional not initialized variables that aren't
-///         listed
+/// String name1: the name of the first uninitialized final variable
+/// String name2: the name of the second uninitialized final variable
+/// int remainingCount: the number of additional not initialized variables
+///                     that aren't listed
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required int p2,
+    required String name1,
+    required String name2,
+    required int remainingCount,
   })
 >
 finalNotInitializedConstructor3Plus = DiagnosticWithArguments(
@@ -19050,30 +19050,30 @@ LocatableDiagnostic _withArgumentsFinalNotInitialized({required String p0}) {
 }
 
 LocatableDiagnostic _withArgumentsFinalNotInitializedConstructor1({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.finalNotInitializedConstructor1, [p0]);
+  return LocatableDiagnosticImpl(diag.finalNotInitializedConstructor1, [name]);
 }
 
 LocatableDiagnostic _withArgumentsFinalNotInitializedConstructor2({
-  required String p0,
-  required String p1,
+  required String name1,
+  required String name2,
 }) {
   return LocatableDiagnosticImpl(diag.finalNotInitializedConstructor2, [
-    p0,
-    p1,
+    name1,
+    name2,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsFinalNotInitializedConstructor3Plus({
-  required String p0,
-  required String p1,
-  required int p2,
+  required String name1,
+  required String name2,
+  required int remainingCount,
 }) {
   return LocatableDiagnosticImpl(diag.finalNotInitializedConstructor3Plus, [
-    p0,
-    p1,
-    p2,
+    name1,
+    name2,
+    remainingCount,
   ]);
 }
 
