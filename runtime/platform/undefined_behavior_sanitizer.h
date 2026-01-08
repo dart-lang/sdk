@@ -7,8 +7,10 @@
 
 #ifdef __clang__
 #define NO_SANITIZE_UNDEFINED(check) [[clang::no_sanitize(check)]]
+#define NO_SANITIZE_UNDEFINED_FUNCTION NO_SANITIZE_UNDEFINED("function")
 #else
 #define NO_SANITIZE_UNDEFINED(check) [[gnu::no_sanitize(check)]]
+#define NO_SANITIZE_UNDEFINED_FUNCTION
 #endif
 
 #endif  // RUNTIME_PLATFORM_UNDEFINED_BEHAVIOR_SANITIZER_H_

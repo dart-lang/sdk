@@ -648,7 +648,7 @@ class _ErrorHelper {
     }
 
     if (element is LocalVariableElement || element is LocalFunctionElement) {
-      diagnosticReporter.reportError(
+      diagnosticReporter.report(
         DiagnosticFactory().referencedBeforeDeclaration(
           diagnosticReporter.source,
           nameToken: node.name,

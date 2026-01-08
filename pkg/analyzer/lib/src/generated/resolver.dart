@@ -651,10 +651,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
       if (element.isLate) {
         if (unassigned) {
-          diagnosticReporter.atNode(
-            node,
-            diag.definitelyUnassignedLateLocalVariable,
-            arguments: [node.name],
+          diagnosticReporter.report(
+            diag.definitelyUnassignedLateLocalVariable
+                .withArguments(name: node.name)
+                .at(node),
           );
         }
         return;
@@ -1546,10 +1546,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           valueType: SharedTypeView(typeArgumentsList.arguments[1].typeOrThrow),
         );
       } else {
-        diagnosticReporter.atNode(
-          typeArgumentsList,
-          diag.expectedTwoMapPatternTypeArguments,
-          arguments: [length],
+        diagnosticReporter.report(
+          diag.expectedTwoMapPatternTypeArguments
+              .withArguments(count: length)
+              .at(typeArgumentsList),
         );
       }
     }
@@ -2054,13 +2054,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       isNullAware: node.isNullAware,
     );
 
-    if (node.isNullAware) {
-      flowAnalysis.flow!.nullAwareAccess_rightBegin(
-        node.target,
-        SharedTypeView(targetType),
-      );
-    }
-
     for (var cascadeSection in node.cascadeSections) {
       analyzeExpression(cascadeSection, operations.unknownType);
       popRewrite();
@@ -2245,7 +2238,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       flowAnalysis.bodyOrInitializer_enter(node, node.parameters);
       flowAnalysis.executableDeclaration_enter(
         node,
-        node.parameters,
+        element.formalParameters,
         isClosure: false,
       );
 
@@ -2833,7 +2826,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
       flowAnalysis.executableDeclaration_enter(
         node,
-        node.functionExpression.parameters,
+        element.formalParameters,
         isClosure: isLocal,
       );
 
@@ -3308,7 +3301,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       flowAnalysis.bodyOrInitializer_enter(node, node.parameters);
       flowAnalysis.executableDeclaration_enter(
         node,
-        node.parameters,
+        element.formalParameters,
         isClosure: false,
       );
 
@@ -3680,7 +3673,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         );
         flowAnalysis.executableDeclaration_enter(
           node,
-          primaryConstructorDeclaration.formalParameters,
+          element!.formalParameters,
           isClosure: false,
         );
       }
@@ -4648,10 +4641,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
         usedNames ??= <String>{};
         if (!usedNames.add(name)) {
-          diagnosticReporter?.atNode(
-            nameNode,
-            diag.duplicateNamedArgument,
-            arguments: [name],
+          diagnosticReporter?.report(
+            diag.duplicateNamedArgument.withArguments(name: name).at(nameNode),
           );
         }
       }

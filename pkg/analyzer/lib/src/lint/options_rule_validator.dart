@@ -225,7 +225,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     if (incompatible.isNotEmpty) {
       if (incompatible.where((data) => data.file == null)
           case var localIncompatible when localIncompatible.isNotEmpty) {
-        reporter.reportError(
+        reporter.report(
           diagnosticFactory.incompatibleLint(
             source: FileSource(
               resourceProvider.getFile(
@@ -243,7 +243,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       }
       if (incompatible.where((data) => data.file != null)
           case var includedIncompatible when includedIncompatible.isNotEmpty) {
-        reporter.reportError(
+        reporter.report(
           diagnosticFactory.incompatibleLintFiles(
             source: FileSource(
               resourceProvider.getFile(
@@ -338,7 +338,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
         incompatible.addAll(incompatibleRules);
       }
       if (incompatible.isNotEmpty) {
-        reporter.reportError(
+        reporter.report(
           diagnosticFactory.incompatibleLintIncluded(
             source: FileSource(
               resourceProvider.getFile(

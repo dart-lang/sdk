@@ -62,9 +62,6 @@ Future<void> main() async {
             allowDefinitionLoadingUnitNull: true,
             allowMoreConstArguments: true,
             allowTearOffToStaticPromotion: true,
-            expectedIsSubset: dart2jsDeferLoadedLibrary.contains(
-              testFile.basename,
-            ),
             uriMapping: (String uri) =>
                 uri.replaceFirst('memory:sdk/tests/web/native/', ''),
             loadingUnitMapping: (String unit) =>
@@ -149,11 +146,4 @@ const dart2jsNotSupported = {
   // Extension methods are broken.
   // https://github.com/dart-lang/native/issues/2926
   'extension.dart',
-};
-
-// dart2js also records loadDeferredLibrary calls.
-// https://github.com/dart-lang/native/issues/2892
-const dart2jsDeferLoadedLibrary = {
-  'loading_units_simple.dart',
-  'loading_units_multiple.dart',
 };

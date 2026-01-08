@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/analysis/file_analysis.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -71,15 +72,16 @@ class MemberDuplicateDefinitionVerifier {
           var name = member.name?.lexeme ?? 'new';
           if (!constructorNames.add(name)) {
             if (name == 'new') {
-              _diagnosticReporter.atConstructorDeclaration(
-                member,
-                diag.duplicateConstructorDefault,
+              _diagnosticReporter.report(
+                diag.duplicateConstructorDefault.atSourceRange(
+                  member.errorRange,
+                ),
               );
             } else {
-              _diagnosticReporter.atConstructorDeclaration(
-                member,
-                diag.duplicateConstructorName,
-                arguments: [name],
+              _diagnosticReporter.report(
+                diag.duplicateConstructorName
+                    .withArguments(name: name)
+                    .atSourceRange(member.errorRange),
               );
             }
           }
@@ -446,10 +448,10 @@ class MemberDuplicateDefinitionVerifier {
             var identifier = field.name;
             var name = identifier.lexeme;
             if (instanceScope.containsKey(name)) {
-              _diagnosticReporter.atToken(
-                identifier,
-                diag.extensionConflictingStaticAndInstance,
-                arguments: [name],
+              _diagnosticReporter.report(
+                diag.extensionConflictingStaticAndInstance
+                    .withArguments(name: name)
+                    .at(identifier),
               );
             }
           }
@@ -459,10 +461,10 @@ class MemberDuplicateDefinitionVerifier {
           var identifier = member.name;
           var name = identifier.lexeme;
           if (instanceScope.containsKey(name)) {
-            _diagnosticReporter.atToken(
-              identifier,
-              diag.extensionConflictingStaticAndInstance,
-              arguments: [name],
+            _diagnosticReporter.report(
+              diag.extensionConflictingStaticAndInstance
+                  .withArguments(name: name)
+                  .at(identifier),
             );
           }
         }

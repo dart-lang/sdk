@@ -876,7 +876,6 @@ class Cascade extends Expression {
           isNullAware: isNullAware,
         );
     if (isNullAware) {
-      h.flow.nullAwareAccess_rightBegin(target, targetType);
       // Push `targetTmp == null` and `targetTmp` on the IR builder stack,
       // because they'll be needed later to form the conditional expression that
       // does the null-aware guarding.

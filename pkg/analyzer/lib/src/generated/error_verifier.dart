@@ -1136,10 +1136,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    if (node.isNullAware) {
+    // Note: `node.isNullAware` produces the wrong behavior because it considers
+    // all sections of a null-aware cascade to be null-aware, so it's necessary
+    // to look directly at the operator.
+    var isNullAware =
+        node.question != null ||
+        node.period?.type == TokenType.QUESTION_PERIOD_PERIOD;
+    if (isNullAware) {
       _checkForUnnecessaryNullAware(
         node.realTarget,
         node.question ?? node.period ?? node.leftBracket,
+        kind: node.isCascaded
+            ? _NullAwareKind.cascaded
+            : _NullAwareKind.indexExpression,
       );
     }
 
@@ -1213,16 +1222,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForUnnecessaryNullAware(
         node.key,
         node.keyQuestion!,
-        nullAwareElementOrMapEntryKind:
-            _NullAwareElementOrMapEntryKind.mapEntryKey,
+        kind: _NullAwareKind.mapEntryKey,
       );
     }
     if (node.valueQuestion != null) {
       _checkForUnnecessaryNullAware(
         node.value,
         node.valueQuestion!,
-        nullAwareElementOrMapEntryKind:
-            _NullAwareElementOrMapEntryKind.mapEntryValue,
+        kind: _NullAwareKind.mapEntryValue,
       );
     }
     super.visitMapLiteralEntry(node);
@@ -1270,7 +1277,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         node.target,
         methodName,
       );
-      _checkForUnnecessaryNullAware(target, node.operator!);
+      // Note: `node.isNullAware` produces the wrong behavior because it considers
+      // all sections of a null-aware cascade to be null-aware, so it's necessary
+      // to look directly at the operator.
+      var isNullAware =
+          node.operator?.type == TokenType.QUESTION_PERIOD ||
+          node.operator?.type == TokenType.QUESTION_PERIOD_PERIOD;
+      if (isNullAware) {
+        _checkForUnnecessaryNullAware(
+          target,
+          node.operator!,
+          kind: node.isCascaded
+              ? _NullAwareKind.cascaded
+              : _NullAwareKind.access,
+        );
+      }
     } else {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
     }
@@ -1349,7 +1370,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForUnnecessaryNullAware(
       node.value,
       node.question,
-      nullAwareElementOrMapEntryKind: _NullAwareElementOrMapEntryKind.element,
+      kind: _NullAwareKind.element,
     );
     super.visitNullAwareElement(node);
   }
@@ -1369,7 +1390,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var operand = node.operand;
     if (node.operator.type == TokenType.BANG) {
       checkForUseOfVoidResult(node);
-      _checkForUnnecessaryNullAware(operand, node.operator);
+      _checkForUnnecessaryNullAware(
+        operand,
+        node.operator,
+        kind: _NullAwareKind.nullCheck,
+      );
     } else {
       _checkForAssignmentToFinal(operand);
       _checkForIntNotAssignable(operand);
@@ -1413,7 +1438,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       node.target,
       propertyName,
     );
-    _checkForUnnecessaryNullAware(target, node.operator);
+    // Note: `node.isNullAware` produces the wrong behavior because it considers
+    // all sections of a null-aware cascade to be null-aware, so it's necessary
+    // to look directly at the operator.
+    var isNullAware =
+        node.operator.type == TokenType.QUESTION_PERIOD ||
+        node.operator.type == TokenType.QUESTION_PERIOD_PERIOD;
+    if (isNullAware) {
+      _checkForUnnecessaryNullAware(
+        target,
+        node.operator,
+        kind: node.isCascaded ? _NullAwareKind.cascaded : _NullAwareKind.access,
+      );
+    }
     _checkUseVerifier.checkPropertyAccess(node);
     super.visitPropertyAccess(node);
   }
@@ -1494,7 +1531,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitSpreadElement(SpreadElement node) {
     if (node.isNullAware) {
-      _checkForUnnecessaryNullAware(node.expression, node.spreadOperator);
+      _checkForUnnecessaryNullAware(
+        node.expression,
+        node.spreadOperator,
+        kind: _NullAwareKind.spread,
+      );
     }
     super.visitSpreadElement(node);
   }
@@ -2827,9 +2868,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (classElement is! ClassElement || !classElement.hasNonFinalField) {
       return;
     }
-    diagnosticReporter.atConstructorDeclaration(
-      constructor,
-      diag.constConstructorWithNonFinalField,
+    diagnosticReporter.report(
+      diag.constConstructorWithNonFinalField.atSourceRange(
+        constructor.errorRange,
+      ),
     );
   }
 
@@ -3216,10 +3258,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // because the only time it is `null` is if the URI contains a string
     // interpolation, in which case the export would never have resolved in the
     // first place.
-    diagnosticReporter.atNode(
-      directive,
-      diag.exportInternalLibrary,
-      arguments: [directive.uri.stringValue!],
+    diagnosticReporter.report(
+      diag.exportInternalLibrary
+          .withArguments(uri: directive.uri.stringValue!)
+          .at(directive),
     );
   }
 
@@ -4794,9 +4836,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (_enclosingClass is EnumElement &&
         node.constKeyword == null &&
         node.factoryKeyword == null) {
-      diagnosticReporter.atConstructorDeclaration(
-        node,
-        diag.nonConstGenerativeEnumConstructor,
+      diagnosticReporter.report(
+        diag.nonConstGenerativeEnumConstructor.atSourceRange(node.errorRange),
       );
     }
   }
@@ -4892,9 +4933,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    diagnosticReporter.atConstructorDeclaration(
-      node,
-      diag.nonRedirectingGenerativeConstructorWithPrimary,
+    diagnosticReporter.report(
+      diag.nonRedirectingGenerativeConstructorWithPrimary.atSourceRange(
+        node.errorRange,
+      ),
     );
   }
 
@@ -5241,7 +5283,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _hiddenElements != null &&
         _hiddenElements!.contains(element)) {
       _hiddenElements!.contains(element);
-      diagnosticReporter.reportError(
+      diagnosticReporter.report(
         _diagnosticFactory.referencedBeforeDeclaration(
           diagnosticReporter.source,
           nameToken: nameToken,
@@ -5574,42 +5616,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForUnnecessaryNullAware(
     Expression target,
     Token operator, {
-    _NullAwareElementOrMapEntryKind? nullAwareElementOrMapEntryKind,
+    required _NullAwareKind kind,
   }) {
     if (target is SuperExpression) {
-      return;
-    }
-
-    DiagnosticCode code;
-    Token endToken = operator;
-    List<Object> arguments = const [];
-    if (operator.type == TokenType.QUESTION) {
-      if (nullAwareElementOrMapEntryKind == null) {
-        code = diag.invalidNullAwareOperator;
-        endToken = operator.next!;
-        arguments = ['?[', '['];
-      } else {
-        switch (nullAwareElementOrMapEntryKind) {
-          case _NullAwareElementOrMapEntryKind.element:
-            code = diag.invalidNullAwareElement;
-          case _NullAwareElementOrMapEntryKind.mapEntryKey:
-            code = diag.invalidNullAwareMapEntryKey;
-          case _NullAwareElementOrMapEntryKind.mapEntryValue:
-            code = diag.invalidNullAwareMapEntryValue;
-        }
-      }
-    } else if (operator.type == TokenType.QUESTION_PERIOD) {
-      code = diag.invalidNullAwareOperator;
-      arguments = [operator.lexeme, '.'];
-    } else if (operator.type == TokenType.QUESTION_PERIOD_PERIOD) {
-      code = diag.invalidNullAwareOperator;
-      arguments = [operator.lexeme, '..'];
-    } else if (operator.type == TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
-      code = diag.invalidNullAwareOperator;
-      arguments = [operator.lexeme, '...'];
-    } else if (operator.type == TokenType.BANG) {
-      code = diag.unnecessaryNonNullAssertion;
-    } else {
       return;
     }
 
@@ -5647,45 +5656,57 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       } else {
         return;
       }
-    } else if (targetType == null) {
-      if (target is Identifier) {
-        var targetElement = target.element;
-        if (targetElement is InterfaceElement ||
-            targetElement is ExtensionElement ||
-            targetElement is TypeAliasElement) {
-          diagnosticReporter.atOffset(
-            offset: operator.offset,
-            length: endToken.end - operator.offset,
-            diagnosticCode: code,
-            arguments: arguments,
-          );
-        }
+    }
+
+    if (targetType == null) {
+      // The "target" might be an identifier that names a type, and the rest of
+      // the expression might be a reference to a static member of that type,
+      // e.g. `int?.parse(...)`. In which case the diagnostic should be
+      // reported.
+      if (target is! Identifier) return;
+      var targetElement = target.element;
+      if (targetElement is! InterfaceElement &&
+          targetElement is! ExtensionElement &&
+          targetElement is! TypeAliasElement) {
+        return;
       }
+    } else if (!typeSystem.isStrictlyNonNullable(targetType)) {
+      // The warning shouldn't be reported because the target type is
+      // potentially nullable.
       return;
     }
 
-    if (typeSystem.isStrictlyNonNullable(targetType)) {
-      if (code == diag.invalidNullAwareOperator) {
-        var previousOperator = previousShortCircuitingOperator(target);
-        if (previousOperator != null) {
-          diagnosticReporter.reportError(
-            _diagnosticFactory.invalidNullAwareAfterShortCircuit(
-              diagnosticReporter.source,
-              operator.offset,
-              endToken.end - operator.offset,
-              arguments,
-              previousOperator,
-            ),
-          );
-          return;
-        }
-      }
-      diagnosticReporter.atOffset(
-        offset: operator.offset,
-        length: endToken.end - operator.offset,
-        diagnosticCode: code,
-        arguments: arguments,
+    Token? previousOperator;
+    if (kind.canParticipateInShortCircuiting) {
+      previousOperator = previousShortCircuitingOperator(target);
+    }
+    var becauseOfShortCircuiting = previousOperator != null;
+    var locatableDiagnostic = kind.locatableDiagnostic(
+      becauseOfShortCircuiting: becauseOfShortCircuiting,
+    );
+
+    if (becauseOfShortCircuiting) {
+      var lexeme = previousOperator.lexeme;
+      locatableDiagnostic = locatableDiagnostic.withContextMessages([
+        DiagnosticMessageImpl(
+          filePath: diagnosticReporter.source.fullName,
+          message: "The operator '$lexeme' is causing the short circuiting.",
+          offset: previousOperator.offset,
+          length: previousOperator.length,
+          url: null,
+        ),
+      ]);
+    }
+
+    if (kind == _NullAwareKind.indexExpression) {
+      diagnosticReporter.report(
+        locatableDiagnostic.atOffset(
+          offset: operator.offset,
+          length: operator.next!.end - operator.offset,
+        ),
       );
+    } else {
+      diagnosticReporter.report(locatableDiagnostic.at(operator));
     }
   }
 
@@ -6710,9 +6731,55 @@ class LibraryVerificationContext {
   }
 }
 
-/// Signals the kind of the null-aware element or entry observed in list, set,
-/// or map literals.
-enum _NullAwareElementOrMapEntryKind { element, mapEntryKey, mapEntryValue }
+/// Kinds of null-aware accesses handled by
+/// [ErrorVerifier._checkForUnnecessaryNullAware].
+enum _NullAwareKind {
+  indexExpression(canParticipateInShortCircuiting: true),
+  element,
+  mapEntryKey,
+  mapEntryValue,
+  access(canParticipateInShortCircuiting: true),
+  cascaded(canParticipateInShortCircuiting: true),
+  spread,
+  nullCheck;
+
+  final bool canParticipateInShortCircuiting;
+
+  const _NullAwareKind({this.canParticipateInShortCircuiting = false});
+
+  LocatableDiagnostic locatableDiagnostic({
+    required bool becauseOfShortCircuiting,
+  }) {
+    String operator;
+    String replacement;
+    switch (this) {
+      case _NullAwareKind.element:
+        return diag.invalidNullAwareElement;
+      case _NullAwareKind.mapEntryKey:
+        return diag.invalidNullAwareMapEntryKey;
+      case _NullAwareKind.mapEntryValue:
+        return diag.invalidNullAwareMapEntryValue;
+      case _NullAwareKind.nullCheck:
+        return diag.unnecessaryNonNullAssertion;
+      case _NullAwareKind.indexExpression:
+        operator = '?[';
+        replacement = '[';
+      case _NullAwareKind.access:
+        operator = '?.';
+        replacement = '.';
+      case _NullAwareKind.cascaded:
+        operator = '?..';
+        replacement = '..';
+      case _NullAwareKind.spread:
+        operator = '?...';
+        replacement = '...';
+    }
+    return (becauseOfShortCircuiting
+            ? diag.invalidNullAwareOperatorAfterShortCircuit
+            : diag.invalidNullAwareOperator)
+        .withArguments(operator: operator, replacement: replacement);
+  }
+}
 
 /// Recursively visits a type annotation, looking uninstantiated bounds.
 class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {

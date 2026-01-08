@@ -120,6 +120,60 @@ void f(String? s) {
 
 @reflectiveTest
 class InvalidNullAwareOperatorTest extends PubPackageResolutionTest {
+  test_cascade_firstSectionOnly_indexExpression() async {
+    await assertErrorsInCode(
+      '''
+class C {
+  int operator[](int index) => 0;
+}
+
+f(C c) {
+  c?..[0]..[0];
+}
+''',
+      [
+        error(diag.invalidNullAwareOperator, 59, 3),
+        // Note: no diagnostic on the second `..[0]`.
+      ],
+    );
+  }
+
+  test_cascade_firstSectionOnly_methodInvocation() async {
+    await assertErrorsInCode(
+      '''
+class C {
+  int method() => 0;
+}
+
+f(C c) {
+  c?..method()..method();
+}
+''',
+      [
+        error(diag.invalidNullAwareOperator, 46, 3),
+        // Note: no diagnostic on the second `..method()`.
+      ],
+    );
+  }
+
+  test_cascade_firstSectionOnly_propertyAccess() async {
+    await assertErrorsInCode(
+      '''
+class C {
+  int get property => 0;
+}
+
+f(C c) {
+  c?..property..property;
+}
+''',
+      [
+        error(diag.invalidNullAwareOperator, 50, 3),
+        // Note: no diagnostic on the second `..property`.
+      ],
+    );
+  }
+
   test_extensionOverride_assignmentExpression_indexExpression() async {
     await assertErrorsInCode(
       '''

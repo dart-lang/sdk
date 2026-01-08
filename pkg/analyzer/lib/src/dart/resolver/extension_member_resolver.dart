@@ -302,14 +302,19 @@ class ExtensionMemberResolver {
       var whyNotPromoted = whyNotPromotedArguments.isEmpty
           ? null
           : whyNotPromotedArguments[0];
-      _diagnosticReporter.atNode(
-        receiverExpression,
-        diag.extensionOverrideArgumentNotAssignable,
-        arguments: [receiverType, extendedType],
-        contextMessages: _resolver.computeWhyNotPromotedMessages(
-          receiverExpression,
-          whyNotPromoted?.call(),
-        ),
+      _diagnosticReporter.report(
+        diag.extensionOverrideArgumentNotAssignable
+            .withArguments(
+              argumentType: receiverType,
+              extendedType: extendedType,
+            )
+            .withContextMessages(
+              _resolver.computeWhyNotPromotedMessages(
+                receiverExpression,
+                whyNotPromoted?.call(),
+              ),
+            )
+            .at(receiverExpression),
       );
     }
   }

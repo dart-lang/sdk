@@ -1859,10 +1859,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var typeSystem = _libraryElement.typeSystem;
 
     if (!typeSystem.isValidExtensionTypeSuperinterface(type)) {
-      _diagnosticReporter.atNode(
-        node,
-        diag.extensionTypeImplementsDisallowedType,
-        arguments: [type],
+      _diagnosticReporter.report(
+        diag.extensionTypeImplementsDisallowedType
+            .withArguments(type: type)
+            .at(node),
       );
       return;
     }
@@ -1881,25 +1881,25 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           declaredRepresentation,
           implementedRepresentation,
         )) {
-          _diagnosticReporter.atNode(
-            node,
-            diag.extensionTypeImplementsRepresentationNotSupertype,
-            arguments: [
-              implementedRepresentation,
-              type.element.name ?? '',
-              declaredRepresentation,
-              declaredFragment.name ?? '',
-            ],
+          _diagnosticReporter.report(
+            diag.extensionTypeImplementsRepresentationNotSupertype
+                .withArguments(
+                  implementedRepresentationType: implementedRepresentation,
+                  implementedExtensionTypeName: type.element.name ?? '',
+                  representationType: declaredRepresentation,
+                  extensionTypeName: declaredFragment.name ?? '',
+                )
+                .at(node),
           );
         }
         return;
       }
     }
 
-    _diagnosticReporter.atNode(
-      node,
-      diag.extensionTypeImplementsNotSupertype,
-      arguments: [type, declaredRepresentation],
+    _diagnosticReporter.report(
+      diag.extensionTypeImplementsNotSupertype
+          .withArguments(type: type, representationType: declaredRepresentation)
+          .at(node),
     );
   }
 

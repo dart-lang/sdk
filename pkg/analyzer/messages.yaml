@@ -4537,8 +4537,8 @@ CompileTimeErrorCode:
   definitelyUnassignedLateLocalVariable:
     type: compileTimeError
     parameters:
-      String p0: the name of the variable that is invalid
-    problemMessage: "The late local variable '#p0' is definitely unassigned at this point."
+      String name: the name of the variable that is invalid
+    problemMessage: "The late local variable '#name' is definitely unassigned at this point."
     correctionMessage: Ensure that it is assigned on necessary execution paths.
     hasPublishedDocs: true
     documentation: |-
@@ -4615,9 +4615,9 @@ CompileTimeErrorCode:
   duplicateConstructorName:
     type: compileTimeError
     parameters:
-      String p0: the name of the duplicate entity
+      String name: the name of the duplicate entity
     sharedName: duplicateConstructor
-    problemMessage: "The constructor with name '#p0' is already defined."
+    problemMessage: "The constructor with name '#name' is already defined."
     correctionMessage: Try renaming one of the constructors.
     hasPublishedDocs: true
   dotShorthandMissingContext:
@@ -4674,12 +4674,12 @@ CompileTimeErrorCode:
   dotShorthandUndefinedGetter:
     type: compileTimeError
     parameters:
-      String p0: the name of the static getter
-      String p1: the name of the enclosing type where the getter is being looked for
+      String getterName: the name of the static getter
+      String typeName: the name of the enclosing type where the getter is being looked for
     sharedName: dotShorthandUndefinedMember
     experiment: dot-shorthands
-    problemMessage: "The static getter '#p0' isn't defined for the context type '#p1'."
-    correctionMessage: "Try correcting the name to the name of an existing static getter, or defining a getter or field named '#p0'."
+    problemMessage: "The static getter '#getterName' isn't defined for the context type '#typeName'."
+    correctionMessage: "Try correcting the name to the name of an existing static getter, or defining a getter or field named '#getterName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4729,12 +4729,12 @@ CompileTimeErrorCode:
   dotShorthandUndefinedInvocation:
     type: compileTimeError
     parameters:
-      String p0: the name of the static method or constructor
-      String p1: the name of the enclosing type where the method or constructor is being looked for
+      String name: the name of the static method or constructor
+      String contextType: the name of the enclosing type where the method or constructor is being looked for
     sharedName: dotShorthandUndefinedMember
     experiment: dot-shorthands
-    problemMessage: "The static method or constructor '#p0' isn't defined for the context type '#p1'."
-    correctionMessage: "Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '#p0'."
+    problemMessage: "The static method or constructor '#name' isn't defined for the context type '#contextType'."
+    correctionMessage: "Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '#name'."
     hasPublishedDocs: true
   duplicateConstructorDefault:
     type: compileTimeError
@@ -4926,8 +4926,8 @@ CompileTimeErrorCode:
   duplicateNamedArgument:
     type: compileTimeError
     parameters:
-      String p0: the name of the parameter that was duplicated
-    problemMessage: "The argument for the named parameter '#p0' was already specified."
+      String name: the name of the parameter that was duplicated
+    problemMessage: "The argument for the named parameter '#name' was already specified."
     correctionMessage: Try removing one of the named arguments, or correcting one of the names to reference a different named parameter.
     hasPublishedDocs: true
     documentation: |-
@@ -5016,8 +5016,8 @@ CompileTimeErrorCode:
   duplicatePatternAssignmentVariable:
     type: compileTimeError
     parameters:
-      Object p0: the name of the variable
-    problemMessage: The variable '#p0' is already assigned in this pattern.
+      String name: the name of the variable
+    problemMessage: The variable '#name' is already assigned in this pattern.
     correctionMessage: Try renaming the variable.
     hasPublishedDocs: true
     documentation: |-
@@ -5065,8 +5065,8 @@ CompileTimeErrorCode:
   duplicatePatternField:
     type: compileTimeError
     parameters:
-      Object p0: the name of the field
-    problemMessage: The field '#p0' is already matched in this pattern.
+      String name: the name of the field
+    problemMessage: The field '#name' is already matched in this pattern.
     correctionMessage: Try removing the duplicate field.
     hasPublishedDocs: true
     documentation: |-
@@ -5590,8 +5590,8 @@ CompileTimeErrorCode:
   expectedOneListPatternTypeArguments:
     type: compileTimeError
     parameters:
-      int p0: the number of provided type arguments
-    problemMessage: "List patterns require one type argument or none, but #p0 found."
+      int count: the number of provided type arguments
+    problemMessage: "List patterns require one type argument or none, but #count found."
     correctionMessage: Try adjusting the number of type arguments.
     hasPublishedDocs: true
     documentation: |-
@@ -5711,8 +5711,8 @@ CompileTimeErrorCode:
   expectedTwoMapPatternTypeArguments:
     type: compileTimeError
     parameters:
-      int p0: the number of provided type arguments
-    problemMessage: "Map patterns require two type arguments or none, but #p0 found."
+      int count: the number of provided type arguments
+    problemMessage: "Map patterns require two type arguments or none, but #count found."
     correctionMessage: Try adjusting the number of type arguments.
     hasPublishedDocs: true
     documentation: |-
@@ -5746,8 +5746,8 @@ CompileTimeErrorCode:
   exportInternalLibrary:
     type: compileTimeError
     parameters:
-      String p0: the URI pointing to a library
-    problemMessage: "The library '#p0' is internal and can't be exported."
+      String uri: the URI pointing to a library
+    problemMessage: "The library '#uri' is internal and can't be exported."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -5824,8 +5824,8 @@ CompileTimeErrorCode:
   exportOfNonLibrary:
     type: compileTimeError
     parameters:
-      String p0: the URI pointing to a non-library declaration
-    problemMessage: "The exported library '#p0' can't have a part-of directive."
+      String uri: the URI pointing to a non-library declaration
+    problemMessage: "The exported library '#uri' can't have a part-of directive."
     correctionMessage: Try exporting the library that the part is a part of.
     hasPublishedDocs: true
     documentation: |-
@@ -5932,8 +5932,8 @@ CompileTimeErrorCode:
   extensionAsExpression:
     type: compileTimeError
     parameters:
-      String p0: the name of the extension
-    problemMessage: "Extension '#p0' can't be used as an expression."
+      String name: the name of the extension
+    problemMessage: "Extension '#name' can't be used as an expression."
     correctionMessage: Try replacing it with a valid expression.
     hasPublishedDocs: true
     documentation: |-
@@ -5973,8 +5973,8 @@ CompileTimeErrorCode:
   extensionConflictingStaticAndInstance:
     type: compileTimeError
     parameters:
-      String p0: the name of the conflicting static member
-    problemMessage: "An extension can't define static member '#p0' and an instance member with the same name."
+      String name: the name of the conflicting static member
+    problemMessage: "An extension can't define static member '#name' and an instance member with the same name."
     correctionMessage: "Try renaming the member to a name that doesn't conflict."
     hasPublishedDocs: true
     documentation: |-
@@ -6146,9 +6146,9 @@ CompileTimeErrorCode:
   extensionOverrideArgumentNotAssignable:
     type: compileTimeError
     parameters:
-      Type p0: the type of the argument
-      Type p1: the extended type
-    problemMessage: "The type of the argument to the extension override '#p0' isn't assignable to the extended type '#p1'."
+      Type argumentType: the type of the argument
+      Type extendedType: the extended type
+    problemMessage: "The type of the argument to the extension override '#argumentType' isn't assignable to the extended type '#extendedType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -6451,8 +6451,8 @@ CompileTimeErrorCode:
   extensionTypeImplementsDisallowedType:
     type: compileTimeError
     parameters:
-      Type p0: the display string of the disallowed type
-    problemMessage: "Extension types can't implement '#p0'."
+      Type type: the disallowed type
+    problemMessage: "Extension types can't implement '#type'."
     correctionMessage: Try specifying a different type, or remove the type from the list.
     hasPublishedDocs: true
     documentation: |-
@@ -6520,9 +6520,9 @@ CompileTimeErrorCode:
   extensionTypeImplementsNotSupertype:
     type: compileTimeError
     parameters:
-      Type p0: the implemented not extension type
-      Type p1: the ultimate representation type
-    problemMessage: "'#p0' is not a supertype of '#p1', the representation type."
+      Type type: the implemented not extension type
+      Type representationType: the ultimate representation type
+    problemMessage: "'#type' is not a supertype of '#representationType', the representation type."
     correctionMessage: Try specifying a different type, or remove the type from the list.
     hasPublishedDocs: true
     documentation: |-
@@ -6559,11 +6559,11 @@ CompileTimeErrorCode:
   extensionTypeImplementsRepresentationNotSupertype:
     type: compileTimeError
     parameters:
-      Type p0: the representation type of the implemented extension type
-      String p1: the name of the implemented extension type
-      Type p2: the representation type of the this extension type
-      String p3: the name of the this extension type
-    problemMessage: "'#p0', the representation type of '#p1', is not a supertype of '#p2', the representation type of '#p3'."
+      Type implementedRepresentationType: the representation type of the implemented extension type
+      String implementedExtensionTypeName: the name of the implemented extension type
+      Type representationType: the representation type of the this extension type
+      String extensionTypeName: the name of the this extension type
+    problemMessage: "'#implementedRepresentationType', the representation type of '#implementedExtensionTypeName', is not a supertype of '#representationType', the representation type of '#extensionTypeName'."
     correctionMessage: Try specifying a different type, or remove the type from the list.
     hasPublishedDocs: true
     documentation: |-
@@ -15782,8 +15782,8 @@ CompileTimeErrorCode:
   referencedBeforeDeclaration:
     type: compileTimeError
     parameters:
-      Object p0: the name of the variable
-    problemMessage: "Local variable '#p0' can't be referenced before it is declared."
+      String name: the name of the variable
+    problemMessage: "Local variable '#name' can't be referenced before it is declared."
     correctionMessage: "Try moving the declaration to before the first use, or renaming the local variable so that it doesn't hide a name from an enclosing scope."
     hasPublishedDocs: true
     documentation: |-
@@ -24404,10 +24404,10 @@ StaticWarningCode:
   invalidNullAwareOperator:
     type: staticWarning
     parameters:
-      String p0: the null-aware operator that is invalid
-      String p1: the non-null-aware operator that can replace the invalid operator
-    problemMessage: "The receiver can't be null, so the null-aware operator '#p0' is unnecessary."
-    correctionMessage: "Try replacing the operator '#p0' with '#p1'."
+      String operator: the null-aware operator that is invalid
+      String replacement: the non-null-aware operator that can replace the invalid operator
+    problemMessage: "The receiver can't be null, so the null-aware operator '#operator' is unnecessary."
+    correctionMessage: "Try replacing the operator '#operator' with '#replacement'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -24489,11 +24489,11 @@ StaticWarningCode:
   invalidNullAwareOperatorAfterShortCircuit:
     type: staticWarning
     parameters:
-      Object p0: the null-aware operator that is invalid
-      Object p1: the non-null-aware operator that can replace the invalid operator
+      String operator: the null-aware operator that is invalid
+      String replacement: the non-null-aware operator that can replace the invalid operator
     sharedName: invalidNullAwareOperator
-    problemMessage: "The receiver can't be 'null' because of short-circuiting, so the null-aware operator '#p0' can't be used."
-    correctionMessage: "Try replacing the operator '#p0' with '#p1'."
+    problemMessage: "The receiver can't be 'null' because of short-circuiting, so the null-aware operator '#operator' can't be used."
+    correctionMessage: "Try replacing the operator '#operator' with '#replacement'."
     hasPublishedDocs: true
   invalidNullAwareElement:
     type: staticWarning
