@@ -1263,11 +1263,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     node.variable.initializer = result.expression..parent = node.variable;
     node.variable.type = result.inferredType;
-    flowAnalysis.cascadeExpression_afterTarget(
-      result.expression,
-      new SharedTypeView(result.inferredType),
-      isNullAware: node.isNullAware,
-    );
     NullAwareGuard? nullAwareGuard;
     if (node.isNullAware) {
       nullAwareGuard = new NullAwareGuard(
@@ -1275,14 +1270,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.variable.fileOffset,
         this,
       );
-      // Ensure the initializer of [_nullAwareVariable] is promoted to
-      // non-nullable.
-      flow.nullAwareAccess_rightBegin(
-        node.variable.initializer!,
-        new SharedTypeView(node.variable.type),
-        guardVariable: node.variable,
-      );
     }
+    flowAnalysis.cascadeExpression_afterTarget(
+      result.expression,
+      new SharedTypeView(result.inferredType),
+      isNullAware: node.isNullAware,
+      guardVariable: node.variable,
+    );
 
     Cascade? previousEnclosingCascade = _enclosingCascade;
     _enclosingCascade = node;

@@ -310,6 +310,12 @@ abstract class FlowAnalysis<
   /// whether the cascade expression is null-aware (meaning its first separator
   /// is `?..` rather than `..`).
   ///
+  /// If the [isNullAware] is `true`, and the client desugars the null-aware
+  /// access using a guard variable (e.g., if it desugars `a?.b` into `let x = a
+  /// in x == null ? null : x.b`), it should pass in the variable used for
+  /// desugaring as [guardVariable]. Flow analysis will ensure that this
+  /// variable is promoted to the appropriate type in the "not null" code path.
+  ///
   /// Returns the effective type of the target expression during execution of
   /// the cascade sections (this is either the same as [targetType], or its
   /// non-nullable equivalent, if [isNullAware] is `true`).
@@ -317,7 +323,6 @@ abstract class FlowAnalysis<
   /// The order of visiting a cascade expression should be:
   /// - Visit the target
   /// - Call [cascadeExpression_afterTarget].
-  /// - If this is a null-aware cascade, call [nullAwareAccess_rightBegin].
   /// - Visit each cascade section
   /// - If this is a null-aware cascade, call [nullAwareAccess_end].
   /// - Call [cascadeExpression_end].
@@ -325,6 +330,7 @@ abstract class FlowAnalysis<
     Expression target,
     SharedTypeView targetType, {
     required bool isNullAware,
+    Variable? guardVariable,
   });
 
   /// Call this method just after visiting a cascade expression.
@@ -1505,14 +1511,16 @@ class FlowAnalysisDebug<
     Expression target,
     SharedTypeView targetType, {
     required bool isNullAware,
+    Variable? guardVariable,
   }) {
     return _wrap(
-      'cascadeExpression_afterTarget($target, $targetType, '
-      'isNullAware: $isNullAware)',
+      'cascadeExpression_afterTarget($target, $targetType, isNullAware: '
+      '$isNullAware, guardVariable: $guardVariable)',
       () => _wrapped.cascadeExpression_afterTarget(
         target,
         targetType,
         isNullAware: isNullAware,
+        guardVariable: guardVariable,
       ),
       isQuery: true,
       isPure: false,
@@ -2655,8 +2663,11 @@ abstract interface class FlowAnalysisNullShortingInterface<
   /// Call this method after visiting an expression using `?.`.
   void nullAwareAccess_end({required Expression wholeExpression});
 
-  /// Call this method after visiting a null-aware operator such as `?.`,
-  /// `?..`, `?.[`, or `?..[`.
+  /// Call this method after visiting a null-aware operator such as `?.` or
+  /// `?[`.
+  ///
+  /// It is _not_ necessary to call this method when visiting a cascade; that is
+  /// performed automatically by [FlowAnalysis.cascadeExpression_afterTarget].
   ///
   /// [target] should be the expression just before the null-aware operator, or
   /// `null` if the null-aware access starts a cascade section.
@@ -5174,12 +5185,13 @@ class _FlowAnalysisImpl<
     Expression target,
     SharedTypeView targetType, {
     required bool isNullAware,
+    Variable? guardVariable,
   }) {
     // If the cascade is null-aware, then during the cascade sections, the
     // effective type of the target is promoted to non-null.
-    if (isNullAware) {
-      targetType = operations.promoteToNonNull(targetType);
-    }
+    SharedTypeView promotedTargetType = isNullAware
+        ? operations.promoteToNonNull(targetType)
+        : targetType;
     // Retrieve the SSA node for the cascade target, if one has been created
     // already, so that field accesses within cascade sections will receive the
     // benefit of previous field promotions. If an SSA node for the target
@@ -5196,7 +5208,9 @@ class _FlowAnalysisImpl<
     // variable had before the write. (e.g. in
     // `x.._field!.f(x = g()).._field.h()`, no `!` is needed on the second
     // access to `_field`, even though `x` has been written to).
-    _cascadeTargetStack.add(_makeTemporaryReference(ssaNode, targetType));
+    _cascadeTargetStack.add(
+      _makeTemporaryReference(ssaNode, promotedTargetType),
+    );
     // Calling `_getExpressionReference` had the effect of clearing
     // `_expressionReference` (because normally the caller doesn't pass the same
     // expression to flow analysis twice, so the expression reference isn't
@@ -5206,11 +5220,22 @@ class _FlowAnalysisImpl<
     if (expressionReference != null) {
       _storeExpressionReference(target, expressionReference);
     }
-    return targetType;
+    if (isNullAware) {
+      _nullAwareAccess_rightBegin(
+        target,
+        targetType,
+        guardVariable: guardVariable,
+      );
+    }
+    return promotedTargetType;
   }
 
   @override
   void cascadeExpression_end(Expression wholeExpression) {
+    // TODO(paulberry): if the cascade expression is null-aware, do the
+    // equivalent of `nullAwareAccess_end`, so that the caller doesn't have to
+    // have a separate call to `nullAwareAccess_end`.
+
     // Pop the reference for the temporary variable that holds the target of the
     // cascade stack, and store it as the reference for `wholeExpression`. This
     // ensures that field accesses performed on the whole cascade expression
@@ -5959,52 +5984,11 @@ class _FlowAnalysisImpl<
     SharedTypeView targetType, {
     Variable? guardVariable,
   }) {
-    _current = _current.split();
-    FlowModel shortcutControlPath = _current;
-    _Reference? targetReference = _getExpressionReference(target);
-    if (targetReference != null) {
-      _current = _current.tryMarkNonNullable(this, targetReference).ifTrue;
-    }
-    switch (operations.classifyType(targetType)) {
-      case TypeClassification.nullOrEquivalent:
-        // The control flow path containing the null-aware code is unreachable.
-        _current = _current.setUnreachable();
-      case TypeClassification.nonNullable:
-        // The control flow path that skips the null-aware code is unreachable,
-        // assuming sound null safety.
-        if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
-          shortcutControlPath = shortcutControlPath.setUnreachable();
-        }
-      case TypeClassification.potentiallyNullable:
-        // Both control flow paths are reachable.
-        break;
-    }
-    _stack.add(new _NullAwareAccessContext(shortcutControlPath));
-    SsaNode? targetSsaNode;
-    if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
-      // Store back the target reference so that it can be used for field
-      // promotion.
-      if (target != null && targetReference != null) {
-        _storeExpressionReference(target, targetReference);
-        targetSsaNode = targetReference.ssaNode;
-      }
-    }
-    if (guardVariable != null) {
-      // Promote the guard variable as well.
-      int promotionKey = promotionKeyStore.keyForVariable(guardVariable);
-      SharedTypeView nonNullType = operations.promoteToNonNull(targetType);
-      _current = _current.updatePromotionInfo(
-        this,
-        promotionKey,
-        new PromotionModel(
-          promotedTypes: nonNullType == targetType ? const [] : [nonNullType],
-          tested: const [],
-          assigned: true,
-          unassigned: false,
-          ssaNode: targetSsaNode ?? new SsaNode(),
-        ),
-      );
-    }
+    _nullAwareAccess_rightBegin(
+      target,
+      targetType,
+      guardVariable: guardVariable,
+    );
   }
 
   @override
@@ -7541,6 +7525,59 @@ class _FlowAnalysisImpl<
       isThisOrSuper: false,
       ssaNode: ssaNode,
     );
+  }
+
+  void _nullAwareAccess_rightBegin(
+    Expression? target,
+    SharedTypeView targetType, {
+    required Variable? guardVariable,
+  }) {
+    _current = _current.split();
+    FlowModel shortcutControlPath = _current;
+    _Reference? targetReference = _getExpressionReference(target);
+    if (targetReference != null) {
+      _current = _current.tryMarkNonNullable(this, targetReference).ifTrue;
+    }
+    switch (operations.classifyType(targetType)) {
+      case TypeClassification.nullOrEquivalent:
+        // The control flow path containing the null-aware code is unreachable.
+        _current = _current.setUnreachable();
+      case TypeClassification.nonNullable:
+        // The control flow path that skips the null-aware code is unreachable,
+        // assuming sound null safety.
+        if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
+          shortcutControlPath = shortcutControlPath.setUnreachable();
+        }
+      case TypeClassification.potentiallyNullable:
+        // Both control flow paths are reachable.
+        break;
+    }
+    _stack.add(new _NullAwareAccessContext(shortcutControlPath));
+    SsaNode? targetSsaNode;
+    if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
+      // Store back the target reference so that it can be used for field
+      // promotion.
+      if (target != null && targetReference != null) {
+        _storeExpressionReference(target, targetReference);
+        targetSsaNode = targetReference.ssaNode;
+      }
+    }
+    if (guardVariable != null) {
+      // Promote the guard variable as well.
+      int promotionKey = promotionKeyStore.keyForVariable(guardVariable);
+      SharedTypeView nonNullType = operations.promoteToNonNull(targetType);
+      _current = _current.updatePromotionInfo(
+        this,
+        promotionKey,
+        new PromotionModel(
+          promotedTypes: nonNullType == targetType ? const [] : [nonNullType],
+          tested: const [],
+          assigned: true,
+          unassigned: false,
+          ssaNode: targetSsaNode ?? new SsaNode(),
+        ),
+      );
+    }
   }
 
   /// Computes an updated flow model representing the result of a null check

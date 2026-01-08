@@ -2054,13 +2054,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       isNullAware: node.isNullAware,
     );
 
-    if (node.isNullAware) {
-      flowAnalysis.flow!.nullAwareAccess_rightBegin(
-        node.target,
-        SharedTypeView(targetType),
-      );
-    }
-
     for (var cascadeSection in node.cascadeSections) {
       analyzeExpression(cascadeSection, operations.unknownType);
       popRewrite();
