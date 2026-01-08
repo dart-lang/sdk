@@ -91,7 +91,8 @@ class LogPlayer {
                 ),
               );
             case EntryKind.message:
-              if (entry.receiver == ProcessId.server) {
+              if (entry.sender == ProcessId.ide &&
+                  entry.receiver == ProcessId.server) {
                 if (entry.message.isResponse &&
                     workProgressIds.contains(entry.message.id)) {
                   // Skip these responses, we return a canned response and ignore
@@ -106,13 +107,14 @@ class LogPlayer {
                     throw StateError(
                       'Cannot respond to a server message that we haven\'t '
                       'received yet, expected an analysis server request with '
-                      'ID: ${entry.message.id}',
+                      'ID: ${entry.message.id}\n${json.encode(entry)}',
                     );
                   }
                   entry.message.setId(actualId);
                 }
                 await _sendMessageToServer(entry, server);
-              } else if (entry.sender == ProcessId.server) {
+              } else if (entry.sender == ProcessId.server &&
+                  entry.receiver == ProcessId.ide) {
                 var isServerInitiatedRequest = entry.message.method != null;
                 var foundMessage = extraServerMessages.firstWhereOrNull(
                   (recorded) => recorded.equals(
@@ -150,13 +152,14 @@ class LogPlayer {
                     pendingServerMessageExpectations,
                   );
                 }
+              } else if (entry.sender == ProcessId.watcher &&
+                  entry.receiver == ProcessId.server) {
+                await _sendMessageToServer(entry, server);
               } else {
-                throw StateError('''
-Unexpected sender/receiver for message:
-
-sender: ${entry.sender}
-receiver: ${entry.receiver}
-''');
+                stderr.writeln(
+                  'Unsupported sender/receiver for message:\n'
+                  '${json.encode(entry)}',
+                );
               }
           }
         } finally {
@@ -327,7 +330,7 @@ receiver: ${entry.receiver}
       }
       throw TimeoutException(
         'Timed out waiting for analysis server messages:\n\n'
-        '${pendingServerMessageExpectations.join('\n\n')}',
+        '${pendingServerMessageExpectations.map(json.encode).join('\n\n')}',
       );
     } finally {
       progress.finish(showTiming: true);
@@ -341,9 +344,15 @@ extension MessageExtension on Message {
     if (!skipMatchId && id != other.id) return false;
     return switch (method) {
       // No method means this is a response, compare the result.
-      null => const DeepCollectionEquality().equals(result, other.result),
+      null => const DeepCollectionEquality.unordered().equals(
+        result,
+        other.result,
+      ),
       // A method means this is a request, compare the params.
-      String() => const DeepCollectionEquality().equals(params, other.params),
+      String() => const DeepCollectionEquality.unordered().equals(
+        params,
+        other.params,
+      ),
     };
   }
 

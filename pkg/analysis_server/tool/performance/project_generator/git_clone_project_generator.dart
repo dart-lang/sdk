@@ -4,6 +4,8 @@
 
 import 'dart:io';
 
+import 'package:package_config/package_config.dart';
+
 import '../utilities/git.dart';
 import 'project_generator.dart';
 
@@ -22,17 +24,22 @@ class GitCloneProjectGenerator implements ProjectGenerator {
   String get description => 'Cloning git repo "$repo" at ref "$ref"';
 
   @override
-  Future<Iterable<Directory>> setUp() async {
+  Future<Workspace> setUp() async {
     var outputDir = await Directory.systemTemp.createTemp('as_git_clone');
     await runGitCommand(['clone', repo, '.'], outputDir);
     await runGitCommand(['fetch', 'origin', ref], outputDir);
     await runGitCommand(['checkout', ref], outputDir);
     await runPubGet(outputDir);
-    return [outputDir];
+    return Workspace(
+      [ContextRoot(outputDir, (await findPackageConfig(outputDir))!)],
+      [outputDir],
+    );
   }
 
   @override
-  Future<void> tearDown(Iterable<Directory> workspaceDirs) async {
-    await Future.wait(workspaceDirs.map((dir) => dir.delete(recursive: true)));
+  Future<void> tearDown(Workspace workspace) async {
+    await Future.wait(
+      workspace.rootDirectories.map((dir) => dir.delete(recursive: true)),
+    );
   }
 }

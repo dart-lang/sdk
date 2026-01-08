@@ -8,7 +8,6 @@ import 'dart:isolate';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:args/args.dart';
 
-import '../project_generator/current_directory_generator.dart';
 import '../project_generator/git_clone_project_generator.dart';
 import '../project_generator/git_worktree_project_generator.dart';
 import 'scenario.dart';
@@ -66,20 +65,13 @@ final List<Scenario> scenarios = () {
       ),
     ),
     Scenario(
-      name: 'sdk_rename_driver_class_cwd',
+      name: 'package_build_find_references',
       logFile: fileSystem.getFile(
-        logsRoot.resolve('sdk_rename_driver_class.json').toFilePath(),
-      ),
-      project: CurrentDirectoryGenerator(),
-    ),
-    Scenario(
-      name: 'initialize',
-      logFile: fileSystem.getFile(
-        logsRoot.resolve('initialize.json').toFilePath(),
+        logsRoot.resolve('package_build_find_references.json').toFilePath(),
       ),
       project: GitCloneProjectGenerator(
-        'https://github.com/dart-lang/tools',
-        'main',
+        'https://github.com/dart-lang/build',
+        '9b97ea08021ee68947873bcdd4a550c0feb393a4',
       ),
     ),
   ];

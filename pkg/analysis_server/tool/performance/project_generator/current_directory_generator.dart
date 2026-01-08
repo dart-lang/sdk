@@ -4,6 +4,8 @@
 
 import 'dart:io';
 
+import 'package:package_config/package_config.dart';
+
 import '../utilities/git.dart';
 import 'project_generator.dart';
 
@@ -13,7 +15,7 @@ class CurrentDirectoryGenerator implements ProjectGenerator {
   String get description => 'Using the current directory';
 
   @override
-  Future<Iterable<Directory>> setUp() async {
+  Future<Workspace> setUp() async {
     var statusResult = await runGitCommand([
       'status',
       '--porcelain',
@@ -24,11 +26,19 @@ class CurrentDirectoryGenerator implements ProjectGenerator {
         'this scenario.',
       );
     }
-    return [Directory.current];
+    return Workspace(
+      [
+        ContextRoot(
+          Directory.current,
+          (await findPackageConfig(Directory.current))!,
+        ),
+      ],
+      [Directory.current],
+    );
   }
 
   @override
-  Future<void> tearDown(Iterable<Directory> workspaceDirs) async {
-    await runGitCommand(['reset', 'HEAD'], workspaceDirs.single);
+  Future<void> tearDown(Workspace workspace) async {
+    await runGitCommand(['reset', 'HEAD'], workspace.rootDirectories.single);
   }
 }

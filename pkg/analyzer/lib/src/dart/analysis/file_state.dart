@@ -1522,7 +1522,7 @@ class FileSystemState {
   }
 
   AnalysisOptionsImpl _getAnalysisOptions(File file) =>
-      _analysisOptionsMap.getOptions(file);
+      _analysisOptionsMap[file];
 
   FeatureSet _getFeatureSet(
     String path,
