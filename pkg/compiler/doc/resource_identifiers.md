@@ -36,13 +36,6 @@ are constant).
 
 TODO: Reference goldens in tests rather than keep the example below.
 
-When compiling applications with deferred loading, the compiler emits a call to
-an internal `loadDeferredLibrary` in the Dart `js_runtime`. The
-`loadDeferredLibrary` method is annotated with
-`@pragma('dart2js:resource-identifier')`. This means that an app that uses
-deferred loaded libraries will automatically generate a section in the
-`.resources.json`.
-
 In the Dart sdk directory, there is a sample benchmark that contains deferred
 loaded libraries. If you compile it as:
 
