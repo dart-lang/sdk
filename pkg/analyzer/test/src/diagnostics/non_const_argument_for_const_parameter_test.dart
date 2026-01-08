@@ -124,6 +124,25 @@ class C {
     );
   }
 
+  test_constructor_extensionType() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart' show mustBeConst;
+
+final v = 3;
+
+final c = C(v);
+
+extension type C(@mustBeConst int it) {}
+''',
+      [
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.nonConstArgumentForConstParameter, 77, 1),
+        error(diag.experimentalMemberUse, 100, 11),
+      ],
+    );
+  }
+
   test_constructor_variable_fails() async {
     await assertErrorsInCode(
       r'''
