@@ -232,7 +232,7 @@ class FlowAnalysisHelper {
 
   void executableDeclaration_enter(
     AstNodeImpl node,
-    FormalParameterList? parameters, {
+    List<FormalParameterElementImpl>? parameters, {
     required bool isClosure,
   }) {
     if (isClosure) {
@@ -240,14 +240,10 @@ class FlowAnalysisHelper {
     }
 
     if (parameters != null) {
-      for (var parameter in parameters.parameters) {
-        // TODO(paulberry): try to remove this cast by changing `parameters` to
-        // a `FormalParameterListImpl`
-        var declaredElement =
-            parameter.declaredFragment!.element as PromotableElementImpl;
+      for (var parameter in parameters) {
         flow!.declare(
-          declaredElement,
-          SharedTypeView(declaredElement.type),
+          parameter,
+          SharedTypeView(parameter.type),
           initialized: true,
         );
       }

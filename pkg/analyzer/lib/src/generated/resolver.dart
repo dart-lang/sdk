@@ -2238,7 +2238,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       flowAnalysis.bodyOrInitializer_enter(node, node.parameters);
       flowAnalysis.executableDeclaration_enter(
         node,
-        node.parameters,
+        element.formalParameters,
         isClosure: false,
       );
 
@@ -2826,7 +2826,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
       flowAnalysis.executableDeclaration_enter(
         node,
-        node.functionExpression.parameters,
+        element.formalParameters,
         isClosure: isLocal,
       );
 
@@ -3301,7 +3301,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       flowAnalysis.bodyOrInitializer_enter(node, node.parameters);
       flowAnalysis.executableDeclaration_enter(
         node,
-        node.parameters,
+        element.formalParameters,
         isClosure: false,
       );
 
@@ -3673,7 +3673,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         );
         flowAnalysis.executableDeclaration_enter(
           node,
-          primaryConstructorDeclaration.formalParameters,
+          element!.formalParameters,
           isClosure: false,
         );
       }
