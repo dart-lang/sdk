@@ -184,6 +184,7 @@ cc/LoadOptimizer_RedundantStoreAOT: SkipByDesign # Sanitizers build different fl
 cc/TypePropagator_NonNullableLoadStaticField: SkipByDesign # Sanitizers build different flow graphs
 cc/TypePropagator_RecordFieldAccess: SkipByDesign # Sanitizers build different flow graphs
 dart/exported_symbols_test: SkipByDesign # Sanitizers add extra symbols.
+dart/heap_snapshot_referrers_test: Pass, Slow
 
 [ $sanitizer == tsan ]
 dart/analyze_snapshot_binary_test: SkipSlow
