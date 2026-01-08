@@ -23763,6 +23763,45 @@ library
 ''');
   }
 
+  test_primaryConstructorBody_documented() async {
+    var library = await buildLibrary('''
+/// Class docs
+class const A() {
+  /// first
+  /// second
+  /// third
+  this;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:27) (firstTokenOffset:0) (offset:27)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:21) (offset:27)
+              element: <testLibrary>::@class::A::@constructor::new
+              documentationComment: /// first\n/// second\n/// third
+              typeName: A
+              typeNameOffset: 27
+              thisKeywordOffset: 72
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      documentationComment: /// Class docs
+      constructors
+        const declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          documentationComment: /// first\n/// second\n/// third
+''');
+  }
+
   test_primaryConstructorBody_duplicate() async {
     var library = await buildLibrary(r'''
 class const A() {
