@@ -424,8 +424,7 @@ extension ExpressionNullableExtension on Expression? {
       case ConstructorFieldInitializer():
         var fieldElement = ancestor.fieldName.element;
         return (fieldElement is VariableElement) ? fieldElement.type : null;
-      case ExpressionFunctionBody(parent: var function)
-          when function is FunctionExpression:
+      case ExpressionFunctionBody(parent: FunctionExpression function):
         // Allow `<int, LinkedHashSet>{}.putIfAbsent(3, () => LinkedHashSet())`
         // and `<int, LinkedHashMap>{}.putIfAbsent(3, () => LinkedHashMap())`.
         var functionParent = function.parent;
@@ -434,11 +433,11 @@ extension ExpressionNullableExtension on Expression? {
         }
         var functionType = function.approximateContextType;
         return functionType is FunctionType ? functionType.returnType : null;
-      case ExpressionFunctionBody(parent: var function)
-          when function is FunctionDeclaration:
+      case ExpressionFunctionBody(parent: ConstructorDeclaration constructor):
+        return constructor.declaredFragment!.element.returnType;
+      case ExpressionFunctionBody(parent: FunctionDeclaration function):
         return function.returnType?.type;
-      case ExpressionFunctionBody(parent: var function)
-          when function is MethodDeclaration:
+      case ExpressionFunctionBody(parent: MethodDeclaration function):
         return function.returnType?.type;
       case NamedExpression():
         // Allow `void f({required LinkedHashSet<Foo> s})`.
