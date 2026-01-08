@@ -1394,7 +1394,7 @@ typedef int32_t (*SimulatorLeafRuntimeCall)(int32_t r0,
 // SimulatorLeafRuntimeCall. We can call them all from here only because in
 // IA32's calling convention a function can be called with extra arguments
 // and the callee will see the first arguments and won't unbalance the stack.
-NO_SANITIZE_UNDEFINED("function")
+NO_SANITIZE_UNDEFINED_FUNCTION
 static int32_t InvokeLeafRuntime(SimulatorLeafRuntimeCall target,
                                  int32_t r0,
                                  int32_t r1,
@@ -1411,7 +1411,7 @@ typedef double (*SimulatorLeafFloatRuntimeCall)(double d0, double d1);
 // SimulatorFloatLeafRuntimeCall. We can call them all from here only because
 // IA32's calling convention a function can be called with extra arguments
 // and the callee will see the first arguments and won't unbalance the stack.
-NO_SANITIZE_UNDEFINED("function")
+NO_SANITIZE_UNDEFINED_FUNCTION
 static double InvokeFloatLeafRuntime(SimulatorLeafFloatRuntimeCall target,
                                      double d0,
                                      double d1) {

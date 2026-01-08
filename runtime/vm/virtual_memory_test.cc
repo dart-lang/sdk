@@ -96,7 +96,7 @@ static int testFunction(int x) {
   return x * 2;
 }
 
-NO_SANITIZE_UNDEFINED("function")  // See https://dartbug.com/52440
+NO_SANITIZE_UNDEFINED_FUNCTION  // See https://dartbug.com/52440
 VM_UNIT_TEST_CASE(DuplicateRXVirtualMemory) {
   const uword page_size = VirtualMemory::PageSize();
   const uword pointer = reinterpret_cast<uword>(&testFunction);
