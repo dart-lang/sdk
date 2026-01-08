@@ -24,7 +24,6 @@ import '../base/messages.dart'
 import '../base/name_space.dart';
 import '../base/problems.dart' show internalProblem;
 import '../source/name_scheme.dart';
-import '../source/source_library_builder.dart';
 import 'builder.dart';
 import 'compilation_unit.dart';
 import 'constructor_builder.dart';
@@ -42,10 +41,6 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   ComputedNameSpace get exportNameSpace;
 
   List<Export> get exporters;
-
-  /// Returns the set of imports and exports of this library from other
-  /// libraries.
-  Iterable<LibraryAccess> get accessors;
 
   LibraryBuilder? get partOfLibrary;
 
@@ -126,7 +121,8 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   NamedBuilder lookupRequiredLocalMember(String name);
 
   /// Records the location of an import or export of this library from
-  /// [accessor].
+  /// [accessor], but only on source libraries (saving it on dill libraries will
+  /// cause leaks).
   void recordAccess(
     CompilationUnit accessor,
     int charOffset,
@@ -183,9 +179,6 @@ abstract class LibraryBuilderImpl extends BuilderImpl
 
   @override
   Uri get importUri;
-
-  @override
-  final List<LibraryAccess> accessors = <LibraryAccess>[];
 
   @override
   FormattedMessage? addProblem(
@@ -291,7 +284,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     int length,
     Uri fileUri,
   ) {
-    accessors.add(new LibraryAccess(accessor, fileUri, charOffset, length));
+    // We can't save this here, it will cause leaks.
   }
 
   @override
