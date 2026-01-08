@@ -39,4 +39,5 @@ dev_dependencies:
   expect: any
   modular_test: any
   sourcemap_testing: any
+  test: any
   testing: any
