@@ -8677,11 +8677,14 @@ invalidNullAwareMapEntryValue = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the null-aware operator that is invalid
-/// String p1: the non-null-aware operator that can replace the invalid
-///            operator
+/// String operator: the null-aware operator that is invalid
+/// String replacement: the non-null-aware operator that can replace the
+///                     invalid operator
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String operator,
+    required String replacement,
+  })
 >
 invalidNullAwareOperator = DiagnosticWithArguments(
   name: 'invalid_null_aware_operator',
@@ -8697,11 +8700,14 @@ invalidNullAwareOperator = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Object p0: the null-aware operator that is invalid
-/// Object p1: the non-null-aware operator that can replace the invalid
-///            operator
+/// String operator: the null-aware operator that is invalid
+/// String replacement: the non-null-aware operator that can replace the
+///                     invalid operator
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0, required Object p1})
+  LocatableDiagnostic Function({
+    required String operator,
+    required String replacement,
+  })
 >
 invalidNullAwareOperatorAfterShortCircuit = DiagnosticWithArguments(
   name: 'invalid_null_aware_operator',
@@ -8713,7 +8719,7 @@ invalidNullAwareOperatorAfterShortCircuit = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'invalid_null_aware_operator_after_short_circuit',
   withArguments: _withArgumentsInvalidNullAwareOperatorAfterShortCircuit,
-  expectedTypes: [ExpectedType.object, ExpectedType.object],
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// Parameters:
@@ -19571,19 +19577,22 @@ LocatableDiagnostic _withArgumentsInvalidModifierOnConstructor({
 }
 
 LocatableDiagnostic _withArgumentsInvalidNullAwareOperator({
-  required String p0,
-  required String p1,
+  required String operator,
+  required String replacement,
 }) {
-  return LocatableDiagnosticImpl(diag.invalidNullAwareOperator, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.invalidNullAwareOperator, [
+    operator,
+    replacement,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidNullAwareOperatorAfterShortCircuit({
-  required Object p0,
-  required Object p1,
+  required String operator,
+  required String replacement,
 }) {
   return LocatableDiagnosticImpl(
     diag.invalidNullAwareOperatorAfterShortCircuit,
-    [p0, p1],
+    [operator, replacement],
   );
 }
 

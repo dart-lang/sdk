@@ -388,32 +388,6 @@ class DiagnosticFactory {
     );
   }
 
-  Diagnostic invalidNullAwareAfterShortCircuit(
-    Source source,
-    int offset,
-    int length,
-    List<Object> arguments,
-    Token previousToken,
-  ) {
-    var lexeme = previousToken.lexeme;
-    return Diagnostic.tmp(
-      source: source,
-      offset: offset,
-      length: length,
-      diagnosticCode: diag.invalidNullAwareOperatorAfterShortCircuit,
-      arguments: arguments,
-      contextMessages: [
-        DiagnosticMessageImpl(
-          filePath: source.fullName,
-          message: "The operator '$lexeme' is causing the short circuiting.",
-          offset: previousToken.offset,
-          length: previousToken.length,
-          url: null,
-        ),
-      ],
-    );
-  }
-
   /// Return a diagnostic indicating that [member] is not a correct override of
   /// [superMember].
   LocatedDiagnostic invalidOverride(

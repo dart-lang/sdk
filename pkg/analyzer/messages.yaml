@@ -24404,10 +24404,10 @@ StaticWarningCode:
   invalidNullAwareOperator:
     type: staticWarning
     parameters:
-      String p0: the null-aware operator that is invalid
-      String p1: the non-null-aware operator that can replace the invalid operator
-    problemMessage: "The receiver can't be null, so the null-aware operator '#p0' is unnecessary."
-    correctionMessage: "Try replacing the operator '#p0' with '#p1'."
+      String operator: the null-aware operator that is invalid
+      String replacement: the non-null-aware operator that can replace the invalid operator
+    problemMessage: "The receiver can't be null, so the null-aware operator '#operator' is unnecessary."
+    correctionMessage: "Try replacing the operator '#operator' with '#replacement'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -24489,11 +24489,11 @@ StaticWarningCode:
   invalidNullAwareOperatorAfterShortCircuit:
     type: staticWarning
     parameters:
-      Object p0: the null-aware operator that is invalid
-      Object p1: the non-null-aware operator that can replace the invalid operator
+      String operator: the null-aware operator that is invalid
+      String replacement: the non-null-aware operator that can replace the invalid operator
     sharedName: invalidNullAwareOperator
-    problemMessage: "The receiver can't be 'null' because of short-circuiting, so the null-aware operator '#p0' can't be used."
-    correctionMessage: "Try replacing the operator '#p0' with '#p1'."
+    problemMessage: "The receiver can't be 'null' because of short-circuiting, so the null-aware operator '#operator' can't be used."
+    correctionMessage: "Try replacing the operator '#operator' with '#replacement'."
     hasPublishedDocs: true
   invalidNullAwareElement:
     type: staticWarning
