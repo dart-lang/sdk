@@ -4601,8 +4601,10 @@ expectedOneListPatternTypeArguments = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// int p0: the number of provided type arguments
-const DiagnosticWithArguments<LocatableDiagnostic Function({required int p0})>
+/// int count: the number of provided type arguments
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required int count})
+>
 expectedOneListTypeArguments = DiagnosticWithArguments(
   name: 'expected_one_list_type_arguments',
   problemMessage:
@@ -4616,8 +4618,10 @@ expectedOneListTypeArguments = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// int p0: the number of provided type arguments
-const DiagnosticWithArguments<LocatableDiagnostic Function({required int p0})>
+/// int count: the number of provided type arguments
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required int count})
+>
 expectedOneSetTypeArguments = DiagnosticWithArguments(
   name: 'expected_one_set_type_arguments',
   problemMessage:
@@ -4729,8 +4733,10 @@ expectedTwoMapPatternTypeArguments = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// int p0: the number of provided type arguments
-const DiagnosticWithArguments<LocatableDiagnostic Function({required int p0})>
+/// int count: the number of provided type arguments
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required int count})
+>
 expectedTwoMapTypeArguments = DiagnosticWithArguments(
   name: 'expected_two_map_type_arguments',
   problemMessage:
@@ -18762,15 +18768,15 @@ LocatableDiagnostic _withArgumentsExpectedOneListPatternTypeArguments({
 }
 
 LocatableDiagnostic _withArgumentsExpectedOneListTypeArguments({
-  required int p0,
+  required int count,
 }) {
-  return LocatableDiagnosticImpl(diag.expectedOneListTypeArguments, [p0]);
+  return LocatableDiagnosticImpl(diag.expectedOneListTypeArguments, [count]);
 }
 
 LocatableDiagnostic _withArgumentsExpectedOneSetTypeArguments({
-  required int p0,
+  required int count,
 }) {
-  return LocatableDiagnosticImpl(diag.expectedOneSetTypeArguments, [p0]);
+  return LocatableDiagnosticImpl(diag.expectedOneSetTypeArguments, [count]);
 }
 
 LocatableDiagnostic _withArgumentsExpectedToken({required String p0}) {
@@ -18784,9 +18790,9 @@ LocatableDiagnostic _withArgumentsExpectedTwoMapPatternTypeArguments({
 }
 
 LocatableDiagnostic _withArgumentsExpectedTwoMapTypeArguments({
-  required int p0,
+  required int count,
 }) {
-  return LocatableDiagnosticImpl(diag.expectedTwoMapTypeArguments, [p0]);
+  return LocatableDiagnosticImpl(diag.expectedTwoMapTypeArguments, [count]);
 }
 
 LocatableDiagnostic _withArgumentsExperimentalMemberUse({

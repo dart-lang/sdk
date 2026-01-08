@@ -464,7 +464,7 @@ void PageSpace::YieldConcurrentMarking() {
   }
 }
 
-class BasePageIterator : ValueObject {
+class BasePageIterator : public ValueObject {
  public:
   explicit BasePageIterator(const PageSpace* space) : space_(space) {}
 

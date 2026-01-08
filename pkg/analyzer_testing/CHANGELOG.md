@@ -1,4 +1,4 @@
-## 0.1.8-dev
+## 0.1.8
 
 - Require version `10.0.0` of the `analyzer` package.
 - Change the behavior of `analysisOptionsContent` so that by default, the

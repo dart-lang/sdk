@@ -29,7 +29,7 @@ class DriverBasedAnalysisContext implements AnalysisContext {
 
   /// Get all the analysis options objects associated with this context.
   List<AnalysisOptionsImpl> get allAnalysisOptions => [
-    ...driver.analysisOptionsMap.entries.map((e) => e.options),
+    ...driver.analysisOptionsMap.options,
   ];
 
   @override

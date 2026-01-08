@@ -53,6 +53,7 @@ class StackResource {
 class ZoneAllocated {
  public:
   ZoneAllocated() {}
+  virtual ~ZoneAllocated() = default;
 
   // Implicitly allocate the object in the current zone.
   void* operator new(size_t size);

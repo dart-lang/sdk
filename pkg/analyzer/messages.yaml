@@ -5624,8 +5624,8 @@ CompileTimeErrorCode:
   expectedOneListTypeArguments:
     type: compileTimeError
     parameters:
-      int p0: the number of provided type arguments
-    problemMessage: "List literals require one type argument or none, but #p0 found."
+      int count: the number of provided type arguments
+    problemMessage: "List literals require one type argument or none, but #count found."
     correctionMessage: Try adjusting the number of type arguments.
     hasPublishedDocs: true
     documentation: |-
@@ -5653,8 +5653,8 @@ CompileTimeErrorCode:
   expectedOneSetTypeArguments:
     type: compileTimeError
     parameters:
-      int p0: the number of provided type arguments
-    problemMessage: "Set literals require one type argument or none, but #p0 were found."
+      int count: the number of provided type arguments
+    problemMessage: "Set literals require one type argument or none, but #count were found."
     correctionMessage: Try adjusting the number of type arguments.
     hasPublishedDocs: true
     documentation: |-
@@ -5682,8 +5682,8 @@ CompileTimeErrorCode:
   expectedTwoMapTypeArguments:
     type: compileTimeError
     parameters:
-      int p0: the number of provided type arguments
-    problemMessage: "Map literals require two type arguments or none, but #p0 found."
+      int count: the number of provided type arguments
+    problemMessage: "Map literals require two type arguments or none, but #count found."
     correctionMessage: Try adjusting the number of type arguments.
     hasPublishedDocs: true
     documentation: |-

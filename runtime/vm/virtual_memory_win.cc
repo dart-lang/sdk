@@ -52,13 +52,15 @@ void VirtualMemory::Init() {
   page_size_ = CalculatePageSize();
 #if defined(DART_COMPRESSED_POINTERS)
   ASSERT(compressed_heap_ == nullptr);
-  compressed_heap_ = Reserve(kCompressedHeapSize, kCompressedHeapAlignment);
+  compressed_heap_ = Reserve(kGuardRegionSize * 2 + kCompressedHeapSize,
+                             kCompressedHeapAlignment);
   if (compressed_heap_ == nullptr) {
     int error = GetLastError();
     FATAL("Failed to reserve region for compressed heap: %d", error);
   }
-  VirtualMemoryCompressedHeap::Init(compressed_heap_->address(),
-                                    compressed_heap_->size());
+  VirtualMemoryCompressedHeap::Init(
+      reinterpret_cast<void*>(compressed_heap_->start() + kGuardRegionSize),
+      kCompressedHeapSize);
 #endif  // defined(DART_COMPRESSED_POINTERS)
 }
 

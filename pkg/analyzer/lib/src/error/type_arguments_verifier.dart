@@ -18,7 +18,11 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
+
+typedef ExpectedTypeArgumentsDiagnosticCode =
+    DiagnosticWithArguments<LocatableDiagnostic Function({required int count})>;
 
 class TypeArgumentsVerifier {
   final AnalysisOptions _options;
@@ -613,11 +617,13 @@ class TypeArgumentsVerifier {
   void _checkTypeArgumentCount(
     TypeArgumentList typeArguments,
     int expectedCount,
-    DiagnosticCode code,
+    ExpectedTypeArgumentsDiagnosticCode code,
   ) {
     int actualCount = typeArguments.arguments.length;
     if (actualCount != expectedCount) {
-      _diagnosticReporter.atNode(typeArguments, code, arguments: [actualCount]);
+      _diagnosticReporter.report(
+        code.withArguments(count: actualCount).at(typeArguments),
+      );
     }
   }
 
