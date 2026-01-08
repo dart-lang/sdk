@@ -75,9 +75,7 @@ void runTestCaseAot(Uri source, bool throws) async {
   final goldenContents = await goldenFile.readAsString();
   final golden = RecordedUsages.fromJson(jsonDecode(goldenContents));
   final semanticEquals = actualSemantic == golden;
-  final update =
-      bool.fromEnvironment('updateExpectations') ||
-      Platform.environment['UPDATE_EXPECTATIONS'] != null;
+  final update = bool.fromEnvironment('updateExpectations');
   if (!semanticEquals || update) {
     compareResultWithExpectationsFile(
       source,

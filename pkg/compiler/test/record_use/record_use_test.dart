@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io' show File, Directory, Platform;
+import 'dart:io' show File, Directory;
 
 import 'package:compiler/compiler_api.dart' as api show OutputType;
 import 'package:compiler/compiler_api.dart';
@@ -11,7 +11,8 @@ import 'package:compiler/src/commandline_options.dart' show Flags;
 import 'package:compiler/src/util/memory_compiler.dart';
 import 'package:expect/expect.dart' show Expect;
 import 'package:path/path.dart' as path;
-import 'package:record_use/record_use.dart';
+import 'package:record_use/record_use_internal.dart';
+import 'package:test/test.dart';
 
 /// Options to pass to the compiler such as
 /// `Flags.disableTypeInference` or `Flags.disableInlining`
@@ -20,9 +21,9 @@ const List<String> compilerOptions = [Flags.writeResources];
 /// Run `dart --define=updateExpectations=true pkg/compiler/test/record_use/record_use_test.dart`
 /// to update.
 Future<void> main() async {
-  final dataDirectory = Directory.fromUri(Platform.script.resolve('data'));
   final vmTestCases = Directory('pkg/vm/testcases/transformations/record_use');
-  final testFiles = [...dataDirectory.listSync(), ...vmTestCases.listSync()]
+  final testFiles = vmTestCases
+      .listSync()
       .whereType<File>()
       .where((file) => file.path.endsWith('.dart'))
       .map(
@@ -36,36 +37,50 @@ Future<void> main() async {
 
   final allFiles = {for (final file in testFiles) file.uri.path: file.contents};
   for (final testFile in testFiles.where((element) => element.hasMain)) {
-    final recordedUsages = await compileWithUsages(
-      entryPoint: testFile.uri,
-      memorySourceFiles: allFiles,
-    );
-    final goldenFile = File(
-      path.join(
-        // TODO(https://github.com/dart-lang/native/issues/2885): Share test
-        // expectations with the VM.
-        Platform.script.resolve('golden').path,
-        path.setExtension(testFile.basename, '.json.expect'),
-      ),
-    );
-    const update = bool.fromEnvironment('updateExpectations');
-    if (!goldenFile.existsSync() || update) {
-      await goldenFile.create();
-      await goldenFile.writeAsString(recordedUsages);
-    } else {
-      final actual = RecordedUsages.fromJson(jsonDecode(recordedUsages));
-      final goldenContents = await goldenFile.readAsString();
-      final golden = RecordedUsages.fromJson(jsonDecode(goldenContents));
-      final semanticEquals = actual == golden;
-      if (!semanticEquals) {
-        // Print the error message based on string representation.
-        Expect.stringEquals(
-          recordedUsages.trim(),
-          goldenContents.trim(),
-          'Recorded usages for ${testFile.uri} do not match golden file.',
+    test(
+      '${testFile.file.path}',
+      skip: dart2jsNotSupported.contains(testFile.basename),
+      () async {
+        final recordedUsages = await compileWithUsages(
+          entryPoint: testFile.uri,
+          memorySourceFiles: allFiles,
         );
-      }
-    }
+        final goldenFile = File(testFile.file.path + '.json.expect');
+        const update = bool.fromEnvironment('updateExpectations');
+        if (!goldenFile.existsSync() || update) {
+          await goldenFile.create();
+          await goldenFile.writeAsString(recordedUsages);
+        } else {
+          final actual = Recordings.fromJson(jsonDecode(recordedUsages));
+          final goldenContents = await goldenFile.readAsString();
+          final golden = Recordings.fromJson(jsonDecode(goldenContents));
+          final semanticEquals = actual.semanticEquals(
+            golden,
+            allowMetadataMismatch: true,
+            // Definition loading units are not working in dart2js backend.
+            // https://github.com/dart-lang/native/issues/2890
+            allowDefinitionLoadingUnitNull: true,
+            allowMoreConstArguments: true,
+            allowTearOffToStaticPromotion: true,
+            expectedIsSubset: dart2jsDeferLoadedLibrary.contains(
+              testFile.basename,
+            ),
+            uriMapping: (String uri) =>
+                uri.replaceFirst('memory:sdk/tests/web/native/', ''),
+            loadingUnitMapping: (String unit) =>
+                const <String, String>{'out': '1', 'out_1': '2'}[unit] ?? unit,
+          );
+          if (!semanticEquals) {
+            // Print the error message based on string representation.
+            Expect.stringEquals(
+              recordedUsages.trim(),
+              goldenContents.trim(),
+              'Recorded usages for ${testFile.uri} do not match golden file.',
+            );
+          }
+        }
+      },
+    );
   }
 }
 
@@ -110,3 +125,35 @@ Future<String> compileWithUsages({
 Uri _createUri(String fileName) {
   return Uri.parse('memory:sdk/tests/web/native/$fileName');
 }
+
+const dart2jsNotSupported = {
+  // No support for instance constants.
+  // https://github.com/dart-lang/native/issues/2893
+  'instance_class.dart',
+  'instance_complex.dart',
+  'instance_duplicates.dart',
+  'instance_method.dart',
+  'instance_not_annotation.dart',
+  'nested.dart',
+  'record_enum.dart',
+  'record_instance_constant_empty.dart',
+  // No support for lists and map constants.
+  // https://github.com/dart-lang/native/issues/2896
+  'types_of_arguments.dart',
+  // Named arguments are converted to positional arguments.
+  // https://github.com/dart-lang/native/issues/2883
+  'named_and_positional.dart',
+  'named_both.dart',
+  'named_optional.dart',
+  'named_required.dart',
+  // Extension methods are broken.
+  // https://github.com/dart-lang/native/issues/2926
+  'extension.dart',
+};
+
+// dart2js also records loadDeferredLibrary calls.
+// https://github.com/dart-lang/native/issues/2892
+const dart2jsDeferLoadedLibrary = {
+  'loading_units_simple.dart',
+  'loading_units_multiple.dart',
+};
