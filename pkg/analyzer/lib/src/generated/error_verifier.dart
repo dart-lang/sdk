@@ -6314,12 +6314,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 );
               } else {
                 if (!_isWildcardSuperFormalPositionalParameter(parameter)) {
-                  diagnosticReporter.atEntity(
-                    errorTarget,
-                    parameterElement.isPositional
-                        ? diag.missingDefaultValueForParameterPositional
-                        : diag.missingDefaultValueForParameter,
-                    arguments: [parameterName?.lexeme ?? '?'],
+                  diagnosticReporter.report(
+                    (parameterElement.isPositional
+                            ? diag.missingDefaultValueForParameterPositional
+                            : diag.missingDefaultValueForParameter)
+                        .withArguments(name: parameterName?.lexeme ?? '?')
+                        .at(errorTarget),
                   );
                 }
               }
