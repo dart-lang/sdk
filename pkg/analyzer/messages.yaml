@@ -17691,17 +17691,17 @@ CompileTimeErrorCode:
   uncheckedMethodInvocationOfNullableValue:
     type: compileTimeError
     parameters:
-      String p0: the name of the method
+      String name: the name of the method
     sharedName: uncheckedUseOfNullableValue
-    problemMessage: "The method '#p0' can't be unconditionally invoked because the receiver can be 'null'."
+    problemMessage: "The method '#name' can't be unconditionally invoked because the receiver can be 'null'."
     correctionMessage: "Try making the call conditional (using '?.') or adding a null check to the target ('!')."
     hasPublishedDocs: true
   uncheckedOperatorInvocationOfNullableValue:
     type: compileTimeError
     parameters:
-      String p0: the name of the operator
+      String operator: the name of the operator
     sharedName: uncheckedUseOfNullableValue
-    problemMessage: "The operator '#p0' can't be unconditionally invoked because the receiver can be 'null'."
+    problemMessage: "The operator '#operator' can't be unconditionally invoked because the receiver can be 'null'."
     correctionMessage: "Try adding a null check to the target ('!')."
     hasPublishedDocs: true
   uncheckedUseOfNullableValueInYieldEach:
@@ -17784,9 +17784,9 @@ CompileTimeErrorCode:
   uncheckedPropertyAccessOfNullableValue:
     type: compileTimeError
     parameters:
-      String p0: the name of the property
+      String name: the name of the property
     sharedName: uncheckedUseOfNullableValue
-    problemMessage: "The property '#p0' can't be unconditionally accessed because the receiver can be 'null'."
+    problemMessage: "The property '#name' can't be unconditionally accessed because the receiver can be 'null'."
     correctionMessage: "Try making the access conditional (using '?.') or adding a null check to the target ('!')."
     hasPublishedDocs: true
   undefinedAnnotation:

@@ -15632,9 +15632,9 @@ uncheckedInvocationOfNullableValue = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the method
+/// String name: the name of the method
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 uncheckedMethodInvocationOfNullableValue = DiagnosticWithArguments(
   name: 'unchecked_use_of_nullable_value',
@@ -15652,9 +15652,9 @@ uncheckedMethodInvocationOfNullableValue = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the operator
+/// String operator: the name of the operator
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String operator})
 >
 uncheckedOperatorInvocationOfNullableValue = DiagnosticWithArguments(
   name: 'unchecked_use_of_nullable_value',
@@ -15670,9 +15670,9 @@ uncheckedOperatorInvocationOfNullableValue = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the property
+/// String name: the name of the property
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 uncheckedPropertyAccessOfNullableValue = DiagnosticWithArguments(
   name: 'unchecked_use_of_nullable_value',
@@ -21158,28 +21158,28 @@ LocatableDiagnostic _withArgumentsUnableGetContent({required Object p0}) {
 }
 
 LocatableDiagnostic _withArgumentsUncheckedMethodInvocationOfNullableValue({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(
     diag.uncheckedMethodInvocationOfNullableValue,
-    [p0],
+    [name],
   );
 }
 
 LocatableDiagnostic _withArgumentsUncheckedOperatorInvocationOfNullableValue({
-  required String p0,
+  required String operator,
 }) {
   return LocatableDiagnosticImpl(
     diag.uncheckedOperatorInvocationOfNullableValue,
-    [p0],
+    [operator],
   );
 }
 
 LocatableDiagnostic _withArgumentsUncheckedPropertyAccessOfNullableValue({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(diag.uncheckedPropertyAccessOfNullableValue, [
-    p0,
+    name,
   ]);
 }
 
