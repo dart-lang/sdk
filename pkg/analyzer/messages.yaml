@@ -13797,9 +13797,9 @@ CompileTimeErrorCode:
   noCombinedSuperSignature:
     type: compileTimeError
     parameters:
-      String p0: the name of the class where override error was detected
-      String p1: the list of candidate signatures which cannot be combined
-    problemMessage: "Can't infer missing types in '#p0' from overridden methods: #p1."
+      String className: the name of the class where override error was detected
+      String candidateSignatures: the list of candidate signatures which cannot be combined
+    problemMessage: "Can't infer missing types in '#className' from overridden methods: #candidateSignatures."
     correctionMessage: "Try providing explicit types for this method's parameters and return type."
     hasPublishedDocs: true
     documentation: |-
@@ -17336,9 +17336,9 @@ CompileTimeErrorCode:
   topLevelCycle:
     type: compileTimeError
     parameters:
-      String p0: the element whose type could not be inferred.
-      String p1: The [TopLevelInferenceError]'s arguments that led to the cycle.
-    problemMessage: "The type of '#p0' can't be inferred because it depends on itself through the cycle: #p1."
+      String name: the element whose type could not be inferred.
+      String cycle: The names of the elements in the cycle (sorted and comma-separated).
+    problemMessage: "The type of '#name' can't be inferred because it depends on itself through the cycle: #cycle."
     correctionMessage: Try adding an explicit type to one or more of the variables in the cycle in order to break the cycle.
     hasPublishedDocs: true
     documentation: |-

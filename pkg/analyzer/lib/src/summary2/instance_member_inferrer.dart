@@ -424,11 +424,11 @@ class InstanceMemberInferrer {
           combinedSignatureType,
         );
       } else {
-        var conflictExplanation = '<unknown>';
+        var candidateSignatures = '<unknown>';
         if (conflicts.length == 1) {
           var conflict = conflicts.single;
           if (conflict is CandidatesConflict) {
-            conflictExplanation = conflict.candidates
+            candidateSignatures = conflict.candidates
                 .map((candidate) {
                   var className = candidate.enclosingElement!.name ?? '';
                   var typeStr = candidate.type.getDisplayString();
@@ -438,10 +438,10 @@ class InstanceMemberInferrer {
           }
         }
 
-        element.typeInferenceError = TopLevelInferenceError(
-          kind: TopLevelInferenceErrorKind.overrideNoCombinedSuperSignature,
-          arguments: [conflictExplanation],
-        );
+        element.typeInferenceError =
+            TopLevelInferenceErrorNoCombinedSuperSignature(
+              candidateSignatures: candidateSignatures,
+            );
       }
     }
 

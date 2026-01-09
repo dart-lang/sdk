@@ -11568,10 +11568,14 @@ const DiagnosticWithoutArguments noAnnotationConstructorArguments =
     );
 
 /// Parameters:
-/// String p0: the name of the class where override error was detected
-/// String p1: the list of candidate signatures which cannot be combined
+/// String className: the name of the class where override error was detected
+/// String candidateSignatures: the list of candidate signatures which cannot
+///                             be combined
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String className,
+    required String candidateSignatures,
+  })
 >
 noCombinedSuperSignature = DiagnosticWithArguments(
   name: 'no_combined_super_signature',
@@ -15314,10 +15318,11 @@ todo = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the element whose type could not be inferred.
-/// String p1: The [TopLevelInferenceError]'s arguments that led to the cycle.
+/// String name: the element whose type could not be inferred.
+/// String cycle: The names of the elements in the cycle (sorted and
+///               comma-separated).
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({required String name, required String cycle})
 >
 topLevelCycle = DiagnosticWithArguments(
   name: 'top_level_cycle',
@@ -20236,10 +20241,13 @@ LocatableDiagnostic _withArgumentsNewWithUndefinedConstructorDefault({
 }
 
 LocatableDiagnostic _withArgumentsNoCombinedSuperSignature({
-  required String p0,
-  required String p1,
+  required String className,
+  required String candidateSignatures,
 }) {
-  return LocatableDiagnosticImpl(diag.noCombinedSuperSignature, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.noCombinedSuperSignature, [
+    className,
+    candidateSignatures,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsNoDefaultSuperConstructorExplicit({
@@ -21034,10 +21042,10 @@ LocatableDiagnostic _withArgumentsTodo({required String message}) {
 }
 
 LocatableDiagnostic _withArgumentsTopLevelCycle({
-  required String p0,
-  required String p1,
+  required String name,
+  required String cycle,
 }) {
-  return LocatableDiagnosticImpl(diag.topLevelCycle, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.topLevelCycle, [name, cycle]);
 }
 
 LocatableDiagnostic _withArgumentsTypeAnnotationDeferredClass({

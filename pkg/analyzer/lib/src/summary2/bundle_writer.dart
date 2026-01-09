@@ -1258,11 +1258,8 @@ extension _BinaryWriterExtension on BinaryWriter {
   }
 
   void _writeTopLevelInferenceError(TopLevelInferenceError? error) {
-    if (error != null) {
-      writeByte(error.kind.index);
-      writeStringList(error.arguments);
-    } else {
-      writeByte(TopLevelInferenceErrorKind.none.index);
-    }
+    writeOptionalObject(error, (error) {
+      error.write(this);
+    });
   }
 }

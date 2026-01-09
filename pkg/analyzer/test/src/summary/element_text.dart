@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/summary2/export.dart';
-import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -1974,15 +1973,18 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeTypeInferenceError(TopLevelInferenceError? error) {
-    if (error != null) {
-      String kindName = error.kind.toString();
-      kindName = kindName.removePrefixOrSelf('TopLevelInferenceErrorKind.');
-      _sink.writelnWithIndent('typeInferenceError: $kindName');
-      _sink.withIndent(() {
-        if (kindName == 'dependencyCycle') {
-          _sink.writelnWithIndent('arguments: ${error.arguments}');
-        }
-      });
+    switch (error) {
+      case null:
+        break;
+      case TopLevelInferenceErrorDependencyCycle(:var cycle):
+        _sink.writelnWithIndent('typeInferenceError: dependencyCycle');
+        _sink.withIndent(() {
+          _sink.writelnWithIndent('arguments: $cycle');
+        });
+      case TopLevelInferenceErrorNoCombinedSuperSignature():
+        _sink.writelnWithIndent(
+          'typeInferenceError: overrideNoCombinedSuperSignature',
+        );
     }
   }
 

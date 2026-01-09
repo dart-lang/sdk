@@ -4270,12 +4270,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (error == null) {
       return;
     }
-    if (error.kind == TopLevelInferenceErrorKind.dependencyCycle) {
-      var argumentsText = error.arguments.join(', ');
-      diagnosticReporter.atToken(
-        node.name,
-        diag.topLevelCycle,
-        arguments: [node.name.lexeme, argumentsText],
+    if (error is TopLevelInferenceErrorDependencyCycle) {
+      diagnosticReporter.report(
+        diag.topLevelCycle
+            .withArguments(
+              name: node.name.lexeme,
+              cycle: error.cycle.join(', '),
+            )
+            .at(node.name),
       );
     }
   }
