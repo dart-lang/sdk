@@ -6608,9 +6608,9 @@ CompileTimeErrorCode:
   extensionTypeInheritedMemberConflict:
     type: compileTimeError
     parameters:
-      String p0: the name of the extension type
-      String p1: the name of the conflicting member
-    problemMessage: "The extension type '#p0' has more than one distinct member named '#p1' from implemented types."
+      String extensionTypeName: the name of the extension type
+      String memberName: the name of the conflicting member
+    problemMessage: "The extension type '#extensionTypeName' has more than one distinct member named '#memberName' from implemented types."
     correctionMessage: Try redeclaring the corresponding member in this extension type.
     hasPublishedDocs: true
     documentation: |-
@@ -6748,10 +6748,10 @@ CompileTimeErrorCode:
   extensionTypeWithAbstractMember:
     type: compileTimeError
     parameters:
-      String p0: the name of the abstract method
-      String p1: the name of the enclosing extension type
-    problemMessage: "'#p0' must have a method body because '#p1' is an extension type."
-    correctionMessage: "Try adding a body to '#p0'."
+      String methodName: the name of the abstract method
+      String extensionTypeName: the name of the enclosing extension type
+    problemMessage: "'#methodName' must have a method body because '#extensionTypeName' is an extension type."
+    correctionMessage: "Try adding a body to '#methodName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -6941,8 +6941,8 @@ CompileTimeErrorCode:
   fieldInitializedByMultipleInitializers:
     type: compileTimeError
     parameters:
-      String p0: the name of the field being initialized multiple times
-    problemMessage: "The field '#p0' can't be initialized twice in the same constructor."
+      String name: the name of the field being initialized multiple times
+    problemMessage: "The field '#name' can't be initialized twice in the same constructor."
     correctionMessage: Try removing one of the initializations.
     hasPublishedDocs: true
     documentation: |-
@@ -7124,9 +7124,9 @@ CompileTimeErrorCode:
   fieldInitializerNotAssignable:
     type: compileTimeError
     parameters:
-      Type p0: the name of the type of the initializer expression
-      Type p1: the name of the type of the field
-    problemMessage: "The initializer type '#p0' can't be assigned to the field type '#p1'."
+      Type initializerExpressionType: the name of the type of the initializer expression
+      Type fieldType: the name of the type of the field
+    problemMessage: "The initializer type '#initializerExpressionType' can't be assigned to the field type '#fieldType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -7174,10 +7174,10 @@ CompileTimeErrorCode:
   constFieldInitializerNotAssignable:
     type: compileTimeError
     parameters:
-      Type p0: the name of the type of the initializer expression
-      Type p1: the name of the type of the field
+      Type initializerExpressionType: the name of the type of the initializer expression
+      Type fieldType: the name of the type of the field
     sharedName: fieldInitializerNotAssignable
-    problemMessage: "The initializer type '#p0' can't be assigned to the field type '#p1' in a const constructor."
+    problemMessage: "The initializer type '#initializerExpressionType' can't be assigned to the field type '#fieldType' in a const constructor."
     correctionMessage: "Try using a subtype, or removing the 'const' keyword"
     hasPublishedDocs: true
   fieldInitializerRedirectingConstructor:
@@ -7254,9 +7254,9 @@ CompileTimeErrorCode:
   fieldInitializingFormalNotAssignable:
     type: compileTimeError
     parameters:
-      Type p0: the name of the type of the field formal parameter
-      Type p1: the name of the type of the field
-    problemMessage: "The parameter type '#p0' is incompatible with the field type '#p1'."
+      Type formalParameterType: the name of the type of the field formal parameter
+      Type fieldType: the name of the type of the field
+    problemMessage: "The parameter type '#formalParameterType' is incompatible with the field type '#fieldType'."
     correctionMessage: "Try changing or removing the parameter's type, or changing the field's type."
     hasPublishedDocs: true
     documentation: |-
@@ -7320,29 +7320,29 @@ CompileTimeErrorCode:
   finalClassExtendedOutsideOfLibrary:
     type: compileTimeError
     parameters:
-      String p0: the name of the final class being extended.
+      String name: the name of the final class being extended.
     sharedName: invalidUseOfTypeOutsideLibrary
-    problemMessage: "The class '#p0' can't be extended outside of its library because it's a final class."
+    problemMessage: "The class '#name' can't be extended outside of its library because it's a final class."
     hasPublishedDocs: true
   finalClassImplementedOutsideOfLibrary:
     type: compileTimeError
     parameters:
-      String p0: the name of the final class being implemented.
+      String name: the name of the final class being implemented.
     sharedName: invalidUseOfTypeOutsideLibrary
-    problemMessage: "The class '#p0' can't be implemented outside of its library because it's a final class."
+    problemMessage: "The class '#name' can't be implemented outside of its library because it's a final class."
     hasPublishedDocs: true
   finalClassUsedAsMixinConstraintOutsideOfLibrary:
     type: compileTimeError
     parameters:
-      String p0: the name of the final class being used as a mixin superclass constraint.
+      String name: the name of the final class being used as a mixin superclass constraint.
     sharedName: invalidUseOfTypeOutsideLibrary
-    problemMessage: "The class '#p0' can't be used as a mixin superclass constraint outside of its library because it's a final class."
+    problemMessage: "The class '#name' can't be used as a mixin superclass constraint outside of its library because it's a final class."
     hasPublishedDocs: true
   finalInitializedInDeclarationAndConstructor:
     type: compileTimeError
     parameters:
-      String p0: the name of the field in question
-    problemMessage: "'#p0' is final and was given a value when it was declared, so it can't be set to a new value."
+      String name: the name of the field in question
+    problemMessage: "'#name' is final and was given a value when it was declared, so it can't be set to a new value."
     correctionMessage: Try removing one of the initializations.
     hasPublishedDocs: true
     documentation: |-
@@ -7390,8 +7390,8 @@ CompileTimeErrorCode:
   finalNotInitialized:
     type: compileTimeError
     parameters:
-      String p0: the name of the uninitialized final variable
-    problemMessage: "The final variable '#p0' must be initialized."
+      String name: the name of the uninitialized final variable
+    problemMessage: "The final variable '#name' must be initialized."
     correctionMessage: Try initializing the variable.
     hasPublishedDocs: true
     documentation: |-
@@ -7549,10 +7549,10 @@ CompileTimeErrorCode:
   forInOfInvalidElementType:
     type: compileTimeError
     parameters:
-      Type p0: the type of the iterable expression.
-      String p1: the sequence type -- Iterable for `for` or Stream for `await for`.
-      Type p2: the loop variable type.
-    problemMessage: "The type '#p0' used in the 'for' loop must implement '#p1' with a type argument that can be assigned to '#p2'."
+      Type iterableType: the type of the iterable expression.
+      String expectedTypeName: the sequence type -- Iterable for `for` or Stream for `await for`.
+      Type loopVariableType: the loop variable type.
+    problemMessage: "The type '#iterableType' used in the 'for' loop must implement '#expectedTypeName' with a type argument that can be assigned to '#loopVariableType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description

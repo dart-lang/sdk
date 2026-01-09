@@ -248,10 +248,10 @@ class _Constructor {
               diag.fieldInitializedInParameterAndInitializer.at(fieldName),
             );
           } else if (state == _InitState.initInInitializer) {
-            diagnosticReporter.atNode(
-              fieldName,
-              diag.fieldInitializedByMultipleInitializers,
-              arguments: [fieldElement.displayName],
+            diagnosticReporter.report(
+              diag.fieldInitializedByMultipleInitializers
+                  .withArguments(name: fieldElement.displayName)
+                  .at(fieldName),
             );
           }
         }
@@ -275,10 +275,10 @@ class _Constructor {
         } else if (state == _InitState.initInDeclaration) {
           if (fieldElement.isFinal || fieldElement.isConst) {
             if (formalParameter.name case var name?) {
-              diagnosticReporter.atToken(
-                name,
-                diag.finalInitializedInDeclarationAndConstructor,
-                arguments: [fieldElement.displayName],
+              diagnosticReporter.report(
+                diag.finalInitializedInDeclarationAndConstructor
+                    .withArguments(name: fieldElement.displayName)
+                    .at(name),
               );
             }
           }
