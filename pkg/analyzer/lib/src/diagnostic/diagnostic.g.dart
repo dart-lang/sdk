@@ -9569,10 +9569,13 @@ const DiagnosticWithoutArguments libraryDirectiveNotFirst =
     );
 
 /// Parameters:
-/// Type p0: the actual type of the list element
-/// Type p1: the expected type of the list element
+/// Type actualType: the actual type of the list element
+/// Type expectedType: the expected type of the list element
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 listElementTypeNotAssignable = DiagnosticWithArguments(
   name: 'list_element_type_not_assignable',
@@ -9586,10 +9589,13 @@ listElementTypeNotAssignable = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the actual type of the list element
-/// Type p1: the expected type of the list element
+/// Type actualType: the actual type of the list element
+/// Type expectedType: the expected type of the list element
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 listElementTypeNotAssignableNullability = DiagnosticWithArguments(
   name: 'list_element_type_not_assignable',
@@ -14676,10 +14682,13 @@ setElementFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Type p0: the actual type of the set element
-/// Type p1: the expected type of the set element
+/// Type actualType: the actual type of the set element
+/// Type expectedType: the expected type of the set element
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 setElementTypeNotAssignable = DiagnosticWithArguments(
   name: 'set_element_type_not_assignable',
@@ -14693,10 +14702,13 @@ setElementTypeNotAssignable = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the actual type of the set element
-/// Type p1: the expected type of the set element
+/// Type actualType: the actual type of the set element
+/// Type expectedType: the expected type of the set element
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 setElementTypeNotAssignableNullability = DiagnosticWithArguments(
   name: 'set_element_type_not_assignable',
@@ -19837,19 +19849,22 @@ LocatableDiagnostic _withArgumentsLabelUndefined({required String p0}) {
 }
 
 LocatableDiagnostic _withArgumentsListElementTypeNotAssignable({
-  required DartType p0,
-  required DartType p1,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
-  return LocatableDiagnosticImpl(diag.listElementTypeNotAssignable, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.listElementTypeNotAssignable, [
+    actualType,
+    expectedType,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsListElementTypeNotAssignableNullability({
-  required DartType p0,
-  required DartType p1,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   return LocatableDiagnosticImpl(diag.listElementTypeNotAssignableNullability, [
-    p0,
-    p1,
+    actualType,
+    expectedType,
   ]);
 }
 
@@ -20859,19 +20874,22 @@ LocatableDiagnostic _withArgumentsSealedClassSubtypeOutsideOfLibrary({
 }
 
 LocatableDiagnostic _withArgumentsSetElementTypeNotAssignable({
-  required DartType p0,
-  required DartType p1,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
-  return LocatableDiagnosticImpl(diag.setElementTypeNotAssignable, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.setElementTypeNotAssignable, [
+    actualType,
+    expectedType,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsSetElementTypeNotAssignableNullability({
-  required DartType p0,
-  required DartType p1,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   return LocatableDiagnosticImpl(diag.setElementTypeNotAssignableNullability, [
-    p0,
-    p1,
+    actualType,
+    expectedType,
   ]);
 }
 

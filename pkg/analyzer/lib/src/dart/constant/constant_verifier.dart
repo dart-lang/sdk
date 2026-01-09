@@ -1318,16 +1318,22 @@ class _ConstLiteralVerifier {
         value,
         verifier._typeSystem.makeNullable(listElementType),
       )) {
-        verifier._diagnosticReporter.atNode(
-          expression,
-          diag.listElementTypeNotAssignableNullability,
-          arguments: [value.type, listElementType],
+        verifier._diagnosticReporter.report(
+          diag.listElementTypeNotAssignableNullability
+              .withArguments(
+                actualType: value.type,
+                expectedType: listElementType,
+              )
+              .at(expression),
         );
       } else {
-        verifier._diagnosticReporter.atNode(
-          expression,
-          diag.listElementTypeNotAssignable,
-          arguments: [value.type, listElementType],
+        verifier._diagnosticReporter.report(
+          diag.listElementTypeNotAssignable
+              .withArguments(
+                actualType: value.type,
+                expectedType: listElementType,
+              )
+              .at(expression),
         );
       }
       return false;
@@ -1524,16 +1530,22 @@ class _ConstLiteralVerifier {
         value,
         verifier._typeSystem.makeNullable(config.elementType),
       )) {
-        verifier._diagnosticReporter.atNode(
-          expression,
-          diag.setElementTypeNotAssignableNullability,
-          arguments: [value.type, config.elementType],
+        verifier._diagnosticReporter.report(
+          diag.setElementTypeNotAssignableNullability
+              .withArguments(
+                actualType: value.type,
+                expectedType: config.elementType,
+              )
+              .at(expression),
         );
       } else {
-        verifier._diagnosticReporter.atNode(
-          expression,
-          diag.setElementTypeNotAssignable,
-          arguments: [value.type, config.elementType],
+        verifier._diagnosticReporter.report(
+          diag.setElementTypeNotAssignable
+              .withArguments(
+                actualType: value.type,
+                expectedType: config.elementType,
+              )
+              .at(expression),
         );
       }
       return false;

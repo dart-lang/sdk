@@ -10605,17 +10605,17 @@ CompileTimeErrorCode:
   listElementTypeNotAssignableNullability:
     type: compileTimeError
     parameters:
-      Type p0: the actual type of the list element
-      Type p1: the expected type of the list element
+      Type actualType: the actual type of the list element
+      Type expectedType: the expected type of the list element
     sharedName: listElementTypeNotAssignable
-    problemMessage: "The element type '#p0' can't be assigned to the list type '#p1'."
+    problemMessage: "The element type '#actualType' can't be assigned to the list type '#expectedType'."
     hasPublishedDocs: true
   listElementTypeNotAssignable:
     type: compileTimeError
     parameters:
-      Type p0: the actual type of the list element
-      Type p1: the expected type of the list element
-    problemMessage: "The element type '#p0' can't be assigned to the list type '#p1'."
+      Type actualType: the actual type of the list element
+      Type expectedType: the expected type of the list element
+    problemMessage: "The element type '#actualType' can't be assigned to the list type '#expectedType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -16345,17 +16345,17 @@ CompileTimeErrorCode:
   setElementTypeNotAssignableNullability:
     type: compileTimeError
     parameters:
-      Type p0: the actual type of the set element
-      Type p1: the expected type of the set element
+      Type actualType: the actual type of the set element
+      Type expectedType: the expected type of the set element
     sharedName: setElementTypeNotAssignable
-    problemMessage: "The element type '#p0' can't be assigned to the set type '#p1'."
+    problemMessage: "The element type '#actualType' can't be assigned to the set type '#expectedType'."
     hasPublishedDocs: true
   setElementTypeNotAssignable:
     type: compileTimeError
     parameters:
-      Type p0: the actual type of the set element
-      Type p1: the expected type of the set element
-    problemMessage: "The element type '#p0' can't be assigned to the set type '#p1'."
+      Type actualType: the actual type of the set element
+      Type expectedType: the expected type of the set element
+    problemMessage: "The element type '#actualType' can't be assigned to the set type '#expectedType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description

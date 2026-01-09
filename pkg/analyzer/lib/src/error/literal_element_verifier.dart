@@ -77,10 +77,10 @@ class LiteralElementVerifier {
         (forList: true, assignableWhenNullable: true) =>
           diag.listElementTypeNotAssignableNullability,
       };
-      _diagnosticReporter.atNode(
-        errorNode,
-        errorCode,
-        arguments: [type, elementType],
+      _diagnosticReporter.report(
+        errorCode
+            .withArguments(actualType: type, expectedType: elementType)
+            .at(errorNode),
       );
     }
   }
@@ -264,10 +264,13 @@ class LiteralElementVerifier {
         expression,
       );
       if (implicitCallMethod == null) {
-        _diagnosticReporter.atNode(
-          expression,
-          errorCode,
-          arguments: [iterableElementType, elementType],
+        _diagnosticReporter.report(
+          errorCode
+              .withArguments(
+                actualType: iterableElementType,
+                expectedType: elementType,
+              )
+              .at(expression),
         );
       } else {
         var tearoffType = implicitCallMethod.type;
@@ -297,10 +300,13 @@ class LiteralElementVerifier {
           elementType,
           strictCasts: _strictCasts,
         )) {
-          _diagnosticReporter.atNode(
-            expression,
-            errorCode,
-            arguments: [iterableElementType, elementType],
+          _diagnosticReporter.report(
+            errorCode
+                .withArguments(
+                  actualType: iterableElementType,
+                  expectedType: elementType,
+                )
+                .at(expression),
           );
         }
       }
