@@ -295,6 +295,34 @@ bool b = ^false;
     _expectAnalysisError(params.errors.single, message: 'No doubles message');
   }
 
+  Future<void> test_partDiagnosticContextMessage() async {
+    writeAnalysisOptionsWithPlugin({'no_type_annotations': 'enable'});
+    newFile(file2Path, '''
+part of 'test.dart';
+
+class C {}
+''');
+    var code = TestCode.parseNormalized('''
+part 'test2.dart';
+
+C? c;
+''');
+    newFile(filePath, code.code);
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, hasLength(1), reason: 'Expected one diagnostic.');
+    var diagnostic = params.errors.single;
+    _expectAnalysisError(diagnostic, message: 'No type annotations');
+    expect(
+      diagnostic.contextMessages,
+      hasLength(1),
+      reason: 'Expected one context message.',
+    );
+  }
+
   Future<void> test_pluginDetails() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
@@ -312,6 +340,7 @@ bool b = ^false;
         'no_doubles',
         'no_doubles_custom_severity',
         'no_references_to_strings',
+        'no_type_annotations',
       ]),
     );
     expect(details.warningRules, unorderedEquals(['no_bools']));
@@ -736,6 +765,7 @@ class _NoLiteralsPlugin extends Plugin {
     registry.registerLintRule(NoDoublesRule());
     registry.registerLintRule(NoDoublesCustomSeverityRule());
     registry.registerLintRule(NoReferencesToStringsRule());
+    registry.registerLintRule(NoTypeAnnotationsRule());
     registry.registerFixForRule(NoBoolsRule.code, _WrapInQuotes.new);
     registry.registerAssist(_InvertBoolean.new);
   }

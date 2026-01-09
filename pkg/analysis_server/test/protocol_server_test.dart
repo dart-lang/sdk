@@ -8,6 +8,7 @@ import 'package:analysis_server/src/protocol_server.dart'
     hide DiagnosticMessage, Enum;
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -442,6 +443,14 @@ class MockDiagnosticCode implements engine.DiagnosticCode {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class _AnalysisSessionMock implements engine.AnalysisSession {
+  @override
+  SomeFileResult getFile(String path) => InvalidPathResult();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class _ResolvedUnitResultImplMock implements engine.ResolvedUnitResultImpl {
   @override
   final engine.LineInfo lineInfo;
@@ -451,6 +460,9 @@ class _ResolvedUnitResultImplMock implements engine.ResolvedUnitResultImpl {
 
   @override
   final String path;
+
+  @override
+  final session = _AnalysisSessionMock();
 
   _ResolvedUnitResultImplMock({
     required this.lineInfo,

@@ -13,6 +13,7 @@ import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analysis_server_plugin/src/registry.dart';
+import 'package:analysis_server_plugin/src/utilities/diagnostic_messages.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
@@ -509,6 +510,18 @@ class PluginServer {
             diagnostic.message,
             diagnostic.diagnosticCode.lowerCaseName,
             correction: diagnostic.correctionMessage,
+            contextMessages: diagnostic.contextMessages
+                .map(
+                  (message) => newDiagnosticMessage(
+                    message,
+                    analysisContext.currentSession,
+                    lineInfo: message.filePath == unitResult.path
+                        ? unitResult.lineInfo
+                        : null,
+                  ),
+                )
+                .nonNulls
+                .toList(),
             // TODO(srawlins): Use a valid value here.
             hasFix: true,
           ),
