@@ -7,7 +7,6 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../../base/identifiers.dart';
 import '../../base/lookup_result.dart';
 import '../../base/messages.dart';
 import '../../base/problems.dart' show unexpected, unhandled;
@@ -15,7 +14,6 @@ import '../../builder/builder.dart';
 import '../../builder/constructor_builder.dart';
 import '../../builder/constructor_reference_builder.dart';
 import '../../builder/declaration_builders.dart';
-import '../../builder/formal_parameter_builder.dart';
 import '../../builder/function_builder.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/named_type_builder.dart';
@@ -535,7 +533,7 @@ class FactoryEncoding implements InferredTypeListener {
   void _setRedirectingFactoryError({required String message}) {
     assert(_redirectionTarget != null);
 
-    setBody(createRedirectingFactoryErrorBody(message));
+    registerFunctionBody(createRedirectingFactoryErrorBody(message));
     _procedure.function.redirectingFactoryTarget =
         new RedirectingFactoryTarget.error(message);
     if (_tearOff != null) {
@@ -816,8 +814,10 @@ class FactoryEncoding implements InferredTypeListener {
     return false;
   }
 
-  void setBody(Statement value) {
-    _procedure.function.body = value..parent = _procedure.function;
+  void registerFunctionBody(Statement? value) {
+    if (value != null) {
+      _procedure.function.body = value..parent = _procedure.function;
+    }
   }
 
   void becomeNative(SourceLoader loader) {
@@ -828,26 +828,6 @@ class FactoryEncoding implements InferredTypeListener {
   bool get isNative => _fragment.nativeMethodName != null;
 
   FunctionNode get function => _procedure.function;
-
-  FormalParameterBuilder? getFormal(Identifier identifier) {
-    if (_fragment.formals != null) {
-      for (FormalParameterBuilder formal in _fragment.formals!) {
-        if (formal.isWildcard &&
-            identifier.name == '_' &&
-            formal.fileOffset == identifier.nameOffset) {
-          return formal;
-        }
-        if (formal.name == identifier.name &&
-            formal.fileOffset == identifier.nameOffset) {
-          return formal;
-        }
-      }
-      // Coverage-ignore(suite): Not run.
-      // If we have any formals we should find the one we're looking for.
-      assert(false, "$identifier not found in ${_fragment.formals}");
-    }
-    return null;
-  }
 
   VariableDeclaration? getTearOffParameter(int index) {
     if (_tearOff != null) {

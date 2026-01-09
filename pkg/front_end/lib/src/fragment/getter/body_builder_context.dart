@@ -65,15 +65,13 @@ class GetterFragmentBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  VariableDeclaration getFormalParameter(int index) =>
-      _declaration.getFormalParameter(index);
-
-  @override
   VariableDeclaration? getTearOffParameter(int index) => null;
 
   @override
-  void registerFunctionBody(Statement body) {
-    function.body = body..parent = function;
+  void registerFunctionBody(Statement? body) {
+    if (body != null) {
+      function.body = body..parent = function;
+    }
   }
 
   @override

@@ -42,8 +42,6 @@ abstract class ConstructorEncoding {
 
   void prependInitializer(Initializer initializer);
 
-  VariableDeclaration getFormalParameter(int index);
-
   VariableDeclaration? getTearOffParameter(int index);
 
   VariableDeclaration? get thisVariable;
@@ -88,7 +86,7 @@ abstract class ConstructorEncoding {
     ConstructorFragmentDeclaration constructorDeclaration,
   );
 
-  void registerFunctionBody(Statement value);
+  void registerFunctionBody(Statement? value);
 
   void registerNoBodyConstructor();
 
@@ -128,8 +126,10 @@ class RegularConstructorEncoding implements ConstructorEncoding {
        _isEnumConstructor = isEnumConstructor;
 
   @override
-  void registerFunctionBody(Statement value) {
-    function.body = value..parent = function;
+  void registerFunctionBody(Statement? value) {
+    if (value != null) {
+      function.body = value..parent = function;
+    }
   }
 
   @override
@@ -370,21 +370,6 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   }
 
   @override
-  VariableDeclaration getFormalParameter(int index) {
-    if (_isEnumConstructor) {
-      // Skip synthetic parameters for index and name.
-      index += 2;
-    }
-    if (index < function.positionalParameters.length) {
-      return function.positionalParameters[index];
-    } else {
-      index -= function.positionalParameters.length;
-      assert(index < function.namedParameters.length);
-      return function.namedParameters[index];
-    }
-  }
-
-  @override
   VariableDeclaration? getTearOffParameter(int index) {
     Procedure? constructorTearOff = _constructorTearOff;
     if (constructorTearOff != null) {
@@ -503,8 +488,10 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   }
 
   @override
-  void registerFunctionBody(Statement value) {
-    function.body = value..parent = function;
+  void registerFunctionBody(Statement? value) {
+    if (value != null) {
+      function.body = value..parent = function;
+    }
   }
 
   @override
@@ -697,17 +684,6 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   @override
   void prependInitializer(Initializer initializer) {
     _initializers.insert(0, initializer);
-  }
-
-  @override
-  VariableDeclaration getFormalParameter(int index) {
-    if (index < function.positionalParameters.length) {
-      return function.positionalParameters[index];
-    } else {
-      index -= function.positionalParameters.length;
-      assert(index < function.namedParameters.length);
-      return function.namedParameters[index];
-    }
   }
 
   @override
@@ -1176,21 +1152,23 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
   }) {
     return [
       new FormalParameterBuilder(
-        FormalParameterKind.requiredPositional,
-        Modifiers.empty,
-        loader.target.intType,
-        "#index",
-        fileOffset,
+        kind: FormalParameterKind.requiredPositional,
+        modifiers: Modifiers.empty,
+        type: loader.target.intType,
+        name: "#index",
+        fileOffset: fileOffset,
         fileUri: fileUri,
+        nameOffset: null,
         hasImmediatelyDeclaredInitializer: false,
       ),
       new FormalParameterBuilder(
-        FormalParameterKind.requiredPositional,
-        Modifiers.empty,
-        loader.target.stringType,
-        "#name",
-        fileOffset,
+        kind: FormalParameterKind.requiredPositional,
+        modifiers: Modifiers.empty,
+        type: loader.target.stringType,
+        name: "#name",
+        fileOffset: fileOffset,
         fileUri: fileUri,
+        nameOffset: null,
         hasImmediatelyDeclaredInitializer: false,
       ),
       ...?formals,

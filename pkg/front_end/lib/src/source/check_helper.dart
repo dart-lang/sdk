@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
+    show FormalParameterKind;
+import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
+    show correspondingPublicName;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchyBase, ClassHierarchyMembers;
@@ -19,6 +24,7 @@ import '../api_prototype/experimental_flags.dart';
 import '../base/compiler_context.dart';
 import '../base/messages.dart';
 import '../base/uri_offset.dart';
+import '../builder/compilation_unit.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../kernel/internal_ast.dart';
 import 'source_library_builder.dart';
@@ -1031,5 +1037,74 @@ extension CheckHelper on ProblemReporting {
             : issue.invertedType,
       );
     }
+  }
+
+  /// Checks that [parameterName] has a corresponding public name.
+  ///
+  /// If [parameterName] is private an error is reported if [parameterName]
+  /// does not have corresponding public name or if the private named parameter
+  /// feature is not enabled.
+  ///
+  /// If [parameterName] has a corresponding public name, this is returned.
+  /// Otherwise `null` is returned, including the case where [parameterName] is
+  /// not private.
+  String? checkPublicName({
+    required SourceCompilationUnit compilationUnit,
+    required FormalParameterKind kind,
+    required String parameterName,
+    required Token nameToken,
+    required Token? thisKeyword,
+    required LibraryFeatures libraryFeatures,
+    required Uri fileUri,
+  }) {
+    // If we're building a private named parameter, then calculate the
+    // corresponding public name. The variable declared by the parameter will
+    // use that name instead.
+    String? publicName;
+    if (kind.isNamed && parameterName.startsWith('_')) {
+      // TODO(rnystrom): Also handle declaring field parameters.
+      bool refersToField = thisKeyword != null;
+
+      if (libraryFeatures.privateNamedParameters.isEnabled) {
+        if (!refersToField) {
+          addProblem(
+            codePrivateNamedNonFieldParameter,
+            nameToken.charOffset,
+            nameToken.length,
+            fileUri,
+          );
+        } else {
+          publicName = correspondingPublicName(parameterName);
+
+          // Only report the error for no corresponding public name if this
+          // is a parameter that could be private and named.
+          if (publicName == null) {
+            addProblem(
+              codePrivateNamedParameterWithoutPublicName,
+              nameToken.charOffset,
+              nameToken.length,
+              fileUri,
+            );
+          }
+        }
+      } else {
+        if (refersToField) {
+          compilationUnit.reportFeatureNotEnabled(
+            libraryFeatures.privateNamedParameters,
+            fileUri,
+            nameToken.charOffset,
+            nameToken.length,
+          );
+        } else {
+          addProblem(
+            codePrivateNamedParameter,
+            nameToken.charOffset,
+            nameToken.length,
+            fileUri,
+          );
+        }
+      }
+    }
+    return publicName;
   }
 }

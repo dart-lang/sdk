@@ -267,11 +267,6 @@ class MethodDeclarationImpl
   }
 
   @override
-  VariableDeclaration getFormalParameter(int index) {
-    return _encoding.getFormalParameter(index);
-  }
-
-  @override
   VariableDeclaration? getTearOffParameter(int index) {
     return _encoding.getTearOffParameter(index);
   }
@@ -294,8 +289,6 @@ abstract class MethodFragmentDeclaration {
   BodyBuilderContext createBodyBuilderContext(SourceMethodBuilder builder);
 
   LocalScope createFormalParameterScope(LookupScope typeParameterScope);
-
-  VariableDeclaration getFormalParameter(int index);
 
   VariableDeclaration? getTearOffParameter(int index);
 }

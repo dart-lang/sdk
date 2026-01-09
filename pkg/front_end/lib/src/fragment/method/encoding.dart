@@ -85,8 +85,6 @@ sealed class MethodEncoding implements InferredTypeListener {
     ClassHierarchyBase hierarchy,
   );
 
-  VariableDeclaration getFormalParameter(int index);
-
   VariableDeclaration? getTearOffParameter(int index);
 }
 
@@ -364,10 +362,6 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       }
     }
   }
-
-  @override
-  VariableDeclaration getFormalParameter(int index) =>
-      _fragment.declaredFormals![index].variable!;
 
   @override
   VariableDeclaration? getTearOffParameter(int index) => null;
@@ -743,12 +737,10 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   }
 
   @override
-  VariableDeclaration getFormalParameter(int index) =>
-      _fragment.declaredFormals![index].variable!;
-
-  @override
   VariableDeclaration? getTearOffParameter(int index) {
-    return _extensionTearOffParameterMap?[getFormalParameter(index)];
+    return _extensionTearOffParameterMap?[_fragment
+        .declaredFormals![index]
+        .variable!];
   }
 
   @override

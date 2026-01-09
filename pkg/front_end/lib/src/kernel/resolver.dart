@@ -373,7 +373,6 @@ class Resolver {
         problemReporting: problemReporting,
         libraryBuilder: libraryBuilder,
         libraryFeatures: libraryFeatures,
-        formals: result.formals,
         asyncModifier: result.asyncModifier,
         body: result.body,
         fileUri: fileUri,
@@ -615,14 +614,12 @@ class Resolver {
     try {
       BuildPrimaryConstructorResult result = bodyBuilder
           .buildPrimaryConstructor(startToken: startToken);
-      FormalParameters? formals = result.formals;
       _finishFunction(
         context: context,
         compilerContext: compilerContext,
         problemReporting: problemReporting,
         libraryBuilder: libraryBuilder,
         libraryFeatures: libraryFeatures,
-        formals: formals,
         asyncModifier: AsyncMarker.Sync,
         body: null,
         fileUri: fileUri,
@@ -753,11 +750,12 @@ class Resolver {
                 wildcardVariableIndex++;
               }
               return new FormalParameterBuilder(
-                FormalParameterKind.requiredPositional,
-                Modifiers.empty,
-                const ImplicitTypeBuilder(),
-                formalName,
-                formal.fileOffset,
+                kind: FormalParameterKind.requiredPositional,
+                modifiers: Modifiers.empty,
+                type: const ImplicitTypeBuilder(),
+                name: formalName,
+                nameOffset: null,
+                fileOffset: formal.fileOffset,
                 fileUri: fileUri,
                 hasImmediatelyDeclaredInitializer: false,
                 isWildcard: isWildcard,
@@ -1126,7 +1124,6 @@ class Resolver {
     required ProblemReporting problemReporting,
     required SourceLibraryBuilder libraryBuilder,
     required LibraryFeatures libraryFeatures,
-    required FormalParameters? formals,
     required AsyncMarker asyncModifier,
     required Statement? body,
     required Uri fileUri,
@@ -1144,7 +1141,7 @@ class Resolver {
     _SuperParameterArguments? superParameterArguments =
         _createSuperParameterArguments(
           assignedVariables: assignedVariables,
-          formals: formals?.parameters,
+          formals: bodyBuilderContext.formals,
         );
     assignedVariables.finish();
 
@@ -1154,9 +1151,11 @@ class Resolver {
       bodyBuilderContext: bodyBuilderContext,
       thisVariable: thisVariable,
     );
-    if (formals?.parameters != null) {
-      for (int i = 0; i < formals!.parameters!.length; i++) {
-        FormalParameterBuilder parameter = formals.parameters![i];
+    if (bodyBuilderContext.formals != null) {
+      // TODO(johnniwinther): Avoid the need for this.
+      int declaredParameterIndex = 0;
+      for (FormalParameterBuilder parameter in bodyBuilderContext.formals!) {
+        if (parameter.isExtensionThis) continue;
         Expression? initializer = parameter.variable!.initializer;
         bool inferInitializer;
         if (parameter.isSuperInitializingFormal) {
@@ -1176,8 +1175,7 @@ class Resolver {
               // https://github.com/dart-lang/sdk/issues/32289
               noLocation,
             );
-            VariableDeclaration originParameter = bodyBuilderContext
-                .getFormalParameter(i);
+            VariableDeclaration originParameter = parameter.variable!;
             initializer = context.typeInferrer.inferParameterInitializer(
               fileUri: fileUri,
               initializer: initializer,
@@ -1191,7 +1189,7 @@ class Resolver {
             parameter.initializerWasInferred = true;
           }
           VariableDeclaration? tearOffParameter = bodyBuilderContext
-              .getTearOffParameter(i);
+              .getTearOffParameter(declaredParameterIndex);
           if (tearOffParameter != null) {
             Expression tearOffInitializer = _simpleCloner.cloneInContext(
               initializer!,
@@ -1202,6 +1200,7 @@ class Resolver {
                 parameter.variable!.isErroneouslyInitialized;
           }
         }
+        declaredParameterIndex++;
       }
     }
 
@@ -1253,53 +1252,6 @@ class Resolver {
       );
     }
 
-    if (bodyBuilderContext.isSetter) {
-      if (formals?.parameters == null ||
-          formals!.parameters!.length != 1 ||
-          formals.parameters!.single.isOptionalPositional) {
-        int charOffset =
-            formals?.charOffset ??
-            // Coverage-ignore(suite): Not run.
-            body?.fileOffset ??
-            // Coverage-ignore(suite): Not run.
-            bodyBuilderContext.memberNameOffset;
-        if (body == null) {
-          body = new EmptyStatement()..fileOffset = charOffset;
-        }
-        if (bodyBuilderContext.formals != null) {
-          // Illegal parameters were removed by the function builder.
-          // Add them as local variable to put them in scope of the body.
-          List<Statement> statements = <Statement>[];
-          List<FormalParameterBuilder> formals = bodyBuilderContext.formals!;
-          for (int i = 0; i < formals.length; i++) {
-            FormalParameterBuilder parameter = formals[i];
-            VariableDeclaration variable = parameter.variable!;
-            // #this should not be redeclared.
-            if (i == 0 && identical(variable, thisVariable)) {
-              continue;
-            }
-            statements.add(parameter.variable!);
-          }
-          statements.add(body);
-          body = forest.createBlock(charOffset, noLocation, statements);
-        }
-        body = forest.createBlock(charOffset, noLocation, <Statement>[
-          forest.createExpressionStatement(
-            noLocation,
-            // This error is added after type inference is done, so we
-            // don't need to wrap errors in SyntheticExpressionJudgment.
-            problemReporting.buildProblem(
-              compilerContext: compilerContext,
-              message: codeSetterWithWrongNumberOfFormals,
-              fileUri: fileUri,
-              fileOffset: charOffset,
-              length: noLength,
-            ),
-          ),
-          body,
-        ]);
-      }
-    }
     // No-such-method forwarders get their bodies injected during outline
     // building, so we should skip them here.
     bool isNoSuchMethodForwarder =
@@ -1320,7 +1272,7 @@ class Resolver {
           body,
         ])..fileOffset = body.fileOffset;
       }
-      bodyBuilderContext.registerFunctionBody(body);
     }
+    bodyBuilderContext.registerFunctionBody(body);
   }
 }

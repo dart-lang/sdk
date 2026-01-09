@@ -275,22 +275,24 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
       FormalParameterBuilder nameFormalParameterBuilder =
           new FormalParameterBuilder(
-            FormalParameterKind.requiredPositional,
-            Modifiers.empty,
-            libraryBuilder.loader.target.stringType,
-            "#name",
-            fileOffset,
+            kind: FormalParameterKind.requiredPositional,
+            modifiers: Modifiers.empty,
+            type: libraryBuilder.loader.target.stringType,
+            name: "#name",
+            nameOffset: null,
+            fileOffset: fileOffset,
             fileUri: fileUri,
             hasImmediatelyDeclaredInitializer: false,
           );
 
       FormalParameterBuilder indexFormalParameterBuilder =
           new FormalParameterBuilder(
-            FormalParameterKind.requiredPositional,
-            Modifiers.empty,
-            libraryBuilder.loader.target.intType,
-            "#index",
-            fileOffset,
+            kind: FormalParameterKind.requiredPositional,
+            modifiers: Modifiers.empty,
+            type: libraryBuilder.loader.target.intType,
+            name: "#index",
+            nameOffset: null,
+            fileOffset: fileOffset,
             fileUri: fileUri,
             hasImmediatelyDeclaredInitializer: false,
           );

@@ -59,6 +59,17 @@ LanguageFeatures/Augmentations/augmenting_variables_getters_setters_A01_t11: Ski
 LanguageFeatures/Augmentations/augmenting_variables_getters_setters_A03_t09: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Augmentations/augmenting_variables_getters_setters_A03_t10: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Augmentations/augmenting_variables_getters_setters_A03_t11: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Augmentations/metadata_A01_t01.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t02.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t03.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t04.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t05.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t06.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t07.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t08.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t09.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t10.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t11.dart: SkipByDesign # dart:mirrors is not supported
 LanguageFeatures/Enhanced-Enum/grammar_A07_t01: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Extension-methods/syntax_member_declarations_t04: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Extension-types/static_analysis_extension_types_A28_t01: SkipByDesign # Non-JS-interop external members are not supported

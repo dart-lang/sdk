@@ -2186,17 +2186,17 @@ class FragmentFactoryImpl implements FragmentFactory {
   }
 
   @override
-  FormalParameterBuilder addFormalParameter(
-    List<MetadataBuilder>? metadata,
-    FormalParameterKind kind,
-    Modifiers modifiers,
-    TypeBuilder type,
-    String name,
-    String? publicName,
-    bool hasThis,
-    bool hasSuper,
-    int charOffset,
-    Token? initializerToken, {
+  FormalParameterBuilder addFormalParameter({
+    required List<MetadataBuilder>? metadata,
+    required FormalParameterKind kind,
+    required Modifiers modifiers,
+    required TypeBuilder type,
+    required String name,
+    required String? publicName,
+    required bool hasThis,
+    required bool hasSuper,
+    required int nameOffset,
+    required Token? initializerToken,
     bool lowerWildcard = false,
   }) {
     assert(
@@ -2217,11 +2217,12 @@ class FragmentFactoryImpl implements FragmentFactory {
       wildcardVariableIndex++;
     }
     FormalParameterBuilder formal = new FormalParameterBuilder(
-      kind,
-      modifiers,
-      type,
-      formalName,
-      charOffset,
+      kind: kind,
+      modifiers: modifiers,
+      type: type,
+      name: formalName,
+      nameOffset: nameOffset,
+      fileOffset: nameOffset,
       fileUri: _compilationUnit.fileUri,
       initializerToken: initializerToken,
       hasImmediatelyDeclaredInitializer: initializerToken != null,

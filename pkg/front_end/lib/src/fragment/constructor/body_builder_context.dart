@@ -7,7 +7,6 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/transformations/flags.dart';
 
 import '../../base/constant_context.dart';
-import '../../base/identifiers.dart';
 import '../../base/local_scope.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/type_builder.dart';
@@ -41,11 +40,6 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  VariableDeclaration getFormalParameter(int index) {
-    return _declaration.getFormalParameter(index);
-  }
-
-  @override
   VariableDeclaration? getTearOffParameter(int index) {
     return _declaration.getTearOffParameter(index);
   }
@@ -55,11 +49,6 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
 
   @override
   List<FormalParameterBuilder>? get formals => _declaration.formals;
-
-  @override
-  FormalParameterBuilder? getFormalParameterByName(Identifier name) {
-    return _declaration.getFormal(name);
-  }
 
   @override
   int get memberNameLength => _builder.name.length;
@@ -80,9 +69,6 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
 
   @override
   bool get isExternalFunction => _declaration.isExternal;
-
-  @override
-  bool get isSetter => false;
 
   @override
   DartType substituteFieldType(DartType fieldType) {
@@ -154,7 +140,7 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  void registerFunctionBody(Statement body) {
+  void registerFunctionBody(Statement? body) {
     _declaration.registerFunctionBody(body);
   }
 

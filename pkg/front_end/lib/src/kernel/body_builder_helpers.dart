@@ -516,26 +516,19 @@ class BuildFieldsResult {
 }
 
 class BuildPrimaryConstructorResult {
-  final FormalParameters? formals;
   final List<Initializer> initializers;
   final PendingAnnotations? annotations;
 
-  BuildPrimaryConstructorResult(
-    this.formals,
-    this.initializers,
-    this.annotations,
-  );
+  BuildPrimaryConstructorResult(this.initializers, this.annotations);
 }
 
 class BuildFunctionBodyResult {
-  final FormalParameters? formals;
   final AsyncMarker asyncModifier;
   final Statement? body;
   final List<Initializer> initializers;
   final PendingAnnotations? annotations;
 
   BuildFunctionBodyResult({
-    required this.formals,
     required this.asyncModifier,
     required this.body,
     required this.initializers,

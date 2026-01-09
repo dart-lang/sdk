@@ -187,8 +187,6 @@ sealed class SetterEncoding {
     SourceLibraryBuilder libraryBuilder,
     ClassHierarchyBase hierarchy,
   );
-
-  VariableDeclaration getFormalParameter(int index);
 }
 
 mixin _DirectSetterEncodingMixin implements SetterEncoding {
@@ -460,10 +458,6 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       }
     }
   }
-
-  @override
-  VariableDeclaration getFormalParameter(int index) =>
-      _fragment.declaredFormals![index].variable!;
 }
 
 mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
@@ -808,8 +802,4 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       }
     }
   }
-
-  @override
-  VariableDeclaration getFormalParameter(int index) =>
-      _fragment.declaredFormals![index].variable!;
 }

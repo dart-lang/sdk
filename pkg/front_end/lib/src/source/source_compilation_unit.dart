@@ -630,6 +630,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     );
 
     OutlineBuilder listener = new OutlineBuilder(
+      _problemReporting,
       this,
       fragmentFactory,
       _offsetMap = new OffsetMap(fileUri),

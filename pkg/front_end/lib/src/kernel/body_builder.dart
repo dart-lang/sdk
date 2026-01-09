@@ -31,11 +31,7 @@ import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Keyword, Token, TokenIsAExtension, TokenType;
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
-    show
-        isBinaryOperator,
-        isMinusOperator,
-        isUserDefinableOperator,
-        correspondingPublicName;
+    show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
@@ -45,8 +41,6 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/names.dart' show minusName, plusName;
 import 'package:kernel/src/bounds_checks.dart' hide calculateBounds;
 import 'package:kernel/type_environment.dart';
-
-import 'package:_fe_analyzer_shared/src/experiments/flags.dart' as shared;
 
 import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/lowering_predicates.dart';
@@ -5385,54 +5379,12 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     Identifier? name = nameNode as Identifier?;
 
-    // If it's a private named parameter, handle the public name.
-    String? publicName;
-    if (kind.isNamed && name != null && name.name.startsWith('_')) {
-      // TODO(rnystrom): Also handle declaring field parameters.
-      bool refersToField = thisKeyword != null;
-
-      if (libraryFeatures.privateNamedParameters.isEnabled) {
-        if (!refersToField) {
-          handleRecoverableError(
-            cfe.codePrivateNamedNonFieldParameter,
-            nameToken,
-            nameToken,
-          );
-        } else {
-          publicName = correspondingPublicName(name.name);
-
-          // Only report the error for no corresponding public name if this is a
-          // parameter that could be private and named.
-          if (publicName == null) {
-            handleRecoverableError(
-              cfe.codePrivateNamedParameterWithoutPublicName,
-              nameToken,
-              nameToken,
-            );
-          }
-        }
-      } else {
-        if (refersToField) {
-          handleExperimentNotEnabled(
-            shared.ExperimentalFlag.privateNamedParameters,
-            nameToken,
-            nameToken,
-          );
-        } else {
-          handleRecoverableError(
-            cfe.codePrivateNamedParameter,
-            nameToken,
-            nameToken,
-          );
-        }
-      }
-    }
-
     FormalParameterBuilder? parameter;
+    int nameOffset = offsetForToken(nameToken);
     if (!inCatchClause &&
         functionNestingLevel == 0 &&
         memberKind != MemberKind.GeneralizedFunctionType) {
-      parameter = _context.getFormalParameterByName(name!);
+      parameter = _context.getFormalParameterByNameOffset(nameOffset);
 
       if (parameter == null) {
         // This happens when the list of formals (originally) contains a
@@ -5442,6 +5394,15 @@ class BodyBuilderImpl extends StackListenerImpl
       }
     } else {
       String parameterName = name?.name ?? '';
+      String? publicName = problemReporting.checkPublicName(
+        compilationUnit: libraryBuilder.compilationUnit,
+        kind: kind,
+        parameterName: parameterName,
+        nameToken: nameToken,
+        thisKeyword: thisKeyword,
+        libraryFeatures: libraryFeatures,
+        fileUri: uri,
+      );
       bool isWildcard =
           libraryFeatures.wildcardVariables.isEnabled && parameterName == '_';
       if (isWildcard) {
@@ -5461,11 +5422,12 @@ class BodyBuilderImpl extends StackListenerImpl
         return;
       }
       parameter = new FormalParameterBuilder(
-        kind,
-        modifiers,
-        type ?? const ImplicitTypeBuilder(),
-        parameterName,
-        offsetForToken(nameToken),
+        kind: kind,
+        modifiers: modifiers,
+        type: type ?? const ImplicitTypeBuilder(),
+        name: parameterName,
+        fileOffset: nameOffset,
+        nameOffset: nameOffset,
         fileUri: uri,
         hasImmediatelyDeclaredInitializer: initializerStart != null,
         isWildcard: isWildcard,
@@ -5502,7 +5464,6 @@ class BodyBuilderImpl extends StackListenerImpl
       //  should infer them.
       if (functionNestingLevel == 0) {
         _registerSingleTargetAnnotations(variable);
-        //inferAnnotations(variable, annotations);
       }
     }
     push(parameter);
@@ -11180,12 +11141,14 @@ class BodyBuilderImpl extends StackListenerImpl
       parser.syntheticPreviousToken(token),
       MemberKind.PrimaryConstructor,
     );
-    FormalParameters? formals = pop() as FormalParameters?;
+    // We discard the formals here since access to these are provided through
+    // [_context].
+    pop(); // Formals
+
     checkEmpty(token.next!.charOffset);
     handleNoInitializers();
     checkEmpty(token.charOffset);
     return new BuildPrimaryConstructorResult(
-      formals,
       _initializers,
       _takePendingAnnotations(),
     );
@@ -11211,7 +11174,10 @@ class BodyBuilderImpl extends StackListenerImpl
       parser.syntheticPreviousToken(token),
       kind,
     );
-    FormalParameters? formals = pop() as FormalParameters?;
+    // We discard the formals here since access to these are provided through
+    // [_context].
+    pop(); // Formals
+
     checkEmpty(token.next!.charOffset);
     token = parser.parseInitializersOpt(token);
     token = parser.parseAsyncModifierOpt(token);
@@ -11236,7 +11202,6 @@ class BodyBuilderImpl extends StackListenerImpl
         ?.endSubdivide();
     checkEmpty(token.charOffset);
     return new BuildFunctionBodyResult(
-      formals: formals,
       asyncModifier: asyncModifier,
       body: body,
       initializers: _initializers,
