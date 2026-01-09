@@ -28,8 +28,10 @@ class Baz {
 
 @pragma('vm:entry-point') // prevent obfuscation
 class Fu {
+  static final f = 42;
   String label;
   Bar bar = Bar();
+  @pragma('vm:entry-point') // prevent tree-shaking of the field.
   Baz baz = Baz();
 
   Fu(this.label);
@@ -70,7 +72,11 @@ main() async {
   for (final pair in [
     [
       () => Fu.unsendable('fu'),
-      ["NativeClass", "Baz", "Fu"],
+      [
+        "Class: NativeClass",
+        "nativeClass in Instance of 'Baz'",
+        "baz in Instance of 'Fu'",
+      ],
     ],
     [
       () => Future.value(123),
