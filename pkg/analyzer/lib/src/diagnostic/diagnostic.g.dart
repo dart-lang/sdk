@@ -7534,9 +7534,9 @@ integerLiteralOutOfRange = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the interface class being extended.
+/// String name: the name of the interface class being extended.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 interfaceClassExtendedOutsideOfLibrary = DiagnosticWithArguments(
   name: 'invalid_use_of_type_outside_library',
@@ -9408,9 +9408,9 @@ invalidWidgetPreviewPrivateArgument = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the extension
+/// String name: the name of the extension
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 invocationOfExtensionWithoutCall = DiagnosticWithArguments(
   name: 'invocation_of_extension_without_call',
@@ -9425,9 +9425,9 @@ invocationOfExtensionWithoutCall = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the identifier that is not a function type
+/// String name: the name of the identifier that is not a function type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 invocationOfNonFunction = DiagnosticWithArguments(
   name: 'invocation_of_non_function',
@@ -9455,9 +9455,9 @@ invocationOfNonFunctionExpression = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the unresolvable label
+/// String name: the name of the unresolvable label
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 labelInOuterScope = DiagnosticWithArguments(
   name: 'label_in_outer_scope',
@@ -9470,9 +9470,9 @@ labelInOuterScope = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the unresolvable label
+/// String name: the name of the unresolvable label
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 labelUndefined = DiagnosticWithArguments(
   name: 'label_undefined',
@@ -9726,10 +9726,13 @@ const DiagnosticWithoutArguments mapEntryNotInMap =
     );
 
 /// Parameters:
-/// Type p0: the type of the expression being used as a key
-/// Type p1: the type of keys declared for the map
+/// Type actualType: the type of the expression being used as a key
+/// Type expectedType: the type of keys declared for the map
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 mapKeyTypeNotAssignable = DiagnosticWithArguments(
   name: 'map_key_type_not_assignable',
@@ -9743,10 +9746,13 @@ mapKeyTypeNotAssignable = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the type of the expression being used as a key
-/// Type p1: the type of keys declared for the map
+/// Type actualType: the type of the expression being used as a key
+/// Type expectedType: the type of keys declared for the map
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 mapKeyTypeNotAssignableNullability = DiagnosticWithArguments(
   name: 'map_key_type_not_assignable',
@@ -9760,10 +9766,13 @@ mapKeyTypeNotAssignableNullability = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the type of the expression being used as a value
-/// Type p1: the type of values declared for the map
+/// Type actualType: the type of the expression being used as a value
+/// Type expectedType: the type of values declared for the map
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 mapValueTypeNotAssignable = DiagnosticWithArguments(
   name: 'map_value_type_not_assignable',
@@ -9777,10 +9786,13 @@ mapValueTypeNotAssignable = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the type of the expression being used as a value
-/// Type p1: the type of values declared for the map
+/// Type actualType: the type of the expression being used as a value
+/// Type expectedType: the type of values declared for the map
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 mapValueTypeNotAssignableNullability = DiagnosticWithArguments(
   name: 'map_value_type_not_assignable',
@@ -10410,9 +10422,9 @@ const DiagnosticWithoutArguments missingQuote = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the parameter
+/// String name: the name of the parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 missingRequiredArgument = DiagnosticWithArguments(
   name: 'missing_required_argument',
@@ -10540,9 +10552,9 @@ missingVariableInForEach = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the variable pattern
+/// String name: the name of the variable pattern
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 missingVariablePattern = DiagnosticWithArguments(
   name: 'missing_variable_pattern',
@@ -10571,15 +10583,16 @@ mixedParameterGroups = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the super-invoked member
-/// Type p1: the display name of the type of the super-invoked member in the
-///          mixin
-/// Type p2: the display name of the type of the concrete member in the class
+/// String memberName: the name of the super-invoked member
+/// Type mixinMemberType: the display name of the type of the super-invoked
+///                       member in the mixin
+/// Type concreteMemberType: the display name of the type of the concrete
+///                          member in the class
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required DartType p1,
-    required DartType p2,
+    required String memberName,
+    required DartType mixinMemberType,
+    required DartType concreteMemberType,
   })
 >
 mixinApplicationConcreteSuperInvokedMemberType = DiagnosticWithArguments(
@@ -10819,10 +10832,10 @@ const DiagnosticWithoutArguments mixinOnTypeAliasExpandsToTypeParameter =
     );
 
 /// Parameters:
-/// Element p0: the name of the class that appears in both "extends" and
-///             "with" clauses
+/// Element referencedClass: the class that appears in both "extends" and
+///                          "with" clauses
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Element p0})
+  LocatableDiagnostic Function({required Element referencedClass})
 >
 mixinsSuperClass = DiagnosticWithArguments(
   name: 'implements_super_class',
@@ -19479,10 +19492,10 @@ LocatableDiagnostic _withArgumentsIntegerLiteralOutOfRange({
 }
 
 LocatableDiagnostic _withArgumentsInterfaceClassExtendedOutsideOfLibrary({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(diag.interfaceClassExtendedOutsideOfLibrary, [
-    p0,
+    name,
   ]);
 }
 
@@ -19835,23 +19848,23 @@ LocatableDiagnostic _withArgumentsInvalidWidgetPreviewPrivateArgument({
 }
 
 LocatableDiagnostic _withArgumentsInvocationOfExtensionWithoutCall({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.invocationOfExtensionWithoutCall, [p0]);
+  return LocatableDiagnosticImpl(diag.invocationOfExtensionWithoutCall, [name]);
 }
 
 LocatableDiagnostic _withArgumentsInvocationOfNonFunction({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.invocationOfNonFunction, [p0]);
+  return LocatableDiagnosticImpl(diag.invocationOfNonFunction, [name]);
 }
 
-LocatableDiagnostic _withArgumentsLabelInOuterScope({required String p0}) {
-  return LocatableDiagnosticImpl(diag.labelInOuterScope, [p0]);
+LocatableDiagnostic _withArgumentsLabelInOuterScope({required String name}) {
+  return LocatableDiagnosticImpl(diag.labelInOuterScope, [name]);
 }
 
-LocatableDiagnostic _withArgumentsLabelUndefined({required String p0}) {
-  return LocatableDiagnosticImpl(diag.labelUndefined, [p0]);
+LocatableDiagnostic _withArgumentsLabelUndefined({required String name}) {
+  return LocatableDiagnosticImpl(diag.labelUndefined, [name]);
 }
 
 LocatableDiagnostic _withArgumentsListElementTypeNotAssignable({
@@ -19875,36 +19888,42 @@ LocatableDiagnostic _withArgumentsListElementTypeNotAssignableNullability({
 }
 
 LocatableDiagnostic _withArgumentsMapKeyTypeNotAssignable({
-  required DartType p0,
-  required DartType p1,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
-  return LocatableDiagnosticImpl(diag.mapKeyTypeNotAssignable, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.mapKeyTypeNotAssignable, [
+    actualType,
+    expectedType,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsMapKeyTypeNotAssignableNullability({
-  required DartType p0,
-  required DartType p1,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   return LocatableDiagnosticImpl(diag.mapKeyTypeNotAssignableNullability, [
-    p0,
-    p1,
+    actualType,
+    expectedType,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsMapValueTypeNotAssignable({
-  required DartType p0,
-  required DartType p1,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
-  return LocatableDiagnosticImpl(diag.mapValueTypeNotAssignable, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.mapValueTypeNotAssignable, [
+    actualType,
+    expectedType,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsMapValueTypeNotAssignableNullability({
-  required DartType p0,
-  required DartType p1,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   return LocatableDiagnosticImpl(diag.mapValueTypeNotAssignableNullability, [
-    p0,
-    p1,
+    actualType,
+    expectedType,
   ]);
 }
 
@@ -19983,9 +20002,9 @@ LocatableDiagnostic _withArgumentsMissingOverrideOfMustBeOverriddenTwo({
 }
 
 LocatableDiagnostic _withArgumentsMissingRequiredArgument({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.missingRequiredArgument, [p0]);
+  return LocatableDiagnosticImpl(diag.missingRequiredArgument, [name]);
 }
 
 LocatableDiagnostic _withArgumentsMissingRequiredParam({required String p0}) {
@@ -20008,19 +20027,21 @@ LocatableDiagnostic _withArgumentsMissingTerminatorForParameterGroup({
   return LocatableDiagnosticImpl(diag.missingTerminatorForParameterGroup, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsMissingVariablePattern({required String p0}) {
-  return LocatableDiagnosticImpl(diag.missingVariablePattern, [p0]);
+LocatableDiagnostic _withArgumentsMissingVariablePattern({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.missingVariablePattern, [name]);
 }
 
 LocatableDiagnostic
 _withArgumentsMixinApplicationConcreteSuperInvokedMemberType({
-  required String p0,
-  required DartType p1,
-  required DartType p2,
+  required String memberName,
+  required DartType mixinMemberType,
+  required DartType concreteMemberType,
 }) {
   return LocatableDiagnosticImpl(
     diag.mixinApplicationConcreteSuperInvokedMemberType,
-    [p0, p1, p2],
+    [memberName, mixinMemberType, concreteMemberType],
   );
 }
 
@@ -20084,8 +20105,10 @@ LocatableDiagnostic _withArgumentsMixinOnSealedClass({required String p0}) {
   return LocatableDiagnosticImpl(diag.mixinOnSealedClass, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsMixinsSuperClass({required Element p0}) {
-  return LocatableDiagnosticImpl(diag.mixinsSuperClass, [p0]);
+LocatableDiagnostic _withArgumentsMixinsSuperClass({
+  required Element referencedClass,
+}) {
+  return LocatableDiagnosticImpl(diag.mixinsSuperClass, [referencedClass]);
 }
 
 LocatableDiagnostic _withArgumentsMixinSubtypeOfBaseIsNotBase({

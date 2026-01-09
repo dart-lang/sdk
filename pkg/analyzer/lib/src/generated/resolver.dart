@@ -5651,10 +5651,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       if (labelScope == null) {
         // There are no labels in scope, so by definition the label is
         // undefined.
-        diagnosticReporter.atNode(
-          labelNode,
-          diag.labelUndefined,
-          arguments: [labelNode.name],
+        diagnosticReporter.report(
+          diag.labelUndefined.withArguments(name: labelNode.name).at(labelNode),
         );
         return null;
       }
@@ -5662,10 +5660,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       if (definingScope == null) {
         // No definition of the given label name could be found in any
         // enclosing scope.
-        diagnosticReporter.atNode(
-          labelNode,
-          diag.labelUndefined,
-          arguments: [labelNode.name],
+        diagnosticReporter.report(
+          diag.labelUndefined.withArguments(name: labelNode.name).at(labelNode),
         );
         return null;
       }
@@ -5675,10 +5671,10 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         var labelFragment = definingScope.element.firstFragment;
         var labelContainer = labelFragment.enclosingFragment;
         if (!identical(labelContainer, enclosingClosure.firstFragment)) {
-          diagnosticReporter.atNode(
-            labelNode,
-            diag.labelInOuterScope,
-            arguments: [labelNode.name],
+          diagnosticReporter.report(
+            diag.labelInOuterScope
+                .withArguments(name: labelNode.name)
+                .at(labelNode),
           );
         }
       }

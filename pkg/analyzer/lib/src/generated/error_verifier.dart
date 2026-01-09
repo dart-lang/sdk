@@ -3978,10 +3978,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             !superclassElement.isSealed &&
             superclassElement.library != _currentLibrary &&
             !_mayIgnoreClassModifiers(superclassElement.library)) {
-          diagnosticReporter.atNode(
-            superclass,
-            diag.interfaceClassExtendedOutsideOfLibrary,
-            arguments: [superclassElement.name!],
+          diagnosticReporter.report(
+            diag.interfaceClassExtendedOutsideOfLibrary
+                .withArguments(name: superclassElement.name!)
+                .at(superclass),
           );
         }
       }
@@ -4587,10 +4587,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           thisMember: superMember,
         ).isCorrectOverrideOf(superMember: mixinMember);
         if (!isCorrect) {
-          diagnosticReporter.atNode(
-            mixinName,
-            diag.mixinApplicationConcreteSuperInvokedMemberType,
-            arguments: [name, mixinMember.type, superMember.type],
+          diagnosticReporter.report(
+            diag.mixinApplicationConcreteSuperInvokedMemberType
+                .withArguments(
+                  memberName: name,
+                  mixinMemberType: mixinMember.type,
+                  concreteMemberType: superMember.type,
+                )
+                .at(mixinName),
           );
           return true;
         }
@@ -6156,10 +6160,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (var mixinNode in withClause.mixinTypes) {
       var type = mixinNode.type;
       if (type is InterfaceType && type.element == superElement) {
-        diagnosticReporter.atNode(
-          mixinNode,
-          diag.mixinsSuperClass,
-          arguments: [superElement],
+        diagnosticReporter.report(
+          diag.mixinsSuperClass
+              .withArguments(referencedClass: superElement)
+              .at(mixinNode),
         );
       }
     }

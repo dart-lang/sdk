@@ -9106,9 +9106,9 @@ CompileTimeErrorCode:
   interfaceClassExtendedOutsideOfLibrary:
     type: compileTimeError
     parameters:
-      String p0: the name of the interface class being extended.
+      String name: the name of the interface class being extended.
     sharedName: invalidUseOfTypeOutsideLibrary
-    problemMessage: "The class '#p0' can't be extended outside of its library because it's an interface class."
+    problemMessage: "The class '#name' can't be extended outside of its library because it's an interface class."
     hasPublishedDocs: true
   invalidAnnotation:
     type: compileTimeError
@@ -10255,8 +10255,8 @@ CompileTimeErrorCode:
   invocationOfExtensionWithoutCall:
     type: compileTimeError
     parameters:
-      String p0: the name of the extension
-    problemMessage: "The extension '#p0' doesn't define a 'call' method so the override can't be used in an invocation."
+      String name: the name of the extension
+    problemMessage: "The extension '#name' doesn't define a 'call' method so the override can't be used in an invocation."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -10299,9 +10299,9 @@ CompileTimeErrorCode:
   invocationOfNonFunction:
     type: compileTimeError
     parameters:
-      String p0: the name of the identifier that is not a function type
-    problemMessage: "'#p0' isn't a function."
-    correctionMessage: "Try correcting the name to match an existing function, or define a method or function named '#p0'."
+      String name: the name of the identifier that is not a function type
+    problemMessage: "'#name' isn't a function."
+    correctionMessage: "Try correcting the name to match an existing function, or define a method or function named '#name'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -10377,8 +10377,8 @@ CompileTimeErrorCode:
   labelInOuterScope:
     type: compileTimeError
     parameters:
-      String p0: the name of the unresolvable label
-    problemMessage: "Can't reference label '#p0' declared in an outer method."
+      String name: the name of the unresolvable label
+    problemMessage: "Can't reference label '#name' declared in an outer method."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -10442,8 +10442,8 @@ CompileTimeErrorCode:
   labelUndefined:
     type: compileTimeError
     parameters:
-      String p0: the name of the unresolvable label
-    problemMessage: "Can't reference an undefined label '#p0'."
+      String name: the name of the unresolvable label
+    problemMessage: "Can't reference an undefined label '#name'."
     correctionMessage: Try defining the label, or correcting the name to match an existing label.
     hasPublishedDocs: true
     documentation: |-
@@ -10837,17 +10837,17 @@ CompileTimeErrorCode:
   mapKeyTypeNotAssignableNullability:
     type: compileTimeError
     parameters:
-      Type p0: the type of the expression being used as a key
-      Type p1: the type of keys declared for the map
+      Type actualType: the type of the expression being used as a key
+      Type expectedType: the type of keys declared for the map
     sharedName: mapKeyTypeNotAssignable
-    problemMessage: "The element type '#p0' can't be assigned to the map key type '#p1'."
+    problemMessage: "The element type '#actualType' can't be assigned to the map key type '#expectedType'."
     hasPublishedDocs: true
   mapKeyTypeNotAssignable:
     type: compileTimeError
     parameters:
-      Type p0: the type of the expression being used as a key
-      Type p1: the type of keys declared for the map
-    problemMessage: "The element type '#p0' can't be assigned to the map key type '#p1'."
+      Type actualType: the type of the expression being used as a key
+      Type expectedType: the type of keys declared for the map
+    problemMessage: "The element type '#actualType' can't be assigned to the map key type '#expectedType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -10881,17 +10881,17 @@ CompileTimeErrorCode:
   mapValueTypeNotAssignableNullability:
     type: compileTimeError
     parameters:
-      Type p0: the type of the expression being used as a value
-      Type p1: the type of values declared for the map
+      Type actualType: the type of the expression being used as a value
+      Type expectedType: the type of values declared for the map
     sharedName: mapValueTypeNotAssignable
-    problemMessage: "The element type '#p0' can't be assigned to the map value type '#p1'."
+    problemMessage: "The element type '#actualType' can't be assigned to the map value type '#expectedType'."
     hasPublishedDocs: true
   mapValueTypeNotAssignable:
     type: compileTimeError
     parameters:
-      Type p0: the type of the expression being used as a value
-      Type p1: the type of values declared for the map
-    problemMessage: "The element type '#p0' can't be assigned to the map value type '#p1'."
+      Type actualType: the type of the expression being used as a value
+      Type expectedType: the type of values declared for the map
+    problemMessage: "The element type '#actualType' can't be assigned to the map value type '#expectedType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -11113,8 +11113,8 @@ CompileTimeErrorCode:
   missingRequiredArgument:
     type: compileTimeError
     parameters:
-      String p0: the name of the parameter
-    problemMessage: "The named parameter '#p0' is required, but there's no corresponding argument."
+      String name: the name of the parameter
+    problemMessage: "The named parameter '#name' is required, but there's no corresponding argument."
     correctionMessage: Try adding the required argument.
     hasPublishedDocs: true
     documentation: |-
@@ -11148,8 +11148,8 @@ CompileTimeErrorCode:
   missingVariablePattern:
     type: compileTimeError
     parameters:
-      String p0: the name of the variable pattern
-    problemMessage: "Variable pattern '#p0' is missing in this branch of the logical-or pattern."
+      String name: the name of the variable pattern
+    problemMessage: "Variable pattern '#name' is missing in this branch of the logical-or pattern."
     correctionMessage: "Try declaring this variable pattern in the branch."
     hasPublishedDocs: true
     documentation: |-
@@ -11215,18 +11215,18 @@ CompileTimeErrorCode:
   mixinsSuperClass:
     type: compileTimeError
     parameters:
-      Element p0: the name of the class that appears in both "extends" and "with" clauses
+      Element referencedClass: the class that appears in both "extends" and "with" clauses
     sharedName: implementsSuperClass
-    problemMessage: "'#p0' can't be used in both the 'extends' and 'with' clauses."
+    problemMessage: "'#referencedClass' can't be used in both the 'extends' and 'with' clauses."
     correctionMessage: Try removing one of the occurrences.
     hasPublishedDocs: true
   mixinApplicationConcreteSuperInvokedMemberType:
     type: compileTimeError
     parameters:
-      String p0: the name of the super-invoked member
-      Type p1: the display name of the type of the super-invoked member in the mixin
-      Type p2: the display name of the type of the concrete member in the class
-    problemMessage: "The super-invoked member '#p0' has the type '#p1', and the concrete member in the class has the type '#p2'."
+      String memberName: the name of the super-invoked member
+      Type mixinMemberType: the display name of the type of the super-invoked member in the mixin
+      Type concreteMemberType: the display name of the type of the concrete member in the class
+    problemMessage: "The super-invoked member '#memberName' has the type '#mixinMemberType', and the concrete member in the class has the type '#concreteMemberType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description

@@ -1422,16 +1422,22 @@ class _ConstLiteralVerifier {
               keyValue,
               verifier._typeSystem.makeNullable(expectedKeyType),
             )) {
-          verifier._diagnosticReporter.atNode(
-            keyExpression,
-            diag.mapKeyTypeNotAssignableNullability,
-            arguments: [keyType, expectedKeyType],
+          verifier._diagnosticReporter.report(
+            diag.mapKeyTypeNotAssignableNullability
+                .withArguments(
+                  actualType: keyType,
+                  expectedType: expectedKeyType,
+                )
+                .at(keyExpression),
           );
         } else {
-          verifier._diagnosticReporter.atNode(
-            keyExpression,
-            diag.mapKeyTypeNotAssignable,
-            arguments: [keyType, expectedKeyType],
+          verifier._diagnosticReporter.report(
+            diag.mapKeyTypeNotAssignable
+                .withArguments(
+                  actualType: keyType,
+                  expectedType: expectedKeyType,
+                )
+                .at(keyExpression),
           );
         }
       }
@@ -1472,16 +1478,22 @@ class _ConstLiteralVerifier {
               valueValue,
               verifier._typeSystem.makeNullable(expectedValueType),
             )) {
-          verifier._diagnosticReporter.atNode(
-            valueExpression,
-            diag.mapValueTypeNotAssignableNullability,
-            arguments: [valueValue.type, expectedValueType],
+          verifier._diagnosticReporter.report(
+            diag.mapValueTypeNotAssignableNullability
+                .withArguments(
+                  actualType: valueValue.type,
+                  expectedType: expectedValueType,
+                )
+                .at(valueExpression),
           );
         } else {
-          verifier._diagnosticReporter.atNode(
-            valueExpression,
-            diag.mapValueTypeNotAssignable,
-            arguments: [valueValue.type, expectedValueType],
+          verifier._diagnosticReporter.report(
+            diag.mapValueTypeNotAssignable
+                .withArguments(
+                  actualType: valueValue.type,
+                  expectedType: expectedValueType,
+                )
+                .at(valueExpression),
           );
         }
       }

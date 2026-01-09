@@ -2062,10 +2062,10 @@ class _VariableBinderErrors
     required String name,
     required PromotableElementImpl variable,
   }) {
-    visitor._diagnosticReporter.atNode(
-      hasInLeft ? node.rightOperand : node.leftOperand,
-      diag.missingVariablePattern,
-      arguments: [name],
+    visitor._diagnosticReporter.report(
+      diag.missingVariablePattern
+          .withArguments(name: name)
+          .at(hasInLeft ? node.rightOperand : node.leftOperand),
     );
   }
 }

@@ -358,10 +358,10 @@ class MethodInvocationResolver with ScopeHelpers {
   }
 
   void _reportInvocationOfNonFunction(SimpleIdentifierImpl methodName) {
-    _resolver.diagnosticReporter.atNode(
-      methodName,
-      diag.invocationOfNonFunction,
-      arguments: [methodName.name],
+    _resolver.diagnosticReporter.report(
+      diag.invocationOfNonFunction
+          .withArguments(name: methodName.name)
+          .at(methodName),
     );
   }
 
