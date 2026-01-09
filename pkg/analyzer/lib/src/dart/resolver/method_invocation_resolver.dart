@@ -358,10 +358,10 @@ class MethodInvocationResolver with ScopeHelpers {
   }
 
   void _reportInvocationOfNonFunction(SimpleIdentifierImpl methodName) {
-    _resolver.diagnosticReporter.atNode(
-      methodName,
-      diag.invocationOfNonFunction,
-      arguments: [methodName.name],
+    _resolver.diagnosticReporter.report(
+      diag.invocationOfNonFunction
+          .withArguments(name: methodName.name)
+          .at(methodName),
     );
   }
 
@@ -417,10 +417,10 @@ class MethodInvocationResolver with ScopeHelpers {
     if (methodName.name == 'new') {
       // Attempting to invoke the unnamed constructor via `C.new(`.
       if (_resolver.isConstructorTearoffsEnabled) {
-        _resolver.diagnosticReporter.atNode(
-          methodName,
-          diag.newWithUndefinedConstructorDefault,
-          arguments: [receiver.displayName],
+        _resolver.diagnosticReporter.report(
+          diag.newWithUndefinedConstructorDefault
+              .withArguments(className: receiver.displayName)
+              .at(methodName),
         );
       } else {
         // [ParserErrorCode.EXPERIMENT_NOT_ENABLED] is reported by the parser.

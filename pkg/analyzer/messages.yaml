@@ -9035,10 +9035,10 @@ CompileTimeErrorCode:
   integerLiteralImpreciseAsDouble:
     type: compileTimeError
     parameters:
-      String p0: the lexeme of the integer
-      String p1: the closest valid double
-    problemMessage: "The integer literal is being used as a double, but can't be represented as a 64-bit double without overflow or loss of precision: '#p0'."
-    correctionMessage: "Try using the class 'BigInt', or switch to the closest valid double: '#p1'."
+      String literal: the lexeme of the integer
+      String closestDouble: the closest valid double
+    problemMessage: "The integer literal is being used as a double, but can't be represented as a 64-bit double without overflow or loss of precision: '#literal'."
+    correctionMessage: "Try using the class 'BigInt', or switch to the closest valid double: '#closestDouble'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -9075,8 +9075,8 @@ CompileTimeErrorCode:
   integerLiteralOutOfRange:
     type: compileTimeError
     parameters:
-      String p0: the value of the literal
-    problemMessage: "The integer literal #p0 can't be represented in 64 bits."
+      String literal: the value of the literal
+    problemMessage: "The integer literal #literal can't be represented in 64 bits."
     correctionMessage: "Try using the 'BigInt' class if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808."
     hasPublishedDocs: true
     documentation: |-
@@ -9106,9 +9106,9 @@ CompileTimeErrorCode:
   interfaceClassExtendedOutsideOfLibrary:
     type: compileTimeError
     parameters:
-      String p0: the name of the interface class being extended.
+      String name: the name of the interface class being extended.
     sharedName: invalidUseOfTypeOutsideLibrary
-    problemMessage: "The class '#p0' can't be extended outside of its library because it's an interface class."
+    problemMessage: "The class '#name' can't be extended outside of its library because it's an interface class."
     hasPublishedDocs: true
   invalidAnnotation:
     type: compileTimeError
@@ -9770,8 +9770,8 @@ CompileTimeErrorCode:
   invalidModifierOnConstructor:
     type: compileTimeError
     parameters:
-      String p0: the invalid modifier
-    problemMessage: "The modifier '#p0' can't be applied to the body of a constructor."
+      String modifier: the invalid modifier
+    problemMessage: "The modifier '#modifier' can't be applied to the body of a constructor."
     correctionMessage: Try removing the modifier.
     hasPublishedDocs: true
     documentation: |-
@@ -10121,9 +10121,9 @@ CompileTimeErrorCode:
   invalidTypeArgumentInConstList:
     type: compileTimeError
     parameters:
-      Object p0: the name of the type parameter
+      String typeParameter: the name of the type parameter
     sharedName: invalidTypeArgumentInConstLiteral
-    problemMessage: "Constant list literals can't use a type parameter in a type argument, such as '#p0'."
+    problemMessage: "Constant list literals can't use a type parameter in a type argument, such as '#typeParameter'."
     correctionMessage: Try replacing the type parameter with a different type.
     hasPublishedDocs: true
     documentation: |-
@@ -10175,17 +10175,17 @@ CompileTimeErrorCode:
   invalidTypeArgumentInConstMap:
     type: compileTimeError
     parameters:
-      Object p0: the name of the type parameter
+      String typeParameter: the name of the type parameter
     sharedName: invalidTypeArgumentInConstLiteral
-    problemMessage: "Constant map literals can't use a type parameter in a type argument, such as '#p0'."
+    problemMessage: "Constant map literals can't use a type parameter in a type argument, such as '#typeParameter'."
     correctionMessage: Try replacing the type parameter with a different type.
     hasPublishedDocs: true
   invalidTypeArgumentInConstSet:
     type: compileTimeError
     parameters:
-      String p0: the name of the type parameter
+      String typeParameter: the name of the type parameter
     sharedName: invalidTypeArgumentInConstLiteral
-    problemMessage: "Constant set literals can't use a type parameter in a type argument, such as '#p0'."
+    problemMessage: "Constant set literals can't use a type parameter in a type argument, such as '#typeParameter'."
     correctionMessage: Try replacing the type parameter with a different type.
     hasPublishedDocs: true
   invalidUri:
@@ -10255,8 +10255,8 @@ CompileTimeErrorCode:
   invocationOfExtensionWithoutCall:
     type: compileTimeError
     parameters:
-      String p0: the name of the extension
-    problemMessage: "The extension '#p0' doesn't define a 'call' method so the override can't be used in an invocation."
+      String name: the name of the extension
+    problemMessage: "The extension '#name' doesn't define a 'call' method so the override can't be used in an invocation."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -10299,9 +10299,9 @@ CompileTimeErrorCode:
   invocationOfNonFunction:
     type: compileTimeError
     parameters:
-      String p0: the name of the identifier that is not a function type
-    problemMessage: "'#p0' isn't a function."
-    correctionMessage: "Try correcting the name to match an existing function, or define a method or function named '#p0'."
+      String name: the name of the identifier that is not a function type
+    problemMessage: "'#name' isn't a function."
+    correctionMessage: "Try correcting the name to match an existing function, or define a method or function named '#name'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -10377,8 +10377,8 @@ CompileTimeErrorCode:
   labelInOuterScope:
     type: compileTimeError
     parameters:
-      String p0: the name of the unresolvable label
-    problemMessage: "Can't reference label '#p0' declared in an outer method."
+      String name: the name of the unresolvable label
+    problemMessage: "Can't reference label '#name' declared in an outer method."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -10442,8 +10442,8 @@ CompileTimeErrorCode:
   labelUndefined:
     type: compileTimeError
     parameters:
-      String p0: the name of the unresolvable label
-    problemMessage: "Can't reference an undefined label '#p0'."
+      String name: the name of the unresolvable label
+    problemMessage: "Can't reference an undefined label '#name'."
     correctionMessage: Try defining the label, or correcting the name to match an existing label.
     hasPublishedDocs: true
     documentation: |-
@@ -10605,17 +10605,17 @@ CompileTimeErrorCode:
   listElementTypeNotAssignableNullability:
     type: compileTimeError
     parameters:
-      Type p0: the actual type of the list element
-      Type p1: the expected type of the list element
+      Type actualType: the actual type of the list element
+      Type expectedType: the expected type of the list element
     sharedName: listElementTypeNotAssignable
-    problemMessage: "The element type '#p0' can't be assigned to the list type '#p1'."
+    problemMessage: "The element type '#actualType' can't be assigned to the list type '#expectedType'."
     hasPublishedDocs: true
   listElementTypeNotAssignable:
     type: compileTimeError
     parameters:
-      Type p0: the actual type of the list element
-      Type p1: the expected type of the list element
-    problemMessage: "The element type '#p0' can't be assigned to the list type '#p1'."
+      Type actualType: the actual type of the list element
+      Type expectedType: the expected type of the list element
+    problemMessage: "The element type '#actualType' can't be assigned to the list type '#expectedType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -10837,17 +10837,17 @@ CompileTimeErrorCode:
   mapKeyTypeNotAssignableNullability:
     type: compileTimeError
     parameters:
-      Type p0: the type of the expression being used as a key
-      Type p1: the type of keys declared for the map
+      Type actualType: the type of the expression being used as a key
+      Type expectedType: the type of keys declared for the map
     sharedName: mapKeyTypeNotAssignable
-    problemMessage: "The element type '#p0' can't be assigned to the map key type '#p1'."
+    problemMessage: "The element type '#actualType' can't be assigned to the map key type '#expectedType'."
     hasPublishedDocs: true
   mapKeyTypeNotAssignable:
     type: compileTimeError
     parameters:
-      Type p0: the type of the expression being used as a key
-      Type p1: the type of keys declared for the map
-    problemMessage: "The element type '#p0' can't be assigned to the map key type '#p1'."
+      Type actualType: the type of the expression being used as a key
+      Type expectedType: the type of keys declared for the map
+    problemMessage: "The element type '#actualType' can't be assigned to the map key type '#expectedType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -10881,17 +10881,17 @@ CompileTimeErrorCode:
   mapValueTypeNotAssignableNullability:
     type: compileTimeError
     parameters:
-      Type p0: the type of the expression being used as a value
-      Type p1: the type of values declared for the map
+      Type actualType: the type of the expression being used as a value
+      Type expectedType: the type of values declared for the map
     sharedName: mapValueTypeNotAssignable
-    problemMessage: "The element type '#p0' can't be assigned to the map value type '#p1'."
+    problemMessage: "The element type '#actualType' can't be assigned to the map value type '#expectedType'."
     hasPublishedDocs: true
   mapValueTypeNotAssignable:
     type: compileTimeError
     parameters:
-      Type p0: the type of the expression being used as a value
-      Type p1: the type of values declared for the map
-    problemMessage: "The element type '#p0' can't be assigned to the map value type '#p1'."
+      Type actualType: the type of the expression being used as a value
+      Type expectedType: the type of values declared for the map
+    problemMessage: "The element type '#actualType' can't be assigned to the map value type '#expectedType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -11113,8 +11113,8 @@ CompileTimeErrorCode:
   missingRequiredArgument:
     type: compileTimeError
     parameters:
-      String p0: the name of the parameter
-    problemMessage: "The named parameter '#p0' is required, but there's no corresponding argument."
+      String name: the name of the parameter
+    problemMessage: "The named parameter '#name' is required, but there's no corresponding argument."
     correctionMessage: Try adding the required argument.
     hasPublishedDocs: true
     documentation: |-
@@ -11148,8 +11148,8 @@ CompileTimeErrorCode:
   missingVariablePattern:
     type: compileTimeError
     parameters:
-      String p0: the name of the variable pattern
-    problemMessage: "Variable pattern '#p0' is missing in this branch of the logical-or pattern."
+      String name: the name of the variable pattern
+    problemMessage: "Variable pattern '#name' is missing in this branch of the logical-or pattern."
     correctionMessage: "Try declaring this variable pattern in the branch."
     hasPublishedDocs: true
     documentation: |-
@@ -11215,18 +11215,18 @@ CompileTimeErrorCode:
   mixinsSuperClass:
     type: compileTimeError
     parameters:
-      Element p0: the name of the class that appears in both "extends" and "with" clauses
+      Element referencedClass: the class that appears in both "extends" and "with" clauses
     sharedName: implementsSuperClass
-    problemMessage: "'#p0' can't be used in both the 'extends' and 'with' clauses."
+    problemMessage: "'#referencedClass' can't be used in both the 'extends' and 'with' clauses."
     correctionMessage: Try removing one of the occurrences.
     hasPublishedDocs: true
   mixinApplicationConcreteSuperInvokedMemberType:
     type: compileTimeError
     parameters:
-      String p0: the name of the super-invoked member
-      Type p1: the display name of the type of the super-invoked member in the mixin
-      Type p2: the display name of the type of the concrete member in the class
-    problemMessage: "The super-invoked member '#p0' has the type '#p1', and the concrete member in the class has the type '#p2'."
+      String memberName: the name of the super-invoked member
+      Type mixinMemberType: the display name of the type of the super-invoked member in the mixin
+      Type concreteMemberType: the display name of the type of the concrete member in the class
+    problemMessage: "The super-invoked member '#memberName' has the type '#mixinMemberType', and the concrete member in the class has the type '#concreteMemberType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -11327,11 +11327,11 @@ CompileTimeErrorCode:
   mixinApplicationNotImplementedInterface:
     type: compileTimeError
     parameters:
-      Type p0: the display name of the mixin
-      Type p1: the display name of the superclass
-      Type p2: the display name of the type that is not implemented
-    problemMessage: "'#p0' can't be mixed onto '#p1' because '#p1' doesn't implement '#p2'."
-    correctionMessage: "Try extending the class '#p0'."
+      Type mixinType: the type of the mixin
+      Type superType: the supertype
+      Type notImplementedType: the type that is not implemented
+    problemMessage: "'#mixinType' can't be mixed onto '#superType' because '#superType' doesn't implement '#notImplementedType'."
+    correctionMessage: "Try extending the class '#mixinType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -11450,8 +11450,8 @@ CompileTimeErrorCode:
   mixinClassDeclarationExtendsNotObject:
     type: compileTimeError
     parameters:
-      String p0: the name of the mixin class that is invalid
-    problemMessage: "The class '#p0' can't be declared a mixin because it extends a class other than 'Object'."
+      String name: the name of the mixin class that is invalid
+    problemMessage: "The class '#name' can't be declared a mixin because it extends a class other than 'Object'."
     correctionMessage: Try removing the 'mixin' modifier or changing the superclass to 'Object'.
     hasPublishedDocs: true
     documentation: |-
@@ -11567,8 +11567,8 @@ CompileTimeErrorCode:
   mixinInheritsFromNotObject:
     type: compileTimeError
     parameters:
-      String p0: the name of the mixin that is invalid
-    problemMessage: "The class '#p0' can't be used as a mixin because it extends a class other than 'Object'."
+      String name: the name of the mixin that is invalid
+    problemMessage: "The class '#name' can't be used as a mixin because it extends a class other than 'Object'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -11903,10 +11903,10 @@ CompileTimeErrorCode:
   newWithUndefinedConstructor:
     type: compileTimeError
     parameters:
-      String p0: the name of the class being instantiated
-      String p1: the name of the constructor
-    problemMessage: "The class '#p0' doesn't have a constructor named '#p1'."
-    correctionMessage: "Try invoking a different constructor, or define a constructor named '#p1'."
+      String typeName: the name of the class being instantiated
+      String constructorName: the name of the constructor
+    problemMessage: "The class '#typeName' doesn't have a constructor named '#constructorName'."
+    correctionMessage: "Try invoking a different constructor, or define a constructor named '#constructorName'."
     hasPublishedDocs: false
     comment: |-
       12.11.1 New: If <i>T</i> is a class or parameterized type accessible in the
@@ -11923,9 +11923,9 @@ CompileTimeErrorCode:
   newWithUndefinedConstructorDefault:
     type: compileTimeError
     parameters:
-      String p0: the name of the class being instantiated
-    problemMessage: "The class '#p0' doesn't have an unnamed constructor."
-    correctionMessage: "Try using one of the named constructors defined in '#p0'."
+      String className: the name of the class being instantiated
+    problemMessage: "The class '#className' doesn't have an unnamed constructor."
+    correctionMessage: "Try using one of the named constructors defined in '#className'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -11973,32 +11973,32 @@ CompileTimeErrorCode:
   nonAbstractClassInheritsAbstractMemberFivePlus:
     type: compileTimeError
     parameters:
-      String p0: the name of the first member
-      String p1: the name of the second member
-      String p2: the name of the third member
-      String p3: the name of the fourth member
-      int p4: the number of additional missing members that aren't listed
+      String name1: the name of the first member
+      String name2: the name of the second member
+      String name3: the name of the third member
+      String name4: the name of the fourth member
+      int remainingCount: the number of additional missing members that aren't listed
     sharedName: nonAbstractClassInheritsAbstractMember
-    problemMessage: "Missing concrete implementations of '#p0', '#p1', '#p2', '#p3', and #p4 more."
+    problemMessage: "Missing concrete implementations of '#name1', '#name2', '#name3', '#name4', and #remainingCount more."
     correctionMessage: Try implementing the missing methods, or make the class abstract.
     hasPublishedDocs: true
   nonAbstractClassInheritsAbstractMemberFour:
     type: compileTimeError
     parameters:
-      String p0: the name of the first member
-      String p1: the name of the second member
-      String p2: the name of the third member
-      String p3: the name of the fourth member
+      String name1: the name of the first member
+      String name2: the name of the second member
+      String name3: the name of the third member
+      String name4: the name of the fourth member
     sharedName: nonAbstractClassInheritsAbstractMember
-    problemMessage: "Missing concrete implementations of '#p0', '#p1', '#p2', and '#p3'."
+    problemMessage: "Missing concrete implementations of '#name1', '#name2', '#name3', and '#name4'."
     correctionMessage: Try implementing the missing methods, or make the class abstract.
     hasPublishedDocs: true
   nonAbstractClassInheritsAbstractMemberOne:
     type: compileTimeError
     parameters:
-      String p0: the name of the member
+      String name: the name of the member
     sharedName: nonAbstractClassInheritsAbstractMember
-    problemMessage: "Missing concrete implementation of '#p0'."
+    problemMessage: "Missing concrete implementation of '#name'."
     correctionMessage: Try implementing the missing method, or make the class abstract.
     hasPublishedDocs: true
     documentation: |-
@@ -12064,20 +12064,20 @@ CompileTimeErrorCode:
   nonAbstractClassInheritsAbstractMemberThree:
     type: compileTimeError
     parameters:
-      String p0: the name of the first member
-      String p1: the name of the second member
-      String p2: the name of the third member
+      String name1: the name of the first member
+      String name2: the name of the second member
+      String name3: the name of the third member
     sharedName: nonAbstractClassInheritsAbstractMember
-    problemMessage: "Missing concrete implementations of '#p0', '#p1', and '#p2'."
+    problemMessage: "Missing concrete implementations of '#name1', '#name2', and '#name3'."
     correctionMessage: Try implementing the missing methods, or make the class abstract.
     hasPublishedDocs: true
   nonAbstractClassInheritsAbstractMemberTwo:
     type: compileTimeError
     parameters:
-      String p0: the name of the first member
-      String p1: the name of the second member
+      String name1: the name of the first member
+      String name2: the name of the second member
     sharedName: nonAbstractClassInheritsAbstractMember
-    problemMessage: "Missing concrete implementations of '#p0' and '#p1'."
+    problemMessage: "Missing concrete implementations of '#name1' and '#name2'."
     correctionMessage: Try implementing the missing methods, or make the class abstract.
     hasPublishedDocs: true
   nonBoolCondition:
@@ -12181,8 +12181,8 @@ CompileTimeErrorCode:
   nonBoolOperand:
     type: compileTimeError
     parameters:
-      String p0: the lexeme of the logical operator
-    problemMessage: "The operands of the operator '#p0' must be assignable to 'bool'."
+      String operator: the lexeme of the logical operator
+    problemMessage: "The operands of the operator '#operator' must be assignable to 'bool'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -13515,28 +13515,28 @@ CompileTimeErrorCode:
   notEnoughPositionalArgumentsPlural:
     type: compileTimeError
     parameters:
-      int p0: the expected number of required arguments
-      int p1: the actual number of positional arguments given
+      int requiredParameterCount: the expected number of required arguments
+      int actualArgumentCount: the actual number of positional arguments given
     sharedName: notEnoughPositionalArguments
-    problemMessage: "#p0 positional arguments expected, but #p1 found."
+    problemMessage: "#requiredParameterCount positional arguments expected, but #actualArgumentCount found."
     correctionMessage: Try adding the missing arguments.
     hasPublishedDocs: true
   notEnoughPositionalArgumentsNameSingular:
     type: compileTimeError
     parameters:
-      String p0: name of the function or method
+      String name: name of the function or method
     sharedName: notEnoughPositionalArguments
-    problemMessage: "1 positional argument expected by '#p0', but 0 found."
+    problemMessage: "1 positional argument expected by '#name', but 0 found."
     correctionMessage: Try adding the missing argument.
     hasPublishedDocs: true
   notEnoughPositionalArgumentsNamePlural:
     type: compileTimeError
     parameters:
-      int p0: the expected number of required arguments
-      int p1: the actual number of positional arguments given
-      String p2: name of the function or method
+      int requiredParameterCount: the expected number of required arguments
+      int actualArgumentCount: the actual number of positional arguments given
+      String name: name of the function or method
     sharedName: notEnoughPositionalArguments
-    problemMessage: "#p0 positional arguments expected by '#p2', but #p1 found."
+    problemMessage: "#requiredParameterCount positional arguments expected by '#name', but #actualArgumentCount found."
     correctionMessage: Try adding the missing arguments.
     hasPublishedDocs: true
   notInitializedNonNullableInstanceField:
@@ -16345,17 +16345,17 @@ CompileTimeErrorCode:
   setElementTypeNotAssignableNullability:
     type: compileTimeError
     parameters:
-      Type p0: the actual type of the set element
-      Type p1: the expected type of the set element
+      Type actualType: the actual type of the set element
+      Type expectedType: the expected type of the set element
     sharedName: setElementTypeNotAssignable
-    problemMessage: "The element type '#p0' can't be assigned to the set type '#p1'."
+    problemMessage: "The element type '#actualType' can't be assigned to the set type '#expectedType'."
     hasPublishedDocs: true
   setElementTypeNotAssignable:
     type: compileTimeError
     parameters:
-      Type p0: the actual type of the set element
-      Type p1: the expected type of the set element
-    problemMessage: "The element type '#p0' can't be assigned to the set type '#p1'."
+      Type actualType: the actual type of the set element
+      Type expectedType: the expected type of the set element
+    problemMessage: "The element type '#actualType' can't be assigned to the set type '#expectedType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description

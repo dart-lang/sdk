@@ -634,10 +634,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       element,
       () {
         _checkForNonConstGenerativeEnumConstructor(node);
-        _checkForInvalidModifierOnBody(
-          node.body,
-          diag.invalidModifierOnConstructor,
-        );
+        _checkForInvalidModifierOnBody(node.body);
         if (!_checkForConstConstructorWithNonConstSuper(node)) {
           _checkForConstConstructorWithNonFinalField(node, element);
         }
@@ -3981,10 +3978,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             !superclassElement.isSealed &&
             superclassElement.library != _currentLibrary &&
             !_mayIgnoreClassModifiers(superclassElement.library)) {
-          diagnosticReporter.atNode(
-            superclass,
-            diag.interfaceClassExtendedOutsideOfLibrary,
-            arguments: [superclassElement.name!],
+          diagnosticReporter.report(
+            diag.interfaceClassExtendedOutsideOfLibrary
+                .withArguments(name: superclassElement.name!)
+                .at(superclass),
           );
         }
       }
@@ -4153,10 +4150,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Check to see whether the given function [body] has a modifier associated
   /// with it, and report it as an error if it does.
-  void _checkForInvalidModifierOnBody(FunctionBody body, DiagnosticCode code) {
+  void _checkForInvalidModifierOnBody(FunctionBody body) {
     var keyword = body.keyword;
     if (keyword != null) {
-      diagnosticReporter.atToken(keyword, code, arguments: [keyword.lexeme]);
+      diagnosticReporter.report(
+        diag.invalidModifierOnConstructor
+            .withArguments(modifier: keyword.lexeme)
+            .at(keyword),
+      );
     }
   }
 
@@ -4446,17 +4447,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       // Check that the class has 'Object' as their superclass.
       if (superclass != null && !superclass.typeOrThrow.isDartCoreObject) {
-        diagnosticReporter.atNode(
-          superclass,
-          diag.mixinClassDeclarationExtendsNotObject,
-          arguments: [element.name!],
+        diagnosticReporter.report(
+          diag.mixinClassDeclarationExtendsNotObject
+              .withArguments(name: element.name!)
+              .at(superclass),
         );
       } else if (withClause != null &&
           !(element.isMixinApplication && withClause.mixinTypes.length < 2)) {
-        diagnosticReporter.atNode(
-          withClause,
-          diag.mixinClassDeclarationExtendsNotObject,
-          arguments: [element.name!],
+        diagnosticReporter.report(
+          diag.mixinClassDeclarationExtendsNotObject
+              .withArguments(name: element.name!)
+              .at(withClause),
         );
       }
     }
@@ -4485,10 +4486,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
 
-    diagnosticReporter.atNode(
-      mixinName,
-      diag.mixinInheritsFromNotObject,
-      arguments: [mixinElement.name!],
+    diagnosticReporter.report(
+      diag.mixinInheritsFromNotObject
+          .withArguments(name: mixinElement.name!)
+          .at(mixinName),
     );
     return true;
   }
@@ -4523,10 +4524,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (!isSatisfied) {
         // This error can only occur if [mixinName] resolved to an actual mixin,
         // so we can safely rely on `mixinName.type` being non-`null`.
-        diagnosticReporter.atToken(
-          mixinName.name,
-          diag.mixinApplicationNotImplementedInterface,
-          arguments: [mixinName.type!, superType, constraint],
+        diagnosticReporter.report(
+          diag.mixinApplicationNotImplementedInterface
+              .withArguments(
+                mixinType: mixinName.type!,
+                superType: superType,
+                notImplementedType: constraint,
+              )
+              .at(mixinName.name),
         );
         return true;
       }
@@ -4586,10 +4591,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           thisMember: superMember,
         ).isCorrectOverrideOf(superMember: mixinMember);
         if (!isCorrect) {
-          diagnosticReporter.atNode(
-            mixinName,
-            diag.mixinApplicationConcreteSuperInvokedMemberType,
-            arguments: [name, mixinMember.type, superMember.type],
+          diagnosticReporter.report(
+            diag.mixinApplicationConcreteSuperInvokedMemberType
+                .withArguments(
+                  memberName: name,
+                  mixinMemberType: mixinMember.type,
+                  concreteMemberType: superMember.type,
+                )
+                .at(mixinName),
           );
           return true;
         }
@@ -4735,16 +4744,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // report as named or default constructor absence
     var name = constructorName.name;
     if (name != null) {
-      diagnosticReporter.atNode(
-        name,
-        diag.newWithUndefinedConstructor,
-        arguments: [namedType.qualifiedName, name.name],
+      diagnosticReporter.report(
+        diag.newWithUndefinedConstructor
+            .withArguments(
+              typeName: namedType.qualifiedName,
+              constructorName: name.name,
+            )
+            .at(name),
       );
     } else {
-      diagnosticReporter.atNode(
-        constructorName,
-        diag.newWithUndefinedConstructorDefault,
-        arguments: [namedType.qualifiedName],
+      diagnosticReporter.report(
+        diag.newWithUndefinedConstructorDefault
+            .withArguments(className: namedType.qualifiedName)
+            .at(constructorName),
       );
     }
   }
@@ -5142,22 +5154,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     if (!valid) {
       var lexeme = node.literal.lexeme;
-      var messageArguments = [
-        isNegated ? '-$lexeme' : lexeme,
-        if (treatedAsDouble)
-          // Suggest the nearest valid double (as a BigInt, for printing).
-          // TODO(srawlins): Insert digit separators at the same positions as
-          // the input. This should be tested code, and a shared impl when we
-          // have an assist that adds digit separators to a number literal.
-          BigInt.from(IntegerLiteralImpl.nearestValidDouble(source)).toString(),
-      ];
-
-      diagnosticReporter.atNode(
-        node,
-        treatedAsDouble
-            ? diag.integerLiteralImpreciseAsDouble
-            : diag.integerLiteralOutOfRange,
-        arguments: messageArguments,
+      var literal = isNegated ? '-$lexeme' : lexeme;
+      diagnosticReporter.report(
+        (treatedAsDouble
+                ?
+                  // Suggest the nearest valid double (as a BigInt, for
+                  // printing).
+                  // TODO(srawlins): Insert digit separators at the same
+                  // positions as the input. This should be tested code, and a
+                  // shared impl when we have an assist that adds digit
+                  // separators to a number literal.
+                  diag.integerLiteralImpreciseAsDouble.withArguments(
+                    literal: literal,
+                    closestDouble: BigInt.from(
+                      IntegerLiteralImpl.nearestValidDouble(source),
+                    ).toString(),
+                  )
+                : diag.integerLiteralOutOfRange.withArguments(literal: literal))
+            .at(node),
       );
     }
   }
@@ -6153,10 +6167,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (var mixinNode in withClause.mixinTypes) {
       var type = mixinNode.type;
       if (type is InterfaceType && type.element == superElement) {
-        diagnosticReporter.atNode(
-          mixinNode,
-          diag.mixinsSuperClass,
-          arguments: [superElement],
+        diagnosticReporter.report(
+          diag.mixinsSuperClass
+              .withArguments(referencedClass: superElement)
+              .at(mixinNode),
         );
       }
     }

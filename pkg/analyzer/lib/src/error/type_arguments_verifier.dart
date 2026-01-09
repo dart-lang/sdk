@@ -9,7 +9,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -23,6 +22,11 @@ import 'package:analyzer/src/error/listener.dart';
 
 typedef ExpectedTypeArgumentsDiagnosticCode =
     DiagnosticWithArguments<LocatableDiagnostic Function({required int count})>;
+
+typedef InvalidTypeArgumentDiagnosticCode =
+    DiagnosticWithArguments<
+      LocatableDiagnostic Function({required String typeParameter})
+    >;
 
 class TypeArgumentsVerifier {
   final AnalysisOptions _options;
@@ -553,15 +557,15 @@ class TypeArgumentsVerifier {
   /// [diag.invalidTypeArgumentInConstSet].
   void _checkTypeArgumentConst(
     TypeAnnotation typeAnnotation,
-    DiagnosticCode diagnosticCode,
+    InvalidTypeArgumentDiagnosticCode diagnosticCode,
   ) {
     switch (typeAnnotation) {
       case NamedType(:var type, :var typeArguments):
         if (type is TypeParameterType) {
-          _diagnosticReporter.atNode(
-            typeAnnotation,
-            diagnosticCode,
-            arguments: [typeAnnotation.name.lexeme],
+          _diagnosticReporter.report(
+            diagnosticCode
+                .withArguments(typeParameter: typeAnnotation.name.lexeme)
+                .at(typeAnnotation),
           );
         } else if (typeArguments != null) {
           for (var argument in typeArguments.arguments) {
@@ -572,10 +576,10 @@ class TypeArgumentsVerifier {
         for (var parameter in parameters.parameters) {
           if (parameter case SimpleFormalParameter(type: var typeAnnotation?)) {
             if (typeAnnotation case TypeAnnotation(:TypeParameterType type)) {
-              _diagnosticReporter.atNode(
-                typeAnnotation,
-                diagnosticCode,
-                arguments: [type],
+              _diagnosticReporter.report(
+                diagnosticCode
+                    .withArguments(typeParameter: type.getDisplayString())
+                    .at(typeAnnotation),
               );
             } else {
               _checkTypeArgumentConst(typeAnnotation, diagnosticCode);
@@ -587,10 +591,10 @@ class TypeArgumentsVerifier {
         }
         if (returnType case TypeAnnotation(:var type)) {
           if (type is TypeParameterType) {
-            _diagnosticReporter.atNode(
-              returnType,
-              diagnosticCode,
-              arguments: [type],
+            _diagnosticReporter.report(
+              diagnosticCode
+                  .withArguments(typeParameter: type.getDisplayString())
+                  .at(returnType),
             );
           } else {
             _checkTypeArgumentConst(returnType, diagnosticCode);
@@ -600,10 +604,10 @@ class TypeArgumentsVerifier {
         for (var field in fields) {
           var typeAnnotation = field.type;
           if (typeAnnotation case TypeAnnotation(:TypeParameterType type)) {
-            _diagnosticReporter.atNode(
-              typeAnnotation,
-              diagnosticCode,
-              arguments: [type],
+            _diagnosticReporter.report(
+              diagnosticCode
+                  .withArguments(typeParameter: type.getDisplayString())
+                  .at(typeAnnotation),
             );
           } else {
             _checkTypeArgumentConst(typeAnnotation, diagnosticCode);

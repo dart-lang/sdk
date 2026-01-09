@@ -1318,16 +1318,22 @@ class _ConstLiteralVerifier {
         value,
         verifier._typeSystem.makeNullable(listElementType),
       )) {
-        verifier._diagnosticReporter.atNode(
-          expression,
-          diag.listElementTypeNotAssignableNullability,
-          arguments: [value.type, listElementType],
+        verifier._diagnosticReporter.report(
+          diag.listElementTypeNotAssignableNullability
+              .withArguments(
+                actualType: value.type,
+                expectedType: listElementType,
+              )
+              .at(expression),
         );
       } else {
-        verifier._diagnosticReporter.atNode(
-          expression,
-          diag.listElementTypeNotAssignable,
-          arguments: [value.type, listElementType],
+        verifier._diagnosticReporter.report(
+          diag.listElementTypeNotAssignable
+              .withArguments(
+                actualType: value.type,
+                expectedType: listElementType,
+              )
+              .at(expression),
         );
       }
       return false;
@@ -1416,16 +1422,22 @@ class _ConstLiteralVerifier {
               keyValue,
               verifier._typeSystem.makeNullable(expectedKeyType),
             )) {
-          verifier._diagnosticReporter.atNode(
-            keyExpression,
-            diag.mapKeyTypeNotAssignableNullability,
-            arguments: [keyType, expectedKeyType],
+          verifier._diagnosticReporter.report(
+            diag.mapKeyTypeNotAssignableNullability
+                .withArguments(
+                  actualType: keyType,
+                  expectedType: expectedKeyType,
+                )
+                .at(keyExpression),
           );
         } else {
-          verifier._diagnosticReporter.atNode(
-            keyExpression,
-            diag.mapKeyTypeNotAssignable,
-            arguments: [keyType, expectedKeyType],
+          verifier._diagnosticReporter.report(
+            diag.mapKeyTypeNotAssignable
+                .withArguments(
+                  actualType: keyType,
+                  expectedType: expectedKeyType,
+                )
+                .at(keyExpression),
           );
         }
       }
@@ -1466,16 +1478,22 @@ class _ConstLiteralVerifier {
               valueValue,
               verifier._typeSystem.makeNullable(expectedValueType),
             )) {
-          verifier._diagnosticReporter.atNode(
-            valueExpression,
-            diag.mapValueTypeNotAssignableNullability,
-            arguments: [valueValue.type, expectedValueType],
+          verifier._diagnosticReporter.report(
+            diag.mapValueTypeNotAssignableNullability
+                .withArguments(
+                  actualType: valueValue.type,
+                  expectedType: expectedValueType,
+                )
+                .at(valueExpression),
           );
         } else {
-          verifier._diagnosticReporter.atNode(
-            valueExpression,
-            diag.mapValueTypeNotAssignable,
-            arguments: [valueValue.type, expectedValueType],
+          verifier._diagnosticReporter.report(
+            diag.mapValueTypeNotAssignable
+                .withArguments(
+                  actualType: valueValue.type,
+                  expectedType: expectedValueType,
+                )
+                .at(valueExpression),
           );
         }
       }
@@ -1524,16 +1542,22 @@ class _ConstLiteralVerifier {
         value,
         verifier._typeSystem.makeNullable(config.elementType),
       )) {
-        verifier._diagnosticReporter.atNode(
-          expression,
-          diag.setElementTypeNotAssignableNullability,
-          arguments: [value.type, config.elementType],
+        verifier._diagnosticReporter.report(
+          diag.setElementTypeNotAssignableNullability
+              .withArguments(
+                actualType: value.type,
+                expectedType: config.elementType,
+              )
+              .at(expression),
         );
       } else {
-        verifier._diagnosticReporter.atNode(
-          expression,
-          diag.setElementTypeNotAssignable,
-          arguments: [value.type, config.elementType],
+        verifier._diagnosticReporter.report(
+          diag.setElementTypeNotAssignable
+              .withArguments(
+                actualType: value.type,
+                expectedType: config.elementType,
+              )
+              .at(expression),
         );
       }
       return false;

@@ -85,8 +85,9 @@ class BinaryExpressionResolver {
   }) {
     _resolver.boolExpressionVerifier.checkForNonBoolExpression(
       operand,
-      diagnosticCode: diag.nonBoolOperand,
-      arguments: [operator],
+      locatableDiagnostic: diag.nonBoolOperand.withArguments(
+        operator: operator,
+      ),
       whyNotPromoted: whyNotPromoted,
     );
   }

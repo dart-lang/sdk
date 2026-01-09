@@ -857,45 +857,49 @@ class _ClassVerifier {
     descriptions.sort();
 
     if (descriptions.length == 1) {
-      reporter.atToken(
-        classNameToken,
-        diag.nonAbstractClassInheritsAbstractMemberOne,
-        arguments: [descriptions[0]],
+      reporter.report(
+        diag.nonAbstractClassInheritsAbstractMemberOne
+            .withArguments(name: descriptions[0])
+            .at(classNameToken),
       );
     } else if (descriptions.length == 2) {
-      reporter.atToken(
-        classNameToken,
-        diag.nonAbstractClassInheritsAbstractMemberTwo,
-        arguments: [descriptions[0], descriptions[1]],
+      reporter.report(
+        diag.nonAbstractClassInheritsAbstractMemberTwo
+            .withArguments(name1: descriptions[0], name2: descriptions[1])
+            .at(classNameToken),
       );
     } else if (descriptions.length == 3) {
-      reporter.atToken(
-        classNameToken,
-        diag.nonAbstractClassInheritsAbstractMemberThree,
-        arguments: [descriptions[0], descriptions[1], descriptions[2]],
+      reporter.report(
+        diag.nonAbstractClassInheritsAbstractMemberThree
+            .withArguments(
+              name1: descriptions[0],
+              name2: descriptions[1],
+              name3: descriptions[2],
+            )
+            .at(classNameToken),
       );
     } else if (descriptions.length == 4) {
-      reporter.atToken(
-        classNameToken,
-        diag.nonAbstractClassInheritsAbstractMemberFour,
-        arguments: [
-          descriptions[0],
-          descriptions[1],
-          descriptions[2],
-          descriptions[3],
-        ],
+      reporter.report(
+        diag.nonAbstractClassInheritsAbstractMemberFour
+            .withArguments(
+              name1: descriptions[0],
+              name2: descriptions[1],
+              name3: descriptions[2],
+              name4: descriptions[3],
+            )
+            .at(classNameToken),
       );
     } else {
-      reporter.atToken(
-        classNameToken,
-        diag.nonAbstractClassInheritsAbstractMemberFivePlus,
-        arguments: [
-          descriptions[0],
-          descriptions[1],
-          descriptions[2],
-          descriptions[3],
-          descriptions.length - 4,
-        ],
+      reporter.report(
+        diag.nonAbstractClassInheritsAbstractMemberFivePlus
+            .withArguments(
+              name1: descriptions[0],
+              name2: descriptions[1],
+              name3: descriptions[2],
+              name4: descriptions[3],
+              remainingCount: descriptions.length - 4,
+            )
+            .at(classNameToken),
       );
     }
   }

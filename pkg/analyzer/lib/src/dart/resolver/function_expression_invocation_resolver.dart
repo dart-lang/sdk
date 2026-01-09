@@ -193,10 +193,10 @@ class FunctionExpressionInvocationResolver {
     node.element = callElement;
 
     if (callElement == null) {
-      _diagnosticReporter.atNode(
-        function,
-        diag.invocationOfExtensionWithoutCall,
-        arguments: [function.name.lexeme],
+      _diagnosticReporter.report(
+        diag.invocationOfExtensionWithoutCall
+            .withArguments(name: function.name.lexeme)
+            .at(function),
       );
       return _unresolved(
         node,

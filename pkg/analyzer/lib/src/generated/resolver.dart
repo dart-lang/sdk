@@ -25,7 +25,6 @@ import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -1890,7 +1889,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     popRewrite();
     boolExpressionVerifier.checkForNonBoolExpression(
       node.condition,
-      diagnosticCode: diag.nonBoolExpression,
+      locatableDiagnostic: diag.nonBoolExpression,
       whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(node.condition),
     );
     flowAnalysis.flow?.assert_afterCondition(node.condition);
@@ -1913,7 +1912,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     popRewrite();
     boolExpressionVerifier.checkForNonBoolExpression(
       node.condition,
-      diagnosticCode: diag.nonBoolExpression,
+      locatableDiagnostic: diag.nonBoolExpression,
       whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(node.condition),
     );
     flowAnalysis.flow?.assert_afterCondition(node.condition);
@@ -4753,23 +4752,26 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     var isPlural = requiredParameterCount > 1;
-    var arguments = <Object>[];
-    if (isPlural) {
-      arguments.add(requiredParameterCount);
-      arguments.add(actualArgumentCount);
-    }
-    DiagnosticCode diagnosticCode;
+    LocatableDiagnostic locatableDiagnostic;
     if (name == null) {
-      diagnosticCode = isPlural
-          ? diag.notEnoughPositionalArgumentsPlural
+      locatableDiagnostic = isPlural
+          ? diag.notEnoughPositionalArgumentsPlural.withArguments(
+              requiredParameterCount: requiredParameterCount,
+              actualArgumentCount: actualArgumentCount,
+            )
           : diag.notEnoughPositionalArgumentsSingular;
     } else {
-      diagnosticCode = isPlural
-          ? diag.notEnoughPositionalArgumentsNamePlural
-          : diag.notEnoughPositionalArgumentsNameSingular;
-      arguments.add(name);
+      locatableDiagnostic = isPlural
+          ? diag.notEnoughPositionalArgumentsNamePlural.withArguments(
+              requiredParameterCount: requiredParameterCount,
+              actualArgumentCount: actualArgumentCount,
+              name: name,
+            )
+          : diag.notEnoughPositionalArgumentsNameSingular.withArguments(
+              name: name,
+            );
     }
-    diagnosticReporter.atToken(token, diagnosticCode, arguments: arguments);
+    diagnosticReporter.report(locatableDiagnostic.at(token));
   }
 }
 
@@ -5651,10 +5653,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       if (labelScope == null) {
         // There are no labels in scope, so by definition the label is
         // undefined.
-        diagnosticReporter.atNode(
-          labelNode,
-          diag.labelUndefined,
-          arguments: [labelNode.name],
+        diagnosticReporter.report(
+          diag.labelUndefined.withArguments(name: labelNode.name).at(labelNode),
         );
         return null;
       }
@@ -5662,10 +5662,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       if (definingScope == null) {
         // No definition of the given label name could be found in any
         // enclosing scope.
-        diagnosticReporter.atNode(
-          labelNode,
-          diag.labelUndefined,
-          arguments: [labelNode.name],
+        diagnosticReporter.report(
+          diag.labelUndefined.withArguments(name: labelNode.name).at(labelNode),
         );
         return null;
       }
@@ -5675,10 +5673,10 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         var labelFragment = definingScope.element.firstFragment;
         var labelContainer = labelFragment.enclosingFragment;
         if (!identical(labelContainer, enclosingClosure.firstFragment)) {
-          diagnosticReporter.atNode(
-            labelNode,
-            diag.labelInOuterScope,
-            arguments: [labelNode.name],
+          diagnosticReporter.report(
+            diag.labelInOuterScope
+                .withArguments(name: labelNode.name)
+                .at(labelNode),
           );
         }
       }
