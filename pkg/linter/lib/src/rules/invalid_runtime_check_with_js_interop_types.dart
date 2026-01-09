@@ -27,8 +27,8 @@ const String _dartJsInteropUri = 'dart:js_interop';
 const String _dartJsUri = 'dart:js';
 
 const _desc =
-    r'''Avoid runtime type tests with JS interop types where the result may not
-    be platform-consistent.''';
+    'Avoid runtime type tests with JS interop types where the result may not '
+    'be platform-consistent.';
 
 const Set<String> _sdkWebLibraries = {
   'dart:html',
