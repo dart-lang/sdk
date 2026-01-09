@@ -11369,15 +11369,15 @@ CompileTimeErrorCode:
   mixinApplicationNoConcreteSuperInvokedSetter:
     type: compileTimeError
     parameters:
-      String p0: the display name of the setter without a concrete implementation
+      String name: the display name of the setter without a concrete implementation
     sharedName: mixinApplicationNoConcreteSuperInvokedMember
-    problemMessage: "The class doesn't have a concrete implementation of the super-invoked setter '#p0'."
+    problemMessage: "The class doesn't have a concrete implementation of the super-invoked setter '#name'."
     hasPublishedDocs: true
   mixinApplicationNoConcreteSuperInvokedMember:
     type: compileTimeError
     parameters:
-      String p0: the display name of the member without a concrete implementation
-    problemMessage: "The class doesn't have a concrete implementation of the super-invoked member '#p0'."
+      String name: the display name of the member without a concrete implementation
+    problemMessage: "The class doesn't have a concrete implementation of the super-invoked member '#name'."
     hasPublishedDocs: true
     documentation: |-
       #### Description

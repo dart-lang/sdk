@@ -4563,15 +4563,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (superMember == null) {
         var isSetter = name.endsWith('=');
 
-        var errorCode = isSetter
-            ? diag.mixinApplicationNoConcreteSuperInvokedSetter
-            : diag.mixinApplicationNoConcreteSuperInvokedMember;
-
-        if (isSetter) {
-          name = name.substring(0, name.length - 1);
-        }
-
-        diagnosticReporter.atNode(mixinName, errorCode, arguments: [name]);
+        diagnosticReporter.report(
+          (isSetter
+                  ? diag.mixinApplicationNoConcreteSuperInvokedSetter
+                        .withArguments(name: name.substring(0, name.length - 1))
+                  : diag.mixinApplicationNoConcreteSuperInvokedMember
+                        .withArguments(name: name))
+              .at(mixinName),
+        );
         return true;
       }
 

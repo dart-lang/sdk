@@ -10576,10 +10576,10 @@ mixinApplicationConcreteSuperInvokedMemberType = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the display name of the member without a concrete
-///            implementation
+/// String name: the display name of the member without a concrete
+///              implementation
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 mixinApplicationNoConcreteSuperInvokedMember = DiagnosticWithArguments(
   name: 'mixin_application_no_concrete_super_invoked_member',
@@ -10594,10 +10594,10 @@ mixinApplicationNoConcreteSuperInvokedMember = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the display name of the setter without a concrete
-///            implementation
+/// String name: the display name of the setter without a concrete
+///              implementation
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 mixinApplicationNoConcreteSuperInvokedSetter = DiagnosticWithArguments(
   name: 'mixin_application_no_concrete_super_invoked_member',
@@ -19978,20 +19978,20 @@ _withArgumentsMixinApplicationConcreteSuperInvokedMemberType({
 }
 
 LocatableDiagnostic _withArgumentsMixinApplicationNoConcreteSuperInvokedMember({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(
     diag.mixinApplicationNoConcreteSuperInvokedMember,
-    [p0],
+    [name],
   );
 }
 
 LocatableDiagnostic _withArgumentsMixinApplicationNoConcreteSuperInvokedSetter({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(
     diag.mixinApplicationNoConcreteSuperInvokedSetter,
-    [p0],
+    [name],
   );
 }
 
