@@ -17954,10 +17954,10 @@ CompileTimeErrorCode:
   undefinedConstructorInInitializerDefault:
     type: compileTimeError
     parameters:
-      Object p0: the name of the superclass that does not define the invoked constructor
+      String className: the name of the superclass that does not define the invoked constructor
     sharedName: undefinedConstructorInInitializer
-    problemMessage: "The class '#p0' doesn't have an unnamed constructor."
-    correctionMessage: "Try defining an unnamed constructor in '#p0', or invoking a different constructor."
+    problemMessage: "The class '#className' doesn't have an unnamed constructor."
+    correctionMessage: "Try defining an unnamed constructor in '#className', or invoking a different constructor."
     hasPublishedDocs: true
   undefinedEnumConstant:
     type: compileTimeError

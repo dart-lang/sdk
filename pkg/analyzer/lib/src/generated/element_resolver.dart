@@ -347,10 +347,10 @@ class ElementResolver {
           arguments: [superType, name.name],
         );
       } else {
-        _diagnosticReporter.atNode(
-          node,
-          diag.undefinedConstructorInInitializerDefault,
-          arguments: [superType],
+        _diagnosticReporter.report(
+          diag.undefinedConstructorInInitializerDefault
+              .withArguments(className: superType.element.name ?? '<unknown>')
+              .at(node),
         );
       }
       return;

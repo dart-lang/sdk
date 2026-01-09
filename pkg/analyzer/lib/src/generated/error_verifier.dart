@@ -5586,11 +5586,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     var superUnnamedConstructor = superElement.unnamedConstructor;
     if (superUnnamedConstructor == null) {
-      diagnosticReporter.atNode(
-        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-        constructor.typeName!,
-        diag.undefinedConstructorInInitializerDefault,
-        arguments: [superElement.name!],
+      diagnosticReporter.report(
+        diag.undefinedConstructorInInitializerDefault
+            .withArguments(className: superElement.name!)
+            // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+            .at(constructor.typeName!),
       );
       return;
     }

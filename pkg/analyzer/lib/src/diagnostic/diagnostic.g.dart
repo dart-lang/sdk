@@ -15825,10 +15825,10 @@ undefinedConstructorInInitializer = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Object p0: the name of the superclass that does not define the invoked
-///            constructor
+/// String className: the name of the superclass that does not define the
+///                   invoked constructor
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String className})
 >
 undefinedConstructorInInitializerDefault = DiagnosticWithArguments(
   name: 'undefined_constructor_in_initializer',
@@ -15840,7 +15840,7 @@ undefinedConstructorInInitializerDefault = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_constructor_in_initializer_default',
   withArguments: _withArgumentsUndefinedConstructorInInitializerDefault,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
@@ -21206,11 +21206,11 @@ LocatableDiagnostic _withArgumentsUndefinedConstructorInInitializer({
 }
 
 LocatableDiagnostic _withArgumentsUndefinedConstructorInInitializerDefault({
-  required Object p0,
+  required String className,
 }) {
   return LocatableDiagnosticImpl(
     diag.undefinedConstructorInInitializerDefault,
-    [p0],
+    [className],
   );
 }
 
