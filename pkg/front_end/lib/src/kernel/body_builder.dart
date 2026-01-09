@@ -31,11 +31,7 @@ import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Keyword, Token, TokenIsAExtension, TokenType;
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
-    show
-        isBinaryOperator,
-        isMinusOperator,
-        isUserDefinableOperator,
-        correspondingPublicName;
+    show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
@@ -45,8 +41,6 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/names.dart' show minusName, plusName;
 import 'package:kernel/src/bounds_checks.dart' hide calculateBounds;
 import 'package:kernel/type_environment.dart';
-
-import 'package:_fe_analyzer_shared/src/experiments/flags.dart' as shared;
 
 import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/lowering_predicates.dart';
@@ -5385,49 +5379,6 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     Identifier? name = nameNode as Identifier?;
 
-    // If it's a private named parameter, handle the public name.
-    String? publicName;
-    if (kind.isNamed && name != null && name.name.startsWith('_')) {
-      // TODO(rnystrom): Also handle declaring field parameters.
-      bool refersToField = thisKeyword != null;
-
-      if (libraryFeatures.privateNamedParameters.isEnabled) {
-        if (!refersToField) {
-          handleRecoverableError(
-            cfe.codePrivateNamedNonFieldParameter,
-            nameToken,
-            nameToken,
-          );
-        } else {
-          publicName = correspondingPublicName(name.name);
-
-          // Only report the error for no corresponding public name if this is a
-          // parameter that could be private and named.
-          if (publicName == null) {
-            handleRecoverableError(
-              cfe.codePrivateNamedParameterWithoutPublicName,
-              nameToken,
-              nameToken,
-            );
-          }
-        }
-      } else {
-        if (refersToField) {
-          handleExperimentNotEnabled(
-            shared.ExperimentalFlag.privateNamedParameters,
-            nameToken,
-            nameToken,
-          );
-        } else {
-          handleRecoverableError(
-            cfe.codePrivateNamedParameter,
-            nameToken,
-            nameToken,
-          );
-        }
-      }
-    }
-
     FormalParameterBuilder? parameter;
     int nameOffset = offsetForToken(nameToken);
     if (!inCatchClause &&
@@ -5443,6 +5394,15 @@ class BodyBuilderImpl extends StackListenerImpl
       }
     } else {
       String parameterName = name?.name ?? '';
+      String? publicName = problemReporting.checkPublicName(
+        compilationUnit: libraryBuilder.compilationUnit,
+        kind: kind,
+        parameterName: parameterName,
+        nameToken: nameToken,
+        thisKeyword: thisKeyword,
+        libraryFeatures: libraryFeatures,
+        fileUri: uri,
+      );
       bool isWildcard =
           libraryFeatures.wildcardVariables.isEnabled && parameterName == '_';
       if (isWildcard) {

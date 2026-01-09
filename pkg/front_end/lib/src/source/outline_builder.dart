@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/experiments/flags.dart' as shared;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
@@ -16,8 +15,6 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, NullValues, ParserRecovery;
-import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
-    show correspondingPublicName;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Keyword, Token, TokenIsAExtension, TokenType;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart' show Variance;
@@ -42,7 +39,6 @@ import '../base/modifiers.dart' show Modifiers;
 import '../base/operator.dart' show Operator;
 import '../base/problems.dart' show unhandled;
 import '../base/uris.dart';
-import '../codes/cfe_codes.dart' as cfe;
 import '../builder/compilation_unit.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -57,6 +53,7 @@ import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
 import '../kernel/utils.dart';
+import 'check_helper.dart';
 import 'fragment_factory.dart';
 import 'offset_map.dart';
 import 'source_type_parameter_builder.dart';
@@ -480,6 +477,7 @@ extension on DeclarationContext {
 }
 
 class OutlineBuilder extends StackListenerImpl {
+  final ProblemReporting _problemReporting;
   final SourceCompilationUnit _compilationUnit;
   final FragmentFactory _builderFactory;
 
@@ -516,8 +514,12 @@ class OutlineBuilder extends StackListenerImpl {
 
   OffsetMap _offsetMap;
 
-  OutlineBuilder(this._compilationUnit, this._builderFactory, this._offsetMap)
-    : enableNative = _compilationUnit.loader.target.backendTarget.enableNative(
+  OutlineBuilder(
+    this._problemReporting,
+    this._compilationUnit,
+    this._builderFactory,
+    this._offsetMap,
+  ) : enableNative = _compilationUnit.loader.target.backendTarget.enableNative(
         _compilationUnit.importUri,
       );
 
@@ -2977,50 +2979,15 @@ class OutlineBuilder extends StackListenerImpl {
           ? FormalParameterBuilder.noNameSentinel
           : identifier.name;
 
-      // If we're building a private named parameter, then calculate the
-      // corresponding public name. The variable declared by the parameter will
-      // use that name instead.
-      String? publicName;
-      if (kind.isNamed && parameterName.startsWith('_')) {
-        // TODO(rnystrom): Also handle declaring field parameters.
-        bool refersToField = thisKeyword != null;
-
-        if (libraryFeatures.privateNamedParameters.isEnabled) {
-          if (!refersToField) {
-            handleRecoverableError(
-              cfe.codePrivateNamedNonFieldParameter,
-              nameToken,
-              nameToken,
-            );
-          } else {
-            publicName = correspondingPublicName(parameterName);
-
-            // Only report the error for no corresponding public name if this
-            // is a parameter that could be private and named.
-            if (publicName == null) {
-              handleRecoverableError(
-                cfe.codePrivateNamedParameterWithoutPublicName,
-                nameToken,
-                nameToken,
-              );
-            }
-          }
-        } else {
-          if (refersToField) {
-            handleExperimentNotEnabled(
-              shared.ExperimentalFlag.privateNamedParameters,
-              nameToken,
-              nameToken,
-            );
-          } else {
-            handleRecoverableError(
-              cfe.codePrivateNamedParameter,
-              nameToken,
-              nameToken,
-            );
-          }
-        }
-      }
+      String? publicName = _problemReporting.checkPublicName(
+        compilationUnit: _compilationUnit,
+        kind: kind,
+        parameterName: parameterName,
+        nameToken: nameToken,
+        thisKeyword: thisKeyword,
+        libraryFeatures: libraryFeatures,
+        fileUri: _compilationUnit.fileUri,
+      );
 
       push(
         _builderFactory.addFormalParameter(
