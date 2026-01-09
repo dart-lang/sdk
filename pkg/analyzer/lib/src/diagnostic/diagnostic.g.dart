@@ -11820,9 +11820,9 @@ const DiagnosticWithoutArguments nonBoolNegationExpression =
     );
 
 /// Parameters:
-/// String p0: the lexeme of the logical operator
+/// String operator: the lexeme of the logical operator
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String operator})
 >
 nonBoolOperand = DiagnosticWithArguments(
   name: 'non_bool_operand',
@@ -20321,8 +20321,8 @@ LocatableDiagnostic _withArgumentsNonAbstractClassInheritsAbstractMemberTwo({
   );
 }
 
-LocatableDiagnostic _withArgumentsNonBoolOperand({required String p0}) {
-  return LocatableDiagnosticImpl(diag.nonBoolOperand, [p0]);
+LocatableDiagnostic _withArgumentsNonBoolOperand({required String operator}) {
+  return LocatableDiagnosticImpl(diag.nonBoolOperand, [operator]);
 }
 
 LocatableDiagnostic _withArgumentsNonConstantTypeArgument({

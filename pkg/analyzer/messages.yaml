@@ -12181,8 +12181,8 @@ CompileTimeErrorCode:
   nonBoolOperand:
     type: compileTimeError
     parameters:
-      String p0: the lexeme of the logical operator
-    problemMessage: "The operands of the operator '#p0' must be assignable to 'bool'."
+      String operator: the lexeme of the logical operator
+    problemMessage: "The operands of the operator '#operator' must be assignable to 'bool'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
