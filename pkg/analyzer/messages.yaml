@@ -17962,10 +17962,10 @@ CompileTimeErrorCode:
   undefinedEnumConstant:
     type: compileTimeError
     parameters:
-      String p0: the name of the enum value that is not defined
-      String p1: the name of the enum used to access the constant
-    problemMessage: "There's no constant named '#p0' in '#p1'."
-    correctionMessage: "Try correcting the name to the name of an existing constant, or defining a constant named '#p0'."
+      String memberName: the name of the enum value that is not defined
+      Type type: the type of the enum used to access the constant
+    problemMessage: "There's no constant named '#memberName' in '#type'."
+    correctionMessage: "Try correcting the name to the name of an existing constant, or defining a constant named '#memberName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18491,10 +18491,10 @@ CompileTimeErrorCode:
   undefinedGetter:
     type: compileTimeError
     parameters:
-      String p0: the name of the getter
-      Object p1: the name of the enclosing type where the getter is being looked for
-    problemMessage: "The getter '#p0' isn't defined for the type '#p1'."
-    correctionMessage: "Try importing the library that defines '#p0', correcting the name to the name of an existing getter, or defining a getter or field named '#p0'."
+      String memberName: the name of the getter
+      Type type: the type where the getter is being looked for
+    problemMessage: "The getter '#memberName' isn't defined for the type '#type'."
+    correctionMessage: "Try importing the library that defines '#memberName', correcting the name to the name of an existing getter, or defining a getter or field named '#memberName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description

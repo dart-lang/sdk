@@ -15844,10 +15844,13 @@ undefinedConstructorInInitializerDefault = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the enum value that is not defined
-/// String p1: the name of the enum used to access the constant
+/// String memberName: the name of the enum value that is not defined
+/// Type type: the type of the enum used to access the constant
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String memberName,
+    required DartType type,
+  })
 >
 undefinedEnumConstant = DiagnosticWithArguments(
   name: 'undefined_enum_constant',
@@ -15859,7 +15862,7 @@ undefinedEnumConstant = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_enum_constant',
   withArguments: _withArgumentsUndefinedEnumConstant,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
 
 /// Parameters:
@@ -15988,11 +15991,13 @@ undefinedFunction = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the getter
-/// Object p1: the name of the enclosing type where the getter is being looked
-///            for
+/// String memberName: the name of the getter
+/// Type type: the type where the getter is being looked for
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required Object p1})
+  LocatableDiagnostic Function({
+    required String memberName,
+    required DartType type,
+  })
 >
 undefinedGetter = DiagnosticWithArguments(
   name: 'undefined_getter',
@@ -16005,7 +16010,7 @@ undefinedGetter = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_getter',
   withArguments: _withArgumentsUndefinedGetter,
-  expectedTypes: [ExpectedType.string, ExpectedType.object],
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
 
 /// Parameters:
@@ -21215,10 +21220,13 @@ LocatableDiagnostic _withArgumentsUndefinedConstructorInInitializerDefault({
 }
 
 LocatableDiagnostic _withArgumentsUndefinedEnumConstant({
-  required String p0,
-  required String p1,
+  required String memberName,
+  required DartType type,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedEnumConstant, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.undefinedEnumConstant, [
+    memberName,
+    type,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedEnumConstructorNamed({
@@ -21260,10 +21268,10 @@ LocatableDiagnostic _withArgumentsUndefinedFunction({required String p0}) {
 }
 
 LocatableDiagnostic _withArgumentsUndefinedGetter({
-  required String p0,
-  required Object p1,
+  required String memberName,
+  required DartType type,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedGetter, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.undefinedGetter, [memberName, type]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedGetterOnFunctionType({

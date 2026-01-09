@@ -1596,10 +1596,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
 
     if (result.needsGetterError) {
-      diagnosticReporter.atToken(
-        nameToken,
-        diag.undefinedGetter,
-        arguments: [nameToken.lexeme, receiverType],
+      diagnosticReporter.report(
+        diag.undefinedGetter
+            .withArguments(
+              memberName: nameToken.lexeme,
+              type: receiverType.unwrapTypeView<TypeImpl>(),
+            )
+            .at(nameToken),
       );
     }
 
