@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../../base/compiler_context.dart';
 import '../../base/local_scope.dart';
 import '../../base/messages.dart';
 import '../../base/scope.dart';
@@ -19,6 +20,7 @@ import '../../kernel/body_builder_context.dart';
 import '../../kernel/hierarchy/class_member.dart';
 import '../../kernel/hierarchy/members_builder.dart';
 import '../../kernel/type_algorithms.dart';
+import '../../source/check_helper.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_library_builder.dart';
@@ -26,6 +28,7 @@ import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../../source/type_parameter_factory.dart';
+import '../../type_inference/external_ast_helper.dart';
 import '../fragment.dart';
 import 'body_builder_context.dart';
 import 'encoding.dart';
@@ -295,14 +298,51 @@ class RegularSetterDeclaration
   ) => [references.setterReference];
 
   @override
-  VariableDeclaration getFormalParameter(int index) {
-    return _encoding.getFormalParameter(index);
-  }
-
-  @override
   List<ClassMember> get localSetters => [
     new SetterClassMember(_fragment.builder),
   ];
+
+  @override
+  void registerFunctionBody({
+    required CompilerContext compilerContext,
+    required ProblemReporting problemReporting,
+    required Statement? body,
+  }) {
+    List<FormalParameterBuilder>? declaredFormals = _fragment.declaredFormals;
+    if (declaredFormals == null ||
+        declaredFormals.length != 1 ||
+        declaredFormals.single.isOptionalPositional) {
+      int fileOffset = _fragment.formalsOffset;
+      if (body == null) {
+        body = new EmptyStatement()..fileOffset = fileOffset;
+      }
+      if (declaredFormals != null) {
+        // Illegal parameters were removed by the function builder.
+        // Add them as local variable to put them in scope of the body.
+        List<Statement> statements = <Statement>[];
+        for (FormalParameterBuilder parameter in declaredFormals) {
+          statements.add(parameter.variable!);
+        }
+        statements.add(body);
+        body = createBlock(statements, fileOffset: fileOffset);
+      }
+      body = createBlock([
+        createExpressionStatement(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: codeSetterWithWrongNumberOfFormals,
+            fileUri: _fragment.fileUri,
+            fileOffset: fileOffset,
+            length: noLength,
+          ),
+        ),
+        body,
+      ], fileOffset: fileOffset);
+    }
+    if (body != null) {
+      function.body = body..parent = function;
+    }
+  }
 }
 
 /// Interface for using a [SetterFragment] to create a [BodyBuilderContext].
@@ -335,5 +375,9 @@ abstract class SetterFragmentDeclaration {
 
   LocalScope createFormalParameterScope(LookupScope typeParameterScope);
 
-  VariableDeclaration getFormalParameter(int index);
+  void registerFunctionBody({
+    required CompilerContext compilerContext,
+    required ProblemReporting problemReporting,
+    required Statement? body,
+  });
 }

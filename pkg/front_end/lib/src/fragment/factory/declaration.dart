@@ -6,7 +6,6 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../../base/identifiers.dart';
 import '../../base/messages.dart';
 import '../../base/name_space.dart';
 import '../../builder/constructor_reference_builder.dart';
@@ -327,15 +326,6 @@ class FactoryDeclarationImpl
   }
 
   @override
-  FormalParameterBuilder? getFormal(Identifier identifier) {
-    return _encoding.getFormal(identifier);
-  }
-
-  @override
-  VariableDeclaration getFormalParameter(int index) =>
-      _fragment.formals![index].variable!;
-
-  @override
   VariableDeclaration? getTearOffParameter(int index) {
     return _encoding.getTearOffParameter(index);
   }
@@ -372,8 +362,8 @@ class FactoryDeclarationImpl
   }
 
   @override
-  void setBody(Statement value) {
-    _encoding.setBody(value);
+  void registerFunctionBody(Statement? value) {
+    _encoding.registerFunctionBody(value);
   }
 }
 
@@ -399,15 +389,6 @@ abstract class FactoryFragmentDeclaration {
     SourceFactoryBuilder factoryBuilder,
   );
 
-  FormalParameterBuilder? getFormal(Identifier identifier);
-
-  /// Returns the [index]th parameter of this function.
-  ///
-  /// The index is the syntactical index, including both positional and named
-  /// parameter in the order they are declared, and excluding the synthesized
-  /// this parameter on extension instance members.
-  VariableDeclaration getFormalParameter(int index);
-
   /// If this is an extension instance method or constructor with lowering
   /// enabled, the tear off parameter corresponding to the [index]th parameter
   /// on the instance method or constructor is returned.
@@ -418,5 +399,5 @@ abstract class FactoryFragmentDeclaration {
 
   void setAsyncModifier(AsyncMarker newModifier);
 
-  void setBody(Statement value);
+  void registerFunctionBody(Statement? value);
 }

@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/transformations/flags.dart';
 
-import '../../base/identifiers.dart';
 import '../../base/local_scope.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/type_builder.dart';
@@ -28,11 +27,6 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
       );
 
   @override
-  VariableDeclaration getFormalParameter(int index) {
-    return _declaration.getFormalParameter(index);
-  }
-
-  @override
   VariableDeclaration? getTearOffParameter(int index) {
     return _declaration.getTearOffParameter(index);
   }
@@ -48,11 +42,6 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
     /// Initializer formals or super parameters cannot occur in getters so
     /// we don't need to create a new scope.
     return parent;
-  }
-
-  @override
-  FormalParameterBuilder? getFormalParameterByName(Identifier name) {
-    return _declaration.getFormal(name);
   }
 
   @override
@@ -79,9 +68,6 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  bool get isSetter => false;
-
-  @override
   int get memberNameOffset => _declaration.fileOffset;
 
   @override
@@ -91,8 +77,8 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  void registerFunctionBody(Statement body) {
-    _declaration.setBody(body);
+  void registerFunctionBody(Statement? body) {
+    _declaration.registerFunctionBody(body);
   }
 
   @override

@@ -10,7 +10,6 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/extension_scope.dart';
-import '../../base/identifiers.dart';
 import '../../base/local_scope.dart';
 import '../../base/messages.dart';
 import '../../base/name_space.dart';
@@ -148,29 +147,6 @@ mixin _ConstructorDeclarationMixin
 
   @override
   bool get hasParameters => formals != null;
-
-  @override
-  FormalParameterBuilder? getFormal(Identifier identifier) {
-    if (formals != null) {
-      List<FormalParameterBuilder> formals = this.formals!;
-      for (int i = 0; i < formals.length; i++) {
-        FormalParameterBuilder formal = formals[i];
-        if (formal.isWildcard &&
-            identifier.name == '_' &&
-            formal.fileOffset == identifier.nameOffset) {
-          return formal;
-        }
-        if (formal.name == identifier.name &&
-            formal.fileOffset == identifier.nameOffset) {
-          return formal;
-        }
-      }
-      // Coverage-ignore(suite): Not run.
-      // If we have any formals we should find the one we're looking for.
-      assert(false, "$identifier not found in $formals");
-    }
-    return null;
-  }
 
   @override
   LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
@@ -737,11 +713,6 @@ mixin _ConstructorEncodingMixin
   }
 
   @override
-  VariableDeclaration getFormalParameter(int index) {
-    return _encoding.getFormalParameter(index);
-  }
-
-  @override
   VariableDeclaration? getTearOffParameter(int index) {
     return _encoding.getTearOffParameter(index);
   }
@@ -758,7 +729,7 @@ mixin _ConstructorEncodingMixin
   List<TypeParameter>? get thisTypeParameters => _encoding.thisTypeParameters;
 
   @override
-  void registerFunctionBody(Statement value) {
+  void registerFunctionBody(Statement? value) {
     _encoding.registerFunctionBody(value);
   }
 
@@ -1428,7 +1399,7 @@ abstract class ConstructorFragmentDeclaration {
 
   FunctionNode get function;
 
-  void registerFunctionBody(Statement value);
+  void registerFunctionBody(Statement? value);
 
   void registerNoBodyConstructor();
 
@@ -1438,18 +1409,9 @@ abstract class ConstructorFragmentDeclaration {
 
   void becomeNative(SourceLoader loader);
 
-  /// Returns the [VariableDeclaration] for the [index]th formal parameter
-  /// declared in the constructor.
-  ///
-  /// The synthetic parameters of enum constructor are *not* included, so index
-  /// 0 zero of an enum constructor is the first user defined parameter.
-  VariableDeclaration getFormalParameter(int index);
-
   /// Returns the [VariableDeclaration] for the tear off, if any, of the
   /// [index]th formal parameter declared in the constructor.
   VariableDeclaration? getTearOffParameter(int index);
-
-  FormalParameterBuilder? getFormal(Identifier identifier);
 
   LocalScope computeFormalParameterScope(LookupScope parent);
 

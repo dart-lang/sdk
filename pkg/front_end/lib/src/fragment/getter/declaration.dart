@@ -297,11 +297,6 @@ class RegularGetterDeclaration
   ) => [references.getterReference];
 
   @override
-  VariableDeclaration getFormalParameter(int index) {
-    return _encoding.getFormalParameter(index);
-  }
-
-  @override
   List<ClassMember> get localMembers => [
     new GetterClassMember(_fragment.builder),
   ];
@@ -334,6 +329,4 @@ abstract class GetterFragmentDeclaration {
   );
 
   LocalScope createFormalParameterScope(LookupScope typeParameterScope);
-
-  VariableDeclaration getFormalParameter(int index);
 }

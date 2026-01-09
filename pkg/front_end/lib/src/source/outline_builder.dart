@@ -3024,19 +3024,20 @@ class OutlineBuilder extends StackListenerImpl {
 
       push(
         _builderFactory.addFormalParameter(
-          metadata,
-          kind,
-          modifiers,
-          type ??
+          metadata: metadata,
+          kind: kind,
+          modifiers: modifiers,
+          type:
+              type ??
               (memberKind.isParameterInferable
                   ? _builderFactory.addInferableType()
                   : const ImplicitTypeBuilder()),
-          parameterName,
-          publicName,
-          thisKeyword != null,
-          superKeyword != null,
-          identifier?.nameOffset ?? nameToken.charOffset,
-          initializerStart,
+          name: parameterName,
+          publicName: publicName,
+          hasThis: thisKeyword != null,
+          hasSuper: superKeyword != null,
+          nameOffset: identifier?.nameOffset ?? nameToken.charOffset,
+          initializerToken: initializerStart,
           // Extension type parameters should not have a lowered name for
           // wildcard variables.
           lowerWildcard: declarationContext != DeclarationContext.ExtensionType,

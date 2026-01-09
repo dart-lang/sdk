@@ -116,18 +116,21 @@ class FormalParameterBuilder extends NamedBuilderImpl
   /// Whether this formal parameter is a wildcard variable.
   final bool isWildcard;
 
-  FormalParameterBuilder(
-    this.kind,
-    this.modifiers,
-    this.type,
-    this.name,
-    this.fileOffset, {
+  final int? nameOffset;
+
+  FormalParameterBuilder({
+    required this.kind,
+    required this.modifiers,
+    required this.type,
+    required this.name,
+    required this.fileOffset,
     required this.fileUri,
     this.isExtensionThis = false,
     Token? initializerToken,
     required this.hasImmediatelyDeclaredInitializer,
     this.isWildcard = false,
     this.publicName,
+    required this.nameOffset,
   }) : this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer,
        this._initializerToken = initializerToken {
     type.registerInferredTypeListener(this);
@@ -224,11 +227,12 @@ class FormalParameterBuilder extends NamedBuilderImpl
 
   FormalParameterBuilder forPrimaryConstructor(FragmentFactory builderFactory) {
     return new FormalParameterBuilder(
-      kind,
-      modifiers | Modifiers.InitializingFormal,
-      builderFactory.addInferableType(),
-      name,
-      fileOffset,
+      kind: kind,
+      modifiers: modifiers | Modifiers.InitializingFormal,
+      type: builderFactory.addInferableType(),
+      name: name,
+      fileOffset: fileOffset,
+      nameOffset: nameOffset,
       fileUri: fileUri,
       isExtensionThis: isExtensionThis,
       initializerToken: _takeInitializerToken(),
@@ -240,11 +244,12 @@ class FormalParameterBuilder extends NamedBuilderImpl
   FormalParameterBuilder forFormalParameterInitializerScope() {
     if (isInitializingFormal) {
       return new FormalParameterBuilder(
-        kind,
-        modifiers | Modifiers.Final | Modifiers.InitializingFormal,
-        type,
-        name,
-        fileOffset,
+        kind: kind,
+        modifiers: modifiers | Modifiers.Final | Modifiers.InitializingFormal,
+        type: type,
+        name: name,
+        fileOffset: fileOffset,
+        nameOffset: nameOffset,
         fileUri: fileUri,
         isExtensionThis: isExtensionThis,
         hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,
@@ -252,11 +257,13 @@ class FormalParameterBuilder extends NamedBuilderImpl
       )..variable = variable;
     } else if (isSuperInitializingFormal) {
       return new FormalParameterBuilder(
-        kind,
-        modifiers | Modifiers.Final | Modifiers.SuperInitializingFormal,
-        type,
-        name,
-        fileOffset,
+        kind: kind,
+        modifiers:
+            modifiers | Modifiers.Final | Modifiers.SuperInitializingFormal,
+        type: type,
+        name: name,
+        fileOffset: fileOffset,
+        nameOffset: nameOffset,
         fileUri: fileUri,
         isExtensionThis: isExtensionThis,
         hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,

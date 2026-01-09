@@ -41,9 +41,6 @@ class SetterBodyBuilderContext extends BodyBuilderContext {
   bool get isExternalFunction => _declaration.isExternal;
 
   @override
-  bool get isSetter => true;
-
-  @override
   int get memberNameLength => _declaration.name.length;
 
   @override
@@ -69,15 +66,15 @@ class SetterBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  VariableDeclaration getFormalParameter(int index) =>
-      _declaration.getFormalParameter(index);
-
-  @override
   VariableDeclaration? getTearOffParameter(int index) => null;
 
   @override
-  void registerFunctionBody(Statement body) {
-    function.body = body..parent = function;
+  void registerFunctionBody(Statement? body) {
+    _declaration.registerFunctionBody(
+      compilerContext: _builder.libraryBuilder.loader.target.context,
+      problemReporting: _builder.libraryBuilder,
+      body: body,
+    );
   }
 
   @override

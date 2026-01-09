@@ -172,8 +172,6 @@ sealed class GetterEncoding implements InferredTypeListener {
     SourceLibraryBuilder libraryBuilder,
     ClassHierarchyBase hierarchy,
   );
-
-  VariableDeclaration getFormalParameter(int index);
 }
 
 class RegularGetterEncoding extends GetterEncoding
@@ -442,10 +440,6 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
       hierarchy: hierarchy,
     );
   }
-
-  @override
-  VariableDeclaration getFormalParameter(int index) =>
-      _fragment.declaredFormals![index].variable!;
 
   @override
   void onInferredType(DartType type) {
@@ -769,11 +763,6 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       hierarchy: hierarchy,
     );
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  VariableDeclaration getFormalParameter(int index) =>
-      _fragment.declaredFormals![index].variable!;
 
   @override
   void onInferredType(DartType type) {

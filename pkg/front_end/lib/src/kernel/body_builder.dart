@@ -5429,10 +5429,11 @@ class BodyBuilderImpl extends StackListenerImpl
     }
 
     FormalParameterBuilder? parameter;
+    int nameOffset = offsetForToken(nameToken);
     if (!inCatchClause &&
         functionNestingLevel == 0 &&
         memberKind != MemberKind.GeneralizedFunctionType) {
-      parameter = _context.getFormalParameterByName(name!);
+      parameter = _context.getFormalParameterByNameOffset(nameOffset);
 
       if (parameter == null) {
         // This happens when the list of formals (originally) contains a
@@ -5461,11 +5462,12 @@ class BodyBuilderImpl extends StackListenerImpl
         return;
       }
       parameter = new FormalParameterBuilder(
-        kind,
-        modifiers,
-        type ?? const ImplicitTypeBuilder(),
-        parameterName,
-        offsetForToken(nameToken),
+        kind: kind,
+        modifiers: modifiers,
+        type: type ?? const ImplicitTypeBuilder(),
+        name: parameterName,
+        fileOffset: nameOffset,
+        nameOffset: nameOffset,
         fileUri: uri,
         hasImmediatelyDeclaredInitializer: initializerStart != null,
         isWildcard: isWildcard,
@@ -5502,7 +5504,6 @@ class BodyBuilderImpl extends StackListenerImpl
       //  should infer them.
       if (functionNestingLevel == 0) {
         _registerSingleTargetAnnotations(variable);
-        //inferAnnotations(variable, annotations);
       }
     }
     push(parameter);
@@ -11180,12 +11181,14 @@ class BodyBuilderImpl extends StackListenerImpl
       parser.syntheticPreviousToken(token),
       MemberKind.PrimaryConstructor,
     );
-    FormalParameters? formals = pop() as FormalParameters?;
+    // We discard the formals here since access to these are provided through
+    // [_context].
+    pop(); // Formals
+
     checkEmpty(token.next!.charOffset);
     handleNoInitializers();
     checkEmpty(token.charOffset);
     return new BuildPrimaryConstructorResult(
-      formals,
       _initializers,
       _takePendingAnnotations(),
     );
@@ -11211,7 +11214,10 @@ class BodyBuilderImpl extends StackListenerImpl
       parser.syntheticPreviousToken(token),
       kind,
     );
-    FormalParameters? formals = pop() as FormalParameters?;
+    // We discard the formals here since access to these are provided through
+    // [_context].
+    pop(); // Formals
+
     checkEmpty(token.next!.charOffset);
     token = parser.parseInitializersOpt(token);
     token = parser.parseAsyncModifierOpt(token);
@@ -11236,7 +11242,6 @@ class BodyBuilderImpl extends StackListenerImpl
         ?.endSubdivide();
     checkEmpty(token.charOffset);
     return new BuildFunctionBodyResult(
-      formals: formals,
       asyncModifier: asyncModifier,
       body: body,
       initializers: _initializers,

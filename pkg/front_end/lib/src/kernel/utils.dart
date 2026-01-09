@@ -295,11 +295,12 @@ final TypeBuilder dummyTypeBuilder = new FixedTypeBuilderImpl(
 );
 final FormalParameterBuilder dummyFormalParameterBuilder =
     new FormalParameterBuilder(
-      FormalParameterKind.requiredPositional,
-      Modifiers.empty,
-      const ImplicitTypeBuilder(),
-      '',
-      -1,
+      kind: FormalParameterKind.requiredPositional,
+      modifiers: Modifiers.empty,
+      type: const ImplicitTypeBuilder(),
+      name: '',
+      fileOffset: -1,
+      nameOffset: null,
       fileUri: dummyUri,
       hasImmediatelyDeclaredInitializer: false,
     );
