@@ -670,10 +670,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
 
         if (typeSystem.isPotentiallyNonNullable(element.type)) {
-          diagnosticReporter.atNode(
-            node,
-            diag.notAssignedPotentiallyNonNullableLocalVariable,
-            arguments: [node.name],
+          diagnosticReporter.report(
+            diag.notAssignedPotentiallyNonNullableLocalVariable
+                .withArguments(name: node.name)
+                .at(node),
           );
           return;
         }
@@ -893,24 +893,24 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       for (var reference in variable.references) {
         if (variable.inconsistency ==
             shared.JoinedPatternVariableInconsistency.sharedCaseAbsent) {
-          diagnosticReporter.atNode(
-            reference,
-            diag.patternVariableSharedCaseScopeNotAllCases,
-            arguments: [variable.name!],
+          diagnosticReporter.report(
+            diag.patternVariableSharedCaseScopeNotAllCases
+                .withArguments(name: variable.name!)
+                .at(reference),
           );
         } else if (variable.inconsistency ==
             shared.JoinedPatternVariableInconsistency.sharedCaseHasLabel) {
-          diagnosticReporter.atNode(
-            reference,
-            diag.patternVariableSharedCaseScopeHasLabel,
-            arguments: [variable.name!],
+          diagnosticReporter.report(
+            diag.patternVariableSharedCaseScopeHasLabel
+                .withArguments(name: variable.name!)
+                .at(reference),
           );
         } else if (variable.inconsistency ==
             shared.JoinedPatternVariableInconsistency.differentFinalityOrType) {
-          diagnosticReporter.atNode(
-            reference,
-            diag.patternVariableSharedCaseScopeDifferentFinalityOrType,
-            arguments: [variable.name!],
+          diagnosticReporter.report(
+            diag.patternVariableSharedCaseScopeDifferentFinalityOrType
+                .withArguments(name: variable.name!)
+                .at(reference),
           );
         }
       }

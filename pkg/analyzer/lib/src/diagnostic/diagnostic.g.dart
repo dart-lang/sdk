@@ -11610,10 +11610,10 @@ noCombinedSuperSignature = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Object p0: the name of the superclass that does not define an implicitly
-///            invoked constructor
+/// Type supertype: the supertype that does not define an implicitly invoked
+///                 constructor
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required DartType supertype})
 >
 noDefaultSuperConstructorExplicit = DiagnosticWithArguments(
   name: 'no_default_super_constructor',
@@ -11625,7 +11625,7 @@ noDefaultSuperConstructorExplicit = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'no_default_super_constructor_explicit',
   withArguments: _withArgumentsNoDefaultSuperConstructorExplicit,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.type],
 );
 
 /// Parameters:
@@ -11653,10 +11653,13 @@ noDefaultSuperConstructorImplicit = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the subclass
-/// String p1: the name of the superclass
+/// String subclassName: the name of the subclass
+/// String superclassName: the name of the superclass
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String subclassName,
+    required String superclassName,
+  })
 >
 noGenerativeConstructorsInSuperclass = DiagnosticWithArguments(
   name: 'no_generative_constructors_in_superclass',
@@ -12519,9 +12522,9 @@ const DiagnosticWithoutArguments nonSyncFactory =
     );
 
 /// Parameters:
-/// String p0: the name appearing where a type is expected
+/// String name: the name appearing where a type is expected
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 nonTypeAsTypeArgument = DiagnosticWithArguments(
   name: 'non_type_as_type_argument',
@@ -12539,9 +12542,9 @@ nonTypeAsTypeArgument = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the non-type element
+/// String name: the name of the non-type element
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 nonTypeInCatchClause = DiagnosticWithArguments(
   name: 'non_type_in_catch_clause',
@@ -12610,9 +12613,9 @@ const DiagnosticWithoutArguments normalBeforeOptionalParameters =
     );
 
 /// Parameters:
-/// String p0: the name of the variable that is invalid
+/// String name: the name of the variable that is invalid
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 notAssignedPotentiallyNonNullableLocalVariable = DiagnosticWithArguments(
   name: 'not_assigned_potentially_non_nullable_local_variable',
@@ -12630,9 +12633,9 @@ notAssignedPotentiallyNonNullableLocalVariable = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name that is not a type
+/// String name: the name that is not a type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 notAType = DiagnosticWithArguments(
   name: 'not_a_type',
@@ -12646,9 +12649,9 @@ notAType = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the operator that is not a binary operator.
+/// String name: the name of the operator that is not a binary operator.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 notBinaryOperator = DiagnosticWithArguments(
   name: 'not_binary_operator',
@@ -12731,9 +12734,9 @@ const DiagnosticWithoutArguments notEnoughPositionalArgumentsSingular =
     );
 
 /// Parameters:
-/// String p0: the name of the field that is not initialized
+/// String name: the name of the field that is not initialized
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 notInitializedNonNullableInstanceField = DiagnosticWithArguments(
   name: 'not_initialized_non_nullable_instance_field',
@@ -12749,9 +12752,9 @@ notInitializedNonNullableInstanceField = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the field that is not initialized
+/// String name: the name of the field that is not initialized
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 notInitializedNonNullableInstanceFieldConstructor = DiagnosticWithArguments(
   name: 'not_initialized_non_nullable_instance_field',
@@ -12768,9 +12771,9 @@ notInitializedNonNullableInstanceFieldConstructor = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the variable that is invalid
+/// String name: the name of the variable that is invalid
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 notInitializedNonNullableVariable = DiagnosticWithArguments(
   name: 'not_initialized_non_nullable_variable',
@@ -13379,9 +13382,9 @@ patternVariableDeclarationOutsideFunctionOrMethod =
     );
 
 /// Parameters:
-/// String p0: the name of the pattern variable
+/// String name: the name of the pattern variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 patternVariableSharedCaseScopeDifferentFinalityOrType = DiagnosticWithArguments(
   name: 'invalid_pattern_variable_in_shared_case_scope',
@@ -13400,9 +13403,9 @@ patternVariableSharedCaseScopeDifferentFinalityOrType = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the pattern variable
+/// String name: the name of the pattern variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 patternVariableSharedCaseScopeHasLabel = DiagnosticWithArguments(
   name: 'invalid_pattern_variable_in_shared_case_scope',
@@ -13420,9 +13423,9 @@ patternVariableSharedCaseScopeHasLabel = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the pattern variable
+/// String name: the name of the pattern variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 patternVariableSharedCaseScopeNotAllCases = DiagnosticWithArguments(
   name: 'invalid_pattern_variable_in_shared_case_scope',
@@ -13581,9 +13584,9 @@ prefixCollidesWithTopLevelMember = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the prefix
+/// String name: the name of the prefix
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 prefixIdentifierNotFollowedByDot = DiagnosticWithArguments(
   name: 'prefix_identifier_not_followed_by_dot',
@@ -13600,9 +13603,9 @@ prefixIdentifierNotFollowedByDot = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the prefix being shadowed
+/// String prefix: the prefix being shadowed
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String prefix})
 >
 prefixShadowedByLocalDeclaration = DiagnosticWithArguments(
   name: 'prefix_shadowed_by_local_declaration',
@@ -20278,9 +20281,11 @@ LocatableDiagnostic _withArgumentsNoCombinedSuperSignature({
 }
 
 LocatableDiagnostic _withArgumentsNoDefaultSuperConstructorExplicit({
-  required Object p0,
+  required DartType supertype,
 }) {
-  return LocatableDiagnosticImpl(diag.noDefaultSuperConstructorExplicit, [p0]);
+  return LocatableDiagnosticImpl(diag.noDefaultSuperConstructorExplicit, [
+    supertype,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsNoDefaultSuperConstructorImplicit({
@@ -20294,12 +20299,12 @@ LocatableDiagnostic _withArgumentsNoDefaultSuperConstructorImplicit({
 }
 
 LocatableDiagnostic _withArgumentsNoGenerativeConstructorsInSuperclass({
-  required String p0,
-  required String p1,
+  required String subclassName,
+  required String superclassName,
 }) {
   return LocatableDiagnosticImpl(diag.noGenerativeConstructorsInSuperclass, [
-    p0,
-    p1,
+    subclassName,
+    superclassName,
   ]);
 }
 
@@ -20465,12 +20470,14 @@ LocatableDiagnostic _withArgumentsNonSizedTypeArgument({
   return LocatableDiagnosticImpl(diag.nonSizedTypeArgument, [fieldName, type]);
 }
 
-LocatableDiagnostic _withArgumentsNonTypeAsTypeArgument({required String p0}) {
-  return LocatableDiagnosticImpl(diag.nonTypeAsTypeArgument, [p0]);
+LocatableDiagnostic _withArgumentsNonTypeAsTypeArgument({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.nonTypeAsTypeArgument, [name]);
 }
 
-LocatableDiagnostic _withArgumentsNonTypeInCatchClause({required String p0}) {
-  return LocatableDiagnosticImpl(diag.nonTypeInCatchClause, [p0]);
+LocatableDiagnostic _withArgumentsNonTypeInCatchClause({required String name}) {
+  return LocatableDiagnosticImpl(diag.nonTypeInCatchClause, [name]);
 }
 
 LocatableDiagnostic _withArgumentsNonUserDefinableOperator({
@@ -20481,20 +20488,20 @@ LocatableDiagnostic _withArgumentsNonUserDefinableOperator({
 
 LocatableDiagnostic
 _withArgumentsNotAssignedPotentiallyNonNullableLocalVariable({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(
     diag.notAssignedPotentiallyNonNullableLocalVariable,
-    [p0],
+    [name],
   );
 }
 
-LocatableDiagnostic _withArgumentsNotAType({required String p0}) {
-  return LocatableDiagnosticImpl(diag.notAType, [p0]);
+LocatableDiagnostic _withArgumentsNotAType({required String name}) {
+  return LocatableDiagnosticImpl(diag.notAType, [name]);
 }
 
-LocatableDiagnostic _withArgumentsNotBinaryOperator({required String p0}) {
-  return LocatableDiagnosticImpl(diag.notBinaryOperator, [p0]);
+LocatableDiagnostic _withArgumentsNotBinaryOperator({required String name}) {
+  return LocatableDiagnosticImpl(diag.notBinaryOperator, [name]);
 }
 
 LocatableDiagnostic _withArgumentsNotEnoughPositionalArgumentsNamePlural({
@@ -20529,27 +20536,29 @@ LocatableDiagnostic _withArgumentsNotEnoughPositionalArgumentsPlural({
 }
 
 LocatableDiagnostic _withArgumentsNotInitializedNonNullableInstanceField({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(diag.notInitializedNonNullableInstanceField, [
-    p0,
+    name,
   ]);
 }
 
 LocatableDiagnostic
 _withArgumentsNotInitializedNonNullableInstanceFieldConstructor({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(
     diag.notInitializedNonNullableInstanceFieldConstructor,
-    [p0],
+    [name],
   );
 }
 
 LocatableDiagnostic _withArgumentsNotInitializedNonNullableVariable({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.notInitializedNonNullableVariable, [p0]);
+  return LocatableDiagnosticImpl(diag.notInitializedNonNullableVariable, [
+    name,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsNullArgumentToNonNullType({
@@ -20627,28 +20636,28 @@ LocatableDiagnostic _withArgumentsPatternTypeMismatchInIrrefutableContext({
 
 LocatableDiagnostic
 _withArgumentsPatternVariableSharedCaseScopeDifferentFinalityOrType({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(
     diag.patternVariableSharedCaseScopeDifferentFinalityOrType,
-    [p0],
+    [name],
   );
 }
 
 LocatableDiagnostic _withArgumentsPatternVariableSharedCaseScopeHasLabel({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(diag.patternVariableSharedCaseScopeHasLabel, [
-    p0,
+    name,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsPatternVariableSharedCaseScopeNotAllCases({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(
     diag.patternVariableSharedCaseScopeNotAllCases,
-    [p0],
+    [name],
   );
 }
 
@@ -20673,15 +20682,17 @@ LocatableDiagnostic _withArgumentsPrefixCollidesWithTopLevelMember({
 }
 
 LocatableDiagnostic _withArgumentsPrefixIdentifierNotFollowedByDot({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.prefixIdentifierNotFollowedByDot, [p0]);
+  return LocatableDiagnosticImpl(diag.prefixIdentifierNotFollowedByDot, [name]);
 }
 
 LocatableDiagnostic _withArgumentsPrefixShadowedByLocalDeclaration({
-  required String p0,
+  required String prefix,
 }) {
-  return LocatableDiagnosticImpl(diag.prefixShadowedByLocalDeclaration, [p0]);
+  return LocatableDiagnosticImpl(diag.prefixShadowedByLocalDeclaration, [
+    prefix,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsPrivateCollisionInMixinApplication({

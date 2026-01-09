@@ -68,10 +68,10 @@ class BinaryExpressionResolver {
 
     // Report an error if not already reported by the parser.
     if (operator != TokenType.BANG_EQ_EQ && operator != TokenType.EQ_EQ_EQ) {
-      _diagnosticReporter.atToken(
-        node.operator,
-        diag.notBinaryOperator,
-        arguments: [operator.lexeme],
+      _diagnosticReporter.report(
+        diag.notBinaryOperator
+            .withArguments(name: operator.lexeme)
+            .at(node.operator),
       );
     }
 

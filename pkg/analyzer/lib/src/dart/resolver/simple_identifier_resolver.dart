@@ -203,10 +203,10 @@ class SimpleIdentifierResolver with ScopeHelpers {
       element = null;
     } else if (element is PrefixElement && !_isValidAsPrefix(node)) {
       if (element.name case var name?) {
-        diagnosticReporter.atNode(
-          node,
-          diag.prefixIdentifierNotFollowedByDot,
-          arguments: [name],
+        diagnosticReporter.report(
+          diag.prefixIdentifierNotFollowedByDot
+              .withArguments(name: name)
+              .at(node),
         );
       }
     } else if (element == null) {

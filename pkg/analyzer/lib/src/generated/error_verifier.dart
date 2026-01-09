@@ -4849,10 +4849,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     )) {
       // For `E extends Exception`, etc., this will never work, because it has
       // no generative constructors. State this clearly to users.
-      diagnosticReporter.atNode(
-        superclass!,
-        diag.noGenerativeConstructorsInSuperclass,
-        arguments: [_enclosingClass!.name!, superElement.name!],
+      diagnosticReporter.report(
+        diag.noGenerativeConstructorsInSuperclass
+            .withArguments(
+              subclassName: _enclosingClass!.name!,
+              superclassName: superElement.name!,
+            )
+            .at(superclass!),
       );
       return true;
     }
@@ -5019,10 +5022,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var type = fieldElement.type;
       if (!typeSystem.isPotentiallyNonNullable(type)) continue;
 
-      diagnosticReporter.atNode(
-        field,
-        diag.notInitializedNonNullableInstanceField,
-        arguments: [field.name.lexeme],
+      diagnosticReporter.report(
+        diag.notInitializedNonNullableInstanceField
+            .withArguments(name: field.name.lexeme)
+            .at(field),
       );
     }
   }
@@ -5069,10 +5072,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     for (var variable in node.variables) {
       if (variable.initializer == null) {
-        diagnosticReporter.atToken(
-          variable.name,
-          diag.notInitializedNonNullableVariable,
-          arguments: [variable.name.lexeme],
+        diagnosticReporter.report(
+          diag.notInitializedNonNullableVariable
+              .withArguments(name: variable.name.lexeme)
+              .at(variable.name),
         );
       }
     }
@@ -5611,11 +5614,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (requiredPositionalParameterCount != 0 ||
           requiredNamedParameters.isNotEmpty) {
         var SourceRange(:offset, :length) = constructor.errorRange;
-        diagnosticReporter.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.noDefaultSuperConstructorExplicit,
-          arguments: [superType],
+        diagnosticReporter.report(
+          diag.noDefaultSuperConstructorExplicit
+              .withArguments(supertype: superType)
+              .atOffset(offset: offset, length: length),
         );
       }
       return;
