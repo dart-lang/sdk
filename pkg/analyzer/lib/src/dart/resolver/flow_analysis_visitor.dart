@@ -163,7 +163,7 @@ class FlowAnalysisHelper {
   /// will be visited.
   void bodyOrInitializer_enter(
     AstNodeImpl node,
-    FormalParameterListImpl? parameters, {
+    List<FormalParameterElementImpl>? parameters, {
     void Function(AstVisitor<Object?> visitor)? visit,
   }) {
     inferenceLogWriter?.enterBodyOrInitializer(node);
@@ -228,6 +228,18 @@ class FlowAnalysisHelper {
   void continueStatement(ContinueStatement node) {
     var target = getLabelTarget(node, node.label?.element, isBreak: false);
     flow!.handleContinue(target);
+  }
+
+  void declarePrimaryConstructorParameters(
+    List<FormalParameterElementImpl> primaryConstructorParameters,
+  ) {
+    for (var parameter in primaryConstructorParameters) {
+      flow!.declare(
+        parameter,
+        SharedTypeView(parameter.type),
+        initialized: true,
+      );
+    }
   }
 
   void executableDeclaration_enter(
@@ -358,7 +370,7 @@ class FlowAnalysisHelper {
   static AssignedVariables<AstNodeImpl, PromotableElementImpl>
   computeAssignedVariables(
     AstNodeImpl node,
-    FormalParameterListImpl? parameters, {
+    List<FormalParameterElementImpl>? parameters, {
     bool retainDataForTesting = false,
     void Function(AstVisitor<Object?> visitor)? visit,
   }) {
@@ -1061,7 +1073,8 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       throw StateError('Should not visit top level declarations');
     }
     assignedVariables.beginNode();
-    _declareParameters(node.functionExpression.parameters);
+    var element = node.declaredFragment!.element;
+    _declareParameters(element.formalParameters);
     super.visitFunctionDeclaration(node);
     assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
   }
@@ -1075,7 +1088,8 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       return super.visitFunctionExpression(node);
     }
     assignedVariables.beginNode();
-    _declareParameters(node.parameters);
+    var element = node.declaredFragment!.element;
+    _declareParameters(element.formalParameters);
     super.visitFunctionExpression(node);
     assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
   }
@@ -1228,10 +1242,10 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     assignedVariables.endNode(node);
   }
 
-  void _declareParameters(FormalParameterListImpl? parameters) {
+  void _declareParameters(List<FormalParameterElementImpl>? parameters) {
     if (parameters == null) return;
-    for (var parameter in parameters.parameters) {
-      assignedVariables.declare(parameter.declaredFragment!.element);
+    for (var parameter in parameters) {
+      assignedVariables.declare(parameter);
     }
   }
 

@@ -3774,6 +3774,7 @@ package:analyzer/dart/element/element.dart:
     interfaceMembers (getter: Map<Name, ExecutableElement>)
     interfaces (getter: List<InterfaceType>)
     mixins (getter: List<InterfaceType>)
+    primaryConstructor (getter: ConstructorElement?)
     supertype (getter: InterfaceType?)
     thisType (getter: InterfaceType)
     unnamedConstructor (getter: ConstructorElement?)

@@ -1423,6 +1423,125 @@ PrimaryConstructorBody
 ''');
   }
 
+  test_primaryInitializerScope_fieldInitializer_instance() async {
+    await assertNoErrorsInCode(r'''
+enum A(int foo) {
+  v(0);
+  final bar = foo;
+}
+''');
+
+    var node = findNode.singleFieldDeclaration;
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    keyword: final
+    variables
+      VariableDeclaration
+        name: bar
+        equals: =
+        initializer: SimpleIdentifier
+          token: foo
+          element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
+          staticType: int
+        declaredFragment: <testLibraryFragment> bar@34
+  semicolon: ;
+  declaredFragment: <null>
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_instance_declaringFormal() async {
+    await assertNoErrorsInCode(r'''
+enum A(final int foo) {
+  v(0);
+  final bar = foo;
+}
+''');
+
+    var node = findNode.singleFieldDeclaration;
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    keyword: final
+    variables
+      VariableDeclaration
+        name: bar
+        equals: =
+        initializer: SimpleIdentifier
+          token: foo
+          element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
+          staticType: int
+        declaredFragment: <testLibraryFragment> bar@40
+  semicolon: ;
+  declaredFragment: <null>
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_instance_late() async {
+    await assertErrorsInCode(
+      r'''
+enum A(int foo) {
+  v(0);
+  late final bar = foo;
+}
+''',
+      [
+        error(diag.lateFinalFieldWithConstConstructor, 28, 4),
+        error(diag.undefinedIdentifier, 45, 3),
+      ],
+    );
+
+    var node = findNode.singleFieldDeclaration;
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    lateKeyword: late
+    keyword: final
+    variables
+      VariableDeclaration
+        name: bar
+        equals: =
+        initializer: SimpleIdentifier
+          token: foo
+          element: <null>
+          staticType: InvalidType
+        declaredFragment: <testLibraryFragment> bar@39
+  semicolon: ;
+  declaredFragment: <null>
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_static() async {
+    await assertErrorsInCode(
+      r'''
+enum A(int foo) {
+  v(0);
+  static var bar = foo;
+}
+''',
+      [error(diag.undefinedIdentifier, 45, 3)],
+    );
+
+    var node = findNode.singleFieldDeclaration;
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  staticKeyword: static
+  fields: VariableDeclarationList
+    keyword: var
+    variables
+      VariableDeclaration
+        name: bar
+        equals: =
+        initializer: SimpleIdentifier
+          token: foo
+          element: <null>
+          staticType: InvalidType
+        declaredFragment: <testLibraryFragment> bar@39
+  semicolon: ;
+  declaredFragment: <null>
+''');
+  }
+
   test_setter() async {
     await assertNoErrorsInCode(r'''
 enum E<T> {

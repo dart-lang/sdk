@@ -18,6 +18,7 @@ import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/record_type_builder.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Recursive visitor of LinkedNodes that resolves explicit type annotations
 /// in outlines.  This includes resolving element references in identifiers
@@ -174,9 +175,12 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     nodesToBuildType.addDeclaration(node);
 
     for (var field in fragment.fields) {
-      var node = linker.elementNodes[field];
-      if (node != null) {
-        LinkingNodeContext(node, scope);
+      var isExplicitField = field.isOriginDeclaration && !field.isEnumConstant;
+      if (!isExplicitField) {
+        var node = linker.elementNodes[field];
+        if (node != null) {
+          LinkingNodeContext(node, scope);
+        }
       }
     }
 
@@ -247,9 +251,26 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitFieldDeclaration(FieldDeclaration node) {
+  void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
     node.metadata.accept(this);
-    node.fields.accept(this);
+
+    var outerScope = scope;
+    try {
+      if (!node.isStatic && node.fields.lateKeyword == null) {
+        var primaryConstructor = node.parent?.parent
+            .ifTypeOrNull<Declaration>()
+            ?.declaredFragment!
+            .element
+            .ifTypeOrNull<InterfaceElementImpl>()
+            ?.primaryConstructor;
+        if (primaryConstructor != null) {
+          scope = ConstructorInitializerScope(scope, primaryConstructor);
+        }
+      }
+      node.fields.accept(this);
+    } finally {
+      scope = outerScope;
+    }
   }
 
   @override

@@ -4912,6 +4912,7 @@ sealed class InterfaceElementImpl extends InstanceElementImpl
     _mixins = mixins.cast();
   }
 
+  @override
   @trackedIndirectly
   ConstructorElementImpl? get primaryConstructor {
     var result = constructors.firstOrNull;

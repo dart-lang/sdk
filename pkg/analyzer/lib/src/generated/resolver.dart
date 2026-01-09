@@ -2235,7 +2235,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.typeName?.accept(this);
       node.parameters.accept(this);
 
-      flowAnalysis.bodyOrInitializer_enter(node, node.parameters);
+      flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
       flowAnalysis.executableDeclaration_enter(
         node,
         element.formalParameters,
@@ -2819,10 +2819,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       if (isLocal) {
         flowAnalysis.flow!.functionExpression_begin(node);
       } else {
-        flowAnalysis.bodyOrInitializer_enter(
-          node,
-          node.functionExpression.parameters,
-        );
+        flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
       }
       flowAnalysis.executableDeclaration_enter(
         node,
@@ -3298,7 +3295,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.typeParameters?.accept(this);
       node.parameters?.accept(this);
 
-      flowAnalysis.bodyOrInitializer_enter(node, node.parameters);
+      flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
       flowAnalysis.executableDeclaration_enter(
         node,
         element.formalParameters,
@@ -3667,13 +3664,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.metadata.accept(this);
 
       if (primaryConstructorDeclaration != null) {
-        flowAnalysis.bodyOrInitializer_enter(
-          node,
-          primaryConstructorDeclaration.formalParameters,
-        );
+        flowAnalysis.bodyOrInitializer_enter(node, element!.formalParameters);
         flowAnalysis.executableDeclaration_enter(
           node,
-          element!.formalParameters,
+          element.formalParameters,
           isClosure: false,
         );
       }
@@ -5063,7 +5057,27 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
     node.metadata.accept(this);
     _visitDocumentationComment(node.documentationComment);
-    node.fields.accept(this);
+
+    var outerScope = nameScope;
+    try {
+      if (!node.isStatic && node.fields.lateKeyword == null) {
+        var primaryConstructor = node.parent?.parent
+            .ifTypeOrNull<Declaration>()
+            ?.declaredFragment!
+            .element
+            .ifTypeOrNull<InterfaceElementImpl>()
+            ?.primaryConstructor;
+        if (primaryConstructor != null) {
+          nameScope = ConstructorInitializerScope(
+            nameScope,
+            primaryConstructor,
+          );
+        }
+      }
+      node.fields.accept(this);
+    } finally {
+      nameScope = outerScope;
+    }
   }
 
   @override

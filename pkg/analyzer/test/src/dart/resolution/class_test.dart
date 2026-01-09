@@ -1016,6 +1016,41 @@ PrimaryConstructorBody
 ''');
   }
 
+  test_primaryConstructorBody_primaryParameterScope_declaringFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+class A(final int a) {
+  this {
+    a;
+    foo;
+  }
+  void foo() {}
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: a
+            element: <testLibrary>::@class::A::@getter::a
+            staticType: int
+          semicolon: ;
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: foo
+            element: <testLibrary>::@class::A::@method::foo
+            staticType: void Function()
+          semicolon: ;
+      rightBracket: }
+''');
+  }
+
   test_primaryConstructorBody_primaryParameterScope_fieldFormalParameter() async {
     await assertNoErrorsInCode(r'''
 class A(this.a) {
@@ -1120,6 +1155,118 @@ PrimaryConstructorBody
             staticType: void Function()
           semicolon: ;
       rightBracket: }
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_instance() async {
+    await assertNoErrorsInCode(r'''
+class A(int foo) {
+  var bar = foo;
+}
+''');
+
+    var node = findNode.singleFieldDeclaration;
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    keyword: var
+    variables
+      VariableDeclaration
+        name: bar
+        equals: =
+        initializer: SimpleIdentifier
+          token: foo
+          element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+          staticType: int
+        declaredFragment: <testLibraryFragment> bar@25
+  semicolon: ;
+  declaredFragment: <null>
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_instance_declaringFormal() async {
+    await assertNoErrorsInCode(r'''
+class A(final int foo) {
+  var bar = foo;
+}
+''');
+
+    var node = findNode.singleFieldDeclaration;
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    keyword: var
+    variables
+      VariableDeclaration
+        name: bar
+        equals: =
+        initializer: SimpleIdentifier
+          token: foo
+          element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+          staticType: int
+        declaredFragment: <testLibraryFragment> bar@31
+  semicolon: ;
+  declaredFragment: <null>
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_instance_late() async {
+    await assertErrorsInCode(
+      r'''
+class A(int foo) {
+  late var bar = foo;
+}
+''',
+      [error(diag.undefinedIdentifier, 36, 3)],
+    );
+
+    var node = findNode.singleFieldDeclaration;
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    lateKeyword: late
+    keyword: var
+    variables
+      VariableDeclaration
+        name: bar
+        equals: =
+        initializer: SimpleIdentifier
+          token: foo
+          element: <null>
+          staticType: InvalidType
+        declaredFragment: <testLibraryFragment> bar@30
+  semicolon: ;
+  declaredFragment: <null>
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_static() async {
+    await assertErrorsInCode(
+      r'''
+class A(int foo) {
+  static var bar = foo;
+}
+''',
+      [error(diag.undefinedIdentifier, 38, 3)],
+    );
+
+    var node = findNode.singleFieldDeclaration;
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  staticKeyword: static
+  fields: VariableDeclarationList
+    keyword: var
+    variables
+      VariableDeclaration
+        name: bar
+        equals: =
+        initializer: SimpleIdentifier
+          token: foo
+          element: <null>
+          staticType: InvalidType
+        declaredFragment: <testLibraryFragment> bar@32
+  semicolon: ;
+  declaredFragment: <null>
 ''');
   }
 }
