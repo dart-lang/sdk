@@ -23763,6 +23763,45 @@ library
 ''');
   }
 
+  test_primaryConstructorBody_documented() async {
+    var library = await buildLibrary('''
+/// Class docs
+class const A() {
+  /// first
+  /// second
+  /// third
+  this;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:27) (firstTokenOffset:0) (offset:27)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:21) (offset:27)
+              element: <testLibrary>::@class::A::@constructor::new
+              documentationComment: /// first\n/// second\n/// third
+              typeName: A
+              typeNameOffset: 27
+              thisKeywordOffset: 72
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      documentationComment: /// Class docs
+      constructors
+        const declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          documentationComment: /// first\n/// second\n/// third
+''');
+  }
+
   test_primaryConstructorBody_duplicate() async {
     var library = await buildLibrary(r'''
 class const A() {
@@ -24107,6 +24146,387 @@ library
           firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@class::A::@field::x
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_instance() async {
+    var library = await buildLibrary('''
+class A(int foo) {
+  var bar = foo;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 hasInitializer isOriginDeclaration bar (nameOffset:25) (firstTokenOffset:25) (offset:25)
+              element: <testLibrary>::@class::A::@field::bar
+          constructors
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 6
+              formalParameters
+                #F4 requiredPositional foo (nameOffset:12) (firstTokenOffset:8) (offset:12)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+          getters
+            #F5 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+              element: <testLibrary>::@class::A::@getter::bar
+          setters
+            #F6 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+              element: <testLibrary>::@class::A::@setter::bar
+              formalParameters
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+                  element: <testLibrary>::@class::A::@setter::bar::@formalParameter::value
+  classes
+    hasNonFinalField class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        hasImplicitType hasInitializer isOriginDeclaration bar
+          reference: <testLibrary>::@class::A::@field::bar
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::A::@getter::bar
+          setter: <testLibrary>::@class::A::@setter::bar
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional foo
+              firstFragment: #F4
+              type: int
+      getters
+        synthetic isOriginVariable bar
+          reference: <testLibrary>::@class::A::@getter::bar
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::bar
+      setters
+        synthetic isOriginVariable bar
+          reference: <testLibrary>::@class::A::@setter::bar
+          firstFragment: #F6
+          formalParameters
+            #E1 requiredPositional value
+              firstFragment: #F7
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::bar
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_instance_declaringFormal() async {
+    var library = await buildLibrary('''
+class A(final int foo) {
+  var bar = foo;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 synthetic isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo
+            #F3 hasInitializer isOriginDeclaration bar (nameOffset:31) (firstTokenOffset:31) (offset:31)
+              element: <testLibrary>::@class::A::@field::bar
+          constructors
+            #F4 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 6
+              formalParameters
+                #F5 requiredPositional final this.foo (nameOffset:18) (firstTokenOffset:8) (offset:18)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+          getters
+            #F6 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@getter::foo
+            #F7 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+              element: <testLibrary>::@class::A::@getter::bar
+          setters
+            #F8 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+              element: <testLibrary>::@class::A::@setter::bar
+              formalParameters
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+                  element: <testLibrary>::@class::A::@setter::bar::@formalParameter::value
+  classes
+    hasNonFinalField class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic final isOriginDeclaringFormalParameter foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+          declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+        hasImplicitType hasInitializer isOriginDeclaration bar
+          reference: <testLibrary>::@class::A::@field::bar
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@class::A::@getter::bar
+          setter: <testLibrary>::@class::A::@setter::bar
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
+          formalParameters
+            #E0 requiredPositional final declaring this.foo
+              firstFragment: #F5
+              type: int
+              field: <testLibrary>::@class::A::@field::foo
+      getters
+        synthetic isOriginVariable foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F6
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+        synthetic isOriginVariable bar
+          reference: <testLibrary>::@class::A::@getter::bar
+          firstFragment: #F7
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::bar
+      setters
+        synthetic isOriginVariable bar
+          reference: <testLibrary>::@class::A::@setter::bar
+          firstFragment: #F8
+          formalParameters
+            #E1 requiredPositional value
+              firstFragment: #F9
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::bar
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_instance_late() async {
+    var library = await buildLibrary('''
+class A(int foo) {
+  late var bar = foo;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 hasInitializer isOriginDeclaration bar (nameOffset:30) (firstTokenOffset:30) (offset:30)
+              element: <testLibrary>::@class::A::@field::bar
+          constructors
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 6
+              formalParameters
+                #F4 requiredPositional foo (nameOffset:12) (firstTokenOffset:8) (offset:12)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+          getters
+            #F5 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@class::A::@getter::bar
+          setters
+            #F6 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@class::A::@setter::bar
+              formalParameters
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+                  element: <testLibrary>::@class::A::@setter::bar::@formalParameter::value
+  classes
+    hasNonFinalField class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        late hasImplicitType hasInitializer isOriginDeclaration bar
+          reference: <testLibrary>::@class::A::@field::bar
+          firstFragment: #F2
+          type: InvalidType
+          getter: <testLibrary>::@class::A::@getter::bar
+          setter: <testLibrary>::@class::A::@setter::bar
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional foo
+              firstFragment: #F4
+              type: int
+      getters
+        synthetic isOriginVariable bar
+          reference: <testLibrary>::@class::A::@getter::bar
+          firstFragment: #F5
+          returnType: InvalidType
+          variable: <testLibrary>::@class::A::@field::bar
+      setters
+        synthetic isOriginVariable bar
+          reference: <testLibrary>::@class::A::@setter::bar
+          firstFragment: #F6
+          formalParameters
+            #E1 requiredPositional value
+              firstFragment: #F7
+              type: InvalidType
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::bar
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_instance_typePromotion() async {
+    var library = await buildLibrary('''
+class A(int? foo) {
+  var bar = foo != null ? foo : 0;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 hasInitializer isOriginDeclaration bar (nameOffset:26) (firstTokenOffset:26) (offset:26)
+              element: <testLibrary>::@class::A::@field::bar
+          constructors
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 6
+              formalParameters
+                #F4 requiredPositional foo (nameOffset:13) (firstTokenOffset:8) (offset:13)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+          getters
+            #F5 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+              element: <testLibrary>::@class::A::@getter::bar
+          setters
+            #F6 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+              element: <testLibrary>::@class::A::@setter::bar
+              formalParameters
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+                  element: <testLibrary>::@class::A::@setter::bar::@formalParameter::value
+  classes
+    hasNonFinalField class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        hasImplicitType hasInitializer isOriginDeclaration bar
+          reference: <testLibrary>::@class::A::@field::bar
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::A::@getter::bar
+          setter: <testLibrary>::@class::A::@setter::bar
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional foo
+              firstFragment: #F4
+              type: int?
+      getters
+        synthetic isOriginVariable bar
+          reference: <testLibrary>::@class::A::@getter::bar
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::bar
+      setters
+        synthetic isOriginVariable bar
+          reference: <testLibrary>::@class::A::@setter::bar
+          firstFragment: #F6
+          formalParameters
+            #E1 requiredPositional value
+              firstFragment: #F7
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::bar
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_static() async {
+    var library = await buildLibrary('''
+class A(int foo) {
+  static var bar = foo;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 hasInitializer isOriginDeclaration bar (nameOffset:32) (firstTokenOffset:32) (offset:32)
+              element: <testLibrary>::@class::A::@field::bar
+          constructors
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 6
+              formalParameters
+                #F4 requiredPositional foo (nameOffset:12) (firstTokenOffset:8) (offset:12)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+          getters
+            #F5 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+              element: <testLibrary>::@class::A::@getter::bar
+          setters
+            #F6 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+              element: <testLibrary>::@class::A::@setter::bar
+              formalParameters
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+                  element: <testLibrary>::@class::A::@setter::bar::@formalParameter::value
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        static hasImplicitType hasInitializer isOriginDeclaration bar
+          reference: <testLibrary>::@class::A::@field::bar
+          firstFragment: #F2
+          type: InvalidType
+          getter: <testLibrary>::@class::A::@getter::bar
+          setter: <testLibrary>::@class::A::@setter::bar
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional foo
+              firstFragment: #F4
+              type: int
+      getters
+        synthetic static isOriginVariable bar
+          reference: <testLibrary>::@class::A::@getter::bar
+          firstFragment: #F5
+          returnType: InvalidType
+          variable: <testLibrary>::@class::A::@field::bar
+      setters
+        synthetic static isOriginVariable bar
+          reference: <testLibrary>::@class::A::@setter::bar
+          firstFragment: #F6
+          formalParameters
+            #E1 requiredPositional value
+              firstFragment: #F7
+              type: InvalidType
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::bar
 ''');
   }
 

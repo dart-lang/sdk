@@ -181,16 +181,27 @@ class _Constructor {
     var names = notInitFinalFields.map((f) => f.name).toList();
     names.sort();
 
-    var (code, arguments) = switch (names.length) {
-      1 => (diag.finalNotInitializedConstructor1, names),
-      2 => (diag.finalNotInitializedConstructor2, names),
-      _ => (
-        diag.finalNotInitializedConstructor3Plus,
-        [names[0], names[1], names.length - 2],
-      ),
-    };
-
-    diagnosticReporter.atSourceRange(errorRange, code, arguments: arguments);
+    diagnosticReporter.report(
+      switch (names) {
+        // `names` can't be empty since its based on `notInitFinalFields`, which
+        // is not empty (see `if` test above).
+        [] => throw StateError('unexpectedly empty name list'),
+        [var name] => diag.finalNotInitializedConstructor1.withArguments(
+          name: name,
+        ),
+        [var name1, var name2] =>
+          diag.finalNotInitializedConstructor2.withArguments(
+            name1: name1,
+            name2: name2,
+          ),
+        [var name1, var name2, ...var remaining] =>
+          diag.finalNotInitializedConstructor3Plus.withArguments(
+            name1: name1,
+            name2: name2,
+            remainingCount: remaining.length,
+          ),
+      }.atSourceRange(errorRange),
+    );
   }
 
   void reportNotInitializedNonNullable(List<_Field> notInitNonNullableFields) {

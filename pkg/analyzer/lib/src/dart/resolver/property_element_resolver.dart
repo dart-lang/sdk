@@ -422,26 +422,29 @@ class PropertyElementResolver with ScopeHelpers {
         var enclosingElement = element.enclosingElement;
         if (enclosingElement is ExtensionElement &&
             enclosingElement.name == null) {
-          _resolver.diagnosticReporter.atNode(
-            propertyName,
-            diag.instanceAccessToStaticMemberOfUnnamedExtension,
-            arguments: [propertyName.name, element.kind.displayName],
+          _resolver.diagnosticReporter.report(
+            diag.instanceAccessToStaticMemberOfUnnamedExtension
+                .withArguments(
+                  name: propertyName.name,
+                  kind: element.kind.displayName,
+                )
+                .at(propertyName),
           );
         } else {
           // It is safe to assume that `enclosingElement.name` is non-`null`
           // because it can only be `null` for extensions, and we handle that
           // case above.
-          diagnosticReporter.atNode(
-            propertyName,
-            diag.instanceAccessToStaticMember,
-            arguments: [
-              propertyName.name,
-              element.kind.displayName,
-              enclosingElement!.name!,
-              enclosingElement is MixinElement
-                  ? 'mixin'
-                  : enclosingElement.kind.displayName,
-            ],
+          diagnosticReporter.report(
+            diag.instanceAccessToStaticMember
+                .withArguments(
+                  memberName: propertyName.name,
+                  memberKind: element.kind.displayName,
+                  enclosingElementName: enclosingElement!.name!,
+                  enclosingElementKind: enclosingElement is MixinElement
+                      ? 'mixin'
+                      : enclosingElement.kind.displayName,
+                )
+                .at(propertyName),
           );
         }
       }

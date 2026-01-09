@@ -545,8 +545,7 @@ class LibraryAnalyzer {
     // Unused local elements.
     unit.accept(
       UnusedLocalElementsVerifier(
-        fileAnalysis.file.source,
-        fileAnalysis.diagnosticListener,
+        fileAnalysis.diagnosticReporter,
         usedElements,
         _libraryElement,
       ),
@@ -719,10 +718,10 @@ class LibraryAnalyzer {
           errorCode.withArguments(uriStr: selectedUriStr).at(directive.uri),
         );
       } else if (state.importedLibrarySource == null) {
-        diagnosticReporter.atNode(
-          directive.uri,
-          diag.importOfNonLibrary,
-          arguments: [selectedUriStr],
+        diagnosticReporter.report(
+          diag.importOfNonLibrary
+              .withArguments(uri: selectedUriStr)
+              .at(directive.uri),
         );
       }
     } else if (state is LibraryImportWithUriStr) {

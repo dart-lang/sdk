@@ -9,10 +9,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -504,10 +501,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 /// [diag.unusedField],
 /// [diag.unusedLocalVariable], etc.
 class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
-  final Source _fileSource;
-
-  /// The error listener to which errors will be reported.
-  final DiagnosticListener _diagnosticListener;
+  final DiagnosticReporter _diagnosticReporter;
 
   /// The elements know to be used.
   final UsedLocalElements _usedElements;
@@ -524,8 +518,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   /// Create a new instance of the [UnusedLocalElementsVerifier].
   UnusedLocalElementsVerifier(
-    this._fileSource,
-    this._diagnosticListener,
+    this._diagnosticReporter,
     this._usedElements,
     LibraryElement library,
   ) : _libraryUri = library.uri,
@@ -731,8 +724,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
             var field = element.field;
             if (field != null && !_isReadMember(field)) {
               var keyword = parameter.finalOrVarKeyword!.lexeme;
-              // TODO(scheglov): give the class DiagnosticReporter
-              DiagnosticReporter(_diagnosticListener, _fileSource).report(
+              _diagnosticReporter.report(
                 diag.unusedFieldFromPrimaryConstructor
                     .withArguments(
                       fieldName: field.displayName,
@@ -1051,17 +1043,12 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   ) {
     if (element != null) {
       var fragment = element.firstFragment;
-      _diagnosticListener.onDiagnostic(
-        Diagnostic.tmp(
-          source: fragment.libraryFragment!.source,
-          offset:
-              fragment.nameOffset ??
-              fragment.enclosingFragment?.nameOffset ??
-              0,
-          length: fragment.name?.length ?? 0,
-          diagnosticCode: code,
-          arguments: arguments,
-        ),
+      _diagnosticReporter.atOffset(
+        offset:
+            fragment.nameOffset ?? fragment.enclosingFragment?.nameOffset ?? 0,
+        length: fragment.name?.length ?? 0,
+        diagnosticCode: code,
+        arguments: arguments,
       );
     }
   }

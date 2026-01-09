@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'data_driven_test_support.dart';
@@ -2593,6 +2594,69 @@ void f() {
     sliderTheme: SliderThemeData(), checkboxTheme: CheckboxThemeData(), radioTheme: RadioThemeData()
   );
   print(themeData);
+}
+''');
+  }
+
+  Future<void>
+  test_material_to_cupertino_CupertinoPageTransitionsBuilder() async {
+    newFile('$workspaceRootPath/p/lib/widgets.dart', '''
+  class PageTransitionsBuilder {
+    const PageTransitionsBuilder();
+
+    int get transitionDuration => 2;
+ }
+''');
+
+    newFile('$workspaceRootPath/p/lib/material.dart', '''
+  class Builder {
+    int get transitionDuration => 2;
+ }
+''');
+
+    newFile('$workspaceRootPath/p/lib/cupertino.dart', '''
+ class CupertinoPageTransitionsBuilder {
+    const CupertinoPageTransitionsBuilder();
+
+    @override
+    int get transitionDuration => 1;
+ }
+''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+    );
+
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace by cupertino CupertinoPageTransitionsBuilder'
+    date: 2023-11-09
+    element:
+      uris: ['package:p/material.dart']
+      class: 'CupertinoPageTransitionsBuilder'
+    changes:
+    - kind: 'replacedBy'
+      newElement:
+        uris: ['package:p/cupertino.dart']
+        class: 'CupertinoPageTransitionsBuilder'
+''');
+
+    await resolveTestCode('''
+import 'package:p/material.dart';
+
+void f(CupertinoPageTransitionsBuilder builder) {
+  builder.transitionDuration;
+}
+''');
+
+    await assertHasFix('''
+import 'package:p/cupertino.dart';
+import 'package:p/material.dart';
+
+void f(CupertinoPageTransitionsBuilder builder) {
+  builder.transitionDuration;
 }
 ''');
   }

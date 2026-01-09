@@ -100,6 +100,11 @@ void checkForTypeParameterBoundRecursion(
   }
 }
 
+typedef RepeatedTypeDiagnosticCode =
+    DiagnosticWithArguments<
+      LocatableDiagnostic Function({required String interfaceName})
+    >;
+
 class EnclosingExecutableContext {
   final InternalExecutableElement? element;
   final bool isAsynchronous;
@@ -3846,10 +3851,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     var languageVersionToken = node.languageVersionToken;
     if (languageVersionToken != null) {
-      diagnosticReporter.atToken(
-        languageVersionToken,
-        diag.illegalLanguageVersionOverride,
-        arguments: ['$sourceLanguageConstraint'],
+      diagnosticReporter.report(
+        diag.illegalLanguageVersionOverride
+            .withArguments(requiredVersion: '$sourceLanguageConstraint')
+            .at(languageVersionToken),
       );
     }
   }
@@ -3905,10 +3910,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // contained interpolations, in which case the import would have failed to
     // resolve, and we would never reach here.  So it is safe to assume that
     // `directive.uri.stringValue` is non-`null`.
-    diagnosticReporter.atNode(
-      directive.uri,
-      diag.importInternalLibrary,
-      arguments: [directive.uri.stringValue!],
+    diagnosticReporter.report(
+      diag.importInternalLibrary
+          .withArguments(uri: directive.uri.stringValue!)
+          .at(directive.uri),
     );
   }
 
@@ -4027,23 +4032,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     if (staticElement is FieldElement) {
       if (staticElement.isOriginGetterSetter) {
-        diagnosticReporter.atNode(
-          initializer,
-          diag.initializerForNonExistentField,
-          arguments: [fieldName.name],
+        diagnosticReporter.report(
+          diag.initializerForNonExistentField
+              .withArguments(formalName: fieldName.name)
+              .at(initializer),
         );
       } else if (staticElement.isStatic) {
-        diagnosticReporter.atNode(
-          initializer,
-          diag.initializerForStaticField,
-          arguments: [fieldName.name],
+        diagnosticReporter.report(
+          diag.initializerForStaticField
+              .withArguments(formalName: fieldName.name)
+              .at(initializer),
         );
       }
     } else {
-      diagnosticReporter.atNode(
-        initializer,
-        diag.initializerForNonExistentField,
-        arguments: [fieldName.name],
+      diagnosticReporter.report(
+        diag.initializerForNonExistentField
+            .withArguments(formalName: fieldName.name)
+            .at(initializer),
       );
       return;
     }
@@ -4138,10 +4143,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         diag.instanceMemberAccessFromFactory.at(identifier),
       );
     } else {
-      diagnosticReporter.atNode(
-        identifier,
-        diag.implicitThisReferenceInInitializer,
-        arguments: [identifier.name],
+      diagnosticReporter.report(
+        diag.implicitThisReferenceInInitializer
+            .withArguments(memberName: identifier.name)
+            .at(identifier),
       );
     }
   }
@@ -4558,15 +4563,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (superMember == null) {
         var isSetter = name.endsWith('=');
 
-        var errorCode = isSetter
-            ? diag.mixinApplicationNoConcreteSuperInvokedSetter
-            : diag.mixinApplicationNoConcreteSuperInvokedMember;
-
-        if (isSetter) {
-          name = name.substring(0, name.length - 1);
-        }
-
-        diagnosticReporter.atNode(mixinName, errorCode, arguments: [name]);
+        diagnosticReporter.report(
+          (isSetter
+                  ? diag.mixinApplicationNoConcreteSuperInvokedSetter
+                        .withArguments(name: name.substring(0, name.length - 1))
+                  : diag.mixinApplicationNoConcreteSuperInvokedMember
+                        .withArguments(name: name))
+              .at(mixinName),
+        );
         return true;
       }
 
@@ -5296,7 +5300,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForRepeatedType(
     Set<InstanceElement> accumulatedElements,
     List<NamedType>? namedTypes,
-    DiagnosticCode code,
+    RepeatedTypeDiagnosticCode code,
   ) {
     if (namedTypes == null) {
       return;
@@ -5308,10 +5312,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var element = type.element;
         var added = accumulatedElements.add(element);
         if (!added) {
-          diagnosticReporter.atNode(
-            namedType,
-            code,
-            arguments: [element.name!],
+          diagnosticReporter.report(
+            code.withArguments(interfaceName: element.name!).at(namedType),
           );
         }
       }
@@ -5604,11 +5606,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             superParametersResult.positionalArgumentCount ||
         requiredNamedParameters.isNotEmpty) {
       var SourceRange(:offset, :length) = constructor.errorRange;
-      diagnosticReporter.atOffset(
-        offset: offset,
-        length: length,
-        diagnosticCode: diag.implicitSuperInitializerMissingArguments,
-        arguments: [superType],
+      diagnosticReporter.report(
+        diag.implicitSuperInitializerMissingArguments
+            .withArguments(superType: superType)
+            .atOffset(offset: offset, length: length),
       );
     }
   }
@@ -5774,10 +5775,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (element is FieldFormalParameterElementImpl) {
       var fieldElement = element.field;
       if (fieldElement == null || fieldElement.isOriginGetterSetter) {
-        diagnosticReporter.atNode(
-          parameter,
-          diag.initializingFormalForNonExistentField,
-          arguments: [parameter.name.lexeme],
+        diagnosticReporter.report(
+          diag.initializingFormalForNonExistentField
+              .withArguments(formalName: parameter.name.lexeme)
+              .at(parameter),
         );
       } else {
         var parameterElement = parameter.declaredFragment?.element;
@@ -5785,16 +5786,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           var declaredType = parameterElement.type;
           var fieldType = fieldElement.type;
           if (fieldElement.isOriginGetterSetter) {
-            diagnosticReporter.atNode(
-              parameter,
-              diag.initializingFormalForNonExistentField,
-              arguments: [parameter.name.lexeme],
+            diagnosticReporter.report(
+              diag.initializingFormalForNonExistentField
+                  .withArguments(formalName: parameter.name.lexeme)
+                  .at(parameter),
             );
           } else if (fieldElement.isStatic) {
-            diagnosticReporter.atNode(
-              parameter,
-              diag.initializerForStaticField,
-              arguments: [parameter.name.lexeme],
+            diagnosticReporter.report(
+              diag.initializerForStaticField
+                  .withArguments(formalName: parameter.name.lexeme)
+                  .at(parameter),
             );
           } else if (!typeSystem.isSubtypeOf(declaredType, fieldType)) {
             diagnosticReporter.atNode(
@@ -5805,16 +5806,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           }
         } else {
           if (fieldElement.isOriginGetterSetter) {
-            diagnosticReporter.atNode(
-              parameter,
-              diag.initializingFormalForNonExistentField,
-              arguments: [parameter.name.lexeme],
+            diagnosticReporter.report(
+              diag.initializingFormalForNonExistentField
+                  .withArguments(formalName: parameter.name.lexeme)
+                  .at(parameter),
             );
           } else if (fieldElement.isStatic) {
-            diagnosticReporter.atNode(
-              parameter,
-              diag.initializerForStaticField,
-              arguments: [parameter.name.lexeme],
+            diagnosticReporter.report(
+              diag.initializerForStaticField
+                  .withArguments(formalName: parameter.name.lexeme)
+                  .at(parameter),
             );
           }
         }
@@ -6088,10 +6089,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (var interfaceNode in implementsClause.interfaces) {
       var type = interfaceNode.type;
       if (type is InterfaceType && type.element == superElement) {
-        diagnosticReporter.atNode(
-          interfaceNode,
-          diag.implementsSuperClass,
-          arguments: [superElement],
+        diagnosticReporter.report(
+          diag.implementsSuperClass
+              .withArguments(superElement: superElement)
+              .at(interfaceNode),
         );
       }
     }
@@ -6311,12 +6312,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 );
               } else {
                 if (!_isWildcardSuperFormalPositionalParameter(parameter)) {
-                  diagnosticReporter.atEntity(
-                    errorTarget,
-                    parameterElement.isPositional
-                        ? diag.missingDefaultValueForParameterPositional
-                        : diag.missingDefaultValueForParameter,
-                    arguments: [parameterName?.lexeme ?? '?'],
+                  diagnosticReporter.report(
+                    (parameterElement.isPositional
+                            ? diag.missingDefaultValueForParameterPositional
+                            : diag.missingDefaultValueForParameter)
+                        .withArguments(name: parameterName?.lexeme ?? '?')
+                        .at(errorTarget),
                   );
                 }
               }

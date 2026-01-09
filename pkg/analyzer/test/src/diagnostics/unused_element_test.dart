@@ -380,7 +380,30 @@ class A {
     );
   }
 
+  test_constructor_notUsed_multiple_primary() async {
+    // A primary constructor can be used to declare fields.
+    await assertNoErrorsInCode(r'''
+class A._constructor(final int i) {
+  factory A() => A._constructor(7);
+}
+''');
+  }
+
+  test_constructor_notUsed_multiple_withPrimary() async {
+    await assertErrorsInCode(
+      r'''
+class A(final int i) {
+  factory A._constructor() => A(7);
+}
+''',
+      [error(diag.unusedElement, 35, 12)],
+    );
+  }
+
   test_constructor_notUsed_single() async {
+    // We allow a single unused constructor which is used to prevent
+    // instantiation and extending. We could instead report this and
+    // recommend to use `interface class`.
     await assertNoErrorsInCode(r'''
 class A {
   A._constructor();
@@ -402,6 +425,13 @@ class B extends A {
 ''',
       [error(diag.unusedElement, 87, 6)],
     );
+  }
+
+  test_constructor_notUsed_single_primary() async {
+    // A primary constructor can be used to declare fields.
+    await assertNoErrorsInCode(r'''
+class A._constructor(final int i);
+''');
   }
 
   test_constructorFactory_notUsed_multiple() async {

@@ -7440,9 +7440,9 @@ CompileTimeErrorCode:
   finalNotInitializedConstructor1:
     type: compileTimeError
     parameters:
-      String p0: the name of the uninitialized final variable
+      String name: the name of the uninitialized final variable
     sharedName: finalNotInitializedConstructor
-    problemMessage: "All final variables must be initialized, but '#p0' isn't."
+    problemMessage: "All final variables must be initialized, but '#name' isn't."
     correctionMessage: Try adding an initializer for the field.
     hasPublishedDocs: true
     documentation: |-
@@ -7530,20 +7530,20 @@ CompileTimeErrorCode:
   finalNotInitializedConstructor2:
     type: compileTimeError
     parameters:
-      String p0: the name of the uninitialized final variable
-      String p1: the name of the uninitialized final variable
+      String name1: the name of the first uninitialized final variable
+      String name2: the name of the second uninitialized final variable
     sharedName: finalNotInitializedConstructor
-    problemMessage: "All final variables must be initialized, but '#p0' and '#p1' aren't."
+    problemMessage: "All final variables must be initialized, but '#name1' and '#name2' aren't."
     correctionMessage: Try adding initializers for the fields.
     hasPublishedDocs: true
   finalNotInitializedConstructor3Plus:
     type: compileTimeError
     parameters:
-      String p0: the name of the uninitialized final variable
-      String p1: the name of the uninitialized final variable
-      int p2: the number of additional not initialized variables that aren't listed
+      String name1: the name of the first uninitialized final variable
+      String name2: the name of the second uninitialized final variable
+      int remainingCount: the number of additional not initialized variables that aren't listed
     sharedName: finalNotInitializedConstructor
-    problemMessage: "All final variables must be initialized, but '#p0', '#p1', and #p2 others aren't."
+    problemMessage: "All final variables must be initialized, but '#name1', '#name2', and #remainingCount others aren't."
     correctionMessage: Try adding initializers for the fields.
     hasPublishedDocs: true
   forInOfInvalidElementType:
@@ -7936,24 +7936,24 @@ CompileTimeErrorCode:
   illegalEnumValuesInheritance:
     type: compileTimeError
     parameters:
-      String p0: the name of the class that declares 'values'
+      String className: the name of the class that declares 'values'
     sharedName: illegalEnumValues
-    problemMessage: An instance member named 'values' can't be inherited from '#p0' in a class that implements 'Enum'.
+    problemMessage: An instance member named 'values' can't be inherited from '#className' in a class that implements 'Enum'.
     correctionMessage: Try using a different name.
     hasPublishedDocs: true
   illegalLanguageVersionOverride:
     type: compileTimeError
     parameters:
-      String p0: the required language version
-    problemMessage: "The language version must be #p0."
+      String requiredVersion: the required language version
+    problemMessage: "The language version must be #requiredVersion."
     correctionMessage: Try removing the language version override and migrating the code.
     hasPublishedDocs: false
   illegalConcreteEnumMemberDeclaration:
     type: compileTimeError
     parameters:
-      String p0: the name of member that cannot be declared
+      String name: the name of member that cannot be declared
     sharedName: illegalConcreteEnumMember
-    problemMessage: A concrete instance member named '#p0' can't be declared in a class that implements 'Enum'.
+    problemMessage: A concrete instance member named '#name' can't be declared in a class that implements 'Enum'.
     correctionMessage: Try using a different name.
     hasPublishedDocs: true
     documentation: |-
@@ -8021,10 +8021,10 @@ CompileTimeErrorCode:
   illegalConcreteEnumMemberInheritance:
     type: compileTimeError
     parameters:
-      String p0: the name of member that cannot be inherited
-      String p1: the name of the class that declares the member
+      String memberName: the name of member that cannot be inherited
+      String className: the name of the class that declares the member
     sharedName: illegalConcreteEnumMember
-    problemMessage: A concrete instance member named '#p0' can't be inherited from '#p1' in a class that implements 'Enum'.
+    problemMessage: A concrete instance member named '#memberName' can't be inherited from '#className' in a class that implements 'Enum'.
     correctionMessage: Try using a different name.
     hasPublishedDocs: true
   illegalSyncGeneratorReturnType:
@@ -8104,8 +8104,8 @@ CompileTimeErrorCode:
   implementsRepeated:
     type: compileTimeError
     parameters:
-      String p0: the name of the interface that is implemented more than once
-    problemMessage: "'#p0' can only be implemented once."
+      String interfaceName: the name of the interface that is implemented more than once
+    problemMessage: "'#interfaceName' can only be implemented once."
     correctionMessage: Try removing all but one occurrence of the class name.
     hasPublishedDocs: true
     documentation: |-
@@ -8135,8 +8135,8 @@ CompileTimeErrorCode:
   implementsSuperClass:
     type: compileTimeError
     parameters:
-      Element p0: the name of the class that appears in both "extends" and "implements" clauses
-    problemMessage: "'#p0' can't be used in both the 'extends' and 'implements' clauses."
+      Element superElement: the name of the class that appears in both "extends" and "implements" clauses
+    problemMessage: "'#superElement' can't be used in both the 'extends' and 'implements' clauses."
     correctionMessage: Try removing one of the occurrences.
     hasPublishedDocs: true
     documentation: |-
@@ -8188,8 +8188,8 @@ CompileTimeErrorCode:
   implicitThisReferenceInInitializer:
     type: compileTimeError
     parameters:
-      String p0: the name of the instance member
-    problemMessage: "The instance member '#p0' can't be accessed in an initializer."
+      String memberName: the name of the instance member
+    problemMessage: "The instance member '#memberName' can't be accessed in an initializer."
     correctionMessage: Try replacing the reference to the instance member with a different expression
     hasPublishedDocs: true
     documentation: |-
@@ -8242,8 +8242,8 @@ CompileTimeErrorCode:
   implicitSuperInitializerMissingArguments:
     type: compileTimeError
     parameters:
-      Type p0: the name of the superclass
-    problemMessage: The implicitly invoked unnamed constructor from '#p0' has required parameters.
+      Type superType: the name of the superclass
+    problemMessage: The implicitly invoked unnamed constructor from '#superType' has required parameters.
     correctionMessage: Try adding an explicit super parameter with the required arguments.
     hasPublishedDocs: true
     documentation: |-
@@ -8329,8 +8329,8 @@ CompileTimeErrorCode:
   importInternalLibrary:
     type: compileTimeError
     parameters:
-      String p0: the URI pointing to a library
-    problemMessage: "The library '#p0' is internal and can't be imported."
+      String uri: the URI pointing to a library
+    problemMessage: "The library '#uri' is internal and can't be imported."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -8353,8 +8353,8 @@ CompileTimeErrorCode:
   importOfNonLibrary:
     type: compileTimeError
     parameters:
-      String p0: the URI pointing to a non-library declaration
-    problemMessage: "The imported library '#p0' can't have a part-of directive."
+      String uri: the URI pointing to a non-library declaration
+    problemMessage: "The imported library '#uri' can't have a part-of directive."
     correctionMessage: Try importing the library that the part is a part of.
     hasPublishedDocs: true
     documentation: |-
@@ -8399,9 +8399,9 @@ CompileTimeErrorCode:
   inconsistentInheritance:
     type: compileTimeError
     parameters:
-      String p0: the name of the instance member with inconsistent inheritance.
-      String p1: the list of all inherited signatures for this member.
-    problemMessage: "Superinterfaces don't have a valid override for '#p0': #p1."
+      String name: the name of the instance member with inconsistent inheritance.
+      String inheritedSignatures: the list of all inherited signatures for this member.
+    problemMessage: "Superinterfaces don't have a valid override for '#name': #inheritedSignatures."
     correctionMessage: Try adding an explicit override that is consistent with all of the inherited members.
     hasPublishedDocs: true
     documentation: |-
@@ -8451,10 +8451,10 @@ CompileTimeErrorCode:
   inconsistentInheritanceGetterAndMethod:
     type: compileTimeError
     parameters:
-      String p0: the name of the instance member with inconsistent inheritance.
-      String p1: the name of the superinterface that declares the name as a getter.
-      String p2: the name of the superinterface that declares the name as a method.
-    problemMessage: "'#p0' is inherited as a getter (from '#p1') and also a method (from '#p2')."
+      String memberName: the name of the instance member with inconsistent inheritance.
+      String getterInterface: the name of the superinterface that declares the name as a getter.
+      String methodInterface: the name of the superinterface that declares the name as a method.
+    problemMessage: "'#memberName' is inherited as a getter (from '#getterInterface') and also a method (from '#methodInterface')."
     correctionMessage: Try adjusting the supertypes of this class to remove the inconsistency.
     hasPublishedDocs: false
     comment: |-
@@ -8590,9 +8590,9 @@ CompileTimeErrorCode:
   initializerForNonExistentField:
     type: compileTimeError
     parameters:
-      String p0: the name of the initializing formal that is not an instance variable in the immediately enclosing class
-    problemMessage: "'#p0' isn't a field in the enclosing class."
-    correctionMessage: "Try correcting the name to match an existing field, or defining a field named '#p0'."
+      String formalName: the name of the initializing formal that is not an instance variable in the immediately enclosing class
+    problemMessage: "'#formalName' isn't a field in the enclosing class."
+    correctionMessage: "Try correcting the name to match an existing field, or defining a field named '#formalName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -8641,8 +8641,8 @@ CompileTimeErrorCode:
   initializerForStaticField:
     type: compileTimeError
     parameters:
-      String p0: the name of the initializing formal that is a static variable in the immediately enclosing class
-    problemMessage: "'#p0' is a static field in the enclosing class. Fields initialized in a constructor can't be static."
+      String formalName: the name of the initializing formal that is a static variable in the immediately enclosing class
+    problemMessage: "'#formalName' is a static field in the enclosing class. Fields initialized in a constructor can't be static."
     correctionMessage: Try removing the initialization.
     hasPublishedDocs: true
     documentation: |-
@@ -8700,9 +8700,9 @@ CompileTimeErrorCode:
   initializingFormalForNonExistentField:
     type: compileTimeError
     parameters:
-      String p0: the name of the initializing formal that is not an instance variable in the immediately enclosing class
-    problemMessage: "'#p0' isn't a field in the enclosing class."
-    correctionMessage: "Try correcting the name to match an existing field, or defining a field named '#p0'."
+      String formalName: the name of the initializing formal that is not an instance variable in the immediately enclosing class
+    problemMessage: "'#formalName' isn't a field in the enclosing class."
+    correctionMessage: "Try correcting the name to match an existing field, or defining a field named '#formalName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -8773,12 +8773,12 @@ CompileTimeErrorCode:
   instanceAccessToStaticMember:
     type: compileTimeError
     parameters:
-      String p0: the name of the static member
-      String p1: the kind of the static member (field, getter, setter, or method)
-      String p2: the name of the static member's enclosing element
-      String p3: the kind of the static member's enclosing element (class, mixin, or extension)
-    problemMessage: "The static #p1 '#p0' can't be accessed through an instance."
-    correctionMessage: "Try using the #p3 '#p2' to access the #p1."
+      String memberName: the name of the static member
+      String memberKind: the kind of the static member (field, getter, setter, or method)
+      String enclosingElementName: the name of the static member's enclosing element
+      String enclosingElementKind: the kind of the static member's enclosing element (class, mixin, or extension)
+    problemMessage: "The static #memberKind '#memberName' can't be accessed through an instance."
+    correctionMessage: "Try using the #enclosingElementKind '#enclosingElementName' to access the #memberKind."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -8817,10 +8817,10 @@ CompileTimeErrorCode:
   instanceAccessToStaticMemberOfUnnamedExtension:
     type: compileTimeError
     parameters:
-      Object p0: the name of the static member
-      Object p1: the kind of the static member (field, getter, setter, or method)
+      Object name: the name of the static member
+      Object kind: the kind of the static member (field, getter, setter, or method)
     sharedName: instanceAccessToStaticMember
-    problemMessage: "The static #p1 '#p0' can't be accessed through an instance."
+    problemMessage: "The static #kind '#name' can't be accessed through an instance."
     hasPublishedDocs: true
   instanceMemberAccessFromFactory:
     type: compileTimeError
@@ -10973,8 +10973,8 @@ CompileTimeErrorCode:
   missingDefaultValueForParameter:
     type: compileTimeError
     parameters:
-      String p0: the name of the parameter
-    problemMessage: "The parameter '#p0' can't have a value of 'null' because of its type, but the implicit default value is 'null'."
+      String name: the name of the parameter
+    problemMessage: "The parameter '#name' can't have a value of 'null' because of its type, but the implicit default value is 'null'."
     correctionMessage: "Try adding either an explicit non-'null' default value or the 'required' modifier."
     hasPublishedDocs: true
     documentation: |-
@@ -11028,9 +11028,9 @@ CompileTimeErrorCode:
   missingDefaultValueForParameterPositional:
     type: compileTimeError
     parameters:
-      String p0: the name of the parameter
+      String name: the name of the parameter
     sharedName: missingDefaultValueForParameter
-    problemMessage: "The parameter '#p0' can't have a value of 'null' because of its type, but the implicit default value is 'null'."
+    problemMessage: "The parameter '#name' can't have a value of 'null' because of its type, but the implicit default value is 'null'."
     correctionMessage: "Try adding an explicit non-'null' default value."
     hasPublishedDocs: true
   missingDefaultValueForParameterWithAnnotation:
@@ -11369,15 +11369,15 @@ CompileTimeErrorCode:
   mixinApplicationNoConcreteSuperInvokedSetter:
     type: compileTimeError
     parameters:
-      String p0: the display name of the setter without a concrete implementation
+      String name: the display name of the setter without a concrete implementation
     sharedName: mixinApplicationNoConcreteSuperInvokedMember
-    problemMessage: "The class doesn't have a concrete implementation of the super-invoked setter '#p0'."
+    problemMessage: "The class doesn't have a concrete implementation of the super-invoked setter '#name'."
     hasPublishedDocs: true
   mixinApplicationNoConcreteSuperInvokedMember:
     type: compileTimeError
     parameters:
-      String p0: the display name of the member without a concrete implementation
-    problemMessage: "The class doesn't have a concrete implementation of the super-invoked member '#p0'."
+      String name: the display name of the member without a concrete implementation
+    problemMessage: "The class doesn't have a concrete implementation of the super-invoked member '#name'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -14133,8 +14133,8 @@ CompileTimeErrorCode:
   onRepeated:
     type: compileTimeError
     parameters:
-      String p0: the name of the interface that is implemented more than once
-    problemMessage: "The type '#p0' can be included in the superclass constraints only once."
+      String interfaceName: the name of the interface that is implemented more than once
+    problemMessage: "The type '#interfaceName' can be included in the superclass constraints only once."
     correctionMessage: Try removing all except one occurrence of the type name.
     hasPublishedDocs: true
     documentation: |-

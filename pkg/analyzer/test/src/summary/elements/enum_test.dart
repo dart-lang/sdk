@@ -18410,6 +18410,663 @@ library
 ''');
   }
 
+  test_primaryInitializerScope_fieldInitializer_instance() async {
+    var library = await buildLibrary(r'''
+enum E(int foo) {
+  v(0);
+  final bar = foo;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:20) (firstTokenOffset:20) (offset:20)
+              element: <testLibrary>::@enum::E::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @21
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @22
+                        staticType: int
+                    rightParenthesis: ) @23
+                  staticType: E
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
+            #F4 hasInitializer isOriginDeclaration bar (nameOffset:34) (firstTokenOffset:34) (offset:34)
+              element: <testLibrary>::@enum::E::@field::bar
+              initializer: expression_2
+                SimpleIdentifier
+                  token: foo @40
+                  element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+                  staticType: int
+          constructors
+            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+              element: <testLibrary>::@enum::E::@constructor::new
+              typeName: E
+              typeNameOffset: 5
+              formalParameters
+                #F6 requiredPositional foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
+                  element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+          getters
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+              element: <testLibrary>::@enum::E::@getter::v
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@getter::values
+            #F9 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@enum::E::@getter::bar
+  enums
+    enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F2
+          type: E
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@enum::E::@getter::v
+        synthetic static const isOriginEnumValues values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F3
+          type: List<E>
+          constantInitializer
+            fragment: #F3
+            expression: expression_1
+          getter: <testLibrary>::@enum::E::@getter::values
+        final hasImplicitType hasInitializer isOriginDeclaration bar
+          reference: <testLibrary>::@enum::E::@field::bar
+          firstFragment: #F4
+          type: int
+          constantInitializer
+            fragment: #F4
+            expression: expression_2
+          getter: <testLibrary>::@enum::E::@getter::bar
+      constructors
+        const declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E0 requiredPositional foo
+              firstFragment: #F6
+              type: int
+      getters
+        synthetic static isOriginVariable v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F7
+          returnType: E
+          variable: <testLibrary>::@enum::E::@field::v
+        synthetic static isOriginVariable values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F8
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
+        synthetic isOriginVariable bar
+          reference: <testLibrary>::@enum::E::@getter::bar
+          firstFragment: #F9
+          returnType: int
+          variable: <testLibrary>::@enum::E::@field::bar
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_instance_declaringFormal() async {
+    var library = await buildLibrary(r'''
+enum E(final int foo) {
+  v(0);
+  final bar = foo;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:26) (firstTokenOffset:26) (offset:26)
+              element: <testLibrary>::@enum::E::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @27
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @28
+                        staticType: int
+                    rightParenthesis: ) @29
+                  staticType: E
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
+            #F4 synthetic isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@field::foo
+            #F5 hasInitializer isOriginDeclaration bar (nameOffset:40) (firstTokenOffset:40) (offset:40)
+              element: <testLibrary>::@enum::E::@field::bar
+              initializer: expression_2
+                SimpleIdentifier
+                  token: foo @46
+                  element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+                  staticType: int
+          constructors
+            #F6 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+              element: <testLibrary>::@enum::E::@constructor::new
+              typeName: E
+              typeNameOffset: 5
+              formalParameters
+                #F7 requiredPositional final this.foo (nameOffset:17) (firstTokenOffset:7) (offset:17)
+                  element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+          getters
+            #F8 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+              element: <testLibrary>::@enum::E::@getter::v
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@getter::values
+            #F10 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@getter::foo
+            #F11 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+              element: <testLibrary>::@enum::E::@getter::bar
+  enums
+    enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F2
+          type: E
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@enum::E::@getter::v
+        synthetic static const isOriginEnumValues values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F3
+          type: List<E>
+          constantInitializer
+            fragment: #F3
+            expression: expression_1
+          getter: <testLibrary>::@enum::E::@getter::values
+        synthetic final isOriginDeclaringFormalParameter foo
+          reference: <testLibrary>::@enum::E::@field::foo
+          firstFragment: #F4
+          type: int
+          getter: <testLibrary>::@enum::E::@getter::foo
+          declaringFormalParameter: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+        final hasImplicitType hasInitializer isOriginDeclaration bar
+          reference: <testLibrary>::@enum::E::@field::bar
+          firstFragment: #F5
+          type: int
+          constantInitializer
+            fragment: #F5
+            expression: expression_2
+          getter: <testLibrary>::@enum::E::@getter::bar
+      constructors
+        const declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F6
+          formalParameters
+            #E0 requiredPositional final declaring this.foo
+              firstFragment: #F7
+              type: int
+              field: <testLibrary>::@enum::E::@field::foo
+      getters
+        synthetic static isOriginVariable v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F8
+          returnType: E
+          variable: <testLibrary>::@enum::E::@field::v
+        synthetic static isOriginVariable values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F9
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
+        synthetic isOriginVariable foo
+          reference: <testLibrary>::@enum::E::@getter::foo
+          firstFragment: #F10
+          returnType: int
+          variable: <testLibrary>::@enum::E::@field::foo
+        synthetic isOriginVariable bar
+          reference: <testLibrary>::@enum::E::@getter::bar
+          firstFragment: #F11
+          returnType: int
+          variable: <testLibrary>::@enum::E::@field::bar
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_instance_late() async {
+    var library = await buildLibrary(r'''
+enum E(int foo) {
+  v(0);
+  late final bar = foo;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:20) (firstTokenOffset:20) (offset:20)
+              element: <testLibrary>::@enum::E::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @21
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @22
+                        staticType: int
+                    rightParenthesis: ) @23
+                  staticType: E
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
+            #F4 hasInitializer isOriginDeclaration bar (nameOffset:39) (firstTokenOffset:39) (offset:39)
+              element: <testLibrary>::@enum::E::@field::bar
+              initializer: expression_2
+                SimpleIdentifier
+                  token: foo @45
+                  element: <null>
+                  staticType: InvalidType
+          constructors
+            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+              element: <testLibrary>::@enum::E::@constructor::new
+              typeName: E
+              typeNameOffset: 5
+              formalParameters
+                #F6 requiredPositional foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
+                  element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+          getters
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+              element: <testLibrary>::@enum::E::@getter::v
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@getter::values
+            #F9 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+              element: <testLibrary>::@enum::E::@getter::bar
+  enums
+    enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F2
+          type: E
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@enum::E::@getter::v
+        synthetic static const isOriginEnumValues values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F3
+          type: List<E>
+          constantInitializer
+            fragment: #F3
+            expression: expression_1
+          getter: <testLibrary>::@enum::E::@getter::values
+        late final hasImplicitType hasInitializer isOriginDeclaration bar
+          reference: <testLibrary>::@enum::E::@field::bar
+          firstFragment: #F4
+          type: InvalidType
+          constantInitializer
+            fragment: #F4
+            expression: expression_2
+          getter: <testLibrary>::@enum::E::@getter::bar
+      constructors
+        const declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E0 requiredPositional foo
+              firstFragment: #F6
+              type: int
+      getters
+        synthetic static isOriginVariable v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F7
+          returnType: E
+          variable: <testLibrary>::@enum::E::@field::v
+        synthetic static isOriginVariable values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F8
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
+        synthetic isOriginVariable bar
+          reference: <testLibrary>::@enum::E::@getter::bar
+          firstFragment: #F9
+          returnType: InvalidType
+          variable: <testLibrary>::@enum::E::@field::bar
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_instance_typePromotion() async {
+    var library = await buildLibrary(r'''
+enum E(int? foo) {
+  v(0);
+  final bar = foo != null ? foo : 0;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:21) (firstTokenOffset:21) (offset:21)
+              element: <testLibrary>::@enum::E::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @22
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @23
+                        staticType: int
+                    rightParenthesis: ) @24
+                  staticType: E
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
+            #F4 hasInitializer isOriginDeclaration bar (nameOffset:35) (firstTokenOffset:35) (offset:35)
+              element: <testLibrary>::@enum::E::@field::bar
+              initializer: expression_2
+                ConditionalExpression
+                  condition: BinaryExpression
+                    leftOperand: SimpleIdentifier
+                      token: foo @41
+                      element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+                      staticType: int?
+                    operator: != @45
+                    rightOperand: NullLiteral
+                      literal: null @48
+                      staticType: Null
+                    element: dart:core::@class::num::@method::==
+                    staticInvokeType: bool Function(Object)
+                    staticType: bool
+                  question: ? @53
+                  thenExpression: SimpleIdentifier
+                    token: foo @55
+                    element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+                    staticType: int
+                  colon: : @59
+                  elseExpression: IntegerLiteral
+                    literal: 0 @61
+                    staticType: int
+                  staticType: int
+          constructors
+            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+              element: <testLibrary>::@enum::E::@constructor::new
+              typeName: E
+              typeNameOffset: 5
+              formalParameters
+                #F6 requiredPositional foo (nameOffset:12) (firstTokenOffset:7) (offset:12)
+                  element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+          getters
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+              element: <testLibrary>::@enum::E::@getter::v
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@getter::values
+            #F9 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+              element: <testLibrary>::@enum::E::@getter::bar
+  enums
+    enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F2
+          type: E
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@enum::E::@getter::v
+        synthetic static const isOriginEnumValues values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F3
+          type: List<E>
+          constantInitializer
+            fragment: #F3
+            expression: expression_1
+          getter: <testLibrary>::@enum::E::@getter::values
+        final hasImplicitType hasInitializer isOriginDeclaration bar
+          reference: <testLibrary>::@enum::E::@field::bar
+          firstFragment: #F4
+          type: int
+          constantInitializer
+            fragment: #F4
+            expression: expression_2
+          getter: <testLibrary>::@enum::E::@getter::bar
+      constructors
+        const declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E0 requiredPositional foo
+              firstFragment: #F6
+              type: int?
+      getters
+        synthetic static isOriginVariable v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F7
+          returnType: E
+          variable: <testLibrary>::@enum::E::@field::v
+        synthetic static isOriginVariable values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F8
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
+        synthetic isOriginVariable bar
+          reference: <testLibrary>::@enum::E::@getter::bar
+          firstFragment: #F9
+          returnType: int
+          variable: <testLibrary>::@enum::E::@field::bar
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_static() async {
+    var library = await buildLibrary(r'''
+enum E(int foo) {
+  v(0);
+  static final bar = foo;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:20) (firstTokenOffset:20) (offset:20)
+              element: <testLibrary>::@enum::E::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @21
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @22
+                        staticType: int
+                    rightParenthesis: ) @23
+                  staticType: E
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
+            #F4 hasInitializer isOriginDeclaration bar (nameOffset:41) (firstTokenOffset:41) (offset:41)
+              element: <testLibrary>::@enum::E::@field::bar
+          constructors
+            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+              element: <testLibrary>::@enum::E::@constructor::new
+              typeName: E
+              typeNameOffset: 5
+              formalParameters
+                #F6 requiredPositional foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
+                  element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+          getters
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+              element: <testLibrary>::@enum::E::@getter::v
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@getter::values
+            #F9 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+              element: <testLibrary>::@enum::E::@getter::bar
+  enums
+    enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F2
+          type: E
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@enum::E::@getter::v
+        synthetic static const isOriginEnumValues values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F3
+          type: List<E>
+          constantInitializer
+            fragment: #F3
+            expression: expression_1
+          getter: <testLibrary>::@enum::E::@getter::values
+        static final hasImplicitType hasInitializer isOriginDeclaration bar
+          reference: <testLibrary>::@enum::E::@field::bar
+          firstFragment: #F4
+          type: InvalidType
+          getter: <testLibrary>::@enum::E::@getter::bar
+      constructors
+        const declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E0 requiredPositional foo
+              firstFragment: #F6
+              type: int
+      getters
+        synthetic static isOriginVariable v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F7
+          returnType: E
+          variable: <testLibrary>::@enum::E::@field::v
+        synthetic static isOriginVariable values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F8
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
+        synthetic static isOriginVariable bar
+          reference: <testLibrary>::@enum::E::@getter::bar
+          firstFragment: #F9
+          returnType: InvalidType
+          variable: <testLibrary>::@enum::E::@field::bar
+''');
+  }
+
   test_typeParameters_defaultType() async {
     var library = await buildLibrary(r'''
 enum A<T extends B> {

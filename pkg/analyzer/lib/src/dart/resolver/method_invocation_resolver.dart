@@ -334,25 +334,25 @@ class MethodInvocationResolver with ScopeHelpers {
       }
     } else if (enclosingElement is ExtensionElement &&
         enclosingElement.name == null) {
-      _resolver.diagnosticReporter.atNode(
-        nameNode,
-        diag.instanceAccessToStaticMemberOfUnnamedExtension,
-        arguments: [nameNode.name, element.kind.displayName],
+      _resolver.diagnosticReporter.report(
+        diag.instanceAccessToStaticMemberOfUnnamedExtension
+            .withArguments(name: nameNode.name, kind: element.kind.displayName)
+            .at(nameNode),
       );
     } else {
       // It is safe to assume that `enclosingElement.name` is non-`null` because
       // it can only be `null` for extensions, and we handle that case above.
-      _resolver.diagnosticReporter.atNode(
-        nameNode,
-        diag.instanceAccessToStaticMember,
-        arguments: [
-          nameNode.name,
-          element.kind.displayName,
-          enclosingElement.name!,
-          enclosingElement is MixinElement
-              ? 'mixin'
-              : enclosingElement.kind.displayName,
-        ],
+      _resolver.diagnosticReporter.report(
+        diag.instanceAccessToStaticMember
+            .withArguments(
+              memberName: nameNode.name,
+              memberKind: element.kind.displayName,
+              enclosingElementName: enclosingElement.name!,
+              enclosingElementKind: enclosingElement is MixinElement
+                  ? 'mixin'
+                  : enclosingElement.kind.displayName,
+            )
+            .at(nameNode),
       );
     }
   }

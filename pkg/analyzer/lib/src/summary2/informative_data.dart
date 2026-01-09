@@ -1083,7 +1083,7 @@ class _InfoBuilder {
       codeOffset: node.offset,
       codeLength: node.length,
       nameOffset: node.constructorName?.name.offsetIfNotEmpty,
-      documentationComment: null,
+      documentationComment: _getDocumentationComment(body),
       typeParameters: const [],
       parameters: _buildFormalParameters(node.formalParameters),
       constantOffsets: _buildConstantOffsets(

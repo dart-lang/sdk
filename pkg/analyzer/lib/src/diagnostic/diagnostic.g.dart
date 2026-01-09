@@ -6081,9 +6081,9 @@ finalNotInitialized = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the uninitialized final variable
+/// String name: the name of the uninitialized final variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 finalNotInitializedConstructor1 = DiagnosticWithArguments(
   name: 'final_not_initialized_constructor',
@@ -6097,10 +6097,10 @@ finalNotInitializedConstructor1 = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the uninitialized final variable
-/// String p1: the name of the uninitialized final variable
+/// String name1: the name of the first uninitialized final variable
+/// String name2: the name of the second uninitialized final variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({required String name1, required String name2})
 >
 finalNotInitializedConstructor2 = DiagnosticWithArguments(
   name: 'final_not_initialized_constructor',
@@ -6115,15 +6115,15 @@ finalNotInitializedConstructor2 = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the uninitialized final variable
-/// String p1: the name of the uninitialized final variable
-/// int p2: the number of additional not initialized variables that aren't
-///         listed
+/// String name1: the name of the first uninitialized final variable
+/// String name2: the name of the second uninitialized final variable
+/// int remainingCount: the number of additional not initialized variables
+///                     that aren't listed
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required int p2,
+    required String name1,
+    required String name2,
+    required int remainingCount,
   })
 >
 finalNotInitializedConstructor3Plus = DiagnosticWithArguments(
@@ -6490,9 +6490,9 @@ illegalCharacter = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of member that cannot be declared
+/// String name: the name of member that cannot be declared
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 illegalConcreteEnumMemberDeclaration = DiagnosticWithArguments(
   name: 'illegal_concrete_enum_member',
@@ -6508,10 +6508,13 @@ illegalConcreteEnumMemberDeclaration = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of member that cannot be inherited
-/// String p1: the name of the class that declares the member
+/// String memberName: the name of member that cannot be inherited
+/// String className: the name of the class that declares the member
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String memberName,
+    required String className,
+  })
 >
 illegalConcreteEnumMemberInheritance = DiagnosticWithArguments(
   name: 'illegal_concrete_enum_member',
@@ -6541,9 +6544,9 @@ const DiagnosticWithoutArguments illegalEnumValuesDeclaration =
     );
 
 /// Parameters:
-/// String p0: the name of the class that declares 'values'
+/// String className: the name of the class that declares 'values'
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String className})
 >
 illegalEnumValuesInheritance = DiagnosticWithArguments(
   name: 'illegal_enum_values',
@@ -6559,9 +6562,9 @@ illegalEnumValuesInheritance = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the required language version
+/// String requiredVersion: the required language version
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String requiredVersion})
 >
 illegalLanguageVersionOverride = DiagnosticWithArguments(
   name: 'illegal_language_version_override',
@@ -6721,9 +6724,10 @@ const DiagnosticWithoutArguments implementsNonClass =
     );
 
 /// Parameters:
-/// String p0: the name of the interface that is implemented more than once
+/// String interfaceName: the name of the interface that is implemented more
+///                       than once
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String interfaceName})
 >
 implementsRepeated = DiagnosticWithArguments(
   name: 'implements_repeated',
@@ -6737,10 +6741,10 @@ implementsRepeated = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Element p0: the name of the class that appears in both "extends" and
-///             "implements" clauses
+/// Element superElement: the name of the class that appears in both "extends"
+///                       and "implements" clauses
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Element p0})
+  LocatableDiagnostic Function({required Element superElement})
 >
 implementsSuperClass = DiagnosticWithArguments(
   name: 'implements_super_class',
@@ -6769,9 +6773,9 @@ const DiagnosticWithoutArguments implementsTypeAliasExpandsToTypeParameter =
     );
 
 /// Parameters:
-/// Type p0: the name of the superclass
+/// Type superType: the name of the superclass
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0})
+  LocatableDiagnostic Function({required DartType superType})
 >
 implicitSuperInitializerMissingArguments = DiagnosticWithArguments(
   name: 'implicit_super_initializer_missing_arguments',
@@ -6788,9 +6792,9 @@ implicitSuperInitializerMissingArguments = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the instance member
+/// String memberName: the name of the instance member
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String memberName})
 >
 implicitThisReferenceInInitializer = DiagnosticWithArguments(
   name: 'implicit_this_reference_in_initializer',
@@ -6835,9 +6839,9 @@ const DiagnosticWithoutArguments importDirectiveAfterPartDirective =
     );
 
 /// Parameters:
-/// String p0: the URI pointing to a library
+/// String uri: the URI pointing to a library
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String uri})
 >
 importInternalLibrary = DiagnosticWithArguments(
   name: 'import_internal_library',
@@ -6850,9 +6854,9 @@ importInternalLibrary = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the URI pointing to a non-library declaration
+/// String uri: the URI pointing to a non-library declaration
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String uri})
 >
 importOfNonLibrary = DiagnosticWithArguments(
   name: 'import_of_non_library',
@@ -7066,10 +7070,15 @@ inconsistentCaseExpressionTypes = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the instance member with inconsistent inheritance.
-/// String p1: the list of all inherited signatures for this member.
+/// String name: the name of the instance member with inconsistent
+///              inheritance.
+/// String inheritedSignatures: the list of all inherited signatures for this
+///                             member.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String name,
+    required String inheritedSignatures,
+  })
 >
 inconsistentInheritance = DiagnosticWithArguments(
   name: 'inconsistent_inheritance',
@@ -7091,16 +7100,17 @@ inconsistentInheritance = DiagnosticWithArguments(
 /// is a getter and `m'` is a method.
 ///
 /// Parameters:
-/// String p0: the name of the instance member with inconsistent inheritance.
-/// String p1: the name of the superinterface that declares the name as a
-///            getter.
-/// String p2: the name of the superinterface that declares the name as a
-///            method.
+/// String memberName: the name of the instance member with inconsistent
+///                    inheritance.
+/// String getterInterface: the name of the superinterface that declares the
+///                         name as a getter.
+/// String methodInterface: the name of the superinterface that declares the
+///                         name as a method.
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required String p2,
+    required String memberName,
+    required String getterInterface,
+    required String methodInterface,
   })
 >
 inconsistentInheritanceGetterAndMethod = DiagnosticWithArguments(
@@ -7311,10 +7321,10 @@ const DiagnosticWithoutArguments initializedVariableInForEach =
     );
 
 /// Parameters:
-/// String p0: the name of the initializing formal that is not an instance
-///            variable in the immediately enclosing class
+/// String formalName: the name of the initializing formal that is not an
+///                    instance variable in the immediately enclosing class
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String formalName})
 >
 initializerForNonExistentField = DiagnosticWithArguments(
   name: 'initializer_for_non_existent_field',
@@ -7330,10 +7340,10 @@ initializerForNonExistentField = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the initializing formal that is a static variable
-///            in the immediately enclosing class
+/// String formalName: the name of the initializing formal that is a static
+///                    variable in the immediately enclosing class
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String formalName})
 >
 initializerForStaticField = DiagnosticWithArguments(
   name: 'initializer_for_static_field',
@@ -7349,10 +7359,10 @@ initializerForStaticField = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the initializing formal that is not an instance
-///            variable in the immediately enclosing class
+/// String formalName: the name of the initializing formal that is not an
+///                    instance variable in the immediately enclosing class
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String formalName})
 >
 initializingFormalForNonExistentField = DiagnosticWithArguments(
   name: 'initializing_formal_for_non_existent_field',
@@ -7368,18 +7378,19 @@ initializingFormalForNonExistentField = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the static member
-/// String p1: the kind of the static member (field, getter, setter, or
-///            method)
-/// String p2: the name of the static member's enclosing element
-/// String p3: the kind of the static member's enclosing element (class,
-///            mixin, or extension)
+/// String memberName: the name of the static member
+/// String memberKind: the kind of the static member (field, getter, setter,
+///                    or method)
+/// String enclosingElementName: the name of the static member's enclosing
+///                              element
+/// String enclosingElementKind: the kind of the static member's enclosing
+///                              element (class, mixin, or extension)
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required String p2,
-    required String p3,
+    required String memberName,
+    required String memberKind,
+    required String enclosingElementName,
+    required String enclosingElementKind,
   })
 >
 instanceAccessToStaticMember = DiagnosticWithArguments(
@@ -7399,11 +7410,11 @@ instanceAccessToStaticMember = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Object p0: the name of the static member
-/// Object p1: the kind of the static member (field, getter, setter, or
-///            method)
+/// Object name: the name of the static member
+/// Object kind: the kind of the static member (field, getter, setter, or
+///              method)
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0, required Object p1})
+  LocatableDiagnostic Function({required Object name, required Object kind})
 >
 instanceAccessToStaticMemberOfUnnamedExtension = DiagnosticWithArguments(
   name: 'instance_access_to_static_member',
@@ -9950,9 +9961,9 @@ missingDartLibrary = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the parameter
+/// String name: the name of the parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 missingDefaultValueForParameter = DiagnosticWithArguments(
   name: 'missing_default_value_for_parameter',
@@ -9970,9 +9981,9 @@ missingDefaultValueForParameter = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the parameter
+/// String name: the name of the parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 missingDefaultValueForParameterPositional = DiagnosticWithArguments(
   name: 'missing_default_value_for_parameter',
@@ -10575,10 +10586,10 @@ mixinApplicationConcreteSuperInvokedMemberType = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the display name of the member without a concrete
-///            implementation
+/// String name: the display name of the member without a concrete
+///              implementation
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 mixinApplicationNoConcreteSuperInvokedMember = DiagnosticWithArguments(
   name: 'mixin_application_no_concrete_super_invoked_member',
@@ -10593,10 +10604,10 @@ mixinApplicationNoConcreteSuperInvokedMember = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the display name of the setter without a concrete
-///            implementation
+/// String name: the display name of the setter without a concrete
+///              implementation
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 mixinApplicationNoConcreteSuperInvokedSetter = DiagnosticWithArguments(
   name: 'mixin_application_no_concrete_super_invoked_member',
@@ -12923,9 +12934,10 @@ const DiagnosticWithoutArguments obsoleteColonForDefaultValue =
     );
 
 /// Parameters:
-/// String p0: the name of the interface that is implemented more than once
+/// String interfaceName: the name of the interface that is implemented more
+///                       than once
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String interfaceName})
 >
 onRepeated = DiagnosticWithArguments(
   name: 'on_repeated',
@@ -19050,30 +19062,30 @@ LocatableDiagnostic _withArgumentsFinalNotInitialized({required String p0}) {
 }
 
 LocatableDiagnostic _withArgumentsFinalNotInitializedConstructor1({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.finalNotInitializedConstructor1, [p0]);
+  return LocatableDiagnosticImpl(diag.finalNotInitializedConstructor1, [name]);
 }
 
 LocatableDiagnostic _withArgumentsFinalNotInitializedConstructor2({
-  required String p0,
-  required String p1,
+  required String name1,
+  required String name2,
 }) {
   return LocatableDiagnosticImpl(diag.finalNotInitializedConstructor2, [
-    p0,
-    p1,
+    name1,
+    name2,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsFinalNotInitializedConstructor3Plus({
-  required String p0,
-  required String p1,
-  required int p2,
+  required String name1,
+  required String name2,
+  required int remainingCount,
 }) {
   return LocatableDiagnosticImpl(diag.finalNotInitializedConstructor3Plus, [
-    p0,
-    p1,
-    p2,
+    name1,
+    name2,
+    remainingCount,
   ]);
 }
 
@@ -19142,33 +19154,37 @@ LocatableDiagnostic _withArgumentsIllegalCharacter({required Object p0}) {
 }
 
 LocatableDiagnostic _withArgumentsIllegalConcreteEnumMemberDeclaration({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(diag.illegalConcreteEnumMemberDeclaration, [
-    p0,
+    name,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsIllegalConcreteEnumMemberInheritance({
-  required String p0,
-  required String p1,
+  required String memberName,
+  required String className,
 }) {
   return LocatableDiagnosticImpl(diag.illegalConcreteEnumMemberInheritance, [
-    p0,
-    p1,
+    memberName,
+    className,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsIllegalEnumValuesInheritance({
-  required String p0,
+  required String className,
 }) {
-  return LocatableDiagnosticImpl(diag.illegalEnumValuesInheritance, [p0]);
+  return LocatableDiagnosticImpl(diag.illegalEnumValuesInheritance, [
+    className,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsIllegalLanguageVersionOverride({
-  required String p0,
+  required String requiredVersion,
 }) {
-  return LocatableDiagnosticImpl(diag.illegalLanguageVersionOverride, [p0]);
+  return LocatableDiagnosticImpl(diag.illegalLanguageVersionOverride, [
+    requiredVersion,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsImplementsDisallowedClass({
@@ -19177,35 +19193,41 @@ LocatableDiagnostic _withArgumentsImplementsDisallowedClass({
   return LocatableDiagnosticImpl(diag.implementsDisallowedClass, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsImplementsRepeated({required String p0}) {
-  return LocatableDiagnosticImpl(diag.implementsRepeated, [p0]);
+LocatableDiagnostic _withArgumentsImplementsRepeated({
+  required String interfaceName,
+}) {
+  return LocatableDiagnosticImpl(diag.implementsRepeated, [interfaceName]);
 }
 
-LocatableDiagnostic _withArgumentsImplementsSuperClass({required Element p0}) {
-  return LocatableDiagnosticImpl(diag.implementsSuperClass, [p0]);
+LocatableDiagnostic _withArgumentsImplementsSuperClass({
+  required Element superElement,
+}) {
+  return LocatableDiagnosticImpl(diag.implementsSuperClass, [superElement]);
 }
 
 LocatableDiagnostic _withArgumentsImplicitSuperInitializerMissingArguments({
-  required DartType p0,
+  required DartType superType,
 }) {
   return LocatableDiagnosticImpl(
     diag.implicitSuperInitializerMissingArguments,
-    [p0],
+    [superType],
   );
 }
 
 LocatableDiagnostic _withArgumentsImplicitThisReferenceInInitializer({
-  required String p0,
+  required String memberName,
 }) {
-  return LocatableDiagnosticImpl(diag.implicitThisReferenceInInitializer, [p0]);
+  return LocatableDiagnosticImpl(diag.implicitThisReferenceInInitializer, [
+    memberName,
+  ]);
 }
 
-LocatableDiagnostic _withArgumentsImportInternalLibrary({required String p0}) {
-  return LocatableDiagnosticImpl(diag.importInternalLibrary, [p0]);
+LocatableDiagnostic _withArgumentsImportInternalLibrary({required String uri}) {
+  return LocatableDiagnosticImpl(diag.importInternalLibrary, [uri]);
 }
 
-LocatableDiagnostic _withArgumentsImportOfNonLibrary({required String p0}) {
-  return LocatableDiagnosticImpl(diag.importOfNonLibrary, [p0]);
+LocatableDiagnostic _withArgumentsImportOfNonLibrary({required String uri}) {
+  return LocatableDiagnosticImpl(diag.importOfNonLibrary, [uri]);
 }
 
 LocatableDiagnostic _withArgumentsIncludedFileParseError({
@@ -19293,21 +19315,24 @@ LocatableDiagnostic _withArgumentsInconsistentCaseExpressionTypes({
 }
 
 LocatableDiagnostic _withArgumentsInconsistentInheritance({
-  required String p0,
-  required String p1,
+  required String name,
+  required String inheritedSignatures,
 }) {
-  return LocatableDiagnosticImpl(diag.inconsistentInheritance, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.inconsistentInheritance, [
+    name,
+    inheritedSignatures,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsInconsistentInheritanceGetterAndMethod({
-  required String p0,
-  required String p1,
-  required String p2,
+  required String memberName,
+  required String getterInterface,
+  required String methodInterface,
 }) {
   return LocatableDiagnosticImpl(diag.inconsistentInheritanceGetterAndMethod, [
-    p0,
-    p1,
-    p2,
+    memberName,
+    getterInterface,
+    methodInterface,
   ]);
 }
 
@@ -19376,47 +19401,49 @@ LocatableDiagnostic _withArgumentsInferenceFailureOnUntypedParameter({
 }
 
 LocatableDiagnostic _withArgumentsInitializerForNonExistentField({
-  required String p0,
+  required String formalName,
 }) {
-  return LocatableDiagnosticImpl(diag.initializerForNonExistentField, [p0]);
+  return LocatableDiagnosticImpl(diag.initializerForNonExistentField, [
+    formalName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsInitializerForStaticField({
-  required String p0,
+  required String formalName,
 }) {
-  return LocatableDiagnosticImpl(diag.initializerForStaticField, [p0]);
+  return LocatableDiagnosticImpl(diag.initializerForStaticField, [formalName]);
 }
 
 LocatableDiagnostic _withArgumentsInitializingFormalForNonExistentField({
-  required String p0,
+  required String formalName,
 }) {
   return LocatableDiagnosticImpl(diag.initializingFormalForNonExistentField, [
-    p0,
+    formalName,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsInstanceAccessToStaticMember({
-  required String p0,
-  required String p1,
-  required String p2,
-  required String p3,
+  required String memberName,
+  required String memberKind,
+  required String enclosingElementName,
+  required String enclosingElementKind,
 }) {
   return LocatableDiagnosticImpl(diag.instanceAccessToStaticMember, [
-    p0,
-    p1,
-    p2,
-    p3,
+    memberName,
+    memberKind,
+    enclosingElementName,
+    enclosingElementKind,
   ]);
 }
 
 LocatableDiagnostic
 _withArgumentsInstanceAccessToStaticMemberOfUnnamedExtension({
-  required Object p0,
-  required Object p1,
+  required Object name,
+  required Object kind,
 }) {
   return LocatableDiagnosticImpl(
     diag.instanceAccessToStaticMemberOfUnnamedExtension,
-    [p0, p1],
+    [name, kind],
   );
 }
 
@@ -19872,17 +19899,17 @@ LocatableDiagnostic _withArgumentsMissingDartLibrary({required Object p0}) {
 }
 
 LocatableDiagnostic _withArgumentsMissingDefaultValueForParameter({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.missingDefaultValueForParameter, [p0]);
+  return LocatableDiagnosticImpl(diag.missingDefaultValueForParameter, [name]);
 }
 
 LocatableDiagnostic _withArgumentsMissingDefaultValueForParameterPositional({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(
     diag.missingDefaultValueForParameterPositional,
-    [p0],
+    [name],
   );
 }
 
@@ -19974,20 +20001,20 @@ _withArgumentsMixinApplicationConcreteSuperInvokedMemberType({
 }
 
 LocatableDiagnostic _withArgumentsMixinApplicationNoConcreteSuperInvokedMember({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(
     diag.mixinApplicationNoConcreteSuperInvokedMember,
-    [p0],
+    [name],
   );
 }
 
 LocatableDiagnostic _withArgumentsMixinApplicationNoConcreteSuperInvokedSetter({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(
     diag.mixinApplicationNoConcreteSuperInvokedSetter,
-    [p0],
+    [name],
   );
 }
 
@@ -20438,8 +20465,8 @@ LocatableDiagnostic _withArgumentsNullArgumentToNonNullType({
   return LocatableDiagnosticImpl(diag.nullArgumentToNonNullType, [p0, p1]);
 }
 
-LocatableDiagnostic _withArgumentsOnRepeated({required String p0}) {
-  return LocatableDiagnosticImpl(diag.onRepeated, [p0]);
+LocatableDiagnostic _withArgumentsOnRepeated({required String interfaceName}) {
+  return LocatableDiagnosticImpl(diag.onRepeated, [interfaceName]);
 }
 
 LocatableDiagnostic _withArgumentsOutOfOrderClauses({

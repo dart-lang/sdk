@@ -74,9 +74,21 @@ class ConstantInitializersResolver {
       scope,
       analysisOptions,
     );
+
+    List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters;
+    if (element case FieldElementImpl field) {
+      if (field.isInstanceField && !field.isLate) {
+        inScopePrimaryConstructorParameters = field.enclosingElement
+            .ifTypeOrNull<InterfaceElementImpl>()
+            ?.primaryConstructor
+            ?.formalParameters;
+      }
+    }
+
     astResolver.resolveExpression(
       () => node.initializer!,
       contextType: element.type,
+      inScopePrimaryConstructorParameters: inScopePrimaryConstructorParameters,
     );
 
     // We could have rewritten the initializer.
@@ -198,6 +210,7 @@ class _PropertyInducingElementTypeInference
     LibraryFragmentImpl? initializerLibraryFragment;
     Scope? scope;
     ExpressionImpl Function()? getInitializer;
+    List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters;
     for (var fragment in _element.fragments) {
       var node = _linker.elementNodes[fragment];
       switch (node) {
@@ -206,6 +219,14 @@ class _PropertyInducingElementTypeInference
             initializerLibraryFragment = fragment.libraryFragment;
             scope = LinkingNodeContext.get(node).scope;
             getInitializer = () => node.initializer!;
+            if (_element case FieldElementImpl field) {
+              if (field.isInstanceField && !field.isLate) {
+                inScopePrimaryConstructorParameters = field.enclosingElement
+                    .ifTypeOrNull<InterfaceElementImpl>()
+                    ?.primaryConstructor
+                    ?.formalParameters;
+              }
+            }
           }
         case DefaultFormalParameterImpl():
           _assertElementFieldOriginDeclaringFormalParameter();
@@ -275,7 +296,10 @@ class _PropertyInducingElementTypeInference
       analysisOptions,
       enclosingClassElement: enclosingInterfaceElement,
     );
-    astResolver.resolveExpression(getInitializer);
+    astResolver.resolveExpression(
+      getInitializer,
+      inScopePrimaryConstructorParameters: inScopePrimaryConstructorParameters,
+    );
 
     // Pop self from the stack.
     var self = _inferring.removeLast();
