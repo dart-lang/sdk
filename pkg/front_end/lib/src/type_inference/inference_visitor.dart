@@ -317,7 +317,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void handleNullShortingStep(
+  ExpressionTypeAnalysisResult handleNullShortingStep(
+    ExpressionTypeAnalysisResult innerResult,
     NullAwareGuard guard,
     SharedTypeView inferredType,
   ) {
@@ -327,6 +328,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         popRewrite() as Expression,
       ),
     );
+    return new ExpressionTypeAnalysisResult(type: inferredType);
   }
 
   @override
@@ -421,9 +423,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       pushRewrite(result.expression);
       DartType inferredType = finishNullShorting(
         nullShortingTargetDepth,
-        new SharedTypeView(result.inferredType),
+        new ExpressionTypeAnalysisResult(
+          type: new SharedTypeView(result.inferredType),
+        ),
         wholeExpression: expression,
-      ).unwrapTypeView();
+      ).type.unwrapTypeView();
       return new ExpressionInferenceResult(
         inferredType,
         popRewrite() as Expression,
@@ -1309,7 +1313,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       SharedTypeView inferredType = new SharedTypeView(result.inferredType);
       // End non-nullable promotion of the null-aware variable.
       flow.nullAwareAccess_end(wholeExpression: node);
-      handleNullShortingStep(nullAwareGuard, inferredType);
+      handleNullShortingStep(
+        new ExpressionTypeAnalysisResult(type: inferredType),
+        nullAwareGuard,
+        inferredType,
+      );
       replacement = popRewrite() as Expression;
     } else {
       replacement = new Let(node.variable, replacement)

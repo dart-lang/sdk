@@ -451,7 +451,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  SharedTypeView analyzeExpression(
+  ExpressionTypeAnalysisResult analyzeExpression(
     ExpressionImpl node,
     SharedTypeSchemaView schema, {
     bool continueNullShorting = false,
@@ -3253,7 +3253,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var keyType = analyzeExpression(
       node.key,
       SharedTypeSchemaView(keyTypeContext ?? UnknownInferredType.instance),
-    );
+    ).type;
     popRewrite();
 
     flowAnalysis.flow?.nullAwareMapEntry_valueBegin(
@@ -4665,19 +4665,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
     } else if (positionalArgumentCount > unnamedParameterCount &&
         noBlankArguments) {
-      DiagnosticCode diagnosticCode;
       int namedParameterCount = namedParameters?.length ?? 0;
       int namedArgumentCount = usedNames?.length ?? 0;
-      if (namedParameterCount > namedArgumentCount) {
-        diagnosticCode = diag.extraPositionalArgumentsCouldBeNamed;
-      } else {
-        diagnosticCode = diag.extraPositionalArguments;
-      }
       if (firstUnresolvedArgument != null) {
-        diagnosticReporter?.atNode(
-          firstUnresolvedArgument,
-          diagnosticCode,
-          arguments: [unnamedParameterCount, positionalArgumentCount],
+        diagnosticReporter?.report(
+          (namedParameterCount > namedArgumentCount
+                  ? diag.extraPositionalArgumentsCouldBeNamed
+                  : diag.extraPositionalArguments)
+              .withArguments(
+                expected: unnamedParameterCount,
+                found: positionalArgumentCount,
+              )
+              .at(firstUnresolvedArgument),
         );
       }
     }

@@ -5563,10 +5563,10 @@ const DiagnosticCode extraneousModifierInPrimaryConstructor =
     );
 
 /// Parameters:
-/// int p0: the maximum number of positional arguments
-/// int p1: the actual number of positional arguments given
+/// int expected: the maximum number of positional arguments
+/// int found: the actual number of positional arguments given
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required int p0, required int p1})
+  LocatableDiagnostic Function({required int expected, required int found})
 >
 extraPositionalArguments = DiagnosticWithArguments(
   name: 'extra_positional_arguments',
@@ -5580,10 +5580,10 @@ extraPositionalArguments = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// int p0: the maximum number of positional arguments
-/// int p1: the actual number of positional arguments given
+/// int expected: the maximum number of positional arguments
+/// int found: the actual number of positional arguments given
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required int p0, required int p1})
+  LocatableDiagnostic Function({required int expected, required int found})
 >
 extraPositionalArgumentsCouldBeNamed = DiagnosticWithArguments(
   name: 'extra_positional_arguments_could_be_named',
@@ -18947,19 +18947,22 @@ LocatableDiagnostic _withArgumentsExtensionTypeWithAbstractMember({
 }
 
 LocatableDiagnostic _withArgumentsExtraPositionalArguments({
-  required int p0,
-  required int p1,
+  required int expected,
+  required int found,
 }) {
-  return LocatableDiagnosticImpl(diag.extraPositionalArguments, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.extraPositionalArguments, [
+    expected,
+    found,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsExtraPositionalArgumentsCouldBeNamed({
-  required int p0,
-  required int p1,
+  required int expected,
+  required int found,
 }) {
   return LocatableDiagnosticImpl(diag.extraPositionalArgumentsCouldBeNamed, [
-    p0,
-    p1,
+    expected,
+    found,
   ]);
 }
 

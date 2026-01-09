@@ -453,7 +453,7 @@ mixin TypeAnalyzer<
     SharedTypeView expressionType = analyzeExpression(
       expression,
       operations.typeToSchema(matchedValueType),
-    );
+    ).type;
     flow.constantPattern_end(
       expression,
       expressionType,
@@ -602,7 +602,7 @@ mixin TypeAnalyzer<
   /// [node] will be allowed to continue into the containing expression.
   ///
   /// Stack effect: pushes (Expression).
-  SharedTypeView analyzeExpression(
+  ExpressionTypeAnalysisResult analyzeExpression(
     Expression node,
     SharedTypeSchemaView schema, {
     bool continueNullShorting = false,
@@ -618,16 +618,15 @@ mixin TypeAnalyzer<
     if (operations.isBottomType(result.type)) {
       flow.handleExit();
     }
-    SharedTypeView type = result.type;
     if (nullShortingTargetDepth != null &&
         nullShortingDepth > nullShortingTargetDepth) {
-      type = finishNullShorting(
+      result = finishNullShorting(
         nullShortingTargetDepth,
-        type,
+        result,
         wholeExpression: node,
       );
     }
-    return type;
+    return result;
   }
 
   /// Analyzes a collection element of the form
@@ -665,7 +664,7 @@ mixin TypeAnalyzer<
     SharedTypeView initializerType = analyzeExpression(
       expression,
       operations.unknownType,
-    );
+    ).type;
     flow.ifCaseStatement_afterExpression(expression, initializerType);
     // Stack: (Expression)
     Map<String, List<Variable>> componentVariables = {};
@@ -692,7 +691,7 @@ mixin TypeAnalyzer<
       guardType = analyzeExpression(
         guard,
         operations.typeToSchema(operations.boolType),
-      );
+      ).type;
       nonBooleanGuardError = _checkGuardType(guard, guardType);
     } else {
       handleNoGuard(node, 0);
@@ -736,7 +735,7 @@ mixin TypeAnalyzer<
     SharedTypeView initializerType = analyzeExpression(
       expression,
       operations.unknownType,
-    );
+    ).type;
     flow.ifCaseStatement_afterExpression(expression, initializerType);
     // Stack: (Expression)
     Map<String, List<Variable>> componentVariables = {};
@@ -766,7 +765,7 @@ mixin TypeAnalyzer<
       guardType = analyzeExpression(
         guard,
         operations.typeToSchema(operations.boolType),
-      );
+      ).type;
       nonBooleanGuardError = _checkGuardType(guard, guardType);
     } else {
       handleNoGuard(node, 0);
@@ -1210,7 +1209,7 @@ mixin TypeAnalyzer<
       Node element = elements[i];
       MapPatternEntry<Expression, Pattern>? entry = getMapPatternEntry(element);
       if (entry != null) {
-        SharedTypeView keyType = analyzeExpression(entry.key, keySchema);
+        SharedTypeView keyType = analyzeExpression(entry.key, keySchema).type;
         flow.pushSubpattern(valueType);
         dispatchPattern(context.withUnnecessaryWildcardKind(null), entry.value);
         handleMapPatternEntry(node, element, keyType);
@@ -1477,7 +1476,7 @@ mixin TypeAnalyzer<
   ) {
     // Stack: ()
     SharedTypeSchemaView patternSchema = dispatchPatternSchema(pattern);
-    SharedTypeView rhsType = analyzeExpression(rhs, patternSchema);
+    SharedTypeView rhsType = analyzeExpression(rhs, patternSchema).type;
     // Stack: (Expression)
     flow.patternAssignment_afterRhs(rhs, rhsType);
     Map<String, List<Variable>> componentVariables = {};
@@ -1534,7 +1533,7 @@ mixin TypeAnalyzer<
     SharedTypeView expressionType = analyzeExpression(
       expression,
       expressionTypeSchema,
-    );
+    ).type;
     // Stack: (Expression)
 
     Error? patternForInExpressionIsNotIterableError;
@@ -1606,7 +1605,7 @@ mixin TypeAnalyzer<
     SharedTypeView initializerType = analyzeExpression(
       initializer,
       patternSchema,
-    );
+    ).type;
     // Stack: (Expression)
     flow.patternVariableDeclaration_afterInitializer(
       initializer,
@@ -1829,7 +1828,7 @@ mixin TypeAnalyzer<
     } else {
       operandSchema = operations.unknownType;
     }
-    SharedTypeView operandType = analyzeExpression(operand, operandSchema);
+    SharedTypeView operandType = analyzeExpression(operand, operandSchema).type;
     if (isEquality) {
       flow.equalityRelationalPattern_end(
         operand,
@@ -1909,7 +1908,7 @@ mixin TypeAnalyzer<
     SharedTypeView expressionType = analyzeExpression(
       scrutinee,
       operations.unknownType,
-    );
+    ).type;
     // Stack: (Expression)
     handleSwitchScrutinee(expressionType);
     flow.switchStatement_expressionEnd(null, scrutinee, expressionType);
@@ -1970,7 +1969,7 @@ mixin TypeAnalyzer<
             SharedTypeView guardType = analyzeExpression(
               guard,
               operations.typeToSchema(operations.boolType),
-            );
+            ).type;
             Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
             (guardTypes ??= {})[i] = guardType;
             if (nonBooleanGuardError != null) {
@@ -1988,7 +1987,10 @@ mixin TypeAnalyzer<
         flow.switchStatement_endAlternative(guard, {});
         flow.switchStatement_endAlternatives(null, hasLabels: false);
         // Stack: (Expression, i * ExpressionCase, CaseHead)
-        SharedTypeView ti = analyzeExpression(memberInfo.expression, schema);
+        SharedTypeView ti = analyzeExpression(
+          memberInfo.expression,
+          schema,
+        ).type;
         if (allCasesSatisfyContext && !operations.isSubtypeOf(ti, s)) {
           allCasesSatisfyContext = false;
         }
@@ -2041,7 +2043,7 @@ mixin TypeAnalyzer<
     SharedTypeView scrutineeType = analyzeExpression(
       scrutinee,
       operations.unknownType,
-    );
+    ).type;
     // Stack: (Expression)
     handleSwitchScrutinee(scrutineeType);
     flow.switchStatement_expressionEnd(node, scrutinee, scrutineeType);
@@ -2095,7 +2097,7 @@ mixin TypeAnalyzer<
             SharedTypeView guardType = analyzeExpression(
               guard,
               operations.typeToSchema(operations.boolType),
-            );
+            ).type;
             Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
             ((guardTypes ??= {})[caseIndex] ??= {})[headIndex] = guardType;
             if (nonBooleanGuardError != null) {
