@@ -637,10 +637,10 @@ class _ClassVerifier {
           classElement is EnumElementImpl ||
           classElement is MixinElementImpl) {
         if (const {'index', 'hashCode', '=='}.contains(name.lexeme)) {
-          reporter.atToken(
-            name,
-            diag.illegalConcreteEnumMemberDeclaration,
-            arguments: [name.lexeme],
+          reporter.report(
+            diag.illegalConcreteEnumMemberDeclaration
+                .withArguments(name: name.lexeme)
+                .at(name),
           );
         }
       }
@@ -667,10 +667,13 @@ class _ClassVerifier {
           var enclosingClass = member.enclosingElement;
           if (enclosingClass != null) {
             if (enclosingClass is! ClassElement || filter(enclosingClass)) {
-              reporter.atToken(
-                classNameToken,
-                diag.illegalConcreteEnumMemberInheritance,
-                arguments: [memberName, enclosingClass.name!],
+              reporter.report(
+                diag.illegalConcreteEnumMemberInheritance
+                    .withArguments(
+                      memberName: memberName,
+                      className: enclosingClass.name!,
+                    )
+                    .at(classNameToken),
               );
             }
           }
@@ -701,10 +704,10 @@ class _ClassVerifier {
       );
       var inherited = getter ?? setter;
       if (inherited != null) {
-        reporter.atToken(
-          classNameToken,
-          diag.illegalEnumValuesInheritance,
-          arguments: [inherited.enclosingElement!.name!],
+        reporter.report(
+          diag.illegalEnumValuesInheritance
+              .withArguments(className: inherited.enclosingElement!.name!)
+              .at(classNameToken),
         );
       }
     }
@@ -799,14 +802,14 @@ class _ClassVerifier {
       // elements so it is safe to assume that
       // `conflict.getter.enclosingElement.name` and
       // `conflict.method.enclosingElement.name` are both non-`null`.
-      reporter.atToken(
-        token,
-        diag.inconsistentInheritanceGetterAndMethod,
-        arguments: [
-          name.name,
-          conflict.getter.enclosingElement!.name!,
-          conflict.method.enclosingElement!.name!,
-        ],
+      reporter.report(
+        diag.inconsistentInheritanceGetterAndMethod
+            .withArguments(
+              memberName: name.name,
+              getterInterface: conflict.getter.enclosingElement!.name!,
+              methodInterface: conflict.method.enclosingElement!.name!,
+            )
+            .at(token),
       );
     } else if (conflict is CandidatesConflict) {
       var candidatesStr = conflict.candidates
@@ -817,10 +820,10 @@ class _ClassVerifier {
           })
           .join(', ');
 
-      reporter.atToken(
-        token,
-        diag.inconsistentInheritance,
-        arguments: [name.name, candidatesStr],
+      reporter.report(
+        diag.inconsistentInheritance
+            .withArguments(name: name.name, inheritedSignatures: candidatesStr)
+            .at(token),
       );
     } else {
       throw StateError('${conflict.runtimeType}');

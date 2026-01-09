@@ -718,10 +718,10 @@ class LibraryAnalyzer {
           errorCode.withArguments(uriStr: selectedUriStr).at(directive.uri),
         );
       } else if (state.importedLibrarySource == null) {
-        diagnosticReporter.atNode(
-          directive.uri,
-          diag.importOfNonLibrary,
-          arguments: [selectedUriStr],
+        diagnosticReporter.report(
+          diag.importOfNonLibrary
+              .withArguments(uri: selectedUriStr)
+              .at(directive.uri),
         );
       }
     } else if (state is LibraryImportWithUriStr) {
