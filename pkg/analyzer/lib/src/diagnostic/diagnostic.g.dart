@@ -9063,9 +9063,9 @@ invalidThisInInitializer = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Object p0: the name of the type parameter
+/// String typeParameter: the name of the type parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String typeParameter})
 >
 invalidTypeArgumentInConstList = DiagnosticWithArguments(
   name: 'invalid_type_argument_in_const_literal',
@@ -9077,13 +9077,13 @@ invalidTypeArgumentInConstList = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'invalid_type_argument_in_const_list',
   withArguments: _withArgumentsInvalidTypeArgumentInConstList,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object p0: the name of the type parameter
+/// String typeParameter: the name of the type parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String typeParameter})
 >
 invalidTypeArgumentInConstMap = DiagnosticWithArguments(
   name: 'invalid_type_argument_in_const_literal',
@@ -9095,13 +9095,13 @@ invalidTypeArgumentInConstMap = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'invalid_type_argument_in_const_map',
   withArguments: _withArgumentsInvalidTypeArgumentInConstMap,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// String p0: the name of the type parameter
+/// String typeParameter: the name of the type parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String typeParameter})
 >
 invalidTypeArgumentInConstSet = DiagnosticWithArguments(
   name: 'invalid_type_argument_in_const_literal',
@@ -19743,21 +19743,27 @@ LocatableDiagnostic _withArgumentsInvalidSectionFormat({
 }
 
 LocatableDiagnostic _withArgumentsInvalidTypeArgumentInConstList({
-  required Object p0,
+  required String typeParameter,
 }) {
-  return LocatableDiagnosticImpl(diag.invalidTypeArgumentInConstList, [p0]);
+  return LocatableDiagnosticImpl(diag.invalidTypeArgumentInConstList, [
+    typeParameter,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidTypeArgumentInConstMap({
-  required Object p0,
+  required String typeParameter,
 }) {
-  return LocatableDiagnosticImpl(diag.invalidTypeArgumentInConstMap, [p0]);
+  return LocatableDiagnosticImpl(diag.invalidTypeArgumentInConstMap, [
+    typeParameter,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidTypeArgumentInConstSet({
-  required String p0,
+  required String typeParameter,
 }) {
-  return LocatableDiagnosticImpl(diag.invalidTypeArgumentInConstSet, [p0]);
+  return LocatableDiagnosticImpl(diag.invalidTypeArgumentInConstSet, [
+    typeParameter,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidUri({required String uri}) {

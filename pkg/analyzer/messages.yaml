@@ -10121,9 +10121,9 @@ CompileTimeErrorCode:
   invalidTypeArgumentInConstList:
     type: compileTimeError
     parameters:
-      Object p0: the name of the type parameter
+      String typeParameter: the name of the type parameter
     sharedName: invalidTypeArgumentInConstLiteral
-    problemMessage: "Constant list literals can't use a type parameter in a type argument, such as '#p0'."
+    problemMessage: "Constant list literals can't use a type parameter in a type argument, such as '#typeParameter'."
     correctionMessage: Try replacing the type parameter with a different type.
     hasPublishedDocs: true
     documentation: |-
@@ -10175,17 +10175,17 @@ CompileTimeErrorCode:
   invalidTypeArgumentInConstMap:
     type: compileTimeError
     parameters:
-      Object p0: the name of the type parameter
+      String typeParameter: the name of the type parameter
     sharedName: invalidTypeArgumentInConstLiteral
-    problemMessage: "Constant map literals can't use a type parameter in a type argument, such as '#p0'."
+    problemMessage: "Constant map literals can't use a type parameter in a type argument, such as '#typeParameter'."
     correctionMessage: Try replacing the type parameter with a different type.
     hasPublishedDocs: true
   invalidTypeArgumentInConstSet:
     type: compileTimeError
     parameters:
-      String p0: the name of the type parameter
+      String typeParameter: the name of the type parameter
     sharedName: invalidTypeArgumentInConstLiteral
-    problemMessage: "Constant set literals can't use a type parameter in a type argument, such as '#p0'."
+    problemMessage: "Constant set literals can't use a type parameter in a type argument, such as '#typeParameter'."
     correctionMessage: Try replacing the type parameter with a different type.
     hasPublishedDocs: true
   invalidUri:
