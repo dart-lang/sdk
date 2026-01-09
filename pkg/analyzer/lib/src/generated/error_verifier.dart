@@ -5143,22 +5143,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     if (!valid) {
       var lexeme = node.literal.lexeme;
-      var messageArguments = [
-        isNegated ? '-$lexeme' : lexeme,
-        if (treatedAsDouble)
-          // Suggest the nearest valid double (as a BigInt, for printing).
-          // TODO(srawlins): Insert digit separators at the same positions as
-          // the input. This should be tested code, and a shared impl when we
-          // have an assist that adds digit separators to a number literal.
-          BigInt.from(IntegerLiteralImpl.nearestValidDouble(source)).toString(),
-      ];
-
-      diagnosticReporter.atNode(
-        node,
-        treatedAsDouble
-            ? diag.integerLiteralImpreciseAsDouble
-            : diag.integerLiteralOutOfRange,
-        arguments: messageArguments,
+      var literal = isNegated ? '-$lexeme' : lexeme;
+      diagnosticReporter.report(
+        (treatedAsDouble
+                ?
+                  // Suggest the nearest valid double (as a BigInt, for
+                  // printing).
+                  // TODO(srawlins): Insert digit separators at the same
+                  // positions as the input. This should be tested code, and a
+                  // shared impl when we have an assist that adds digit
+                  // separators to a number literal.
+                  diag.integerLiteralImpreciseAsDouble.withArguments(
+                    literal: literal,
+                    closestDouble: BigInt.from(
+                      IntegerLiteralImpl.nearestValidDouble(source),
+                    ).toString(),
+                  )
+                : diag.integerLiteralOutOfRange.withArguments(literal: literal))
+            .at(node),
       );
     }
   }

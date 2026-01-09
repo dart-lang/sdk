@@ -9035,10 +9035,10 @@ CompileTimeErrorCode:
   integerLiteralImpreciseAsDouble:
     type: compileTimeError
     parameters:
-      String p0: the lexeme of the integer
-      String p1: the closest valid double
-    problemMessage: "The integer literal is being used as a double, but can't be represented as a 64-bit double without overflow or loss of precision: '#p0'."
-    correctionMessage: "Try using the class 'BigInt', or switch to the closest valid double: '#p1'."
+      String literal: the lexeme of the integer
+      String closestDouble: the closest valid double
+    problemMessage: "The integer literal is being used as a double, but can't be represented as a 64-bit double without overflow or loss of precision: '#literal'."
+    correctionMessage: "Try using the class 'BigInt', or switch to the closest valid double: '#closestDouble'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -9075,8 +9075,8 @@ CompileTimeErrorCode:
   integerLiteralOutOfRange:
     type: compileTimeError
     parameters:
-      String p0: the value of the literal
-    problemMessage: "The integer literal #p0 can't be represented in 64 bits."
+      String literal: the value of the literal
+    problemMessage: "The integer literal #literal can't be represented in 64 bits."
     correctionMessage: "Try using the 'BigInt' class if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808."
     hasPublishedDocs: true
     documentation: |-

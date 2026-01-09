@@ -7492,10 +7492,13 @@ const DiagnosticWithoutArguments instantiateTypeAliasExpandsToTypeParameter =
     );
 
 /// Parameters:
-/// String p0: the lexeme of the integer
-/// String p1: the closest valid double
+/// String literal: the lexeme of the integer
+/// String closestDouble: the closest valid double
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String literal,
+    required String closestDouble,
+  })
 >
 integerLiteralImpreciseAsDouble = DiagnosticWithArguments(
   name: 'integer_literal_imprecise_as_double',
@@ -7513,9 +7516,9 @@ integerLiteralImpreciseAsDouble = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the value of the literal
+/// String literal: the value of the literal
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String literal})
 >
 integerLiteralOutOfRange = DiagnosticWithArguments(
   name: 'integer_literal_out_of_range',
@@ -19448,19 +19451,19 @@ _withArgumentsInstanceAccessToStaticMemberOfUnnamedExtension({
 }
 
 LocatableDiagnostic _withArgumentsIntegerLiteralImpreciseAsDouble({
-  required String p0,
-  required String p1,
+  required String literal,
+  required String closestDouble,
 }) {
   return LocatableDiagnosticImpl(diag.integerLiteralImpreciseAsDouble, [
-    p0,
-    p1,
+    literal,
+    closestDouble,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsIntegerLiteralOutOfRange({
-  required String p0,
+  required String literal,
 }) {
-  return LocatableDiagnosticImpl(diag.integerLiteralOutOfRange, [p0]);
+  return LocatableDiagnosticImpl(diag.integerLiteralOutOfRange, [literal]);
 }
 
 LocatableDiagnostic _withArgumentsInterfaceClassExtendedOutsideOfLibrary({
