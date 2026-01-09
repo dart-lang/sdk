@@ -8104,8 +8104,8 @@ CompileTimeErrorCode:
   implementsRepeated:
     type: compileTimeError
     parameters:
-      String p0: the name of the interface that is implemented more than once
-    problemMessage: "'#p0' can only be implemented once."
+      String interfaceName: the name of the interface that is implemented more than once
+    problemMessage: "'#interfaceName' can only be implemented once."
     correctionMessage: Try removing all but one occurrence of the class name.
     hasPublishedDocs: true
     documentation: |-
@@ -14133,8 +14133,8 @@ CompileTimeErrorCode:
   onRepeated:
     type: compileTimeError
     parameters:
-      String p0: the name of the interface that is implemented more than once
-    problemMessage: "The type '#p0' can be included in the superclass constraints only once."
+      String interfaceName: the name of the interface that is implemented more than once
+    problemMessage: "The type '#interfaceName' can be included in the superclass constraints only once."
     correctionMessage: Try removing all except one occurrence of the type name.
     hasPublishedDocs: true
     documentation: |-

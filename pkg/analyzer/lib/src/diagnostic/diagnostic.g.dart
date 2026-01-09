@@ -6721,9 +6721,10 @@ const DiagnosticWithoutArguments implementsNonClass =
     );
 
 /// Parameters:
-/// String p0: the name of the interface that is implemented more than once
+/// String interfaceName: the name of the interface that is implemented more
+///                       than once
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String interfaceName})
 >
 implementsRepeated = DiagnosticWithArguments(
   name: 'implements_repeated',
@@ -12923,9 +12924,10 @@ const DiagnosticWithoutArguments obsoleteColonForDefaultValue =
     );
 
 /// Parameters:
-/// String p0: the name of the interface that is implemented more than once
+/// String interfaceName: the name of the interface that is implemented more
+///                       than once
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String interfaceName})
 >
 onRepeated = DiagnosticWithArguments(
   name: 'on_repeated',
@@ -19177,8 +19179,10 @@ LocatableDiagnostic _withArgumentsImplementsDisallowedClass({
   return LocatableDiagnosticImpl(diag.implementsDisallowedClass, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsImplementsRepeated({required String p0}) {
-  return LocatableDiagnosticImpl(diag.implementsRepeated, [p0]);
+LocatableDiagnostic _withArgumentsImplementsRepeated({
+  required String interfaceName,
+}) {
+  return LocatableDiagnosticImpl(diag.implementsRepeated, [interfaceName]);
 }
 
 LocatableDiagnostic _withArgumentsImplementsSuperClass({required Element p0}) {
@@ -20438,8 +20442,8 @@ LocatableDiagnostic _withArgumentsNullArgumentToNonNullType({
   return LocatableDiagnosticImpl(diag.nullArgumentToNonNullType, [p0, p1]);
 }
 
-LocatableDiagnostic _withArgumentsOnRepeated({required String p0}) {
-  return LocatableDiagnosticImpl(diag.onRepeated, [p0]);
+LocatableDiagnostic _withArgumentsOnRepeated({required String interfaceName}) {
+  return LocatableDiagnosticImpl(diag.onRepeated, [interfaceName]);
 }
 
 LocatableDiagnostic _withArgumentsOutOfOrderClauses({

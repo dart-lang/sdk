@@ -100,6 +100,11 @@ void checkForTypeParameterBoundRecursion(
   }
 }
 
+typedef RepeatedTypeDiagnosticCode =
+    DiagnosticWithArguments<
+      LocatableDiagnostic Function({required String interfaceName})
+    >;
+
 class EnclosingExecutableContext {
   final InternalExecutableElement? element;
   final bool isAsynchronous;
@@ -5296,7 +5301,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForRepeatedType(
     Set<InstanceElement> accumulatedElements,
     List<NamedType>? namedTypes,
-    DiagnosticCode code,
+    RepeatedTypeDiagnosticCode code,
   ) {
     if (namedTypes == null) {
       return;
@@ -5308,10 +5313,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var element = type.element;
         var added = accumulatedElements.add(element);
         if (!added) {
-          diagnosticReporter.atNode(
-            namedType,
-            code,
-            arguments: [element.name!],
+          diagnosticReporter.report(
+            code.withArguments(interfaceName: element.name!).at(namedType),
           );
         }
       }
