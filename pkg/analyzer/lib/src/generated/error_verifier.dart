@@ -4447,17 +4447,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       // Check that the class has 'Object' as their superclass.
       if (superclass != null && !superclass.typeOrThrow.isDartCoreObject) {
-        diagnosticReporter.atNode(
-          superclass,
-          diag.mixinClassDeclarationExtendsNotObject,
-          arguments: [element.name!],
+        diagnosticReporter.report(
+          diag.mixinClassDeclarationExtendsNotObject
+              .withArguments(name: element.name!)
+              .at(superclass),
         );
       } else if (withClause != null &&
           !(element.isMixinApplication && withClause.mixinTypes.length < 2)) {
-        diagnosticReporter.atNode(
-          withClause,
-          diag.mixinClassDeclarationExtendsNotObject,
-          arguments: [element.name!],
+        diagnosticReporter.report(
+          diag.mixinClassDeclarationExtendsNotObject
+              .withArguments(name: element.name!)
+              .at(withClause),
         );
       }
     }
@@ -4486,10 +4486,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
 
-    diagnosticReporter.atNode(
-      mixinName,
-      diag.mixinInheritsFromNotObject,
-      arguments: [mixinElement.name!],
+    diagnosticReporter.report(
+      diag.mixinInheritsFromNotObject
+          .withArguments(name: mixinElement.name!)
+          .at(mixinName),
     );
     return true;
   }
@@ -4524,10 +4524,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (!isSatisfied) {
         // This error can only occur if [mixinName] resolved to an actual mixin,
         // so we can safely rely on `mixinName.type` being non-`null`.
-        diagnosticReporter.atToken(
-          mixinName.name,
-          diag.mixinApplicationNotImplementedInterface,
-          arguments: [mixinName.type!, superType, constraint],
+        diagnosticReporter.report(
+          diag.mixinApplicationNotImplementedInterface
+              .withArguments(
+                mixinType: mixinName.type!,
+                superType: superType,
+                notImplementedType: constraint,
+              )
+              .at(mixinName.name),
         );
         return true;
       }
@@ -4740,16 +4744,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // report as named or default constructor absence
     var name = constructorName.name;
     if (name != null) {
-      diagnosticReporter.atNode(
-        name,
-        diag.newWithUndefinedConstructor,
-        arguments: [namedType.qualifiedName, name.name],
+      diagnosticReporter.report(
+        diag.newWithUndefinedConstructor
+            .withArguments(
+              typeName: namedType.qualifiedName,
+              constructorName: name.name,
+            )
+            .at(name),
       );
     } else {
-      diagnosticReporter.atNode(
-        constructorName,
-        diag.newWithUndefinedConstructorDefault,
-        arguments: [namedType.qualifiedName],
+      diagnosticReporter.report(
+        diag.newWithUndefinedConstructorDefault
+            .withArguments(className: namedType.qualifiedName)
+            .at(constructorName),
       );
     }
   }

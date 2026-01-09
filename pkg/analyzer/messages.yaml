@@ -11327,11 +11327,11 @@ CompileTimeErrorCode:
   mixinApplicationNotImplementedInterface:
     type: compileTimeError
     parameters:
-      Type p0: the display name of the mixin
-      Type p1: the display name of the superclass
-      Type p2: the display name of the type that is not implemented
-    problemMessage: "'#p0' can't be mixed onto '#p1' because '#p1' doesn't implement '#p2'."
-    correctionMessage: "Try extending the class '#p0'."
+      Type mixinType: the type of the mixin
+      Type superType: the supertype
+      Type notImplementedType: the type that is not implemented
+    problemMessage: "'#mixinType' can't be mixed onto '#superType' because '#superType' doesn't implement '#notImplementedType'."
+    correctionMessage: "Try extending the class '#mixinType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -11450,8 +11450,8 @@ CompileTimeErrorCode:
   mixinClassDeclarationExtendsNotObject:
     type: compileTimeError
     parameters:
-      String p0: the name of the mixin class that is invalid
-    problemMessage: "The class '#p0' can't be declared a mixin because it extends a class other than 'Object'."
+      String name: the name of the mixin class that is invalid
+    problemMessage: "The class '#name' can't be declared a mixin because it extends a class other than 'Object'."
     correctionMessage: Try removing the 'mixin' modifier or changing the superclass to 'Object'.
     hasPublishedDocs: true
     documentation: |-
@@ -11567,8 +11567,8 @@ CompileTimeErrorCode:
   mixinInheritsFromNotObject:
     type: compileTimeError
     parameters:
-      String p0: the name of the mixin that is invalid
-    problemMessage: "The class '#p0' can't be used as a mixin because it extends a class other than 'Object'."
+      String name: the name of the mixin that is invalid
+    problemMessage: "The class '#name' can't be used as a mixin because it extends a class other than 'Object'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -11903,10 +11903,10 @@ CompileTimeErrorCode:
   newWithUndefinedConstructor:
     type: compileTimeError
     parameters:
-      String p0: the name of the class being instantiated
-      String p1: the name of the constructor
-    problemMessage: "The class '#p0' doesn't have a constructor named '#p1'."
-    correctionMessage: "Try invoking a different constructor, or define a constructor named '#p1'."
+      String typeName: the name of the class being instantiated
+      String constructorName: the name of the constructor
+    problemMessage: "The class '#typeName' doesn't have a constructor named '#constructorName'."
+    correctionMessage: "Try invoking a different constructor, or define a constructor named '#constructorName'."
     hasPublishedDocs: false
     comment: |-
       12.11.1 New: If <i>T</i> is a class or parameterized type accessible in the
@@ -11923,9 +11923,9 @@ CompileTimeErrorCode:
   newWithUndefinedConstructorDefault:
     type: compileTimeError
     parameters:
-      String p0: the name of the class being instantiated
-    problemMessage: "The class '#p0' doesn't have an unnamed constructor."
-    correctionMessage: "Try using one of the named constructors defined in '#p0'."
+      String className: the name of the class being instantiated
+    problemMessage: "The class '#className' doesn't have an unnamed constructor."
+    correctionMessage: "Try using one of the named constructors defined in '#className'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -11973,32 +11973,32 @@ CompileTimeErrorCode:
   nonAbstractClassInheritsAbstractMemberFivePlus:
     type: compileTimeError
     parameters:
-      String p0: the name of the first member
-      String p1: the name of the second member
-      String p2: the name of the third member
-      String p3: the name of the fourth member
-      int p4: the number of additional missing members that aren't listed
+      String name1: the name of the first member
+      String name2: the name of the second member
+      String name3: the name of the third member
+      String name4: the name of the fourth member
+      int remainingCount: the number of additional missing members that aren't listed
     sharedName: nonAbstractClassInheritsAbstractMember
-    problemMessage: "Missing concrete implementations of '#p0', '#p1', '#p2', '#p3', and #p4 more."
+    problemMessage: "Missing concrete implementations of '#name1', '#name2', '#name3', '#name4', and #remainingCount more."
     correctionMessage: Try implementing the missing methods, or make the class abstract.
     hasPublishedDocs: true
   nonAbstractClassInheritsAbstractMemberFour:
     type: compileTimeError
     parameters:
-      String p0: the name of the first member
-      String p1: the name of the second member
-      String p2: the name of the third member
-      String p3: the name of the fourth member
+      String name1: the name of the first member
+      String name2: the name of the second member
+      String name3: the name of the third member
+      String name4: the name of the fourth member
     sharedName: nonAbstractClassInheritsAbstractMember
-    problemMessage: "Missing concrete implementations of '#p0', '#p1', '#p2', and '#p3'."
+    problemMessage: "Missing concrete implementations of '#name1', '#name2', '#name3', and '#name4'."
     correctionMessage: Try implementing the missing methods, or make the class abstract.
     hasPublishedDocs: true
   nonAbstractClassInheritsAbstractMemberOne:
     type: compileTimeError
     parameters:
-      String p0: the name of the member
+      String name: the name of the member
     sharedName: nonAbstractClassInheritsAbstractMember
-    problemMessage: "Missing concrete implementation of '#p0'."
+    problemMessage: "Missing concrete implementation of '#name'."
     correctionMessage: Try implementing the missing method, or make the class abstract.
     hasPublishedDocs: true
     documentation: |-
@@ -12064,20 +12064,20 @@ CompileTimeErrorCode:
   nonAbstractClassInheritsAbstractMemberThree:
     type: compileTimeError
     parameters:
-      String p0: the name of the first member
-      String p1: the name of the second member
-      String p2: the name of the third member
+      String name1: the name of the first member
+      String name2: the name of the second member
+      String name3: the name of the third member
     sharedName: nonAbstractClassInheritsAbstractMember
-    problemMessage: "Missing concrete implementations of '#p0', '#p1', and '#p2'."
+    problemMessage: "Missing concrete implementations of '#name1', '#name2', and '#name3'."
     correctionMessage: Try implementing the missing methods, or make the class abstract.
     hasPublishedDocs: true
   nonAbstractClassInheritsAbstractMemberTwo:
     type: compileTimeError
     parameters:
-      String p0: the name of the first member
-      String p1: the name of the second member
+      String name1: the name of the first member
+      String name2: the name of the second member
     sharedName: nonAbstractClassInheritsAbstractMember
-    problemMessage: "Missing concrete implementations of '#p0' and '#p1'."
+    problemMessage: "Missing concrete implementations of '#name1' and '#name2'."
     correctionMessage: Try implementing the missing methods, or make the class abstract.
     hasPublishedDocs: true
   nonBoolCondition:

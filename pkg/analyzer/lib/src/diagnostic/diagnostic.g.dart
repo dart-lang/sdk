@@ -10644,14 +10644,14 @@ mixinApplicationNoConcreteSuperInvokedSetter = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the display name of the mixin
-/// Type p1: the display name of the superclass
-/// Type p2: the display name of the type that is not implemented
+/// Type mixinType: the type of the mixin
+/// Type superType: the supertype
+/// Type notImplementedType: the type that is not implemented
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required DartType p0,
-    required DartType p1,
-    required DartType p2,
+    required DartType mixinType,
+    required DartType superType,
+    required DartType notImplementedType,
   })
 >
 mixinApplicationNotImplementedInterface = DiagnosticWithArguments(
@@ -10667,9 +10667,9 @@ mixinApplicationNotImplementedInterface = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the mixin class that is invalid
+/// String name: the name of the mixin class that is invalid
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 mixinClassDeclarationExtendsNotObject = DiagnosticWithArguments(
   name: 'mixin_class_declaration_extends_not_object',
@@ -10726,9 +10726,9 @@ const DiagnosticWithoutArguments mixinDeferredClass =
     );
 
 /// Parameters:
-/// String p0: the name of the mixin that is invalid
+/// String name: the name of the mixin that is invalid
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 mixinInheritsFromNotObject = DiagnosticWithArguments(
   name: 'mixin_inherits_from_not_object',
@@ -11518,10 +11518,13 @@ newWithNonType = DiagnosticWithArguments(
 /// declare a constructor with the same name as the declaration of <i>T</i>.
 ///
 /// Parameters:
-/// String p0: the name of the class being instantiated
-/// String p1: the name of the constructor
+/// String typeName: the name of the class being instantiated
+/// String constructorName: the name of the constructor
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String typeName,
+    required String constructorName,
+  })
 >
 newWithUndefinedConstructor = DiagnosticWithArguments(
   name: 'new_with_undefined_constructor',
@@ -11536,9 +11539,9 @@ newWithUndefinedConstructor = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the class being instantiated
+/// String className: the name of the class being instantiated
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String className})
 >
 newWithUndefinedConstructorDefault = DiagnosticWithArguments(
   name: 'new_with_undefined_constructor_default',
@@ -11651,18 +11654,19 @@ noGenerativeConstructorsInSuperclass = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the first member
-/// String p1: the name of the second member
-/// String p2: the name of the third member
-/// String p3: the name of the fourth member
-/// int p4: the number of additional missing members that aren't listed
+/// String name1: the name of the first member
+/// String name2: the name of the second member
+/// String name3: the name of the third member
+/// String name4: the name of the fourth member
+/// int remainingCount: the number of additional missing members that aren't
+///                     listed
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required String p2,
-    required String p3,
-    required int p4,
+    required String name1,
+    required String name2,
+    required String name3,
+    required String name4,
+    required int remainingCount,
   })
 >
 nonAbstractClassInheritsAbstractMemberFivePlus = DiagnosticWithArguments(
@@ -11686,16 +11690,16 @@ nonAbstractClassInheritsAbstractMemberFivePlus = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the first member
-/// String p1: the name of the second member
-/// String p2: the name of the third member
-/// String p3: the name of the fourth member
+/// String name1: the name of the first member
+/// String name2: the name of the second member
+/// String name3: the name of the third member
+/// String name4: the name of the fourth member
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required String p2,
-    required String p3,
+    required String name1,
+    required String name2,
+    required String name3,
+    required String name4,
   })
 >
 nonAbstractClassInheritsAbstractMemberFour = DiagnosticWithArguments(
@@ -11717,9 +11721,9 @@ nonAbstractClassInheritsAbstractMemberFour = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the member
+/// String name: the name of the member
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 nonAbstractClassInheritsAbstractMemberOne = DiagnosticWithArguments(
   name: 'non_abstract_class_inherits_abstract_member',
@@ -11734,14 +11738,14 @@ nonAbstractClassInheritsAbstractMemberOne = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the first member
-/// String p1: the name of the second member
-/// String p2: the name of the third member
+/// String name1: the name of the first member
+/// String name2: the name of the second member
+/// String name3: the name of the third member
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required String p2,
+    required String name1,
+    required String name2,
+    required String name3,
   })
 >
 nonAbstractClassInheritsAbstractMemberThree = DiagnosticWithArguments(
@@ -11762,10 +11766,10 @@ nonAbstractClassInheritsAbstractMemberThree = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the first member
-/// String p1: the name of the second member
+/// String name1: the name of the first member
+/// String name2: the name of the second member
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({required String name1, required String name2})
 >
 nonAbstractClassInheritsAbstractMemberTwo = DiagnosticWithArguments(
   name: 'non_abstract_class_inherits_abstract_member',
@@ -20064,22 +20068,22 @@ LocatableDiagnostic _withArgumentsMixinApplicationNoConcreteSuperInvokedSetter({
 }
 
 LocatableDiagnostic _withArgumentsMixinApplicationNotImplementedInterface({
-  required DartType p0,
-  required DartType p1,
-  required DartType p2,
+  required DartType mixinType,
+  required DartType superType,
+  required DartType notImplementedType,
 }) {
   return LocatableDiagnosticImpl(diag.mixinApplicationNotImplementedInterface, [
-    p0,
-    p1,
-    p2,
+    mixinType,
+    superType,
+    notImplementedType,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsMixinClassDeclarationExtendsNotObject({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(diag.mixinClassDeclarationExtendsNotObject, [
-    p0,
+    name,
   ]);
 }
 
@@ -20090,9 +20094,9 @@ LocatableDiagnostic _withArgumentsMixinClassDeclaresConstructor({
 }
 
 LocatableDiagnostic _withArgumentsMixinInheritsFromNotObject({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.mixinInheritsFromNotObject, [p0]);
+  return LocatableDiagnosticImpl(diag.mixinInheritsFromNotObject, [name]);
 }
 
 LocatableDiagnostic _withArgumentsMixinOfDisallowedClass({
@@ -20211,16 +20215,21 @@ LocatableDiagnostic _withArgumentsNewWithNonType({required String name}) {
 }
 
 LocatableDiagnostic _withArgumentsNewWithUndefinedConstructor({
-  required String p0,
-  required String p1,
+  required String typeName,
+  required String constructorName,
 }) {
-  return LocatableDiagnosticImpl(diag.newWithUndefinedConstructor, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.newWithUndefinedConstructor, [
+    typeName,
+    constructorName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsNewWithUndefinedConstructorDefault({
-  required String p0,
+  required String className,
 }) {
-  return LocatableDiagnosticImpl(diag.newWithUndefinedConstructorDefault, [p0]);
+  return LocatableDiagnosticImpl(diag.newWithUndefinedConstructorDefault, [
+    className,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsNoCombinedSuperSignature({
@@ -20258,57 +20267,57 @@ LocatableDiagnostic _withArgumentsNoGenerativeConstructorsInSuperclass({
 
 LocatableDiagnostic
 _withArgumentsNonAbstractClassInheritsAbstractMemberFivePlus({
-  required String p0,
-  required String p1,
-  required String p2,
-  required String p3,
-  required int p4,
+  required String name1,
+  required String name2,
+  required String name3,
+  required String name4,
+  required int remainingCount,
 }) {
   return LocatableDiagnosticImpl(
     diag.nonAbstractClassInheritsAbstractMemberFivePlus,
-    [p0, p1, p2, p3, p4],
+    [name1, name2, name3, name4, remainingCount],
   );
 }
 
 LocatableDiagnostic _withArgumentsNonAbstractClassInheritsAbstractMemberFour({
-  required String p0,
-  required String p1,
-  required String p2,
-  required String p3,
+  required String name1,
+  required String name2,
+  required String name3,
+  required String name4,
 }) {
   return LocatableDiagnosticImpl(
     diag.nonAbstractClassInheritsAbstractMemberFour,
-    [p0, p1, p2, p3],
+    [name1, name2, name3, name4],
   );
 }
 
 LocatableDiagnostic _withArgumentsNonAbstractClassInheritsAbstractMemberOne({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(
     diag.nonAbstractClassInheritsAbstractMemberOne,
-    [p0],
+    [name],
   );
 }
 
 LocatableDiagnostic _withArgumentsNonAbstractClassInheritsAbstractMemberThree({
-  required String p0,
-  required String p1,
-  required String p2,
+  required String name1,
+  required String name2,
+  required String name3,
 }) {
   return LocatableDiagnosticImpl(
     diag.nonAbstractClassInheritsAbstractMemberThree,
-    [p0, p1, p2],
+    [name1, name2, name3],
   );
 }
 
 LocatableDiagnostic _withArgumentsNonAbstractClassInheritsAbstractMemberTwo({
-  required String p0,
-  required String p1,
+  required String name1,
+  required String name2,
 }) {
   return LocatableDiagnosticImpl(
     diag.nonAbstractClassInheritsAbstractMemberTwo,
-    [p0, p1],
+    [name1, name2],
   );
 }
 

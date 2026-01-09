@@ -417,10 +417,10 @@ class MethodInvocationResolver with ScopeHelpers {
     if (methodName.name == 'new') {
       // Attempting to invoke the unnamed constructor via `C.new(`.
       if (_resolver.isConstructorTearoffsEnabled) {
-        _resolver.diagnosticReporter.atNode(
-          methodName,
-          diag.newWithUndefinedConstructorDefault,
-          arguments: [receiver.displayName],
+        _resolver.diagnosticReporter.report(
+          diag.newWithUndefinedConstructorDefault
+              .withArguments(className: receiver.displayName)
+              .at(methodName),
         );
       } else {
         // [ParserErrorCode.EXPERIMENT_NOT_ENABLED] is reported by the parser.
