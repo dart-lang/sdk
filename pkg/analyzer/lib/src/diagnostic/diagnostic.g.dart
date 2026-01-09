@@ -8620,9 +8620,9 @@ const DiagnosticWithoutArguments invalidLiteralInConfiguration =
     );
 
 /// Parameters:
-/// String p0: the invalid modifier
+/// String modifier: the invalid modifier
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String modifier})
 >
 invalidModifierOnConstructor = DiagnosticWithArguments(
   name: 'invalid_modifier_on_constructor',
@@ -19638,9 +19638,9 @@ LocatableDiagnostic _withArgumentsInvalidLanguageVersionOverrideGreater({
 }
 
 LocatableDiagnostic _withArgumentsInvalidModifierOnConstructor({
-  required String p0,
+  required String modifier,
 }) {
-  return LocatableDiagnosticImpl(diag.invalidModifierOnConstructor, [p0]);
+  return LocatableDiagnosticImpl(diag.invalidModifierOnConstructor, [modifier]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidNullAwareOperator({

@@ -9770,8 +9770,8 @@ CompileTimeErrorCode:
   invalidModifierOnConstructor:
     type: compileTimeError
     parameters:
-      String p0: the invalid modifier
-    problemMessage: "The modifier '#p0' can't be applied to the body of a constructor."
+      String modifier: the invalid modifier
+    problemMessage: "The modifier '#modifier' can't be applied to the body of a constructor."
     correctionMessage: Try removing the modifier.
     hasPublishedDocs: true
     documentation: |-

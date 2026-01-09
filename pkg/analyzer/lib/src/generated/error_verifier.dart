@@ -634,10 +634,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       element,
       () {
         _checkForNonConstGenerativeEnumConstructor(node);
-        _checkForInvalidModifierOnBody(
-          node.body,
-          diag.invalidModifierOnConstructor,
-        );
+        _checkForInvalidModifierOnBody(node.body);
         if (!_checkForConstConstructorWithNonConstSuper(node)) {
           _checkForConstConstructorWithNonFinalField(node, element);
         }
@@ -4153,10 +4150,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Check to see whether the given function [body] has a modifier associated
   /// with it, and report it as an error if it does.
-  void _checkForInvalidModifierOnBody(FunctionBody body, DiagnosticCode code) {
+  void _checkForInvalidModifierOnBody(FunctionBody body) {
     var keyword = body.keyword;
     if (keyword != null) {
-      diagnosticReporter.atToken(keyword, code, arguments: [keyword.lexeme]);
+      diagnosticReporter.report(
+        diag.invalidModifierOnConstructor
+            .withArguments(modifier: keyword.lexeme)
+            .at(keyword),
+      );
     }
   }
 
