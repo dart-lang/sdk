@@ -4897,9 +4897,9 @@ const DiagnosticWithoutArguments extendsDeferredClass =
     );
 
 /// Parameters:
-/// Type p0: the name of the disallowed type
+/// Type disallowedType: the name of the disallowed type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0})
+  LocatableDiagnostic Function({required DartType disallowedType})
 >
 extendsDisallowedClass = DiagnosticWithArguments(
   name: 'subtype_of_disallowed_type',
@@ -6710,9 +6710,9 @@ const DiagnosticWithoutArguments implementsDeferredClass =
     );
 
 /// Parameters:
-/// Type p0: the name of the disallowed type
+/// Type disallowedType: the name of the disallowed type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0})
+  LocatableDiagnostic Function({required DartType disallowedType})
 >
 implementsDisallowedClass = DiagnosticWithArguments(
   name: 'subtype_of_disallowed_type',
@@ -10772,9 +10772,9 @@ const DiagnosticWithoutArguments mixinInstantiate =
     );
 
 /// Parameters:
-/// Type p0: the name of the disallowed type
+/// Type disallowedType: the name of the disallowed type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0})
+  LocatableDiagnostic Function({required DartType disallowedType})
 >
 mixinOfDisallowedClass = DiagnosticWithArguments(
   name: 'subtype_of_disallowed_type',
@@ -10921,9 +10921,9 @@ const DiagnosticWithoutArguments mixinSuperClassConstraintDeferredClass =
     );
 
 /// Parameters:
-/// Type p0: the name of the disallowed type
+/// Type disallowedType: the name of the disallowed type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0})
+  LocatableDiagnostic Function({required DartType disallowedType})
 >
 mixinSuperClassConstraintDisallowedClass = DiagnosticWithArguments(
   name: 'subtype_of_disallowed_type',
@@ -18952,9 +18952,9 @@ LocatableDiagnostic _withArgumentsExportOfNonLibrary({required String uri}) {
 }
 
 LocatableDiagnostic _withArgumentsExtendsDisallowedClass({
-  required DartType p0,
+  required DartType disallowedType,
 }) {
-  return LocatableDiagnosticImpl(diag.extendsDisallowedClass, [p0]);
+  return LocatableDiagnosticImpl(diag.extendsDisallowedClass, [disallowedType]);
 }
 
 LocatableDiagnostic _withArgumentsExtensionAsExpression({
@@ -19276,9 +19276,11 @@ LocatableDiagnostic _withArgumentsIllegalLanguageVersionOverride({
 }
 
 LocatableDiagnostic _withArgumentsImplementsDisallowedClass({
-  required DartType p0,
+  required DartType disallowedType,
 }) {
-  return LocatableDiagnosticImpl(diag.implementsDisallowedClass, [p0]);
+  return LocatableDiagnosticImpl(diag.implementsDisallowedClass, [
+    disallowedType,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsImplementsRepeated({
@@ -20156,9 +20158,9 @@ LocatableDiagnostic _withArgumentsMixinInheritsFromNotObject({
 }
 
 LocatableDiagnostic _withArgumentsMixinOfDisallowedClass({
-  required DartType p0,
+  required DartType disallowedType,
 }) {
-  return LocatableDiagnosticImpl(diag.mixinOfDisallowedClass, [p0]);
+  return LocatableDiagnosticImpl(diag.mixinOfDisallowedClass, [disallowedType]);
 }
 
 LocatableDiagnostic _withArgumentsMixinOnSealedClass({required String p0}) {
@@ -20192,11 +20194,11 @@ LocatableDiagnostic _withArgumentsMixinSubtypeOfFinalIsNotBase({
 }
 
 LocatableDiagnostic _withArgumentsMixinSuperClassConstraintDisallowedClass({
-  required DartType p0,
+  required DartType disallowedType,
 }) {
   return LocatableDiagnosticImpl(
     diag.mixinSuperClassConstraintDisallowedClass,
-    [p0],
+    [disallowedType],
   );
 }
 

@@ -1888,10 +1888,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       DartType mixinType = mixinName.typeOrThrow;
       if (mixinType is InterfaceType) {
         mixinTypeIndex++;
-        if (_checkForExtendsOrImplementsDisallowedClass(
-          mixinName,
-          diag.mixinOfDisallowedClass,
-        )) {
+        if (_checkForExtendsOrImplementsDisallowedClass(mixinName)) {
           problemReported = true;
         } else {
           var mixinElement = mixinType.element;
@@ -3309,10 +3306,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (superclass == null) {
       return false;
     }
-    return _checkForExtendsOrImplementsDisallowedClass(
-      superclass,
-      diag.extendsDisallowedClass,
-    );
+    return _checkForExtendsOrImplementsDisallowedClass(superclass);
   }
 
   /// Verify that the given [namedType] does not extend, implement or mixin
@@ -3344,10 +3338,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   // is concentrated. We keep it for now only because we need to know when
   // inheritance is completely wrong, so that we don't need to check anything
   // else.
-  bool _checkForExtendsOrImplementsDisallowedClass(
-    NamedType namedType,
-    DiagnosticCode code,
-  ) {
+  bool _checkForExtendsOrImplementsDisallowedClass(NamedType namedType) {
     if (namedType.isSynthetic) {
       return false;
     }
@@ -3890,10 +3881,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     bool foundError = false;
     for (NamedType type in clause.interfaces) {
-      if (_checkForExtendsOrImplementsDisallowedClass(
-        type,
-        diag.implementsDisallowedClass,
-      )) {
+      if (_checkForExtendsOrImplementsDisallowedClass(type)) {
         foundError = true;
       } else if (_checkForExtendsOrImplementsDeferredClass(
         type,
@@ -5109,10 +5097,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (NamedType namedType in onClause.superclassConstraints) {
       DartType type = namedType.typeOrThrow;
       if (type is InterfaceType) {
-        if (_checkForExtendsOrImplementsDisallowedClass(
-          namedType,
-          diag.mixinSuperClassConstraintDisallowedClass,
-        )) {
+        if (_checkForExtendsOrImplementsDisallowedClass(namedType)) {
           problemReported = true;
         } else {
           if (_checkForExtendsOrImplementsDeferredClass(

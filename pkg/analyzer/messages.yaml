@@ -16820,9 +16820,9 @@ CompileTimeErrorCode:
   extendsDisallowedClass:
     type: compileTimeError
     parameters:
-      Type p0: the name of the disallowed type
+      Type disallowedType: the name of the disallowed type
     sharedName: subtypeOfDisallowedType
-    problemMessage: "Classes can't extend '#p0'."
+    problemMessage: "Classes can't extend '#disallowedType'."
     correctionMessage: Try specifying a different superclass, or removing the extends clause.
     hasPublishedDocs: true
     documentation: |-
@@ -16881,25 +16881,25 @@ CompileTimeErrorCode:
   mixinOfDisallowedClass:
     type: compileTimeError
     parameters:
-      Type p0: the name of the disallowed type
+      Type disallowedType: the name of the disallowed type
     sharedName: subtypeOfDisallowedType
-    problemMessage: "Classes can't mixin '#p0'."
+    problemMessage: "Classes can't mixin '#disallowedType'."
     correctionMessage: Try specifying a different class or mixin, or remove the class or mixin from the list.
     hasPublishedDocs: true
   mixinSuperClassConstraintDisallowedClass:
     type: compileTimeError
     parameters:
-      Type p0: the name of the disallowed type
+      Type disallowedType: the name of the disallowed type
     sharedName: subtypeOfDisallowedType
-    problemMessage: "'#p0' can't be used as a superclass constraint."
+    problemMessage: "'#disallowedType' can't be used as a superclass constraint."
     correctionMessage: "Try specifying a different super-class constraint, or remove the 'on' clause."
     hasPublishedDocs: true
   implementsDisallowedClass:
     type: compileTimeError
     parameters:
-      Type p0: the name of the disallowed type
+      Type disallowedType: the name of the disallowed type
     sharedName: subtypeOfDisallowedType
-    problemMessage: "Classes and mixins can't implement '#p0'."
+    problemMessage: "Classes and mixins can't implement '#disallowedType'."
     correctionMessage: Try specifying a different interface, or remove the class from the list.
     hasPublishedDocs: true
   extendsTypeAliasExpandsToTypeParameter:
