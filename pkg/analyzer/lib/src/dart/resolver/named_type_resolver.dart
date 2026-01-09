@@ -617,11 +617,10 @@ class _ErrorHelper {
 
     if (_isRedirectingConstructor(node)) {
       var errorRange = _getErrorRange(node);
-      diagnosticReporter.atOffset(
-        offset: errorRange.offset,
-        length: errorRange.length,
-        diagnosticCode: diag.redirectToNonClass,
-        arguments: [node.name.lexeme],
+      diagnosticReporter.report(
+        diag.redirectToNonClass
+            .withArguments(name: node.name.lexeme)
+            .atOffset(offset: errorRange.offset, length: errorRange.length),
       );
       return;
     }

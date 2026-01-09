@@ -661,10 +661,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
       if (!assigned) {
         if (element.isFinal) {
-          diagnosticReporter.atNode(
-            node,
-            diag.readPotentiallyUnassignedFinal,
-            arguments: [node.name],
+          diagnosticReporter.report(
+            diag.readPotentiallyUnassignedFinal
+                .withArguments(name: node.name)
+                .at(node),
           );
           return;
         }

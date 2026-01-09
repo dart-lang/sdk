@@ -844,10 +844,10 @@ class PropertyElementResolver with ScopeHelpers {
       writeElement = typeReference.getSetter(propertyName.name);
       if (writeElement != null) {
         if (!_isAccessible(writeElement)) {
-          diagnosticReporter.atNode(
-            propertyName,
-            diag.privateSetter,
-            arguments: [propertyName.name],
+          diagnosticReporter.report(
+            diag.privateSetter
+                .withArguments(name: propertyName.name)
+                .at(propertyName),
           );
         }
         if (_checkForStaticAccessToInstanceMember(propertyName, writeElement)) {

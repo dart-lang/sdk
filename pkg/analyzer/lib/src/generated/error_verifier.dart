@@ -1960,10 +1960,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (redirectedConstructor.name != null) {
           constructorStrName += ".${redirectedConstructor.name!.name}";
         }
-        diagnosticReporter.atNode(
-          redirectedConstructor,
-          diag.redirectToMissingConstructor,
-          arguments: [constructorStrName, redirectedType],
+        diagnosticReporter.report(
+          diag.redirectToMissingConstructor
+              .withArguments(
+                constructorName: constructorStrName,
+                redirectedType: redirectedType,
+              )
+              .at(redirectedConstructor),
         );
       }
       return;
@@ -1979,18 +1982,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       constructorReturnType,
       strictCasts: strictCasts,
     )) {
-      diagnosticReporter.atNode(
-        redirectedConstructor,
-        diag.redirectToInvalidReturnType,
-        arguments: [redirectedReturnType, constructorReturnType],
+      diagnosticReporter.report(
+        diag.redirectToInvalidReturnType
+            .withArguments(
+              redirectedReturnType: redirectedReturnType,
+              redirectingReturnType: constructorReturnType,
+            )
+            .at(redirectedConstructor),
       );
       return;
     } else if (!typeSystem.isSubtypeOf(redirectedType, constructorType)) {
       // Check parameters.
-      diagnosticReporter.atNode(
-        redirectedConstructor,
-        diag.redirectToInvalidFunctionType,
-        arguments: [redirectedType, constructorType],
+      diagnosticReporter.report(
+        diag.redirectToInvalidFunctionType
+            .withArguments(
+              redirectedType: redirectedType,
+              redirectingType: constructorType,
+            )
+            .at(redirectedConstructor),
       );
     }
   }
@@ -2669,10 +2678,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             if (invocation.constructorName != null) {
               constructorStrName += ".${invocation.constructorName!.name}";
             }
-            diagnosticReporter.atNode(
-              invocation,
-              diag.redirectGenerativeToMissingConstructor,
-              arguments: [constructorStrName, enclosingNamedType],
+            diagnosticReporter.report(
+              diag.redirectGenerativeToMissingConstructor
+                  .withArguments(
+                    constructorName: constructorStrName,
+                    className: enclosingNamedType,
+                  )
+                  .at(invocation),
             );
           } else {
             if (redirectingElement.isFactory) {
@@ -4649,10 +4661,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           if (name.endsWith('=')) {
             name = name.substring(0, name.length - 1);
           }
-          diagnosticReporter.atNode(
-            namedType,
-            diag.privateCollisionInMixinApplication,
-            arguments: [name, namedType.name.lexeme, conflictingName],
+          diagnosticReporter.report(
+            diag.privateCollisionInMixinApplication
+                .withArguments(
+                  collidingName: name,
+                  mixin1: namedType.name.lexeme,
+                  mixin2: conflictingName,
+                )
+                .at(namedType),
           );
           return true;
         }
@@ -4669,14 +4685,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           // Inherited members are always contained inside named elements, so we
           // can safely assume `inheritedMember.enclosingElement3.name` is
           // non-`null`.
-          diagnosticReporter.atNode(
-            namedType,
-            diag.privateCollisionInMixinApplication,
-            arguments: [
-              name,
-              namedType.name.lexeme,
-              inheritedMember.enclosingElement!.name!,
-            ],
+          diagnosticReporter.report(
+            diag.privateCollisionInMixinApplication
+                .withArguments(
+                  collidingName: name,
+                  mixin1: namedType.name.lexeme,
+                  mixin2: inheritedMember.enclosingElement!.name!,
+                )
+                .at(namedType),
           );
           return true;
         }
@@ -5276,10 +5292,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (declaration.name != null) {
         constructorStrName += ".${declaration.name!.lexeme}";
       }
-      diagnosticReporter.atNode(
-        redirectedConstructor,
-        diag.redirectToAbstractClassConstructor,
-        arguments: [constructorStrName, redirectedClass.name!],
+      diagnosticReporter.report(
+        diag.redirectToAbstractClassConstructor
+            .withArguments(
+              redirectingConstructorName: constructorStrName,
+              abstractClass: redirectedClass.name!,
+            )
+            .at(redirectedConstructor),
       );
     }
     _checkForInvalidGenerativeConstructorReference(
