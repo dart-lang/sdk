@@ -96,7 +96,7 @@ import '../js_emitter.dart';
 import '../constant_ordering.dart' show ConstantOrdering;
 import '../headers.dart';
 import '../model.dart';
-import '../resource_info_emitter.dart' show ResourceInfoCollector;
+import '../record_use_emitter.dart' show RecordUseCollector;
 import 'fragment_merger.dart';
 
 part 'fragment_emitter.dart';
@@ -113,7 +113,7 @@ class ModelEmitter {
   final DiagnosticReporter _reporter;
   final api.CompilerOutput _outputProvider;
   final DumpInfoJsAstRegistry _dumpInfoRegistry;
-  final ResourceInfoCollector _resourceInfoCollector = ResourceInfoCollector();
+  final RecordUseCollector _recordUseCollector = RecordUseCollector();
   final Namer _namer;
   final CompilerTask _task;
   final Emitter _emitter;
@@ -391,8 +391,8 @@ class ModelEmitter {
       writeDeferredMap();
     }
 
-    if (_options.writeResources) {
-      writeResourceIdentifiers();
+    if (_options.writeRecordedUses) {
+      writeRecordedUses();
     }
 
     // Return the total program size.
@@ -498,7 +498,7 @@ var $startupMetricsGlobal =
       _options,
       _sourceInformationStrategy as JavaScriptSourceInformationStrategy,
       monitor: _dumpInfoRegistry,
-      annotationMonitor: _resourceInfoCollector.monitorFor(
+      annotationMonitor: _recordUseCollector.monitorFor(
         _options.outputUri?.pathSegments.last ?? 'out',
       ),
     );
@@ -678,7 +678,7 @@ var $startupMetricsGlobal =
       _sourceInformationStrategy as JavaScriptSourceInformationStrategy,
       monitor: _dumpInfoRegistry,
       listeners: [hasher],
-      annotationMonitor: _resourceInfoCollector.monitorFor(outputFileName),
+      annotationMonitor: _recordUseCollector.monitorFor(outputFileName),
     );
     _task.measureSubtask('emit buffers', () {
       output.addBuffer(buffer);
@@ -746,17 +746,17 @@ var $startupMetricsGlobal =
       ..close();
   }
 
-  /// Writes out all the referenced resource identifiers as a JSON file.
-  void writeResourceIdentifiers() {
+  /// Writes all recorded uses as a JSON file.
+  void writeRecordedUses() {
     _outputProvider.createOutputSink(
         '',
         'resources.json',
-        api.OutputType.resourceIdentifiers,
+        api.OutputType.recordedUses,
       )
       ..add(
         JsonEncoder.withIndent(
           '  ',
-        ).convert(_resourceInfoCollector.finish(_options.environment)),
+        ).convert(_recordUseCollector.finish(_options.environment)),
       )
       ..close();
   }

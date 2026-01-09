@@ -91,7 +91,7 @@ enum PragmaAnnotation {
   lateCheck('late:check'),
 
   loadLibraryPriority('load-priority', hasOption: true),
-  resourceIdentifier('resource-identifier'),
+  recordUse('record-use'),
 
   throwWithoutHelperFrame('stack-starts-at-throw'),
 
@@ -117,10 +117,13 @@ enum PragmaAnnotation {
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> implies = {
     typesTrust: {parameterTrust, downcastTrust},
     typesCheck: {parameterCheck, downcastCheck},
+    // TODO(dacoharkes,natebiggs): Removing `RecordUse` being converted to
+    // noInline and enabling this doesn't work. Why not?
+    // recordUse: {noInline},
   };
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> excludes = {
     noInline: {tryInline},
-    tryInline: {noInline, resourceIdentifier},
+    tryInline: {noInline, recordUse},
     typesTrust: {typesCheck, parameterCheck, downcastCheck},
     typesCheck: {typesTrust, parameterTrust, downcastTrust},
     parameterTrust: {parameterCheck},
@@ -131,7 +134,7 @@ enum PragmaAnnotation {
     asCheck: {asTrust},
     lateTrust: {lateCheck},
     lateCheck: {lateTrust},
-    resourceIdentifier: {tryInline},
+    recordUse: {tryInline},
   };
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> requires = {
     noThrows: {noInline},
@@ -143,6 +146,7 @@ enum PragmaAnnotation {
     // Aliases
     'never-inline': noInline,
     'prefer-inline': tryInline,
+    'resource-identifier': recordUse,
   };
 }
 
@@ -360,8 +364,8 @@ abstract class AnnotationsData {
   /// loader.
   String getLoadLibraryPriority(ir.LoadLibrary node);
 
-  /// Determines whether [member] is annotated as a resource identifier.
-  bool methodIsResourceIdentifier(FunctionEntity member);
+  /// Determines whether [member] is annotated with `RecordUse()`.
+  bool shouldRecordMethodUses(FunctionEntity member);
 
   /// Is this node in a context requesting that the captured stack in a `throw`
   /// expression generates extra code to avoid having a runtime helper on the
@@ -654,10 +658,10 @@ class AnnotationsDataImpl implements AnnotationsData {
   }
 
   @override
-  bool methodIsResourceIdentifier(MemberEntity member) {
+  bool shouldRecordMethodUses(MemberEntity member) {
     EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
     if (annotations != null) {
-      if (annotations.contains(PragmaAnnotation.resourceIdentifier)) {
+      if (annotations.contains(PragmaAnnotation.recordUse)) {
         return true;
       }
     }
