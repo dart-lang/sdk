@@ -12639,14 +12639,14 @@ notBinaryOperator = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// int p0: the expected number of required arguments
-/// int p1: the actual number of positional arguments given
-/// String p2: name of the function or method
+/// int requiredParameterCount: the expected number of required arguments
+/// int actualArgumentCount: the actual number of positional arguments given
+/// String name: name of the function or method
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required int p0,
-    required int p1,
-    required String p2,
+    required int requiredParameterCount,
+    required int actualArgumentCount,
+    required String name,
   })
 >
 notEnoughPositionalArgumentsNamePlural = DiagnosticWithArguments(
@@ -12661,9 +12661,9 @@ notEnoughPositionalArgumentsNamePlural = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: name of the function or method
+/// String name: name of the function or method
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 notEnoughPositionalArgumentsNameSingular = DiagnosticWithArguments(
   name: 'not_enough_positional_arguments',
@@ -12677,10 +12677,13 @@ notEnoughPositionalArgumentsNameSingular = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// int p0: the expected number of required arguments
-/// int p1: the actual number of positional arguments given
+/// int requiredParameterCount: the expected number of required arguments
+/// int actualArgumentCount: the actual number of positional arguments given
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required int p0, required int p1})
+  LocatableDiagnostic Function({
+    required int requiredParameterCount,
+    required int actualArgumentCount,
+  })
 >
 notEnoughPositionalArgumentsPlural = DiagnosticWithArguments(
   name: 'not_enough_positional_arguments',
@@ -20460,33 +20463,33 @@ LocatableDiagnostic _withArgumentsNotBinaryOperator({required String p0}) {
 }
 
 LocatableDiagnostic _withArgumentsNotEnoughPositionalArgumentsNamePlural({
-  required int p0,
-  required int p1,
-  required String p2,
+  required int requiredParameterCount,
+  required int actualArgumentCount,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(diag.notEnoughPositionalArgumentsNamePlural, [
-    p0,
-    p1,
-    p2,
+    requiredParameterCount,
+    actualArgumentCount,
+    name,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsNotEnoughPositionalArgumentsNameSingular({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(
     diag.notEnoughPositionalArgumentsNameSingular,
-    [p0],
+    [name],
   );
 }
 
 LocatableDiagnostic _withArgumentsNotEnoughPositionalArgumentsPlural({
-  required int p0,
-  required int p1,
+  required int requiredParameterCount,
+  required int actualArgumentCount,
 }) {
   return LocatableDiagnosticImpl(diag.notEnoughPositionalArgumentsPlural, [
-    p0,
-    p1,
+    requiredParameterCount,
+    actualArgumentCount,
   ]);
 }
 

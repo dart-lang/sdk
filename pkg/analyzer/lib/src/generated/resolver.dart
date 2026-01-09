@@ -25,7 +25,6 @@ import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -4753,23 +4752,26 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     var isPlural = requiredParameterCount > 1;
-    var arguments = <Object>[];
-    if (isPlural) {
-      arguments.add(requiredParameterCount);
-      arguments.add(actualArgumentCount);
-    }
-    DiagnosticCode diagnosticCode;
+    LocatableDiagnostic locatableDiagnostic;
     if (name == null) {
-      diagnosticCode = isPlural
-          ? diag.notEnoughPositionalArgumentsPlural
+      locatableDiagnostic = isPlural
+          ? diag.notEnoughPositionalArgumentsPlural.withArguments(
+              requiredParameterCount: requiredParameterCount,
+              actualArgumentCount: actualArgumentCount,
+            )
           : diag.notEnoughPositionalArgumentsSingular;
     } else {
-      diagnosticCode = isPlural
-          ? diag.notEnoughPositionalArgumentsNamePlural
-          : diag.notEnoughPositionalArgumentsNameSingular;
-      arguments.add(name);
+      locatableDiagnostic = isPlural
+          ? diag.notEnoughPositionalArgumentsNamePlural.withArguments(
+              requiredParameterCount: requiredParameterCount,
+              actualArgumentCount: actualArgumentCount,
+              name: name,
+            )
+          : diag.notEnoughPositionalArgumentsNameSingular.withArguments(
+              name: name,
+            );
     }
-    diagnosticReporter.atToken(token, diagnosticCode, arguments: arguments);
+    diagnosticReporter.report(locatableDiagnostic.at(token));
   }
 }
 
