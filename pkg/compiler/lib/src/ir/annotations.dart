@@ -421,7 +421,7 @@ Iterable<PragmaAnnotationData> _pragmaAnnotations(ir.Constant constant) {
     if (cls.name == 'RecordUse') {
       return const [
         PragmaAnnotationData('noInline'),
-        PragmaAnnotationData('resource-identifier'),
+        PragmaAnnotationData('record-use'),
       ];
     }
   }

@@ -908,12 +908,14 @@ class _ClassVerifier {
     var fragment = node.declaredFragment;
     if (fragment is MethodFragmentImpl) {
       var inferenceError = fragment.element.typeInferenceError;
-      if (inferenceError?.kind ==
-          TopLevelInferenceErrorKind.overrideNoCombinedSuperSignature) {
-        reporter.atToken(
-          node.name,
-          diag.noCombinedSuperSignature,
-          arguments: [classElement.name ?? '', inferenceError!.arguments[0]],
+      if (inferenceError is TopLevelInferenceErrorNoCombinedSuperSignature) {
+        reporter.report(
+          diag.noCombinedSuperSignature
+              .withArguments(
+                className: classElement.name ?? '',
+                candidateSignatures: inferenceError.candidateSignatures,
+              )
+              .at(node.name),
         );
         return true;
       }

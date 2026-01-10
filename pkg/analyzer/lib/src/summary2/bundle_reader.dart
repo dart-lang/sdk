@@ -1251,15 +1251,7 @@ class LibraryReader {
   }
 
   TopLevelInferenceError? _readTopLevelInferenceError() {
-    var kindIndex = _reader.readByte();
-    var kind = TopLevelInferenceErrorKind.values[kindIndex];
-    if (kind == TopLevelInferenceErrorKind.none) {
-      return null;
-    }
-    return TopLevelInferenceError(
-      kind: kind,
-      arguments: _reader.readStringReferenceList(),
-    );
+    return TopLevelInferenceError.readOptional(_reader);
   }
 
   void _readTopLevelVariableElements() {

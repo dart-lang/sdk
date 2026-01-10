@@ -52,7 +52,7 @@ import '../native/behavior.dart';
 import '../options.dart';
 import '../tracer.dart' show Tracer;
 import '../universe/call_structure.dart' show CallStructure;
-import '../universe/resource_identifier.dart';
+import '../universe/recorded_use.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
 import 'codegen_helpers.dart';
@@ -2360,7 +2360,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       );
     } else {
       StaticUse staticUse;
-      Object? resourceIdentifierAnnotation;
+      Object? recordedMethodUses;
       if (element is ConstructorEntity) {
         CallStructure callStructure = CallStructure.unnamed(
           arguments.length,
@@ -2382,8 +2382,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
           callStructure,
           node.typeArguments,
         );
-        if (_closedWorld.annotationsData.methodIsResourceIdentifier(element)) {
-          resourceIdentifierAnnotation = _methodResourceIdentifier(
+        if (_closedWorld.annotationsData.shouldRecordMethodUses(element)) {
+          recordedMethodUses = _recordMethodUses(
             element,
             callStructure,
             node.inputs,
@@ -2396,13 +2396,13 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       push(
         js.Call(pop(), arguments, sourceInformation: node.sourceInformation),
       );
-      if (resourceIdentifierAnnotation != null) {
-        push(pop().withAnnotation(resourceIdentifierAnnotation));
+      if (recordedMethodUses != null) {
+        push(pop().withAnnotation(recordedMethodUses));
       }
     }
   }
 
-  ResourceIdentifier _methodResourceIdentifier(
+  RecordedUse _recordMethodUses(
     FunctionEntity element,
     CallStructure callStructure,
     List<HInstruction> arguments,
@@ -2442,7 +2442,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       constantArguments.map((argument) => argument?.toJson(constants)).toList(),
     );
 
-    return ResourceIdentifier(
+    return RecordedUse(
       element.name!,
       element.enclosingClass?.name,
       relativizeUri(Uri.base, uri, Platform.isWindows),

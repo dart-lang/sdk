@@ -1760,9 +1760,18 @@ class LibraryManifestPrinter extends ManifestPrinter {
     String name,
     TopLevelInferenceError? error,
   ) {
-    if (error != null) {
-      var arguments = error.arguments.join(', ');
-      sink.writelnWithIndent('$name: ${error.kind.name}($arguments)');
+    switch (error) {
+      case null:
+        break;
+      case TopLevelInferenceErrorDependencyCycle(:var cycle):
+        sink.writelnWithIndent('$name: dependencyCycle(${cycle.join(', ')})');
+        throw UnimplementedError();
+      case TopLevelInferenceErrorNoCombinedSuperSignature(
+        :var candidateSignatures,
+      ):
+        sink.writelnWithIndent(
+          '$name: overrideNoCombinedSuperSignature($candidateSignatures)',
+        );
     }
   }
 

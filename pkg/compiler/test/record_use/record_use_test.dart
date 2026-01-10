@@ -16,7 +16,7 @@ import 'package:test/test.dart';
 
 /// Options to pass to the compiler such as
 /// `Flags.disableTypeInference` or `Flags.disableInlining`
-const List<String> compilerOptions = [Flags.writeResources];
+const List<String> compilerOptions = [Flags.writeRecordedUses];
 
 /// Run `dart --define=updateExpectations=true pkg/compiler/test/record_use/record_use_test.dart`
 /// to update.
@@ -109,11 +109,11 @@ Future<String> compileWithUsages({
     entryPoint: entryPoint,
     memorySourceFiles: memorySourceFiles,
     outputProvider: outputProvider,
-    options: [Flags.writeResources],
+    options: [Flags.writeRecordedUses],
   );
   Expect.isTrue(result.isSuccess);
 
-  return outputProvider.outputMap[OutputType.resourceIdentifiers]!.values.first
+  return outputProvider.outputMap[OutputType.recordedUses]!.values.first
       .toString();
 }
 

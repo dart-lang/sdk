@@ -10,18 +10,6 @@ library;
 
 import 'charcodes.dart';
 
-/// Return `true` if the given [character] is the ASCII '.' character.
-bool isDot(int character) => character == $dot;
-
-/// Return `true` if the given [character] is a lowercase ASCII character.
-bool isLowerCase(int character) => character >= $a && character <= $z;
-
-/// Return `true` if the given [character] an ASCII number character.
-bool isNumber(int character) => character >= 48 && character <= 57;
-
-/// Return `true` if the given [character] is the ASCII '_' character.
-bool isUnderScore(int character) => character == $_;
-
 /// Check if the given [name] is a valid Dart filename.
 ///
 /// Files with a strict `.dart` extension are required to use:
@@ -39,15 +27,15 @@ bool isValidDartFileName(String name) {
     var character = name.codeUnitAt(i);
     // Indicates a prefixed suffix (like `.g.dart`) which is considered a
     // non-strict Dart filename.
-    if (isDot(character)) {
+    if (character == $dot) {
       return true;
     }
   }
 
   for (var i = 0; i < length; ++i) {
     var character = name.codeUnitAt(i);
-    if (!isLowerCase(character) && !isUnderScore(character)) {
-      if (isNumber(character)) {
+    if (!_isLowerCase(character) && character != $_) {
+      if (_isNumber(character)) {
         if (i == 0) {
           return false;
         }
@@ -58,6 +46,12 @@ bool isValidDartFileName(String name) {
   }
   return true;
 }
+
+/// Returns whether the given [character] is a lowercase ASCII character.
+bool _isLowerCase(int character) => character >= $a && character <= $z;
+
+/// Returns whether the given [character] an ASCII number character.
+bool _isNumber(int character) => character >= 48 && character <= 57;
 
 extension StringExtensions on String {
   /// Returns `true` if `this` has a leading `_`.
@@ -75,7 +69,7 @@ extension StringExtensions on String {
         return this == '__';
       default:
         for (var i = 0; i < length; i++) {
-          if (!isUnderScore(codeUnitAt(i))) {
+          if (codeUnitAt(i) != $_) {
             return false;
           }
         }

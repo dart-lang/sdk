@@ -8,8 +8,8 @@ import 'package:record_use/record_use_internal.dart';
 
 import '../serialization/serialization.dart';
 
-class ResourceIdentifier {
-  static const String tag = 'resource-identifier';
+class RecordedUse {
+  static const String tag = 'record-use';
 
   /// Name of the class or method that is a resource identifier.
   final String name;
@@ -38,7 +38,7 @@ class ResourceIdentifier {
   /// primitive values for arguments that are constant.
   List<Constant?> get arguments => _argumentsFromJson();
 
-  ResourceIdentifier(
+  RecordedUse(
     this.name,
     this.parent,
     this.uri,
@@ -47,7 +47,7 @@ class ResourceIdentifier {
     this._argumentsString,
   );
 
-  factory ResourceIdentifier.readFromDataSource(DataSourceReader source) {
+  factory RecordedUse.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     String name = source.readString();
     String? parent = source.readStringOrNull();
@@ -55,20 +55,13 @@ class ResourceIdentifier {
 
     bool hasLocation = source.readBool();
     Location? location = hasLocation
-        ? ResourceIdentifierLocation.readFromDataSource(source)
+        ? RecordUseLocation.readFromDataSource(source)
         : null;
 
     bool nonconstant = source.readBool();
     String arguments = source.readString();
     source.end(tag);
-    return ResourceIdentifier(
-      name,
-      parent,
-      uri,
-      location,
-      nonconstant,
-      arguments,
-    );
+    return RecordedUse(name, parent, uri, location, nonconstant, arguments);
   }
 
   void writeToDataSink(DataSinkWriter sink) {
@@ -91,7 +84,7 @@ class ResourceIdentifier {
 
   @override
   bool operator ==(Object other) =>
-      other is ResourceIdentifier &&
+      other is RecordedUse &&
       name == other.name &&
       uri == other.uri &&
       location == other.location &&
@@ -102,7 +95,7 @@ class ResourceIdentifier {
 
   @override
   String toString() {
-    return 'ResourceIdentifier($name @ $uri, $location, $_argumentsString)';
+    return 'RecordedUse($name @ $uri, $location, $_argumentsString)';
   }
 
   List<Constant?> _argumentsFromJson() {
@@ -124,7 +117,7 @@ class ResourceIdentifier {
   }
 }
 
-extension ResourceIdentifierLocation on Location {
+extension RecordUseLocation on Location {
   static Location readFromDataSource(DataSourceReader source) {
     final uri = source.readUri();
     //TODO(mosum): Use a verbose flag for line and column info
