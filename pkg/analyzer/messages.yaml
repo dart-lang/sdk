@@ -13172,9 +13172,9 @@ CompileTimeErrorCode:
   nonTypeAsTypeArgument:
     type: compileTimeError
     parameters:
-      String p0: the name appearing where a type is expected
-    problemMessage: "The name '#p0' isn't a type, so it can't be used as a type argument."
-    correctionMessage: "Try correcting the name to an existing type, or defining a type named '#p0'."
+      String name: the name appearing where a type is expected
+    problemMessage: "The name '#name' isn't a type, so it can't be used as a type argument."
+    correctionMessage: "Try correcting the name to an existing type, or defining a type named '#name'."
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
     documentation: |-
@@ -13204,8 +13204,8 @@ CompileTimeErrorCode:
   nonTypeInCatchClause:
     type: compileTimeError
     parameters:
-      String p0: the name of the non-type element
-    problemMessage: "The name '#p0' isn't a type and can't be used in an on-catch clause."
+      String name: the name of the non-type element
+    problemMessage: "The name '#name' isn't a type and can't be used in an on-catch clause."
     correctionMessage: Try correcting the name to match an existing class.
     hasPublishedDocs: true
     documentation: |-
@@ -13309,8 +13309,8 @@ CompileTimeErrorCode:
   notAssignedPotentiallyNonNullableLocalVariable:
     type: compileTimeError
     parameters:
-      String p0: the name of the variable that is invalid
-    problemMessage: "The non-nullable local variable '#p0' must be assigned before it can be used."
+      String name: the name of the variable that is invalid
+    problemMessage: "The non-nullable local variable '#name' must be assigned before it can be used."
     correctionMessage: "Try giving it an initializer expression, or ensure that it's assigned on every execution path."
     hasPublishedDocs: true
     documentation: |-
@@ -13426,8 +13426,8 @@ CompileTimeErrorCode:
   notAType:
     type: compileTimeError
     parameters:
-      String p0: the name that is not a type
-    problemMessage: "#p0 isn't a type."
+      String name: the name that is not a type
+    problemMessage: "#name isn't a type."
     correctionMessage: Try correcting the name to match an existing type.
     hasPublishedDocs: true
     documentation: |-
@@ -13451,8 +13451,8 @@ CompileTimeErrorCode:
   notBinaryOperator:
     type: compileTimeError
     parameters:
-      String p0: the name of the operator that is not a binary operator.
-    problemMessage: "'#p0' isn't a binary operator."
+      String name: the name of the operator that is not a binary operator.
+    problemMessage: "'#name' isn't a binary operator."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -13542,8 +13542,8 @@ CompileTimeErrorCode:
   notInitializedNonNullableInstanceField:
     type: compileTimeError
     parameters:
-      String p0: the name of the field that is not initialized
-    problemMessage: "Non-nullable instance field '#p0' must be initialized."
+      String name: the name of the field that is not initialized
+    problemMessage: "Non-nullable instance field '#name' must be initialized."
     correctionMessage: "Try adding an initializer expression, or a generative constructor that initializes it, or mark it 'late'."
     hasPublishedDocs: true
     documentation: |-
@@ -13617,16 +13617,16 @@ CompileTimeErrorCode:
   notInitializedNonNullableInstanceFieldConstructor:
     type: compileTimeError
     parameters:
-      String p0: the name of the field that is not initialized
+      String name: the name of the field that is not initialized
     sharedName: notInitializedNonNullableInstanceField
-    problemMessage: "Non-nullable instance field '#p0' must be initialized."
+    problemMessage: "Non-nullable instance field '#name' must be initialized."
     correctionMessage: "Try adding an initializer expression, or add a field initializer in this constructor, or mark it 'late'."
     hasPublishedDocs: true
   notInitializedNonNullableVariable:
     type: compileTimeError
     parameters:
-      String p0: the name of the variable that is invalid
-    problemMessage: "The non-nullable variable '#p0' must be initialized."
+      String name: the name of the variable that is invalid
+    problemMessage: "The non-nullable variable '#name' must be initialized."
     correctionMessage: Try adding an initializer expression.
     hasPublishedDocs: true
     documentation: |-
@@ -13857,10 +13857,10 @@ CompileTimeErrorCode:
   noDefaultSuperConstructorExplicit:
     type: compileTimeError
     parameters:
-      Object p0: the name of the superclass that does not define an implicitly invoked constructor
+      Type supertype: the supertype that does not define an implicitly invoked constructor
     sharedName: noDefaultSuperConstructor
-    problemMessage: "The superclass '#p0' doesn't have a zero argument constructor."
-    correctionMessage: "Try declaring a zero argument constructor in '#p0', or explicitly invoking a different constructor in '#p0'."
+    problemMessage: "The superclass '#supertype' doesn't have a zero argument constructor."
+    correctionMessage: "Try declaring a zero argument constructor in '#supertype', or explicitly invoking a different constructor in '#supertype'."
     hasPublishedDocs: false
   noDefaultSuperConstructorImplicit:
     type: compileTimeError
@@ -13874,10 +13874,10 @@ CompileTimeErrorCode:
   noGenerativeConstructorsInSuperclass:
     type: compileTimeError
     parameters:
-      String p0: the name of the subclass
-      String p1: the name of the superclass
-    problemMessage: "The class '#p0' can't extend '#p1' because '#p1' only has factory constructors (no generative constructors), and '#p0' has at least one generative constructor."
-    correctionMessage: "Try implementing the class instead, adding a generative (not factory) constructor to the superclass '#p1', or a factory constructor to the subclass."
+      String subclassName: the name of the subclass
+      String superclassName: the name of the superclass
+    problemMessage: "The class '#subclassName' can't extend '#superclassName' because '#superclassName' only has factory constructors (no generative constructors), and '#subclassName' has at least one generative constructor."
+    correctionMessage: "Try implementing the class instead, adding a generative (not factory) constructor to the superclass '#superclassName', or a factory constructor to the subclass."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -14488,9 +14488,9 @@ CompileTimeErrorCode:
   patternVariableSharedCaseScopeDifferentFinalityOrType:
     type: compileTimeError
     parameters:
-      String p0: the name of the pattern variable
+      String name: the name of the pattern variable
     sharedName: invalidPatternVariableInSharedCaseScope
-    problemMessage: "The variable '#p0' doesn't have the same type and/or finality in all cases that share this body."
+    problemMessage: "The variable '#name' doesn't have the same type and/or finality in all cases that share this body."
     correctionMessage: Try declaring the variable pattern with the same type and finality in all cases.
     hasPublishedDocs: true
     documentation: |-
@@ -14642,17 +14642,17 @@ CompileTimeErrorCode:
   patternVariableSharedCaseScopeHasLabel:
     type: compileTimeError
     parameters:
-      String p0: the name of the pattern variable
+      String name: the name of the pattern variable
     sharedName: invalidPatternVariableInSharedCaseScope
-    problemMessage: "The variable '#p0' is not available because there is a label or 'default' case."
+    problemMessage: "The variable '#name' is not available because there is a label or 'default' case."
     correctionMessage: Try removing the label, or providing the 'default' case with its own body.
     hasPublishedDocs: true
   patternVariableSharedCaseScopeNotAllCases:
     type: compileTimeError
     parameters:
-      String p0: the name of the pattern variable
+      String name: the name of the pattern variable
     sharedName: invalidPatternVariableInSharedCaseScope
-    problemMessage: "The variable '#p0' is available in some, but not all cases that share this body."
+    problemMessage: "The variable '#name' is available in some, but not all cases that share this body."
     correctionMessage: Try declaring the variable pattern with the same type and finality in all cases.
     hasPublishedDocs: true
   positionalFieldInObjectPattern:
@@ -14802,8 +14802,8 @@ CompileTimeErrorCode:
   prefixIdentifierNotFollowedByDot:
     type: compileTimeError
     parameters:
-      String p0: the name of the prefix
-    problemMessage: "The name '#p0' refers to an import prefix, so it must be followed by '.'."
+      String name: the name of the prefix
+    problemMessage: "The name '#name' refers to an import prefix, so it must be followed by '.'."
     correctionMessage: Try correcting the name to refer to something other than a prefix, or renaming the prefix.
     hasPublishedDocs: true
     documentation: |-
@@ -14844,8 +14844,8 @@ CompileTimeErrorCode:
   prefixShadowedByLocalDeclaration:
     type: compileTimeError
     parameters:
-      String p0: the prefix being shadowed
-    problemMessage: "The prefix '#p0' can't be used here because it's shadowed by a local declaration."
+      String prefix: the prefix being shadowed
+    problemMessage: "The prefix '#prefix' can't be used here because it's shadowed by a local declaration."
     correctionMessage: Try renaming either the prefix or the local declaration.
     hasPublishedDocs: true
     documentation: |-
@@ -14902,11 +14902,11 @@ CompileTimeErrorCode:
   privateCollisionInMixinApplication:
     type: compileTimeError
     parameters:
-      String p0: the private name that collides
-      String p1: the name of the first mixin
-      String p2: the name of the second mixin
-    problemMessage: "The private name '#p0', defined by '#p1', conflicts with the same name defined by '#p2'."
-    correctionMessage: "Try removing '#p1' from the 'with' clause."
+      String collidingName: the private name that collides
+      String mixin1: the name of the first mixin
+      String mixin2: the name of the second mixin
+    problemMessage: "The private name '#collidingName', defined by '#mixin1', conflicts with the same name defined by '#mixin2'."
+    correctionMessage: "Try removing '#mixin1' from the 'with' clause."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -15016,8 +15016,8 @@ CompileTimeErrorCode:
   privateSetter:
     type: compileTimeError
     parameters:
-      String p0: the name of the setter
-    problemMessage: "The setter '#p0' is private and can't be accessed outside the library that declares it."
+      String name: the name of the setter
+    problemMessage: "The setter '#name' is private and can't be accessed outside the library that declares it."
     correctionMessage: Try making it public.
     hasPublishedDocs: true
     documentation: |-
@@ -15064,8 +15064,8 @@ CompileTimeErrorCode:
   readPotentiallyUnassignedFinal:
     type: compileTimeError
     parameters:
-      String p0: the name of the variable
-    problemMessage: "The final variable '#p0' can't be read because it's potentially unassigned at this point."
+      String name: the name of the variable
+    problemMessage: "The final variable '#name' can't be read because it's potentially unassigned at this point."
     correctionMessage: Ensure that it is assigned on necessary execution paths.
     hasPublishedDocs: true
     documentation: |-
@@ -15328,10 +15328,10 @@ CompileTimeErrorCode:
   redirectGenerativeToMissingConstructor:
     type: compileTimeError
     parameters:
-      String p0: the name of the constructor
-      String p1: the name of the class
-    problemMessage: "The constructor '#p0' couldn't be found in '#p1'."
-    correctionMessage: "Try redirecting to a different constructor, or defining the constructor named '#p0'."
+      String constructorName: the name of the constructor
+      String className: the name of the class
+    problemMessage: "The constructor '#constructorName' couldn't be found in '#className'."
+    correctionMessage: "Try redirecting to a different constructor, or defining the constructor named '#constructorName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -15417,9 +15417,9 @@ CompileTimeErrorCode:
   redirectToAbstractClassConstructor:
     type: compileTimeError
     parameters:
-      String p0: the name of the redirecting constructor
-      String p1: the name of the abstract class defining the constructor being redirected to
-    problemMessage: "The redirecting constructor '#p0' can't redirect to a constructor of the abstract class '#p1'."
+      String redirectingConstructorName: the name of the redirecting constructor
+      String abstractClass: the name of the abstract class defining the constructor being redirected to
+    problemMessage: "The redirecting constructor '#redirectingConstructorName' can't redirect to a constructor of the abstract class '#abstractClass'."
     correctionMessage: Try redirecting to a constructor of a different class.
     hasPublishedDocs: true
     documentation: |-
@@ -15460,9 +15460,9 @@ CompileTimeErrorCode:
   redirectToInvalidFunctionType:
     type: compileTimeError
     parameters:
-      Type p0: the name of the redirected constructor
-      Type p1: the name of the redirecting constructor
-    problemMessage: "The redirected constructor '#p0' has incompatible parameters with '#p1'."
+      Type redirectedType: the name of the redirected constructor
+      Type redirectingType: the name of the redirecting constructor
+    problemMessage: "The redirected constructor '#redirectedType' has incompatible parameters with '#redirectingType'."
     correctionMessage: Try redirecting to a different constructor.
     hasPublishedDocs: true
     documentation: |-
@@ -15535,9 +15535,9 @@ CompileTimeErrorCode:
   redirectToInvalidReturnType:
     type: compileTimeError
     parameters:
-      Type p0: the name of the redirected constructor's return type
-      Type p1: the name of the redirecting constructor's return type
-    problemMessage: "The return type '#p0' of the redirected constructor isn't a subtype of '#p1'."
+      Type redirectedReturnType: the name of the redirected constructor's return type
+      Type redirectingReturnType: the name of the redirecting constructor's return type
+    problemMessage: "The return type '#redirectedReturnType' of the redirected constructor isn't a subtype of '#redirectingReturnType'."
     correctionMessage: Try redirecting to a different constructor.
     hasPublishedDocs: true
     documentation: |-
@@ -15594,10 +15594,10 @@ CompileTimeErrorCode:
   redirectToMissingConstructor:
     type: compileTimeError
     parameters:
-      String p0: the name of the constructor
-      Type p1: the name of the class containing the constructor
-    problemMessage: "The constructor '#p0' couldn't be found in '#p1'."
-    correctionMessage: "Try redirecting to a different constructor, or define the constructor named '#p0'."
+      String constructorName: the name of the constructor
+      Type redirectedType: the type being redirected to
+    problemMessage: "The constructor '#constructorName' couldn't be found in '#redirectedType'."
+    correctionMessage: "Try redirecting to a different constructor, or define the constructor named '#constructorName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -15650,8 +15650,8 @@ CompileTimeErrorCode:
   redirectToNonClass:
     type: compileTimeError
     parameters:
-      String p0: the name of the non-type referenced in the redirect
-    problemMessage: "The name '#p0' isn't a type and can't be used in a redirected constructor."
+      String name: the name of the non-type referenced in the redirect
+    problemMessage: "The name '#name' isn't a type and can't be used in a redirected constructor."
     correctionMessage: Try redirecting to a different constructor.
     hasPublishedDocs: true
     documentation: |-
@@ -16219,20 +16219,20 @@ CompileTimeErrorCode:
   returnOfInvalidTypeFromConstructor:
     type: compileTimeError
     parameters:
-      Type p0: the return type as declared in the return statement
-      Type p1: the expected return type as defined by the enclosing class
-      String p2: the name of the constructor
+      Type actualReturnType: the return type as declared in the return statement
+      Type expectedReturnType: the expected return type as defined by the enclosing class
+      String constructorName: the name of the constructor
     sharedName: returnOfInvalidType
-    problemMessage: "A value of type '#p0' can't be returned from the constructor '#p2' because it has a return type of '#p1'."
+    problemMessage: "A value of type '#actualReturnType' can't be returned from the constructor '#constructorName' because it has a return type of '#expectedReturnType'."
     hasPublishedDocs: true
   returnOfInvalidTypeFromFunction:
     type: compileTimeError
     parameters:
-      Type p0: the return type as declared in the return statement
-      Type p1: the expected return type as defined by the method
-      String p2: the name of the method
+      Type actualReturnType: the return type as declared in the return statement
+      Type expectedReturnType: the expected return type as defined by the method
+      String methodName: the name of the method
     sharedName: returnOfInvalidType
-    problemMessage: "A value of type '#p0' can't be returned from the function '#p2' because it has a return type of '#p1'."
+    problemMessage: "A value of type '#actualReturnType' can't be returned from the function '#methodName' because it has a return type of '#expectedReturnType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -16820,9 +16820,9 @@ CompileTimeErrorCode:
   extendsDisallowedClass:
     type: compileTimeError
     parameters:
-      Type p0: the name of the disallowed type
+      Type disallowedType: the name of the disallowed type
     sharedName: subtypeOfDisallowedType
-    problemMessage: "Classes can't extend '#p0'."
+    problemMessage: "Classes can't extend '#disallowedType'."
     correctionMessage: Try specifying a different superclass, or removing the extends clause.
     hasPublishedDocs: true
     documentation: |-
@@ -16881,25 +16881,25 @@ CompileTimeErrorCode:
   mixinOfDisallowedClass:
     type: compileTimeError
     parameters:
-      Type p0: the name of the disallowed type
+      Type disallowedType: the name of the disallowed type
     sharedName: subtypeOfDisallowedType
-    problemMessage: "Classes can't mixin '#p0'."
+    problemMessage: "Classes can't mixin '#disallowedType'."
     correctionMessage: Try specifying a different class or mixin, or remove the class or mixin from the list.
     hasPublishedDocs: true
   mixinSuperClassConstraintDisallowedClass:
     type: compileTimeError
     parameters:
-      Type p0: the name of the disallowed type
+      Type disallowedType: the name of the disallowed type
     sharedName: subtypeOfDisallowedType
-    problemMessage: "'#p0' can't be used as a superclass constraint."
+    problemMessage: "'#disallowedType' can't be used as a superclass constraint."
     correctionMessage: "Try specifying a different super-class constraint, or remove the 'on' clause."
     hasPublishedDocs: true
   implementsDisallowedClass:
     type: compileTimeError
     parameters:
-      Type p0: the name of the disallowed type
+      Type disallowedType: the name of the disallowed type
     sharedName: subtypeOfDisallowedType
-    problemMessage: "Classes and mixins can't implement '#p0'."
+    problemMessage: "Classes and mixins can't implement '#disallowedType'."
     correctionMessage: Try specifying a different interface, or remove the class from the list.
     hasPublishedDocs: true
   extendsTypeAliasExpandsToTypeParameter:
@@ -17691,17 +17691,17 @@ CompileTimeErrorCode:
   uncheckedMethodInvocationOfNullableValue:
     type: compileTimeError
     parameters:
-      String p0: the name of the method
+      String name: the name of the method
     sharedName: uncheckedUseOfNullableValue
-    problemMessage: "The method '#p0' can't be unconditionally invoked because the receiver can be 'null'."
+    problemMessage: "The method '#name' can't be unconditionally invoked because the receiver can be 'null'."
     correctionMessage: "Try making the call conditional (using '?.') or adding a null check to the target ('!')."
     hasPublishedDocs: true
   uncheckedOperatorInvocationOfNullableValue:
     type: compileTimeError
     parameters:
-      String p0: the name of the operator
+      String operator: the name of the operator
     sharedName: uncheckedUseOfNullableValue
-    problemMessage: "The operator '#p0' can't be unconditionally invoked because the receiver can be 'null'."
+    problemMessage: "The operator '#operator' can't be unconditionally invoked because the receiver can be 'null'."
     correctionMessage: "Try adding a null check to the target ('!')."
     hasPublishedDocs: true
   uncheckedUseOfNullableValueInYieldEach:
@@ -17784,9 +17784,9 @@ CompileTimeErrorCode:
   uncheckedPropertyAccessOfNullableValue:
     type: compileTimeError
     parameters:
-      String p0: the name of the property
+      String name: the name of the property
     sharedName: uncheckedUseOfNullableValue
-    problemMessage: "The property '#p0' can't be unconditionally accessed because the receiver can be 'null'."
+    problemMessage: "The property '#name' can't be unconditionally accessed because the receiver can be 'null'."
     correctionMessage: "Try making the access conditional (using '?.') or adding a null check to the target ('!')."
     hasPublishedDocs: true
   undefinedAnnotation:
@@ -17954,18 +17954,18 @@ CompileTimeErrorCode:
   undefinedConstructorInInitializerDefault:
     type: compileTimeError
     parameters:
-      Object p0: the name of the superclass that does not define the invoked constructor
+      String className: the name of the superclass that does not define the invoked constructor
     sharedName: undefinedConstructorInInitializer
-    problemMessage: "The class '#p0' doesn't have an unnamed constructor."
-    correctionMessage: "Try defining an unnamed constructor in '#p0', or invoking a different constructor."
+    problemMessage: "The class '#className' doesn't have an unnamed constructor."
+    correctionMessage: "Try defining an unnamed constructor in '#className', or invoking a different constructor."
     hasPublishedDocs: true
   undefinedEnumConstant:
     type: compileTimeError
     parameters:
-      String p0: the name of the enum value that is not defined
-      String p1: the name of the enum used to access the constant
-    problemMessage: "There's no constant named '#p0' in '#p1'."
-    correctionMessage: "Try correcting the name to the name of an existing constant, or defining a constant named '#p0'."
+      String memberName: the name of the enum value that is not defined
+      Type type: the type of the enum used to access the constant
+    problemMessage: "There's no constant named '#memberName' in '#type'."
+    correctionMessage: "Try correcting the name to the name of an existing constant, or defining a constant named '#memberName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18491,10 +18491,10 @@ CompileTimeErrorCode:
   undefinedGetter:
     type: compileTimeError
     parameters:
-      String p0: the name of the getter
-      Object p1: the name of the enclosing type where the getter is being looked for
-    problemMessage: "The getter '#p0' isn't defined for the type '#p1'."
-    correctionMessage: "Try importing the library that defines '#p0', correcting the name to the name of an existing getter, or defining a getter or field named '#p0'."
+      String memberName: the name of the getter
+      Type type: the type where the getter is being looked for
+    problemMessage: "The getter '#memberName' isn't defined for the type '#type'."
+    correctionMessage: "Try importing the library that defines '#memberName', correcting the name to the name of an existing getter, or defining a getter or field named '#memberName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description

@@ -1888,10 +1888,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       DartType mixinType = mixinName.typeOrThrow;
       if (mixinType is InterfaceType) {
         mixinTypeIndex++;
-        if (_checkForExtendsOrImplementsDisallowedClass(
-          mixinName,
-          diag.mixinOfDisallowedClass,
-        )) {
+        if (_checkForExtendsOrImplementsDisallowedClass(mixinName)) {
           problemReported = true;
         } else {
           var mixinElement = mixinType.element;
@@ -1960,10 +1957,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (redirectedConstructor.name != null) {
           constructorStrName += ".${redirectedConstructor.name!.name}";
         }
-        diagnosticReporter.atNode(
-          redirectedConstructor,
-          diag.redirectToMissingConstructor,
-          arguments: [constructorStrName, redirectedType],
+        diagnosticReporter.report(
+          diag.redirectToMissingConstructor
+              .withArguments(
+                constructorName: constructorStrName,
+                redirectedType: redirectedType,
+              )
+              .at(redirectedConstructor),
         );
       }
       return;
@@ -1979,18 +1979,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       constructorReturnType,
       strictCasts: strictCasts,
     )) {
-      diagnosticReporter.atNode(
-        redirectedConstructor,
-        diag.redirectToInvalidReturnType,
-        arguments: [redirectedReturnType, constructorReturnType],
+      diagnosticReporter.report(
+        diag.redirectToInvalidReturnType
+            .withArguments(
+              redirectedReturnType: redirectedReturnType,
+              redirectingReturnType: constructorReturnType,
+            )
+            .at(redirectedConstructor),
       );
       return;
     } else if (!typeSystem.isSubtypeOf(redirectedType, constructorType)) {
       // Check parameters.
-      diagnosticReporter.atNode(
-        redirectedConstructor,
-        diag.redirectToInvalidFunctionType,
-        arguments: [redirectedType, constructorType],
+      diagnosticReporter.report(
+        diag.redirectToInvalidFunctionType
+            .withArguments(
+              redirectedType: redirectedType,
+              redirectingType: constructorType,
+            )
+            .at(redirectedConstructor),
       );
     }
   }
@@ -2669,10 +2675,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             if (invocation.constructorName != null) {
               constructorStrName += ".${invocation.constructorName!.name}";
             }
-            diagnosticReporter.atNode(
-              invocation,
-              diag.redirectGenerativeToMissingConstructor,
-              arguments: [constructorStrName, enclosingNamedType],
+            diagnosticReporter.report(
+              diag.redirectGenerativeToMissingConstructor
+                  .withArguments(
+                    constructorName: constructorStrName,
+                    className: enclosingNamedType,
+                  )
+                  .at(invocation),
             );
           } else {
             if (redirectingElement.isFactory) {
@@ -3297,10 +3306,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (superclass == null) {
       return false;
     }
-    return _checkForExtendsOrImplementsDisallowedClass(
-      superclass,
-      diag.extendsDisallowedClass,
-    );
+    return _checkForExtendsOrImplementsDisallowedClass(superclass);
   }
 
   /// Verify that the given [namedType] does not extend, implement or mixin
@@ -3332,10 +3338,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   // is concentrated. We keep it for now only because we need to know when
   // inheritance is completely wrong, so that we don't need to check anything
   // else.
-  bool _checkForExtendsOrImplementsDisallowedClass(
-    NamedType namedType,
-    DiagnosticCode code,
-  ) {
+  bool _checkForExtendsOrImplementsDisallowedClass(NamedType namedType) {
     if (namedType.isSynthetic) {
       return false;
     }
@@ -3878,10 +3881,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     bool foundError = false;
     for (NamedType type in clause.interfaces) {
-      if (_checkForExtendsOrImplementsDisallowedClass(
-        type,
-        diag.implementsDisallowedClass,
-      )) {
+      if (_checkForExtendsOrImplementsDisallowedClass(type)) {
         foundError = true;
       } else if (_checkForExtendsOrImplementsDeferredClass(
         type,
@@ -4649,10 +4649,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           if (name.endsWith('=')) {
             name = name.substring(0, name.length - 1);
           }
-          diagnosticReporter.atNode(
-            namedType,
-            diag.privateCollisionInMixinApplication,
-            arguments: [name, namedType.name.lexeme, conflictingName],
+          diagnosticReporter.report(
+            diag.privateCollisionInMixinApplication
+                .withArguments(
+                  collidingName: name,
+                  mixin1: namedType.name.lexeme,
+                  mixin2: conflictingName,
+                )
+                .at(namedType),
           );
           return true;
         }
@@ -4669,14 +4673,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           // Inherited members are always contained inside named elements, so we
           // can safely assume `inheritedMember.enclosingElement3.name` is
           // non-`null`.
-          diagnosticReporter.atNode(
-            namedType,
-            diag.privateCollisionInMixinApplication,
-            arguments: [
-              name,
-              namedType.name.lexeme,
-              inheritedMember.enclosingElement!.name!,
-            ],
+          diagnosticReporter.report(
+            diag.privateCollisionInMixinApplication
+                .withArguments(
+                  collidingName: name,
+                  mixin1: namedType.name.lexeme,
+                  mixin2: inheritedMember.enclosingElement!.name!,
+                )
+                .at(namedType),
           );
           return true;
         }
@@ -4849,10 +4853,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     )) {
       // For `E extends Exception`, etc., this will never work, because it has
       // no generative constructors. State this clearly to users.
-      diagnosticReporter.atNode(
-        superclass!,
-        diag.noGenerativeConstructorsInSuperclass,
-        arguments: [_enclosingClass!.name!, superElement.name!],
+      diagnosticReporter.report(
+        diag.noGenerativeConstructorsInSuperclass
+            .withArguments(
+              subclassName: _enclosingClass!.name!,
+              superclassName: superElement.name!,
+            )
+            .at(superclass!),
       );
       return true;
     }
@@ -5019,10 +5026,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var type = fieldElement.type;
       if (!typeSystem.isPotentiallyNonNullable(type)) continue;
 
-      diagnosticReporter.atNode(
-        field,
-        diag.notInitializedNonNullableInstanceField,
-        arguments: [field.name.lexeme],
+      diagnosticReporter.report(
+        diag.notInitializedNonNullableInstanceField
+            .withArguments(name: field.name.lexeme)
+            .at(field),
       );
     }
   }
@@ -5069,10 +5076,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     for (var variable in node.variables) {
       if (variable.initializer == null) {
-        diagnosticReporter.atToken(
-          variable.name,
-          diag.notInitializedNonNullableVariable,
-          arguments: [variable.name.lexeme],
+        diagnosticReporter.report(
+          diag.notInitializedNonNullableVariable
+              .withArguments(name: variable.name.lexeme)
+              .at(variable.name),
         );
       }
     }
@@ -5090,10 +5097,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (NamedType namedType in onClause.superclassConstraints) {
       DartType type = namedType.typeOrThrow;
       if (type is InterfaceType) {
-        if (_checkForExtendsOrImplementsDisallowedClass(
-          namedType,
-          diag.mixinSuperClassConstraintDisallowedClass,
-        )) {
+        if (_checkForExtendsOrImplementsDisallowedClass(namedType)) {
           problemReported = true;
         } else {
           if (_checkForExtendsOrImplementsDeferredClass(
@@ -5273,10 +5277,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (declaration.name != null) {
         constructorStrName += ".${declaration.name!.lexeme}";
       }
-      diagnosticReporter.atNode(
-        redirectedConstructor,
-        diag.redirectToAbstractClassConstructor,
-        arguments: [constructorStrName, redirectedClass.name!],
+      diagnosticReporter.report(
+        diag.redirectToAbstractClassConstructor
+            .withArguments(
+              redirectingConstructorName: constructorStrName,
+              abstractClass: redirectedClass.name!,
+            )
+            .at(redirectedConstructor),
       );
     }
     _checkForInvalidGenerativeConstructorReference(
@@ -5579,11 +5586,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     var superUnnamedConstructor = superElement.unnamedConstructor;
     if (superUnnamedConstructor == null) {
-      diagnosticReporter.atNode(
-        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-        constructor.typeName!,
-        diag.undefinedConstructorInInitializerDefault,
-        arguments: [superElement.name!],
+      diagnosticReporter.report(
+        diag.undefinedConstructorInInitializerDefault
+            .withArguments(className: superElement.name!)
+            // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+            .at(constructor.typeName!),
       );
       return;
     }
@@ -5611,11 +5618,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (requiredPositionalParameterCount != 0 ||
           requiredNamedParameters.isNotEmpty) {
         var SourceRange(:offset, :length) = constructor.errorRange;
-        diagnosticReporter.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.noDefaultSuperConstructorExplicit,
-          arguments: [superType],
+        diagnosticReporter.report(
+          diag.noDefaultSuperConstructorExplicit
+              .withArguments(supertype: superType)
+              .atOffset(offset: offset, length: length),
         );
       }
       return;

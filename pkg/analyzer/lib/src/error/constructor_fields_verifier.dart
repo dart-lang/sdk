@@ -213,10 +213,10 @@ class _Constructor {
     names.sort();
 
     for (var name in names) {
-      diagnosticReporter.atSourceRange(
-        errorRange,
-        diag.notInitializedNonNullableInstanceFieldConstructor,
-        arguments: [name],
+      diagnosticReporter.report(
+        diag.notInitializedNonNullableInstanceFieldConstructor
+            .withArguments(name: name)
+            .atSourceRange(errorRange),
       );
     }
   }

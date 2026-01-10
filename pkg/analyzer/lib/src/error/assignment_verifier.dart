@@ -54,10 +54,10 @@ class AssignmentVerifier {
       _diagnosticReporter.report(diag.assignmentToMethod.at(node));
     } else if (recovery is PrefixElement) {
       if (recovery.name case var prefixName?) {
-        _diagnosticReporter.atNode(
-          node,
-          diag.prefixIdentifierNotFollowedByDot,
-          arguments: [prefixName],
+        _diagnosticReporter.report(
+          diag.prefixIdentifierNotFollowedByDot
+              .withArguments(name: prefixName)
+              .at(node),
         );
       }
     } else if (recovery is GetterElement) {

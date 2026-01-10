@@ -600,10 +600,10 @@ class PropertyElementResolver with ScopeHelpers {
 
       _checkForStaticMember(target, propertyName, result.getter2);
       if (result.needsGetterError) {
-        diagnosticReporter.atNode(
-          propertyName,
-          diag.undefinedGetter,
-          arguments: [propertyName.name, targetType],
+        diagnosticReporter.report(
+          diag.undefinedGetter
+              .withArguments(memberName: propertyName.name, type: targetType)
+              .at(propertyName),
         );
       }
     }
@@ -829,10 +829,13 @@ class PropertyElementResolver with ScopeHelpers {
           var code = typeReference is EnumElement
               ? diag.undefinedEnumConstant
               : diag.undefinedGetter;
-          diagnosticReporter.atNode(
-            propertyName,
-            code,
-            arguments: [propertyName.name, typeReference.name!],
+          diagnosticReporter.report(
+            code
+                .withArguments(
+                  memberName: propertyName.name,
+                  type: typeReference.thisType,
+                )
+                .at(propertyName),
           );
         }
       }
@@ -844,10 +847,10 @@ class PropertyElementResolver with ScopeHelpers {
       writeElement = typeReference.getSetter(propertyName.name);
       if (writeElement != null) {
         if (!_isAccessible(writeElement)) {
-          diagnosticReporter.atNode(
-            propertyName,
-            diag.privateSetter,
-            arguments: [propertyName.name],
+          diagnosticReporter.report(
+            diag.privateSetter
+                .withArguments(name: propertyName.name)
+                .at(propertyName),
           );
         }
         if (_checkForStaticAccessToInstanceMember(propertyName, writeElement)) {

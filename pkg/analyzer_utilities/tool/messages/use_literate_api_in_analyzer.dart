@@ -254,6 +254,15 @@ class _Visitor extends RecursiveAstVisitor<void> {
             }
           };
           diagnosticCodeArgumentIsNamed = false;
+        case 'atSourceRange':
+          translateLocationArgs = (positionalArgs, namedArgs) {
+            if (positionalArgs.isNotEmpty) {
+              return '.atSourceRange(${_text(positionalArgs.removeAt(0))})';
+            } else {
+              return null;
+            }
+          };
+          diagnosticCodeArgumentIsNamed = false;
         default:
           return null;
       }

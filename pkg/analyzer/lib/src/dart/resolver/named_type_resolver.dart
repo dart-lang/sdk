@@ -114,10 +114,10 @@ class NamedTypeResolver with ScopeHelpers {
         return;
       }
 
-      diagnosticReporter.atToken(
-        prefixToken,
-        diag.prefixShadowedByLocalDeclaration,
-        arguments: [prefixName],
+      diagnosticReporter.report(
+        diag.prefixShadowedByLocalDeclaration
+            .withArguments(prefix: prefixName)
+            .at(prefixToken),
       );
       node.type = InvalidTypeImpl.instance;
     } else {
@@ -399,21 +399,25 @@ class NamedTypeResolver with ScopeHelpers {
       var fragment = element?.firstFragment;
       var source = fragment?.libraryFragment?.source;
       var nameOffset = fragment?.nameOffset;
-      diagnosticReporter.atOffset(
-        offset: importPrefix.offset,
-        length: nameToken.end - importPrefix.offset,
-        diagnosticCode: diag.notAType,
-        arguments: ['${importPrefix.name.lexeme}.${nameToken.lexeme}'],
-        contextMessages: [
-          if (source != null && nameOffset != null)
-            DiagnosticMessageImpl(
-              filePath: source.fullName,
-              message: "The declaration of '$name' is here.",
-              offset: nameOffset,
-              length: name.length,
-              url: null,
+      diagnosticReporter.report(
+        diag.notAType
+            .withArguments(
+              name: '${importPrefix.name.lexeme}.${nameToken.lexeme}',
+            )
+            .withContextMessages([
+              if (source != null && nameOffset != null)
+                DiagnosticMessageImpl(
+                  filePath: source.fullName,
+                  message: "The declaration of '$name' is here.",
+                  offset: nameOffset,
+                  length: name.length,
+                  url: null,
+                ),
+            ])
+            .atOffset(
+              offset: importPrefix.offset,
+              length: nameToken.end - importPrefix.offset,
             ),
-        ],
       );
     }
   }
@@ -573,11 +577,10 @@ class _ErrorHelper {
 
     if (_isTypeInCatchClause(node)) {
       var errorRange = _getErrorRange(node);
-      diagnosticReporter.atOffset(
-        offset: errorRange.offset,
-        length: errorRange.length,
-        diagnosticCode: diag.nonTypeInCatchClause,
-        arguments: [node.name.lexeme],
+      diagnosticReporter.report(
+        diag.nonTypeInCatchClause
+            .withArguments(name: node.name.lexeme)
+            .atOffset(offset: errorRange.offset, length: errorRange.length),
       );
       return;
     }
@@ -614,22 +617,20 @@ class _ErrorHelper {
 
     if (_isRedirectingConstructor(node)) {
       var errorRange = _getErrorRange(node);
-      diagnosticReporter.atOffset(
-        offset: errorRange.offset,
-        length: errorRange.length,
-        diagnosticCode: diag.redirectToNonClass,
-        arguments: [node.name.lexeme],
+      diagnosticReporter.report(
+        diag.redirectToNonClass
+            .withArguments(name: node.name.lexeme)
+            .atOffset(offset: errorRange.offset, length: errorRange.length),
       );
       return;
     }
 
     if (_isTypeInTypeArgumentList(node)) {
       var errorRange = _getErrorRange(node);
-      diagnosticReporter.atOffset(
-        offset: errorRange.offset,
-        length: errorRange.length,
-        diagnosticCode: diag.nonTypeAsTypeArgument,
-        arguments: [node.name.lexeme],
+      diagnosticReporter.report(
+        diag.nonTypeAsTypeArgument
+            .withArguments(name: node.name.lexeme)
+            .atOffset(offset: errorRange.offset, length: errorRange.length),
       );
       return;
     }
@@ -664,21 +665,20 @@ class _ErrorHelper {
       var fragment = element.firstFragment;
       var source = fragment.libraryFragment?.source;
       var nameOffset = fragment.nameOffset;
-      diagnosticReporter.atOffset(
-        offset: errorRange.offset,
-        length: errorRange.length,
-        diagnosticCode: diag.notAType,
-        arguments: [name],
-        contextMessages: [
-          if (source != null && nameOffset != null)
-            DiagnosticMessageImpl(
-              filePath: source.fullName,
-              message: "The declaration of '$name' is here.",
-              offset: nameOffset,
-              length: name.length,
-              url: null,
-            ),
-        ],
+      diagnosticReporter.report(
+        diag.notAType
+            .withArguments(name: name)
+            .withContextMessages([
+              if (source != null && nameOffset != null)
+                DiagnosticMessageImpl(
+                  filePath: source.fullName,
+                  message: "The declaration of '$name' is here.",
+                  offset: nameOffset,
+                  length: name.length,
+                  url: null,
+                ),
+            ])
+            .atOffset(offset: errorRange.offset, length: errorRange.length),
       );
       return;
     }

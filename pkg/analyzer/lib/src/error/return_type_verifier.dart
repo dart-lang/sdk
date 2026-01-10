@@ -159,20 +159,28 @@ class ReturnTypeVerifier {
         // there is no enclosing element, in which case the `if` test above
         // would have failed.  So it's safe to assume that
         // `enclosingExecutable.displayName` is non-`null`.
-        _diagnosticReporter.atNode(
-          expression,
-          diag.returnOfInvalidTypeFromConstructor,
-          arguments: [S, T, enclosingExecutable.displayName!],
+        _diagnosticReporter.report(
+          diag.returnOfInvalidTypeFromConstructor
+              .withArguments(
+                actualReturnType: S,
+                expectedReturnType: T,
+                constructorName: enclosingExecutable.displayName!,
+              )
+              .at(expression),
         );
       } else if (enclosingExecutable.isFunction) {
         // [EnclosingExecutableContext.displayName] will only return `null` if
         // there is no enclosing element, in which case the `if` test above
         // would have failed.  So it's safe to assume that
         // `enclosingExecutable.displayName` is non-`null`.
-        _diagnosticReporter.atNode(
-          expression,
-          diag.returnOfInvalidTypeFromFunction,
-          arguments: [S, T, enclosingExecutable.displayName!],
+        _diagnosticReporter.report(
+          diag.returnOfInvalidTypeFromFunction
+              .withArguments(
+                actualReturnType: S,
+                expectedReturnType: T,
+                methodName: enclosingExecutable.displayName!,
+              )
+              .at(expression),
         );
       } else if (enclosingExecutable.isMethod) {
         // [EnclosingExecutableContext.displayName] will only return `null` if

@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -18,6 +17,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/error/inference_error.dart';
@@ -26,6 +26,11 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 
 final _missingMustBeOverridden = Expando<List<ExecutableElement>>();
 final _missingOverrides = Expando<List<InternalExecutableElement>>();
+
+typedef DisallowedClassDiagnosticCode =
+    DiagnosticWithArguments<
+      LocatableDiagnostic Function({required DartType disallowedType})
+    >;
 
 class InheritanceOverrideVerifier {
   final TypeSystemImpl _typeSystem;
@@ -493,7 +498,7 @@ class _ClassVerifier {
   /// types such as `num` or `String`.
   bool _checkDirectSuperTypeNode(
     NamedType namedType,
-    DiagnosticCode diagnosticCode,
+    DisallowedClassDiagnosticCode diagnosticCode,
   ) {
     if (namedType.isSynthetic) {
       return false;
@@ -506,7 +511,9 @@ class _ClassVerifier {
         reporter.report(diag.concreteClassHasEnumSuperinterface.at(namedType));
       },
       notSubtypable: () {
-        reporter.atNode(namedType, diagnosticCode, arguments: [type]);
+        reporter.report(
+          diagnosticCode.withArguments(disallowedType: type).at(namedType),
+        );
       },
     );
   }

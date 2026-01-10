@@ -375,7 +375,7 @@ class TypeArgumentsVerifier {
       return;
     }
 
-    List<DiagnosticMessage>? buildContextMessages({
+    List<DiagnosticMessage> buildContextMessages({
       List<DartType>? invertedTypeArguments,
     }) {
       var messages = <DiagnosticMessage>[];
@@ -413,7 +413,7 @@ class TypeArgumentsVerifier {
         );
       }
 
-      return messages.isNotEmpty ? messages : null;
+      return messages;
     }
 
     // If not allowed to be super-bounded, report issues.

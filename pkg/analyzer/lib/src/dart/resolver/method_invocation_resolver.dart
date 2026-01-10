@@ -366,10 +366,10 @@ class MethodInvocationResolver with ScopeHelpers {
   }
 
   void _reportPrefixIdentifierNotFollowedByDot(SimpleIdentifier target) {
-    _resolver.diagnosticReporter.atNode(
-      target,
-      diag.prefixIdentifierNotFollowedByDot,
-      arguments: [target.name],
+    _resolver.diagnosticReporter.report(
+      diag.prefixIdentifierNotFollowedByDot
+          .withArguments(name: target.name)
+          .at(target),
     );
   }
 
