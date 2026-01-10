@@ -606,10 +606,10 @@ class FunctionReferenceResolver {
         if (enclosingExtension != null) {
           receiverType = enclosingExtension.extendedType;
         } else {
-          _diagnosticReporter.atNode(
-            function,
-            diag.undefinedIdentifier,
-            arguments: [function.name],
+          _diagnosticReporter.report(
+            diag.undefinedIdentifier
+                .withArguments(name: function.name)
+                .at(function),
           );
           function.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
           node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);

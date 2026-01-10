@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -249,10 +250,14 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
               bound = substitution.substituteType(bound);
               var typeArgument = typeArgumentTypes[i];
               if (!resolver.typeSystem.isSubtypeOf(typeArgument, bound)) {
-                resolver.diagnosticReporter.atNode(
-                  typeArgumentList.arguments[i],
-                  diag.typeArgumentNotMatchingBounds,
-                  arguments: [typeArgument, typeParameter.name!, bound],
+                resolver.diagnosticReporter.report(
+                  diag.typeArgumentNotMatchingBounds
+                      .withArguments(
+                        nonConformingType: typeArgument,
+                        typeParameterName: typeParameter.name!,
+                        bound: bound,
+                      )
+                      .at(typeArgumentList.arguments[i]),
                 );
               }
             }

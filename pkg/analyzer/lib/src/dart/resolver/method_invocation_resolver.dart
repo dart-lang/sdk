@@ -378,10 +378,10 @@ class MethodInvocationResolver with ScopeHelpers {
     SimpleIdentifier nameNode,
   ) {
     if (!element.isStatic) {
-      _resolver.diagnosticReporter.atNode(
-        nameNode,
-        diag.staticAccessToInstanceMember,
-        arguments: [nameNode.name],
+      _resolver.diagnosticReporter.report(
+        diag.staticAccessToInstanceMember
+            .withArguments(name: nameNode.name)
+            .at(nameNode),
       );
     }
   }
@@ -403,10 +403,10 @@ class MethodInvocationResolver with ScopeHelpers {
       return;
     }
 
-    _resolver.diagnosticReporter.atNode(
-      node.methodName,
-      diag.undefinedFunction,
-      arguments: [node.methodName.name],
+    _resolver.diagnosticReporter.report(
+      diag.undefinedFunction
+          .withArguments(name: node.methodName.name)
+          .at(node.methodName),
     );
   }
 
@@ -540,10 +540,10 @@ class MethodInvocationResolver with ScopeHelpers {
     );
     // This method is only called for named extensions, so we know that
     // `extension.name` is non-`null`.
-    _resolver.diagnosticReporter.atNode(
-      nameNode,
-      diag.undefinedExtensionMethod,
-      arguments: [name, extension.name!],
+    _resolver.diagnosticReporter.report(
+      diag.undefinedExtensionMethod
+          .withArguments(methodName: name, extensionName: extension.name!)
+          .at(nameNode),
     );
   }
 
@@ -568,10 +568,13 @@ class MethodInvocationResolver with ScopeHelpers {
       );
       // Extension overrides always refer to named extensions, so we can safely
       // assume `override.staticElement!.name` is non-`null`.
-      _resolver.diagnosticReporter.atNode(
-        nameNode,
-        diag.undefinedExtensionMethod,
-        arguments: [name, override.element.name!],
+      _resolver.diagnosticReporter.report(
+        diag.undefinedExtensionMethod
+            .withArguments(
+              methodName: name,
+              extensionName: override.element.name!,
+            )
+            .at(nameNode),
       );
       return;
     }

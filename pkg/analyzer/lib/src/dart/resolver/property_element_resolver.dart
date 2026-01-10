@@ -7,7 +7,6 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -21,6 +20,7 @@ import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/assignment_verifier.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
@@ -145,10 +145,13 @@ class PropertyElementResolver with ScopeHelpers {
           result != ExtensionResolutionError.ambiguous) {
         // Extension overrides can only refer to named extensions, so it is safe
         // to assume that `target.staticElement!.name` is non-`null`.
-        _reportUnresolvedIndex(node, diag.undefinedExtensionOperator, [
-          '[]',
-          target.element.name!,
-        ]);
+        _reportUnresolvedIndex(
+          node,
+          diag.undefinedExtensionOperator.withArguments(
+            operator: '[]',
+            extensionName: target.element.name!,
+          ),
+        );
       }
 
       if (hasWrite &&
@@ -156,10 +159,13 @@ class PropertyElementResolver with ScopeHelpers {
           result != ExtensionResolutionError.ambiguous) {
         // Extension overrides can only refer to named extensions, so it is safe
         // to assume that `target.staticElement!.name` is non-`null`.
-        _reportUnresolvedIndex(node, diag.undefinedExtensionOperator, [
-          '[]=',
-          target.element.name!,
-        ]);
+        _reportUnresolvedIndex(
+          node,
+          diag.undefinedExtensionOperator.withArguments(
+            operator: '[]=',
+            extensionName: target.element.name!,
+          ),
+        );
       }
 
       return _toIndexResult(
@@ -206,20 +212,20 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasRead && result.needsGetterError) {
       _reportUnresolvedIndex(
         node,
-        target is SuperExpression
-            ? diag.undefinedSuperOperator
-            : diag.undefinedOperator,
-        ['[]', targetType],
+        (target is SuperExpression
+                ? diag.undefinedSuperOperator
+                : diag.undefinedOperator)
+            .withArguments(operator: '[]', type: targetType),
       );
     }
 
     if (hasWrite && result.needsSetterError) {
       _reportUnresolvedIndex(
         node,
-        target is SuperExpression
-            ? diag.undefinedSuperOperator
-            : diag.undefinedOperator,
-        ['[]=', targetType],
+        (target is SuperExpression
+                ? diag.undefinedSuperOperator
+                : diag.undefinedOperator)
+            .withArguments(operator: '[]=', type: targetType),
       );
     }
 
@@ -400,10 +406,10 @@ class PropertyElementResolver with ScopeHelpers {
   ) {
     if (element.isStatic) return false;
 
-    diagnosticReporter.atNode(
-      identifier,
-      diag.staticAccessToInstanceMember,
-      arguments: [identifier.name],
+    diagnosticReporter.report(
+      diag.staticAccessToInstanceMember
+          .withArguments(name: identifier.name)
+          .at(identifier),
     );
     return true;
   }
@@ -457,19 +463,15 @@ class PropertyElementResolver with ScopeHelpers {
 
   void _reportUnresolvedIndex(
     IndexExpression node,
-    DiagnosticCode diagnosticCode, [
-    List<Object> arguments = const [],
-  ]) {
+    LocatableDiagnostic locatableDiagnostic,
+  ) {
     var leftBracket = node.leftBracket;
     var rightBracket = node.rightBracket;
     var offset = leftBracket.offset;
     var length = rightBracket.end - offset;
 
-    diagnosticReporter.atOffset(
-      offset: offset,
-      length: length,
-      diagnosticCode: diagnosticCode,
-      arguments: arguments,
+    diagnosticReporter.report(
+      locatableDiagnostic.atOffset(offset: offset, length: length),
     );
   }
 
@@ -551,10 +553,13 @@ class PropertyElementResolver with ScopeHelpers {
       // type literal (which can only be a type instantiation of a type alias
       // of a function type).
       if (hasRead) {
-        diagnosticReporter.atNode(
-          propertyName,
-          diag.undefinedGetterOnFunctionType,
-          arguments: [propertyName.name, target.type.qualifiedName],
+        diagnosticReporter.report(
+          diag.undefinedGetterOnFunctionType
+              .withArguments(
+                getterName: propertyName.name,
+                functionTypeAliasName: target.type.qualifiedName,
+              )
+              .at(propertyName),
         );
       } else {
         diagnosticReporter.atNode(
@@ -660,10 +665,13 @@ class PropertyElementResolver with ScopeHelpers {
         // This method is only called for extension overrides, and extension
         // overrides can only refer to named extensions.  So it is safe to
         // assume that `extension.name` is non-`null`.
-        diagnosticReporter.atNode(
-          propertyName,
-          diag.undefinedExtensionGetter,
-          arguments: [memberName, extension.name!],
+        diagnosticReporter.report(
+          diag.undefinedExtensionGetter
+              .withArguments(
+                getterName: memberName,
+                extensionName: extension.name!,
+              )
+              .at(propertyName),
         );
       } else {
         getType = readElement.returnType;
@@ -680,10 +688,13 @@ class PropertyElementResolver with ScopeHelpers {
       writeElement = extension.getSetter(memberName);
 
       if (writeElement == null) {
-        diagnosticReporter.atNode(
-          propertyName,
-          diag.undefinedExtensionSetter,
-          arguments: [memberName, extension.name!],
+        diagnosticReporter.report(
+          diag.undefinedExtensionSetter
+              .withArguments(
+                setterName: memberName,
+                extensionName: extension.name!,
+              )
+              .at(propertyName),
         );
       } else {
         if (_checkForStaticAccessToInstanceMember(propertyName, writeElement)) {
@@ -728,10 +739,13 @@ class PropertyElementResolver with ScopeHelpers {
         // This method is only called for extension overrides, and extension
         // overrides can only refer to named extensions.  So it is safe to
         // assume that `element.name` is non-`null`.
-        diagnosticReporter.atNode(
-          propertyName,
-          diag.undefinedExtensionGetter,
-          arguments: [memberName, element.name!],
+        diagnosticReporter.report(
+          diag.undefinedExtensionGetter
+              .withArguments(
+                getterName: memberName,
+                extensionName: element.name!,
+              )
+              .at(propertyName),
         );
       } else {
         getType = readElement.returnType;
@@ -746,10 +760,13 @@ class PropertyElementResolver with ScopeHelpers {
         // This method is only called for extension overrides, and extension
         // overrides can only refer to named extensions.  So it is safe to
         // assume that `element.name` is non-`null`.
-        diagnosticReporter.atNode(
-          propertyName,
-          diag.undefinedExtensionSetter,
-          arguments: [memberName, element.name!],
+        diagnosticReporter.report(
+          diag.undefinedExtensionSetter
+              .withArguments(
+                setterName: memberName,
+                extensionName: element.name!,
+              )
+              .at(propertyName),
         );
       }
       _checkForStaticMember(target, propertyName, writeElement);

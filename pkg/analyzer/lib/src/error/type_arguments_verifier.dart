@@ -99,10 +99,14 @@ class TypeArgumentsVerifier {
         var errorNode = i < typeArgumentListLength
             ? typeArgumentList.arguments[i]
             : node;
-        _diagnosticReporter.atNode(
-          errorNode,
-          diag.typeArgumentNotMatchingBounds,
-          arguments: [typeArgument, typeParameter.name!, bound],
+        _diagnosticReporter.report(
+          diag.typeArgumentNotMatchingBounds
+              .withArguments(
+                nonConformingType: typeArgument,
+                typeParameterName: typeParameter.name!,
+                bound: bound,
+              )
+              .at(errorNode),
         );
       }
     }
@@ -155,10 +159,14 @@ class TypeArgumentsVerifier {
 
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
         var errorTarget = typeArgumentNodes?[i] ?? node.name;
-        _diagnosticReporter.atEntity(
-          errorTarget,
-          diag.typeArgumentNotMatchingBounds,
-          arguments: [typeArgument, typeParameter.name!, bound],
+        _diagnosticReporter.report(
+          diag.typeArgumentNotMatchingBounds
+              .withArguments(
+                nonConformingType: typeArgument,
+                typeParameterName: typeParameter.name!,
+                bound: bound,
+              )
+              .at(errorTarget),
         );
       }
     }
@@ -419,15 +427,15 @@ class TypeArgumentsVerifier {
     // If not allowed to be super-bounded, report issues.
     if (!_shouldAllowSuperBoundedTypes(namedType)) {
       for (var issue in issues) {
-        _diagnosticReporter.atNode(
-          _typeArgumentErrorNode(namedType, issue.index),
-          diag.typeArgumentNotMatchingBounds,
-          arguments: [
-            issue.argument,
-            issue.parameterName,
-            issue.parameterBound,
-          ],
-          contextMessages: buildContextMessages(),
+        _diagnosticReporter.report(
+          diag.typeArgumentNotMatchingBounds
+              .withArguments(
+                nonConformingType: issue.argument,
+                typeParameterName: issue.parameterName,
+                bound: issue.parameterBound,
+              )
+              .withContextMessages(buildContextMessages())
+              .at(_typeArgumentErrorNode(namedType, issue.index)),
         );
       }
       return;
@@ -467,13 +475,19 @@ class TypeArgumentsVerifier {
       bound = invertedSubstitution.substituteType(bound);
 
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
-        _diagnosticReporter.atNode(
-          _typeArgumentErrorNode(namedType, i),
-          diag.typeArgumentNotMatchingBounds,
-          arguments: [typeArgument, typeParameterName, bound],
-          contextMessages: buildContextMessages(
-            invertedTypeArguments: invertedTypeArguments,
-          ),
+        _diagnosticReporter.report(
+          diag.typeArgumentNotMatchingBounds
+              .withArguments(
+                nonConformingType: typeArgument,
+                typeParameterName: typeParameterName,
+                bound: bound,
+              )
+              .withContextMessages(
+                buildContextMessages(
+                  invertedTypeArguments: invertedTypeArguments,
+                ),
+              )
+              .at(_typeArgumentErrorNode(namedType, i)),
         );
       }
     }
@@ -540,10 +554,14 @@ class TypeArgumentsVerifier {
       var substitution = Substitution.fromPairs2(fnTypeParams, typeArgs);
       var bound = substitution.substituteType(rawBound);
       if (!_typeSystem.isSubtypeOf(argType, bound)) {
-        _diagnosticReporter.atNode(
-          typeArgumentList[i],
-          diag.typeArgumentNotMatchingBounds,
-          arguments: [argType, fnTypeParamName, bound],
+        _diagnosticReporter.report(
+          diag.typeArgumentNotMatchingBounds
+              .withArguments(
+                nonConformingType: argType,
+                typeParameterName: fnTypeParamName,
+                bound: bound,
+              )
+              .at(typeArgumentList[i]),
         );
       }
     }

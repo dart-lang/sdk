@@ -341,10 +341,10 @@ class ElementResolver {
     var element = superType.lookUpConstructor(superName, _definingLibrary);
     if (element == null || !element.isAccessibleIn(_definingLibrary)) {
       if (name != null) {
-        _diagnosticReporter.atNode(
-          node,
-          diag.undefinedConstructorInInitializer,
-          arguments: [superType, name.name],
+        _diagnosticReporter.report(
+          diag.undefinedConstructorInInitializer
+              .withArguments(type: superType, constructorName: name.name)
+              .at(node),
         );
       } else {
         _diagnosticReporter.report(

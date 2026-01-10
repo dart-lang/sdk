@@ -537,11 +537,10 @@ class _ErrorHelper {
           // TODO(johnniwinther): We could report "Undefined prefix 'x'." when
           // we know it can only be a prefix, for instance in `x.y.z()`.
           String prefixOrClassName = importPrefix.name.lexeme;
-          diagnosticReporter.atOffset(
-            offset: errorRange.offset,
-            length: errorRange.length,
-            diagnosticCode: diag.undefinedIdentifier,
-            arguments: [prefixOrClassName],
+          diagnosticReporter.report(
+            diag.undefinedIdentifier
+                .withArguments(name: prefixOrClassName)
+                .atOffset(offset: errorRange.offset, length: errorRange.length),
           );
         } else {
           String className = node.name.lexeme;
@@ -566,11 +565,10 @@ class _ErrorHelper {
 
     if (node.name.lexeme == 'boolean') {
       var errorRange = _getErrorRange(node, skipImportPrefix: true);
-      diagnosticReporter.atOffset(
-        offset: errorRange.offset,
-        length: errorRange.length,
-        diagnosticCode: diag.undefinedClassBoolean,
-        arguments: [node.name.lexeme],
+      diagnosticReporter.report(
+        diag.undefinedClassBoolean
+            .withArguments(name: node.name.lexeme)
+            .atOffset(offset: errorRange.offset, length: errorRange.length),
       );
       return;
     }
@@ -598,18 +596,16 @@ class _ErrorHelper {
     if (_isTypeInIsExpression(node)) {
       var errorRange = _getErrorRange(node);
       if (element != null) {
-        diagnosticReporter.atOffset(
-          offset: errorRange.offset,
-          length: errorRange.length,
-          diagnosticCode: diag.typeTestWithNonType,
-          arguments: [node.name.lexeme],
+        diagnosticReporter.report(
+          diag.typeTestWithNonType
+              .withArguments(name: node.name.lexeme)
+              .atOffset(offset: errorRange.offset, length: errorRange.length),
         );
       } else {
-        diagnosticReporter.atOffset(
-          offset: errorRange.offset,
-          length: errorRange.length,
-          diagnosticCode: diag.typeTestWithUndefinedName,
-          arguments: [node.name.lexeme],
+        diagnosticReporter.report(
+          diag.typeTestWithUndefinedName
+              .withArguments(name: node.name.lexeme)
+              .atOffset(offset: errorRange.offset, length: errorRange.length),
         );
       }
       return;
@@ -689,11 +685,10 @@ class _ErrorHelper {
     }
 
     var errorRange = _getErrorRange(node);
-    diagnosticReporter.atOffset(
-      offset: errorRange.offset,
-      length: errorRange.length,
-      diagnosticCode: diag.undefinedClass,
-      arguments: [node.name.lexeme],
+    diagnosticReporter.report(
+      diag.undefinedClass
+          .withArguments(name: node.name.lexeme)
+          .atOffset(offset: errorRange.offset, length: errorRange.length),
     );
   }
 

@@ -334,10 +334,14 @@ class ExtensionMemberResolver {
         if (name != null && parameterBound != null) {
           parameterBound = substitution.substituteType(parameterBound);
           if (!_typeSystem.isSubtypeOf(argument, parameterBound)) {
-            _diagnosticReporter.atNode(
-              typeArgumentList.arguments[i],
-              diag.typeArgumentNotMatchingBounds,
-              arguments: [argument, name, parameterBound],
+            _diagnosticReporter.report(
+              diag.typeArgumentNotMatchingBounds
+                  .withArguments(
+                    nonConformingType: argument,
+                    typeParameterName: name,
+                    bound: parameterBound,
+                  )
+                  .at(typeArgumentList.arguments[i]),
             );
           }
         }

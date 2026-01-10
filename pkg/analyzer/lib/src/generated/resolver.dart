@@ -1508,10 +1508,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       );
 
       if (hasRead && result.readElementRequested2 == null) {
-        diagnosticReporter.atNode(
-          node,
-          diag.undefinedIdentifier,
-          arguments: [node.name],
+        diagnosticReporter.report(
+          diag.undefinedIdentifier.withArguments(name: node.name).at(node),
         );
       }
 
@@ -1655,10 +1653,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
 
     if (result.needsGetterError) {
-      diagnosticReporter.atToken(
-        node.operator,
-        diag.undefinedOperator,
-        arguments: [methodName, matchedType],
+      diagnosticReporter.report(
+        diag.undefinedOperator
+            .withArguments(
+              operator: methodName,
+              type: matchedType.unwrapTypeView<TypeImpl>(),
+            )
+            .at(node.operator),
       );
     }
 
@@ -2538,10 +2539,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         if (constructorName.type.element is EnumElementImpl) {
           var nameNode = node.arguments?.constructorSelector?.name;
           if (nameNode != null) {
-            diagnosticReporter.atNode(
-              nameNode,
-              diag.undefinedEnumConstructorNamed,
-              arguments: [nameNode.name],
+            diagnosticReporter.report(
+              diag.undefinedEnumConstructorNamed
+                  .withArguments(name: nameNode.name)
+                  .at(nameNode),
             );
           } else {
             diagnosticReporter.report(

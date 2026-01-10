@@ -16266,18 +16266,18 @@ CompileTimeErrorCode:
   returnOfInvalidTypeFromMethod:
     type: compileTimeError
     parameters:
-      Type p0: the type of the expression in the return statement
-      Type p1: the expected return type as defined by the method
-      String p2: the name of the method
+      Type actualReturnType: the type of the expression in the return statement
+      Type expectedReturnType: the expected return type as defined by the method
+      String methodName: the name of the method
     sharedName: returnOfInvalidType
-    problemMessage: "A value of type '#p0' can't be returned from the method '#p2' because it has a return type of '#p1'."
+    problemMessage: "A value of type '#actualReturnType' can't be returned from the method '#methodName' because it has a return type of '#expectedReturnType'."
     hasPublishedDocs: true
   returnOfInvalidTypeFromClosure:
     type: compileTimeError
     parameters:
-      Type p0: the return type as declared in the return statement
-      Type p1: the expected return type as defined by the method
-    problemMessage: The returned type '#p0' isn't returnable from a '#p1' function, as required by the closure's context.
+      Type actualReturnType: the return type as declared in the return statement
+      Type expectedReturnType: the expected return type as defined by the method
+    problemMessage: The returned type '#actualReturnType' isn't returnable from a '#expectedReturnType' function, as required by the closure's context.
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -16338,9 +16338,9 @@ CompileTimeErrorCode:
   sealedClassSubtypeOutsideOfLibrary:
     type: compileTimeError
     parameters:
-      String p0: the name of the sealed class being extended, implemented, or mixed in
+      String sealedClassName: the name of the sealed class being extended, implemented, or mixed in
     sharedName: invalidUseOfTypeOutsideLibrary
-    problemMessage: "The class '#p0' can't be extended, implemented, or mixed in outside of its library because it's a sealed class."
+    problemMessage: "The class '#sealedClassName' can't be extended, implemented, or mixed in outside of its library because it's a sealed class."
     hasPublishedDocs: true
   setElementTypeNotAssignableNullability:
     type: compileTimeError
@@ -16441,8 +16441,8 @@ CompileTimeErrorCode:
   staticAccessToInstanceMember:
     type: compileTimeError
     parameters:
-      String p0: the name of the instance member
-    problemMessage: "Instance member '#p0' can't be accessed using static access."
+      String name: the name of the instance member
+    problemMessage: "Instance member '#name' can't be accessed using static access."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -16538,9 +16538,9 @@ CompileTimeErrorCode:
   superFormalParameterTypeIsNotSubtypeOfAssociated:
     type: compileTimeError
     parameters:
-      Type p0: the type of super-parameter
-      Type p1: the type of associated super-constructor parameter
-    problemMessage: The type '#p0' of this parameter isn't a subtype of the type '#p1' of the associated super constructor parameter.
+      Type parameterType: the type of super-parameter
+      Type superParameterType: the type of associated super-constructor parameter
+    problemMessage: The type '#parameterType' of this parameter isn't a subtype of the type '#superParameterType' of the associated super constructor parameter.
     correctionMessage: Try removing the explicit type annotation from the parameter.
     hasPublishedDocs: true
     documentation: |-
@@ -16968,9 +16968,9 @@ CompileTimeErrorCode:
   superInvocationNotLast:
     type: compileTimeError
     parameters:
-      String p0: the superinitializer
+      String superConstructorName: the superinitializer
     previousName: INVALID_SUPER_INVOCATION
-    problemMessage: "The superconstructor call must be last in an initializer list: '#p0'."
+    problemMessage: "The superconstructor call must be last in an initializer list: '#superConstructorName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -17303,8 +17303,8 @@ CompileTimeErrorCode:
   throwOfInvalidType:
     type: compileTimeError
     parameters:
-      Type p0: the type that can't be thrown
-    problemMessage: "The type '#p0' of the thrown expression must be assignable to 'Object'."
+      Type type: the type that can't be thrown
+    problemMessage: "The type '#type' of the thrown expression must be assignable to 'Object'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -17414,8 +17414,8 @@ CompileTimeErrorCode:
   typeAnnotationDeferredClass:
     type: compileTimeError
     parameters:
-      String p0: the name of the type that is deferred and being used in a type annotation
-    problemMessage: "The deferred type '#p0' can't be used in a declaration, cast, or type test."
+      String typeName: the name of the type that is deferred and being used in a type annotation
+    problemMessage: "The deferred type '#typeName' can't be used in a declaration, cast, or type test."
     correctionMessage: Try using a different type, or changing the import to not be deferred.
     hasPublishedDocs: true
     documentation: |-
@@ -17457,11 +17457,11 @@ CompileTimeErrorCode:
   typeArgumentNotMatchingBounds:
     type: compileTimeError
     parameters:
-      Type p0: the name of the type used in the instance creation that should be limited by the bound as specified in the class declaration
-      String p1: the name of the type parameter
-      Type p2: the substituted bound of the type parameter
-    problemMessage: "'#p0' doesn't conform to the bound '#p2' of the type parameter '#p1'."
-    correctionMessage: "Try using a type that is or is a subclass of '#p2'."
+      Type nonConformingType: the name of the type used in the instance creation that should be limited by the bound as specified in the class declaration
+      String typeParameterName: the name of the type parameter
+      Type bound: the substituted bound of the type parameter
+    problemMessage: "'#nonConformingType' doesn't conform to the bound '#bound' of the type parameter '#typeParameterName'."
+    correctionMessage: "Try using a type that is or is a subclass of '#bound'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -17536,10 +17536,10 @@ CompileTimeErrorCode:
   typeParameterSupertypeOfItsBound:
     type: compileTimeError
     parameters:
-      String p0: the name of the type parameter
-      Type p1: the name of the bounding type
-    problemMessage: "'#p0' can't be a supertype of its upper bound."
-    correctionMessage: "Try using a type that is the same as or a subclass of '#p1'."
+      String typeParameterName: the name of the type parameter
+      Type bound: the name of the bounding type
+    problemMessage: "'#typeParameterName' can't be a supertype of its upper bound."
+    correctionMessage: "Try using a type that is the same as or a subclass of '#bound'."
     hasPublishedDocs: true
     comment: |-
       See [diag.typeArgumentNotMatchingBounds].
@@ -17586,8 +17586,8 @@ CompileTimeErrorCode:
   typeTestWithNonType:
     type: compileTimeError
     parameters:
-      String p0: the name of the type
-    problemMessage: "The name '#p0' isn't a type and can't be used in an 'is' expression."
+      String name: the name of the type
+    problemMessage: "The name '#name' isn't a type and can't be used in an 'is' expression."
     correctionMessage: Try correcting the name to match an existing type.
     hasPublishedDocs: true
     documentation: |-
@@ -17640,9 +17640,9 @@ CompileTimeErrorCode:
   typeTestWithUndefinedName:
     type: compileTimeError
     parameters:
-      String p0: the name of the type
-    problemMessage: "The name '#p0' isn't defined, so it can't be used in an 'is' expression."
-    correctionMessage: "Try changing the name to the name of an existing type, or creating a type with the name '#p0'."
+      String name: the name of the type
+    problemMessage: "The name '#name' isn't defined, so it can't be used in an 'is' expression."
+    correctionMessage: "Try changing the name to the name of an existing type, or creating a type with the name '#name'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -17792,8 +17792,8 @@ CompileTimeErrorCode:
   undefinedAnnotation:
     type: compileTimeError
     parameters:
-      String p0: the name of the annotation
-    problemMessage: "Undefined name '#p0' used as an annotation."
+      String name: the name of the annotation
+    problemMessage: "Undefined name '#name' used as an annotation."
     correctionMessage: Try defining the name or importing it from another library.
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
@@ -17836,9 +17836,9 @@ CompileTimeErrorCode:
   undefinedClass:
     type: compileTimeError
     parameters:
-      String p0: the name of the undefined class
-    problemMessage: "Undefined class '#p0'."
-    correctionMessage: "Try changing the name to the name of an existing class, or creating a class with the name '#p0'."
+      String name: the name of the undefined class
+    problemMessage: "Undefined class '#name'."
+    correctionMessage: "Try changing the name to the name of an existing class, or creating a class with the name '#name'."
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
     documentation: |-
@@ -17875,9 +17875,9 @@ CompileTimeErrorCode:
   undefinedClassBoolean:
     type: compileTimeError
     parameters:
-      String p0: the name of the undefined class
+      String name: the name of the undefined class
     sharedName: undefinedClass
-    problemMessage: "Undefined class '#p0'."
+    problemMessage: "Undefined class '#name'."
     correctionMessage: "Try using the type 'bool'."
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
@@ -17887,10 +17887,10 @@ CompileTimeErrorCode:
   undefinedConstructorInInitializer:
     type: compileTimeError
     parameters:
-      Type p0: the name of the superclass that does not define the invoked constructor
-      String p1: the name of the constructor being invoked
-    problemMessage: "The class '#p0' doesn't have a constructor named '#p1'."
-    correctionMessage: "Try defining a constructor named '#p1' in '#p0', or invoking a different constructor."
+      Type type: the type that does not define the invoked constructor
+      String constructorName: the name of the constructor being invoked
+    problemMessage: "The class '#type' doesn't have a constructor named '#constructorName'."
+    correctionMessage: "Try defining a constructor named '#constructorName' in '#type', or invoking a different constructor."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18007,10 +18007,10 @@ CompileTimeErrorCode:
   undefinedEnumConstructorNamed:
     type: compileTimeError
     parameters:
-      String p0: the name of the constructor that is undefined
+      String name: the name of the constructor that is undefined
     sharedName: undefinedEnumConstructor
-    problemMessage: The enum doesn't have a constructor named '#p0'.
-    correctionMessage: Try correcting the name to the name of an existing constructor, or defining constructor with the name '#p0'.
+    problemMessage: The enum doesn't have a constructor named '#name'.
+    correctionMessage: Try correcting the name to the name of an existing constructor, or defining constructor with the name '#name'.
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18105,10 +18105,10 @@ CompileTimeErrorCode:
   undefinedExtensionGetter:
     type: compileTimeError
     parameters:
-      String p0: the name of the getter that is undefined
-      String p1: the name of the extension that was explicitly specified
-    problemMessage: "The getter '#p0' isn't defined for the extension '#p1'."
-    correctionMessage: "Try correcting the name to the name of an existing getter, or defining a getter named '#p0'."
+      String getterName: the name of the getter that is undefined
+      String extensionName: the name of the extension that was explicitly specified
+    problemMessage: "The getter '#getterName' isn't defined for the extension '#extensionName'."
+    correctionMessage: "Try correcting the name to the name of an existing getter, or defining a getter named '#getterName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18202,10 +18202,10 @@ CompileTimeErrorCode:
   undefinedExtensionMethod:
     type: compileTimeError
     parameters:
-      String p0: the name of the method that is undefined
-      String p1: the name of the extension that was explicitly specified
-    problemMessage: "The method '#p0' isn't defined for the extension '#p1'."
-    correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#p0'."
+      String methodName: the name of the method that is undefined
+      String extensionName: the name of the extension that was explicitly specified
+    problemMessage: "The method '#methodName' isn't defined for the extension '#extensionName'."
+    correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#methodName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18299,10 +18299,10 @@ CompileTimeErrorCode:
   undefinedExtensionOperator:
     type: compileTimeError
     parameters:
-      String p0: the name of the operator that is undefined
-      String p1: the name of the extension that was explicitly specified
-    problemMessage: "The operator '#p0' isn't defined for the extension '#p1'."
-    correctionMessage: "Try defining the operator '#p0'."
+      String operator: the name of the operator that is undefined
+      String extensionName: the name of the extension that was explicitly specified
+    problemMessage: "The operator '#operator' isn't defined for the extension '#extensionName'."
+    correctionMessage: "Try defining the operator '#operator'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18348,10 +18348,10 @@ CompileTimeErrorCode:
   undefinedExtensionSetter:
     type: compileTimeError
     parameters:
-      String p0: the name of the setter that is undefined
-      String p1: the name of the extension that was explicitly specified
-    problemMessage: "The setter '#p0' isn't defined for the extension '#p1'."
-    correctionMessage: "Try correcting the name to the name of an existing setter, or defining a setter named '#p0'."
+      String setterName: the name of the setter that is undefined
+      String extensionName: the name of the extension that was explicitly specified
+    problemMessage: "The setter '#setterName' isn't defined for the extension '#extensionName'."
+    correctionMessage: "Try correcting the name to the name of an existing setter, or defining a setter named '#setterName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18447,9 +18447,9 @@ CompileTimeErrorCode:
   undefinedFunction:
     type: compileTimeError
     parameters:
-      String p0: the name of the method that is undefined
-    problemMessage: "The function '#p0' isn't defined."
-    correctionMessage: "Try importing the library that defines '#p0', correcting the name to the name of an existing function, or defining a function named '#p0'."
+      String name: the name of the method that is undefined
+    problemMessage: "The function '#name' isn't defined."
+    correctionMessage: "Try importing the library that defines '#name', correcting the name to the name of an existing function, or defining a function named '#name'."
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
     documentation: |-
@@ -18524,17 +18524,17 @@ CompileTimeErrorCode:
   undefinedGetterOnFunctionType:
     type: compileTimeError
     parameters:
-      String p0: the name of the getter
-      String p1: the name of the function type alias
+      String getterName: the name of the getter
+      String functionTypeAliasName: the name of the function type alias
     sharedName: undefinedGetter
-    problemMessage: "The getter '#p0' isn't defined for the '#p1' function type."
-    correctionMessage: "Try wrapping the function type alias in parentheses in order to access '#p0' as an extension getter on 'Type'."
+    problemMessage: "The getter '#getterName' isn't defined for the '#functionTypeAliasName' function type."
+    correctionMessage: "Try wrapping the function type alias in parentheses in order to access '#getterName' as an extension getter on 'Type'."
     hasPublishedDocs: true
   undefinedIdentifier:
     type: compileTimeError
     parameters:
-      String p0: the name of the identifier
-    problemMessage: "Undefined name '#p0'."
+      String name: the name of the identifier
+    problemMessage: "Undefined name '#name'."
     correctionMessage: Try correcting the name to one that is defined, or defining the name.
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
@@ -18714,10 +18714,10 @@ CompileTimeErrorCode:
   undefinedOperator:
     type: compileTimeError
     parameters:
-      String p0: the name of the operator
-      Type p1: the name of the enclosing type where the operator is being looked for
-    problemMessage: "The operator '#p0' isn't defined for the type '#p1'."
-    correctionMessage: "Try defining the operator '#p0'."
+      String operator: the name of the operator
+      Type type: the type where the operator is being looked for
+    problemMessage: "The operator '#operator' isn't defined for the type '#type'."
+    correctionMessage: "Try defining the operator '#operator'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18897,11 +18897,11 @@ CompileTimeErrorCode:
   undefinedSuperOperator:
     type: compileTimeError
     parameters:
-      String p0: the name of the operator
-      Type p1: the name of the enclosing type where the operator is being looked for
+      String operator: the name of the operator
+      Type type: the type where the operator is being looked for
     sharedName: undefinedSuperMember
-    problemMessage: "The operator '#p0' isn't defined in a superclass of '#p1'."
-    correctionMessage: "Try defining the operator '#p0' in a superclass."
+    problemMessage: "The operator '#operator' isn't defined in a superclass of '#type'."
+    correctionMessage: "Try defining the operator '#operator' in a superclass."
     hasPublishedDocs: true
   undefinedSuperSetter:
     type: compileTimeError

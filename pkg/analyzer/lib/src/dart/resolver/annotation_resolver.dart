@@ -237,10 +237,8 @@ class AnnotationResolver {
     name1.element = element1;
 
     if (element1 == null) {
-      _diagnosticReporter.atNode(
-        node,
-        diag.undefinedAnnotation,
-        arguments: [name1.name],
+      _diagnosticReporter.report(
+        diag.undefinedAnnotation.withArguments(name: name1.name).at(node),
       );
       _visitArguments(
         node,
@@ -329,10 +327,8 @@ class AnnotationResolver {
         }
         // undefined
         if (element == null) {
-          _diagnosticReporter.atNode(
-            node,
-            diag.undefinedAnnotation,
-            arguments: [name2.name],
+          _diagnosticReporter.report(
+            diag.undefinedAnnotation.withArguments(name: name2.name).at(node),
           );
           _visitArguments(
             node,

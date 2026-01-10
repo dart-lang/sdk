@@ -163,10 +163,13 @@ class PrefixExpressionResolver {
         if (member == null) {
           // Extension overrides always refer to named extensions, so we can
           // safely assume `element.name` is non-`null`.
-          _diagnosticReporter.atToken(
-            node.operator,
-            diag.undefinedExtensionOperator,
-            arguments: [methodName, element.name!],
+          _diagnosticReporter.report(
+            diag.undefinedExtensionOperator
+                .withArguments(
+                  operator: methodName,
+                  extensionName: element.name!,
+                )
+                .at(node.operator),
           );
         }
         node.element = member;
@@ -196,16 +199,16 @@ class PrefixExpressionResolver {
       node.element = result.getter2 as MethodElement?;
       if (result.needsGetterError) {
         if (operand is SuperExpression) {
-          _diagnosticReporter.atToken(
-            operator,
-            diag.undefinedSuperOperator,
-            arguments: [methodName, readType],
+          _diagnosticReporter.report(
+            diag.undefinedSuperOperator
+                .withArguments(operator: methodName, type: readType)
+                .at(operator),
           );
         } else {
-          _diagnosticReporter.atToken(
-            operator,
-            diag.undefinedOperator,
-            arguments: [methodName, readType],
+          _diagnosticReporter.report(
+            diag.undefinedOperator
+                .withArguments(operator: methodName, type: readType)
+                .at(operator),
           );
         }
       }

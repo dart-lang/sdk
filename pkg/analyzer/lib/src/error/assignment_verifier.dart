@@ -98,10 +98,8 @@ class AssignmentVerifier {
           arguments: [node.name, receiverType],
         );
       } else {
-        _diagnosticReporter.atNode(
-          node,
-          diag.undefinedIdentifier,
-          arguments: [node.name],
+        _diagnosticReporter.report(
+          diag.undefinedIdentifier.withArguments(name: node.name).at(node),
         );
       }
     }
