@@ -17640,9 +17640,9 @@ CompileTimeErrorCode:
   typeTestWithUndefinedName:
     type: compileTimeError
     parameters:
-      String p0: the name of the type
-    problemMessage: "The name '#p0' isn't defined, so it can't be used in an 'is' expression."
-    correctionMessage: "Try changing the name to the name of an existing type, or creating a type with the name '#p0'."
+      String name: the name of the type
+    problemMessage: "The name '#name' isn't defined, so it can't be used in an 'is' expression."
+    correctionMessage: "Try changing the name to the name of an existing type, or creating a type with the name '#name'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -17792,8 +17792,8 @@ CompileTimeErrorCode:
   undefinedAnnotation:
     type: compileTimeError
     parameters:
-      String p0: the name of the annotation
-    problemMessage: "Undefined name '#p0' used as an annotation."
+      String name: the name of the annotation
+    problemMessage: "Undefined name '#name' used as an annotation."
     correctionMessage: Try defining the name or importing it from another library.
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
@@ -17836,9 +17836,9 @@ CompileTimeErrorCode:
   undefinedClass:
     type: compileTimeError
     parameters:
-      String p0: the name of the undefined class
-    problemMessage: "Undefined class '#p0'."
-    correctionMessage: "Try changing the name to the name of an existing class, or creating a class with the name '#p0'."
+      String name: the name of the undefined class
+    problemMessage: "Undefined class '#name'."
+    correctionMessage: "Try changing the name to the name of an existing class, or creating a class with the name '#name'."
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
     documentation: |-
@@ -17875,9 +17875,9 @@ CompileTimeErrorCode:
   undefinedClassBoolean:
     type: compileTimeError
     parameters:
-      String p0: the name of the undefined class
+      String name: the name of the undefined class
     sharedName: undefinedClass
-    problemMessage: "Undefined class '#p0'."
+    problemMessage: "Undefined class '#name'."
     correctionMessage: "Try using the type 'bool'."
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
@@ -17887,10 +17887,10 @@ CompileTimeErrorCode:
   undefinedConstructorInInitializer:
     type: compileTimeError
     parameters:
-      Type p0: the name of the superclass that does not define the invoked constructor
-      String p1: the name of the constructor being invoked
-    problemMessage: "The class '#p0' doesn't have a constructor named '#p1'."
-    correctionMessage: "Try defining a constructor named '#p1' in '#p0', or invoking a different constructor."
+      Type type: the type that does not define the invoked constructor
+      String constructorName: the name of the constructor being invoked
+    problemMessage: "The class '#type' doesn't have a constructor named '#constructorName'."
+    correctionMessage: "Try defining a constructor named '#constructorName' in '#type', or invoking a different constructor."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18007,10 +18007,10 @@ CompileTimeErrorCode:
   undefinedEnumConstructorNamed:
     type: compileTimeError
     parameters:
-      String p0: the name of the constructor that is undefined
+      String name: the name of the constructor that is undefined
     sharedName: undefinedEnumConstructor
-    problemMessage: The enum doesn't have a constructor named '#p0'.
-    correctionMessage: Try correcting the name to the name of an existing constructor, or defining constructor with the name '#p0'.
+    problemMessage: The enum doesn't have a constructor named '#name'.
+    correctionMessage: Try correcting the name to the name of an existing constructor, or defining constructor with the name '#name'.
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18105,10 +18105,10 @@ CompileTimeErrorCode:
   undefinedExtensionGetter:
     type: compileTimeError
     parameters:
-      String p0: the name of the getter that is undefined
-      String p1: the name of the extension that was explicitly specified
-    problemMessage: "The getter '#p0' isn't defined for the extension '#p1'."
-    correctionMessage: "Try correcting the name to the name of an existing getter, or defining a getter named '#p0'."
+      String getterName: the name of the getter that is undefined
+      String extensionName: the name of the extension that was explicitly specified
+    problemMessage: "The getter '#getterName' isn't defined for the extension '#extensionName'."
+    correctionMessage: "Try correcting the name to the name of an existing getter, or defining a getter named '#getterName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18202,10 +18202,10 @@ CompileTimeErrorCode:
   undefinedExtensionMethod:
     type: compileTimeError
     parameters:
-      String p0: the name of the method that is undefined
-      String p1: the name of the extension that was explicitly specified
-    problemMessage: "The method '#p0' isn't defined for the extension '#p1'."
-    correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#p0'."
+      String methodName: the name of the method that is undefined
+      String extensionName: the name of the extension that was explicitly specified
+    problemMessage: "The method '#methodName' isn't defined for the extension '#extensionName'."
+    correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#methodName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18348,10 +18348,10 @@ CompileTimeErrorCode:
   undefinedExtensionSetter:
     type: compileTimeError
     parameters:
-      String p0: the name of the setter that is undefined
-      String p1: the name of the extension that was explicitly specified
-    problemMessage: "The setter '#p0' isn't defined for the extension '#p1'."
-    correctionMessage: "Try correcting the name to the name of an existing setter, or defining a setter named '#p0'."
+      String setterName: the name of the setter that is undefined
+      String extensionName: the name of the extension that was explicitly specified
+    problemMessage: "The setter '#setterName' isn't defined for the extension '#extensionName'."
+    correctionMessage: "Try correcting the name to the name of an existing setter, or defining a setter named '#setterName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18447,9 +18447,9 @@ CompileTimeErrorCode:
   undefinedFunction:
     type: compileTimeError
     parameters:
-      String p0: the name of the method that is undefined
-    problemMessage: "The function '#p0' isn't defined."
-    correctionMessage: "Try importing the library that defines '#p0', correcting the name to the name of an existing function, or defining a function named '#p0'."
+      String name: the name of the method that is undefined
+    problemMessage: "The function '#name' isn't defined."
+    correctionMessage: "Try importing the library that defines '#name', correcting the name to the name of an existing function, or defining a function named '#name'."
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
     documentation: |-
@@ -18524,17 +18524,17 @@ CompileTimeErrorCode:
   undefinedGetterOnFunctionType:
     type: compileTimeError
     parameters:
-      String p0: the name of the getter
-      String p1: the name of the function type alias
+      String getterName: the name of the getter
+      String functionTypeAliasName: the name of the function type alias
     sharedName: undefinedGetter
-    problemMessage: "The getter '#p0' isn't defined for the '#p1' function type."
-    correctionMessage: "Try wrapping the function type alias in parentheses in order to access '#p0' as an extension getter on 'Type'."
+    problemMessage: "The getter '#getterName' isn't defined for the '#functionTypeAliasName' function type."
+    correctionMessage: "Try wrapping the function type alias in parentheses in order to access '#getterName' as an extension getter on 'Type'."
     hasPublishedDocs: true
   undefinedIdentifier:
     type: compileTimeError
     parameters:
-      String p0: the name of the identifier
-    problemMessage: "Undefined name '#p0'."
+      String name: the name of the identifier
+    problemMessage: "Undefined name '#name'."
     correctionMessage: Try correcting the name to one that is defined, or defining the name.
     isUnresolvedIdentifier: true
     hasPublishedDocs: true

@@ -204,10 +204,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.element = element;
 
     if (element == null) {
-      _diagnosticReporter.atToken(
-        node.name,
-        diag.undefinedIdentifier,
-        arguments: [name],
+      _diagnosticReporter.report(
+        diag.undefinedIdentifier.withArguments(name: name).at(node.name),
       );
     } else if (!(element is LocalVariableElement ||
         element is FormalParameterElement)) {

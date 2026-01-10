@@ -553,10 +553,13 @@ class PropertyElementResolver with ScopeHelpers {
       // type literal (which can only be a type instantiation of a type alias
       // of a function type).
       if (hasRead) {
-        diagnosticReporter.atNode(
-          propertyName,
-          diag.undefinedGetterOnFunctionType,
-          arguments: [propertyName.name, target.type.qualifiedName],
+        diagnosticReporter.report(
+          diag.undefinedGetterOnFunctionType
+              .withArguments(
+                getterName: propertyName.name,
+                functionTypeAliasName: target.type.qualifiedName,
+              )
+              .at(propertyName),
         );
       } else {
         diagnosticReporter.atNode(
@@ -662,10 +665,13 @@ class PropertyElementResolver with ScopeHelpers {
         // This method is only called for extension overrides, and extension
         // overrides can only refer to named extensions.  So it is safe to
         // assume that `extension.name` is non-`null`.
-        diagnosticReporter.atNode(
-          propertyName,
-          diag.undefinedExtensionGetter,
-          arguments: [memberName, extension.name!],
+        diagnosticReporter.report(
+          diag.undefinedExtensionGetter
+              .withArguments(
+                getterName: memberName,
+                extensionName: extension.name!,
+              )
+              .at(propertyName),
         );
       } else {
         getType = readElement.returnType;
@@ -682,10 +688,13 @@ class PropertyElementResolver with ScopeHelpers {
       writeElement = extension.getSetter(memberName);
 
       if (writeElement == null) {
-        diagnosticReporter.atNode(
-          propertyName,
-          diag.undefinedExtensionSetter,
-          arguments: [memberName, extension.name!],
+        diagnosticReporter.report(
+          diag.undefinedExtensionSetter
+              .withArguments(
+                setterName: memberName,
+                extensionName: extension.name!,
+              )
+              .at(propertyName),
         );
       } else {
         if (_checkForStaticAccessToInstanceMember(propertyName, writeElement)) {
@@ -730,10 +739,13 @@ class PropertyElementResolver with ScopeHelpers {
         // This method is only called for extension overrides, and extension
         // overrides can only refer to named extensions.  So it is safe to
         // assume that `element.name` is non-`null`.
-        diagnosticReporter.atNode(
-          propertyName,
-          diag.undefinedExtensionGetter,
-          arguments: [memberName, element.name!],
+        diagnosticReporter.report(
+          diag.undefinedExtensionGetter
+              .withArguments(
+                getterName: memberName,
+                extensionName: element.name!,
+              )
+              .at(propertyName),
         );
       } else {
         getType = readElement.returnType;
@@ -748,10 +760,13 @@ class PropertyElementResolver with ScopeHelpers {
         // This method is only called for extension overrides, and extension
         // overrides can only refer to named extensions.  So it is safe to
         // assume that `element.name` is non-`null`.
-        diagnosticReporter.atNode(
-          propertyName,
-          diag.undefinedExtensionSetter,
-          arguments: [memberName, element.name!],
+        diagnosticReporter.report(
+          diag.undefinedExtensionSetter
+              .withArguments(
+                setterName: memberName,
+                extensionName: element.name!,
+              )
+              .at(propertyName),
         );
       }
       _checkForStaticMember(target, propertyName, writeElement);

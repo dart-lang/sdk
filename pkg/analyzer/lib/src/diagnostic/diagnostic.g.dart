@@ -15597,9 +15597,9 @@ typeTestWithNonType = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the type
+/// String name: the name of the type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 typeTestWithUndefinedName = DiagnosticWithArguments(
   name: 'type_test_with_undefined_name',
@@ -15759,9 +15759,9 @@ const DiagnosticWithoutArguments uncheckedUseOfNullableValueInYieldEach =
     );
 
 /// Parameters:
-/// String p0: the name of the annotation
+/// String name: the name of the annotation
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 undefinedAnnotation = DiagnosticWithArguments(
   name: 'undefined_annotation',
@@ -15777,9 +15777,9 @@ undefinedAnnotation = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the undefined class
+/// String name: the name of the undefined class
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 undefinedClass = DiagnosticWithArguments(
   name: 'undefined_class',
@@ -15799,9 +15799,9 @@ undefinedClass = DiagnosticWithArguments(
 /// "boolean" instead of "bool" in order to improve the correction message.
 ///
 /// Parameters:
-/// String p0: the name of the undefined class
+/// String name: the name of the undefined class
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 undefinedClassBoolean = DiagnosticWithArguments(
   name: 'undefined_class',
@@ -15816,11 +15816,13 @@ undefinedClassBoolean = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the name of the superclass that does not define the invoked
-///          constructor
-/// String p1: the name of the constructor being invoked
+/// Type type: the type that does not define the invoked constructor
+/// String constructorName: the name of the constructor being invoked
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required String p1})
+  LocatableDiagnostic Function({
+    required DartType type,
+    required String constructorName,
+  })
 >
 undefinedConstructorInInitializer = DiagnosticWithArguments(
   name: 'undefined_constructor_in_initializer',
@@ -15877,9 +15879,9 @@ undefinedEnumConstant = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the constructor that is undefined
+/// String name: the name of the constructor that is undefined
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 undefinedEnumConstructorNamed = DiagnosticWithArguments(
   name: 'undefined_enum_constructor',
@@ -15909,10 +15911,14 @@ const DiagnosticWithoutArguments undefinedEnumConstructorUnnamed =
     );
 
 /// Parameters:
-/// String p0: the name of the getter that is undefined
-/// String p1: the name of the extension that was explicitly specified
+/// String getterName: the name of the getter that is undefined
+/// String extensionName: the name of the extension that was explicitly
+///                       specified
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String getterName,
+    required String extensionName,
+  })
 >
 undefinedExtensionGetter = DiagnosticWithArguments(
   name: 'undefined_extension_getter',
@@ -15928,10 +15934,14 @@ undefinedExtensionGetter = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the method that is undefined
-/// String p1: the name of the extension that was explicitly specified
+/// String methodName: the name of the method that is undefined
+/// String extensionName: the name of the extension that was explicitly
+///                       specified
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String methodName,
+    required String extensionName,
+  })
 >
 undefinedExtensionMethod = DiagnosticWithArguments(
   name: 'undefined_extension_method',
@@ -15968,10 +15978,14 @@ undefinedExtensionOperator = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the setter that is undefined
-/// String p1: the name of the extension that was explicitly specified
+/// String setterName: the name of the setter that is undefined
+/// String extensionName: the name of the extension that was explicitly
+///                       specified
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String setterName,
+    required String extensionName,
+  })
 >
 undefinedExtensionSetter = DiagnosticWithArguments(
   name: 'undefined_extension_setter',
@@ -15987,9 +16001,9 @@ undefinedExtensionSetter = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the method that is undefined
+/// String name: the name of the method that is undefined
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 undefinedFunction = DiagnosticWithArguments(
   name: 'undefined_function',
@@ -16029,10 +16043,13 @@ undefinedGetter = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the getter
-/// String p1: the name of the function type alias
+/// String getterName: the name of the getter
+/// String functionTypeAliasName: the name of the function type alias
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String getterName,
+    required String functionTypeAliasName,
+  })
 >
 undefinedGetterOnFunctionType = DiagnosticWithArguments(
   name: 'undefined_getter',
@@ -16066,9 +16083,9 @@ undefinedHiddenName = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the identifier
+/// String name: the name of the identifier
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 undefinedIdentifier = DiagnosticWithArguments(
   name: 'undefined_identifier',
@@ -21181,9 +21198,9 @@ LocatableDiagnostic _withArgumentsTypeTestWithNonType({required String name}) {
 }
 
 LocatableDiagnostic _withArgumentsTypeTestWithUndefinedName({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.typeTestWithUndefinedName, [p0]);
+  return LocatableDiagnosticImpl(diag.typeTestWithUndefinedName, [name]);
 }
 
 LocatableDiagnostic _withArgumentsUnableGetContent({required Object p0}) {
@@ -21216,25 +21233,27 @@ LocatableDiagnostic _withArgumentsUncheckedPropertyAccessOfNullableValue({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedAnnotation({required String p0}) {
-  return LocatableDiagnosticImpl(diag.undefinedAnnotation, [p0]);
+LocatableDiagnostic _withArgumentsUndefinedAnnotation({required String name}) {
+  return LocatableDiagnosticImpl(diag.undefinedAnnotation, [name]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedClass({required String p0}) {
-  return LocatableDiagnosticImpl(diag.undefinedClass, [p0]);
+LocatableDiagnostic _withArgumentsUndefinedClass({required String name}) {
+  return LocatableDiagnosticImpl(diag.undefinedClass, [name]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedClassBoolean({required String p0}) {
-  return LocatableDiagnosticImpl(diag.undefinedClassBoolean, [p0]);
+LocatableDiagnostic _withArgumentsUndefinedClassBoolean({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedClassBoolean, [name]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedConstructorInInitializer({
-  required DartType p0,
-  required String p1,
+  required DartType type,
+  required String constructorName,
 }) {
   return LocatableDiagnosticImpl(diag.undefinedConstructorInInitializer, [
-    p0,
-    p1,
+    type,
+    constructorName,
   ]);
 }
 
@@ -21258,23 +21277,29 @@ LocatableDiagnostic _withArgumentsUndefinedEnumConstant({
 }
 
 LocatableDiagnostic _withArgumentsUndefinedEnumConstructorNamed({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedEnumConstructorNamed, [p0]);
+  return LocatableDiagnosticImpl(diag.undefinedEnumConstructorNamed, [name]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedExtensionGetter({
-  required String p0,
-  required String p1,
+  required String getterName,
+  required String extensionName,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedExtensionGetter, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.undefinedExtensionGetter, [
+    getterName,
+    extensionName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedExtensionMethod({
-  required String p0,
-  required String p1,
+  required String methodName,
+  required String extensionName,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedExtensionMethod, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.undefinedExtensionMethod, [
+    methodName,
+    extensionName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedExtensionOperator({
@@ -21288,14 +21313,17 @@ LocatableDiagnostic _withArgumentsUndefinedExtensionOperator({
 }
 
 LocatableDiagnostic _withArgumentsUndefinedExtensionSetter({
-  required String p0,
-  required String p1,
+  required String setterName,
+  required String extensionName,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedExtensionSetter, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.undefinedExtensionSetter, [
+    setterName,
+    extensionName,
+  ]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedFunction({required String p0}) {
-  return LocatableDiagnosticImpl(diag.undefinedFunction, [p0]);
+LocatableDiagnostic _withArgumentsUndefinedFunction({required String name}) {
+  return LocatableDiagnosticImpl(diag.undefinedFunction, [name]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedGetter({
@@ -21306,10 +21334,13 @@ LocatableDiagnostic _withArgumentsUndefinedGetter({
 }
 
 LocatableDiagnostic _withArgumentsUndefinedGetterOnFunctionType({
-  required String p0,
-  required String p1,
+  required String getterName,
+  required String functionTypeAliasName,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedGetterOnFunctionType, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.undefinedGetterOnFunctionType, [
+    getterName,
+    functionTypeAliasName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedHiddenName({
@@ -21319,8 +21350,8 @@ LocatableDiagnostic _withArgumentsUndefinedHiddenName({
   return LocatableDiagnosticImpl(diag.undefinedHiddenName, [p0, p1]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedIdentifier({required String p0}) {
-  return LocatableDiagnosticImpl(diag.undefinedIdentifier, [p0]);
+LocatableDiagnostic _withArgumentsUndefinedIdentifier({required String name}) {
+  return LocatableDiagnosticImpl(diag.undefinedIdentifier, [name]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedLint({required String ruleName}) {
