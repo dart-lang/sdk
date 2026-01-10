@@ -265,10 +265,10 @@ class AssignmentExpressionResolver {
     );
     node.element = result.getter2 as InternalMethodElement?;
     if (result.needsGetterError) {
-      _diagnosticReporter.atToken(
-        operator,
-        diag.undefinedOperator,
-        arguments: [methodName, leftType],
+      _diagnosticReporter.report(
+        diag.undefinedOperator
+            .withArguments(operator: methodName, type: leftType)
+            .at(operator),
       );
     }
   }

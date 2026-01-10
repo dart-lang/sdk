@@ -7,7 +7,6 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -21,6 +20,7 @@ import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/assignment_verifier.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
@@ -145,10 +145,13 @@ class PropertyElementResolver with ScopeHelpers {
           result != ExtensionResolutionError.ambiguous) {
         // Extension overrides can only refer to named extensions, so it is safe
         // to assume that `target.staticElement!.name` is non-`null`.
-        _reportUnresolvedIndex(node, diag.undefinedExtensionOperator, [
-          '[]',
-          target.element.name!,
-        ]);
+        _reportUnresolvedIndex(
+          node,
+          diag.undefinedExtensionOperator.withArguments(
+            operator: '[]',
+            extensionName: target.element.name!,
+          ),
+        );
       }
 
       if (hasWrite &&
@@ -156,10 +159,13 @@ class PropertyElementResolver with ScopeHelpers {
           result != ExtensionResolutionError.ambiguous) {
         // Extension overrides can only refer to named extensions, so it is safe
         // to assume that `target.staticElement!.name` is non-`null`.
-        _reportUnresolvedIndex(node, diag.undefinedExtensionOperator, [
-          '[]=',
-          target.element.name!,
-        ]);
+        _reportUnresolvedIndex(
+          node,
+          diag.undefinedExtensionOperator.withArguments(
+            operator: '[]=',
+            extensionName: target.element.name!,
+          ),
+        );
       }
 
       return _toIndexResult(
@@ -206,20 +212,20 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasRead && result.needsGetterError) {
       _reportUnresolvedIndex(
         node,
-        target is SuperExpression
-            ? diag.undefinedSuperOperator
-            : diag.undefinedOperator,
-        ['[]', targetType],
+        (target is SuperExpression
+                ? diag.undefinedSuperOperator
+                : diag.undefinedOperator)
+            .withArguments(operator: '[]', type: targetType),
       );
     }
 
     if (hasWrite && result.needsSetterError) {
       _reportUnresolvedIndex(
         node,
-        target is SuperExpression
-            ? diag.undefinedSuperOperator
-            : diag.undefinedOperator,
-        ['[]=', targetType],
+        (target is SuperExpression
+                ? diag.undefinedSuperOperator
+                : diag.undefinedOperator)
+            .withArguments(operator: '[]=', type: targetType),
       );
     }
 
@@ -457,19 +463,15 @@ class PropertyElementResolver with ScopeHelpers {
 
   void _reportUnresolvedIndex(
     IndexExpression node,
-    DiagnosticCode diagnosticCode, [
-    List<Object> arguments = const [],
-  ]) {
+    LocatableDiagnostic locatableDiagnostic,
+  ) {
     var leftBracket = node.leftBracket;
     var rightBracket = node.rightBracket;
     var offset = leftBracket.offset;
     var length = rightBracket.end - offset;
 
-    diagnosticReporter.atOffset(
-      offset: offset,
-      length: length,
-      diagnosticCode: diagnosticCode,
-      arguments: arguments,
+    diagnosticReporter.report(
+      locatableDiagnostic.atOffset(offset: offset, length: length),
     );
   }
 

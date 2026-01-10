@@ -404,10 +404,13 @@ class BinaryExpressionResolver {
       if (member == null) {
         // Extension overrides can only be used with named extensions so it is
         // safe to assume `extension.name` is non-`null`.
-        _diagnosticReporter.atToken(
-          node.operator,
-          diag.undefinedExtensionOperator,
-          arguments: [methodName, extension.name!],
+        _diagnosticReporter.report(
+          diag.undefinedExtensionOperator
+              .withArguments(
+                operator: methodName,
+                extensionName: extension.name!,
+              )
+              .at(node.operator),
         );
       }
       node.element = member;
@@ -442,16 +445,16 @@ class BinaryExpressionResolver {
     node.staticInvokeType = result.getter2?.type;
     if (result.needsGetterError) {
       if (leftOperand is SuperExpression) {
-        _diagnosticReporter.atToken(
-          node.operator,
-          diag.undefinedSuperOperator,
-          arguments: [methodName, leftType],
+        _diagnosticReporter.report(
+          diag.undefinedSuperOperator
+              .withArguments(operator: methodName, type: leftType)
+              .at(node.operator),
         );
       } else {
-        _diagnosticReporter.atToken(
-          node.operator,
-          diag.undefinedOperator,
-          arguments: [methodName, leftType],
+        _diagnosticReporter.report(
+          diag.undefinedOperator
+              .withArguments(operator: methodName, type: leftType)
+              .at(node.operator),
         );
       }
     }

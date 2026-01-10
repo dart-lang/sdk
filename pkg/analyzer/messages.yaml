@@ -18299,10 +18299,10 @@ CompileTimeErrorCode:
   undefinedExtensionOperator:
     type: compileTimeError
     parameters:
-      String p0: the name of the operator that is undefined
-      String p1: the name of the extension that was explicitly specified
-    problemMessage: "The operator '#p0' isn't defined for the extension '#p1'."
-    correctionMessage: "Try defining the operator '#p0'."
+      String operator: the name of the operator that is undefined
+      String extensionName: the name of the extension that was explicitly specified
+    problemMessage: "The operator '#operator' isn't defined for the extension '#extensionName'."
+    correctionMessage: "Try defining the operator '#operator'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18714,10 +18714,10 @@ CompileTimeErrorCode:
   undefinedOperator:
     type: compileTimeError
     parameters:
-      String p0: the name of the operator
-      Type p1: the name of the enclosing type where the operator is being looked for
-    problemMessage: "The operator '#p0' isn't defined for the type '#p1'."
-    correctionMessage: "Try defining the operator '#p0'."
+      String operator: the name of the operator
+      Type type: the type where the operator is being looked for
+    problemMessage: "The operator '#operator' isn't defined for the type '#type'."
+    correctionMessage: "Try defining the operator '#operator'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18897,11 +18897,11 @@ CompileTimeErrorCode:
   undefinedSuperOperator:
     type: compileTimeError
     parameters:
-      String p0: the name of the operator
-      Type p1: the name of the enclosing type where the operator is being looked for
+      String operator: the name of the operator
+      Type type: the type where the operator is being looked for
     sharedName: undefinedSuperMember
-    problemMessage: "The operator '#p0' isn't defined in a superclass of '#p1'."
-    correctionMessage: "Try defining the operator '#p0' in a superclass."
+    problemMessage: "The operator '#operator' isn't defined in a superclass of '#type'."
+    correctionMessage: "Try defining the operator '#operator' in a superclass."
     hasPublishedDocs: true
   undefinedSuperSetter:
     type: compileTimeError

@@ -15947,10 +15947,14 @@ undefinedExtensionMethod = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the operator that is undefined
-/// String p1: the name of the extension that was explicitly specified
+/// String operator: the name of the operator that is undefined
+/// String extensionName: the name of the extension that was explicitly
+///                       specified
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String operator,
+    required String extensionName,
+  })
 >
 undefinedExtensionOperator = DiagnosticWithArguments(
   name: 'undefined_extension_operator',
@@ -16169,11 +16173,13 @@ undefinedNamedParameter = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the operator
-/// Type p1: the name of the enclosing type where the operator is being looked
-///          for
+/// String operator: the name of the operator
+/// Type type: the type where the operator is being looked for
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required String operator,
+    required DartType type,
+  })
 >
 undefinedOperator = DiagnosticWithArguments(
   name: 'undefined_operator',
@@ -16321,11 +16327,13 @@ undefinedSuperMethod = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the operator
-/// Type p1: the name of the enclosing type where the operator is being looked
-///          for
+/// String operator: the name of the operator
+/// Type type: the type where the operator is being looked for
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required String operator,
+    required DartType type,
+  })
 >
 undefinedSuperOperator = DiagnosticWithArguments(
   name: 'undefined_super_member',
@@ -21270,10 +21278,13 @@ LocatableDiagnostic _withArgumentsUndefinedExtensionMethod({
 }
 
 LocatableDiagnostic _withArgumentsUndefinedExtensionOperator({
-  required String p0,
-  required String p1,
+  required String operator,
+  required String extensionName,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedExtensionOperator, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.undefinedExtensionOperator, [
+    operator,
+    extensionName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedExtensionSetter({
@@ -21337,10 +21348,10 @@ LocatableDiagnostic _withArgumentsUndefinedNamedParameter({
 }
 
 LocatableDiagnostic _withArgumentsUndefinedOperator({
-  required String p0,
-  required DartType p1,
+  required String operator,
+  required DartType type,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedOperator, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.undefinedOperator, [operator, type]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedPrefixedName({
@@ -21393,10 +21404,10 @@ LocatableDiagnostic _withArgumentsUndefinedSuperMethod({
 }
 
 LocatableDiagnostic _withArgumentsUndefinedSuperOperator({
-  required String p0,
-  required DartType p1,
+  required String operator,
+  required DartType type,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedSuperOperator, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.undefinedSuperOperator, [operator, type]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedSuperSetter({

@@ -1655,10 +1655,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
 
     if (result.needsGetterError) {
-      diagnosticReporter.atToken(
-        node.operator,
-        diag.undefinedOperator,
-        arguments: [methodName, matchedType],
+      diagnosticReporter.report(
+        diag.undefinedOperator
+            .withArguments(
+              operator: methodName,
+              type: matchedType.unwrapTypeView<TypeImpl>(),
+            )
+            .at(node.operator),
       );
     }
 
