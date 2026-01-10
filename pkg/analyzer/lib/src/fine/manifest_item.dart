@@ -502,14 +502,16 @@ class FieldItem extends VariableItem<FieldElementImpl> {
     required EncodeContext context,
     required FieldElementImpl element,
   }) {
-    return FieldItem(
-      id: id,
-      flags: _FieldItemFlags.encode(element),
-      metadata: ManifestMetadata.encode(context, element.metadata),
-      type: element.type.encode(context),
-      constInitializer: element.constantInitializer?.encode(context),
-      typeInferenceError: element.typeInferenceError,
-    );
+    return context.withPrimaryInitializerScope(element, () {
+      return FieldItem(
+        id: id,
+        flags: _FieldItemFlags.encode(element),
+        metadata: ManifestMetadata.encode(context, element.metadata),
+        type: element.type.encode(context),
+        constInitializer: element.constantInitializer?.encode(context),
+        typeInferenceError: element.typeInferenceError,
+      );
+    });
   }
 
   factory FieldItem.read(BinaryReader reader) {
@@ -528,21 +530,23 @@ class FieldItem extends VariableItem<FieldElementImpl> {
 
   @override
   bool match(MatchContext context, FieldElementImpl element) {
-    return super.match(context, element) &&
-        flags.hasEnclosingTypeParameterReference ==
-            element.hasEnclosingTypeParameterReference &&
-        flags.isAbstract == element.isAbstract &&
-        flags.isCovariant == element.isCovariant &&
-        flags.isEnumConstant == element.isEnumConstant &&
-        flags.isExternal == element.isExternal &&
-        flags.isOriginDeclaration == element.isOriginDeclaration &&
-        flags.isOriginDeclaringFormalParameter ==
-            element.isOriginDeclaringFormalParameter &&
-        flags.isOriginEnumValues == element.isOriginEnumValues &&
-        flags.isOriginExtensionTypeRecoveryRepresentation ==
-            element.isOriginExtensionTypeRecoveryRepresentation &&
-        flags.isOriginGetterSetter == element.isOriginGetterSetter &&
-        flags.isPromotable == element.isPromotable;
+    return context.withPrimaryInitializerScope(element, () {
+      return super.match(context, element) &&
+          flags.hasEnclosingTypeParameterReference ==
+              element.hasEnclosingTypeParameterReference &&
+          flags.isAbstract == element.isAbstract &&
+          flags.isCovariant == element.isCovariant &&
+          flags.isEnumConstant == element.isEnumConstant &&
+          flags.isExternal == element.isExternal &&
+          flags.isOriginDeclaration == element.isOriginDeclaration &&
+          flags.isOriginDeclaringFormalParameter ==
+              element.isOriginDeclaringFormalParameter &&
+          flags.isOriginEnumValues == element.isOriginEnumValues &&
+          flags.isOriginExtensionTypeRecoveryRepresentation ==
+              element.isOriginExtensionTypeRecoveryRepresentation &&
+          flags.isOriginGetterSetter == element.isOriginGetterSetter &&
+          flags.isPromotable == element.isPromotable;
+    });
   }
 
   static Map<LookupName, FieldItem> readMap(BinaryReader reader) {

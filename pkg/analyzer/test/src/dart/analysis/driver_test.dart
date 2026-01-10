@@ -59876,6 +59876,172 @@ class C extends B {
     );
   }
 
+  test_manifest_class_field_initializer_primaryFormalParameter() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class const A(int foo. int bar) {
+  final a = foo;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        flags: isSimplyBounded
+        supertype: Object @ dart:core
+        declaredFields
+          a: #M1
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
+            type: int @ dart:core
+            constInitializer
+              tokenBuffer: foo
+              tokenLengthList: [3]
+              elementIndexList
+                2 = formalParameter 0
+        declaredGetters
+          a: #M2
+            flags: isOriginVariable isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        interface: #M3
+          map
+            a: #M2
+          implemented
+            a: #M2
+    exportMapId: #M4
+    exportMap
+      A: #M0
+''',
+      updatedCode: r'''
+class const A(int foo, int bar) {
+  final a = bar;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        flags: isSimplyBounded
+        supertype: Object @ dart:core
+        declaredFields
+          a: #M5
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
+            type: int @ dart:core
+            constInitializer
+              tokenBuffer: bar
+              tokenLengthList: [3]
+              elementIndexList
+                18 = formalParameter 1
+        declaredGetters
+          a: #M2
+            flags: isOriginVariable isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        interface: #M3
+          map
+            a: #M2
+          implemented
+            a: #M2
+    exportMapId: #M4
+    exportMap
+      A: #M0
+''',
+    );
+  }
+
+  test_manifest_class_field_initializer_primaryFormalParameter_noChange() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class const A(int foo) {
+  final a = foo;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        flags: isSimplyBounded
+        supertype: Object @ dart:core
+        declaredFields
+          a: #M1
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
+            type: int @ dart:core
+            constInitializer
+              tokenBuffer: foo
+              tokenLengthList: [3]
+              elementIndexList
+                2 = formalParameter 0
+        declaredGetters
+          a: #M2
+            flags: isOriginVariable isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        interface: #M3
+          map
+            a: #M2
+          implemented
+            a: #M2
+    exportMapId: #M4
+    exportMap
+      A: #M0
+''',
+      updatedCode: r'''
+class const A(int foo) {
+  final a = foo;
+  final b = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        flags: isSimplyBounded
+        supertype: Object @ dart:core
+        declaredFields
+          a: #M1
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
+            type: int @ dart:core
+            constInitializer
+              tokenBuffer: foo
+              tokenLengthList: [3]
+              elementIndexList
+                2 = formalParameter 0
+          b: #M5
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
+            type: int @ dart:core
+            constInitializer
+              tokenBuffer: 0
+              tokenLengthList: [1]
+        declaredGetters
+          a: #M2
+            flags: isOriginVariable isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+          b: #M6
+            flags: isOriginVariable isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        interface: #M7
+          map
+            a: #M2
+            b: #M6
+          implemented
+            a: #M2
+            b: #M6
+    exportMapId: #M4
+    exportMap
+      A: #M0
+''',
+    );
+  }
+
   test_manifest_class_field_initializer_type() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
