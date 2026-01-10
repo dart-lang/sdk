@@ -598,11 +598,10 @@ class _ErrorHelper {
     if (_isTypeInIsExpression(node)) {
       var errorRange = _getErrorRange(node);
       if (element != null) {
-        diagnosticReporter.atOffset(
-          offset: errorRange.offset,
-          length: errorRange.length,
-          diagnosticCode: diag.typeTestWithNonType,
-          arguments: [node.name.lexeme],
+        diagnosticReporter.report(
+          diag.typeTestWithNonType
+              .withArguments(name: node.name.lexeme)
+              .atOffset(offset: errorRange.offset, length: errorRange.length),
         );
       } else {
         diagnosticReporter.atOffset(

@@ -88,10 +88,13 @@ void checkForTypeParameterBoundRecursion(
           var element = parameter.declaredFragment!.element;
           // This error can only occur if there is a bound, so we can safely
           // assume `element.bound` is non-`null`.
-          diagnosticReporter.atToken(
-            parameter.name,
-            diag.typeParameterSupertypeOfItsBound,
-            arguments: [element.displayName, element.bound!],
+          diagnosticReporter.report(
+            diag.typeParameterSupertypeOfItsBound
+                .withArguments(
+                  typeParameterName: element.displayName,
+                  bound: element.bound!,
+                )
+                .at(parameter.name),
           );
           break;
         }
@@ -1605,10 +1608,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       element.type,
       superParameter.type,
     )) {
-      diagnosticReporter.atToken(
-        node.name,
-        diag.superFormalParameterTypeIsNotSubtypeOfAssociated,
-        arguments: [element.type, superParameter.type],
+      diagnosticReporter.report(
+        diag.superFormalParameterTypeIsNotSubtypeOfAssociated
+            .withArguments(
+              parameterType: element.type,
+              superParameterType: superParameter.type,
+            )
+            .at(node.name),
       );
     }
   }
@@ -2751,10 +2757,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (constructorName != null) {
           constructorStrName += '.${constructorName.name}';
         }
-        diagnosticReporter.atToken(
-          superInitializer.superKeyword,
-          diag.superInvocationNotLast,
-          arguments: [constructorStrName],
+        diagnosticReporter.report(
+          diag.superInvocationNotLast
+              .withArguments(superConstructorName: constructorStrName)
+              .at(superInitializer.superKeyword),
         );
       }
     }
@@ -5389,10 +5395,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (NamedType namedType in supertypes) {
       if (namedType.type case InterfaceType(:ClassElement element)) {
         if (element.isSealed && element.library != _currentLibrary) {
-          diagnosticReporter.atNode(
-            namedType,
-            diag.sealedClassSubtypeOutsideOfLibrary,
-            arguments: [element.name!],
+          diagnosticReporter.report(
+            diag.sealedClassSubtypeOutsideOfLibrary
+                .withArguments(sealedClassName: element.name!)
+                .at(namedType),
           );
         }
       }
@@ -5457,10 +5463,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (element.isStatic || element is ConstructorElement) {
         return;
       }
-      diagnosticReporter.atNode(
-        name,
-        diag.staticAccessToInstanceMember,
-        arguments: [name.name],
+      diagnosticReporter.report(
+        diag.staticAccessToInstanceMember
+            .withArguments(name: name.name)
+            .at(name),
       );
     }
   }
@@ -5474,10 +5480,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       typeSystem.objectNone,
       strictCasts: strictCasts,
     )) {
-      diagnosticReporter.atNode(
-        expression,
-        diag.throwOfInvalidType,
-        arguments: [type],
+      diagnosticReporter.report(
+        diag.throwOfInvalidType.withArguments(type: type).at(expression),
       );
     }
   }
@@ -5502,10 +5506,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// See [diag.typeAnnotationDeferredClass].
   void _checkForTypeAnnotationDeferredClass(TypeAnnotation? type) {
     if (type is NamedType && type.isDeferred) {
-      diagnosticReporter.atNode(
-        type,
-        diag.typeAnnotationDeferredClass,
-        arguments: [type.qualifiedName],
+      diagnosticReporter.report(
+        diag.typeAnnotationDeferredClass
+            .withArguments(typeName: type.qualifiedName)
+            .at(type),
       );
     }
   }

@@ -378,10 +378,10 @@ class MethodInvocationResolver with ScopeHelpers {
     SimpleIdentifier nameNode,
   ) {
     if (!element.isStatic) {
-      _resolver.diagnosticReporter.atNode(
-        nameNode,
-        diag.staticAccessToInstanceMember,
-        arguments: [nameNode.name],
+      _resolver.diagnosticReporter.report(
+        diag.staticAccessToInstanceMember
+            .withArguments(name: nameNode.name)
+            .at(nameNode),
       );
     }
   }

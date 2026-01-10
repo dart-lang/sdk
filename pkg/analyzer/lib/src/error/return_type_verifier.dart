@@ -149,10 +149,10 @@ class ReturnTypeVerifier {
           arguments: [S, T],
         );
       } else if (enclosingExecutable.isClosure) {
-        _diagnosticReporter.atNode(
-          expression,
-          diag.returnOfInvalidTypeFromClosure,
-          arguments: [S, T],
+        _diagnosticReporter.report(
+          diag.returnOfInvalidTypeFromClosure
+              .withArguments(actualReturnType: S, expectedReturnType: T)
+              .at(expression),
         );
       } else if (enclosingExecutable.isConstructor) {
         // [EnclosingExecutableContext.displayName] will only return `null` if
@@ -187,10 +187,14 @@ class ReturnTypeVerifier {
         // there is no enclosing element, in which case the `if` test above
         // would have failed.  So it's safe to assume that
         // `enclosingExecutable.displayName` is non-`null`.
-        _diagnosticReporter.atNode(
-          expression,
-          diag.returnOfInvalidTypeFromMethod,
-          arguments: [S, T, enclosingExecutable.displayName!],
+        _diagnosticReporter.report(
+          diag.returnOfInvalidTypeFromMethod
+              .withArguments(
+                actualReturnType: S,
+                expectedReturnType: T,
+                methodName: enclosingExecutable.displayName!,
+              )
+              .at(expression),
         );
       }
     }

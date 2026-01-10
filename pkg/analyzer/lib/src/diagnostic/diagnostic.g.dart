@@ -14510,10 +14510,13 @@ returnOfInvalidTypeFromCatchError = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the return type as declared in the return statement
-/// Type p1: the expected return type as defined by the method
+/// Type actualReturnType: the return type as declared in the return statement
+/// Type expectedReturnType: the expected return type as defined by the method
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType actualReturnType,
+    required DartType expectedReturnType,
+  })
 >
 returnOfInvalidTypeFromClosure = DiagnosticWithArguments(
   name: 'return_of_invalid_type_from_closure',
@@ -14575,14 +14578,14 @@ returnOfInvalidTypeFromFunction = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the type of the expression in the return statement
-/// Type p1: the expected return type as defined by the method
-/// String p2: the name of the method
+/// Type actualReturnType: the type of the expression in the return statement
+/// Type expectedReturnType: the expected return type as defined by the method
+/// String methodName: the name of the method
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required DartType p0,
-    required DartType p1,
-    required String p2,
+    required DartType actualReturnType,
+    required DartType expectedReturnType,
+    required String methodName,
   })
 >
 returnOfInvalidTypeFromMethod = DiagnosticWithArguments(
@@ -14680,10 +14683,10 @@ sdkVersionSince = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the sealed class being extended, implemented, or
-///            mixed in
+/// String sealedClassName: the name of the sealed class being extended,
+///                         implemented, or mixed in
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String sealedClassName})
 >
 sealedClassSubtypeOutsideOfLibrary = DiagnosticWithArguments(
   name: 'invalid_use_of_type_outside_library',
@@ -14875,9 +14878,9 @@ const DiagnosticWithoutArguments stackOverflow = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the instance member
+/// String name: the name of the instance member
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 staticAccessToInstanceMember = DiagnosticWithArguments(
   name: 'static_access_to_instance_member',
@@ -15094,10 +15097,14 @@ subtypeOfStructClassInWith = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the type of super-parameter
-/// Type p1: the type of associated super-constructor parameter
+/// Type parameterType: the type of super-parameter
+/// Type superParameterType: the type of associated super-constructor
+///                          parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType parameterType,
+    required DartType superParameterType,
+  })
 >
 superFormalParameterTypeIsNotSubtypeOfAssociated = DiagnosticWithArguments(
   name: 'super_formal_parameter_type_is_not_subtype_of_associated',
@@ -15218,9 +15225,9 @@ const DiagnosticWithoutArguments superInRedirectingConstructor =
     );
 
 /// Parameters:
-/// String p0: the superinitializer
+/// String superConstructorName: the superinitializer
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String superConstructorName})
 >
 superInvocationNotLast = DiagnosticWithArguments(
   name: 'super_invocation_not_last',
@@ -15325,9 +15332,9 @@ textDirectionCodePointInLiteral = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the type that can't be thrown
+/// Type type: the type that can't be thrown
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0})
+  LocatableDiagnostic Function({required DartType type})
 >
 throwOfInvalidType = DiagnosticWithArguments(
   name: 'throw_of_invalid_type',
@@ -15405,10 +15412,10 @@ typeAliasCannotReferenceItself = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the type that is deferred and being used in a type
-///            annotation
+/// String typeName: the name of the type that is deferred and being used in a
+///                  type annotation
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String typeName})
 >
 typeAnnotationDeferredClass = DiagnosticWithArguments(
   name: 'type_annotation_deferred_class',
@@ -15426,15 +15433,16 @@ typeAnnotationDeferredClass = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the name of the type used in the instance creation that should be
-///          limited by the bound as specified in the class declaration
-/// String p1: the name of the type parameter
-/// Type p2: the substituted bound of the type parameter
+/// Type nonConformingType: the name of the type used in the instance creation
+///                         that should be limited by the bound as specified
+///                         in the class declaration
+/// String typeParameterName: the name of the type parameter
+/// Type bound: the substituted bound of the type parameter
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required DartType p0,
-    required String p1,
-    required DartType p2,
+    required DartType nonConformingType,
+    required String typeParameterName,
+    required DartType bound,
   })
 >
 typeArgumentNotMatchingBounds = DiagnosticWithArguments(
@@ -15551,10 +15559,13 @@ const DiagnosticWithoutArguments typeParameterReferencedByStatic =
 /// See [diag.typeArgumentNotMatchingBounds].
 ///
 /// Parameters:
-/// String p0: the name of the type parameter
-/// Type p1: the name of the bounding type
+/// String typeParameterName: the name of the type parameter
+/// Type bound: the name of the bounding type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required String typeParameterName,
+    required DartType bound,
+  })
 >
 typeParameterSupertypeOfItsBound = DiagnosticWithArguments(
   name: 'type_parameter_supertype_of_its_bound',
@@ -15569,9 +15580,9 @@ typeParameterSupertypeOfItsBound = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the type
+/// String name: the name of the type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 typeTestWithNonType = DiagnosticWithArguments(
   name: 'type_test_with_non_type',
@@ -20932,10 +20943,13 @@ LocatableDiagnostic _withArgumentsReturnOfInvalidTypeFromCatchError({
 }
 
 LocatableDiagnostic _withArgumentsReturnOfInvalidTypeFromClosure({
-  required DartType p0,
-  required DartType p1,
+  required DartType actualReturnType,
+  required DartType expectedReturnType,
 }) {
-  return LocatableDiagnosticImpl(diag.returnOfInvalidTypeFromClosure, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.returnOfInvalidTypeFromClosure, [
+    actualReturnType,
+    expectedReturnType,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsReturnOfInvalidTypeFromConstructor({
@@ -20963,14 +20977,14 @@ LocatableDiagnostic _withArgumentsReturnOfInvalidTypeFromFunction({
 }
 
 LocatableDiagnostic _withArgumentsReturnOfInvalidTypeFromMethod({
-  required DartType p0,
-  required DartType p1,
-  required String p2,
+  required DartType actualReturnType,
+  required DartType expectedReturnType,
+  required String methodName,
 }) {
   return LocatableDiagnosticImpl(diag.returnOfInvalidTypeFromMethod, [
-    p0,
-    p1,
-    p2,
+    actualReturnType,
+    expectedReturnType,
+    methodName,
   ]);
 }
 
@@ -20989,9 +21003,11 @@ LocatableDiagnostic _withArgumentsSdkVersionSince({
 }
 
 LocatableDiagnostic _withArgumentsSealedClassSubtypeOutsideOfLibrary({
-  required String p0,
+  required String sealedClassName,
 }) {
-  return LocatableDiagnosticImpl(diag.sealedClassSubtypeOutsideOfLibrary, [p0]);
+  return LocatableDiagnosticImpl(diag.sealedClassSubtypeOutsideOfLibrary, [
+    sealedClassName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsSetElementTypeNotAssignable({
@@ -21015,9 +21031,9 @@ LocatableDiagnostic _withArgumentsSetElementTypeNotAssignableNullability({
 }
 
 LocatableDiagnostic _withArgumentsStaticAccessToInstanceMember({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.staticAccessToInstanceMember, [p0]);
+  return LocatableDiagnosticImpl(diag.staticAccessToInstanceMember, [name]);
 }
 
 LocatableDiagnostic _withArgumentsStrictRawType({required DartType p0}) {
@@ -21080,17 +21096,21 @@ LocatableDiagnostic _withArgumentsSubtypeOfStructClassInWith({
 
 LocatableDiagnostic
 _withArgumentsSuperFormalParameterTypeIsNotSubtypeOfAssociated({
-  required DartType p0,
-  required DartType p1,
+  required DartType parameterType,
+  required DartType superParameterType,
 }) {
   return LocatableDiagnosticImpl(
     diag.superFormalParameterTypeIsNotSubtypeOfAssociated,
-    [p0, p1],
+    [parameterType, superParameterType],
   );
 }
 
-LocatableDiagnostic _withArgumentsSuperInvocationNotLast({required String p0}) {
-  return LocatableDiagnosticImpl(diag.superInvocationNotLast, [p0]);
+LocatableDiagnostic _withArgumentsSuperInvocationNotLast({
+  required String superConstructorName,
+}) {
+  return LocatableDiagnosticImpl(diag.superInvocationNotLast, [
+    superConstructorName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsTextDirectionCodePointInComment({
@@ -21105,8 +21125,8 @@ LocatableDiagnostic _withArgumentsTextDirectionCodePointInLiteral({
   return LocatableDiagnosticImpl(diag.textDirectionCodePointInLiteral, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsThrowOfInvalidType({required DartType p0}) {
-  return LocatableDiagnosticImpl(diag.throwOfInvalidType, [p0]);
+LocatableDiagnostic _withArgumentsThrowOfInvalidType({required DartType type}) {
+  return LocatableDiagnosticImpl(diag.throwOfInvalidType, [type]);
 }
 
 LocatableDiagnostic _withArgumentsTodo({required String message}) {
@@ -21121,35 +21141,35 @@ LocatableDiagnostic _withArgumentsTopLevelCycle({
 }
 
 LocatableDiagnostic _withArgumentsTypeAnnotationDeferredClass({
-  required String p0,
+  required String typeName,
 }) {
-  return LocatableDiagnosticImpl(diag.typeAnnotationDeferredClass, [p0]);
+  return LocatableDiagnosticImpl(diag.typeAnnotationDeferredClass, [typeName]);
 }
 
 LocatableDiagnostic _withArgumentsTypeArgumentNotMatchingBounds({
-  required DartType p0,
-  required String p1,
-  required DartType p2,
+  required DartType nonConformingType,
+  required String typeParameterName,
+  required DartType bound,
 }) {
   return LocatableDiagnosticImpl(diag.typeArgumentNotMatchingBounds, [
-    p0,
-    p1,
-    p2,
+    nonConformingType,
+    typeParameterName,
+    bound,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsTypeParameterSupertypeOfItsBound({
-  required String p0,
-  required DartType p1,
+  required String typeParameterName,
+  required DartType bound,
 }) {
   return LocatableDiagnosticImpl(diag.typeParameterSupertypeOfItsBound, [
-    p0,
-    p1,
+    typeParameterName,
+    bound,
   ]);
 }
 
-LocatableDiagnostic _withArgumentsTypeTestWithNonType({required String p0}) {
-  return LocatableDiagnosticImpl(diag.typeTestWithNonType, [p0]);
+LocatableDiagnostic _withArgumentsTypeTestWithNonType({required String name}) {
+  return LocatableDiagnosticImpl(diag.typeTestWithNonType, [name]);
 }
 
 LocatableDiagnostic _withArgumentsTypeTestWithUndefinedName({

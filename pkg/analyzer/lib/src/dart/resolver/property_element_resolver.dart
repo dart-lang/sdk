@@ -400,10 +400,10 @@ class PropertyElementResolver with ScopeHelpers {
   ) {
     if (element.isStatic) return false;
 
-    diagnosticReporter.atNode(
-      identifier,
-      diag.staticAccessToInstanceMember,
-      arguments: [identifier.name],
+    diagnosticReporter.report(
+      diag.staticAccessToInstanceMember
+          .withArguments(name: identifier.name)
+          .at(identifier),
     );
     return true;
   }
