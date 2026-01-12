@@ -427,10 +427,13 @@ class MethodInvocationResolver with ScopeHelpers {
         // Do not report extra errors.
       }
     } else {
-      _resolver.diagnosticReporter.atNode(
-        methodName,
-        diag.undefinedMethod,
-        arguments: [methodName.name, receiver.displayName],
+      _resolver.diagnosticReporter.report(
+        diag.undefinedMethod
+            .withArguments(
+              methodName: methodName.name,
+              typeName: receiver.displayName,
+            )
+            .at(methodName),
       );
     }
   }
@@ -846,10 +849,10 @@ class MethodInvocationResolver with ScopeHelpers {
           FunctionType() => 'Function',
           _ => '<unknown>',
         };
-        _resolver.diagnosticReporter.atNode(
-          nameNode,
-          diag.undefinedMethod,
-          arguments: [name, receiverTypeName],
+        _resolver.diagnosticReporter.report(
+          diag.undefinedMethod
+              .withArguments(methodName: name, typeName: receiverTypeName)
+              .at(nameNode),
         );
         return;
       }
@@ -1160,10 +1163,10 @@ class MethodInvocationResolver with ScopeHelpers {
     }
 
     if (!nameNode.isSynthetic) {
-      _resolver.diagnosticReporter.atNode(
-        nameNode,
-        diag.undefinedMethod,
-        arguments: [name, receiverClassName],
+      _resolver.diagnosticReporter.report(
+        diag.undefinedMethod
+            .withArguments(methodName: name, typeName: receiverClassName)
+            .at(nameNode),
       );
     }
   }

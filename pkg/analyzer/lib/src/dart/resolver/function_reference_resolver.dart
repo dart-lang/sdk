@@ -650,10 +650,13 @@ class FunctionReferenceResolver {
         _resolve(node: node, rawType: method.type, name: function.name);
         return;
       } else {
-        _resolver.diagnosticReporter.atNode(
-          function,
-          diag.undefinedMethod,
-          arguments: [function.name, receiverType],
+        _resolver.diagnosticReporter.report(
+          diag.undefinedMethod
+              .withArguments(
+                methodName: function.name,
+                typeName: receiverType.getDisplayString(),
+              )
+              .at(function),
         );
         function.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
         node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);

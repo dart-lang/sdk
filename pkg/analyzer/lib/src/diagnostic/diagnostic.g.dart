@@ -16134,10 +16134,14 @@ undefinedLint = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the method that is undefined
-/// Object p1: the resolved type name that the method lookup is happening on
+/// String methodName: the name of the method that is undefined
+/// String typeName: the resolved type name that the method lookup is
+///                  happening on
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required Object p1})
+  LocatableDiagnostic Function({
+    required String methodName,
+    required String typeName,
+  })
 >
 undefinedMethod = DiagnosticWithArguments(
   name: 'undefined_method',
@@ -16149,7 +16153,7 @@ undefinedMethod = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_method',
   withArguments: _withArgumentsUndefinedMethod,
-  expectedTypes: [ExpectedType.string, ExpectedType.object],
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// Parameters:
@@ -21359,10 +21363,10 @@ LocatableDiagnostic _withArgumentsUndefinedLint({required String ruleName}) {
 }
 
 LocatableDiagnostic _withArgumentsUndefinedMethod({
-  required String p0,
-  required Object p1,
+  required String methodName,
+  required String typeName,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedMethod, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.undefinedMethod, [methodName, typeName]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedMethodOnFunctionType({

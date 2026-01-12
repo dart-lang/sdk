@@ -18600,10 +18600,10 @@ CompileTimeErrorCode:
   undefinedMethod:
     type: compileTimeError
     parameters:
-      String p0: the name of the method that is undefined
-      Object p1: the resolved type name that the method lookup is happening on
-    problemMessage: "The method '#p0' isn't defined for the type '#p1'."
-    correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#p0'."
+      String methodName: the name of the method that is undefined
+      String typeName: the resolved type name that the method lookup is happening on
+    problemMessage: "The method '#methodName' isn't defined for the type '#typeName'."
+    correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#methodName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
