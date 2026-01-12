@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class DuplicateFieldFormalParameterTest extends PubPackageResolutionTest {
-  test_optional_named() async {
+  test_constructor_optional_named() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -34,7 +34,7 @@ class A {
     );
   }
 
-  test_optional_named_wildcard() async {
+  test_constructor_optional_named_wildcard() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -56,7 +56,7 @@ class A {
     );
   }
 
-  test_optional_named_wildcard_preWildcards() async {
+  test_constructor_optional_named_wildcard_preWildcards() async {
     await assertErrorsInCode(
       r'''
 // @dart = 3.4
@@ -81,7 +81,7 @@ class A {
     );
   }
 
-  test_optional_positional() async {
+  test_constructor_optional_positional() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -100,7 +100,7 @@ class A {
     );
   }
 
-  test_optional_positional_final() async {
+  test_constructor_optional_positional_final() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -119,7 +119,7 @@ class A {
     );
   }
 
-  test_optional_positional_final_wildcard() async {
+  test_constructor_optional_positional_final_wildcard() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -139,7 +139,7 @@ class A {
     );
   }
 
-  test_optional_positional_final_wildcard_preWildcards() async {
+  test_constructor_optional_positional_final_wildcard_preWildcards() async {
     await assertErrorsInCode(
       r'''
 // @dart = 3.4
@@ -162,7 +162,7 @@ class A {
     );
   }
 
-  test_optional_positional_wildcard() async {
+  test_constructor_optional_positional_wildcard() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -182,7 +182,7 @@ class A {
     );
   }
 
-  test_optional_positional_wildcard_preWildcards() async {
+  test_constructor_optional_positional_wildcard_preWildcards() async {
     await assertErrorsInCode(
       r'''
 // @dart = 3.4
@@ -205,7 +205,7 @@ class A {
     );
   }
 
-  test_required_named() async {
+  test_constructor_required_named() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -224,7 +224,7 @@ class A {
     );
   }
 
-  test_required_named_wildcard() async {
+  test_constructor_required_named_wildcard() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -246,7 +246,7 @@ class A {
     );
   }
 
-  test_required_named_wildcard_preWildcards() async {
+  test_constructor_required_named_wildcard_preWildcards() async {
     await assertErrorsInCode(
       r'''
 // @dart = 3.4
@@ -271,7 +271,7 @@ class A {
     );
   }
 
-  test_required_positional() async {
+  test_constructor_required_positional() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -290,7 +290,7 @@ class A {
     );
   }
 
-  test_required_positional_final() async {
+  test_constructor_required_positional_final() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -309,7 +309,7 @@ class A {
     );
   }
 
-  test_required_positional_final_wildcard() async {
+  test_constructor_required_positional_final_wildcard() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -329,7 +329,7 @@ class A {
     );
   }
 
-  test_required_positional_final_wildcard_preWildcards() async {
+  test_constructor_required_positional_final_wildcard_preWildcards() async {
     await assertErrorsInCode(
       r'''
 // @dart = 3.4
@@ -352,7 +352,7 @@ class A {
     );
   }
 
-  test_required_positional_preWildcards() async {
+  test_constructor_required_positional_preWildcards() async {
     await assertErrorsInCode(
       r'''
 // @dart = 3.4
@@ -375,7 +375,7 @@ class A {
     );
   }
 
-  test_required_positional_primaryConstructor() async {
+  test_constructor_required_positional_primaryConstructor() async {
     await assertErrorsInCode(
       r'''
 class A(this.f, this.f) {
@@ -394,7 +394,7 @@ class A(this.f, this.f) {
   }
 
   // TODO(pq): add more tests (https://github.com/dart-lang/sdk/issues/56092)
-  test_required_positional_wildcard() async {
+  test_constructor_required_positional_wildcard() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -409,6 +409,78 @@ class A {
           37,
           1,
           contextMessages: [message(testFile, 29, 1)],
+        ),
+      ],
+    );
+  }
+
+  test_primaryConstructor_optional_named() async {
+    await assertErrorsInCode(
+      r'''
+class A({this.a = 0, this.a = 1}) {
+  int a;
+}
+''',
+      [
+        error(
+          diag.duplicateFieldFormalParameter,
+          26,
+          1,
+          contextMessages: [message(testFile, 14, 1)],
+        ),
+      ],
+    );
+  }
+
+  test_primaryConstructor_optional_positional() async {
+    await assertErrorsInCode(
+      r'''
+class A([this.a = 0, this.a = 1]) {
+  int a;
+}
+''',
+      [
+        error(
+          diag.duplicateFieldFormalParameter,
+          26,
+          1,
+          contextMessages: [message(testFile, 14, 1)],
+        ),
+      ],
+    );
+  }
+
+  test_primaryConstructor_required_named() async {
+    await assertErrorsInCode(
+      r'''
+class A({required this.a, required this.a}) {
+  int a;
+}
+''',
+      [
+        error(
+          diag.duplicateFieldFormalParameter,
+          40,
+          1,
+          contextMessages: [message(testFile, 23, 1)],
+        ),
+      ],
+    );
+  }
+
+  test_primaryConstructor_required_positional() async {
+    await assertErrorsInCode(
+      r'''
+class A(this.a, this.a) {
+  int a;
+}
+''',
+      [
+        error(
+          diag.duplicateFieldFormalParameter,
+          21,
+          1,
+          contextMessages: [message(testFile, 13, 1)],
         ),
       ],
     );

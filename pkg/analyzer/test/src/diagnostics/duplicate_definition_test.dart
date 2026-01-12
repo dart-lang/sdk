@@ -4331,6 +4331,122 @@ class A {
     );
   }
 
+  test_parameters_primaryConstructor_field_simple() async {
+    await assertErrorsInCode(
+      r'''
+class A(int a, this.a) {
+  int a;
+}
+''',
+      [
+        error(
+          diag.duplicateDefinition,
+          20,
+          1,
+          contextMessages: [message(testFile, 12, 1)],
+        ),
+      ],
+    );
+  }
+
+  test_parameters_primaryConstructor_field_simple_wildcard() async {
+    await assertErrorsInCode(
+      r'''
+class A(int _, this._) {
+  int _;
+}
+''',
+      [error(diag.unusedField, 31, 1)],
+    );
+  }
+
+  test_parameters_primaryConstructor_simple_field() async {
+    await assertErrorsInCode(
+      r'''
+class A(this.a, int a) {
+  int a;
+}
+''',
+      [
+        error(
+          diag.duplicateDefinition,
+          20,
+          1,
+          contextMessages: [message(testFile, 13, 1)],
+        ),
+      ],
+    );
+  }
+
+  test_parameters_primaryConstructor_simple_field_wildcard() async {
+    await assertErrorsInCode(
+      r'''
+class A(this._, int _) {
+  int _;
+}
+''',
+      [error(diag.unusedField, 31, 1)],
+    );
+  }
+
+  test_parameters_primaryConstructor_simple_simple() async {
+    await assertErrorsInCode(
+      r'''
+class A(int a, int a) {}
+''',
+      [
+        error(
+          diag.duplicateDefinition,
+          19,
+          1,
+          contextMessages: [message(testFile, 12, 1)],
+        ),
+      ],
+    );
+  }
+
+  test_parameters_primaryConstructor_super_super() async {
+    await assertErrorsInCode(
+      r'''
+class A(this.a, this.b) {
+  int a;
+  int b;
+}
+class B(super.a, super.a) extends A {}
+''',
+      [
+        error(
+          diag.duplicateDefinition,
+          69,
+          1,
+          contextMessages: [message(testFile, 60, 1)],
+        ),
+      ],
+    );
+  }
+
+  test_parameters_primaryConstructor_this_super() async {
+    await assertErrorsInCode(
+      r'''
+class A(this.a, this.b) {
+  int a;
+  int b;
+}
+class C(this.x, super.x) extends A {
+  final int x;
+}
+''',
+      [
+        error(
+          diag.duplicateDefinition,
+          68,
+          1,
+          contextMessages: [message(testFile, 59, 1)],
+        ),
+      ],
+    );
+  }
+
   test_parameters_topLevelFunction() async {
     await assertErrorsInCode(
       r'''
