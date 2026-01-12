@@ -220,8 +220,10 @@ class Module implements Serializable {
         functions,
         types,
         globals);
+    // TODO(natebiggs): Change back to `single` when wasm-opt changes to
+    // replacing the existing source map section instead of appending a new one.
     final sourceMapUrl = SourceMapSection.deserialize(
-        customSections[SourceMapSection.customSectionName]?.single);
+        customSections[SourceMapSection.customSectionName]?.last);
 
     return module
       ..initialize(

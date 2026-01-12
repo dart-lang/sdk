@@ -117,6 +117,8 @@ class CompilerPhaseInputOutputManager {
         _moduleNameToSourceMapFile(mainWasmModule, inputModuleName),
         '-osm',
         _moduleNameToSourceMapFile(options.outputFile, outputModuleName),
+        '-osu',
+        _moduleNameToRelativeSourceMapUri(outputModuleName).toString(),
       ],
       if (!options.stripWasm) '-g',
     ];
