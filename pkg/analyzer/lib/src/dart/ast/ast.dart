@@ -19726,6 +19726,9 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
     }
   }
 
+  @override
+  Null get declaredFragment => null;
+
   @generated
   @override
   Token get endToken {
@@ -19750,9 +19753,6 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitPrimaryConstructorBody(this);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @generated
   @override
