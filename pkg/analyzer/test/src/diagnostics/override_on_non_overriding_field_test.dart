@@ -56,7 +56,9 @@ class B extends A {
 
   test_class_extends_primaryConstructor() async {
     await assertNoErrorsInCode(r'''
-class A(final int foo);
+abstract class A {
+  int get foo;
+}
 class B(@override final int foo) extends A;
 ''');
   }
