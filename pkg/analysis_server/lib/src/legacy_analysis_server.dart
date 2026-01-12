@@ -180,6 +180,8 @@ class AnalysisServerOptions {
 
   /// Whether to enable fine-grained dependencies.
   bool withFineDependencies = false;
+
+  bool usePlugins = true;
 }
 
 /// Instances of the class [LegacyAnalysisServer] implement a server that
@@ -416,6 +418,7 @@ class LegacyAnalysisServer extends AnalysisServer {
          httpClient,
          processRunner,
          NotificationManager(channel, baseResourceProvider.pathContext),
+         usePlugins: options.usePlugins,
        ) {
     var contextManagerCallbacks = ServerContextManagerCallbacks(
       this,

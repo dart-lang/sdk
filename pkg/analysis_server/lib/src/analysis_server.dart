@@ -310,6 +310,7 @@ abstract class AnalysisServer {
     PluginManager? pluginManager,
     MessageSchedulerListener? messageSchedulerListener,
     this.performanceLogger,
+    required bool usePlugins,
   }) : resourceProvider = OverlayResourceProvider(baseResourceProvider),
        pubApi = PubApi(
          instrumentationService,
@@ -359,7 +360,11 @@ abstract class AnalysisServer {
       instrumentationService,
       sessionLogger,
     );
-    var pluginWatcher = PluginWatcher(resourceProvider, pluginManager);
+    var pluginWatcher = PluginWatcher(
+      resourceProvider,
+      pluginManager,
+      pluginsAreEnabled: usePlugins,
+    );
 
     var logName = options.newAnalysisDriverLog;
     if (logName != null) {

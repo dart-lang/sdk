@@ -34,11 +34,13 @@ class AnalysisServer {
     this.cacheDirectoryPath,
     required this.commandName,
     required this.argResults,
+    required bool usePlugins,
     this.enabledExperiments = const [],
     this.disableStatusNotificationDebouncing = false,
     this.suppressAnalytics = false,
     bool useAotSnapshot = false,
-  }) : _useAotSnapshot = useAotSnapshot;
+  })  : _useAotSnapshot = useAotSnapshot,
+        _usePlugins = usePlugins;
 
   final String? cacheDirectoryPath;
   final File? packagesFile;
@@ -50,6 +52,7 @@ class AnalysisServer {
   final bool disableStatusNotificationDebouncing;
   final bool suppressAnalytics;
   final bool _useAotSnapshot;
+  final bool _usePlugins;
 
   Process? _process;
 
@@ -212,6 +215,7 @@ class AnalysisServer {
       if (packagesFile != null) '--packages=${packagesFile!.path}',
       if (enabledExperiments.isNotEmpty)
         '--$experimentFlagName=${enabledExperiments.join(',')}',
+      if (!_usePlugins) '--no-plugins'
     ];
 
     log.trace('$executable ${arguments.join(' ')}');

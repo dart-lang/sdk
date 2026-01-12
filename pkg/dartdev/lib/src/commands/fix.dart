@@ -128,6 +128,9 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       [target],
       commandName: 'fix',
       argResults: argResults,
+      // TODO(srawlins): Flip to `true` (or flag value) when plugins can bulk
+      // fix.
+      usePlugins: false,
       suppressAnalytics: suppressAnalytics,
       enabledExperiments: args.enabledExperiments,
       useAotSnapshot: args.flag(useAotSnapshotFlag),

@@ -28,7 +28,7 @@ class PluginWatcherTest extends AbstractContextTest {
   void setUp() {
     super.setUp();
     manager = TestPluginManager();
-    watcher = PluginWatcher(resourceProvider, manager);
+    watcher = PluginWatcher(resourceProvider, manager, pluginsAreEnabled: true);
   }
 
   Future<void> test_addedDriver() async {

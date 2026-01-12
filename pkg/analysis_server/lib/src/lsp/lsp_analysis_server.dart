@@ -164,6 +164,7 @@ class LspAnalysisServer extends AnalysisServer {
          httpClient,
          processRunner,
          LspNotificationManager(baseResourceProvider.pathContext),
+         usePlugins: options.usePlugins,
        ) {
     notificationManager.server = this;
     messageHandler = UninitializedStateMessageHandler(this);
@@ -264,8 +265,8 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   @override
+  @visibleForTesting
   set pluginManager(PluginManager value) {
-    // we exchange the plugin manager in tests
     super.pluginManager = value;
     _pluginChangeSubscription?.cancel();
 
