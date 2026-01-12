@@ -116,12 +116,12 @@ class CompileAndDumpIr extends RecursiveVisitor {
     if (node.isAbstract) {
       return;
     }
-    if (node.hasGetter) {
+    if (node.hasGetter && !node.isStatic) {
       compileAndDumpFunction(
         functionRegistry.getFunction(node, isGetter: true),
       );
     }
-    if (node.hasSetter) {
+    if (node.hasSetter && !node.isStatic) {
       compileAndDumpFunction(
         functionRegistry.getFunction(node, isSetter: true),
       );

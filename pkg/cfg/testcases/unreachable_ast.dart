@@ -91,4 +91,32 @@ void unreachableBothTryEndAndCatchEnd() {
 
 List<num> unreachableFieldInitializer = [10, 1 + (throw 'Bye') + 2, 20];
 
+String unreachableStringInterpolation(int x, int y) =>
+    'x = $x, boom = ${throw 'Bye'}, y = $y';
+
+List<int> unreachableListLiteral() => [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  (throw 'Bye'),
+  10,
+  11,
+];
+
+Map<int, String> unreachableMapLiteral() => {
+  10: 'aa',
+  20: 'bb',
+  30: (throw 'Bye'),
+  40: 'dd',
+};
+
+bool unreachableLogicExpr(bool c1, bool c2, bool c3) =>
+    !(c1 && (c2 || (throw 'Bye') || c3));
+
 void main() {}

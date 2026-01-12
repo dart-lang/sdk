@@ -109,6 +109,9 @@ final class IrToText extends VoidInstructionVisitor {
       case StoreField():
         _buffer.write(instr.field);
         _buffer.write(', ');
+      case TypeLiteral():
+        _buffer.write(instr.uninstantiatedType.getDisplayString());
+        _buffer.write(', ');
       case _:
     }
     for (int i = 0, n = instr.inputCount; i < n; ++i) {
@@ -180,6 +183,7 @@ final class IrToText extends VoidInstructionVisitor {
     UnaryIntOp() => 'UnaryIntOp ${instr.op.token}',
     BinaryDoubleOp() => 'BinaryDoubleOp ${instr.op.token}',
     UnaryDoubleOp() => 'UnaryDoubleOp ${instr.op.token}',
+    UnaryBoolOp() => 'UnaryBoolOp ${instr.op.token}',
     _ => instr.runtimeType.toString(),
   };
 }

@@ -60,4 +60,27 @@ void test4(int x, int z) {
   print(y);
 }
 
+void nullCheck(int? x) {
+  if (1 != 2) {
+    x = 10;
+  }
+  print(x!);
+}
+
+void stringInterpolation(String s, int x) {
+  if (true) {
+    s = 'abc';
+    x = 10;
+  }
+  final str1 = 's = $s, x = $x';
+  print('result: $str1');
+}
+
+void boolNot(bool x) {
+  if (true) {
+    x = true;
+  }
+  print(!x);
+}
+
 void main() {}

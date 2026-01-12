@@ -216,6 +216,42 @@ class ConstantFolding {
         return ConstantValue.fromDouble(x.truncateToDouble());
     }
   }
+
+  ConstantValue? unaryBoolOp(UnaryBoolOpcode op, ConstantValue operand) {
+    final x = operand.boolValue;
+    switch (op) {
+      case UnaryBoolOpcode.not:
+        return ConstantValue.fromBool(!x);
+    }
+  }
+
+  String? computeToString(ConstantValue value) {
+    if (value.isString) {
+      return value.stringValue;
+    } else if (value.isInt) {
+      return value.intValue.toString();
+    } else if (value.isBool) {
+      return value.boolValue.toString();
+    } else if (value.isNull) {
+      return null.toString();
+    } else if (value.isDouble) {
+      return value.doubleValue.toString();
+    } else {
+      return null;
+    }
+  }
+
+  ConstantValue? stringInterpolation(List<ConstantValue> operands) {
+    final buf = StringBuffer();
+    for (final operand in operands) {
+      final str = computeToString(operand);
+      if (str == null) {
+        return null;
+      }
+      buf.write(str);
+    }
+    return ConstantValue.fromString(buf.toString());
+  }
 }
 
 /// Constant type arguments.

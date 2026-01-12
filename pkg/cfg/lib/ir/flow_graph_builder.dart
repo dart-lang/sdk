@@ -228,6 +228,20 @@ class FlowGraphBuilder {
     return instr;
   }
 
+  /// Append [ClosureCall] to the graph.
+  ClosureCall addClosureCall(int inputCount, CType type) {
+    final instr = ClosureCall(
+      graph,
+      currentSourcePosition,
+      type,
+      inputCount: inputCount,
+    );
+    popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
   /// Append [DynamicCall] to the graph.
   DynamicCall addDynamicCall(
     ast.Name selector,
@@ -380,6 +394,15 @@ class FlowGraphBuilder {
     endBlock();
   }
 
+  /// Append [NullCheck] to the graph.
+  NullCheck addNullCheck() {
+    final object = pop();
+    final instr = NullCheck(graph, currentSourcePosition, object);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
   /// Append [TypeParameters] to the graph.
   ///
   /// Optional [receiver] input should be passed if there are class type
@@ -453,6 +476,22 @@ class FlowGraphBuilder {
     return instr;
   }
 
+  /// Append [TypeLiteral] to the graph.
+  TypeLiteral addTypeLiteral(
+    ast.DartType uninstantiatedType, {
+    required Definition typeParameters,
+  }) {
+    final instr = TypeLiteral(
+      graph,
+      currentSourcePosition,
+      uninstantiatedType,
+      typeParameters,
+    );
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
   /// Append [AllocateObject] to the graph.
   ///
   /// Optional [typeArguments] input should be passed if allocating
@@ -464,6 +503,66 @@ class FlowGraphBuilder {
       type,
       typeArguments,
     );
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [AllocateClosure] to the graph.
+  AllocateClosure addAllocateClosure(
+    ClosureFunction function,
+    CType type,
+    int inputCount,
+  ) {
+    final instr = AllocateClosure(
+      graph,
+      currentSourcePosition,
+      function,
+      type,
+      inputCount: inputCount,
+    );
+    popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [AllocateListLiteral] to the graph.
+  /// Takes type arguments and elements from the stack as inputs.
+  AllocateListLiteral addAllocateListLiteral(int inputCount) {
+    final instr = AllocateListLiteral(
+      graph,
+      currentSourcePosition,
+      inputCount: inputCount,
+    );
+    popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [AllocateMapLiteral] to the graph.
+  /// Takes type arguments and key/value pairs from the stack as inputs.
+  AllocateMapLiteral addAllocateMapLiteral(int inputCount) {
+    final instr = AllocateMapLiteral(
+      graph,
+      currentSourcePosition,
+      inputCount: inputCount,
+    );
+    popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [StringInterpolation] to the graph.
+  StringInterpolation addStringInterpolation(int inputCount) {
+    final instr = StringInterpolation(
+      graph,
+      currentSourcePosition,
+      inputCount: inputCount,
+    );
+    popInputs(instr, 0, inputCount);
     push(instr);
     appendInstruction(instr);
     return instr;
@@ -502,6 +601,15 @@ class FlowGraphBuilder {
   UnaryDoubleOp addUnaryDoubleOp(UnaryDoubleOpcode op) {
     final operand = pop();
     final instr = UnaryDoubleOp(graph, currentSourcePosition, op, operand);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [UnaryBoolOp] to the graph.
+  UnaryBoolOp addUnaryBoolOp(UnaryBoolOpcode op) {
+    final operand = pop();
+    final instr = UnaryBoolOp(graph, currentSourcePosition, op, operand);
     push(instr);
     appendInstruction(instr);
     return instr;
