@@ -70,8 +70,19 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
     }
 
     await builder.addYamlFileEdit(analysisOptionsFile.path, (builder) {
-      var editor = YamlEditor(content);
-      var options = loadYamlNode(content);
+      YamlEditor editor;
+      try {
+        editor = YamlEditor(content);
+      } on YamlException {
+        // If the `analysis_options.yaml` does not have a valid format, a
+        // `YamlException` is thrown (e.g. a label without a value). In such
+        // case, do not suggest a fix.
+        //
+        // TODO(osaxma): check if the `analysis_options.yaml` is a valid before
+        // calling the builder to avoid unnecessary processing.
+        return;
+      }
+      var options = editor.parseAt([]);
       List<String> path;
       Object value;
       if (options is! YamlMap) {
@@ -96,13 +107,22 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
 
       try {
         editor.update(path, value);
-      } on YamlException {
-        // If the `analysis_options.yaml` does not have a valid format, a
-        // `YamlException` is thrown (e.g. a label without a value). In such
-        // case, do not suggest a fix.
+      } on AssertionError {
+        // package:yaml_edit modifies the YAML source and it is known to have a
+        // few bugs. There is ongoing to work to fix these bugs, but in practice
+        // modifying YAML source can be fragile. Thus, YamlEditor will check if
+        // result is valid YAML and matches the semantic expectations.
+        // If not YamlEditor will throw an AssertionError, since this is an
+        // internal error.
         //
-        // TODO(osaxma): check if the `analysis_options.yaml` is a valid before
-        // calling the builder to avoid unnecessary processing.
+        // In the case of producing fixes, it's probably preferable to not
+        // suggest a fix, if we fail to produce one.
+        return;
+      } on YamlException {
+        // Same issue as above, remove when YamlEditor throws AssertionError
+        // instead of YamlException, which should never be thrown here.
+        // TODO(jonasfj): Remove this after landing and rolling to the Dart SDK:
+        //                https://github.com/dart-lang/tools/pull/2299
         return;
       }
 
