@@ -134,9 +134,6 @@ const dart2jsNotSupported = {
   'nested.dart',
   'record_enum.dart',
   'record_instance_constant_empty.dart',
-  // No support for lists and map constants.
-  // https://github.com/dart-lang/native/issues/2896
-  'types_of_arguments.dart',
   // Named arguments are converted to positional arguments.
   // https://github.com/dart-lang/native/issues/2883
   'named_and_positional.dart',

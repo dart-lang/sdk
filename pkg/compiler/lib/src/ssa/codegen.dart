@@ -3,22 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection' show Queue;
-import 'dart:convert' show jsonEncode;
 import 'dart:io';
 
 // ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show Link, relativizeUri;
 import 'package:record_use/record_use_internal.dart'
-    show
-        Location,
-        Constant,
-        NullConstant,
-        BoolConstant,
-        IntConstant,
-        StringConstant,
-        FlattenConstantsExtension,
-        MapifyIterableExtension;
+    as record_use
+    show Location;
 
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry;
@@ -2402,6 +2394,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     }
   }
 
+  // TODO(https://github.com/dart-lang/native/issues/2883): Support named arguments.
   RecordedUse _recordMethodUses(
     FunctionEntity element,
     CallStructure callStructure,
@@ -2412,7 +2405,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     final uri =
         definition?.enclosingLibrary.importUri ?? element.library.canonicalUri;
 
-    Location? location;
+    record_use.Location? location;
     if (sourceInformation != null) {
       SourceLocation? sourceLocation =
           sourceInformation.startPosition ??
@@ -2423,44 +2416,23 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         if (sourceUri != null) {
           // Is [sourceUri] normalized in some way or does that need to be done
           // here?
-          location = Location(
+          location = record_use.Location(
             uri: relativizeUri(Uri.base, sourceUri, Platform.isWindows),
           );
         }
       }
     }
 
-    //TODO(mosum): Are named arguments even possible to record in JS?
-    final List<Constant?> constantArguments = [];
-    for (final constant in arguments.map(_findConstant)) {
-      constantArguments.add(constant != null ? _findValue(constant) : null);
-    }
-
-    final constants = constantArguments.nonNulls.flatten().asMapToIndices;
-
-    final argumentJson = jsonEncode(
-      constantArguments.map((argument) => argument?.toJson(constants)).toList(),
-    );
+    final constantValues = arguments.map(_findConstant).toList();
 
     return RecordedUse(
       element.name!,
       element.enclosingClass?.name,
       relativizeUri(Uri.base, uri, Platform.isWindows),
       location,
-      constantArguments.any((argument) => argument == null),
-      argumentJson,
+      constantValues.any((argument) => argument == null),
+      constantValues,
     );
-  }
-
-  Constant? _findValue(ConstantValue constant) {
-    return switch (constant) {
-      NullConstantValue() => NullConstant(),
-      BoolConstantValue() => BoolConstant(constant.boolValue),
-      IntConstantValue() => IntConstant(constant.intValue.toInt()),
-      StringConstantValue() => StringConstant(constant.stringValue),
-      //TODO(mosum): Add list and map support
-      Object() => null,
-    };
   }
 
   ConstantValue? _findConstant(HInstruction node) {
