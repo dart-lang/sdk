@@ -49,7 +49,6 @@ class LibraryContext {
   final FileSystemState fileSystemState;
   final File? packagesFile;
   final bool withFineDependencies;
-  final SummaryDataStore store = SummaryDataStore();
 
   late final AnalysisContextImpl analysisContext;
   late final LinkedElementFactory elementFactory;
