@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -29,6 +30,17 @@ class C {
 ''',
       [lint(40, 10)],
     );
+  }
+
+  test_assignedInBody_alreadyInitializingFormal() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int? x;
+  C(this.x) {
+    this.x = x;
+  }
+}
+''');
   }
 
   test_assignedInBody_andHasSuperInitializer() async {
@@ -102,6 +114,19 @@ class C {
 }
 ''',
       [lint(54, 10), lint(70, 10)],
+    );
+  }
+
+  test_assignedInInitializer_alreadyInitializingFormal() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  int? x;
+  C(this.x)
+      : x = x;
+}
+''',
+      [error(diag.fieldInitializedInParameterAndInitializer, 40, 1)],
     );
   }
 
@@ -180,6 +205,42 @@ class C {
 ''');
   }
 
+  test_assignFieldFromOtherObject() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int? x;
+  C(int? x) {
+    var other = C(1);
+    other.x = x;
+  }
+}
+''');
+  }
+
+  test_assignToInheritedField() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int? x;
+}
+class B extends A {
+  B(int? x) {
+    this.x = x;
+  }
+}
+''');
+  }
+
+  test_assignToStaticField() async {
+    await assertNoDiagnostics(r'''
+class C {
+  static int? x;
+  C(int x) {
+    C.x = x;
+  }
+}
+''');
+  }
+
   test_factoryConstructor() async {
     // https://github.com/dart-lang/linter/issues/2441
     await assertNoDiagnostics(r'''
@@ -213,21 +274,55 @@ class C {
 ''');
   }
 
-  test_inheritedFromSuperClass() async {
+  test_initializeFromOtherParameter() async {
     await assertNoDiagnostics(r'''
-class A {
-  int x;
-  A(this.x);
-}
-class B extends A {
-  B(int y) : super(y) {
-    x = y;
+class C {
+  int? x;
+  C() {
+    localFunction(int? x) {
+      this.x = x;
+    }
   }
 }
 ''');
   }
 
-  test_paramter() async {
+  test_noLintIfMultiple_initializerAndAssignment() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int? x;
+  C({int? x}) : this.x = x {
+    this.x = x;
+  }
+}
+''');
+  }
+
+  test_noLintIfMultiple_twoAssignments() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int? x;
+  C({int? x}) {
+    this.x = x;
+    this.x = x;
+  }
+}
+''');
+  }
+
+  test_noLintIfMultiple_twoInitializers() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  int? x;
+  C({int? x}) : this.x = x, this.x = x;
+}
+''',
+      [error(diag.fieldInitializedByMultipleInitializers, 53, 1)],
+    );
+  }
+
+  test_parameter() async {
     await assertNoDiagnostics(r'''
 void f(int p) {}
 ''');
