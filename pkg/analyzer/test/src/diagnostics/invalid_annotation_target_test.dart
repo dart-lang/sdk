@@ -937,6 +937,25 @@ set x(_x) {}
     );
   }
 
+  void test_getter_field() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.getter})
+class A {
+  const A();
+}
+
+class C {
+  @A()
+  int x = 0;
+}
+''',
+      [error(diag.invalidAnnotationTarget, 107, 1)],
+    );
+  }
+
   void test_getter_getter() async {
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
@@ -1553,6 +1572,44 @@ class A {
 
 void f(@A() int x) {}
 ''');
+  }
+
+  void test_setter_field_final() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.setter})
+class A {
+  const A();
+}
+
+class C {
+  @A()
+  final int x = 0;
+}
+''',
+      [error(diag.invalidAnnotationTarget, 107, 1)],
+    );
+  }
+
+  void test_setter_field_mutable() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.setter})
+class A {
+  const A();
+}
+
+class C {
+  @A()
+  int x = 0;
+}
+''',
+      [error(diag.invalidAnnotationTarget, 107, 1)],
+    );
   }
 
   void test_setter_getter() async {
