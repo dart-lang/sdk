@@ -143,4 +143,7 @@ const dart2jsNotSupported = {
   // Extension methods are broken.
   // https://github.com/dart-lang/native/issues/2926
   'extension.dart',
+  // Const instance arguments are not supported yet.
+  // https://github.com/dart-lang/native/issues/2945
+  'const_argument_instance.dart',
 };
