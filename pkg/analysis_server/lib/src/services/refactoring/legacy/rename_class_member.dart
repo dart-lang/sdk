@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/services/correction/status.dart';
@@ -14,6 +15,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/visible_ranges_c
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -180,7 +182,8 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
 
       if (newName.startsWith('_') &&
           element is FieldFormalParameterElement &&
-          element.isNamed) {
+          element.isNamed &&
+          !element.supportsPrivateNamedParameters) {
         await _addPrivateNamedFormalParameterEdit(reference, element);
         continue;
       }
@@ -195,7 +198,17 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
         continue;
       }
 
-      reference.addEdit(change, newName);
+      if (reference.isNamedArgumentReference && newName.startsWith('_')) {
+        // The named argument refers to a field whose new name is private.
+        // At the callsite, the named argument should use its corresponding
+        // public name if there is one. (If they are renaming the field to a
+        // private name with no corresponding name, then use the private name
+        // at the named argument site so they can see the resulting error and
+        // fix it.)
+        reference.addEdit(change, correspondingPublicName(newName) ?? newName);
+      } else {
+        reference.addEdit(change, newName);
+      }
     }
   }
 }
@@ -528,8 +541,9 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
               .cast<FormalParameterElement>()
               .toList();
 
-          // The language doesn't allow private named formal parameters.
-          if (name.startsWith('_')) {
+          // Skip private named parameters if we are in a library that doesn't
+          // support them.
+          if (name.startsWith('_') && !element.supportsPrivateNamedParameters) {
             formalParameters.removeWhere((formalParameter) {
               return formalParameter.isNamed;
             });
@@ -578,6 +592,11 @@ extension on Element {
       ElementKind.PARAMETER => true,
       _ => false,
     };
+  }
+
+  bool get supportsPrivateNamedParameters {
+    return library?.featureSet.isEnabled(Feature.private_named_parameters) ??
+        true;
   }
 }
 

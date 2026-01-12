@@ -88,6 +88,9 @@ class SourceReference {
   bool get isInvocationByEnumConstantWithoutArguments =>
       _match.kind == MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS;
 
+  bool get isNamedArgumentReference =>
+      _match.kind == MatchKind.REFERENCE_BY_NAMED_ARGUMENT;
+
   bool get isReferenceInPatternField =>
       _match.kind == MatchKind.REFERENCE_IN_PATTERN_FIELD;
 

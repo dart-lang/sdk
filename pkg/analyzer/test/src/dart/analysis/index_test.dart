@@ -1776,22 +1776,6 @@ void f() {
 ''');
   }
 
-  test_isReferencedBy_FieldElement_dotSorthandConstructorInvocation() async {
-    await _indexTestUnit('''
-class A {
-  A({this.field});
-  var field;
-}
-void foo() {
-  A _ = .new(field: 42);
-}
-''');
-    var element = findElement2.fieldFormalParameter('field');
-    assertElementIndexText(element, r'''
-70 6:14 |field| IS_REFERENCED_BY qualified
-''');
-  }
-
   test_isReferencedBy_FieldElement_enum() async {
     await _indexTestUnit('''
 enum E {
@@ -2125,7 +2109,7 @@ void f() {
 ''');
     var element = findElement2.parameter('p');
     assertElementIndexText(element, r'''
-33 3:7 |p| IS_REFERENCED_BY qualified
+33 3:7 |p| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -2140,7 +2124,23 @@ void foo() {
 ''');
     var element = findElement2.parameter('p');
     assertElementIndexText(element, r'''
-48 5:14 |p| IS_REFERENCED_BY qualified
+48 5:14 |p| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
+''');
+  }
+
+  test_isReferencedBy_ParameterElement_dotSorthandConstructorInvocation_field() async {
+    await _indexTestUnit('''
+class A {
+  A({this.field});
+  var field;
+}
+void foo() {
+  A _ = .new(field: 42);
+}
+''');
+    var element = findElement2.fieldFormalParameter('field');
+    assertElementIndexText(element, r'''
+70 6:14 |field| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -2196,7 +2196,7 @@ class B extends A {
 ''');
     var element = findElement2.unnamedConstructor('A').parameter('a');
     assertElementIndexText(element, r'''
-75 5:21 |a| IS_REFERENCED_BY qualified
+75 5:21 |a| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -2227,7 +2227,7 @@ void f() {
 ''');
     var element = findElement2.parameter('test');
     assertElementIndexText(element, r'''
-47 6:5 |test| IS_REFERENCED_BY qualified
+47 6:5 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -2243,7 +2243,7 @@ void f(A<int> a) {
 ''');
     var element = findElement2.parameter('test');
     assertElementIndexText(element, r'''
-68 6:9 |test| IS_REFERENCED_BY qualified
+68 6:9 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -2257,7 +2257,7 @@ void() {
 ''');
     var element = findElement2.parameter('test');
     assertElementIndexText(element, r'''
-41 4:7 |test| IS_REFERENCED_BY qualified
+41 4:7 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -2271,7 +2271,7 @@ void() {
 ''');
     var element = findElement2.parameter('test');
     assertElementIndexText(element, r'''
-58 4:10 |test| IS_REFERENCED_BY qualified
+58 4:10 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -2300,7 +2300,7 @@ void() {
 ''');
     var element = findElement2.parameter('test');
     assertElementIndexText(element, r'''
-49 4:7 |test| IS_REFERENCED_BY qualified
+49 4:7 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 ''');
   }
 

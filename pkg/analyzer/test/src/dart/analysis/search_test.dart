@@ -1457,7 +1457,7 @@ class A {
     var field = findElement2.fieldFormalParameter('x');
     await assertElementReferencesText(field, r'''
 package:test/other.dart x@52
-  52 4:12 |x| REFERENCE qualified
+  52 4:12 |x| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -2227,8 +2227,8 @@ class B extends A<String> {}
     var element = findElement2.parameter('p');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> f@5
-  19 2:9 |p| REFERENCE qualified
-  42 3:9 |p| REFERENCE qualified
+  19 2:9 |p| REFERENCE_BY_NAMED_ARGUMENT qualified
+  42 3:9 |p| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -2298,7 +2298,7 @@ class B extends A {
     var element = findElement2.unnamedConstructor('A').parameter('a');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> a@75
-  75 5:21 |a| REFERENCE qualified
+  75 5:21 |a| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -2338,7 +2338,7 @@ main() {
   32 4:3 |p| READ
   37 5:3 |p| READ
 <testLibraryFragment> main@44
-  59 8:7 |p| REFERENCE qualified
+  59 8:7 |p| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -2356,7 +2356,7 @@ main() {
 <testLibraryFragment> foo@0
   27 2:3 |p| READ
 <testLibraryFragment> main@32
-  50 5:10 |p| REFERENCE qualified
+  50 5:10 |p| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -2404,7 +2404,7 @@ main() {
   45 4:3 |p| READ
   50 5:3 |p| READ
 <testLibraryFragment> main@57
-  72 8:7 |p| REFERENCE qualified
+  72 8:7 |p| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
 

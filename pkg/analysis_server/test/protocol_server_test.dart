@@ -276,6 +276,7 @@ class EnumTest {
     EnumTester<MatchKind, SearchResultKind>().run(
       newSearchResultKind_fromEngine,
       exceptions: {
+        MatchKind.REFERENCE_BY_NAMED_ARGUMENT: SearchResultKind.REFERENCE,
         MatchKind.REFERENCE_IN_PATTERN_FIELD: SearchResultKind.REFERENCE,
         MatchKind.DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION:
             SearchResultKind.INVOCATION,
