@@ -854,6 +854,8 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       } else {
         return expression.staticType;
       }
+    } else if (node.parent case CaseClause(:IfStatement parent)) {
+      return parent.expression.staticType;
     }
     return null;
   }
@@ -946,6 +948,16 @@ parent3: ${node.parent?.parent?.parent}
       return (type as InterfaceType).typeArguments[0];
     }
     return null;
+  }
+
+  @override
+  DartType? visitLogicalAndPattern(LogicalAndPattern node) {
+    return _visitParent(node);
+  }
+
+  @override
+  DartType? visitLogicalOrPattern(LogicalOrPattern node) {
+    return _visitParent(node);
   }
 
   @override
