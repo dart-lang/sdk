@@ -5916,7 +5916,6 @@ elementFactory
 @reflectiveTest
 class FileSystemStateTest with ResourceProviderMixin {
   final ByteStore byteStore = MemoryByteStore();
-  final FileContentOverlay contentOverlay = FileContentOverlay();
 
   final StringBuffer logBuffer = StringBuffer();
   final _GeneratedUriResolverMock generatedUriResolver =
@@ -6050,24 +6049,6 @@ enum E2 {
         'v2',
         'getter2',
       ]),
-    );
-  }
-
-  test_definedTopLevelNames() {
-    String path = convertPath('/aaa/lib/a.dart');
-    newFile(path, r'''
-class A {}
-class B = Object with A;
-typedef C();
-D() {}
-get E => null;
-set F(_) {}
-var G, H;
-''');
-    FileState file = fileSystemState.getFileForPath(path);
-    expect(
-      file.definedTopLevelNames,
-      unorderedEquals(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']),
     );
   }
 
@@ -6222,7 +6203,6 @@ A foo(B p) {
 class A {}
 ''');
     FileState file = fileSystemState.getFileForPath(path);
-    expect(file.definedTopLevelNames, contains('A'));
     List<int> signature = file.apiSignature;
 
     // Update the resource and refresh the file state.
@@ -6232,7 +6212,6 @@ class B {}
     var changeKind = file.refresh();
     expect(changeKind, FileStateRefreshResult.apiChanged);
 
-    expect(file.definedTopLevelNames, contains('B'));
     expect(file.apiSignature, isNot(signature));
   }
 

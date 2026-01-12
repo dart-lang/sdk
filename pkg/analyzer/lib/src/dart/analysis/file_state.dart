@@ -163,31 +163,6 @@ abstract class FileContent {
   bool get exists;
 }
 
-/// [FileContentOverlay] is used to temporary override content of files.
-class FileContentOverlay {
-  final _map = <String, String>{};
-
-  /// Return the paths currently being overridden.
-  Iterable<String> get paths => _map.keys;
-
-  /// Return the content of the file with the given [path], or `null` the
-  /// overlay does not override the content of the file.
-  ///
-  /// The [path] must be absolute and normalized.
-  String? operator [](String path) => _map[path];
-
-  /// Return the new [content] of the file with the given [path].
-  ///
-  /// The [path] must be absolute and normalized.
-  void operator []=(String path, String? content) {
-    if (content == null) {
-      _map.remove(path);
-    } else {
-      _map[path] = content;
-    }
-  }
-}
-
 abstract class FileContentStrategy {
   FileContent get(String path);
 }
@@ -545,11 +520,6 @@ class FileState {
     return _driverUnlinkedUnit!.definedClassMemberNames;
   }
 
-  /// The top-level names defined by the file.
-  Set<String> get definedTopLevelNames {
-    return _driverUnlinkedUnit!.definedTopLevelNames;
-  }
-
   /// Return `true` if the file exists.
   bool get exists => _fileContent!.exists;
 
@@ -577,9 +547,6 @@ class FileState {
   UnlinkedUnit get unlinked2 => _unlinked2!;
 
   String get unlinkedKey => _unlinkedKey!;
-
-  /// The MD5 signature based on the content, feature sets, language version.
-  Uint8List get unlinkedSignature => _unlinkedSignature!;
 
   /// Return the [uri] string.
   String get uriStr => uri.toString();
@@ -1187,6 +1154,7 @@ class FileStateTestView {
 
   FileStateTestView(this.file);
 
+  @visibleForTesting
   String get unlinkedKey => file._unlinkedKey!;
 }
 

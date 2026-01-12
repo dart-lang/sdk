@@ -704,6 +704,12 @@ class AnnotationVerifier {
           return true;
         }
       }
+      if (target is FormalParameter) {
+        var element = target.declaredFragment?.element;
+        if (element is FieldFormalParameterElement && element.isDeclaring) {
+          return true;
+        }
+      }
     }
 
     if (kinds.contains(TargetKind.constructor)) {
@@ -714,6 +720,13 @@ class AnnotationVerifier {
               EnumDeclaration(namePart: PrimaryConstructorDeclaration()) ||
               ExtensionTypeDeclaration()) {
         return true;
+      }
+    }
+
+    if (target is FormalParameter) {
+      var element = target.declaredFragment?.element;
+      if (element is FieldFormalParameterElement && element.isDeclaring) {
+        if (kinds.contains(TargetKind.field)) return true;
       }
     }
 

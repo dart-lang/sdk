@@ -36,6 +36,14 @@ class A {
 ''');
   }
 
+  test_class_instance_field_declaredInPrimaryConstructor() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A(@mustBeOverridden var int f);
+''');
+  }
+
   test_class_instance_getter() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -173,6 +181,30 @@ mixin M {
   void m() {}
 }
 ''');
+  }
+
+  test_parameter_declaredInPrimaryConstructor() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+
+class A(@mustBeOverridden int f);
+''',
+      [error(diag.invalidAnnotationTarget, 43, 16)],
+    );
+  }
+
+  test_parameter_fieldFormal_declaredInPrimaryConstructor() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+
+class A(@mustBeOverridden this.f) {
+  final int f;
+}
+''',
+      [error(diag.invalidAnnotationTarget, 43, 16)],
+    );
   }
 
   test_topLevel() async {
@@ -822,6 +854,19 @@ class C {
   @A()
   int f = 0;
 }
+''');
+  }
+
+  void test_field_field_declaredInPrimaryConstructor() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.field})
+class A {
+  const A();
+}
+
+class C(@A() final int f);
 ''');
   }
 
