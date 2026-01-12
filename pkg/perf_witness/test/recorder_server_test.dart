@@ -26,7 +26,7 @@ Future<io.Process> runProcess(
   String executable,
   List<String> arguments, {
   String tag = '',
-  String? waitFor,
+  Pattern? waitFor,
   Map<String, String>? environment,
   List<String>? stdout,
 }) async {
@@ -37,6 +37,11 @@ Future<io.Process> runProcess(
     arguments,
     environment: environment,
   );
+  process.exitCode.whenComplete(() {
+    if (!ready.isCompleted) {
+      ready.complete();
+    }
+  });
   process.stdout.transform(Utf8Decoder()).transform(LineSplitter()).listen((
     line,
   ) {
@@ -126,6 +131,8 @@ class RecorderProcess {
 
   RecorderProcess._(this.process);
 
+  static final pressKeyPattern = RegExp(r'Press (Ctrl-C|Q) to exit');
+
   static Future<RecorderProcess> start(
     io.Directory tempDir,
     io.Directory outputDir, {
@@ -134,7 +141,6 @@ class RecorderProcess {
     bool enableAsyncSpans = false,
     bool enableProfiler = true,
     List<String> streams = const ['dart', 'gc'],
-    String? waitFor,
   }) async {
     return RecorderProcess._(
       await runProcess(
@@ -156,7 +162,7 @@ class RecorderProcess {
         ],
         tag: 'recorder',
         environment: {'DART_DATA_HOME': tempDir.path},
-        waitFor: waitFor,
+        waitFor: pressKeyPattern,
       ),
     );
   }
@@ -486,7 +492,6 @@ void main() {
         tempDir,
         outputDir,
         recordNewProcesses: true,
-        waitFor: 'Listening for new processes',
       );
 
       // Start a new process that should be recorded.
@@ -524,7 +529,6 @@ void main() {
           outputDir,
           tag: 'new-process-tag',
           recordNewProcesses: true,
-          waitFor: 'Listening for new processes',
         );
 
         // Start a new process that should be recorded.
