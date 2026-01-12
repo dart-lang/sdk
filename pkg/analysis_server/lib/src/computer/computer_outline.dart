@@ -25,14 +25,13 @@ class DartUnitOutlineComputer {
     var unitContents = <Outline>[];
     for (var unitMember in unit.declarations) {
       if (unitMember is ClassDeclaration) {
-        if (unitMember.body case BlockClassBody body) {
-          unitContents.add(
-            _newClassOutline(unitMember, [
-              ...?_outlinesForPrimaryConstructor(unitMember.namePart),
+        unitContents.add(
+          _newClassOutline(unitMember, [
+            ...?_outlinesForPrimaryConstructor(unitMember.namePart),
+            if (unitMember.body case BlockClassBody body)
               ..._outlinesForMembers(body.members),
-            ]),
-          );
-        }
+          ]),
+        );
       } else if (unitMember is MixinDeclaration) {
         unitContents.add(
           _newMixinOutline(
