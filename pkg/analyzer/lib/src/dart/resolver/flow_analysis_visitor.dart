@@ -129,25 +129,6 @@ class FlowAnalysisHelper {
     );
   }
 
-  void assignmentExpression(AssignmentExpressionImpl node) {
-    if (flow == null) return;
-
-    if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
-      flow!.ifNullExpression_rightBegin(
-        node.leftHandSide,
-        SharedTypeView(node.readType!),
-      );
-    }
-  }
-
-  void assignmentExpression_afterRight(AssignmentExpression node) {
-    if (flow == null) return;
-
-    if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
-      flow!.ifNullExpression_end();
-    }
-  }
-
   /// This method is called whenever the [ResolverVisitor] enters the body or
   /// initializer of a top level declaration.
   ///

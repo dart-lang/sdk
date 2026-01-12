@@ -1624,17 +1624,4 @@ class MethodInvocationResolver with ScopeHelpers {
     );
     _reportInvocationOfNonFunction(node.memberName);
   }
-
-  /// Checks whether the given [expression] is a reference to a class. If it is
-  /// then the element representing the class is returned, otherwise `null` is
-  /// returned.
-  static InterfaceElement? getTypeReference(Expression expression) {
-    if (expression is Identifier) {
-      var staticElement = expression.element;
-      if (staticElement is InterfaceElement) {
-        return staticElement;
-      }
-    }
-    return null;
-  }
 }

@@ -107,13 +107,6 @@ class ElementWalker {
       _variables = fragment.fields.where((f) => f.isOriginDeclaration).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a typedef
-  /// element.
-  ElementWalker.forGenericFunctionType(
-    GenericFunctionTypeFragmentImpl this.fragment,
-  ) : _parameters = fragment.formalParameters,
-      _typeParameters = fragment.typeParameters;
-
-  /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element defined using a generic function type.
   ElementWalker.forGenericTypeAlias(TypeAliasFragmentImpl this.fragment)
     : _typeParameters = fragment.typeParameters;
@@ -140,14 +133,6 @@ class ElementWalker {
   /// element.
   ElementWalker.forTypedef(TypeAliasFragmentImpl this.fragment)
     : _typeParameters = fragment.typeParameters;
-
-  void consumeLocalElements() {
-    _functionIndex = _functions!.length;
-  }
-
-  void consumeParameters() {
-    _parameterIndex = _parameters!.length;
-  }
 
   /// Returns the next non-synthetic child of [fragment] which is a class;
   /// throws an [IndexError] if there are no more.
@@ -208,29 +193,5 @@ class ElementWalker {
   /// more.
   VariableFragmentImpl getVariable() {
     return _variables![_variableIndex++];
-  }
-
-  /// Verifies that all non-synthetic children of [fragment] have been obtained
-  /// from their corresponding "get" method calls; if not, throws a
-  /// [StateError].
-  void validate() {
-    void check(List<FragmentImpl>? fragments, int index) {
-      if (fragments != null && fragments.length != index) {
-        throw StateError(
-          'Unmatched ${fragments[index].runtimeType} ${fragments[index]}',
-        );
-      }
-    }
-
-    check(_classes, _classIndex);
-    check(_constructors, _constructorIndex);
-    check(_enums, _enumIndex);
-    check(_functions, _functionIndex);
-    check(_getters, _getterIndex);
-    check(_parameters, _parameterIndex);
-    check(_setters, _setterIndex);
-    check(_typedefs, _typedefIndex);
-    check(_typeParameters, _typeParameterIndex);
-    check(_variables, _variableIndex);
   }
 }
