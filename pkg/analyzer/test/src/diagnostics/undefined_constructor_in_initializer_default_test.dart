@@ -27,24 +27,10 @@ class B extends A {
 ''');
   }
 
-  test_implicit() async {
-    await assertErrorsInCode(
-      r'''
-class A {
-  A.named() {}
-}
-class B extends A {
-  B();
-}
-''',
-      [error(diag.undefinedConstructorInInitializerDefault, 49, 1)],
-    );
-  }
-
-  test_implicit_defined() async {
+  test_implicit_defined_constructor() async {
     await assertNoErrorsInCode(r'''
 class A {
-  A() {}
+  A();
 }
 class B extends A {
   B();
@@ -52,17 +38,77 @@ class B extends A {
 ''');
   }
 
-  test_unnamed() async {
+  test_implicit_defined_primaryConstructor_hasBody() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A();
+}
+class B() extends A {
+  this;
+}
+''');
+  }
+
+  test_implicit_defined_primaryConstructor_noBody() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A();
+}
+class B() extends A;
+''');
+  }
+
+  test_implicit_notDefined_constructor_newHead() async {
     await assertErrorsInCode(
       r'''
 class A {
-  A.named() {}
+  A.named();
 }
 class B extends A {
-  B() : super();
+  new foo();
 }
 ''',
-      [error(diag.undefinedConstructorInInitializerDefault, 55, 7)],
+      [error(diag.undefinedConstructorInInitializerDefault, 47, 7)],
+    );
+  }
+
+  test_implicit_notDefined_constructor_typeName() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  A.named();
+}
+class B extends A {
+  B.foo();
+}
+''',
+      [error(diag.undefinedConstructorInInitializerDefault, 47, 5)],
+    );
+  }
+
+  test_implicit_notDefined_primaryConstructor_hasBody() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  A.named();
+}
+class B.foo() extends A {
+  this;
+}
+''',
+      [error(diag.undefinedConstructorInInitializerDefault, 53, 4)],
+    );
+  }
+
+  test_implicit_notDefined_primaryConstructor_noBody() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  A.named();
+}
+class B.foo() extends A;
+''',
+      [error(diag.undefinedConstructorInInitializerDefault, 31, 5)],
     );
   }
 }

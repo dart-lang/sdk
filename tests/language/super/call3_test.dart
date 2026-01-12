@@ -48,8 +48,9 @@ class D2 extends C {
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER
   // [cfe] The superclass, 'C', has no unnamed constructor that takes no arguments.
   D2.named() : this.x = 499;
-  // [error column 3, length 2]
+  // [error column 3, length 8]
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER
+  // [error column 3, length 2]
   // [cfe] The superclass, 'C', has no unnamed constructor that takes no arguments.
   var x;
 }

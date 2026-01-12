@@ -4437,6 +4437,7 @@ class C(this.x, super.x) extends A {
 }
 ''',
       [
+        error(diag.implicitSuperInitializerMissingArguments, 52, 1),
         error(
           diag.duplicateDefinition,
           68,
