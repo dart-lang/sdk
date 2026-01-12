@@ -513,6 +513,77 @@ augment class A {
     );
   }
 
+  test_instance_primaryConstructor_requiredNamed_final_method() async {
+    await assertErrorsInCode(
+      r'''
+class C({required final int foo}) {
+  void foo() {}
+}
+''',
+      [
+        error(
+          diag.duplicateDefinition,
+          43,
+          3,
+          contextMessages: [message(testFile, 28, 3)],
+        ),
+      ],
+    );
+  }
+
+  test_instance_primaryConstructor_requiredPositional_final_method() async {
+    await assertErrorsInCode(
+      r'''
+class C(final int foo) {
+  void foo() {}
+}
+''',
+      [
+        error(
+          diag.duplicateDefinition,
+          32,
+          3,
+          contextMessages: [message(testFile, 18, 3)],
+        ),
+      ],
+    );
+  }
+
+  test_instance_primaryConstructor_requiredPositional_final_setter() async {
+    await assertNoErrorsInCode(r'''
+class C(final int foo) {
+  set foo(int x) {}
+}
+''');
+  }
+
+  test_instance_primaryConstructor_requiredPositional_notDeclaring_setter() async {
+    await assertNoErrorsInCode(r'''
+class C(int foo) {
+  int get foo => 0;
+  set foo(int x) {}
+}
+''');
+  }
+
+  test_instance_primaryConstructor_requiredPositional_var_setter() async {
+    await assertErrorsInCode(
+      r'''
+class C(var int foo) {
+  set foo(int x) {}
+}
+''',
+      [
+        error(
+          diag.duplicateDefinition,
+          29,
+          3,
+          contextMessages: [message(testFile, 16, 3)],
+        ),
+      ],
+    );
+  }
+
   test_instance_setter_getter() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -1343,6 +1414,82 @@ enum E {
           36,
           3,
           contextMessages: [message(testFile, 21, 3)],
+        ),
+      ],
+    );
+  }
+
+  test_instance_primaryConstructor_requiredNamed_final_method() async {
+    await assertErrorsInCode(
+      r'''
+enum E({required final int foo}) {
+  v(foo: 0);
+  void foo() {}
+}
+''',
+      [
+        error(
+          diag.duplicateDefinition,
+          55,
+          3,
+          contextMessages: [message(testFile, 27, 3)],
+        ),
+      ],
+    );
+  }
+
+  test_instance_primaryConstructor_requiredPositional_final_method() async {
+    await assertErrorsInCode(
+      r'''
+enum E(final int foo) {
+  v(0);
+  void foo() {}
+}
+''',
+      [
+        error(
+          diag.duplicateDefinition,
+          39,
+          3,
+          contextMessages: [message(testFile, 17, 3)],
+        ),
+      ],
+    );
+  }
+
+  test_instance_primaryConstructor_requiredPositional_final_setter() async {
+    await assertNoErrorsInCode(r'''
+enum E(final int foo) {
+  v(0);
+  set foo(int x) {}
+}
+''');
+  }
+
+  test_instance_primaryConstructor_requiredPositional_notDeclaring_setter() async {
+    await assertNoErrorsInCode(r'''
+enum E(int foo) {
+  v(0);
+  int get foo => 0;
+  set foo(int x) {}
+}
+''');
+  }
+
+  test_instance_primaryConstructor_requiredPositional_var_setter() async {
+    await assertErrorsInCode(
+      r'''
+enum E(var int foo) {
+  v(0);
+  set foo(int x) {}
+}
+''',
+      [
+        error(
+          diag.duplicateDefinition,
+          36,
+          3,
+          contextMessages: [message(testFile, 15, 3)],
         ),
       ],
     );
