@@ -956,6 +956,31 @@ void f(G a) {}
 ''');
   }
 
+  Future<void> test_issue55348() async {
+    newFile(join(testPackageLibPath, 'a.dart'), '''
+class A {
+  const A();
+  const factory A.f() = A;
+}
+''');
+    await indexTestUnit('''
+import 'a.dart';
+
+void f() {
+  const ^A.f();
+}
+''');
+    createRenameRefactoring();
+    refactoring.newName = 'NewName';
+    await assertSuccessfulRefactoring('''
+import 'a.dart';
+
+void f() {
+  const NewName.f();
+}
+''');
+  }
+
   Future<void> _test_createChange_PropertyAccessorElement(String search) async {
     await indexTestUnit('''
 get test {}
