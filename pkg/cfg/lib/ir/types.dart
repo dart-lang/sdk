@@ -68,6 +68,12 @@ sealed class CType {
   bool isSubtypeOf(CType other) => GlobalContext.instance.typeEnvironment
       .isSubtypeOf(this.dartType, other.dartType);
 
+  /// Returns true if value of this type can be `null`.
+  bool get isNullable;
+
+  /// Return non-nullable variant of this type (if possible).
+  CType get toNonNullableType;
+
   @override
   bool operator ==(Object other) =>
       other is CType &&
@@ -92,6 +98,12 @@ final class IntType extends CType {
       _dartType ?? GlobalContext.instance.coreTypes.intNonNullableRawType;
 
   @override
+  bool get isNullable => false;
+
+  @override
+  CType get toNonNullableType => this;
+
+  @override
   String toString() => 'int';
 }
 
@@ -107,6 +119,12 @@ final class DoubleType extends CType {
   @override
   ast.DartType get dartType =>
       _dartType ?? GlobalContext.instance.coreTypes.doubleNonNullableRawType;
+
+  @override
+  bool get isNullable => false;
+
+  @override
+  CType get toNonNullableType => this;
 
   @override
   String toString() => 'double';
@@ -126,6 +144,12 @@ final class BoolType extends CType {
       _dartType ?? GlobalContext.instance.coreTypes.boolNonNullableRawType;
 
   @override
+  bool get isNullable => false;
+
+  @override
+  CType get toNonNullableType => this;
+
+  @override
   String toString() => 'bool';
 }
 
@@ -141,6 +165,12 @@ final class StringType extends CType {
   @override
   ast.DartType get dartType =>
       _dartType ?? GlobalContext.instance.coreTypes.stringNonNullableRawType;
+
+  @override
+  bool get isNullable => false;
+
+  @override
+  CType get toNonNullableType => this;
 
   @override
   String toString() => 'String';
@@ -160,6 +190,12 @@ final class ObjectType extends CType {
       _dartType ?? GlobalContext.instance.coreTypes.objectNonNullableRawType;
 
   @override
+  bool get isNullable => false;
+
+  @override
+  CType get toNonNullableType => this;
+
+  @override
   String toString() => 'Object';
 }
 
@@ -174,6 +210,12 @@ final class NullType extends CType {
   ast.DartType get dartType => const ast.NullType();
 
   @override
+  bool get isNullable => true;
+
+  @override
+  CType get toNonNullableType => const NeverType();
+
+  @override
   String toString() => 'Null';
 }
 
@@ -186,6 +228,12 @@ final class NeverType extends CType {
 
   @override
   ast.DartType get dartType => const ast.NeverType.nonNullable();
+
+  @override
+  bool get isNullable => false;
+
+  @override
+  CType get toNonNullableType => this;
 
   @override
   String toString() => 'Never';
@@ -204,6 +252,12 @@ final class TopType extends CType {
   ast.DartType get dartType => _dartType ?? const ast.DynamicType();
 
   @override
+  bool get isNullable => true;
+
+  @override
+  CType get toNonNullableType => const ObjectType();
+
+  @override
   String toString() => '<top>';
 }
 
@@ -216,6 +270,12 @@ final class StaticType extends CType {
   final ast.DartType dartType;
 
   StaticType(this.dartType);
+
+  @override
+  bool get isNullable => dartType.isPotentiallyNullable;
+
+  @override
+  CType get toNonNullableType => CType.fromStaticType(dartType.toNonNull());
 
   @override
   String toString() => dartType.getDisplayString();
@@ -233,6 +293,12 @@ sealed class ExtendedType extends CType {
 
   @override
   bool isSubtypeOf(CType other) => this == other;
+
+  @override
+  bool get isNullable => false;
+
+  @override
+  CType get toNonNullableType => this;
 
   @override
   bool operator ==(Object other) =>

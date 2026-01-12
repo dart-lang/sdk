@@ -508,5 +508,70 @@ void main() {
         (double v) => v.truncateToDouble(),
       );
     });
+
+    test('unary bool op', () {
+      final values = <bool>[true, false];
+
+      void testOp(
+        UnaryBoolOpcode opcode,
+        bool Function(bool) expectedBehavior,
+      ) {
+        for (final v in values) {
+          final expected = expectedBehavior(v);
+          expect(
+            constantFolding.unaryBoolOp(opcode, ConstantValue.fromBool(v)),
+            equals(ConstantValue.fromBool(expected)),
+          );
+        }
+      }
+
+      testOp(UnaryBoolOpcode.not, (bool v) => !v);
+    });
+
+    test('computeToString', () {
+      final testCases = <ConstantValue, String?>{
+        ConstantValue.fromString('abc'): 'abc',
+        ConstantValue.fromInt(-10): '-10',
+        ConstantValue.fromBool(false): 'false',
+        ConstantValue.fromDouble(3.14): '3.14',
+        ConstantValue.fromNull(): 'null',
+        ConstantValue(ast.ListConstant(const ast.DynamicType(), [])): null,
+      };
+
+      for (final e in testCases.entries) {
+        expect(constantFolding.computeToString(e.key), equals(e.value));
+      }
+    });
+
+    test('stringInterpolation', () {
+      expect(
+        constantFolding.stringInterpolation([
+          ConstantValue.fromString('x = '),
+          ConstantValue.fromInt(42),
+          ConstantValue.fromString(', y = '),
+          ConstantValue.fromDouble(double.nan),
+          ConstantValue.fromString(', z = '),
+          ConstantValue.fromBool(true),
+        ]),
+        equals(ConstantValue.fromString('x = 42, y = NaN, z = true')),
+      );
+      expect(
+        constantFolding.stringInterpolation([
+          ConstantValue.fromString('x = '),
+          ConstantValue.fromInt(42),
+          ConstantValue.fromString(', y = '),
+          ConstantValue(
+            ast.MapConstant(
+              const ast.DynamicType(),
+              const ast.DynamicType(),
+              [],
+            ),
+          ),
+          ConstantValue.fromString(', z = '),
+          ConstantValue.fromBool(true),
+        ]),
+        isNull,
+      );
+    });
   });
 }

@@ -107,4 +107,23 @@ void redundantPhi(int x) {
   print(x);
 }
 
+void stringInterpolation(int x) {
+  final empty = '';
+  final s = 'string';
+  final i = 42;
+  final d = 3.14;
+  final b = true;
+  final n = null;
+  print('$empty');
+  print('Hey, $s! i=$i, d=$d, b=$b, n=$n');
+  print('enclosing start... ${'some nested $s, x=$x'} ...end');
+}
+
+void closureCall() {
+  final x = (int arg) {
+    print(arg);
+  };
+  x(42);
+}
+
 void main() {}
