@@ -111,6 +111,7 @@ class RecordedUse {
       StringConstantValue() => record_use.StringConstant(constant.stringValue),
       MapConstantValue() => _findMapValue(constant),
       ListConstantValue() => _findListValue(constant),
+      ConstructedConstantValue() => _findInstanceValue(constant),
       // TODO(https://github.com/dart-lang/native/issues/2899): Handle
       // unsupported const types so that the values don't show up as non-const.
       Object() => null,
@@ -149,6 +150,23 @@ class RecordedUse {
       result.add(constant);
     }
     return record_use.ListConstant(result);
+  }
+
+  record_use.InstanceConstant? _findInstanceValue(
+    ConstructedConstantValue constant,
+  ) {
+    final fieldValues = <String, record_use.Constant>{};
+    for (final entry in constant.fields.entries) {
+      final name = entry.key.name;
+      final value = _findValue(entry.value);
+      if (name == null || value == null) {
+        // TODO(https://github.com/dart-lang/native/issues/2899): Handle
+        // unsupported fields.
+        return null;
+      }
+      fieldValues[name] = value;
+    }
+    return record_use.InstanceConstant(fields: fieldValues);
   }
 }
 
