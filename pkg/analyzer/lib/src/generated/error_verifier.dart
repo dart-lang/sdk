@@ -5786,16 +5786,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     if (_enclosingExtension != null) {
-      diagnosticReporter.atNode(
-        name,
-        diag.unqualifiedReferenceToStaticMemberOfExtendedType,
-        arguments: [enclosingElement.displayName],
+      diagnosticReporter.report(
+        diag.unqualifiedReferenceToStaticMemberOfExtendedType
+            .withArguments(name: enclosingElement.displayName)
+            .at(name),
       );
     } else {
-      diagnosticReporter.atNode(
-        name,
-        diag.unqualifiedReferenceToNonLocalStaticMember,
-        arguments: [enclosingElement.displayName],
+      diagnosticReporter.report(
+        diag.unqualifiedReferenceToNonLocalStaticMember
+            .withArguments(name: enclosingElement.displayName)
+            .at(name),
       );
     }
   }
@@ -5910,10 +5910,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       expected = 0;
     }
     if (expected != -1 && numParameters != expected) {
-      diagnosticReporter.atToken(
-        nameToken,
-        diag.wrongNumberOfParametersForOperator,
-        arguments: [name, expected, numParameters],
+      diagnosticReporter.report(
+        diag.wrongNumberOfParametersForOperator
+            .withArguments(
+              name: name,
+              expectedCount: expected,
+              actualCount: numParameters,
+            )
+            .at(nameToken),
       );
       return true;
     } else if ("-" == name && numParameters > 1) {

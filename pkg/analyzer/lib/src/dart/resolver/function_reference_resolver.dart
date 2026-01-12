@@ -158,16 +158,16 @@ class FunctionReferenceResolver {
     var enclosingElement = element.enclosingElement!;
     if (implicitReceiver) {
       if (_resolver.enclosingExtension != null) {
-        _resolver.diagnosticReporter.atNode(
-          nameNode,
-          diag.unqualifiedReferenceToStaticMemberOfExtendedType,
-          arguments: [enclosingElement.displayName],
+        _resolver.diagnosticReporter.report(
+          diag.unqualifiedReferenceToStaticMemberOfExtendedType
+              .withArguments(name: enclosingElement.displayName)
+              .at(nameNode),
         );
       } else {
-        _resolver.diagnosticReporter.atNode(
-          nameNode,
-          diag.unqualifiedReferenceToNonLocalStaticMember,
-          arguments: [enclosingElement.displayName],
+        _resolver.diagnosticReporter.report(
+          diag.unqualifiedReferenceToNonLocalStaticMember
+              .withArguments(name: enclosingElement.displayName)
+              .at(nameNode),
         );
       }
     } else if (enclosingElement is ExtensionElement &&

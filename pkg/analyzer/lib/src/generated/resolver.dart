@@ -4629,10 +4629,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         String name = nameNode.name;
         var element = namedParameters != null ? namedParameters[name] : null;
         if (element == null) {
-          diagnosticReporter?.atNode(
-            nameNode,
-            diag.undefinedNamedParameter,
-            arguments: [name],
+          diagnosticReporter?.report(
+            diag.undefinedNamedParameter.withArguments(name: name).at(nameNode),
           );
         } else {
           resolvedParameters[i] = element;

@@ -92,10 +92,10 @@ class AssignmentVerifier {
         return;
       }
       if (receiverType != null) {
-        _diagnosticReporter.atNode(
-          node,
-          diag.undefinedSetter,
-          arguments: [node.name, receiverType],
+        _diagnosticReporter.report(
+          diag.undefinedSetter
+              .withArguments(setterName: node.name, type: receiverType)
+              .at(node),
         );
       } else {
         _diagnosticReporter.report(
