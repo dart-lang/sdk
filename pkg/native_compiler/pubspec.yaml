@@ -11,6 +11,9 @@ resolution: workspace
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   cfg: any
+  kernel: any
 
 dev_dependencies:
+  front_end: any
   test: any
+  vm: any
