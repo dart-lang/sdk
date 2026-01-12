@@ -40,9 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (!isExactWidgetTypeContainer(node.staticType)) {
-      return;
-    }
+    if (!node.isWidgetTypeContainer) return;
 
     if (_shouldReportForArguments(node.argumentList)) {
       rule.reportAtNode(node.constructorName);

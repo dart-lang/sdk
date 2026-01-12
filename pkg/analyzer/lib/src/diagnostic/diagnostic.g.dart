@@ -16134,10 +16134,14 @@ undefinedLint = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the method that is undefined
-/// Object p1: the resolved type name that the method lookup is happening on
+/// String methodName: the name of the method that is undefined
+/// String typeName: the resolved type name that the method lookup is
+///                  happening on
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required Object p1})
+  LocatableDiagnostic Function({
+    required String methodName,
+    required String typeName,
+  })
 >
 undefinedMethod = DiagnosticWithArguments(
   name: 'undefined_method',
@@ -16149,14 +16153,17 @@ undefinedMethod = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_method',
   withArguments: _withArgumentsUndefinedMethod,
-  expectedTypes: [ExpectedType.string, ExpectedType.object],
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// Parameters:
-/// String p0: the name of the method
-/// String p1: the name of the function type alias
+/// String methodName: the name of the method
+/// String functionTypeAliasName: the name of the function type alias
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String methodName,
+    required String functionTypeAliasName,
+  })
 >
 undefinedMethodOnFunctionType = DiagnosticWithArguments(
   name: 'undefined_method',
@@ -16172,9 +16179,9 @@ undefinedMethodOnFunctionType = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the requested named parameter
+/// String name: the name of the requested named parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 undefinedNamedParameter = DiagnosticWithArguments(
   name: 'undefined_named_parameter',
@@ -16210,10 +16217,13 @@ undefinedOperator = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the reference
-/// String p1: the name of the prefix
+/// String referenceName: the name of the reference
+/// String prefixName: the name of the prefix
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String referenceName,
+    required String prefixName,
+  })
 >
 undefinedPrefixedName = DiagnosticWithArguments(
   name: 'undefined_prefixed_name',
@@ -16247,11 +16257,13 @@ undefinedReferencedParameter = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the setter
-/// Type p1: the name of the enclosing type where the setter is being looked
-///          for
+/// String setterName: the name of the setter
+/// Type type: the enclosing type where the setter is being looked for
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required String setterName,
+    required DartType type,
+  })
 >
 undefinedSetter = DiagnosticWithArguments(
   name: 'undefined_setter',
@@ -16268,10 +16280,13 @@ undefinedSetter = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the setter
-/// String p1: the name of the function type alias
+/// String setterName: the name of the setter
+/// String functionTypeAliasName: the name of the function type alias
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String setterName,
+    required String functionTypeAliasName,
+  })
 >
 undefinedSetterOnFunctionType = DiagnosticWithArguments(
   name: 'undefined_setter',
@@ -16305,11 +16320,13 @@ undefinedShownName = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the getter
-/// Type p1: the name of the enclosing type where the getter is being looked
-///          for
+/// String getterName: the name of the getter
+/// Type type: the enclosing type where the getter is being looked for
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required String getterName,
+    required DartType type,
+  })
 >
 undefinedSuperGetter = DiagnosticWithArguments(
   name: 'undefined_super_member',
@@ -16325,10 +16342,14 @@ undefinedSuperGetter = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the method that is undefined
-/// String p1: the resolved type name that the method lookup is happening on
+/// String methodName: the name of the method that is undefined
+/// String typeName: the resolved type name that the method lookup is
+///                  happening on
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String methodName,
+    required String typeName,
+  })
 >
 undefinedSuperMethod = DiagnosticWithArguments(
   name: 'undefined_super_member',
@@ -16364,11 +16385,13 @@ undefinedSuperOperator = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the setter
-/// Type p1: the name of the enclosing type where the setter is being looked
-///          for
+/// String setterName: the name of the setter
+/// Type type: the enclosing type where the setter is being looked for
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required String setterName,
+    required DartType type,
+  })
 >
 undefinedSuperSetter = DiagnosticWithArguments(
   name: 'undefined_super_member',
@@ -16780,9 +16803,9 @@ const DiagnosticWithoutArguments unnecessaryWildcardPattern =
 /// provide a more informative error message.
 ///
 /// Parameters:
-/// String p0: the name of the defining type
+/// String name: the name of the defining type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 unqualifiedReferenceToNonLocalStaticMember = DiagnosticWithArguments(
   name: 'unqualified_reference_to_non_local_static_member',
@@ -16798,9 +16821,9 @@ unqualifiedReferenceToNonLocalStaticMember = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the defining type
+/// String name: the name of the defining type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 unqualifiedReferenceToStaticMemberOfExtendedType = DiagnosticWithArguments(
   name: 'unqualified_reference_to_static_member_of_extended_type',
@@ -17596,14 +17619,15 @@ wrongExplicitTypeParameterVarianceInSuperinterface = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the declared operator
-/// int p1: the number of parameters expected
-/// int p2: the number of parameters found in the operator declaration
+/// String name: the name of the declared operator
+/// int expectedCount: the number of parameters expected
+/// int actualCount: the number of parameters found in the operator
+///                  declaration
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required int p1,
-    required int p2,
+    required String name,
+    required int expectedCount,
+    required int actualCount,
   })
 >
 wrongNumberOfParametersForOperator = DiagnosticWithArguments(
@@ -21359,23 +21383,26 @@ LocatableDiagnostic _withArgumentsUndefinedLint({required String ruleName}) {
 }
 
 LocatableDiagnostic _withArgumentsUndefinedMethod({
-  required String p0,
-  required Object p1,
+  required String methodName,
+  required String typeName,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedMethod, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.undefinedMethod, [methodName, typeName]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedMethodOnFunctionType({
-  required String p0,
-  required String p1,
+  required String methodName,
+  required String functionTypeAliasName,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedMethodOnFunctionType, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.undefinedMethodOnFunctionType, [
+    methodName,
+    functionTypeAliasName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedNamedParameter({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedNamedParameter, [p0]);
+  return LocatableDiagnosticImpl(diag.undefinedNamedParameter, [name]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedOperator({
@@ -21386,10 +21413,13 @@ LocatableDiagnostic _withArgumentsUndefinedOperator({
 }
 
 LocatableDiagnostic _withArgumentsUndefinedPrefixedName({
-  required String p0,
-  required String p1,
+  required String referenceName,
+  required String prefixName,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedPrefixedName, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.undefinedPrefixedName, [
+    referenceName,
+    prefixName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedReferencedParameter({
@@ -21400,17 +21430,20 @@ LocatableDiagnostic _withArgumentsUndefinedReferencedParameter({
 }
 
 LocatableDiagnostic _withArgumentsUndefinedSetter({
-  required String p0,
-  required DartType p1,
+  required String setterName,
+  required DartType type,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedSetter, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.undefinedSetter, [setterName, type]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedSetterOnFunctionType({
-  required String p0,
-  required String p1,
+  required String setterName,
+  required String functionTypeAliasName,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedSetterOnFunctionType, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.undefinedSetterOnFunctionType, [
+    setterName,
+    functionTypeAliasName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedShownName({
@@ -21421,17 +21454,20 @@ LocatableDiagnostic _withArgumentsUndefinedShownName({
 }
 
 LocatableDiagnostic _withArgumentsUndefinedSuperGetter({
-  required String p0,
-  required DartType p1,
+  required String getterName,
+  required DartType type,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedSuperGetter, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.undefinedSuperGetter, [getterName, type]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedSuperMethod({
-  required String p0,
-  required String p1,
+  required String methodName,
+  required String typeName,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedSuperMethod, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.undefinedSuperMethod, [
+    methodName,
+    typeName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedSuperOperator({
@@ -21442,10 +21478,10 @@ LocatableDiagnostic _withArgumentsUndefinedSuperOperator({
 }
 
 LocatableDiagnostic _withArgumentsUndefinedSuperSetter({
-  required String p0,
-  required DartType p1,
+  required String setterName,
+  required DartType type,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedSuperSetter, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.undefinedSuperSetter, [setterName, type]);
 }
 
 LocatableDiagnostic _withArgumentsUndone({required String message}) {
@@ -21492,21 +21528,21 @@ LocatableDiagnostic _withArgumentsUnnecessaryQuestionMark({
 }
 
 LocatableDiagnostic _withArgumentsUnqualifiedReferenceToNonLocalStaticMember({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(
     diag.unqualifiedReferenceToNonLocalStaticMember,
-    [p0],
+    [name],
   );
 }
 
 LocatableDiagnostic
 _withArgumentsUnqualifiedReferenceToStaticMemberOfExtendedType({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(
     diag.unqualifiedReferenceToStaticMemberOfExtendedType,
-    [p0],
+    [name],
   );
 }
 
@@ -21681,14 +21717,14 @@ _withArgumentsWrongExplicitTypeParameterVarianceInSuperinterface({
 }
 
 LocatableDiagnostic _withArgumentsWrongNumberOfParametersForOperator({
-  required String p0,
-  required int p1,
-  required int p2,
+  required String name,
+  required int expectedCount,
+  required int actualCount,
 }) {
   return LocatableDiagnosticImpl(diag.wrongNumberOfParametersForOperator, [
-    p0,
-    p1,
-    p2,
+    name,
+    expectedCount,
+    actualCount,
   ]);
 }
 

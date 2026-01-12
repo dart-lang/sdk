@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
-import 'package:record_use/record_use_internal.dart';
+import 'package:compiler/src/constants/values.dart';
+import 'package:record_use/record_use_internal.dart' as record_use;
 
 import '../serialization/serialization.dart';
 
@@ -23,28 +22,19 @@ class RecordedUse {
   /// Location of the resource identifier instance. This is `null` for constant
   /// resource identifiers. For other resource identifier instances this is the
   /// call site to the constructor or method.
-  final Location? location;
+  final record_use.Location? location;
 
-  /// True if some argument is missing from [_argumentsString] because it is not
-  /// a constant.
-  final bool nonconstant;
+  final List<ConstantValue?> positionalArguments;
 
-  /// JSON encoded map from class field names or function parameter positions to
-  /// primitive values for arguments that are constant.
-  // TODO(sra): Consider holding as a map with ConstantValue values.
-  String _argumentsString;
-
-  /// JSON encoded map from class field names or function parameter positions to
-  /// primitive values for arguments that are constant.
-  List<Constant?> get arguments => _argumentsFromJson();
+  /// Constant argument values in `package:record_use` format.
+  List<record_use.Constant?> get arguments => _argumentsFromConstantValues();
 
   RecordedUse(
     this.name,
     this.parent,
     this.uri,
     this.location,
-    this.nonconstant,
-    this._argumentsString,
+    this.positionalArguments,
   );
 
   factory RecordedUse.readFromDataSource(DataSourceReader source) {
@@ -54,14 +44,15 @@ class RecordedUse {
     String uri = source.readString();
 
     bool hasLocation = source.readBool();
-    Location? location = hasLocation
+    record_use.Location? location = hasLocation
         ? RecordUseLocation.readFromDataSource(source)
         : null;
 
-    bool nonconstant = source.readBool();
-    String arguments = source.readString();
+    final positionalArguments = source.readList(
+      () => source.readValueOrNull(source.readConstant),
+    );
     source.end(tag);
-    return RecordedUse(name, parent, uri, location, nonconstant, arguments);
+    return RecordedUse(name, parent, uri, location, positionalArguments);
   }
 
   void writeToDataSink(DataSinkWriter sink) {
@@ -77,53 +68,115 @@ class RecordedUse {
       location!.writeToDataSink(sink);
     }
 
-    sink.writeBool(nonconstant);
-    sink.writeString(_argumentsString);
+    sink.writeList(
+      positionalArguments,
+      (c) => sink.writeValueOrNull(c, sink.writeConstant),
+    );
     sink.end(tag);
   }
 
   @override
-  bool operator ==(Object other) =>
-      other is RecordedUse &&
-      name == other.name &&
-      uri == other.uri &&
-      location == other.location &&
-      _argumentsString == other._argumentsString;
+  bool operator ==(Object other) {
+    if (other is! RecordedUse) return false;
+    if (name != other.name) return false;
+    if (uri != other.uri) return false;
+    if (location != other.location) return false;
+    if (positionalArguments.length != other.positionalArguments.length) {
+      return false;
+    }
+    for (var i = 0; i < positionalArguments.length; i++) {
+      if (positionalArguments[i] != other.positionalArguments[i]) return false;
+    }
+    return true;
+  }
 
   @override
-  int get hashCode => Object.hash(name, uri, location, _argumentsString);
+  int get hashCode =>
+      Object.hash(name, uri, location, Object.hashAll(positionalArguments));
 
   @override
   String toString() {
-    return 'RecordedUse($name @ $uri, $location, $_argumentsString)';
+    return 'RecordedUse($name @ $uri, $location, $positionalArguments)';
   }
 
-  List<Constant?> _argumentsFromJson() {
-    final json = jsonDecode(_argumentsString) as List<Object?>;
-    final constants = <Constant>[];
-    final arguments = <Constant?>[];
-    for (final constantJsonObj in json) {
-      final constantJson = constantJsonObj as Map<String, Object?>?;
-      final Constant? constant;
-      if (constantJson != null) {
-        constant = Constant.fromJson(constantJson, constants);
-        constants.add(constant);
-      } else {
-        constant = null;
+  List<record_use.Constant?> _argumentsFromConstantValues() =>
+      positionalArguments.map(_findValue).toList();
+
+  record_use.Constant? _findValue(ConstantValue? constant) {
+    return switch (constant) {
+      null => null, // not const.
+      NullConstantValue() => record_use.NullConstant(),
+      BoolConstantValue() => record_use.BoolConstant(constant.boolValue),
+      IntConstantValue() => record_use.IntConstant(constant.intValue.toInt()),
+      StringConstantValue() => record_use.StringConstant(constant.stringValue),
+      MapConstantValue() => _findMapValue(constant),
+      ListConstantValue() => _findListValue(constant),
+      ConstructedConstantValue() => _findInstanceValue(constant),
+      // TODO(https://github.com/dart-lang/native/issues/2899): Handle
+      // unsupported const types so that the values don't show up as non-const.
+      Object() => null,
+    };
+  }
+
+  record_use.MapConstant? _findMapValue(MapConstantValue constant) {
+    final result = <String, record_use.Constant>{};
+    for (var index = 0; index < constant.keys.length; index++) {
+      var keyConstantValue = constant.keys[index];
+      if (keyConstantValue is! StringConstantValue) {
+        // TODO(https://github.com/dart-lang/native/issues/2715): Support non
+        // string keys in maps.
+        return null;
       }
-      arguments.add(constant);
+      final value = _findValue(constant.values[index]);
+      if (value == null) {
+        // TODO(https://github.com/dart-lang/native/issues/2899): Handle
+        // unsupported values.
+        return null;
+      }
+      result[keyConstantValue.stringValue] = value;
     }
-    return arguments;
+    return record_use.MapConstant(result);
+  }
+
+  record_use.ListConstant? _findListValue(ListConstantValue constant) {
+    final result = <record_use.Constant>[];
+    for (final constantValue in constant.entries) {
+      final constant = _findValue(constantValue);
+      if (constant == null) {
+        // TODO(https://github.com/dart-lang/native/issues/2899): Handle
+        // unsupported values.
+        return null;
+      }
+      result.add(constant);
+    }
+    return record_use.ListConstant(result);
+  }
+
+  record_use.InstanceConstant? _findInstanceValue(
+    ConstructedConstantValue constant,
+  ) {
+    final fieldValues = <String, record_use.Constant>{};
+    for (final entry in constant.fields.entries) {
+      final name = entry.key.name;
+      final value = _findValue(entry.value);
+      if (name == null || value == null) {
+        // TODO(https://github.com/dart-lang/native/issues/2899): Handle
+        // unsupported fields.
+        return null;
+      }
+      fieldValues[name] = value;
+    }
+    return record_use.InstanceConstant(fields: fieldValues);
   }
 }
 
-extension RecordUseLocation on Location {
-  static Location readFromDataSource(DataSourceReader source) {
+extension RecordUseLocation on record_use.Location {
+  static record_use.Location readFromDataSource(DataSourceReader source) {
     final uri = source.readUri();
     //TODO(mosum): Use a verbose flag for line and column info
     // final line = source.readIntOrNull();
     // final column = source.readIntOrNull();
-    return Location(uri: uri.toFilePath());
+    return record_use.Location(uri: uri.toFilePath());
   }
 
   void writeToDataSink(DataSinkWriter sink) {

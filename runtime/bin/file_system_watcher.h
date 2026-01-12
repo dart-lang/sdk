@@ -58,7 +58,7 @@ class FileSystemWatcher {
   static Dart_Handle ReadEvents(intptr_t id, intptr_t path_id);
 
 #if defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_WINDOWS)
-  static void DestroyWatch(intptr_t path_id);
+  static void DestroyWatch(void* ptr);
 #endif
 
   static void set_delayed_filewatch_callback(bool value) {

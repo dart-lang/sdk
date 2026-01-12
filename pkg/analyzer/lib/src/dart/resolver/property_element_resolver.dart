@@ -562,10 +562,13 @@ class PropertyElementResolver with ScopeHelpers {
               .at(propertyName),
         );
       } else {
-        diagnosticReporter.atNode(
-          propertyName,
-          diag.undefinedSetterOnFunctionType,
-          arguments: [propertyName.name, target.type.qualifiedName],
+        diagnosticReporter.report(
+          diag.undefinedSetterOnFunctionType
+              .withArguments(
+                setterName: propertyName.name,
+                functionTypeAliasName: target.type.qualifiedName,
+              )
+              .at(propertyName),
         );
       }
       return PropertyElementResolverResult();
@@ -948,10 +951,13 @@ class PropertyElementResolver with ScopeHelpers {
             prefix: target.name,
             name: identifier.name,
           )) {
-        diagnosticReporter.atNode(
-          identifier,
-          diag.undefinedPrefixedName,
-          arguments: [identifier.name, target.name!],
+        diagnosticReporter.report(
+          diag.undefinedPrefixedName
+              .withArguments(
+                referenceName: identifier.name,
+                prefixName: target.name!,
+              )
+              .at(identifier),
         );
       }
     }
@@ -1008,10 +1014,13 @@ class PropertyElementResolver with ScopeHelpers {
                   .at(propertyName),
             );
           } else {
-            diagnosticReporter.atNode(
-              propertyName,
-              diag.undefinedSuperGetter,
-              arguments: [propertyName.name, targetType],
+            diagnosticReporter.report(
+              diag.undefinedSuperGetter
+                  .withArguments(
+                    getterName: propertyName.name,
+                    type: targetType,
+                  )
+                  .at(propertyName),
             );
           }
         }
@@ -1059,10 +1068,13 @@ class PropertyElementResolver with ScopeHelpers {
                   .at(propertyName),
             );
           } else {
-            diagnosticReporter.atNode(
-              propertyName,
-              diag.undefinedSuperSetter,
-              arguments: [propertyName.name, targetType],
+            diagnosticReporter.report(
+              diag.undefinedSuperSetter
+                  .withArguments(
+                    setterName: propertyName.name,
+                    type: targetType,
+                  )
+                  .at(propertyName),
             );
           }
         }

@@ -12,8 +12,21 @@ VerifySuperFormalParametersResult verifySuperFormalParameters({
   DiagnosticReporter? diagnosticReporter,
   bool hasExplicitPositionalArguments = false,
 }) {
+  return verifySuperFormalParameters2(
+    formalParameterList: constructor.parameters,
+    diagnosticReporter: diagnosticReporter,
+    hasExplicitPositionalArguments: hasExplicitPositionalArguments,
+  );
+}
+
+// TODO(scheglov): migrate all to it
+VerifySuperFormalParametersResult verifySuperFormalParameters2({
+  required FormalParameterList formalParameterList,
+  DiagnosticReporter? diagnosticReporter,
+  bool hasExplicitPositionalArguments = false,
+}) {
   var result = VerifySuperFormalParametersResult();
-  for (var parameter in constructor.parameters.parameters) {
+  for (var parameter in formalParameterList.parameters) {
     parameter = parameter.notDefault;
     if (parameter is SuperFormalParameterImpl) {
       var declaredFragment = parameter.declaredFragment!;

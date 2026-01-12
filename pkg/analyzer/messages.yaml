@@ -18600,10 +18600,10 @@ CompileTimeErrorCode:
   undefinedMethod:
     type: compileTimeError
     parameters:
-      String p0: the name of the method that is undefined
-      Object p1: the resolved type name that the method lookup is happening on
-    problemMessage: "The method '#p0' isn't defined for the type '#p1'."
-    correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#p0'."
+      String methodName: the name of the method that is undefined
+      String typeName: the resolved type name that the method lookup is happening on
+    problemMessage: "The method '#methodName' isn't defined for the type '#typeName'."
+    correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#methodName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18633,18 +18633,18 @@ CompileTimeErrorCode:
   undefinedMethodOnFunctionType:
     type: compileTimeError
     parameters:
-      String p0: the name of the method
-      String p1: the name of the function type alias
+      String methodName: the name of the method
+      String functionTypeAliasName: the name of the function type alias
     sharedName: undefinedMethod
-    problemMessage: "The method '#p0' isn't defined for the '#p1' function type."
-    correctionMessage: "Try wrapping the function type alias in parentheses in order to access '#p0' as an extension method on 'Type'."
+    problemMessage: "The method '#methodName' isn't defined for the '#functionTypeAliasName' function type."
+    correctionMessage: "Try wrapping the function type alias in parentheses in order to access '#methodName' as an extension method on 'Type'."
     hasPublishedDocs: true
   undefinedNamedParameter:
     type: compileTimeError
     parameters:
-      String p0: the name of the requested named parameter
-    problemMessage: "The named parameter '#p0' isn't defined."
-    correctionMessage: "Try correcting the name to an existing named parameter's name, or defining a named parameter with the name '#p0'."
+      String name: the name of the requested named parameter
+    problemMessage: "The named parameter '#name' isn't defined."
+    correctionMessage: "Try correcting the name to an existing named parameter's name, or defining a named parameter with the name '#name'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18750,10 +18750,10 @@ CompileTimeErrorCode:
   undefinedPrefixedName:
     type: compileTimeError
     parameters:
-      String p0: the name of the reference
-      String p1: the name of the prefix
-    problemMessage: "The name '#p0' is being referenced through the prefix '#p1', but it isn't defined in any of the libraries imported using that prefix."
-    correctionMessage: "Try correcting the prefix or importing the library that defines '#p0'."
+      String referenceName: the name of the reference
+      String prefixName: the name of the prefix
+    problemMessage: "The name '#referenceName' is being referenced through the prefix '#prefixName', but it isn't defined in any of the libraries imported using that prefix."
+    correctionMessage: "Try correcting the prefix or importing the library that defines '#referenceName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18785,10 +18785,10 @@ CompileTimeErrorCode:
   undefinedSetter:
     type: compileTimeError
     parameters:
-      String p0: the name of the setter
-      Type p1: the name of the enclosing type where the setter is being looked for
-    problemMessage: "The setter '#p0' isn't defined for the type '#p1'."
-    correctionMessage: "Try importing the library that defines '#p0', correcting the name to the name of an existing setter, or defining a setter or field named '#p0'."
+      String setterName: the name of the setter
+      Type type: the enclosing type where the setter is being looked for
+    problemMessage: "The setter '#setterName' isn't defined for the type '#type'."
+    correctionMessage: "Try importing the library that defines '#setterName', correcting the name to the name of an existing setter, or defining a setter or field named '#setterName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18828,30 +18828,30 @@ CompileTimeErrorCode:
   undefinedSetterOnFunctionType:
     type: compileTimeError
     parameters:
-      String p0: the name of the setter
-      String p1: the name of the function type alias
+      String setterName: the name of the setter
+      String functionTypeAliasName: the name of the function type alias
     sharedName: undefinedSetter
-    problemMessage: "The setter '#p0' isn't defined for the '#p1' function type."
-    correctionMessage: "Try wrapping the function type alias in parentheses in order to access '#p0' as an extension getter on 'Type'."
+    problemMessage: "The setter '#setterName' isn't defined for the '#functionTypeAliasName' function type."
+    correctionMessage: "Try wrapping the function type alias in parentheses in order to access '#setterName' as an extension getter on 'Type'."
     hasPublishedDocs: true
   undefinedSuperGetter:
     type: compileTimeError
     parameters:
-      String p0: the name of the getter
-      Type p1: the name of the enclosing type where the getter is being looked for
+      String getterName: the name of the getter
+      Type type: the enclosing type where the getter is being looked for
     sharedName: undefinedSuperMember
-    problemMessage: "The getter '#p0' isn't defined in a superclass of '#p1'."
-    correctionMessage: "Try correcting the name to the name of an existing getter, or defining a getter or field named '#p0' in a superclass."
+    problemMessage: "The getter '#getterName' isn't defined in a superclass of '#type'."
+    correctionMessage: "Try correcting the name to the name of an existing getter, or defining a getter or field named '#getterName' in a superclass."
     hasPublishedDocs: true
   undefinedSuperMethod:
     type: compileTimeError
     parameters:
-      String p0: the name of the method that is undefined
-      String p1: the resolved type name that the method lookup is happening on
+      String methodName: the name of the method that is undefined
+      String typeName: the resolved type name that the method lookup is happening on
     sharedName: undefinedSuperMember
     previousName: UNDEFINED_SUPER_METHOD
-    problemMessage: "The method '#p0' isn't defined in a superclass of '#p1'."
-    correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#p0' in a superclass."
+    problemMessage: "The method '#methodName' isn't defined in a superclass of '#typeName'."
+    correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#methodName' in a superclass."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -18906,18 +18906,18 @@ CompileTimeErrorCode:
   undefinedSuperSetter:
     type: compileTimeError
     parameters:
-      String p0: the name of the setter
-      Type p1: the name of the enclosing type where the setter is being looked for
+      String setterName: the name of the setter
+      Type type: the enclosing type where the setter is being looked for
     sharedName: undefinedSuperMember
-    problemMessage: "The setter '#p0' isn't defined in a superclass of '#p1'."
-    correctionMessage: "Try correcting the name to the name of an existing setter, or defining a setter or field named '#p0' in a superclass."
+    problemMessage: "The setter '#setterName' isn't defined in a superclass of '#type'."
+    correctionMessage: "Try correcting the name to the name of an existing setter, or defining a setter or field named '#setterName' in a superclass."
     hasPublishedDocs: true
   unqualifiedReferenceToNonLocalStaticMember:
     type: compileTimeError
     parameters:
-      String p0: the name of the defining type
+      String name: the name of the defining type
     problemMessage: Static members from supertypes must be qualified by the name of the defining type.
-    correctionMessage: "Try adding '#p0.' before the name."
+    correctionMessage: "Try adding '#name.' before the name."
     hasPublishedDocs: true
     comment: |-
       This is a specialization of [instanceAccessToStaticMember] that is used
@@ -18963,9 +18963,9 @@ CompileTimeErrorCode:
   unqualifiedReferenceToStaticMemberOfExtendedType:
     type: compileTimeError
     parameters:
-      String p0: the name of the defining type
+      String name: the name of the defining type
     problemMessage: Static members from the extended type or one of its superclasses must be qualified by the name of the defining type.
-    correctionMessage: "Try adding '#p0.' before the name."
+    correctionMessage: "Try adding '#name.' before the name."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -19280,10 +19280,10 @@ CompileTimeErrorCode:
   wrongNumberOfParametersForOperator:
     type: compileTimeError
     parameters:
-      String p0: the name of the declared operator
-      int p1: the number of parameters expected
-      int p2: the number of parameters found in the operator declaration
-    problemMessage: "Operator '#p0' should declare exactly #p1 parameters, but #p2 found."
+      String name: the name of the declared operator
+      int expectedCount: the number of parameters expected
+      int actualCount: the number of parameters found in the operator declaration
+    problemMessage: "Operator '#name' should declare exactly #expectedCount parameters, but #actualCount found."
     hasPublishedDocs: true
     documentation: |-
       #### Description

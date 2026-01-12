@@ -18,8 +18,10 @@ final class IrToText extends VoidInstructionVisitor {
     this.printDominators = false,
     this.printLoops = false,
     this.annotator,
+    Iterable<Block>? blockOrder,
   }) {
-    for (final block in graph.reversePostorder) {
+    blockOrder ??= graph.reversePostorder;
+    for (final block in blockOrder) {
       block.accept(this);
     }
   }

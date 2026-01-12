@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class NonGenerativeConstructorTest extends PubPackageResolutionTest {
-  test_explicit() async {
+  test_factory_explicit_constructor() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -30,19 +30,52 @@ class B extends A {
     );
   }
 
-  test_generative() async {
-    await assertNoErrorsInCode(r'''
+  test_factory_explicit_primaryConstructor_hasBody() async {
+    await assertErrorsInCode(
+      r'''
 class A {
-  A.named() {}
-  factory A() => throw 0;
+  factory A.named() => throw 0;
+  A.generative();
 }
-class B extends A {
-  B() : super.named();
+class B() extends A {
+  this : super.named();
 }
-''');
+''',
+      [error(diag.nonGenerativeConstructor, 93, 13)],
+    );
   }
 
-  test_generative_external() async {
+  test_factory_implicit_constructor_newHead() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  factory A() => throw 0;
+  A.named();
+}
+class B extends A {
+  new foo();
+}
+''',
+      [error(diag.nonGenerativeConstructor, 73, 7)],
+    );
+  }
+
+  test_factory_implicit_constructor_typeName() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  factory A() => throw 0;
+  A.named();
+}
+class B extends A {
+  B.foo();
+}
+''',
+      [error(diag.nonGenerativeConstructor, 73, 5)],
+    );
+  }
+
+  test_factory_implicit_constructor_typeName_external() async {
     await assertNoErrorsInCode(r'''
 class A {
   A.named() {}
@@ -54,18 +87,54 @@ class B extends A {
 ''');
   }
 
-  test_implicit() async {
+  test_factory_implicit_primaryConstructor_hasBody() async {
     await assertErrorsInCode(
       r'''
 class A {
   factory A() => throw 0;
   A.named();
 }
-class B extends A {
-  B();
+class B() extends A {
+  this;
 }
 ''',
-      [error(diag.nonGenerativeConstructor, 73, 1)],
+      [error(diag.nonGenerativeConstructor, 75, 4)],
     );
+  }
+
+  test_generative_constructor() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A.named() {}
+  factory A() => throw 0;
+}
+class B extends A {
+  B() : super.named();
+}
+''');
+  }
+
+  test_generative_primaryConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A.named() {}
+  factory A() => throw 0;
+}
+class B() extends A {
+  this : super.named();
+}
+''');
+  }
+
+  test_generative_primaryContructor() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A.named() {}
+  factory A() => throw 0;
+}
+class B() extends A {
+  this : super.named();
+}
+''');
   }
 }

@@ -103,6 +103,17 @@ class C {
     );
   }
 
+  test_class_primary_named_typeName_named() async {
+    await assertErrorsInCode(
+      r'''
+class C.foo() {
+  C.foo() : this.foo();
+}
+''',
+      [error(diag.duplicateConstructorName, 18, 5)],
+    );
+  }
+
   test_class_typeName_named_factoryHead_named() async {
     await assertErrorsInCode(
       r'''
@@ -148,6 +159,18 @@ class A {
 }
 ''',
       [error(diag.invalidFactoryNameNotAClass, 20, 1)],
+    );
+  }
+
+  test_enum_primary_named_typeName_named() async {
+    await assertErrorsInCode(
+      r'''
+enum E.foo() {
+  v.foo();
+  factory E.foo() => v;
+}
+''',
+      [error(diag.duplicateConstructorName, 36, 5)],
     );
   }
 

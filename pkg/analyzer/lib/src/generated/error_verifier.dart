@@ -647,7 +647,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (!_checkForRecursiveFactoryRedirect(node, element)) {
           _checkForAllRedirectConstructorErrorCodes(node);
         }
-        _checkForUndefinedConstructorInInitializerImplicit(node);
+        _checkForUndefinedConstructorInInitializerImplicitConstructor(node);
         _checkForReturnInGenerativeConstructor(node);
         _checkForNonRedirectingGenerativeConstructorWithPrimary(node);
         super.visitConstructorDeclaration(node);
@@ -1430,6 +1430,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForIntNotAssignable(operand);
     }
     super.visitPrefixExpression(node);
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(
+    covariant PrimaryConstructorDeclarationImpl node,
+  ) {
+    super.visitPrimaryConstructorDeclaration(node);
+
+    var body = node.body;
+    _checkForUndefinedConstructorInInitializerImplicit(
+      formalParameterList: node.formalParameters,
+      initializers: body?.initializers,
+      errorRange: body?.thisKeyword.sourceRange ?? node.errorRange,
+    );
   }
 
   @override
@@ -5538,38 +5552,27 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  /// Check that if the given generative [constructor] has neither an explicit
-  /// super constructor invocation nor a redirecting constructor invocation,
-  /// that the superclass has a default generative constructor.
+  /// Check that if the generative constructor has neither an explicit super
+  /// constructor invocation nor a redirecting constructor invocation, that
+  /// the superclass has a generative constructor that can be invoked without
+  /// arguments.
   ///
   /// See [diag.undefinedConstructorInInitializerDefault],
   /// [diag.nonGenerativeConstructor], and
   /// [diag.noDefaultSuperConstructorExplicit].
-  void _checkForUndefinedConstructorInInitializerImplicit(
-    ConstructorDeclaration constructor,
-  ) {
-    if (_enclosingClass == null) {
-      return;
-    }
-
-    // Ignore if the constructor is not generative.
-    if (constructor.factoryKeyword != null) {
-      return;
-    }
-
-    // Ignore if the constructor is external. See
-    // https://github.com/dart-lang/language/issues/869.
-    if (constructor.externalKeyword != null) {
-      return;
-    }
-
-    // Ignore if the constructor has either an implicit super constructor
+  void _checkForUndefinedConstructorInInitializerImplicit({
+    required FormalParameterList formalParameterList,
+    required List<ConstructorInitializer>? initializers,
+    required SourceRange errorRange,
+  }) {
+    // Ignore if the constructor has either an explicit super constructor
     // invocation or a redirecting constructor invocation.
-    for (ConstructorInitializer constructorInitializer
-        in constructor.initializers) {
-      if (constructorInitializer is SuperConstructorInvocation ||
-          constructorInitializer is RedirectingConstructorInvocation) {
-        return;
+    if (initializers != null) {
+      for (ConstructorInitializer constructorInitializer in initializers) {
+        if (constructorInitializer is SuperConstructorInvocation ||
+            constructorInitializer is RedirectingConstructorInvocation) {
+          return;
+        }
       }
     }
 
@@ -5593,16 +5596,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       diagnosticReporter.report(
         diag.undefinedConstructorInInitializerDefault
             .withArguments(className: superElement.name!)
-            // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-            .at(constructor.typeName!),
+            .atSourceRange(errorRange),
       );
       return;
     }
 
     if (superUnnamedConstructor.isFactory) {
-      diagnosticReporter.atNode(
-        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-        constructor.typeName!,
+      diagnosticReporter.atSourceRange(
+        errorRange,
         diag.nonGenerativeConstructor,
         arguments: [superUnnamedConstructor],
       );
@@ -5621,18 +5622,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (!_currentLibrary.featureSet.isEnabled(Feature.super_parameters)) {
       if (requiredPositionalParameterCount != 0 ||
           requiredNamedParameters.isNotEmpty) {
-        var SourceRange(:offset, :length) = constructor.errorRange;
         diagnosticReporter.report(
           diag.noDefaultSuperConstructorExplicit
               .withArguments(supertype: superType)
-              .atOffset(offset: offset, length: length),
+              .atSourceRange(errorRange),
         );
       }
       return;
     }
 
-    var superParametersResult = verifySuperFormalParameters(
-      constructor: constructor,
+    var superParametersResult = verifySuperFormalParameters2(
+      formalParameterList: formalParameterList,
       diagnosticReporter: diagnosticReporter,
     );
     requiredNamedParameters.removeAll(superParametersResult.namedArgumentNames);
@@ -5640,13 +5640,44 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (requiredPositionalParameterCount >
             superParametersResult.positionalArgumentCount ||
         requiredNamedParameters.isNotEmpty) {
-      var SourceRange(:offset, :length) = constructor.errorRange;
       diagnosticReporter.report(
         diag.implicitSuperInitializerMissingArguments
             .withArguments(superType: superType)
-            .atOffset(offset: offset, length: length),
+            .atSourceRange(errorRange),
       );
     }
+  }
+
+  /// Check that if the given generative [constructor] has neither an explicit
+  /// super constructor invocation nor a redirecting constructor invocation,
+  /// that the superclass has a default generative constructor.
+  ///
+  /// See [diag.undefinedConstructorInInitializerDefault],
+  /// [diag.nonGenerativeConstructor], and
+  /// [diag.noDefaultSuperConstructorExplicit].
+  void _checkForUndefinedConstructorInInitializerImplicitConstructor(
+    ConstructorDeclaration constructor,
+  ) {
+    if (_enclosingClass == null) {
+      return;
+    }
+
+    // Ignore if the constructor is not generative.
+    if (constructor.factoryKeyword != null) {
+      return;
+    }
+
+    // Ignore if the constructor is external. See
+    // https://github.com/dart-lang/language/issues/869.
+    if (constructor.externalKeyword != null) {
+      return;
+    }
+
+    _checkForUndefinedConstructorInInitializerImplicit(
+      formalParameterList: constructor.parameters,
+      initializers: constructor.initializers,
+      errorRange: constructor.errorRange,
+    );
   }
 
   void _checkForUnnecessaryNullAware(
@@ -5786,16 +5817,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     if (_enclosingExtension != null) {
-      diagnosticReporter.atNode(
-        name,
-        diag.unqualifiedReferenceToStaticMemberOfExtendedType,
-        arguments: [enclosingElement.displayName],
+      diagnosticReporter.report(
+        diag.unqualifiedReferenceToStaticMemberOfExtendedType
+            .withArguments(name: enclosingElement.displayName)
+            .at(name),
       );
     } else {
-      diagnosticReporter.atNode(
-        name,
-        diag.unqualifiedReferenceToNonLocalStaticMember,
-        arguments: [enclosingElement.displayName],
+      diagnosticReporter.report(
+        diag.unqualifiedReferenceToNonLocalStaticMember
+            .withArguments(name: enclosingElement.displayName)
+            .at(name),
       );
     }
   }
@@ -5910,10 +5941,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       expected = 0;
     }
     if (expected != -1 && numParameters != expected) {
-      diagnosticReporter.atToken(
-        nameToken,
-        diag.wrongNumberOfParametersForOperator,
-        arguments: [name, expected, numParameters],
+      diagnosticReporter.report(
+        diag.wrongNumberOfParametersForOperator
+            .withArguments(
+              name: name,
+              expectedCount: expected,
+              actualCount: numParameters,
+            )
+            .at(nameToken),
       );
       return true;
     } else if ("-" == name && numParameters > 1) {

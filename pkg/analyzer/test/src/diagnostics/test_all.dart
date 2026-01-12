@@ -619,6 +619,8 @@ import 'new_with_undefined_constructor_test.dart'
 import 'no_annotation_constructor_arguments_test.dart'
     as no_annotation_constructor_arguments;
 import 'no_combined_super_signature_test.dart' as no_combined_super_signature;
+import 'no_default_super_constructor_explicit_test.dart'
+    as no_default_super_constructor_explicit;
 import 'no_default_super_constructor_test.dart' as no_default_super_constructor;
 import 'no_generative_constructors_in_superclass_test.dart'
     as no_generative_constructors_in_superclass;
@@ -1355,6 +1357,7 @@ main() {
     no_annotation_constructor_arguments.main();
     no_combined_super_signature.main();
     no_default_super_constructor.main();
+    no_default_super_constructor_explicit.main();
     no_generative_constructors_in_superclass.main();
     non_abstract_class_inherits_abstract_member.main();
     non_bool_condition.main();

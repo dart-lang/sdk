@@ -222,10 +222,13 @@ class MethodInvocationResolver with ScopeHelpers {
       // There is no possible resolution for a property access of a function
       // type literal (which can only be a type instantiation of a type alias
       // of a function type).
-      _resolver.diagnosticReporter.atNode(
-        nameNode,
-        diag.undefinedMethodOnFunctionType,
-        arguments: [name, receiver.type.qualifiedName],
+      _resolver.diagnosticReporter.report(
+        diag.undefinedMethodOnFunctionType
+            .withArguments(
+              methodName: name,
+              functionTypeAliasName: receiver.type.qualifiedName,
+            )
+            .at(nameNode),
       );
       _setInvalidTypeResolution(
         node,
@@ -320,16 +323,16 @@ class MethodInvocationResolver with ScopeHelpers {
     var enclosingElement = element.enclosingElement!;
     if (nullReceiver) {
       if (_resolver.enclosingExtension != null) {
-        _resolver.diagnosticReporter.atNode(
-          nameNode,
-          diag.unqualifiedReferenceToStaticMemberOfExtendedType,
-          arguments: [enclosingElement.displayString()],
+        _resolver.diagnosticReporter.report(
+          diag.unqualifiedReferenceToStaticMemberOfExtendedType
+              .withArguments(name: enclosingElement.displayString())
+              .at(nameNode),
         );
       } else {
-        _resolver.diagnosticReporter.atNode(
-          nameNode,
-          diag.unqualifiedReferenceToNonLocalStaticMember,
-          arguments: [enclosingElement.displayString()],
+        _resolver.diagnosticReporter.report(
+          diag.unqualifiedReferenceToNonLocalStaticMember
+              .withArguments(name: enclosingElement.displayString())
+              .at(nameNode),
         );
       }
     } else if (enclosingElement is ExtensionElement &&
@@ -427,10 +430,13 @@ class MethodInvocationResolver with ScopeHelpers {
         // Do not report extra errors.
       }
     } else {
-      _resolver.diagnosticReporter.atNode(
-        methodName,
-        diag.undefinedMethod,
-        arguments: [methodName.name, receiver.displayName],
+      _resolver.diagnosticReporter.report(
+        diag.undefinedMethod
+            .withArguments(
+              methodName: methodName.name,
+              typeName: receiver.displayName,
+            )
+            .at(methodName),
       );
     }
   }
@@ -846,10 +852,10 @@ class MethodInvocationResolver with ScopeHelpers {
           FunctionType() => 'Function',
           _ => '<unknown>',
         };
-        _resolver.diagnosticReporter.atNode(
-          nameNode,
-          diag.undefinedMethod,
-          arguments: [name, receiverTypeName],
+        _resolver.diagnosticReporter.report(
+          diag.undefinedMethod
+              .withArguments(methodName: name, typeName: receiverTypeName)
+              .at(nameNode),
         );
         return;
       }
@@ -1030,10 +1036,13 @@ class MethodInvocationResolver with ScopeHelpers {
       whyNotPromotedArguments: whyNotPromotedArguments,
       contextType: contextType,
     );
-    _resolver.diagnosticReporter.atNode(
-      nameNode,
-      diag.undefinedSuperMethod,
-      arguments: [name, enclosingClass.firstFragment.displayName],
+    _resolver.diagnosticReporter.report(
+      diag.undefinedSuperMethod
+          .withArguments(
+            methodName: name,
+            typeName: enclosingClass.firstFragment.displayName,
+          )
+          .at(nameNode),
     );
   }
 
@@ -1160,10 +1169,10 @@ class MethodInvocationResolver with ScopeHelpers {
     }
 
     if (!nameNode.isSynthetic) {
-      _resolver.diagnosticReporter.atNode(
-        nameNode,
-        diag.undefinedMethod,
-        arguments: [name, receiverClassName],
+      _resolver.diagnosticReporter.report(
+        diag.undefinedMethod
+            .withArguments(methodName: name, typeName: receiverClassName)
+            .at(nameNode),
       );
     }
   }

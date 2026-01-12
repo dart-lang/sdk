@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -39,13 +40,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
     for (VariableDeclaration field in node.fields.variables) {
       var fieldElement = field.declaredFragment?.element as FieldElement;
       if (fieldElement.metadata.hasOverride) {
-        var getter = fieldElement.getter;
-        if (getter != null && _isOverride(getter)) continue;
-
-        var setter = fieldElement.setter;
-        if (setter != null && _isOverride(setter)) continue;
-
-        _errorReporter.report(diag.overrideOnNonOverridingField.at(field.name));
+        _checkField(fieldElement, field.name);
       }
     }
   }
@@ -76,6 +71,30 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
     _currentClass = node.declaredFragment?.element;
     super.visitMixinDeclaration(node);
     _currentClass = null;
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    for (var parameter in node.formalParameters.parameters) {
+      var element = parameter.declaredFragment?.element;
+      if (element is! FieldFormalParameterElement) continue;
+      if (!element.metadata.hasOverride) continue;
+      if (!element.isDeclaring) continue;
+
+      var fieldElement = element.field;
+      if (fieldElement == null) continue;
+      _checkField(fieldElement, parameter.name!);
+    }
+  }
+
+  void _checkField(FieldElement fieldElement, Token errorNode) {
+    var getter = fieldElement.getter;
+    if (getter != null && _isOverride(getter)) return;
+
+    var setter = fieldElement.setter;
+    if (setter != null && _isOverride(setter)) return;
+
+    _errorReporter.report(diag.overrideOnNonOverridingField.at(errorNode));
   }
 
   /// Return `true` if the [member] overrides a member from a superinterface.

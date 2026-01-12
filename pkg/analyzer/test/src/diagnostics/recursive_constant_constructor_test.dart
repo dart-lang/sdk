@@ -15,7 +15,35 @@ main() {
 
 @reflectiveTest
 class RecursiveConstantConstructorTest extends PubPackageResolutionTest {
-  test_field() async {
+  test_newHead_named_redirectingConstructorInvocation() async {
+    await assertErrorsInCode(
+      '''
+class A {
+  const new named() : this.named();
+}
+''',
+      [
+        error(diag.recursiveConstantConstructor, 18, 9),
+        error(diag.recursiveConstructorRedirect, 32, 12),
+      ],
+    );
+  }
+
+  test_newHead_unnamed_redirectingConstructorInvocation() async {
+    await assertErrorsInCode(
+      '''
+class A {
+  const new () : this();
+}
+''',
+      [
+        error(diag.recursiveConstantConstructor, 18, 3),
+        error(diag.recursiveConstructorRedirect, 27, 6),
+      ],
+    );
+  }
+
+  test_typeName_field() async {
     await assertErrorsInCode(
       '''
 class A {
@@ -30,7 +58,7 @@ class A {
     );
   }
 
-  test_initializer_after_toplevel_var() async {
+  test_typeName_initializer_after_toplevel_var() async {
     await assertErrorsInCode(
       '''
 const y = const C();
@@ -46,7 +74,7 @@ class C {
     );
   }
 
-  test_initializer_field() async {
+  test_typeName_initializer_field() async {
     await assertErrorsInCode(
       '''
 class A {
@@ -58,7 +86,7 @@ class A {
     );
   }
 
-  test_initializer_field_multipleClasses() async {
+  test_typeName_initializer_field_multipleClasses() async {
     await assertErrorsInCode(
       '''
 class B {

@@ -197,11 +197,22 @@ class ProfilerStackWalker : public ValueObject {
 };
 
 // MSAN/ASAN are unaware of frames initialized by generated code.
+// ProfilerNativeStackWalker may also read a random slot in the stack if a
+// function on the stack doesn't use frame pointers and puts something that
+// looks like a stack address into the FP register.
 NO_SANITIZE_ADDRESS
 NO_SANITIZE_MEMORY
 static uword* LoadStackSlot(uword* ptr) {
   return reinterpret_cast<uword*>(*ptr);
 }
+
+// Clang on Windows inlines the load from LoadStackSlot and still applies the
+// sanitizer instrumentation to the load in callers.
+#if defined(DART_HOST_OS_WINDOWS)
+#define WINDOWS_EXTRA_NO_SANITIZE_ADDRESS NO_SANITIZE_ADDRESS
+#else
+#define WINDOWS_EXTRA_NO_SANITIZE_ADDRESS
+#endif
 
 // The layout of C stack frames.
 #if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64) ||                       \
@@ -251,6 +262,7 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
         original_sp_(sp),
         lower_bound_(stack_lower) {}
 
+  WINDOWS_EXTRA_NO_SANITIZE_ADDRESS
   void walk() {
     Append(original_pc_, original_fp_);
 
@@ -305,11 +317,13 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
   }
 
  private:
+  WINDOWS_EXTRA_NO_SANITIZE_ADDRESS
   uword* CallerPC(uword* fp) const {
     ASSERT(fp != nullptr);
     return LoadStackSlot(fp + kHostSavedCallerPcSlotFromFp);
   }
 
+  WINDOWS_EXTRA_NO_SANITIZE_ADDRESS
   uword* CallerFP(uword* fp) const {
     ASSERT(fp != nullptr);
     return LoadStackSlot(fp + kHostSavedCallerFpSlotFromFp);

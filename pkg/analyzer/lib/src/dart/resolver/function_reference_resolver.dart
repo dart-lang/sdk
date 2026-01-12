@@ -158,16 +158,16 @@ class FunctionReferenceResolver {
     var enclosingElement = element.enclosingElement!;
     if (implicitReceiver) {
       if (_resolver.enclosingExtension != null) {
-        _resolver.diagnosticReporter.atNode(
-          nameNode,
-          diag.unqualifiedReferenceToStaticMemberOfExtendedType,
-          arguments: [enclosingElement.displayName],
+        _resolver.diagnosticReporter.report(
+          diag.unqualifiedReferenceToStaticMemberOfExtendedType
+              .withArguments(name: enclosingElement.displayName)
+              .at(nameNode),
         );
       } else {
-        _resolver.diagnosticReporter.atNode(
-          nameNode,
-          diag.unqualifiedReferenceToNonLocalStaticMember,
-          arguments: [enclosingElement.displayName],
+        _resolver.diagnosticReporter.report(
+          diag.unqualifiedReferenceToNonLocalStaticMember
+              .withArguments(name: enclosingElement.displayName)
+              .at(nameNode),
         );
       }
     } else if (enclosingElement is ExtensionElement &&
@@ -650,10 +650,13 @@ class FunctionReferenceResolver {
         _resolve(node: node, rawType: method.type, name: function.name);
         return;
       } else {
-        _resolver.diagnosticReporter.atNode(
-          function,
-          diag.undefinedMethod,
-          arguments: [function.name, receiverType],
+        _resolver.diagnosticReporter.report(
+          diag.undefinedMethod
+              .withArguments(
+                methodName: function.name,
+                typeName: receiverType.getDisplayString(),
+              )
+              .at(function),
         );
         function.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
         node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
