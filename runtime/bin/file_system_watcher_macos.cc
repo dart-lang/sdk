@@ -326,7 +326,8 @@ void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
   Node::Unwatch(reinterpret_cast<Node*>(path_id));
 }
 
-void FileSystemWatcher::DestroyWatch(intptr_t path_id) {
+void FileSystemWatcher::DestroyWatch(void* ptr) {
+  intptr_t path_id = reinterpret_cast<intptr_t>(ptr);
   FileSystemWatcher::UnwatchPath(0, path_id);
 }
 
@@ -363,7 +364,7 @@ bool FileSystemWatcher::IsSupported() {
 
 void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {}
 
-void FileSystemWatcher::DestroyWatch(intptr_t path_id) {}
+void FileSystemWatcher::DestroyWatch(void* ptr) {}
 
 void FileSystemWatcher::InitOnce() {}
 

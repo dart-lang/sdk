@@ -62,7 +62,8 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
   return reinterpret_cast<intptr_t>(handle);
 }
 
-void FileSystemWatcher::DestroyWatch(intptr_t path_id) {
+void FileSystemWatcher::DestroyWatch(void* ptr) {
+  intptr_t path_id = reinterpret_cast<intptr_t>(ptr);
   FileSystemWatcher::UnwatchPath(0, path_id);
 }
 
