@@ -24,10 +24,6 @@ class RecordedUse {
   /// call site to the constructor or method.
   final record_use.Location? location;
 
-  /// True if some argument is missing from [positionalArguments] because it is not
-  /// a constant.
-  final bool nonconstant;
-
   final List<ConstantValue?> positionalArguments;
 
   /// Constant argument values in `package:record_use` format.
@@ -38,7 +34,6 @@ class RecordedUse {
     this.parent,
     this.uri,
     this.location,
-    this.nonconstant,
     this.positionalArguments,
   );
 
@@ -53,20 +48,11 @@ class RecordedUse {
         ? RecordUseLocation.readFromDataSource(source)
         : null;
 
-    bool nonconstant = source.readBool();
-
     final positionalArguments = source.readList(
       () => source.readValueOrNull(source.readConstant),
     );
     source.end(tag);
-    return RecordedUse(
-      name,
-      parent,
-      uri,
-      location,
-      nonconstant,
-      positionalArguments,
-    );
+    return RecordedUse(name, parent, uri, location, positionalArguments);
   }
 
   void writeToDataSink(DataSinkWriter sink) {
@@ -81,8 +67,6 @@ class RecordedUse {
       sink.writeBool(true);
       location!.writeToDataSink(sink);
     }
-
-    sink.writeBool(nonconstant);
 
     sink.writeList(
       positionalArguments,

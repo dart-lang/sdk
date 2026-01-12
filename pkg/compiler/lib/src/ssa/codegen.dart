@@ -2423,15 +2423,12 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       }
     }
 
-    final constantValues = arguments.map(_findConstant).toList();
-
     return RecordedUse(
       element.name!,
       element.enclosingClass?.name,
       relativizeUri(Uri.base, uri, Platform.isWindows),
       location,
-      constantValues.any((argument) => argument == null),
-      constantValues,
+      arguments.map(_findConstant).toList(),
     );
   }
 
