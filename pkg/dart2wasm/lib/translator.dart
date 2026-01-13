@@ -146,7 +146,6 @@ class Translator with KernelNodes {
 
   final Symbols symbols;
 
-  final ExportNamer exportNamer;
   late final Exporter exporter;
 
   // Kernel input and context.
@@ -510,7 +509,6 @@ class Translator with KernelNodes {
       {bool enableDynamicModules = false,
       required MainModuleMetadata mainModuleMetadata})
       : symbols = Symbols(options.minify),
-        exportNamer = ExportNamer(options.minify),
         libraries = component.libraries,
         hierarchy =
             ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy {
@@ -539,7 +537,7 @@ class Translator with KernelNodes {
             ?.mapping[component] ??= DynamicModuleConstants();
 
     exporter =
-        Exporter(exportNamer, mainModuleMetadata, dynamicModuleConstants);
+        Exporter(options.minify, mainModuleMetadata, dynamicModuleConstants);
   }
 
   void _initModules(Uri Function(String moduleName)? sourceMapUrlGenerator) {

@@ -13,10 +13,10 @@ import 'util.dart';
 ///
 /// For simplicity and readability of generated names, we just use the base64
 /// encoding of an integer counter.
-class ExportNamer {
+class _ExportNamer {
   final bool minify;
 
-  ExportNamer(this.minify);
+  _ExportNamer(this.minify);
 
   final Set<String> _reservedNames = {};
 
@@ -59,11 +59,12 @@ class ExportNamer {
 ///
 /// For deferred imports, the [export] method is sufficient.
 class Exporter {
-  final ExportNamer _namer;
+  final _ExportNamer _namer;
   final MainModuleMetadata _mainModuleMetadata;
   final DynamicModuleConstants? _dynamicModuleConstants;
 
-  Exporter(this._namer, this._mainModuleMetadata, this._dynamicModuleConstants);
+  Exporter(bool minify, this._mainModuleMetadata, this._dynamicModuleConstants)
+      : _namer = _ExportNamer(minify);
 
   int get _nextDynamicCallableId =>
       _mainModuleMetadata.callableReferenceNames.length;
@@ -107,5 +108,11 @@ class Exporter {
     final exportName = _namer._getExportName(name);
     module.exports.export(exportName, exportable);
     return exportName;
+  }
+
+  /// Mark a name as reserved by the `wasm:export` or `wasm:weak-export`
+  /// annotations so that it will not be generated as a minified export name.
+  void reserveName(String name) {
+    _namer.reserveName(name);
   }
 }
