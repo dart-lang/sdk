@@ -306,12 +306,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(covariant ConstructorDeclaration node) {
-    var element = node.declaredFragment!.element;
     _checkStrictInferenceInParameters(
       node.parameters,
       body: node.body,
       initializers: node.initializers,
     );
+    var element = node.declaredFragment!.element;
     for (var v in _elementUsageFrontierDetectors) {
       v.pushElement(element);
     }
@@ -864,6 +864,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     _checkStrictInferenceInParameters(node.formalParameters);
+    _deprecatedFunctionalityVerifier.primaryConstructorDeclaration(node);
     super.visitPrimaryConstructorDeclaration(node);
   }
 
