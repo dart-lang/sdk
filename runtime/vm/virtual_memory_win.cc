@@ -7,6 +7,8 @@
 
 #include "vm/virtual_memory.h"
 
+#include <memoryapi.h>
+
 #include "platform/assert.h"
 #include "vm/isolate.h"
 #include "vm/os.h"
@@ -19,6 +21,16 @@ DECLARE_FLAG(bool, write_protect_code);
 uword VirtualMemory::page_size_ = 0;
 VirtualMemory* VirtualMemory::compressed_heap_ = nullptr;
 
+static intptr_t allocation_granule = 0;
+typedef PVOID(__stdcall* VirtualAlloc2_t)(HANDLE,
+                                          PVOID,
+                                          SIZE_T,
+                                          ULONG,
+                                          ULONG,
+                                          MEM_EXTENDED_PARAMETER*,
+                                          ULONG);
+static VirtualAlloc2_t DynamicVirtualAlloc2 = nullptr;
+
 intptr_t VirtualMemory::CalculatePageSize() {
   SYSTEM_INFO info;
   GetSystemInfo(&info);
@@ -30,25 +42,39 @@ intptr_t VirtualMemory::CalculatePageSize() {
 
 static void* AllocateAlignedImpl(intptr_t size,
                                  intptr_t alignment,
-                                 intptr_t reserved_size,
-                                 int prot,
-                                 void** out_reserved_address) {
-  void* address = VirtualAlloc(nullptr, reserved_size, MEM_RESERVE, prot);
-  if (address == nullptr) {
-    return nullptr;
-  }
-
-  void* aligned_address = reinterpret_cast<void*>(
-      Utils::RoundUp(reinterpret_cast<uword>(address), alignment));
-  if (VirtualAlloc(aligned_address, size, MEM_COMMIT, prot) !=
-      aligned_address) {
-    VirtualFree(address, reserved_size, MEM_RELEASE);
-    return nullptr;
-  }
-
-  if (out_reserved_address != nullptr) {
+                                 DWORD type,
+                                 DWORD prot,
+                                 void** out_reserved_address,
+                                 intptr_t* out_reserved_size) {
+  if (DynamicVirtualAlloc2 != nullptr) {
+    MEM_ADDRESS_REQUIREMENTS requirements = {};
+    requirements.Alignment = Utils::Maximum(alignment, allocation_granule);
+    MEM_EXTENDED_PARAMETER param = {};
+    param.Type = MemExtendedParameterAddressRequirements;
+    param.Pointer = &requirements;
+    void* address =
+        DynamicVirtualAlloc2(nullptr, nullptr, size, type, prot, &param, 1);
+    if (address == nullptr) {
+      return nullptr;
+    }
     *out_reserved_address = address;
+    *out_reserved_size = size;
+    return address;
   }
+  intptr_t reserved_size = size + alignment - VirtualMemory::PageSize();
+  void* reserved_address =
+      VirtualAlloc(nullptr, reserved_size, MEM_RESERVE, prot);
+  if (reserved_address == nullptr) {
+    return nullptr;
+  }
+  void* aligned_address = reinterpret_cast<void*>(
+      Utils::RoundUp(reinterpret_cast<uword>(reserved_address), alignment));
+  if (VirtualAlloc(aligned_address, size, type, prot) != aligned_address) {
+    VirtualFree(reserved_address, reserved_size, MEM_RELEASE);
+    return nullptr;
+  }
+  *out_reserved_address = reserved_address;
+  *out_reserved_size = reserved_size;
   return aligned_address;
 }
 
@@ -69,6 +95,13 @@ void VirtualMemory::Init() {
     FLAG_new_gen_semi_max_size = kDefaultNewGenSemiMaxSize;
   }
   page_size_ = CalculatePageSize();
+
+  SYSTEM_INFO info;
+  GetSystemInfo(&info);
+  allocation_granule = info.dwAllocationGranularity;
+  DynamicVirtualAlloc2 = reinterpret_cast<VirtualAlloc2_t>(
+      GetProcAddress(GetModuleHandle(L"kernelbase.dll"), "VirtualAlloc2"));
+
 #if defined(DART_COMPRESSED_POINTERS)
   ASSERT(compressed_heap_ == nullptr);
   compressed_heap_ = Reserve(kGuardRegionSize * 2 + kCompressedHeapSize,
@@ -119,18 +152,16 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   }
 #endif  // defined(DART_COMPRESSED_POINTERS)
 
-  intptr_t reserved_size = size + alignment - PageSize();
   int prot = (is_executable && !FLAG_write_protect_code)
                  ? PAGE_EXECUTE_READWRITE
                  : PAGE_READWRITE;
-
   void* reserved_address;
-  void* aligned_address = AllocateAlignedImpl(size, alignment, reserved_size,
-                                              prot, &reserved_address);
+  intptr_t reserved_size;
+  void* aligned_address = AllocateAlignedImpl(
+      size, alignment, MEM_COMMIT, prot, &reserved_address, &reserved_size);
   if (aligned_address == nullptr) {
     return nullptr;
   }
-
   MemoryRegion region(aligned_address, size);
   MemoryRegion reserved(reserved_address, reserved_size);
   return new VirtualMemory(region, reserved);
@@ -140,15 +171,14 @@ VirtualMemory* VirtualMemory::Reserve(intptr_t size, intptr_t alignment) {
   ASSERT(Utils::IsAligned(size, PageSize()));
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(Utils::IsAligned(alignment, PageSize()));
-  intptr_t reserved_size = size + alignment - PageSize();
-  void* reserved_address =
-      VirtualAlloc(nullptr, reserved_size, MEM_RESERVE, PAGE_NOACCESS);
-  if (reserved_address == nullptr) {
+  void* reserved_address;
+  intptr_t reserved_size;
+  void* aligned_address =
+      AllocateAlignedImpl(size, alignment, MEM_RESERVE, PAGE_NOACCESS,
+                          &reserved_address, &reserved_size);
+  if (aligned_address == nullptr) {
     return nullptr;
   }
-
-  void* aligned_address = reinterpret_cast<void*>(
-      Utils::RoundUp(reinterpret_cast<uword>(reserved_address), alignment));
   MemoryRegion region(aligned_address, size);
   MemoryRegion reserved(reserved_address, reserved_size);
   return new VirtualMemory(region, reserved);
