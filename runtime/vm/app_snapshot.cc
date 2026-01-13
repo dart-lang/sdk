@@ -832,7 +832,7 @@ class Deserializer : public ThreadStackResource {
     }
 
     template <typename T, typename... P>
-    void ReadFromTo(T obj, P&&... params) {
+    DART_FORCE_INLINE void ReadFromTo(T obj, P&&... params) {
       auto* from = obj->untag()->from();
       auto* to_snapshot = obj->untag()->to_snapshot(d_->kind(), params...);
       auto* to = obj->untag()->to(params...);
@@ -847,6 +847,8 @@ class Deserializer : public ThreadStackResource {
         *p = null_;
       }
     }
+
+    ObjectPtr null() const { return null_; }
 
    private:
     Deserializer* const d_;
@@ -4637,7 +4639,7 @@ class InstanceDeserializationCluster
       while (offset < instance_size) {
         CompressedObjectPtr* p = reinterpret_cast<CompressedObjectPtr*>(
             reinterpret_cast<uword>(instance->untag()) + offset);
-        *p = Object::null();
+        *p = d.null();
         offset += kCompressedWordSize;
       }
       ASSERT(offset == instance_size);
@@ -5509,10 +5511,11 @@ class Simd128DeserializationCluster
     Deserializer::Local d(d_);
     const intptr_t cid = cid_;
     const bool mark_canonical = is_root_unit_ && is_canonical();
+    const bool is_immutable = ShouldHaveImmutabilityBitSetCid(cid);
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       ObjectPtr vector = d.Ref(id);
       Deserializer::InitializeHeader(vector, cid, Int32x4::InstanceSize(),
-                                     mark_canonical);
+                                     mark_canonical, is_immutable);
       d.ReadBytes(&(static_cast<Int32x4Ptr>(vector)->untag()->value_),
                   sizeof(simd128_value_t));
     }
@@ -6518,12 +6521,13 @@ class ArrayDeserializationCluster
 
     const intptr_t cid = cid_;
     const bool stamp_canonical = is_root_unit_ && is_canonical();
+    const bool is_immutable = ShouldHaveImmutabilityBitSetCid(cid);
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       ArrayPtr array = static_cast<ArrayPtr>(d.Ref(id));
       const intptr_t length = d.ReadUnsigned();
       Deserializer::InitializeHeader(array, cid, Array::InstanceSize(length),
-                                     stamp_canonical);
-      if (Array::UseCardMarkingForAllocation(length)) {
+                                     stamp_canonical, is_immutable);
+      if (UNLIKELY(Array::UseCardMarkingForAllocation(length))) {
         array->untag()->SetCardRememberedBitUnsynchronized();
         Page::Of(array)->AllocateCardTable();
       }

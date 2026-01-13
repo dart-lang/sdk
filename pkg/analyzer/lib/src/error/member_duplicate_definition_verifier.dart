@@ -43,7 +43,7 @@ class MemberDuplicateDefinitionVerifier {
     _checkClassMembers(
       node.declaredFragment!,
       node.body.members,
-      primaryConstructor: node.namePart.ifTypeOrNull(),
+      primaryConstructor: node.namePart.tryCast(),
     );
   }
 
@@ -364,7 +364,7 @@ class MemberDuplicateDefinitionVerifier {
     _checkClassMembers(
       fragment,
       node.body.members,
-      primaryConstructor: node.namePart.ifTypeOrNull(),
+      primaryConstructor: node.namePart.tryCast(),
     );
 
     for (var accessor in fragment.accessors) {

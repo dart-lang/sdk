@@ -82,7 +82,7 @@ extension AstNodeExtension on AstNode {
   }
 
   InterfaceElement? get enclosingInterfaceElement =>
-      enclosingInstanceElement.ifTypeOrNull();
+      enclosingInstanceElement.tryCast();
 
   AstNode? get enclosingUnitChild {
     for (var node in withAncestors) {
@@ -163,7 +163,7 @@ extension CompilationUnitExtension on CompilationUnit {
 
 extension ExtensionElementExtension on ExtensionElement {
   InterfaceElement? get extendedInterfaceElement =>
-      extendedType.ifTypeOrNull<InterfaceType>()?.element;
+      extendedType.tryCast<InterfaceType>()?.element;
 }
 
 extension FieldDeclarationExtension on FieldDeclaration {

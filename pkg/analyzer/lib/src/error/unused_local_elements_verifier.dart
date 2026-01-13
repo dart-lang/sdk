@@ -275,7 +275,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     if (element is SubstitutedExecutableElementImpl) {
       element = element.baseElement;
     }
-    var variable = element.ifTypeOrNull<PropertyAccessorElement>()?.variable;
+    var variable = element.tryCast<PropertyAccessorElement>()?.variable;
     bool isIdentifierRead = _isReadIdentifier(node);
     if (element is PropertyAccessorElement &&
         isIdentifierRead &&

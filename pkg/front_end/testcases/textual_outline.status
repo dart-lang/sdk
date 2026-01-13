@@ -11,11 +11,6 @@ regress/annotation_on_type_parameter_name_clash_on_constructor: FormatterCrash
 regress/annotation_on_type_parameter_name_extension_type_constructor: FormatterCrash
 enhanced_enums/external_constructor: FormatterCrash
 extension_types/const_constructor_body: FormatterCrash
-extension_types/field_access: FormatterCrash
-extension_types/issue52119: FormatterCrash
-extension_types/issue53212: FormatterCrash
-extension_types/issue53625: FormatterCrash
-extension_types/representation: FormatterCrash
 general/constants/non_const_constructor: FormatterCrash
 general/constants/various: FormatterCrash
 general/invalid_operator: FormatterCrash

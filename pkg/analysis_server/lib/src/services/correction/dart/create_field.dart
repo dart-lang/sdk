@@ -104,9 +104,7 @@ class CreateField extends CreateFieldOrGetter {
           nameGroupName: 'NAME',
           type: bound ?? fieldType,
           typeGroupName: 'TYPE',
-          typeParametersInScope: [
-            ?bound.ifTypeOrNull<TypeParameterType>()?.element,
-          ],
+          typeParametersInScope: [?bound.tryCast<TypeParameterType>()?.element],
         );
       });
     });
@@ -140,9 +138,7 @@ class CreateField extends CreateFieldOrGetter {
           nameGroupName: 'NAME',
           type: type,
           typeGroupName: 'TYPE',
-          typeParametersInScope: [
-            ?type.ifTypeOrNull<TypeParameterType>()?.element,
-          ],
+          typeParametersInScope: [?type.tryCast<TypeParameterType>()?.element],
         );
       });
     });

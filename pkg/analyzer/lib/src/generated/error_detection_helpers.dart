@@ -342,7 +342,7 @@ mixin ErrorDetectionHelpers {
               MethodElement.CALL_METHOD_NAME,
             ),
           )
-          .ifTypeOrNull();
+          .tryCast();
     } else {
       return null;
     }

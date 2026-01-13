@@ -331,7 +331,7 @@ class AnnotationVerifier {
   void _checkInternal(Annotation node) {
     var parent = node.parent;
     var parentElement = parent
-        .ifTypeOrNull<Declaration>()
+        .tryCast<Declaration>()
         ?.declaredFragment
         ?.element;
     var parentElementIsPrivate = parentElement?.isPrivate ?? false;

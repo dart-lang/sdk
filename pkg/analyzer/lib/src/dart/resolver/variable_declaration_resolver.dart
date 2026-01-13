@@ -50,7 +50,7 @@ class VariableDeclarationResolver {
         element.isInstanceField &&
         !element.isLate) {
       inScopePrimaryConstructorParameters = element.enclosingElement
-          .ifTypeOrNull<InterfaceElementImpl>()
+          .tryCast<InterfaceElementImpl>()
           ?.primaryConstructor
           ?.formalParameters;
     }

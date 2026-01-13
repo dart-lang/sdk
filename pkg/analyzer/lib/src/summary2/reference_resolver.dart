@@ -258,10 +258,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     try {
       if (!node.isStatic && node.fields.lateKeyword == null) {
         var primaryConstructor = node.parent?.parent
-            .ifTypeOrNull<Declaration>()
+            .tryCast<Declaration>()
             ?.declaredFragment!
             .element
-            .ifTypeOrNull<InterfaceElementImpl>()
+            .tryCast<InterfaceElementImpl>()
             ?.primaryConstructor;
         if (primaryConstructor != null) {
           scope = ConstructorInitializerScope(scope, primaryConstructor);

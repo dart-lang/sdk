@@ -641,7 +641,7 @@ class _Node {
 
   _Node? get superNode {
     var superElement = implElement.supertype?.element;
-    return superElement.ifTypeOrNull<ClassElement>()?.asNode;
+    return superElement.tryCast<ClassElement>()?.asNode;
   }
 }
 

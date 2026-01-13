@@ -239,7 +239,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   ConstructorInvocationImpl? get constructorInvocation {
-    return state.ifTypeOrNull<GenericState>()?.invocation;
+    return state.tryCast<GenericState>()?.invocation;
   }
 
   Map<String, DartObjectImpl>? get fields => state.fields;

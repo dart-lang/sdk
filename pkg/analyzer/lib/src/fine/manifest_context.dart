@@ -62,7 +62,7 @@ class EncodeContext {
     T Function() operation,
   ) {
     var primaryConstructor = element.enclosingElement
-        .ifTypeOrNull<InterfaceElementImpl>()
+        .tryCast<InterfaceElementImpl>()
         ?.primaryConstructor;
     return withFormalParameters(
       primaryConstructor?.formalParameters ?? [],
@@ -353,7 +353,7 @@ class MatchContext {
     T Function() operation,
   ) {
     var primaryConstructor = element.enclosingElement
-        .ifTypeOrNull<InterfaceElementImpl>()
+        .tryCast<InterfaceElementImpl>()
         ?.primaryConstructor;
     return withFormalParameters(
       primaryConstructor?.formalParameters ?? [],

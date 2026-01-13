@@ -415,9 +415,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitAwaitExpression(AwaitExpression node) {
-    if (!_enclosingExecutable.isAsynchronous) {
-      diagnosticReporter.report(diag.awaitInWrongContext.at(node.awaitKeyword));
-    }
     checkForUseOfVoidResult(node.expression);
     _checkForAwaitInLateLocalVariableInitializer(node);
     _checkForAwaitOfIncompatibleType(node);
@@ -638,8 +635,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       () {
         _checkForNonConstGenerativeEnumConstructor(node);
         _checkForInvalidModifierOnBody(node.body);
-        if (!_checkForConstConstructorWithNonConstSuper(node)) {
-          _checkForConstConstructorWithNonFinalField(node, element);
+        if (!_checkForConstConstructorWithNonConstSuper(
+          factoryKeyword: node.factoryKeyword,
+          initializers: node.initializers,
+          element: element,
+          implicitErrorRange: node.errorRange,
+        )) {
+          _checkForConstConstructorWithNonFinalField(
+            constructorElement: element,
+            errorRange: node.errorRange,
+          );
         }
         _checkForRedirectingConstructorErrorCodes(node);
         _checkForConflictingInitializerErrorCodes(node);
@@ -1436,13 +1441,34 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitPrimaryConstructorDeclaration(
     covariant PrimaryConstructorDeclarationImpl node,
   ) {
-    super.visitPrimaryConstructorDeclaration(node);
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+    _withEnclosingExecutable(
+      element,
+      () {
+        super.visitPrimaryConstructorDeclaration(node);
+        var body = node.body;
 
-    var body = node.body;
-    _checkForUndefinedConstructorInInitializerImplicit(
-      formalParameterList: node.formalParameters,
-      initializers: body?.initializers,
-      errorRange: body?.thisKeyword.sourceRange ?? node.errorRange,
+        if (!_checkForConstConstructorWithNonConstSuper(
+          factoryKeyword: null,
+          initializers: node.body?.initializers,
+          element: element,
+          implicitErrorRange: node.errorRange,
+        )) {
+          _checkForConstConstructorWithNonFinalField(
+            constructorElement: element,
+            errorRange: node.errorRange,
+          );
+        }
+
+        _checkForUndefinedConstructorInInitializerImplicit(
+          formalParameterList: node.formalParameters,
+          initializers: body?.initializers,
+          errorRange: body?.thisKeyword.sourceRange ?? node.errorRange,
+        );
+      },
+      isAsynchronous: fragment.isAsynchronous,
+      isGenerator: fragment.isGenerator,
     );
   }
 
@@ -1563,7 +1589,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _requiredParametersVerifier.visitSuperConstructorInvocation(
       node,
-      enclosingConstructor: _enclosingExecutable.element.ifTypeOrNull(),
+      enclosingConstructor: _enclosingExecutable.element.tryCast(),
     );
     _constArgumentsVerifier.visitSuperConstructorInvocation(node);
     _isInConstructorInitializer = true;
@@ -2780,25 +2806,28 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  /// Verify that if the given [constructor] declaration is 'const' then there
-  /// are no invocations of non-'const' super constructors, and that there are
-  /// no instance variables mixed in.
+  /// Verify that if the given [element] is 'const' constructor, then there are
+  /// no invocations of non-'const' super constructors, and that there are no
+  /// instance variables mixed in.
   ///
   /// Return `true` if an error is reported here, and the caller should stop
   /// checking the constructor for constant-related errors.
   ///
   /// See [diag.constConstructorWithNonConstSuper], and
   /// [diag.constConstructorWithMixinWithField].
-  bool _checkForConstConstructorWithNonConstSuper(
-    ConstructorDeclaration constructor,
-  ) {
-    var enclosingClass = _enclosingClass;
-    if (enclosingClass == null || !_enclosingExecutable.isConstConstructor) {
+  bool _checkForConstConstructorWithNonConstSuper({
+    required Token? factoryKeyword,
+    required List<ConstructorInitializer>? initializers,
+    required ConstructorElement element,
+    required SourceRange implicitErrorRange,
+  }) {
+    var enclosingClass = element.enclosingElement;
+    if (!element.isConst) {
       return false;
     }
 
     // OK, const factory, checked elsewhere
-    if (constructor.factoryKeyword != null) {
+    if (factoryKeyword != null) {
       return false;
     }
 
@@ -2824,35 +2853,31 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }),
       );
     }
+
+    String fieldName(FieldElement field) {
+      return "'${field.enclosingElement.name}.${field.name}'";
+    }
+
     if (instanceFields.length == 1) {
       var field = instanceFields.single;
-      diagnosticReporter.atNode(
-        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-        constructor.typeName!,
-        diag.constConstructorWithMixinWithField,
-        arguments: ["'${field.enclosingElement.name}.${field.name}'"],
+      diagnosticReporter.report(
+        diag.constConstructorWithMixinWithField
+            .withArguments(p0: fieldName(field))
+            .atSourceRange(implicitErrorRange),
       );
       return true;
     } else if (instanceFields.length > 1) {
-      var fieldNames = instanceFields
-          .map((field) => "'${field.enclosingElement.name}.${field.name}'")
-          .join(', ');
-      diagnosticReporter.atNode(
-        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-        constructor.typeName!,
-        diag.constConstructorWithMixinWithFields,
-        arguments: [fieldNames],
+      var fieldNames = instanceFields.map(fieldName).join(', ');
+      diagnosticReporter.report(
+        diag.constConstructorWithMixinWithFields
+            .withArguments(p0: fieldNames)
+            .atSourceRange(implicitErrorRange),
       );
       return true;
     }
 
     // Enum(s) always call a const super-constructor.
     if (enclosingClass is EnumElement) {
-      return false;
-    }
-
-    var element = constructor.declaredFragment?.element;
-    if (element == null) {
       return false;
     }
 
@@ -2867,31 +2892,28 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // Often there is an explicit `super()` invocation, report on it.
-    var superInvocation = constructor.initializers
-        .whereType<SuperConstructorInvocation>()
+    var superInvocation = initializers
+        ?.whereType<SuperConstructorInvocation>()
         .firstOrNull;
-    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-    var errorNode = superInvocation ?? constructor.typeName!;
-
+    var errorRange = superInvocation?.sourceRange ?? implicitErrorRange;
     diagnosticReporter.report(
       diag.constConstructorWithNonConstSuper
           .withArguments(superclassName: element.enclosingElement.displayName)
-          .at(errorNode),
+          .atSourceRange(errorRange),
     );
     return true;
   }
 
-  /// Verify that if the given [constructor] declaration is 'const' then there
-  /// are no non-final instance variable. The [constructorElement] is the
-  /// constructor element.
-  void _checkForConstConstructorWithNonFinalField(
-    ConstructorDeclaration constructor,
-    ConstructorElement constructorElement,
-  ) {
-    if (!_enclosingExecutable.isConstConstructor) {
+  /// Verify that if the given [constructorElement] is 'const' then there
+  /// are no non-final instance variable.
+  void _checkForConstConstructorWithNonFinalField({
+    required ConstructorElement constructorElement,
+    required SourceRange errorRange,
+  }) {
+    if (!constructorElement.isConst) {
       return;
     }
-    if (!_enclosingExecutable.isGenerativeConstructor) {
+    if (!constructorElement.isGenerative) {
       return;
     }
     // check if there is non-final field
@@ -2900,9 +2922,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     diagnosticReporter.report(
-      diag.constConstructorWithNonFinalField.atSourceRange(
-        constructor.errorRange,
-      ),
+      diag.constConstructorWithNonFinalField.atSourceRange(errorRange),
     );
   }
 

@@ -5068,10 +5068,10 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     try {
       if (!node.isStatic && node.fields.lateKeyword == null) {
         var primaryConstructor = node.parent?.parent
-            .ifTypeOrNull<Declaration>()
+            .tryCast<Declaration>()
             ?.declaredFragment!
             .element
-            .ifTypeOrNull<InterfaceElementImpl>()
+            .tryCast<InterfaceElementImpl>()
             ?.primaryConstructor;
         if (primaryConstructor != null) {
           nameScope = ConstructorInitializerScope(
@@ -5165,7 +5165,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      _enclosingClosure = element.ifTypeOrNull<LocalFunctionElement>();
+      _enclosingClosure = element.tryCast<LocalFunctionElement>();
       node.metadata.accept(this);
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
@@ -5315,7 +5315,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitHideCombinator(HideCombinator node) {
-    var scope = nameScope.ifTypeOrNull<LibraryFragmentScope>();
+    var scope = nameScope.tryCast<LibraryFragmentScope>();
     scope?.importsTrackingActive(false);
     try {
       super.visitHideCombinator(node);
@@ -5468,7 +5468,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitShowCombinator(ShowCombinator node) {
-    var scope = nameScope.ifTypeOrNull<LibraryFragmentScope>();
+    var scope = nameScope.tryCast<LibraryFragmentScope>();
     scope?.importsTrackingActive(false);
     try {
       super.visitShowCombinator(node);

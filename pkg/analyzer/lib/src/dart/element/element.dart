@@ -5142,7 +5142,7 @@ sealed class InterfaceElementImpl extends InstanceElementImpl
     );
     return inheritanceManager
         .getInherited(this, Name.forLibrary(library, methodName))
-        .ifTypeOrNull();
+        .tryCast();
   }
 
   /// Return the static getter with the [name], accessible to the [library].
@@ -5159,7 +5159,7 @@ sealed class InterfaceElementImpl extends InstanceElementImpl
         .firstWhereOrNull(
           (element) => element.isStatic && element.isAccessibleIn(library),
         )
-        .ifTypeOrNull();
+        .tryCast();
   }
 
   /// Return the static method with the [name], accessible to the [library].
@@ -5191,7 +5191,7 @@ sealed class InterfaceElementImpl extends InstanceElementImpl
         .firstWhereOrNull(
           (element) => element.isStatic && element.isAccessibleIn(library),
         )
-        .ifTypeOrNull();
+        .tryCast();
   }
 
   @trackedInternal

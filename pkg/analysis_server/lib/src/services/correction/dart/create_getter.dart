@@ -123,9 +123,7 @@ class CreateGetter extends CreateFieldOrGetter {
       staticModifier: false,
       targetElement: targetElement,
       fieldType: bound ?? fieldType,
-      typeParametersInScope: [
-        ?bound.ifTypeOrNull<TypeParameterType>()?.element,
-      ],
+      typeParametersInScope: [?bound.tryCast<TypeParameterType>()?.element],
     );
   }
 
@@ -217,9 +215,7 @@ class CreateGetter extends CreateFieldOrGetter {
       staticModifier: staticModifier,
       targetElement: targetElement,
       fieldType: bound ?? fieldType,
-      typeParametersInScope: [
-        ?bound.ifTypeOrNull<TypeParameterType>()?.element,
-      ],
+      typeParametersInScope: [?bound.tryCast<TypeParameterType>()?.element],
     );
   }
 

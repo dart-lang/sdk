@@ -4,43 +4,43 @@ class C1 {
 }
 
 class C10 {
-  const new _ (this.i);
-  factory named (int i) => C10._(i);
+  const new _(this.i);
+  factory named(int i) => C10._(i);
   final int i;
 }
 
 class C11 {
-  factory named ({required int i}) = C11._;
+  factory named({required int i}) = C11._;
   int i;
-  new _ ({required this.i});
+  new _({required this.i});
 }
 
 class C12 {
-  const factory named (int i) = C12._;
-  const new _ (this.i);
+  const factory named(int i) = C12._;
+  const new _(this.i);
   final int i;
 }
 
 class C13 {
   int i;
   new (int i) : this._(i);
-  new _ (this.i);
+  new _(this.i);
 }
 
 class C14 {
   const new (int i) : this._(i);
-  const new _ (this.i);
+  const new _(this.i);
   final int i;
 }
 
 class C15 {
   int i;
-  new _ (this.i);
+  new _(this.i);
   new named({required int i}) : this._(i);
 }
 
 class C16 {
-  const new _ (this.i);
+  const new _(this.i);
   const new named({required int i}) : this._(i);
   final int i;
 }
@@ -63,11 +63,11 @@ class C4 {
 class C5 {
   factory (int i) => new C5._(i);
   int i;
-  new _ (this.i);
+  new _(this.i);
 }
 
 class C6 {
-  const new _ (this.i);
+  const new _(this.i);
   factory (int i) => C6._(i);
   final int i;
 }
@@ -75,19 +75,19 @@ class C6 {
 class C7 {
   factory ({required int i}) = C7._;
   int i;
-  new _ ({required this.i});
+  new _({required this.i});
 }
 
 class C8 {
   const factory (int i) = C8._;
-  const new _ (this.i);
+  const new _(this.i);
   final int i;
 }
 
 class C9 {
-  factory named (int i) => new C9._(i);
+  factory named(int i) => new C9._(i);
   int i;
-  new _ (this.i);
+  new _(this.i);
 }
 
 main() {}

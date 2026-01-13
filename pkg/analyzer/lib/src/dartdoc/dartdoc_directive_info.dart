@@ -218,7 +218,7 @@ class DartdocDirectiveInfo {
 
       var members = switch (declaration) {
         ClassDeclaration() =>
-          declaration.body.ifTypeOrNull<BlockClassBody>()?.members,
+          declaration.body.tryCast<BlockClassBody>()?.members,
         EnumDeclaration() => [
           ...declaration.body.constants,
           ...declaration.body.members,
@@ -226,7 +226,7 @@ class DartdocDirectiveInfo {
         MixinDeclaration() => declaration.body.members,
         ExtensionDeclaration() => declaration.body.members,
         ExtensionTypeDeclaration() =>
-          declaration.body.ifTypeOrNull<BlockClassBody>()?.members,
+          declaration.body.tryCast<BlockClassBody>()?.members,
         _ => null,
       };
 

@@ -989,7 +989,7 @@ parent3: ${node.parent?.parent?.parent}
 
   @override
   DartType? visitMapPatternEntry(MapPatternEntry node) {
-    var pattern = node.parent.ifTypeOrNull<MapPattern>();
+    var pattern = node.parent.tryCast<MapPattern>();
     var type = pattern?.requiredType;
     if (type is InterfaceType && type.isDartCoreMap) {
       var typeArguments = type.typeArguments;
