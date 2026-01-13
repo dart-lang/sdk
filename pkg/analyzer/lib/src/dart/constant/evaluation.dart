@@ -852,7 +852,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     }
 
     var constructorElement = node.constructorName.element?.baseElement
-        .ifTypeOrNull<ConstructorElementImpl>();
+        .tryCast<ConstructorElementImpl>();
     if (constructorElement == null) {
       return InvalidConstant.forEntity(
         entity: node,

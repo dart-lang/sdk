@@ -33,7 +33,7 @@ class DefaultValueResolver {
         for (var method in instanceElement.methods) {
           _executableElement(
             method,
-            enclosingInterfaceElement: instanceElement.ifTypeOrNull(),
+            enclosingInterfaceElement: instanceElement.tryCast(),
           );
         }
         if (instanceElement case InterfaceElementImpl interfaceElement) {

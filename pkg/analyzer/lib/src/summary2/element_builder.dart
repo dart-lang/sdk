@@ -178,9 +178,9 @@ class ElementBuilder {
       case FieldFragmentImpl():
         return fragment.element;
       case GetterFragmentImpl():
-        return fragment.element.variable.ifTypeOrNull();
+        return fragment.element.variable.tryCast();
       case SetterFragmentImpl():
-        return fragment.element.variable.ifTypeOrNull();
+        return fragment.element.variable.tryCast();
     }
     return null;
   }
@@ -962,9 +962,9 @@ class ElementBuilder {
       case TopLevelVariableFragmentImpl():
         return fragment.element;
       case GetterFragmentImpl():
-        return fragment.element.variable.ifTypeOrNull();
+        return fragment.element.variable.tryCast();
       case SetterFragmentImpl():
-        return fragment.element.variable.ifTypeOrNull();
+        return fragment.element.variable.tryCast();
     }
     return null;
   }
@@ -2147,7 +2147,7 @@ class _EnclosingContext {
 
 extension _FormalParameterImplExtension on FormalParameterImpl {
   FormalParameterImpl get selfOrParentDefault {
-    return parent.ifTypeOrNull<DefaultFormalParameterImpl>() ?? this;
+    return parent.tryCast<DefaultFormalParameterImpl>() ?? this;
   }
 }
 

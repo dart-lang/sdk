@@ -2651,7 +2651,7 @@ class AnalysisDriverScheduler {
 
   AnalysisStatusWorkingStatistics? get _workingStatistics {
     return _statusSupport.currentStatus
-        .ifTypeOrNull<AnalysisStatusWorking>()
+        .tryCast<AnalysisStatusWorking>()
         ?.workingStatistics;
   }
 

@@ -161,7 +161,7 @@ class _GenerateFragment {
 
   _GenerateFragment? get superNode {
     return element.supertype?.element
-        .ifTypeOrNull<ClassElement>()
+        .tryCast<ClassElement>()
         ?.asGenerateFragment;
   }
 }

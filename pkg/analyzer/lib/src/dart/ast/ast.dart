@@ -9089,7 +9089,7 @@ final class ExtensionTypeDeclarationImpl
   /// But could be `null` in invalid code.
   SimpleFormalParameterImpl? get representationFormalParameter {
     var formalParameters = primaryConstructor.formalParameters;
-    return formalParameters.parameters.firstOrNull.ifTypeOrNull();
+    return formalParameters.parameters.firstOrNull.tryCast();
   }
 
   @Deprecated('Use body instead')
@@ -16919,7 +16919,7 @@ final class NamedExpressionImpl extends ExpressionImpl
 
   @override
   InternalFormalParameterElement? get element {
-    return _name.label.element?.ifTypeOrNull();
+    return _name.label.element?.tryCast();
   }
 
   @generated
@@ -19722,9 +19722,9 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   PrimaryConstructorDeclarationImpl? get declaration {
     switch (parent?.parent) {
       case ClassDeclarationImpl parent:
-        return parent.namePart.ifTypeOrNull();
+        return parent.namePart.tryCast();
       case EnumDeclarationImpl parent:
-        return parent.namePart.ifTypeOrNull();
+        return parent.namePart.tryCast();
       case ExtensionTypeDeclarationImpl parent:
         return parent.primaryConstructor;
       default:

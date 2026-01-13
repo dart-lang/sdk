@@ -79,7 +79,7 @@ class ConstantInitializersResolver {
     if (element case FieldElementImpl field) {
       if (field.isInstanceField && !field.isLate) {
         inScopePrimaryConstructorParameters = field.enclosingElement
-            .ifTypeOrNull<InterfaceElementImpl>()
+            .tryCast<InterfaceElementImpl>()
             ?.primaryConstructor
             ?.formalParameters;
       }
@@ -222,7 +222,7 @@ class _PropertyInducingElementTypeInference
             if (_element case FieldElementImpl field) {
               if (field.isInstanceField && !field.isLate) {
                 inScopePrimaryConstructorParameters = field.enclosingElement
-                    .ifTypeOrNull<InterfaceElementImpl>()
+                    .tryCast<InterfaceElementImpl>()
                     ?.primaryConstructor
                     ?.formalParameters;
               }
@@ -285,7 +285,7 @@ class _PropertyInducingElementTypeInference
 
     var enclosingElement = _element.enclosingElement;
     var enclosingInterfaceElement = enclosingElement
-        .ifTypeOrNull<InterfaceElementImpl>();
+        .tryCast<InterfaceElementImpl>();
 
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(

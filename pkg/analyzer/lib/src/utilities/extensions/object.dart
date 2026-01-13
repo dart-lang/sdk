@@ -4,8 +4,10 @@
 
 extension NullableObjectExtension on Object? {
   /// If the target is [T], return it, otherwise `null`.
-  T? ifTypeOrNull<T>() {
-    var self = this;
-    return self is T ? self : null;
+  T? tryCast<T>() {
+    return switch (this) {
+      T value => value,
+      _ => null,
+    };
   }
 }

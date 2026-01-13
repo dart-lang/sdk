@@ -597,8 +597,8 @@ class _InfoBuilder {
         node,
         name: node.namePart.typeName,
         typeParameters: node.namePart.typeParameters,
-        primaryConstructor: node.namePart.ifTypeOrNull(),
-        members: node.body.ifTypeOrNull<BlockClassBody>()?.members ?? [],
+        primaryConstructor: node.namePart.tryCast(),
+        members: node.body.tryCast<BlockClassBody>()?.members ?? [],
       ),
     );
   }
@@ -738,7 +738,7 @@ class _InfoBuilder {
         node,
         name: node.namePart.typeName,
         typeParameters: node.namePart.typeParameters,
-        primaryConstructor: node.namePart.ifTypeOrNull(),
+        primaryConstructor: node.namePart.tryCast(),
         members: node.body.members,
         fields: [
           ...node.body.constants.map(_buildEnumConstant),
@@ -814,7 +814,7 @@ class _InfoBuilder {
         name: node.primaryConstructor.typeName,
         typeParameters: node.primaryConstructor.typeParameters,
         primaryConstructor: node.primaryConstructor,
-        members: node.body.ifTypeOrNull<BlockClassBody>()?.members ?? [],
+        members: node.body.tryCast<BlockClassBody>()?.members ?? [],
       ),
     );
   }

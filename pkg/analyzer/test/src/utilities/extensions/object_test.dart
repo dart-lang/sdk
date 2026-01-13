@@ -14,15 +14,15 @@ main() {
 
 @reflectiveTest
 class NullableObjectExtensionTest {
-  test_ifTypeOrNull_int() {
-    expect(0.ifTypeOrNull<int>(), 0);
-    expect(0.ifTypeOrNull<num>(), 0);
-    expect(0.ifTypeOrNull<Object>(), 0);
-    expect(0.ifTypeOrNull<String>(), isNull);
+  test_tryCast_int() {
+    expect(0.tryCast<int>(), 0);
+    expect(0.tryCast<num>(), 0);
+    expect(0.tryCast<Object>(), 0);
+    expect(0.tryCast<String>(), isNull);
   }
 
-  test_ifTypeOrNull_null() {
-    expect(null.ifTypeOrNull<Object>(), isNull);
-    expect(null.ifTypeOrNull<int>(), isNull);
+  test_tryCast_null() {
+    expect(null.tryCast<Object>(), isNull);
+    expect(null.tryCast<int>(), isNull);
   }
 }
