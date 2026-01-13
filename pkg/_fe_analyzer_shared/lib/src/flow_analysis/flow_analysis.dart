@@ -4887,14 +4887,14 @@ class WhyNotPromotedInfo {}
 
 /// [_FlowContext] representing an assert statement or assert initializer.
 class _AssertContext extends _SimpleContext {
-  /// Flow models associated with the condition being asserted.
-  ExpressionInfo? _conditionInfo;
+  /// Flow model if the condition being asserted is true.
+  FlowModel? _conditionTrue;
 
   _AssertContext(super.previous);
 
   @override
   Map<String, Object?> get _debugFields =>
-      super._debugFields..['conditionInfo'] = _conditionInfo;
+      super._debugFields..['conditionTrue'] = _conditionTrue;
 
   @override
   String get _debugType => '_AssertContext';
@@ -5125,7 +5125,7 @@ class _FlowAnalysisImpl<
   void assert_afterCondition(Expression condition) {
     _AssertContext context = _stack.last as _AssertContext;
     ExpressionInfo conditionInfo = _expressionEnd(condition, boolType);
-    context._conditionInfo = conditionInfo;
+    context._conditionTrue = conditionInfo.ifTrue;
     _current = conditionInfo.ifFalse;
   }
 
@@ -5138,10 +5138,7 @@ class _FlowAnalysisImpl<
   @override
   void assert_end() {
     _AssertContext context = _stack.removeLast() as _AssertContext;
-    _current = _join(
-      context._previous,
-      context._conditionInfo!.ifTrue,
-    ).unsplit();
+    _current = _join(context._previous, context._conditionTrue!).unsplit();
   }
 
   @override
@@ -5522,7 +5519,7 @@ class _FlowAnalysisImpl<
         : _expressionEnd(condition, boolType);
     _WhileContext context = new _WhileContext(
       _current.reachable.parent!,
-      conditionInfo,
+      conditionInfo.ifFalse,
     );
     _stack.add(context);
     if (node != null) {
@@ -5546,7 +5543,7 @@ class _FlowAnalysisImpl<
     _WhileContext context = _stack.removeLast() as _WhileContext;
     // Tail of the stack: falseCondition, break
     FlowModel? breakState = context._breakModel;
-    FlowModel falseCondition = context._conditionInfo.ifFalse;
+    FlowModel falseCondition = context._conditionFalse;
 
     _current = _join(
       falseCondition,
@@ -6718,7 +6715,7 @@ class _FlowAnalysisImpl<
     ExpressionInfo conditionInfo = _expressionEnd(condition, boolType);
     _WhileContext context = new _WhileContext(
       _current.reachable.parent!,
-      conditionInfo,
+      conditionInfo.ifFalse,
     );
     _stack.add(context);
     _statementToContext[whileStatement] = context;
@@ -6736,7 +6733,7 @@ class _FlowAnalysisImpl<
   void whileStatement_end() {
     _WhileContext context = _stack.removeLast() as _WhileContext;
     _current = _join(
-      context._conditionInfo.ifFalse,
+      context._conditionFalse,
       context._breakModel,
     ).unsplit().inheritTested(this, _current);
   }
@@ -8212,14 +8209,14 @@ class _TryFinallyContext extends _FlowContext {
 /// [_FlowContext] representing a `while` loop (or a C-style `for` loop, which
 /// is functionally similar).
 class _WhileContext extends _BranchTargetContext {
-  /// Flow models associated with the loop condition.
-  final ExpressionInfo _conditionInfo;
+  /// Flow model if the condition evaluates to `false`.
+  final FlowModel _conditionFalse;
 
-  _WhileContext(super.checkpoint, this._conditionInfo);
+  _WhileContext(super.checkpoint, this._conditionFalse);
 
   @override
   Map<String, Object?> get _debugFields =>
-      super._debugFields..['conditionInfo'] = _conditionInfo;
+      super._debugFields..['conditionFalse'] = _conditionFalse;
 
   @override
   String get _debugType => '_WhileContext';
