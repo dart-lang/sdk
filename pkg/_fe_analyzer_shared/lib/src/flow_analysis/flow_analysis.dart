@@ -5124,7 +5124,8 @@ class _FlowAnalysisImpl<
   @override
   void assert_afterCondition(Expression condition) {
     _AssertContext context = _stack.last as _AssertContext;
-    ExpressionInfo conditionInfo = _expressionEnd(condition, boolType);
+    ExpressionInfo conditionInfo =
+        _getExpressionInfo(condition) ?? _makeTrivialExpressionInfo(boolType);
     context._conditionTrue = conditionInfo.ifTrue;
     _current = conditionInfo.ifFalse;
   }
@@ -5264,7 +5265,9 @@ class _FlowAnalysisImpl<
     SharedTypeView thenType,
   ) {
     _ConditionalContext context = _stack.last as _ConditionalContext;
-    context._thenInfo = _expressionEnd(thenExpression, thenType);
+    context._thenInfo =
+        _getExpressionInfo(thenExpression) ??
+        _makeTrivialExpressionInfo(thenType);
     context._thenModel = _current;
     _current = context._branchModel;
   }
@@ -5279,7 +5282,9 @@ class _FlowAnalysisImpl<
     _ConditionalContext context = _stack.removeLast() as _ConditionalContext;
     ExpressionInfo thenInfo = context._thenInfo!;
     FlowModel thenModel = context._thenModel!;
-    ExpressionInfo elseInfo = _expressionEnd(elseExpression, elseType);
+    ExpressionInfo elseInfo =
+        _getExpressionInfo(elseExpression) ??
+        _makeTrivialExpressionInfo(elseType);
     FlowModel elseModel = _current;
     _current = _join(thenModel, elseModel).unsplit();
     _storeExpressionInfo(
@@ -5294,7 +5299,8 @@ class _FlowAnalysisImpl<
 
   @override
   void conditional_thenBegin(Expression condition, Node conditionalExpression) {
-    ExpressionInfo conditionInfo = _expressionEnd(condition, boolType);
+    ExpressionInfo conditionInfo =
+        _getExpressionInfo(condition) ?? _makeTrivialExpressionInfo(boolType);
     _stack.add(new _ConditionalContext(conditionInfo.ifFalse));
     _current = conditionInfo.ifTrue;
   }
@@ -5407,7 +5413,8 @@ class _FlowAnalysisImpl<
   void doStatement_end(Expression condition) {
     _BranchTargetContext context = _stack.removeLast() as _BranchTargetContext;
     _current = _join(
-      _expressionEnd(condition, boolType).ifFalse,
+      (_getExpressionInfo(condition) ?? _makeTrivialExpressionInfo(boolType))
+          .ifFalse,
       context._breakModel,
     ).unsplit();
   }
@@ -5516,7 +5523,7 @@ class _FlowAnalysisImpl<
             ifTrue: _current,
             ifFalse: _current.setUnreachable(),
           )
-        : _expressionEnd(condition, boolType);
+        : _getExpressionInfo(condition) ?? _makeTrivialExpressionInfo(boolType);
     _WhileContext context = new _WhileContext(
       _current.reachable.parent!,
       conditionInfo.ifFalse,
@@ -5726,7 +5733,8 @@ class _FlowAnalysisImpl<
 
   @override
   void ifStatement_thenBegin(Expression condition, Node ifNode) {
-    ExpressionInfo conditionInfo = _expressionEnd(condition, boolType);
+    ExpressionInfo conditionInfo =
+        _getExpressionInfo(condition) ?? _makeTrivialExpressionInfo(boolType);
     _stack.add(new _IfContext(conditionInfo.ifFalse));
     _current = conditionInfo.ifTrue;
   }
@@ -5883,7 +5891,9 @@ class _FlowAnalysisImpl<
     required bool isAnd,
   }) {
     _BranchContext context = _stack.removeLast() as _BranchContext;
-    ExpressionInfo rhsInfo = _expressionEnd(rightOperand, boolType);
+    ExpressionInfo rhsInfo =
+        _getExpressionInfo(rightOperand) ??
+        _makeTrivialExpressionInfo(boolType);
 
     FlowModel trueResult;
     FlowModel falseResult;
@@ -5911,7 +5921,8 @@ class _FlowAnalysisImpl<
     Node wholeExpression, {
     required bool isAnd,
   }) {
-    ExpressionInfo conditionInfo = _expressionEnd(leftOperand, boolType);
+    ExpressionInfo conditionInfo =
+        _getExpressionInfo(leftOperand) ?? _makeTrivialExpressionInfo(boolType);
     _stack.add(
       new _BranchContext(isAnd ? conditionInfo.ifFalse : conditionInfo.ifTrue),
     );
@@ -5920,7 +5931,8 @@ class _FlowAnalysisImpl<
 
   @override
   void logicalNot_end(Expression notExpression, Expression operand) {
-    ExpressionInfo conditionInfo = _expressionEnd(operand, boolType);
+    ExpressionInfo conditionInfo =
+        _getExpressionInfo(operand) ?? _makeTrivialExpressionInfo(boolType);
     _storeExpressionInfo(notExpression, conditionInfo._invert());
   }
 
@@ -6712,7 +6724,8 @@ class _FlowAnalysisImpl<
     Statement whileStatement,
     Expression condition,
   ) {
-    ExpressionInfo conditionInfo = _expressionEnd(condition, boolType);
+    ExpressionInfo conditionInfo =
+        _getExpressionInfo(condition) ?? _makeTrivialExpressionInfo(boolType);
     _WhileContext context = new _WhileContext(
       _current.reachable.parent!,
       conditionInfo.ifFalse,
@@ -7075,14 +7088,6 @@ class _FlowAnalysisImpl<
       return const _NoEqualityInformation();
     }
   }
-
-  /// Gets the [ExpressionInfo] associated with the [expression] (which should
-  /// be the last expression that was traversed).  If there is no
-  /// [ExpressionInfo] associated with the [expression], then a fresh
-  /// [ExpressionInfo] is created recording the current flow analysis state.
-  ExpressionInfo _expressionEnd(Expression? expression, SharedTypeView type) =>
-      _getExpressionInfo(expression) ??
-      new ExpressionInfo.trivial(model: _current, type: type);
 
   void _forwardExpression(Expression newExpression, Expression oldExpression) {
     if (_expressionInfoMap[oldExpression] case var expressionInfo?) {
@@ -7484,6 +7489,11 @@ class _FlowAnalysisImpl<
     );
   }
 
+  /// Creates a fresh [ExpressionInfo] recording the current flow analysis
+  /// state.
+  ExpressionInfo _makeTrivialExpressionInfo(SharedTypeView type) =>
+      new ExpressionInfo.trivial(model: _current, type: type);
+
   void _nullAwareAccess_rightBegin(
     Expression? target,
     SharedTypeView targetType, {
@@ -7595,7 +7605,8 @@ class _FlowAnalysisImpl<
     FlowModel unmatched = _unmatched!;
     _unmatched = context._previousUnmatched;
     if (guard != null) {
-      ExpressionInfo guardInfo = _expressionEnd(guard, boolType);
+      ExpressionInfo guardInfo =
+          _getExpressionInfo(guard) ?? _makeTrivialExpressionInfo(boolType);
       _current = guardInfo.ifTrue;
       unmatched = _join(unmatched, guardInfo.ifFalse);
     }
