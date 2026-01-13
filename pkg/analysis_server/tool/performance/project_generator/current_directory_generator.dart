@@ -27,13 +27,13 @@ class CurrentDirectoryGenerator implements ProjectGenerator {
       );
     }
     return Workspace(
-      [
+      contextRoots: [
         ContextRoot(
           Directory.current,
           (await findPackageConfig(Directory.current))!,
         ),
       ],
-      [Directory.current],
+      workspaceDirectories: [Directory.current],
     );
   }
 

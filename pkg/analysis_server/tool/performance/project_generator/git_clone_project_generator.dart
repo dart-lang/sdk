@@ -31,8 +31,10 @@ class GitCloneProjectGenerator implements ProjectGenerator {
     await runGitCommand(['checkout', ref], outputDir);
     await runPubGet(outputDir);
     return Workspace(
-      [ContextRoot(outputDir, (await findPackageConfig(outputDir))!)],
-      [outputDir],
+      contextRoots: [
+        ContextRoot(outputDir, (await findPackageConfig(outputDir))!),
+      ],
+      workspaceDirectories: [outputDir],
     );
   }
 

@@ -91,15 +91,8 @@ final argParser = ArgParser()
 // TODO(somebody): Support legacy protocol.
 String normalizeLog(File input, PackageConfig packageCofig) {
   var content = input.readAsStringSync();
-  // First, replace the package roots
-  for (var package in packageCofig.packages) {
-    content = content.replaceAll(
-      package.root.toString(),
-      '{{package-root:${package.name}}}',
-    );
-  }
 
-  // Next, replace the workspace folder paths.
+  // First, replace the workspace folder paths.
   var original = Log.fromString(content, {});
   var initializeMessage = original.entries.firstWhere(
     (log) => log.isMessage && log.message.isInitialize,
@@ -115,7 +108,15 @@ String normalizeLog(File input, PackageConfig packageCofig) {
     content = content.replaceAll(uri.path, '{{workspaceFolder-$i}}');
   }
 
-  // Finally, replace the dart sdk path
+  // Next, replace the dart sdk path
   content = content.replaceAll(sdkPath, '{{dartSdkRoot}}');
+
+  // Finally, replace the package roots
+  for (var package in packageCofig.packages) {
+    content = content.replaceAll(
+      package.root.toString(),
+      '{{package-root:${package.name}}}',
+    );
+  }
   return content;
 }

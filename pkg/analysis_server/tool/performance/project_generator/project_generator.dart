@@ -72,8 +72,18 @@ class Workspace {
 
   /// The actual root directories containing the projects.
   ///
-  /// These are typically just used for cleanup.
+  /// These are typically just used for cleanup, and defaults to
+  /// [workspaceDirectories].
   final Iterable<Directory> rootDirectories;
 
-  Workspace(this.contextRoots, this.rootDirectories);
+  /// The open workspace directories.
+  ///
+  /// These correspond directly to the `workspaceFolder` entries in LSP.
+  final Iterable<Directory> workspaceDirectories;
+
+  Workspace({
+    required this.contextRoots,
+    required this.workspaceDirectories,
+    Iterable<Directory>? rootDirectories,
+  }) : rootDirectories = rootDirectories ?? workspaceDirectories;
 }

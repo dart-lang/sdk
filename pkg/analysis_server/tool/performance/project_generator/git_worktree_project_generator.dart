@@ -11,7 +11,8 @@ import '../utilities/git.dart';
 import 'project_generator.dart';
 
 /// A [ProjectGenerator] that creates a new git working tree for an already
-/// cloned local repo, checked out at a specific [ref] (commit sha, tag, or branch name).
+/// cloned local repo, checked out at a specific [ref] (commit sha, tag, or
+/// branch name).
 class GitWorktreeProjectGenerator implements ProjectGenerator {
   /// The Directory containing the local git repo.
   final Directory originalRepo;
@@ -23,10 +24,15 @@ class GitWorktreeProjectGenerator implements ProjectGenerator {
   /// up a bit differently.
   final bool isSdkRepo;
 
+  /// Relative paths to the sub-directories of the repo that should be open in
+  /// this workspace.
+  final Iterable<String>? openSubdirs;
+
   GitWorktreeProjectGenerator(
     this.originalRepo,
     this.ref, {
     this.isSdkRepo = false,
+    this.openSubdirs,
   });
 
   @override
@@ -42,32 +48,38 @@ class GitWorktreeProjectGenerator implements ProjectGenerator {
       'add',
       '-d',
       projectDir.path,
+      ref,
     ], originalRepo);
     if (isSdkRepo) {
       await _setUpSdk(projectDir);
     } else {
       await runPubGet(projectDir);
     }
+    var packageConfig = (await findPackageConfig(projectDir))!;
     return Workspace(
-      [ContextRoot(projectDir, (await findPackageConfig(projectDir))!)],
-      [tmpDir],
+      contextRoots: [ContextRoot(projectDir, packageConfig)],
+      workspaceDirectories: [
+        if (openSubdirs case var openSubdirs?) ...[
+          for (var subdir in openSubdirs)
+            Directory(p.join(projectDir.path, subdir)),
+        ] else
+          projectDir,
+      ],
+      rootDirectories: [tmpDir],
     );
   }
 
   @override
   Future<void> tearDown(Workspace workspace) async {
-    for (var contextRoot in workspace.contextRoots) {
-      await runGitCommand([
-        'worktree',
-        'remove',
-        '-f',
-        contextRoot.dir.path,
-      ], originalRepo);
-    }
-    for (var rootDir in workspace.rootDirectories) {
-      if (rootDir.existsSync()) {
-        await workspace.rootDirectories.single.delete(recursive: true);
-      }
+    var rootDir = workspace.rootDirectories.single;
+    await runGitCommand([
+      'worktree',
+      'remove',
+      '-f',
+      isSdkRepo ? p.join(rootDir.path, 'sdk') : rootDir.path,
+    ], originalRepo);
+    if (rootDir.existsSync()) {
+      await rootDir.delete(recursive: true);
     }
   }
 

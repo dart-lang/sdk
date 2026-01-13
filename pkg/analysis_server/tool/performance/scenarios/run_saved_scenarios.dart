@@ -42,7 +42,7 @@ final argParser = ArgParser()
     'timeout',
     abbr: 't',
     help: 'Number of seconds to wait for analyzer responses',
-    defaultsTo: '5',
+    defaultsTo: '30',
   )
   ..addFlag('help');
 
@@ -60,8 +60,9 @@ final List<Scenario> scenarios = () {
       ),
       project: GitWorktreeProjectGenerator(
         Directory.fromUri(sdkRoot),
-        'a8f85d3d86c36276739895bb31fb2022a6d59631',
+        'ca7fdb162f13d8ae15d11a1a4d6357ecbdf6e70e',
         isSdkRepo: true,
+        openSubdirs: ['pkg/analysis_server'],
       ),
     ),
     Scenario(
