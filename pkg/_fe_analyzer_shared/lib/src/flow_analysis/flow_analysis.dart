@@ -7091,11 +7091,9 @@ class _FlowAnalysisImpl<
 
   void _forwardExpression(Expression newExpression, Expression oldExpression) {
     if (_expressionInfoMap[oldExpression] case var expressionInfo?) {
-      _expressionInfoMap.remove(oldExpression);
       _expressionInfoMap[newExpression] = expressionInfo;
     }
     if (_expressionReferenceMap[oldExpression] case var expressionReference?) {
-      _expressionReferenceMap.remove(oldExpression);
       _expressionReferenceMap[newExpression] = expressionReference;
     }
   }
@@ -7120,38 +7118,12 @@ class _FlowAnalysisImpl<
   /// be the last expression that was traversed).  If there is no
   /// [ExpressionInfo] associated with the [expression], then `null` is
   /// returned.
-  ///
-  /// To reduce GC pressure, if this method returns a non-null value, it deletes
-  /// the association of the [expression] with its [ExpressionInfo] object. This
-  /// means that if [_getExpressionInfo] is called twice for the same
-  /// [expression] (without an intervening call to [_storeExpressionInfo]), the
-  /// second call will return `null`. This should not be a problem because the
-  /// client is expected to visit AST nodes in a single-pass depth-first
-  /// pre-order fashion.
-  ExpressionInfo? _getExpressionInfo(Expression? expression) {
-    if (expression == null) {
-      return null;
-    } else {
-      ExpressionInfo? expressionInfo = _expressionInfoMap[expression];
-      _expressionInfoMap.remove(expression);
-      return expressionInfo;
-    }
-  }
+  ExpressionInfo? _getExpressionInfo(Expression? expression) =>
+      _expressionInfoMap[expression];
 
   @override
-  _Reference? _getExpressionReference(Expression? expression) {
-    if (expression == null) {
-      return null;
-    } else {
-      _Reference? expressionInfo = _expressionReferenceMap[expression];
-      if (expressionInfo != null) {
-        _expressionReferenceMap.remove(expression);
-        return expressionInfo;
-      } else {
-        return null;
-      }
-    }
-  }
+  _Reference? _getExpressionReference(Expression? expression) =>
+      _expressionReferenceMap[expression];
 
   /// Gets the matched value type that should be used to type check the pattern
   /// currently being analyzed.
@@ -7555,12 +7527,13 @@ class _FlowAnalysisImpl<
     _stack.add(new _NullAwareAccessContext(shortcutControlPath));
     SsaNode? targetSsaNode;
     if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
-      // Store back the target reference so that it can be used for field
-      // promotion.
-      if (target != null && targetReference != null) {
-        _storeExpressionReference(target, targetReference);
-        targetSsaNode = targetReference.ssaNode;
-      }
+      // Pick up the target SSA node so that it can be used for field promotion.
+      targetSsaNode = targetReference?.ssaNode;
+    } else {
+      // Field promotion was broken for null-aware field accesses prior to the
+      // implementation of sound flow analysis. So to replicate the bug, destroy
+      // the target reference so that it can't be used for field promotion.
+      _expressionReferenceMap.remove(target);
     }
     if (guardVariable != null) {
       // Promote the guard variable as well.
