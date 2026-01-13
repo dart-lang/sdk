@@ -1,3 +1,6 @@
+## 0.1.9-dev
+- Deprecate `MockPackagesMixin.addUI`; This is replaced by `addSkyEngine`.
+
 ## 0.1.8
 
 - Require version `10.0.0` of the `analyzer` package.
