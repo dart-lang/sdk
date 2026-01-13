@@ -1547,9 +1547,11 @@ package:analyzer/dart/ast/ast.dart:
   PrimaryConstructorBody (class extends Object implements ClassMember):
     body (getter: FunctionBody)
     colon (getter: Token?)
+    declaration (getter: PrimaryConstructorDeclaration?)
     initializers (getter: NodeList<ConstructorInitializer>)
     thisKeyword (getter: Token)
   PrimaryConstructorDeclaration (class extends Object implements ClassNamePart):
+    body (getter: PrimaryConstructorBody?)
     constKeyword (getter: Token?)
     constructorName (getter: PrimaryConstructorName?)
     declaredFragment (getter: ConstructorFragment?)
