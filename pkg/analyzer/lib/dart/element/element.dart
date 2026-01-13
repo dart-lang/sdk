@@ -3043,7 +3043,7 @@ abstract class PropertyInducingElement implements VariableElement {
 
   /// Whether the property is from a getter or setter.
   ///
-  /// When this is `true`, [isOriginGetterSetter] is `false`.
+  /// When this is `true`, [isOriginDeclaration] is `false`.
   bool get isOriginGetterSetter;
 
   @Deprecated('Use isOriginX instead')
