@@ -5049,9 +5049,6 @@ class _FlowAnalysisImpl<
   /// The mapping from expressions to their [ExpressionInfo]s.
   final Map<Expression, ExpressionInfo> _expressionInfoMap = {};
 
-  /// The mapping from expressions to their [_Reference]s.
-  final Map<Expression, _Reference> _expressionReferenceMap = {};
-
   final AssignedVariables<Node, Variable> _assignedVariables;
 
   @override
@@ -5218,7 +5215,7 @@ class _FlowAnalysisImpl<
     // will be followed by a call to [nullAwareAccess_rightBegin], and the
     // expression reference will be needed again. So store it back.
     if (expressionReference != null) {
-      _storeExpressionReference(target, expressionReference);
+      _storeExpressionInfo(target, expressionReference);
     }
     if (isNullAware) {
       _nullAwareAccess_rightBegin(
@@ -5242,7 +5239,7 @@ class _FlowAnalysisImpl<
     // (e.g. `(x..f())._field` will still receive the benefit of field
     // promotion.
     _Reference targetInfo = _cascadeTargetStack.removeLast();
-    _storeExpressionReference(wholeExpression, targetInfo);
+    _storeExpressionInfo(wholeExpression, targetInfo);
   }
 
   @override
@@ -5975,7 +5972,6 @@ class _FlowAnalysisImpl<
     // null-aware expression, it was only valid in the case where the target
     // expression was not null. So it needs to be cleared now.
     _expressionInfoMap.remove(wholeExpression);
-    _expressionReferenceMap.remove(wholeExpression);
   }
 
   @override
@@ -6306,7 +6302,6 @@ class _FlowAnalysisImpl<
     );
     if (wholeExpression != null) {
       _storeExpressionInfo(wholeExpression, propertyReference);
-      _storeExpressionReference(wholeExpression, propertyReference);
     }
     return promotedType;
   }
@@ -6548,7 +6543,6 @@ class _FlowAnalysisImpl<
       isSuper: isSuper,
     );
     _storeExpressionInfo(expression, reference);
-    _storeExpressionReference(expression, reference);
   }
 
   @override
@@ -6694,7 +6688,6 @@ class _FlowAnalysisImpl<
           this,
           _current,
         );
-    _storeExpressionReference(expression, expressionInfo);
     _storeExpressionInfo(expression, expressionInfo);
     return promotionModel.promotedTypes.lastOrNull;
   }
@@ -6734,7 +6727,7 @@ class _FlowAnalysisImpl<
   Map<SharedTypeView, NonPromotionReason> Function() whyNotPromoted(
     Expression target,
   ) {
-    if (_expressionReferenceMap[target] case var reference?) {
+    if (_expressionInfoMap[target] case _Reference reference) {
       PromotionModel? currentPromotionInfo = _current.promotionInfo?.get(
         this,
         reference.promotionKey,
@@ -7012,19 +7005,6 @@ class _FlowAnalysisImpl<
       );
       expressionInfoEntryIndex++;
     }
-    int expressionReferenceEntryIndex = 0;
-    for (MapEntry<Expression, _Reference> expressionReferenceEntry
-        in _expressionReferenceMap.entries) {
-      print(
-        '  expressionWithReference #$expressionReferenceEntryIndex: '
-        '${expressionReferenceEntry.key}',
-      );
-      print(
-        '  expressionReference #$expressionReferenceEntryIndex: '
-        '${expressionReferenceEntry.value}',
-      );
-      expressionReferenceEntryIndex++;
-    }
     if (_stack.isNotEmpty) {
       print('  stack:');
       for (_FlowContext stackEntry in _stack.reversed) {
@@ -7093,9 +7073,6 @@ class _FlowAnalysisImpl<
     if (_expressionInfoMap[oldExpression] case var expressionInfo?) {
       _expressionInfoMap[newExpression] = expressionInfo;
     }
-    if (_expressionReferenceMap[oldExpression] case var expressionReference?) {
-      _expressionReferenceMap[newExpression] = expressionReference;
-    }
   }
 
   void _functionExpression_begin(Node node) {
@@ -7123,7 +7100,10 @@ class _FlowAnalysisImpl<
 
   @override
   _Reference? _getExpressionReference(Expression? expression) =>
-      _expressionReferenceMap[expression];
+      switch (_getExpressionInfo(expression)) {
+        _Reference reference => reference,
+        _ => null,
+      };
 
   /// Gets the matched value type that should be used to type check the pattern
   /// currently being analyzed.
@@ -7533,7 +7513,7 @@ class _FlowAnalysisImpl<
       // Field promotion was broken for null-aware field accesses prior to the
       // implementation of sound flow analysis. So to replicate the bug, destroy
       // the target reference so that it can't be used for field promotion.
-      _expressionReferenceMap.remove(target);
+      _expressionInfoMap.remove(target);
     }
     if (guardVariable != null) {
       // Promote the guard variable as well.
@@ -7674,21 +7654,6 @@ class _FlowAnalysisImpl<
     _expressionInfoMap[expression] = expressionInfo;
   }
 
-  /// Associates [expression], which should be the most recently visited
-  /// expression, with the given [expressionReference] object.
-  ///
-  /// This method serves the same role as [_storeExpressionInfo], but it only
-  /// handles expressions that might refer to something promotable (a get of a
-  /// local variable or a property), so it is less likely to have trouble if the
-  /// client doesn't visit AST nodes in the proper order (see
-  /// https://github.com/dart-lang/sdk/issues/56887).
-  void _storeExpressionReference(
-    Expression expression,
-    _Reference expressionReference,
-  ) {
-    _expressionReferenceMap[expression] = expressionReference;
-  }
-
   TrivialVariableReference _thisOrSuperReference(
     SharedTypeView staticType, {
     required bool isSuper,
@@ -7749,7 +7714,6 @@ class _FlowAnalysisImpl<
         !isPostfixIncDec) {
       _Reference reference = _variableReference(variableKey, unpromotedType);
       _storeExpressionInfo(node, reference);
-      _storeExpressionReference(node, reference);
     }
   }
 }
