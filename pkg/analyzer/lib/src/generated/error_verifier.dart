@@ -415,9 +415,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitAwaitExpression(AwaitExpression node) {
-    if (!_enclosingExecutable.isAsynchronous) {
-      diagnosticReporter.report(diag.awaitInWrongContext.at(node.awaitKeyword));
-    }
     checkForUseOfVoidResult(node.expression);
     _checkForAwaitInLateLocalVariableInitializer(node);
     _checkForAwaitOfIncompatibleType(node);
