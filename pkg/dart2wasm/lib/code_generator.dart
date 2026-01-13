@@ -1584,11 +1584,20 @@ abstract class AstCodeGenerator
     if (intrinsicResult != null) return intrinsicResult;
 
     ClassInfo info = translator.classInfo[node.target.enclosingClass]!;
-    translator.functions.recordClassAllocation(info.classId);
 
     final target = node.targetReference;
     _visitArguments(node.arguments, translator.signatureForDirectCall(target),
         translator.paramInfoForDirectCall(target), 0);
+
+    if (info.isCyclic) {
+      // Cyclic types cannot be instantiated. Any code that tries to instantiate
+      // them will fail with stack overflow, which is a trap in Wasm. Here we
+      // replace one trap with another.
+      b.unreachable();
+      return expectedType;
+    }
+
+    translator.functions.recordClassAllocation(info.classId);
 
     return call(target).single;
   }
@@ -3154,6 +3163,11 @@ CodeGenerator getMemberCodeGenerator(Translator translator,
       translator, asyncMarker, functionBuilder.type, memberReference);
   if (codeGen != null) return codeGen;
 
+  final Class? memberClass = member.enclosingClass;
+  if (memberClass != null && translator.classInfo[memberClass]!.isCyclic) {
+    return UnreachableCodeGenerator(translator, functionBuilder.type, member);
+  }
+
   final procedure = member as Procedure;
 
   if (asyncMarker == AsyncMarker.SyncStar) {
@@ -3166,6 +3180,13 @@ CodeGenerator getMemberCodeGenerator(Translator translator,
 
 CodeGenerator getLambdaCodeGenerator(Translator translator, Lambda lambda,
     Member enclosingMember, Closures enclosingMemberClosures) {
+  final enclosingClass = enclosingMember.enclosingClass;
+  if (enclosingClass != null &&
+      translator.classInfo[enclosingClass]!.isCyclic) {
+    return UnreachableCodeGenerator(
+        translator, lambda.function.type, enclosingMember);
+  }
+
   final asyncMarker = lambda.functionNode.asyncMarker;
 
   if (asyncMarker == AsyncMarker.Async) {
@@ -3187,9 +3208,15 @@ CodeGenerator? getInlinableMemberCodeGenerator(Translator translator,
     AsyncMarker asyncMarker, w.FunctionType functionType, Reference reference) {
   final Member member = reference.asMember;
 
+  final Class? memberClass = member.enclosingClass;
+  if (memberClass != null && translator.classInfo[memberClass]!.isCyclic) {
+    return UnreachableCodeGenerator(translator, functionType, member);
+  }
+
   if (reference.isTearOffReference) {
     return TearOffCodeGenerator(translator, functionType, member);
   }
+
   if (reference.isTypeCheckerReference) {
     return TypeCheckerCodeGenerator(translator, functionType, member);
   }
@@ -3223,6 +3250,7 @@ CodeGenerator? getInlinableMemberCodeGenerator(Translator translator,
     return SynchronousProcedureCodeGenerator(
         translator, functionType, member, reference.entryKind);
   }
+
   assert(
       asyncMarker == AsyncMarker.SyncStar || asyncMarker == AsyncMarker.Async);
   return null;
@@ -4212,6 +4240,16 @@ class SynchronousLambdaCodeGenerator extends AstCodeGenerator {
 
     translateStatement(lambda.functionNode.body!);
     _implicitReturn();
+    b.end();
+  }
+}
+
+class UnreachableCodeGenerator extends AstCodeGenerator {
+  UnreachableCodeGenerator(super.translator, super.functionType, super.member);
+
+  @override
+  void generateInternal() {
+    b.unreachable();
     b.end();
   }
 }

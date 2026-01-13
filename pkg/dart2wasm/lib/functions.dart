@@ -77,7 +77,7 @@ class FunctionCollector {
     // name as the export name of a different function.
     exportName ??= translator.getPragma(member, "wasm:weak-export", text);
     if (exportName != null) {
-      translator.exportNamer.reserveName(exportName);
+      translator.exporter.reserveName(exportName);
     }
   }
 

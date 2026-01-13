@@ -1,11 +1,10 @@
 (module $module1
   (type $#Top <...>)
   (type $BoxedInt <...>)
-  (type $Foo1 <...>)
-  (type $FooBase <...>)
   (type $JSStringImpl <...>)
+  (type $Object <...>)
   (func $"_TypeError._throwNullCheckErrorWithCurrentStack <noInline>" (import "module0" "func0") (result (ref none)))
-  (func $Foo1.doitDispatch (import "module0" "func1") (param (ref $FooBase) (ref null $#Top)) (result (ref null $#Top)))
+  (func $Foo1.doitDispatch (import "module0" "func1") (param (ref $Object) (ref null $#Top)) (result (ref null $#Top)))
   (func $JSStringImpl._interpolate3 (import "module0" "func2") (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl)))
   (func $print (import "module0" "func3") (param (ref null $#Top)) (result (ref null $#Top)))
   (global $".Foo1.doitDevirt(" (import "" "Foo1.doitDevirt(") (ref extern))
@@ -13,8 +12,8 @@
   (global $"C344 2" (import "module0" "global3") (ref $BoxedInt))
   (global $"C383 \"FooBase(\"" (import "module0" "global5") (ref $JSStringImpl))
   (global $"C8 \")\"" (import "module0" "global4") (ref $JSStringImpl))
-  (global $baseObj (import "module0" "global0") (ref null $FooBase))
-  (global $foo1Obj (import "module0" "global2") (ref null $Foo1))
+  (global $baseObj (import "module0" "global0") (ref null $Object))
+  (global $foo1Obj (import "module0" "global2") (ref null $Object))
   (table $module0.dispatch0 (import "module0" "dispatch0") 760 funcref)
   (global $"C502 \"Foo1.doitDevirt(\"" (ref $JSStringImpl)
     (i32.const 4)
@@ -22,11 +21,11 @@
     (global.get $".Foo1.doitDevirt(")
     (struct.new $JSStringImpl))
   (func $"foo1 <noInline>" (result (ref null $#Top))
-    (local $var0 (ref $FooBase))
-    (local $var1 (ref $Foo1))
-    (local $var2 (ref $Foo1))
+    (local $var0 (ref $Object))
+    (local $var1 (ref $Object))
+    (local $var2 (ref $Object))
     block $label0
-      block $label1 (result (ref $FooBase))
+      block $label1 (result (ref $Object))
         global.get $baseObj
         br_on_non_null $label1
         br $label0
@@ -34,12 +33,12 @@
       local.tee $var0
       global.get $"C315 1"
       local.get $var0
-      struct.get $FooBase $field0
+      struct.get $Object $field0
       i32.const 508
       i32.add
-      call_indirect $module0.dispatch0 (param (ref $FooBase) (ref null $#Top)) (result (ref null $#Top))
+      call_indirect $module0.dispatch0 (param (ref $Object) (ref null $#Top)) (result (ref null $#Top))
       drop
-      block $label2 (result (ref $Foo1))
+      block $label2 (result (ref $Object))
         global.get $foo1Obj
         br_on_non_null $label2
         br $label0
@@ -47,14 +46,14 @@
       global.get $"C344 2"
       call $Foo1.doitDispatch
       drop
-      block $label3 (result (ref $Foo1))
+      block $label3 (result (ref $Object))
         global.get $foo1Obj
         br_on_non_null $label3
         br $label0
       end $label3
       local.set $var1
       call $Foo1.doitDevirt
-      block $label4 (result (ref $Foo1))
+      block $label4 (result (ref $Object))
         global.get $foo1Obj
         br_on_non_null $label4
         br $label0

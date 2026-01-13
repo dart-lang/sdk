@@ -171,16 +171,36 @@ class ClassInfo {
   final ClassInfo? superInfo;
 
   /// For every type parameter which is directly mapped to a type parameter in
-  /// the superclass, this contains the corresponding superclass type
-  /// parameter. These will reuse the corresponding type parameter field of
-  /// the superclass.
+  /// the superclass, this contains the corresponding superclass type parameter.
+  /// These will reuse the corresponding type parameter field of the superclass.
   final Map<TypeParameter, TypeParameter> typeParameterMatch;
 
   /// The Wasm type used to represent values of a Dart interface type of this
   /// class.
-  w.RefType get repr => _repr!;
+  w.RefType get repr {
+    if (_repr == null) {
+      throw 'Repr not calculated for $cls ($struct)';
+    }
+    return _repr!;
+  }
 
   w.RefType? _repr;
+
+  /// Wherther the class's Wasm struct is cyclic via non-nullable references.
+  ///
+  /// Cyclic classes cannot be instantiated.
+  ///
+  /// Cyclicness is calculated after closure infos are fully generated
+  /// (including fields), in [collect].
+  bool get isCyclic {
+    final cyclic = _cyclic;
+    if (cyclic == null) {
+      throw 'Cyclicness not calculated for $cls ($struct)';
+    }
+    return cyclic;
+  }
+
+  bool? _cyclic;
 
   /// Nullabe Wasm ref type for this class.
   final w.RefType nullableType;
@@ -218,6 +238,28 @@ class ClassInfo {
     for (int i = FieldIndex.objectFieldBase; i < struct.fields.length; i++) {
       f(i, struct.fields[i]);
     }
+  }
+
+  bool _calculateCyclicness(Translator translator) {
+    if (_cyclic != null) return _cyclic!;
+
+    _cyclic = true;
+
+    final structType = repr.heapType as w.StructType;
+    for (w.FieldType fieldType in structType.fields) {
+      final fieldTypeType = fieldType.type;
+      if (fieldTypeType is w.RefType && !fieldTypeType.nullable) {
+        final fieldClassInfo =
+            translator.classForHeapType[fieldTypeType.heapType];
+        if (fieldClassInfo != null) {
+          if (fieldClassInfo._calculateCyclicness(translator)) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return _cyclic = false;
   }
 }
 
@@ -306,6 +348,7 @@ class ClassInfoCollector {
   void _createStructForClassTop() {
     final w.StructType struct = translator.typesBuilder.defineStruct("#Top");
     topInfo = ClassInfo(null, AbsoluteClassId(0), 0, struct, null);
+    topInfo._repr = w.RefType.def(struct, nullable: false);
     translator.classForHeapType[struct] = topInfo;
   }
 
@@ -361,9 +404,13 @@ class ClassInfoCollector {
           }
         }
       }
+      final hasFields =
+          _requiresSubclassFields(superInfo, typeParameterMatch, cls);
 
-      w.StructType struct = translator.typesBuilder
-          .defineStruct(cls.name, superType: superInfo.struct);
+      w.StructType struct = hasFields
+          ? translator.typesBuilder
+              .defineStruct(cls.name, superType: superInfo.struct)
+          : superInfo.struct;
       info = ClassInfo(cls, classId, superInfo.depth + 1, struct, superInfo,
           typeParameterMatch: typeParameterMatch);
       if (translator.dynamicModuleSupportEnabled &&
@@ -412,46 +459,81 @@ class ClassInfoCollector {
   }
 
   void _generateFields(ClassInfo info) {
+    assert(_requiresSubclassFields(
+        info.superInfo, info.typeParameterMatch, info.cls));
     ClassInfo? superInfo = info.superInfo;
     if (superInfo == null) {
       // Top - add class id field
       info._addField(w.FieldType(w.NumType.i32, mutable: false),
           expectedIndex: FieldIndex.classId);
-    } else {
-      // Copy fields from superclass
-      int superFieldIndex = 0;
-      for (w.FieldType fieldType in superInfo.struct.fields) {
-        info._addField(fieldType,
-            fieldName: superInfo.struct.fieldNames[superFieldIndex]);
-        superFieldIndex += 1;
+      return;
+    }
+
+    // Copy fields from superclass
+    int superFieldIndex = 0;
+    for (w.FieldType fieldType in superInfo.struct.fields) {
+      info._addField(fieldType,
+          fieldName: superInfo.struct.fieldNames[superFieldIndex]);
+      superFieldIndex += 1;
+    }
+
+    final cls = info.cls!;
+    if (cls == translator.coreTypes.objectClass) {
+      assert(cls.superclass == null);
+      // Object - add identity hash code field
+      info._addField(w.FieldType(w.NumType.i32),
+          expectedIndex: FieldIndex.identityHash);
+
+      assert(cls.typeParameters.isEmpty);
+      assert(!cls.fields.any((field) => field.isInstanceMember));
+      return;
+    }
+
+    // Add fields for type variables
+    for (TypeParameter parameter in cls.typeParameters) {
+      TypeParameter? match = info.typeParameterMatch[parameter];
+      if (match != null) {
+        // Reuse supertype type variable
+        translator.typeParameterIndex[parameter] =
+            translator.typeParameterIndex[match]!;
+      } else {
+        translator.typeParameterIndex[parameter] = info.struct.fields.length;
+        info._addField(typeType);
       }
-      if (info.cls!.superclass == null) {
-        // Object - add identity hash code field
-        info._addField(w.FieldType(w.NumType.i32),
-            expectedIndex: FieldIndex.identityHash);
+    }
+    // Add fields for Dart instance fields
+    for (Field field in cls.fields) {
+      if (field.isInstanceMember) {
+        final w.ValueType wasmType = translator.translateTypeOfField(field);
+        translator.fieldIndex[field] = info.struct.fields.length;
+        info._addField(w.FieldType(wasmType, mutable: !field.isFinal),
+            fieldName: field.name.text);
       }
-      // Add fields for type variables
-      for (TypeParameter parameter in info.cls!.typeParameters) {
-        TypeParameter? match = info.typeParameterMatch[parameter];
-        if (match != null) {
-          // Reuse supertype type variable
-          translator.typeParameterIndex[parameter] =
-              translator.typeParameterIndex[match]!;
-        } else {
-          translator.typeParameterIndex[parameter] = info.struct.fields.length;
-          info._addField(typeType);
-        }
-      }
-      // Add fields for Dart instance fields
-      for (Field field in info.cls!.fields) {
-        if (field.isInstanceMember) {
-          final w.ValueType wasmType = translator.translateTypeOfField(field);
-          translator.fieldIndex[field] = info.struct.fields.length;
-          info._addField(w.FieldType(wasmType, mutable: !field.isFinal),
-              fieldName: field.name.text);
+    }
+  }
+
+  bool _requiresSubclassFields(ClassInfo? superInfo,
+      Map<TypeParameter, TypeParameter> reuseTypeParameter, Class? cls) {
+    if (superInfo == null) {
+      // Top class, requires class-id field.
+      return true;
+    }
+
+    if (cls! == translator.coreTypes.objectClass) {
+      // Object class, requires identity hash code field.
+      return true;
+    }
+
+    if (cls.typeParameters.isNotEmpty) {
+      for (final param in cls.typeParameters) {
+        if (!reuseTypeParameter.containsKey(param)) {
+          // Requires field for value of type parameter.
+          return true;
         }
       }
     }
+
+    return cls.fields.any((field) => field.isInstanceMember);
   }
 
   void _generateRecordFields(ClassInfo info) {
@@ -507,13 +589,12 @@ class ClassInfoCollector {
     translator.classesSupersFirst = [topInfo];
 
     // Subclasses of the `_Closure` class are generated on the fly as fields
-    // with function types are encountered. Therefore, `_Closure` class must
-    // be early in the initialization order.
+    // with function types are encountered. Therefore, `_Closure` class must be
+    // early in the initialization order.
     _createStructForClass(classIds, translator.closureClass);
 
     // Similarly `_Type` is needed for type parameter fields in classes and
-    // needs to be initialized before we encounter a class with type
-    // parameters.
+    // needs to be initialized before we encounter a class with type parameters.
     _createStructForClass(classIds, translator.typeClass);
 
     // Similarly the `Record` class needs to be handled before the loop below as
@@ -575,22 +656,43 @@ class ClassInfoCollector {
       }
       final info = translator.classInfo[cls]!;
       representation ??= info;
-
-      if (representation == topInfo) {
-        info._repr = translator.topTypeNonNullable;
-      } else {
-        info._repr = representation!.nonNullableType;
-      }
+      info._repr = representation!.nonNullableType;
     }
 
     // Now that the representation types for all classes have been computed,
     // fill in the types of the fields in the generated Wasm structs.
     for (final info in translator.classesSupersFirst) {
-      if (info.superInfo == translator.recordInfo) {
+      final superInfo = info.superInfo;
+      if (superInfo == translator.recordInfo) {
         _generateRecordFields(info);
+        continue;
+      }
+
+      if (superInfo != null && info.struct == superInfo.struct) {
+        // We re-use the wasm struct of the base class. That implies this class
+        // has no instance fields and we can re-use (if any) type parameter
+        // slots from base classes.
+        final cls = info.cls!;
+        assert(!cls.fields.any((field) => field.isInstanceMember));
+        for (final param in cls.typeParameters) {
+          final match = info.typeParameterMatch[param];
+          translator.typeParameterIndex[param] =
+              translator.typeParameterIndex[match]!;
+        }
       } else {
         _generateFields(info);
+        // If this struct had the same number of fields as the base struct, we'd
+        // re-use the wasm struct of the base class. So this struct must have
+        // more fields.
+        assert(superInfo == null ||
+            superInfo.struct.fields.length < info.struct.fields.length);
       }
+    }
+
+    // Use `classesSupersFirst` here instead of `classes` to visit anonymous
+    // mixin application classes as well.
+    for (final info in translator.classesSupersFirst) {
+      info._calculateCyclicness(translator);
     }
 
     // Validate that all internally used fields have the expected indices.

@@ -1,7 +1,7 @@
 (module $module0
   (type $#Top (struct
     (field $field0 i32)))
-  (type $BoxedInt (sub final $#Top (struct
+  (type $BoxedInt (sub $#Top (struct
     (field $field0 i32)
     (field $value i64))))
   (func $"dart2wasm._295 (import)" (import "dart2wasm" "_295") (param externref) (result externref))
