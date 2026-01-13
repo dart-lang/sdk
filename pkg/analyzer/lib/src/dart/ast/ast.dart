@@ -19655,6 +19655,11 @@ abstract final class PrimaryConstructorBody implements ClassMember {
   /// are no initializers.
   Token? get colon;
 
+  /// The declaration of the primary constructor, or `null` if the class
+  /// does not have the primary constructor declaration (can happen in
+  /// erroneous code).
+  PrimaryConstructorDeclaration? get declaration;
+
   /// The initializers associated with the constructor.
   NodeList<ConstructorInitializer> get initializers;
 
@@ -19713,6 +19718,7 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
     _body = _becomeParentOf(body);
   }
 
+  @override
   PrimaryConstructorDeclarationImpl? get declaration {
     switch (parent?.parent) {
       case ClassDeclarationImpl parent:
@@ -19782,6 +19788,10 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
 /// The declaration of a primary constructor.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PrimaryConstructorDeclaration implements ClassNamePart {
+  /// The body of this primary constructor, or `null` if the class members
+  /// don't have the body.
+  PrimaryConstructorBody? get body;
+
   /// The token for the `const` keyword, or `null` if the primary constructor
   /// isn't a const constructor.
   Token? get constKeyword;
@@ -19853,6 +19863,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
     return typeName;
   }
 
+  @override
   PrimaryConstructorBodyImpl? get body =>
       parent.classMembers.whereType<PrimaryConstructorBodyImpl>().firstOrNull;
 

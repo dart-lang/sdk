@@ -369,7 +369,17 @@ class AnnotationVerifier {
   }
 
   void _checkKinds(Annotation node, AstNode parent, ElementAnnotation element) {
-    var kinds = element.targetKinds;
+    // As `@override` is declared in the Dart SDK, `TargetKind` is unavailable
+    // to it.
+    var kinds = element.isOverride
+        ? {
+            TargetKind.field,
+            TargetKind.getter,
+            TargetKind.method,
+            TargetKind.setter,
+          }
+        : element.targetKinds;
+
     if (kinds.isNotEmpty) {
       if (!_isValidTarget(parent, kinds)) {
         var invokedElement = element.element!;

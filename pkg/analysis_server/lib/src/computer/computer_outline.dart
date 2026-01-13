@@ -766,19 +766,3 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
     return parent.firstFragment.source.fullName.endsWith('test.dart');
   }
 }
-
-extension on PrimaryConstructorDeclaration {
-  /// Returns the body of the constructor.
-  ///
-  /// Returns `null` if the constructor doesn't have a body.
-  PrimaryConstructorBody? get body {
-    if (parent case BlockClassBody parent) {
-      for (var member in parent.members) {
-        if (member is PrimaryConstructorBody) {
-          return member;
-        }
-      }
-    }
-    return null;
-  }
-}

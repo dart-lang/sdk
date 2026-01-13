@@ -124,6 +124,20 @@ class C implements I, J {
 }''');
   }
 
+  test_class_static() async {
+    await assertErrorsInCode(
+      r'''
+class A {}
+
+class B extends A {
+  @override
+  static void foo() {}
+}
+''',
+      [error(diag.overrideOnNonOverridingMethod, 58, 3)],
+    );
+  }
+
   test_enum() async {
     await assertErrorsInCode(
       r'''

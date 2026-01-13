@@ -51,6 +51,20 @@ class B implements A {
 }''');
   }
 
+  test_class_static() async {
+    await assertErrorsInCode(
+      r'''
+class A {}
+
+class B extends A {
+  @override
+  static set foo(int _) {}
+}
+''',
+      [error(diag.overrideOnNonOverridingSetter, 57, 3)],
+    );
+  }
+
   test_enum() async {
     await assertErrorsInCode(
       r'''
@@ -115,6 +129,16 @@ mixin M on A {
 }
 ''',
       [error(diag.overrideOnNonOverridingSetter, 45, 3)],
+    );
+  }
+
+  test_topLevel() async {
+    await assertErrorsInCode(
+      r'''
+@override
+set foo(int _) {}
+''',
+      [error(diag.overrideOnNonOverridingSetter, 14, 3)],
     );
   }
 }
