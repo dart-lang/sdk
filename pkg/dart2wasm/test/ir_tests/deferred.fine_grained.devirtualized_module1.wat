@@ -22,8 +22,6 @@
     (struct.new $JSStringImpl))
   (func $"foo1 <noInline>" (result (ref null $#Top))
     (local $var0 (ref $Object))
-    (local $var1 (ref $Object))
-    (local $var2 (ref $Object))
     block $label0
       block $label1 (result (ref $Object))
         global.get $baseObj
@@ -51,14 +49,12 @@
         br_on_non_null $label3
         br $label0
       end $label3
-      local.set $var1
       call $Foo1.doitDevirt
       block $label4 (result (ref $Object))
         global.get $foo1Obj
         br_on_non_null $label4
         br $label0
       end $label4
-      local.set $var2
       call $Foo1.doitDevirt
       ref.null none
       return
@@ -66,7 +62,7 @@
     call $"_TypeError._throwNullCheckErrorWithCurrentStack <noInline>"
     unreachable
   )
-  (func $Foo1.doitDevirt
+  (func $Foo1.doitDevirt (param $var0 (ref $Object))
     global.get $"C502 \"Foo1.doitDevirt(\""
     global.get $"C315 1"
     global.get $"C8 \")\""
