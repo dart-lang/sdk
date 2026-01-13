@@ -117,9 +117,7 @@ enum PragmaAnnotation {
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> implies = {
     typesTrust: {parameterTrust, downcastTrust},
     typesCheck: {parameterCheck, downcastCheck},
-    // TODO(dacoharkes,natebiggs): Removing `RecordUse` being converted to
-    // noInline and enabling this doesn't work. Why not?
-    // recordUse: {noInline},
+    recordUse: {noInline},
   };
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> excludes = {
     noInline: {tryInline},
@@ -215,6 +213,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
   }
 
   Map<PragmaAnnotation, EnumSet<PragmaAnnotation>> reportedExclusions = {};
+  EnumSet<PragmaAnnotation> impliedAnnotations = EnumSet.empty();
   for (PragmaAnnotation annotation in annotations.iterable(
     PragmaAnnotation.values,
   )) {
@@ -231,6 +230,8 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
                   "@pragma('dart2js:${other.name}').",
             },
           );
+        } else {
+          impliedAnnotations = impliedAnnotations.add(other);
         }
       }
     }
@@ -273,7 +274,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
       }
     }
   }
-  return annotations;
+  return annotations.union(impliedAnnotations);
 }
 
 abstract class AnnotationsData {
@@ -497,11 +498,7 @@ class AnnotationsDataImpl implements AnnotationsData {
     if (member != null) {
       EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
       if (annotations != null) {
-        if (annotations.contains(PragmaAnnotation.typesTrust)) {
-          return CheckPolicy.trusted;
-        } else if (annotations.contains(PragmaAnnotation.typesCheck)) {
-          return CheckPolicy.checked;
-        } else if (annotations.contains(PragmaAnnotation.parameterTrust)) {
+        if (annotations.contains(PragmaAnnotation.parameterTrust)) {
           return CheckPolicy.trusted;
         } else if (annotations.contains(PragmaAnnotation.parameterCheck)) {
           return CheckPolicy.checked;
@@ -516,11 +513,7 @@ class AnnotationsDataImpl implements AnnotationsData {
     if (member != null) {
       EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
       if (annotations != null) {
-        if (annotations.contains(PragmaAnnotation.typesTrust)) {
-          return CheckPolicy.trusted;
-        } else if (annotations.contains(PragmaAnnotation.typesCheck)) {
-          return CheckPolicy.checked;
-        } else if (annotations.contains(PragmaAnnotation.downcastTrust)) {
+        if (annotations.contains(PragmaAnnotation.downcastTrust)) {
           return CheckPolicy.trusted;
         } else if (annotations.contains(PragmaAnnotation.downcastCheck)) {
           return CheckPolicy.checked;
@@ -535,11 +528,7 @@ class AnnotationsDataImpl implements AnnotationsData {
     if (member != null) {
       EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
       if (annotations != null) {
-        if (annotations.contains(PragmaAnnotation.typesTrust)) {
-          return CheckPolicy.trusted;
-        } else if (annotations.contains(PragmaAnnotation.typesCheck)) {
-          return CheckPolicy.checked;
-        } else if (annotations.contains(PragmaAnnotation.downcastTrust)) {
+        if (annotations.contains(PragmaAnnotation.downcastTrust)) {
           return CheckPolicy.trusted;
         } else if (annotations.contains(PragmaAnnotation.downcastCheck)) {
           return CheckPolicy.checked;
