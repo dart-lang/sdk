@@ -155,6 +155,8 @@ class Driver implements ServerStarter {
   /// The name of the flag to enable fine-grained dependencies.
   static const String withFineDependenciesOption = 'with-fine-dependencies';
 
+  static const String pluginsFlag = 'plugins';
+
   /// The builder for attachments that should be included into crash reports.
   CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder =
       CrashReportingAttachmentsBuilder.empty;
@@ -220,6 +222,8 @@ class Driver implements ServerStarter {
     // Read in any per-SDK overrides specified in <sdk>/config/settings.json.
     var sdkConfig = SdkConfiguration.readFromSdk();
     analysisServerOptions.configurationOverrides = sdkConfig;
+
+    analysisServerOptions.usePlugins = results.flag(pluginsFlag);
 
     // Analytics (legacy, and unified)
     var disableAnalyticsForSession = results.flag(suppressAnalyticsFlag);
@@ -946,6 +950,12 @@ class Driver implements ServerStarter {
     parser.addFlag(
       disableServerFeatureSearchOption,
       help: 'disable all search features',
+      hide: true,
+    );
+    parser.addFlag(
+      pluginsFlag,
+      help: 'Use analyzer plugins',
+      defaultsTo: true,
       hide: true,
     );
     parser.addFlag(

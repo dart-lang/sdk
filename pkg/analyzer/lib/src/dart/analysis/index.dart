@@ -1183,13 +1183,16 @@ class _IndexContributor extends GeneralizingAstVisitor {
     if (element is FormalParameterElement && node.parent is! Label) {
       return;
     }
+
+    IndexRelationKind kind = IndexRelationKind.IS_REFERENCED_BY;
+    if (element is FormalParameterElement && element.isNamed) {
+      // Use a different kind for named arguments so that we can handle
+      // refactoring private named parameters.
+      kind = IndexRelationKind.IS_REFERENCED_BY_NAMED_ARGUMENT;
+    }
+
     // record specific relations
-    recordRelation(
-      element,
-      IndexRelationKind.IS_REFERENCED_BY,
-      node,
-      isQualified,
-    );
+    recordRelation(element, kind, node, isQualified);
   }
 
   @override
@@ -1226,7 +1229,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
       if (superParameter != null) {
         recordRelation(
           superParameter,
-          IndexRelationKind.IS_REFERENCED_BY,
+          node.isNamed
+              ? IndexRelationKind.IS_REFERENCED_BY_NAMED_ARGUMENT
+              : IndexRelationKind.IS_REFERENCED_BY,
           node.name,
           true,
         );

@@ -726,6 +726,8 @@ class Search {
   ) async {
     List<SearchResult> results = <SearchResult>[];
     await _addResults(results, element, searchedFiles, const {
+      IndexRelationKind.IS_REFERENCED_BY_NAMED_ARGUMENT:
+          SearchResultKind.REFERENCE_BY_NAMED_ARGUMENT,
       IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
     });
     return results;
@@ -1134,6 +1136,7 @@ enum SearchResultKind {
   DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION,
   DOT_SHORTHANDS_CONSTRUCTOR_TEAR_OFF,
   REFERENCE,
+  REFERENCE_BY_NAMED_ARGUMENT,
   REFERENCE_IN_PATTERN_FIELD,
   REFERENCE_BY_CONSTRUCTOR_TEAR_OFF,
   REFERENCE_IN_EXTENDS_CLAUSE,

@@ -296,6 +296,57 @@ suggestions
 ''');
   }
 
+  Future<void> test_enum_ifCase() async {
+    await computeSuggestions('''
+enum E { e01, e02 }
+
+void foo(E e) {
+  if (e case .^) {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  e01
+    kind: enumConstant
+  e02
+    kind: enumConstant
+''');
+  }
+
+  Future<void> test_enum_ifCaseAnd() async {
+    await computeSuggestions('''
+enum E { e01, e02 }
+
+void foo(E e) {
+  if (e case .e01 && .^) {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  e01
+    kind: enumConstant
+  e02
+    kind: enumConstant
+''');
+  }
+
+  Future<void> test_enum_ifCaseOr() async {
+    await computeSuggestions('''
+enum E { e01, e02 }
+
+void foo(E e) {
+  if (e case .e01 || .^) {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  e01
+    kind: enumConstant
+  e02
+    kind: enumConstant
+''');
+  }
+
   Future<void> test_enum_parameter_futureOr() async {
     allowedIdentifiers = {'red', 'blue', 'yellow'};
     await computeSuggestions('''

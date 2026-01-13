@@ -96,6 +96,8 @@ class AnalyzeCommand extends DartdevCommand {
         defaultsTo: true,
         hide: true,
       )
+      ..addFlag('plugins',
+          help: 'Use analyzer plugins', defaultsTo: true, hide: true)
       ..addExperimentalFlags();
   }
 
@@ -136,6 +138,7 @@ class AnalyzeCommand extends DartdevCommand {
     final machineFormat = args.option('format') == 'machine';
     final jsonFormat = args.option('format') == 'json';
     final printMemory = args.flag('memory') && jsonFormat;
+    final usePlugins = args.flag('plugins');
 
     io.Directory sdkPath;
     final useAotSnapshot = args.flag(useAotSnapshotFlag);
@@ -189,6 +192,7 @@ class AnalyzeCommand extends DartdevCommand {
       cacheDirectoryPath: args.option('cache'),
       commandName: 'analyze',
       argResults: args,
+      usePlugins: usePlugins,
       disableStatusNotificationDebouncing: true,
       enabledExperiments: args.enabledExperiments,
       suppressAnalytics: suppressAnalytics,

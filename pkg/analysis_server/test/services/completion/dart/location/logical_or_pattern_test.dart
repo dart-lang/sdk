@@ -20,23 +20,45 @@ mixin LogicalOrPatternTestCases on AbstractCompletionDriverTest {
   void test_afterOperator() async {
     await computeSuggestions('''
 void f(int i) {
-  if (i case < 3 || ^ ) ];
+  if (i case < 3 || ^ ) {}
 }
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
   false
-    kind: keyword
-  final
     kind: keyword
   null
     kind: keyword
   true
     kind: keyword
+  const
+    kind: keyword
+  final
+    kind: keyword
   var
     kind: keyword
+''');
+  }
+
+  void test_afterOperator_enum() async {
+    allowedIdentifiers = {'E'};
+    includeKeywords = false;
+    await computeSuggestions('''
+enum E { a, b, c }
+void f(E e) {
+  if (e case .a || ^ ) {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  E
+    kind: enum
+  E.a
+    kind: enumConstant
+  E.b
+    kind: enumConstant
+  E.c
+    kind: enumConstant
 ''');
   }
 }

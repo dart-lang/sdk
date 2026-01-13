@@ -95,16 +95,6 @@ class ElementResolver {
         inferenceHelper: _resolver.inferenceHelper,
       );
 
-  /// Return `true` iff the current enclosing function is a constant constructor
-  /// declaration.
-  bool get isInConstConstructor {
-    var function = _resolver.enclosingFunction;
-    if (function is ConstructorElementImpl) {
-      return function.isConst;
-    }
-    return false;
-  }
-
   DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;

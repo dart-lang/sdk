@@ -14,7 +14,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/constant/has_invalid_type.dart';
 import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -24,7 +23,6 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
-import 'package:meta/meta.dart';
 
 /// The state of an object representing a boolean value.
 class BoolState extends InstanceState {
@@ -271,13 +269,6 @@ class DartObjectImpl implements DartObject, Constant {
 
   /// Return `true` if this object represents an unknown value.
   bool get isUnknown => state.isUnknown;
-
-  /// Return `true` if this object represents an instance of a user-defined
-  /// class.
-  bool get isUserDefinedObject => state is GenericState;
-
-  @visibleForTesting
-  List<DartType>? get typeArguments => (state as FunctionState).typeArguments;
 
   @override
   bool operator ==(Object other) {

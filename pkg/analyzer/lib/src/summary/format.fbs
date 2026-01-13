@@ -73,6 +73,11 @@ enum IndexRelationKind : byte {
   /// Right: location.
   IS_REFERENCED_BY_DOT_SHORTHAND_CONSTRUCTOR_TEAR_OFF,
 
+  /// Left: a parameter.
+  ///   Is referenced by a named argument.
+  /// Right: named argument.
+  IS_REFERENCED_BY_NAMED_ARGUMENT,
+
   /// Left: unresolved member name.
   ///   Is read at.
   /// Right: location.
