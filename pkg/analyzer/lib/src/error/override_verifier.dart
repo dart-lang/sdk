@@ -43,6 +43,25 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
         _checkField(fieldElement, field.name);
       }
     }
+    super.visitFieldDeclaration(node);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    var element = node.declaredFragment!.element;
+    if (element.metadata.hasOverride) {
+      switch (element) {
+        case GetterElement():
+          _errorReporter.report(
+            diag.overrideOnNonOverridingGetter.at(node.name),
+          );
+        case SetterElement():
+          _errorReporter.report(
+            diag.overrideOnNonOverridingSetter.at(node.name),
+          );
+      }
+    }
+    super.visitFunctionDeclaration(node);
   }
 
   @override
@@ -64,6 +83,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
           );
       }
     }
+    super.visitMethodDeclaration(node);
   }
 
   @override
@@ -97,7 +117,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
     _errorReporter.report(diag.overrideOnNonOverridingField.at(errorNode));
   }
 
-  /// Return `true` if the [member] overrides a member from a superinterface.
+  /// Returns whether the [member] overrides a member from a superinterface.
   bool _isOverride(ExecutableElement member) {
     var currentClass = _currentClass?.firstFragment;
     if (currentClass == null) {

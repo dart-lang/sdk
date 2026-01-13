@@ -127,7 +127,6 @@ enum JMemberKind {
   parameterStub,
 }
 
-@override
 String _membertoString(JMember member) =>
     '$jsElementPrefix${member._kind}'
     '(${member.enclosingClass != null ? '${member.enclosingClass!.name}.' : ''}'

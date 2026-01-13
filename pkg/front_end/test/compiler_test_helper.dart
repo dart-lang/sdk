@@ -284,7 +284,6 @@ class SourceLoaderTest extends SourceLoader {
 const BodyBuilderCreator defaultBodyBuilderCreator = BodyBuilderTest.new;
 
 class BodyBuilderTest extends BodyBuilderImpl {
-  @override
   BodyBuilderTest({
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext context,

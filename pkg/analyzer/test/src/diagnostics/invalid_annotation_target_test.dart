@@ -1544,6 +1544,74 @@ typedef bool predicate(Object o);
     );
   }
 
+  void test_override_field() async {
+    await assertNoErrorsInCode('''
+class C {
+  int a = 0;
+}
+class D extends C {
+  @override
+  int a = 0;
+}
+''');
+  }
+
+  void test_override_getter() async {
+    await assertNoErrorsInCode('''
+class C {
+  int get a => 0;
+}
+class D extends C {
+  @override
+  int get a => 0;
+}
+''');
+  }
+
+  void test_override_method() async {
+    await assertNoErrorsInCode('''
+class C {
+  void m() {}
+}
+class D extends C {
+  @override
+  void m() {}
+}
+''');
+  }
+
+  void test_override_setter() async {
+    await assertNoErrorsInCode('''
+class C {
+  set a(int p) {}
+}
+class D extends C {
+  @override
+  set a(int p) {}
+}
+''');
+  }
+
+  void test_override_topLevelField() async {
+    await assertErrorsInCode(
+      '''
+@override
+int a = 1;
+''',
+      [error(diag.invalidAnnotationTarget, 1, 8)],
+    );
+  }
+
+  void test_override_topLevelFunction() async {
+    await assertErrorsInCode(
+      '''
+@override
+class C {}
+''',
+      [error(diag.invalidAnnotationTarget, 1, 8)],
+    );
+  }
+
   void test_parameter_function() async {
     await assertErrorsInCode(
       '''

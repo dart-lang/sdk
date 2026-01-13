@@ -122,6 +122,18 @@ class A(@override final int foo);
     );
   }
 
+  test_class_static() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  @override
+  static int foo = 1;
+}
+''',
+      [error(diag.overrideOnNonOverridingField, 35, 3)],
+    );
+  }
+
   test_enum() async {
     await assertErrorsInCode(
       r'''
