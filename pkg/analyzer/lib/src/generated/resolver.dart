@@ -4612,7 +4612,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     Set<String>? usedNames;
     if (enclosingConstructor != null) {
       var result = verifySuperFormalParameters(
-        constructor: enclosingConstructor,
+        formalParameterList: enclosingConstructor.parameters,
         hasExplicitPositionalArguments: positionalArgumentCount != 0,
         diagnosticReporter: diagnosticReporter,
       );

@@ -5651,7 +5651,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var superParametersResult = verifySuperFormalParameters2(
+    var superParametersResult = verifySuperFormalParameters(
       formalParameterList: formalParameterList,
       diagnosticReporter: diagnosticReporter,
     );
