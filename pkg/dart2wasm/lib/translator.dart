@@ -212,10 +212,15 @@ class Translator with KernelNodes {
   /// [ClassInfo]s of classes in the compilation unit and the [ClassInfo] for
   /// the `#Top` struct. Indexed by class ID. Entries added by
   /// [ClassInfoCollector].
+  ///
+  /// Because anonymous mixin application classes don't have class IDs, they're
+  /// not in this list.
   late final List<ClassInfo> classes;
 
-  /// Same as [classes] but ordered such that info for class at index I
-  /// will have class info for superlass/superinterface at <I).
+  /// Same as [classes] but ordered such that info for class at index I will
+  /// have class info for superlass/superinterface at <I).
+  ///
+  /// This also includes anonymous mixin application classes.
   late final List<ClassInfo> classesSupersFirst;
 
   late final ClassIdNumbering classIdNumbering;
@@ -1839,7 +1844,18 @@ class Translator with KernelNodes {
   }
 
   w.ValueType translateTypeOfLocalVariable(VariableDeclaration node) {
-    return translateType(_inferredTypeOfLocalVariable(node) ?? node.type);
+    DartType dartType = _inferredTypeOfLocalVariable(node) ?? node.type;
+    if (dartType is InterfaceType) {
+      final info = classInfo[dartType.classNode];
+      if (info != null && info.isCyclic) {
+        // Cyclic types can't be instantiated, so locals with cyclic types won't
+        // be assigned and we can give them a more general type. Returning a
+        // nullable type here makes dummy initialization of the variable
+        // shorter, with just a `ref.null`.
+        return topType;
+      }
+    }
+    return translateType(dartType);
   }
 
   DartType? _inferredTypeOfParameterVariable(VariableDeclaration node) {

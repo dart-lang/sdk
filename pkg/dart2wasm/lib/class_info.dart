@@ -171,16 +171,36 @@ class ClassInfo {
   final ClassInfo? superInfo;
 
   /// For every type parameter which is directly mapped to a type parameter in
-  /// the superclass, this contains the corresponding superclass type
-  /// parameter. These will reuse the corresponding type parameter field of
-  /// the superclass.
+  /// the superclass, this contains the corresponding superclass type parameter.
+  /// These will reuse the corresponding type parameter field of the superclass.
   final Map<TypeParameter, TypeParameter> typeParameterMatch;
 
   /// The Wasm type used to represent values of a Dart interface type of this
   /// class.
-  w.RefType get repr => _repr!;
+  w.RefType get repr {
+    if (_repr == null) {
+      throw 'Repr not calculated for $cls ($struct)';
+    }
+    return _repr!;
+  }
 
   w.RefType? _repr;
+
+  /// Wherther the class's Wasm struct is cyclic via non-nullable references.
+  ///
+  /// Cyclic classes cannot be instantiated.
+  ///
+  /// Cyclicness is calculated after closure infos are fully generated
+  /// (including fields), in [collect].
+  bool get isCyclic {
+    final cyclic = _cyclic;
+    if (cyclic == null) {
+      throw 'Cyclicness not calculated for $cls ($struct)';
+    }
+    return cyclic;
+  }
+
+  bool? _cyclic;
 
   /// Nullabe Wasm ref type for this class.
   final w.RefType nullableType;
@@ -218,6 +238,28 @@ class ClassInfo {
     for (int i = FieldIndex.objectFieldBase; i < struct.fields.length; i++) {
       f(i, struct.fields[i]);
     }
+  }
+
+  bool _calculateCyclicness(Translator translator) {
+    if (_cyclic != null) return _cyclic!;
+
+    _cyclic = true;
+
+    final structType = repr.heapType as w.StructType;
+    for (w.FieldType fieldType in structType.fields) {
+      final fieldTypeType = fieldType.type;
+      if (fieldTypeType is w.RefType && !fieldTypeType.nullable) {
+        final fieldClassInfo =
+            translator.classForHeapType[fieldTypeType.heapType];
+        if (fieldClassInfo != null) {
+          if (fieldClassInfo._calculateCyclicness(translator)) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return _cyclic = false;
   }
 }
 
@@ -306,6 +348,7 @@ class ClassInfoCollector {
   void _createStructForClassTop() {
     final w.StructType struct = translator.typesBuilder.defineStruct("#Top");
     topInfo = ClassInfo(null, AbsoluteClassId(0), 0, struct, null);
+    topInfo._repr = w.RefType.def(struct, nullable: false);
     translator.classForHeapType[struct] = topInfo;
   }
 
@@ -546,13 +589,12 @@ class ClassInfoCollector {
     translator.classesSupersFirst = [topInfo];
 
     // Subclasses of the `_Closure` class are generated on the fly as fields
-    // with function types are encountered. Therefore, `_Closure` class must
-    // be early in the initialization order.
+    // with function types are encountered. Therefore, `_Closure` class must be
+    // early in the initialization order.
     _createStructForClass(classIds, translator.closureClass);
 
     // Similarly `_Type` is needed for type parameter fields in classes and
-    // needs to be initialized before we encounter a class with type
-    // parameters.
+    // needs to be initialized before we encounter a class with type parameters.
     _createStructForClass(classIds, translator.typeClass);
 
     // Similarly the `Record` class needs to be handled before the loop below as
@@ -614,12 +656,7 @@ class ClassInfoCollector {
       }
       final info = translator.classInfo[cls]!;
       representation ??= info;
-
-      if (representation == topInfo) {
-        info._repr = translator.topTypeNonNullable;
-      } else {
-        info._repr = representation!.nonNullableType;
-      }
+      info._repr = representation!.nonNullableType;
     }
 
     // Now that the representation types for all classes have been computed,
@@ -650,6 +687,12 @@ class ClassInfoCollector {
         assert(superInfo == null ||
             superInfo.struct.fields.length < info.struct.fields.length);
       }
+    }
+
+    // Use `classesSupersFirst` here instead of `classes` to visit anonymous
+    // mixin application classes as well.
+    for (final info in translator.classesSupersFirst) {
+      info._calculateCyclicness(translator);
     }
 
     // Validate that all internally used fields have the expected indices.
