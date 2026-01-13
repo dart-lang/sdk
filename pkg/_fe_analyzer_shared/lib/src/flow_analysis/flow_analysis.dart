@@ -24,6 +24,16 @@ import '../type_inference/promotion_key_store.dart';
 import 'flow_analysis_operations.dart';
 import 'flow_link.dart';
 
+/// Safely downcasts [expressionInfo] to a [_Reference].
+///
+/// If [expressionInfo] implements [_Reference], it is returned. Otherwise,
+/// `null` is returned.
+_Reference? _getExpressionReference(ExpressionInfo? expressionInfo) =>
+    switch (expressionInfo) {
+      _Reference reference => reference,
+      _ => null,
+    };
+
 /// [PropertyTarget] representing an implicit reference to the target of the
 /// innermost enclosing cascade expression.
 class CascadePropertyTarget extends PropertyTarget<Never> {
@@ -146,7 +156,7 @@ class ExpressionPropertyTarget<Expression extends Object>
 
   @override
   SsaNode? _getSsaNode(covariant _PropertyTargetHelper<Expression> helper) =>
-      helper._getExpressionReference(expression)?.ssaNode;
+      _getExpressionReference(helper._getExpressionInfo(expression))?.ssaNode;
 }
 
 /// Implementation of flow analysis to be shared between the analyzer and the
@@ -5104,7 +5114,9 @@ class _FlowAnalysisImpl<
       _current = _current.setUnreachable();
     }
 
-    _Reference? reference = _getExpressionReference(subExpression);
+    _Reference? reference = _getExpressionReference(
+      _getExpressionInfo(subExpression),
+    );
     if (reference == null) return;
     _current = _current.tryPromoteForTypeCast(this, reference, castType);
   }
@@ -5195,7 +5207,9 @@ class _FlowAnalysisImpl<
     // hasn't been created yet (e.g. because it's not a read of a local
     // variable), create a fresh SSA node for it, so that field promotions that
     // occur during cascade sections will persist in later cascade sections.
-    _Reference? expressionReference = _getExpressionReference(target);
+    _Reference? expressionReference = _getExpressionReference(
+      _getExpressionInfo(target),
+    );
     SsaNode ssaNode = expressionReference?.ssaNode ?? new SsaNode();
     // Create a temporary reference to represent the implicit temporary variable
     // that holds the cascade target. It is important that this is different
@@ -5659,7 +5673,9 @@ class _FlowAnalysisImpl<
     Expression leftHandSide,
     SharedTypeView leftHandSideType,
   ) {
-    _Reference? lhsReference = _getExpressionReference(leftHandSide);
+    _Reference? lhsReference = _getExpressionReference(
+      _getExpressionInfo(leftHandSide),
+    );
     FlowModel shortcutState;
     _current = _current.split();
     if (lhsReference != null) {
@@ -5764,7 +5780,7 @@ class _FlowAnalysisImpl<
       booleanLiteral(isExpression, isNot);
     } else {
       _Reference? subExpressionReference = _getExpressionReference(
-        subExpression,
+        _getExpressionInfo(subExpression),
       );
       if (subExpressionReference != null) {
         ExpressionInfo expressionInfo = _current.tryPromoteForTypeCheck(
@@ -5957,7 +5973,9 @@ class _FlowAnalysisImpl<
 
   @override
   void nonNullAssert_end(Expression operand) {
-    _Reference? operandReference = _getExpressionReference(operand);
+    _Reference? operandReference = _getExpressionReference(
+      _getExpressionInfo(operand),
+    );
     if (operandReference != null) {
       _current = _current.tryMarkNonNullable(this, operandReference).ifTrue;
     }
@@ -6002,7 +6020,7 @@ class _FlowAnalysisImpl<
     required bool isKeyNullAware,
   }) {
     if (!isKeyNullAware) return;
-    _Reference? keyReference = _getExpressionReference(key);
+    _Reference? keyReference = _getExpressionReference(_getExpressionInfo(key));
     FlowModel shortcutState;
     _current = _current.split();
     if (keyReference != null) {
@@ -7091,19 +7109,9 @@ class _FlowAnalysisImpl<
     _current = context._previous;
   }
 
-  /// Gets the [ExpressionInfo] associated with the [expression] (which should
-  /// be the last expression that was traversed).  If there is no
-  /// [ExpressionInfo] associated with the [expression], then `null` is
-  /// returned.
+  @override
   ExpressionInfo? _getExpressionInfo(Expression? expression) =>
       _expressionInfoMap[expression];
-
-  @override
-  _Reference? _getExpressionReference(Expression? expression) =>
-      switch (_getExpressionInfo(expression)) {
-        _Reference reference => reference,
-        _ => null,
-      };
 
   /// Gets the matched value type that should be used to type check the pattern
   /// currently being analyzed.
@@ -7486,7 +7494,9 @@ class _FlowAnalysisImpl<
   }) {
     _current = _current.split();
     FlowModel shortcutControlPath = _current;
-    _Reference? targetReference = _getExpressionReference(target);
+    _Reference? targetReference = _getExpressionReference(
+      _getExpressionInfo(target),
+    );
     if (targetReference != null) {
       _current = _current.tryMarkNonNullable(this, targetReference).ifTrue;
     }
@@ -7994,17 +8004,11 @@ abstract class _PropertyTargetHelper<Expression extends Object> {
   /// SSA node representing the implicit variable `this`.
   SsaNode get _thisSsaNode;
 
-  /// Gets the [_Reference] associated with the [expression] (which should be
-  /// the last expression that was traversed).  If there is no [_Reference]
-  /// associated with the [expression], then `null` is returned.
-  ///
-  /// This method serves the same role as
-  /// [_FlowAnalysisImpl._getExpressionInfo], but it only handles expressions
-  /// that might refer to something promotable (a get of a local variable or a
-  /// property), so it is less likely to have trouble if the client doesn't
-  /// visit AST nodes in the proper order (see
-  /// https://github.com/dart-lang/sdk/issues/56887).
-  _Reference? _getExpressionReference(Expression? expression);
+  /// Gets the [ExpressionInfo] associated with the [expression] (which should
+  /// be the last expression that was traversed).  If there is no
+  /// [ExpressionInfo] associated with the [expression], then `null` is
+  /// returned.
+  ExpressionInfo? _getExpressionInfo(Expression? expression);
 }
 
 /// Specialization of [ExpressionInfo] for the case where the expression is a
