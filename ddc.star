@@ -30,8 +30,7 @@ dart.ci_sandbox_builder(
     "ddc-mac-chrome",
     category = "ddc|chrome|m",
     dimensions = [arm64, mac],
-    # TODO(2026-01-07): remove clobber when caches are cleared.
-    properties = [chrome, {"clobber": True}],
+    properties = [chrome],
 )
 
 dart.ci_sandbox_builder(
