@@ -1,9 +1,7 @@
 (module $module0
   (type $#Top <...>)
-  (type $Foo0 <...>)
-  (type $Foo1 <...>)
-  (type $FooBase <...>)
   (type $JSStringImpl <...>)
+  (type $Object <...>)
   (type $type0 <...>)
   (global $".Foo0.doitDispatch(" (import "" "Foo0.doitDispatch(") (ref extern))
   (global $".Foo1.doitDispatch(" (import "" "Foo1.doitDispatch(") (ref extern))
@@ -25,14 +23,14 @@
     (global.get $".Foo0.doitDispatch(")
     (struct.new $JSStringImpl))
   (global $"C8 \")\"" (ref $JSStringImpl) <...>)
-  (global $baseObj (mut (ref null $FooBase)) <...>)
-  (global $foo1Obj (mut (ref null $Foo1)) <...>)
+  (global $baseObj (mut (ref null $Object)) <...>)
+  (global $foo1Obj (mut (ref null $Object)) <...>)
   (func $"foo0 <noInline>"
     call $"runtimeTrue implicit getter"
-    if (result (ref $FooBase))
+    if (result (ref $Object))
       i32.const 118
       i32.const 0
-      struct.new $Foo0
+      struct.new $Object
     else
       call $Foo1
     end
@@ -47,11 +45,7 @@
     drop
   )
   (func $runtimeTrue implicit getter (result i32) <...>)
-  (func $Foo0.doitDispatch (param $var0 (ref $FooBase)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
-    (local $var2 (ref $Foo0))
-    local.get $var0
-    ref.cast $Foo0
-    local.set $var2
+  (func $Foo0.doitDispatch (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
     global.get $"C385 \"Foo0.doitDispatch(\""
     local.get $var1
     global.get $"C8 \")\""
@@ -62,12 +56,8 @@
     call $FooBase.doitDispatch
     ref.null none
   )
-  (func $Foo1 (result (ref $Foo1)) <...>)
-  (func $Foo1.doitDispatch (export "func1") (param $var0 (ref $FooBase)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
-    (local $var2 (ref $Foo1))
-    local.get $var0
-    ref.cast $Foo1
-    local.set $var2
+  (func $Foo1 (result (ref $Object)) <...>)
+  (func $Foo1.doitDispatch (export "func1") (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
     global.get $"C384 \"Foo1.doitDispatch(\""
     local.get $var1
     global.get $"C8 \")\""

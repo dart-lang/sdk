@@ -1,12 +1,12 @@
 (module $module0
   (type $#Top <...>)
-  (type $DefaultSet <...>)
   (type $DeferredLoadIdNotLoadedError <...>)
+  (type $_DefaultSet&_HashFieldBase&SetMixin <...>)
   (type $_InterfaceType <...>)
   (type $type0 <...>)
   (table $static0-0 (export "static0-0") 1 (ref null $type0))
   (global $"C417 _InterfaceType" (ref $_InterfaceType) <...>)
-  (func $_loaded implicit getter (result (ref $DefaultSet)) <...>)
+  (func $_loaded implicit getter (result (ref $_DefaultSet&_HashFieldBase&SetMixin)) <...>)
   (func $"useFoo <noInline>"
     call $"useFooAsType <noInline>"
     call $"_loaded implicit getter"
@@ -31,6 +31,6 @@
     drop
   )
   (func $Error._throwWithCurrentStackTrace (param $var0 (ref $#Top)) <...>)
-  (func $_DefaultSet&_HashFieldBase&SetMixin&_HashBase&_OperatorEqualsAndHashCode&_LinkedHashSetMixin.contains (param $var0 (ref $DefaultSet)) (result i32) <...>)
+  (func $_DefaultSet&_HashFieldBase&SetMixin&_HashBase&_OperatorEqualsAndHashCode&_LinkedHashSetMixin.contains (param $var0 (ref $_DefaultSet&_HashFieldBase&SetMixin)) (result i32) <...>)
   (func $print (param $var0 (ref null $#Top)) (result (ref null $#Top)) <...>)
 )

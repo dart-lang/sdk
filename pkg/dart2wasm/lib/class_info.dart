@@ -361,9 +361,13 @@ class ClassInfoCollector {
           }
         }
       }
+      final hasFields =
+          _requiresSubclassFields(superInfo, typeParameterMatch, cls);
 
-      w.StructType struct = translator.typesBuilder
-          .defineStruct(cls.name, superType: superInfo.struct);
+      w.StructType struct = hasFields
+          ? translator.typesBuilder
+              .defineStruct(cls.name, superType: superInfo.struct)
+          : superInfo.struct;
       info = ClassInfo(cls, classId, superInfo.depth + 1, struct, superInfo,
           typeParameterMatch: typeParameterMatch);
       if (translator.dynamicModuleSupportEnabled &&
@@ -412,46 +416,81 @@ class ClassInfoCollector {
   }
 
   void _generateFields(ClassInfo info) {
+    assert(_requiresSubclassFields(
+        info.superInfo, info.typeParameterMatch, info.cls));
     ClassInfo? superInfo = info.superInfo;
     if (superInfo == null) {
       // Top - add class id field
       info._addField(w.FieldType(w.NumType.i32, mutable: false),
           expectedIndex: FieldIndex.classId);
-    } else {
-      // Copy fields from superclass
-      int superFieldIndex = 0;
-      for (w.FieldType fieldType in superInfo.struct.fields) {
-        info._addField(fieldType,
-            fieldName: superInfo.struct.fieldNames[superFieldIndex]);
-        superFieldIndex += 1;
+      return;
+    }
+
+    // Copy fields from superclass
+    int superFieldIndex = 0;
+    for (w.FieldType fieldType in superInfo.struct.fields) {
+      info._addField(fieldType,
+          fieldName: superInfo.struct.fieldNames[superFieldIndex]);
+      superFieldIndex += 1;
+    }
+
+    final cls = info.cls!;
+    if (cls == translator.coreTypes.objectClass) {
+      assert(cls.superclass == null);
+      // Object - add identity hash code field
+      info._addField(w.FieldType(w.NumType.i32),
+          expectedIndex: FieldIndex.identityHash);
+
+      assert(cls.typeParameters.isEmpty);
+      assert(!cls.fields.any((field) => field.isInstanceMember));
+      return;
+    }
+
+    // Add fields for type variables
+    for (TypeParameter parameter in cls.typeParameters) {
+      TypeParameter? match = info.typeParameterMatch[parameter];
+      if (match != null) {
+        // Reuse supertype type variable
+        translator.typeParameterIndex[parameter] =
+            translator.typeParameterIndex[match]!;
+      } else {
+        translator.typeParameterIndex[parameter] = info.struct.fields.length;
+        info._addField(typeType);
       }
-      if (info.cls!.superclass == null) {
-        // Object - add identity hash code field
-        info._addField(w.FieldType(w.NumType.i32),
-            expectedIndex: FieldIndex.identityHash);
+    }
+    // Add fields for Dart instance fields
+    for (Field field in cls.fields) {
+      if (field.isInstanceMember) {
+        final w.ValueType wasmType = translator.translateTypeOfField(field);
+        translator.fieldIndex[field] = info.struct.fields.length;
+        info._addField(w.FieldType(wasmType, mutable: !field.isFinal),
+            fieldName: field.name.text);
       }
-      // Add fields for type variables
-      for (TypeParameter parameter in info.cls!.typeParameters) {
-        TypeParameter? match = info.typeParameterMatch[parameter];
-        if (match != null) {
-          // Reuse supertype type variable
-          translator.typeParameterIndex[parameter] =
-              translator.typeParameterIndex[match]!;
-        } else {
-          translator.typeParameterIndex[parameter] = info.struct.fields.length;
-          info._addField(typeType);
-        }
-      }
-      // Add fields for Dart instance fields
-      for (Field field in info.cls!.fields) {
-        if (field.isInstanceMember) {
-          final w.ValueType wasmType = translator.translateTypeOfField(field);
-          translator.fieldIndex[field] = info.struct.fields.length;
-          info._addField(w.FieldType(wasmType, mutable: !field.isFinal),
-              fieldName: field.name.text);
+    }
+  }
+
+  bool _requiresSubclassFields(ClassInfo? superInfo,
+      Map<TypeParameter, TypeParameter> reuseTypeParameter, Class? cls) {
+    if (superInfo == null) {
+      // Top class, requires class-id field.
+      return true;
+    }
+
+    if (cls! == translator.coreTypes.objectClass) {
+      // Object class, requires identity hash code field.
+      return true;
+    }
+
+    if (cls.typeParameters.isNotEmpty) {
+      for (final param in cls.typeParameters) {
+        if (!reuseTypeParameter.containsKey(param)) {
+          // Requires field for value of type parameter.
+          return true;
         }
       }
     }
+
+    return cls.fields.any((field) => field.isInstanceMember);
   }
 
   void _generateRecordFields(ClassInfo info) {
@@ -586,10 +625,30 @@ class ClassInfoCollector {
     // Now that the representation types for all classes have been computed,
     // fill in the types of the fields in the generated Wasm structs.
     for (final info in translator.classesSupersFirst) {
-      if (info.superInfo == translator.recordInfo) {
+      final superInfo = info.superInfo;
+      if (superInfo == translator.recordInfo) {
         _generateRecordFields(info);
+        continue;
+      }
+
+      if (superInfo != null && info.struct == superInfo.struct) {
+        // We re-use the wasm struct of the base class. That implies this class
+        // has no instance fields and we can re-use (if any) type parameter
+        // slots from base classes.
+        final cls = info.cls!;
+        assert(!cls.fields.any((field) => field.isInstanceMember));
+        for (final param in cls.typeParameters) {
+          final match = info.typeParameterMatch[param];
+          translator.typeParameterIndex[param] =
+              translator.typeParameterIndex[match]!;
+        }
       } else {
         _generateFields(info);
+        // If this struct had the same number of fields as the base struct, we'd
+        // re-use the wasm struct of the base class. So this struct must have
+        // more fields.
+        assert(superInfo == null ||
+            superInfo.struct.fields.length < info.struct.fields.length);
       }
     }
 
