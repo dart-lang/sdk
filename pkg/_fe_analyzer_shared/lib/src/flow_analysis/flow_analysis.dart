@@ -625,6 +625,12 @@ abstract class FlowAnalysis<
   /// local function.
   void functionExpression_end();
 
+  /// Gets the [ExpressionInfo] associated with the [expression].
+  ///
+  /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
+  /// the [expression], then `null` is returned.
+  ExpressionInfo? getExpressionInfo(Expression? expression);
+
   /// Gets the matched value type that should be used to type check the pattern
   /// currently being analyzed.
   ///
@@ -1099,6 +1105,13 @@ abstract class FlowAnalysis<
   /// is write captured.
   @visibleForTesting
   SsaNode? ssaNodeForTesting(Variable variable);
+
+  /// Associates [expression] with the given [expressionInfo] object, for later
+  /// retrieval by [getExpressionInfo].
+  void storeExpressionInfo(
+    Expression expression,
+    ExpressionInfo? expressionInfo,
+  );
 
   /// Call this method just after visiting a `case` or `default` body.
   ///
@@ -1812,6 +1825,15 @@ class FlowAnalysisDebug<
   }
 
   @override
+  ExpressionInfo? getExpressionInfo(Expression? expression) {
+    return _wrap(
+      'getExpressionInfo($expression)',
+      () => _wrapped.getExpressionInfo(expression),
+      isQuery: true,
+    );
+  }
+
+  @override
   SharedTypeView getMatchedValueType() {
     return _wrap(
       'getMatchedValueType()',
@@ -2367,6 +2389,17 @@ class FlowAnalysisDebug<
       'ssaNodeForTesting($variable)',
       () => _wrapped.ssaNodeForTesting(variable),
       isQuery: true,
+    );
+  }
+
+  @override
+  void storeExpressionInfo(
+    Expression expression,
+    ExpressionInfo? expressionInfo,
+  ) {
+    _wrap(
+      'storeExpressionInfo($expression, $expressionInfo)',
+      () => _wrapped.storeExpressionInfo(expression, expressionInfo),
     );
   }
 
@@ -5602,6 +5635,10 @@ class _FlowAnalysisImpl<
   }
 
   @override
+  ExpressionInfo? getExpressionInfo(Expression? expression) =>
+      _getExpressionInfo(expression);
+
+  @override
   SharedTypeView getMatchedValueType() => _getMatchedValueType();
 
   @override
@@ -6413,6 +6450,14 @@ class _FlowAnalysisImpl<
   SsaNode? ssaNodeForTesting(Variable variable) => _current.promotionInfo
       ?.get(this, promotionKeyStore.keyForVariable(variable))
       ?.ssaNode;
+
+  @override
+  void storeExpressionInfo(
+    Expression expression,
+    ExpressionInfo? expressionInfo,
+  ) {
+    _storeExpressionInfo(expression, expressionInfo);
+  }
 
   @override
   bool switchStatement_afterCase() {
