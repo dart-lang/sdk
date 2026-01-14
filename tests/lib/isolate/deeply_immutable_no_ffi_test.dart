@@ -13,7 +13,7 @@ import 'dart:isolate';
 final class Foo {
   dynamic myMutableField;
   //      ^
-  // [cfe] Deeply immutable classes must only have deeply immutable instance fields. Deeply immutable types include 'int', 'double', 'bool', 'String', 'Pointer', 'Float32x4', 'Float64x2', 'Int32x4', and classes annotated with `@pragma('vm:deeply-immutable')`.
+  // [cfe] Deeply immutable classes must only have deeply immutable instance fields. Deeply immutable types include 'int', 'double', 'bool', 'String', 'Pointer', 'Float32x4', 'Float64x2', 'Int32x4', function types and classes annotated with `@pragma('vm:deeply-immutable')`.
   // [cfe] Deeply immutable classes must only have final non-late instance fields.
 }
 

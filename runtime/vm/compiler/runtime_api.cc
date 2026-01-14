@@ -368,8 +368,10 @@ uword MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
          dart::UntaggedObject::NewOrEvacuationCandidateBit::encode(true) |
          dart::UntaggedObject::AlwaysSetBit::encode(true) |
          dart::UntaggedObject::NotMarkedBit::encode(true) |
-         dart::UntaggedObject::ImmutableBit::encode(
-             dart::Object::ShouldHaveImmutabilityBitSet(cid));
+         dart::UntaggedObject::ShallowImmutableBit::encode(
+             dart::Object::ShouldHaveShallowImmutabilityBitSet(cid)) |
+         dart::UntaggedObject::DeeplyImmutableBit::encode(
+             dart::Object::ShouldHaveDeeplyImmutabilityBitSet(cid));
 }
 
 word Object::tags_offset() {
@@ -391,8 +393,11 @@ const word UntaggedObject::kOldAndNotRememberedBit =
 const word UntaggedObject::kNotMarkedBit =
     dart::UntaggedObject::NotMarkedBit::shift();
 
-const word UntaggedObject::kImmutableBit =
-    dart::UntaggedObject::ImmutableBit::shift();
+const word UntaggedObject::kShallowImmutableBit =
+    dart::UntaggedObject::ShallowImmutableBit::shift();
+
+const word UntaggedObject::kDeeplyImmutableBit =
+    dart::UntaggedObject::DeeplyImmutableBit::shift();
 
 const word UntaggedObject::kSizeTagPos =
     dart::UntaggedObject::SizeTagBits::shift();

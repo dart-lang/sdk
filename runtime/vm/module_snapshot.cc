@@ -118,14 +118,15 @@ class Deserializer : public ThreadStackResource {
                                intptr_t cid,
                                intptr_t size,
                                bool is_canonical = false) {
-    InitializeHeader(raw, cid, size, is_canonical,
-                     ShouldHaveImmutabilityBitSetCid(cid));
+    InitializeHeader(raw, cid, size, is_canonical, IsShallowlyImmutableCid(cid),
+                     IsDeeplyImmutableCid(cid));
   }
   static void InitializeHeader(ObjectPtr raw,
                                intptr_t cid,
                                intptr_t size,
                                bool is_canonical,
-                               bool is_immutable);
+                               bool is_shallow_immutable,
+                               bool is_deeply_immutable);
 
   // Reads raw data (for basic types).
   // sizeof(T) must be in {1,2,4,8}.
@@ -240,7 +241,8 @@ void Deserializer::InitializeHeader(ObjectPtr raw,
                                     intptr_t class_id,
                                     intptr_t size,
                                     bool is_canonical,
-                                    bool is_immutable) {
+                                    bool is_shallow_immutable,
+                                    bool is_deeply_immutable) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   uword tags = 0;
   tags = UntaggedObject::ClassIdTag::update(class_id, tags);
@@ -250,7 +252,9 @@ void Deserializer::InitializeHeader(ObjectPtr raw,
   tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(true, tags);
   tags = UntaggedObject::NewOrEvacuationCandidateBit::update(false, tags);
-  tags = UntaggedObject::ImmutableBit::update(is_immutable, tags);
+  tags =
+      UntaggedObject::ShallowImmutableBit::update(is_shallow_immutable, tags);
+  tags = UntaggedObject::DeeplyImmutableBit::update(is_deeply_immutable, tags);
   raw->untag()->tags_ = tags;
 }
 

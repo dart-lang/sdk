@@ -619,6 +619,12 @@ DEFINE_NATIVE_ENTRY(Internal_loadDynamicModule, 0, 1) {
 #endif  // defined(DART_DYNAMIC_MODULES)
 }
 
+DEFINE_NATIVE_ENTRY(Internal_ensureDeeplyImmutable, 0, 1) {
+  GET_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(0));
+  value.EnsureDeeplyImmutable(zone);
+  return value.ptr();
+}
+
 DEFINE_NATIVE_ENTRY(InvocationMirror_unpackTypeArguments, 0, 2) {
   const TypeArguments& type_arguments =
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0));

@@ -287,6 +287,9 @@ void ConstantPropagator::VisitGuardFieldLength(GuardFieldLengthInstr* instr) {}
 
 void ConstantPropagator::VisitGuardFieldType(GuardFieldTypeInstr* instr) {}
 
+void ConstantPropagator::VisitCheckFieldImmutability(
+    CheckFieldImmutabilityInstr* instr) {}
+
 void ConstantPropagator::VisitCheckSmi(CheckSmiInstr* instr) {}
 
 void ConstantPropagator::VisitTailCall(TailCallInstr* instr) {}

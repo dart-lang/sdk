@@ -151,8 +151,11 @@ static bool CanShareObject(ObjectPtr obj, uword tags) {
   if ((tags & UntaggedObject::CanonicalBit::mask_in_place()) != 0) {
     return true;
   }
-  const auto cid = UntaggedObject::ClassIdTag::decode(tags);
-  if ((tags & UntaggedObject::ImmutableBit::mask_in_place()) != 0) {
+  if ((tags & UntaggedObject::DeeplyImmutableBit::mask_in_place()) != 0) {
+    return true;
+  }
+  if ((tags & UntaggedObject::ShallowImmutableBit::mask_in_place()) != 0) {
+    const auto cid = UntaggedObject::ClassIdTag::decode(tags);
     if (IsUnmodifiableTypedDataViewClassId(cid)) {
       // Unmodifiable typed data views may have mutable backing stores.
       return TypedDataView::RawCast(obj)
@@ -235,8 +238,10 @@ void SetNewSpaceTaggingWord(ObjectPtr to, classid_t cid, uint32_t size) {
   tags = UntaggedObject::OldAndNotRememberedBit::update(false, tags);
   tags = UntaggedObject::CanonicalBit::update(false, tags);
   tags = UntaggedObject::NewOrEvacuationCandidateBit::update(true, tags);
-  tags = UntaggedObject::ImmutableBit::update(
-      Object::ShouldHaveImmutabilityBitSet(cid), tags);
+  tags = UntaggedObject::ShallowImmutableBit::update(
+      Object::ShouldHaveShallowImmutabilityBitSet(cid), tags);
+  tags = UntaggedObject::DeeplyImmutableBit::update(
+      Object::ShouldHaveDeeplyImmutabilityBitSet(cid), tags);
 #if defined(HASH_IN_OBJECT_HEADER)
   tags = UntaggedObject::HashTag::update(0, tags);
 #endif

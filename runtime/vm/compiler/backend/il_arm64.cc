@@ -2559,13 +2559,7 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
               compiler::target::UntaggedObject::kCanonicalBit);
       // If immutability bit is not set, go to runtime.
       __ tbz(checked_store_into_shared_slow_path->entry_label(), temp,
-             compiler::target::UntaggedObject::kImmutableBit);
-
-      // If immutability bit is set, skip runtime unless it's a Closure
-      // (see raw_object.h ImmutableBit description for deep vs  shallow).
-      __ LoadClassId(temp, value);
-      __ CompareImmediate(temp, kClosureCid);
-      __ b(checked_store_into_shared_slow_path->entry_label(), EQ);
+             compiler::target::UntaggedObject::kDeeplyImmutableBit);
 
       __ Bind(&allow_store);
     }
@@ -2589,6 +2583,39 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (FLAG_experimental_shared_data && field().is_shared()) {
     __ Bind(checked_store_into_shared_slow_path->exit_label());
   }
+}
+
+LocationSummary* CheckFieldImmutabilityInstr::MakeLocationSummary(
+    Zone* zone,
+    bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  summary->set_in(
+      0, Location::RegisterLocation(EnsureDeeplyImmutableStubABI::kValueReg));
+  summary->set_temp(
+      0, Location::RegisterLocation(EnsureDeeplyImmutableStubABI::kTempReg));
+  return summary;
+}
+
+void CheckFieldImmutabilityInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register value = locs()->in(0).reg();
+  const Register temp = locs()->temp(0).reg();
+
+  auto slow_path = new EnsureDeeplyImmutableSlowPath(this, value);
+  compiler->AddSlowPathCode(slow_path);
+
+  __ BranchIfSmi(value, slow_path->exit_label(),
+                 compiler::Assembler::kNearJump);
+  __ ldr(temp,
+         compiler::FieldAddress(value, compiler::target::Object::tags_offset()),
+         compiler::kUnsignedByte);
+  // If immutability bit is not set, go to runtime.
+  __ tbz(slow_path->entry_label(), temp,
+         compiler::target::UntaggedObject::kDeeplyImmutableBit);
+
+  __ Bind(slow_path->exit_label());
 }
 
 LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
@@ -5337,9 +5364,12 @@ void CheckWritableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 compiler::target::Object::tags_offset()),
          compiler::kUnsignedByte);
   // In the first byte.
-  ASSERT(compiler::target::UntaggedObject::kImmutableBit < 8);
-  __ tbnz(slow_path->entry_label(), TMP,
-          compiler::target::UntaggedObject::kImmutableBit);
+  ASSERT(compiler::target::UntaggedObject::kDeeplyImmutableBit < 8);
+  ASSERT(compiler::target::UntaggedObject::kShallowImmutableBit < 8);
+  __ TestImmediate(
+      TMP, 1 << compiler::target::UntaggedObject::kDeeplyImmutableBit |
+               1 << compiler::target::UntaggedObject::kShallowImmutableBit);
+  __ b(slow_path->entry_label(), NOT_ZERO);
 }
 
 class Int64DivideSlowPath : public ThrowErrorSlowPathCode {

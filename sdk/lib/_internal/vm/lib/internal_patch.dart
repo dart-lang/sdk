@@ -488,3 +488,6 @@ abstract interface class IsolateGroup {
 final _toStringVisiting = FinalThreadLocal<List<Object>>(() => <Object>[]);
 @patch
 List<Object> get toStringVisiting => _toStringVisiting.value;
+
+@pragma("vm:external-name", "Internal_ensureDeeplyImmutable")
+external _ensureDeeplyImmutable(value);

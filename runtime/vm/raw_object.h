@@ -226,12 +226,15 @@ class UntaggedObject {
   // The bit is also used to make typed data stores efficient. 2.a.
   //
   // See also Class::kIsDeeplyImmutableBit.
-  using ImmutableBit =
+  using ShallowImmutableBit =
       BitField<decltype(tags_), bool, OldAndNotRememberedBit::kNextBit>;
+
+  using DeeplyImmutableBit =
+      BitField<decltype(tags_), bool, ShallowImmutableBit::kNextBit>;
 
   // The rest of the initial byte is currently reserved, so the next bitfield
   // starts at the byte boundary.
-  COMPILE_ASSERT(ImmutableBit::kNextBit <= kBitsPerInt8);
+  COMPILE_ASSERT(DeeplyImmutableBit::kNextBit <= kBitsPerInt8);
   using SizeTagBits = BitField<decltype(tags_), intptr_t, kBitsPerInt8, 4>;
 
   // Encodes the object size in the tag in units of object alignment.
@@ -357,9 +360,17 @@ class UntaggedObject {
   void SetCanonical() { tags_.UpdateBool<CanonicalBit>(true); }
   void ClearCanonical() { tags_.UpdateBool<CanonicalBit>(false); }
 
-  bool IsImmutable() const { return tags_.Read<ImmutableBit>(); }
-  void SetImmutable() { tags_.UpdateBool<ImmutableBit>(true); }
-  void ClearImmutable() { tags_.UpdateBool<ImmutableBit>(false); }
+  bool IsShallowImmutable() const { return tags_.Read<ShallowImmutableBit>(); }
+  void SetShallowImmutable() { tags_.UpdateBool<ShallowImmutableBit>(true); }
+  void ClearShallowImmutable() { tags_.UpdateBool<ShallowImmutableBit>(false); }
+
+  bool IsDeeplyImmutable() const { return tags_.Read<DeeplyImmutableBit>(); }
+  void SetDeeplyImmutable() { tags_.UpdateBool<DeeplyImmutableBit>(true); }
+  void ClearDeeplyImmutable() { tags_.UpdateBool<DeeplyImmutableBit>(false); }
+
+  bool IsImmutable() const {
+    return IsShallowImmutable() || IsDeeplyImmutable();
+  }
 
   bool InVMIsolateHeap() const;
 

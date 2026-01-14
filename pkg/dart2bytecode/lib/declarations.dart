@@ -100,6 +100,7 @@ class ClassDeclaration extends BytecodeDeclaration {
   static const isBaseClassFlag = 1 << 11;
   static const isInterfaceFlag = 1 << 12;
   static const isFinalFlag = 1 << 13;
+  static const isDeeplyImmutableFlag = 1 << 14;
 
   ObjectHandle? name;
   final int flags;
@@ -199,6 +200,9 @@ class ClassDeclaration extends BytecodeDeclaration {
     }
     if ((flags & hasPragmaFlag) != 0) {
       sb.write(', has-pragma');
+    }
+    if ((flags & isDeeplyImmutableFlag) != 0) {
+      sb.write(', deeply-immutable');
     }
     if ((flags & hasSourcePositionsFlag) != 0) {
       sb.write(', pos = $position, end-pos = $endPosition');
