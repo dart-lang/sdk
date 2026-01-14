@@ -496,7 +496,7 @@ deps = {
         'version': Var('reclient_version'),
       }
     ],
-    'condition': 'host_os == "win"',
+    'condition': 'download_reclient and host_os == "win"',
     'dep_type': 'cipd',
   },
 
@@ -509,7 +509,7 @@ deps = {
         'version': Var('reclient_version'),
       }
     ],
-    'condition': 'host_os == "linux"',
+    'condition': 'download_reclient and host_os == "linux"',
     'dep_type': 'cipd',
   },
 
