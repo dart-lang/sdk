@@ -5057,7 +5057,7 @@ class _FlowAnalysisImpl<
   _Reference? _scrutineeReference;
 
   /// The mapping from expressions to their [ExpressionInfo]s.
-  final Map<Expression, ExpressionInfo> _expressionInfoMap = {};
+  final Map<Expression, ExpressionInfo?> _expressionInfoMap = {};
 
   final AssignedVariables<Node, Variable> _assignedVariables;
 
@@ -5998,7 +5998,7 @@ class _FlowAnalysisImpl<
     // If any expression info or expression reference was stored for the
     // null-aware expression, it was only valid in the case where the target
     // expression was not null. So it needs to be cleared now.
-    _expressionInfoMap.remove(wholeExpression);
+    _storeExpressionInfo(wholeExpression, null);
   }
 
   @override
@@ -7021,7 +7021,7 @@ class _FlowAnalysisImpl<
       print('  scrutineeReference: $_scrutineeReference');
     }
     int expressionInfoEntryIndex = 0;
-    for (MapEntry<Expression, ExpressionInfo> expressionInfoEntry
+    for (MapEntry<Expression, ExpressionInfo?> expressionInfoEntry
         in _expressionInfoMap.entries) {
       print(
         '  expressionWithInfo #$expressionInfoEntryIndex: '
@@ -7530,7 +7530,7 @@ class _FlowAnalysisImpl<
       // Field promotion was broken for null-aware field accesses prior to the
       // implementation of sound flow analysis. So to replicate the bug, destroy
       // the target reference so that it can't be used for field promotion.
-      _expressionInfoMap.remove(target);
+      if (target != null) _storeExpressionInfo(target, null);
     }
     if (guardVariable != null) {
       // Promote the guard variable as well.
@@ -7666,7 +7666,7 @@ class _FlowAnalysisImpl<
   /// retrieval by [_getExpressionInfo].
   void _storeExpressionInfo(
     Expression expression,
-    ExpressionInfo expressionInfo,
+    ExpressionInfo? expressionInfo,
   ) {
     _expressionInfoMap[expression] = expressionInfo;
   }
