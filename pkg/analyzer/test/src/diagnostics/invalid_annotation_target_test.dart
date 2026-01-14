@@ -706,6 +706,7 @@ class C {
       '''
 import 'package:meta/meta_meta.dart';
 
+// ignore: deprecated_member_use
 @Target({TargetKind.directive})
 class A {
   const A();
@@ -714,7 +715,7 @@ class A {
 @A()
 class C {}
 ''',
-      [error(diag.invalidAnnotationTarget, 98, 1)],
+      [error(diag.invalidAnnotationTarget, 131, 1)],
     );
   }
 
@@ -725,6 +726,7 @@ import 'package:meta/meta_meta.dart';
 @A()
 import 'dart:core';
 
+// ignore: deprecated_member_use
 @Target({TargetKind.directive})
 class A {
   const A();
@@ -793,6 +795,37 @@ class C {
 }
 ''',
       [error(diag.invalidAnnotationTarget, 110, 1)],
+    );
+  }
+
+  void test_exportDirective_exportDirective() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@A()
+export 'dart:core';
+
+@Target({TargetKind.exportDirective})
+class A {
+  const A();
+}
+''');
+  }
+
+  void test_exportDirective_importDirective() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta_meta.dart';
+
+@A()
+import 'dart:core';
+
+@Target({TargetKind.exportDirective})
+class A {
+  const A();
+}
+''',
+      [error(diag.invalidAnnotationTarget, 40, 1)],
     );
   }
 
@@ -1639,6 +1672,41 @@ class A {
 }
 
 void f(@A() int x) {}
+''');
+  }
+
+  void test_partOfDirective_importDirective() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta_meta.dart';
+
+@A()
+import 'dart:core';
+
+@Target({TargetKind.partOfDirective})
+class A {
+  const A();
+}
+''',
+      [error(diag.invalidAnnotationTarget, 40, 1)],
+    );
+  }
+
+  void test_partOfDirective_partOfDirective() async {
+    newFile('$testPackageLibPath/b.dart', '''
+import 'package:meta/meta_meta.dart';
+
+part 'test.dart';
+''');
+    await assertNoErrorsInCode('''
+
+@A()
+part of 'b.dart';
+
+@Target({TargetKind.partOfDirective})
+class A {
+  const A();
+}
 ''');
   }
 
