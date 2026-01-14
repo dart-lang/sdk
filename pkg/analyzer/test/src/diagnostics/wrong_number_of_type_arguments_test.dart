@@ -199,6 +199,405 @@ f(void Function<T>() foo, void Function<T, U>() bar) {
     );
   }
 
+  test_messageText_annotation() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  const A();
+}
+
+@A<int>()
+void f() {}
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArguments,
+          28,
+          5,
+          messageContains: [
+            // TODO(paulberry): This message text could be better. See
+            // https://github.com/dart-lang/sdk/issues/62398.
+            "The type 'A Function()'",
+            '0 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_constructorInvocationWithExplicitNew_noTypeParameters() async {
+    await assertErrorsInCode(
+      r'''
+class Foo<X> {
+  Foo.bar();
+}
+
+main() {
+  new Foo.bar<int>();
+}
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsConstructor,
+          53,
+          5,
+          messageContains: [
+            "The constructor 'Foo.bar'",
+            "doesn't have type parameters",
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_constructorInvocationWithImplicitNew_noTypeParameters() async {
+    await assertErrorsInCode(
+      r'''
+class Foo<X> {
+  Foo.bar();
+}
+
+main() {
+  Foo.bar<int>();
+}
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsConstructor,
+          49,
+          5,
+          messageContains: [
+            "The constructor 'Foo.bar'",
+            "doesn't have type parameters",
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_constructorTearoff_noTypeParametersExpected() async {
+    await assertErrorsInCode(
+      '''
+class A<T> {
+  A.foo() {}
+}
+
+var x = A.foo<int>;
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsConstructor,
+          42,
+          5,
+          messageContains: [
+            "The constructor 'A.foo'",
+            "doesn't have type parameters",
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_dotShorthand() async {
+    await assertErrorsInCode(
+      r'''
+abstract class Foo<T> {
+  const factory Foo.a() = _Foo;
+
+  const Foo();
+}
+
+class _Foo<T> extends Foo<T> {
+  const _Foo();
+}
+
+Foo<int> bar<T>() => const .a<int>();
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsDotShorthandConstructor,
+          154,
+          5,
+          messageContains: [
+            // TODO(paulberry): This message text could be better. See
+            // https://github.com/dart-lang/sdk/issues/62398.
+            "The constructor 'Foo<int>.a'",
+            "doesn't have type parameters",
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_enum() async {
+    await assertErrorsInCode(
+      r'''
+enum E<T, U> {
+  v<int>()
+}
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsEnum,
+          18,
+          5,
+          messageContains: [
+            'The enum',
+            '2 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_extension() async {
+    await assertErrorsInCode(
+      r'''
+extension E on int {
+  void foo() {}
+}
+
+void f() {
+  E<int>(0).foo();
+}
+''',
+      [error(diag.wrongNumberOfTypeArgumentsExtension, 54, 5)],
+    );
+  }
+
+  test_messageText_functionInstantiation_duringConstEvaluation() async {
+    await assertErrorsInCode(
+      '''
+void f<T>() {}
+const dynamic x = f;
+const y = (f)<int, String>;
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsAnonymousFunction,
+          49,
+          13,
+          messageContains: [
+            'This function',
+            '1 type parameters',
+            '2 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_implicitCallTearoff() async {
+    await assertErrorsInCode(
+      '''
+f(C c) {
+  c<int>;
+}
+class C {
+  void call<T, U>() {}
+}
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsFunction,
+          12,
+          5,
+          messageContains: [
+            // TODO(paulberry): This message text could be better. See
+            // https://github.com/dart-lang/sdk/issues/62398.
+            "The function 'call'",
+            '2 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_instantiationOfFunctionTypedExpression() async {
+    await assertErrorsInCode(
+      '''
+f(void Function<T, U>() foo, void Function<T, U>() bar) {
+  (1 == 2 ? foo : bar)<int>;
+}
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsAnonymousFunction,
+          80,
+          5,
+          messageContains: [
+            'This function',
+            '2 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_localFunction() async {
+    await assertErrorsInCode(
+      '''
+f() {
+  void foo<T, U>() {}
+  foo<int>;
+}
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsFunction,
+          33,
+          5,
+          messageContains: [
+            "The function 'foo'",
+            '2 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_namedType() async {
+    await assertErrorsInCode(
+      r'''
+class A<E, F> {}
+A<A>? a;
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArguments,
+          17,
+          5,
+          messageContains: [
+            "The type 'A'",
+            '2 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_prefixedConstructorInvocation() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class Foo<X> {
+  Foo.bar();
+}
+''');
+    await assertErrorsInCode(
+      '''
+import 'a.dart' as p;
+
+main() {
+  p.Foo.bar<int>();
+}
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsConstructor,
+          43,
+          5,
+          messageContains: [
+            "The constructor 'p.Foo.bar'",
+            "doesn't have type parameters",
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_topLevelFunctionInvocation() async {
+    await assertErrorsInCode(
+      '''
+void f() {
+  g<int>();
+}
+void g<T, U>() {}
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsMethod,
+          14,
+          5,
+          messageContains: [
+            // TODO(paulberry): This message text could be better. See
+            // https://github.com/dart-lang/sdk/issues/62398.
+            "The method 'void Function<T, U>()'",
+            '2 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_topLevelFunctionTearoff_const() async {
+    await assertErrorsInCode(
+      r'''
+void foo<T, U>(T a, U b) {}
+const g = foo<int>;
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsFunction,
+          41,
+          5,
+          messageContains: [
+            "The function 'foo'",
+            '2 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_typeInstantiation() async {
+    await assertErrorsInCode(
+      '''
+class C<T, U> {}
+var t = C<int>;
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArguments,
+          26,
+          5,
+          messageContains: [
+            "The type 'C'",
+            '2 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_typeInstantiation_typedef() async {
+    await assertErrorsInCode(
+      '''
+typedef Fn<T, U> = void Function(T, U);
+var t = Fn<int>;
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArguments,
+          50,
+          5,
+          messageContains: [
+            "The type 'Fn'",
+            '2 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
   test_metadata_1of0() async {
     await assertErrorsInCode(
       r'''

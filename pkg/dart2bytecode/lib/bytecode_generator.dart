@@ -141,6 +141,8 @@ class BytecodeGenerator extends RecursiveVisitor {
   int maxSourcePosition = 0;
   Member? dynModuleEntryPoint;
 
+  bool isInDeeplyImmutableClass = false;
+
   BytecodeGenerator(
       ast.Component component,
       CoreTypes coreTypes,
@@ -196,6 +198,9 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitClass(Class node) {
+    isInDeeplyImmutableClass =
+        pragmaParser.parsedPragmas<ParsedVmDeeplyImmutablePragma>(
+            node.annotations).isNotEmpty;
     startMembers();
     visitList(node.constructors, this);
     visitList(node.procedures, this);
@@ -323,6 +328,11 @@ class BytecodeGenerator extends RecursiveVisitor {
       flags |= ClassDeclaration.hasAnnotationsFlag;
       if (annotations.hasPragma) {
         flags |= ClassDeclaration.hasPragmaFlag;
+        if (pragmaParser
+            .parsedPragmas<ParsedVmDeeplyImmutablePragma>(cls.annotations)
+            .isNotEmpty) {
+          flags |= ClassDeclaration.isDeeplyImmutableFlag;
+        }
       }
     }
 
@@ -1046,6 +1056,10 @@ class BytecodeGenerator extends RecursiveVisitor {
       ? ffiLibraryIndex.getTopLevelProcedure('dart:ffi', '_ffiCall')
       : null;
 
+  late Procedure ensureDeeplyImmutable =
+      libraryIndex.getTopLevelProcedure('dart:_internal',
+                                        '_ensureDeeplyImmutable');
+
   // Selector for implicit dynamic calls 'foo(...)' where
   // variable 'foo' has type 'dynamic'.
   late final implicitCallName = Name('implicit:call');
@@ -1136,6 +1150,12 @@ class BytecodeGenerator extends RecursiveVisitor {
     _generateNode(initializer);
 
     final int cpIndex = cp.addInstanceField(field);
+    if (isInDeeplyImmutableClass) {
+      // TODO(dartbug.com/61078): Use static type to avoid runtime check.
+      _genDirectCall(
+          ensureDeeplyImmutable, objectTable.getArgDescHandle(1), 1);
+    }
+
     asm.emitStoreFieldTOS(cpIndex);
 
     initializedFields.add(field);

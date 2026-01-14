@@ -139,16 +139,6 @@ class DeeplyImmutableValidator {
       }
     }
 
-    if ((node.name == 'ScopedThreadLocal' || node.name == 'FinalThreadLocal')) {
-      final uri = node.enclosingLibrary.importUri;
-      if (uri.isScheme('dart') && uri.path == '_vm') {
-        // ScopedThreadLocal has non-deeply-immutable initializer,
-        // but we allow it.
-        // TODO(dartbug.com/61962): remove this once the bug is fixed.
-        return;
-      }
-    }
-
     // All instance fields should be non-late final and deeply immutable.
     for (final field in node.fields) {
       if (field.isStatic) {
@@ -184,6 +174,11 @@ class DeeplyImmutableValidator {
     }
     if (dartType is TypeParameterType) {
       return _isDeeplyImmutableDartType(dartType.bound);
+    }
+    if (dartType is FunctionType) {
+      // Relies on dynamic check of whether closure actually captures only
+      // deeply-immutable values.
+      return true;
     }
     return false;
   }

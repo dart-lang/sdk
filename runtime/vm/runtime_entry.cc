@@ -4687,7 +4687,7 @@ DEFINE_RUNTIME_ENTRY(CheckedStoreIntoShared, 2) {
   const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
   const Instance& value = Instance::CheckedHandle(zone, arguments.ArgAt(1));
 
-  FfiCallbackMetadata::EnsureTriviallyImmutable(zone, value);
+  value.EnsureDeeplyImmutable(zone);
 
   field.SetStaticValue(value);
   arguments.SetReturn(field);
@@ -5243,6 +5243,13 @@ DEFINE_RUNTIME_ENTRY(InitializeSharedField, 1) {
     ASSERT(result.ptr() != Object::sentinel().ptr());
   }
   arguments.SetReturn(result);
+}
+
+// Throw if the value is not immutable.
+//   Arg0: Value to check.
+DEFINE_RUNTIME_ENTRY(EnsureDeeplyImmutable, 1) {
+  const Instance& value = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  value.EnsureDeeplyImmutable(zone);
 }
 
 #if defined(USING_MEMORY_SANITIZER)

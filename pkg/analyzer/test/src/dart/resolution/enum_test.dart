@@ -1172,6 +1172,132 @@ EnumDeclaration
 ''');
   }
 
+  test_primaryConstructor_scopes() async {
+    await assertNoErrorsInCode(r'''
+const foo = 0;
+enum A<@foo T>([@foo int x = foo]) {
+  v;
+  static const foo = 1;
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorDeclaration
+  typeName: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        metadata
+          Annotation
+            atSign: @
+            name: SimpleIdentifier
+              token: foo
+              element: <testLibrary>::@getter::foo
+              staticType: null
+            element: <testLibrary>::@getter::foo
+        name: T
+        declaredFragment: <testLibraryFragment> T@27
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    leftDelimiter: [
+    parameter: DefaultFormalParameter
+      parameter: SimpleFormalParameter
+        metadata
+          Annotation
+            atSign: @
+            name: SimpleIdentifier
+              token: foo
+              element: <testLibrary>::@enum::A::@getter::foo
+              staticType: null
+            element: <testLibrary>::@enum::A::@getter::foo
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: x
+        declaredFragment: <testLibraryFragment> x@40
+          element: isPublic
+            type: int
+      separator: =
+      defaultValue: SimpleIdentifier
+        token: foo
+        element: <testLibrary>::@enum::A::@getter::foo
+        staticType: int
+      declaredFragment: <testLibraryFragment> x@40
+        element: isPublic
+          type: int
+    rightDelimiter: ]
+    rightParenthesis: )
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@enum::A::@constructor::new
+      type: A<T> Function([int])
+''');
+  }
+
+  test_primaryConstructor_typeParameters() async {
+    await assertNoErrorsInCode(r'''
+enum E<T extends U, U extends num>(T t, U u) {
+  v(0, 0);
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorDeclaration
+  typeName: E
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        extendsKeyword: extends
+        bound: NamedType
+          name: U
+          element: #E0 U
+          type: U
+        declaredFragment: <testLibraryFragment> T@7
+          defaultType: num
+      TypeParameter
+        name: U
+        extendsKeyword: extends
+        bound: NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+        declaredFragment: <testLibraryFragment> U@20
+          defaultType: num
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: T
+        element: #E1 T
+        type: T
+      name: t
+      declaredFragment: <testLibraryFragment> t@37
+        element: isPublic
+          type: T
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: U
+        element: #E0 U
+        type: U
+      name: u
+      declaredFragment: <testLibraryFragment> u@42
+        element: isPublic
+          type: U
+    rightParenthesis: )
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@enum::E::@constructor::new
+      type: E<T, U> Function(T, U)
+''');
+  }
+
   test_primaryConstructorBody_duplicate() async {
     await assertNoErrorsInCode(r'''
 enum A(bool x, bool y) {

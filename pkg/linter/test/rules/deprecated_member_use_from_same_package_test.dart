@@ -833,6 +833,15 @@ class C {
     );
   }
 
+  test_deprecatedParameterOfPrimaryConstructor_usedInDeclaringConstructorBody() async {
+    await assertNoDiagnostics(r'''
+class C({@deprecated int? p}) {
+  this : q = p;
+  int? q;
+}
+''');
+  }
+
   test_deprecatedPositionalParameterOfFunction() async {
     await assertDiagnostics(
       r'''

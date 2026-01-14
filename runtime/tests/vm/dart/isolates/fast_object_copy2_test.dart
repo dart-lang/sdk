@@ -30,6 +30,8 @@ class A<T> {
   dynamic m<H>(T a, H b) => this;
 }
 
+List<String> list = <String>["Hello", "world"];
+
 // When running with isolate groups enabled, we can share all of the following
 // objects.
 final sharableObjects = [
@@ -123,8 +125,27 @@ final sharableObjects = [
       someFloat64x2: Float64x2(4.4, 5.5),
       someDeeplyImmutable: null,
       somePointer: Pointer.fromAddress(0x8badf00d),
+      someClosure: () => 31,
     ),
     somePointer: Pointer.fromAddress(0xdeadbeef),
+    someClosure: () => 42,
+  ),
+  DeeplyImmutable(
+    someString: 'someString',
+    someNullableString: 'someString',
+    someInt: 3,
+    someDouble: 3.3,
+    someBool: false,
+    someNull: null,
+    someInt32x4: Int32x4(0, 1, 2, 3),
+    someFloat32x4: Float32x4(0.0, 1.1, 2.2, 3.3),
+    someFloat64x2: Float64x2(4.4, 5.5),
+    someDeeplyImmutable: null,
+    somePointer: Pointer.fromAddress(0xdeadbeef),
+    someClosure: () {
+      list.add("kuka");
+      return list;
+    },
   ),
 ];
 
@@ -282,6 +303,7 @@ final class DeeplyImmutable {
   final Float64x2 someFloat64x2;
   final DeeplyImmutable? someDeeplyImmutable;
   final Pointer somePointer;
+  final Function() someClosure;
 
   DeeplyImmutable({
     required this.someString,
@@ -295,5 +317,6 @@ final class DeeplyImmutable {
     required this.someFloat64x2,
     this.someDeeplyImmutable,
     required this.somePointer,
+    required this.someClosure,
   });
 }

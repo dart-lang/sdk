@@ -3896,7 +3896,7 @@ static Dart_Handle NewExternalTypedData(Thread* thread,
                               callback);
   }
   if (unmodifiable) {
-    result.SetImmutable();  // Can pass by reference.
+    result.SetDeeplyImmutable();  // Can pass by reference.
     const intptr_t view_cid = cid - kTypedDataCidRemainderExternal +
                               kTypedDataCidRemainderUnmodifiable;
     result = TypedDataView::New(view_cid, ExternalTypedData::Cast(result), 0,
@@ -3922,7 +3922,7 @@ static Dart_Handle NewExternalByteData(Thread* thread,
   const ExternalTypedData& array =
       Api::UnwrapExternalTypedDataHandle(zone, ext_data);
   if (unmodifiable) {
-    array.SetImmutable();  // Can pass by reference.
+    array.SetDeeplyImmutable();  // Can pass by reference.
   }
   return Api::NewHandle(
       thread, TypedDataView::New(unmodifiable ? kUnmodifiableByteDataViewCid

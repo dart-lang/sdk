@@ -599,13 +599,6 @@ inline bool IsShallowlyImmutableCid(intptr_t predefined_cid) {
          IsUnmodifiableTypedDataViewClassId(predefined_cid);
 }
 
-// See documentation on ImmutableBit in raw_object.h
-inline bool ShouldHaveImmutabilityBitSetCid(intptr_t predefined_cid) {
-  ASSERT(predefined_cid < kNumPredefinedCids);
-  return IsDeeplyImmutableCid(predefined_cid) ||
-         IsShallowlyImmutableCid(predefined_cid);
-}
-
 inline bool IsFfiTypeClassId(intptr_t index) {
   switch (index) {
     case kPointerCid:

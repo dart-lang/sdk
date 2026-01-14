@@ -2059,7 +2059,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
       return;
     }
-    if ((node.isCascaded && offset == operator.offset + 1) ||
+    if ((node.isCascaded && offset + 1 == operator.end) ||
         (offset >= operator.end && offset <= node.methodName.end)) {
       var target = node.realTarget;
       var type = target?.staticType;
@@ -2068,7 +2068,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
       if ((type == null || type is InvalidType || type.isDartCoreType) &&
           target is Identifier &&
-          (!node.isCascaded || offset == operator.offset + 1)) {
+          (!node.isCascaded || offset + 1 == operator.end)) {
         var element = target.element;
         if (element is InterfaceElement || element is ExtensionTypeElement) {
           declarationHelper().addStaticMembersOfElement(element!);
@@ -2629,7 +2629,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
       if ((type == null || type is InvalidType || type.isDartCoreType) &&
           target is Identifier &&
-          (!node.isCascaded || offset == operator.offset + 1)) {
+          (!node.isCascaded || offset + 1 == operator.end)) {
         var element = target.element;
         if (element is InterfaceElement || element is ExtensionTypeElement) {
           declarationHelper().addStaticMembersOfElement(element!);

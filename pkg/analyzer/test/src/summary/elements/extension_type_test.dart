@@ -6674,6 +6674,234 @@ library
 ''');
   }
 
+  test_primaryConstructor_scopes() async {
+    var library = await buildLibrary('''
+const foo = 0;
+extension type E<@foo T>([@foo int it = foo]) {
+  static const foo = 1;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type E (nameOffset:30) (firstTokenOffset:15) (offset:30)
+          element: <testLibrary>::@extensionType::E
+          typeParameters
+            #F2 T (nameOffset:37) (firstTokenOffset:32) (offset:37)
+              element: #E0 T
+              metadata
+                Annotation
+                  atSign: @ @32
+                  name: SimpleIdentifier
+                    token: foo @33
+                    element: <testLibrary>::@getter::foo
+                    staticType: null
+                  element: <testLibrary>::@getter::foo
+          fields
+            #F3 isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@extensionType::E::@field::it
+            #F4 hasInitializer isOriginDeclaration foo (nameOffset:78) (firstTokenOffset:78) (offset:78)
+              element: <testLibrary>::@extensionType::E::@field::foo
+              initializer: expression_0
+                IntegerLiteral
+                  literal: 1 @84
+                  staticType: int
+          constructors
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:30) (offset:30)
+              element: <testLibrary>::@extensionType::E::@constructor::new
+              typeName: E
+              typeNameOffset: 30
+              formalParameters
+                #F6 optionalPositional final this.it (nameOffset:50) (firstTokenOffset:41) (offset:50)
+                  element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+                  metadata
+                    Annotation
+                      atSign: @ @41
+                      name: SimpleIdentifier
+                        token: foo @42
+                        element: <testLibrary>::@extensionType::E::@getter::foo
+                        staticType: null
+                      element: <testLibrary>::@extensionType::E::@getter::foo
+                  initializer: expression_1
+                    SimpleIdentifier
+                      token: foo @55
+                      element: <testLibrary>::@extensionType::E::@getter::foo
+                      staticType: int
+          getters
+            #F7 synthetic isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@extensionType::E::@getter::it
+            #F8 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
+              element: <testLibrary>::@extensionType::E::@getter::foo
+      topLevelVariables
+        #F9 hasInitializer isOriginDeclaration foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::foo
+          initializer: expression_2
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
+      getters
+        #F10 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::foo
+  extensionTypes
+    extension type E
+      reference: <testLibrary>::@extensionType::E
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+          metadata
+            Annotation
+              atSign: @ @32
+              name: SimpleIdentifier
+                token: foo @33
+                element: <testLibrary>::@getter::foo
+                staticType: null
+              element: <testLibrary>::@getter::foo
+      representation: <testLibrary>::@extensionType::E::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::E::@constructor::new
+      typeErasure: int
+      fields
+        final isOriginDeclaringFormalParameter it
+          reference: <testLibrary>::@extensionType::E::@field::it
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@extensionType::E::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+        static const hasImplicitType hasInitializer isOriginDeclaration foo
+          reference: <testLibrary>::@extensionType::E::@field::foo
+          firstFragment: #F4
+          type: int
+          constantInitializer
+            fragment: #F4
+            expression: expression_0
+          getter: <testLibrary>::@extensionType::E::@getter::foo
+      constructors
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@extensionType::E::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E1 optionalPositional final hasDefaultValue declaring this.it
+              firstFragment: #F6
+              type: int
+              metadata
+                Annotation
+                  atSign: @ @41
+                  name: SimpleIdentifier
+                    token: foo @42
+                    element: <testLibrary>::@extensionType::E::@getter::foo
+                    staticType: null
+                  element: <testLibrary>::@extensionType::E::@getter::foo
+              constantInitializer
+                fragment: #F6
+                expression: expression_1
+              field: <testLibrary>::@extensionType::E::@field::it
+      getters
+        synthetic isExtensionTypeMember isOriginVariable it
+          reference: <testLibrary>::@extensionType::E::@getter::it
+          firstFragment: #F7
+          returnType: int
+          variable: <testLibrary>::@extensionType::E::@field::it
+        synthetic static isExtensionTypeMember isOriginVariable foo
+          reference: <testLibrary>::@extensionType::E::@getter::foo
+          firstFragment: #F8
+          returnType: int
+          variable: <testLibrary>::@extensionType::E::@field::foo
+  topLevelVariables
+    const hasImplicitType hasInitializer isOriginDeclaration foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F9
+      type: int
+      constantInitializer
+        fragment: #F9
+        expression: expression_2
+      getter: <testLibrary>::@getter::foo
+  getters
+    synthetic static isOriginVariable foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F10
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_primaryConstructor_typeParameters() async {
+    var library = await buildLibrary(r'''
+extension type E<T extends U, U extends num>(T it) {}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type E (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@extensionType::E
+          typeParameters
+            #F2 T (nameOffset:17) (firstTokenOffset:17) (offset:17)
+              element: #E0 T
+            #F3 U (nameOffset:30) (firstTokenOffset:30) (offset:30)
+              element: #E1 U
+          fields
+            #F4 isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@extensionType::E::@field::it
+          constructors
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+              element: <testLibrary>::@extensionType::E::@constructor::new
+              typeName: E
+              typeNameOffset: 15
+              formalParameters
+                #F6 requiredPositional final this.it (nameOffset:47) (firstTokenOffset:45) (offset:47)
+                  element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+          getters
+            #F7 synthetic isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@extensionType::E::@getter::it
+  extensionTypes
+    notSimplyBounded extension type E
+      reference: <testLibrary>::@extensionType::E
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+          bound: U
+        #E1 U
+          firstFragment: #F3
+          bound: num
+      representation: <testLibrary>::@extensionType::E::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::E::@constructor::new
+      typeErasure: T
+      fields
+        final isOriginDeclaringFormalParameter it
+          reference: <testLibrary>::@extensionType::E::@field::it
+          firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
+          type: T
+          getter: <testLibrary>::@extensionType::E::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+      constructors
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@extensionType::E::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E2 requiredPositional final declaring this.it
+              firstFragment: #F6
+              type: T
+              field: <testLibrary>::@extensionType::E::@field::it
+      getters
+        synthetic isExtensionTypeMember isOriginVariable it
+          reference: <testLibrary>::@extensionType::E::@getter::it
+          firstFragment: #F7
+          hasEnclosingTypeParameterReference: true
+          returnType: T
+          variable: <testLibrary>::@extensionType::E::@field::it
+''');
+  }
+
   test_primaryConstructorBody_constantInitializers_assertInitializer() async {
     var library = await buildLibrary(r'''
 extension type const E(int it) {

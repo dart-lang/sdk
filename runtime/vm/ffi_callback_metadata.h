@@ -343,8 +343,6 @@ class FfiCallbackMetadata {
 #error What architecture?
 #endif
 
-  static void EnsureTriviallyImmutable(Zone* zone, const Object& object);
-
   // Visible for testing.
 #if defined(TESTING)
 

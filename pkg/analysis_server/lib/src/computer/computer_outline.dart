@@ -205,6 +205,10 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newDeclaredFieldOutline(FormalParameter parameter) {
+    if (parameter is DefaultFormalParameter) {
+      parameter = parameter.parameter;
+    }
+
     String typeName;
     if (parameter is SimpleFormalParameter) {
       typeName = _safeToSource(parameter.type);

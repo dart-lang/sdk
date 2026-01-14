@@ -1767,6 +1767,121 @@ void Object::RegisterPrivateClass(const Class& cls,
   lib.AddClass(cls);
 }
 
+class WorkSet : public StackResource {
+ public:
+  explicit WorkSet(Thread* thread, Zone* zone)
+      : StackResource(thread),
+        thread_(thread),
+        list_(GrowableObjectArray::Handle(zone)),
+        stack_(GrowableObjectArray::Handle(zone)) {
+    ASSERT(thread->forward_table_new() == nullptr);
+    set_ = new WeakTable();
+    list_ = GrowableObjectArray::New(16);
+    stack_ = GrowableObjectArray::New(16);
+    thread->set_forward_table_new(set_);
+  }
+
+  ~WorkSet() {
+    thread_->set_forward_table_new(nullptr);
+    set_ = nullptr;
+  }
+
+  void Add(const Object& object) {
+    if (!IsMarked(object.ptr())) {
+      Mark(object.ptr());
+      list_.Add(object);
+    }
+  }
+
+  bool TakeAndPush(Object* object) {
+    if (list_.Length() == 0) {
+      return false;
+    }
+    *object = list_.RemoveLast();
+    stack_.Add(*object);  // Push
+    return true;
+  }
+
+  void PopAndProcessCompletedClosuresAndContexts(Object* object) {
+    if (stack_.Length() > 0) {
+      *object = stack_.RemoveLast();  // Pop
+      // Are we done processing nested context or closures?
+      while (stack_.Length() > 0) {
+        *object = stack_.At(stack_.Length() - 1);
+        if (object->IsContext()) {
+          stack_.RemoveLast();
+        } else if (object->IsClosure()) {
+          object->SetDeeplyImmutable();
+          stack_.RemoveLast();
+        }
+      }
+    }
+  }
+
+  intptr_t StackLength() { return stack_.Length(); }
+
+ private:
+  bool IsMarked(ObjectPtr object) {
+    return set_->GetValueExclusive(object) != 0;
+  }
+  void Mark(ObjectPtr object) { set_->SetValueExclusive(object, 1); }
+
+  Thread* thread_;
+  WeakTable* set_;
+  GrowableObjectArray& list_;
+  // Stack of objects that are currently being processed
+  GrowableObjectArray& stack_;
+};
+
+void Object::EnsureDeeplyImmutable(Zone* zone) const {
+  WorkSet workset(Thread::Current(), zone);
+  workset.Add(*this);
+
+  Object& current = Object::Handle(zone);
+  Function& function = Function::Handle(zone);
+  Object& obj = Object::Handle(zone);
+
+  while (workset.TakeAndPush(&current)) {
+    if (current.IsSmi() || current.IsNull() || current.IsCanonical() ||
+        current.IsDeeplyImmutable() ||
+        IsTypedDataBaseClassId(current.GetClassId())) {
+      workset.PopAndProcessCompletedClosuresAndContexts(&obj);
+      continue;
+    }
+
+    if (current.IsClosure()) {
+      const Closure& closure = Closure::Cast(current);
+      function = closure.function();
+      if (!function.IsImplicitClosureFunction() &&
+          !function.captures_only_final_not_late_vars()) {
+        Exceptions::ThrowArgumentError(String::Handle(String::New(
+            "Only final not-late variables can be captured here.")));
+        UNREACHABLE();
+      }
+      obj = closure.RawContext();
+      workset.Add(obj);
+      continue;
+    }
+
+    if (current.IsContext()) {
+      const Context& context = Context::Cast(current);
+      // Iterate through all elements of the context.
+      for (intptr_t i = 0; i < context.num_variables(); i++) {
+        obj = context.At(i);
+        workset.Add(obj);
+      }
+      continue;
+    }
+
+    Exceptions::ThrowArgumentError(String::Handle(
+        String::NewFormatted("Only trivially-immutable values are allowed: %s.",
+                             current.ToCString())));
+    UNREACHABLE();
+  }
+
+  RELEASE_ASSERT(workset.StackLength() == 0);
+}
+
 // Initialize a new isolate from source or from a snapshot.
 //
 // There are three possibilities:
@@ -2741,9 +2856,16 @@ StringPtr Object::DictionaryName() const {
   return String::null();
 }
 
-bool Object::ShouldHaveImmutabilityBitSet(classid_t class_id) {
+bool Object::ShouldHaveShallowImmutabilityBitSet(classid_t class_id) {
   if (class_id < kNumPredefinedCids) {
-    return ShouldHaveImmutabilityBitSetCid(class_id);
+    return IsShallowlyImmutableCid(class_id);
+  }
+  return false;
+}
+
+bool Object::ShouldHaveDeeplyImmutabilityBitSet(classid_t class_id) {
+  if (class_id < kNumPredefinedCids) {
+    return IsDeeplyImmutableCid(class_id);
   } else {
     return Class::IsDeeplyImmutable(
         IsolateGroup::Current()->class_table()->At(class_id));
@@ -2852,8 +2974,10 @@ void Object::InitializeObject(uword address,
   tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
   tags = UntaggedObject::NewOrEvacuationCandidateBit::update(!is_old, tags);
-  tags = UntaggedObject::ImmutableBit::update(
-      Object::ShouldHaveImmutabilityBitSet(class_id), tags);
+  tags = UntaggedObject::ShallowImmutableBit::update(
+      Object::ShouldHaveShallowImmutabilityBitSet(class_id), tags);
+  tags = UntaggedObject::DeeplyImmutableBit::update(
+      Object::ShouldHaveDeeplyImmutabilityBitSet(class_id), tags);
 #if defined(HASH_IN_OBJECT_HEADER)
   tags = UntaggedObject::HashTag::update(0, tags);
 #endif
@@ -13497,7 +13621,7 @@ void Field::SetStaticValue(const Object& value) const {
   ASSERT(id >= 0);
 
   if (FLAG_experimental_shared_data && is_shared()) {
-    FfiCallbackMetadata::EnsureTriviallyImmutable(thread->zone(), value);
+    value.EnsureDeeplyImmutable(thread->zone());
   }
   SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (is_shared()) {

@@ -301,6 +301,12 @@ struct CheckedStoreIntoSharedStubABI {
   static constexpr Register kResultReg = EAX;
 };
 
+// ABI for EnsureDeeplyImmutableStub.
+struct EnsureDeeplyImmutableStubABI {
+  static constexpr Register kValueReg = EAX;
+  static constexpr Register kTempReg = ECX;
+};
+
 // ABI for SuspendStub (AwaitStub, AwaitWithTypeCheckStub, YieldAsyncStarStub,
 // SuspendSyncStarAtStartStub, SuspendSyncStarAtYieldStub).
 struct SuspendStubABI {

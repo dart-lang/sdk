@@ -829,9 +829,13 @@ abstract class FlowAnalysis<
 
   /// Call this method after visiting a logical not ("!") expression.
   ///
-  /// [notExpression] should be the complete expression. [operand] should be the
-  /// subexpression whose logical value is being negated.
-  void logicalNot_end(Expression notExpression, Expression operand);
+  /// [operandInfo] should be the [ExpressionInfo] for the subexpression whose
+  /// logical value is being negated, or `null` if there is no such info.
+  ///
+  /// If flow analysis needs to track information about the complete logical not
+  /// expression, an [ExpressionInfo] is returned. Otherwise, `null` is
+  /// returned.
+  ExpressionInfo? logicalNot_end(ExpressionInfo? operandInfo);
 
   /// Call this method after visiting the left hand side of a logical-or (`||`)
   /// pattern.
@@ -2061,10 +2065,11 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void logicalNot_end(Expression notExpression, Expression operand) {
+  ExpressionInfo? logicalNot_end(ExpressionInfo? operandInfo) {
     return _wrap(
-      'logicalNot_end($notExpression, $operand)',
-      () => _wrapped.logicalNot_end(notExpression, operand),
+      'logicalNot_end($operandInfo)',
+      () => _wrapped.logicalNot_end(operandInfo),
+      isQuery: true,
     );
   }
 
@@ -5967,10 +5972,8 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void logicalNot_end(Expression notExpression, Expression operand) {
-    ExpressionInfo conditionInfo =
-        _getExpressionInfo(operand) ?? _makeTrivialExpressionInfo(boolType);
-    _storeExpressionInfo(notExpression, conditionInfo._invert());
+  ExpressionInfo? logicalNot_end(ExpressionInfo? operandInfo) {
+    return operandInfo?._invert();
   }
 
   @override

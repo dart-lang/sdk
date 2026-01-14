@@ -9,8 +9,6 @@ import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
-import 'package:analyzer/src/utilities/extensions/ast.dart';
-import 'package:collection/collection.dart';
 
 class ConstructorInitializerResolver {
   final Linker _linker;
@@ -75,27 +73,25 @@ class ConstructorInitializerResolver {
             }
           }
         case PrimaryConstructorDeclarationImpl():
-          var constructorScope = LinkingNodeContext.get(node).scope;
-          var initializerScope = ConstructorInitializerScope(
-            constructorScope,
-            element,
-          );
+          if (node.body case var body?) {
+            var bodyScope = LinkingNodeContext.get(body).scope;
+            var initializerScope = ConstructorInitializerScope(
+              bodyScope,
+              element,
+            );
 
-          var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
-          var astResolver = AstResolver(
-            _linker,
-            fragment.libraryFragment,
-            initializerScope,
-            analysisOptions,
-            enclosingClassElement: interfaceElement,
-            enclosingExecutableElement: element,
-          );
+            var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
+            var astResolver = AstResolver(
+              _linker,
+              fragment.libraryFragment,
+              initializerScope,
+              analysisOptions,
+              enclosingClassElement: interfaceElement,
+              enclosingExecutableElement: element,
+            );
 
-          var body = node.parent.classMembers
-              .whereType<PrimaryConstructorBodyImpl>()
-              .firstOrNull;
-
-          astResolver.resolvePrimaryConstructor(node, body);
+            astResolver.resolvePrimaryConstructor(node, body);
+          }
       }
     }
   }

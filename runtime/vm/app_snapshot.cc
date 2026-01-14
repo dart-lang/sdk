@@ -168,7 +168,7 @@ class SerializationCluster : public ZoneAllocated {
         cid_(cid),
         target_instance_size_(target_instance_size),
         is_canonical_(is_canonical),
-        is_immutable_(Object::ShouldHaveImmutabilityBitSet(cid)) {
+        is_deeply_immutable_(Object::ShouldHaveDeeplyImmutabilityBitSet(cid)) {
     ASSERT(target_instance_size == kSizeVaries || target_instance_size >= 0);
   }
   virtual ~SerializationCluster() {}
@@ -190,7 +190,7 @@ class SerializationCluster : public ZoneAllocated {
   const char* name() const { return name_; }
   intptr_t cid() const { return cid_; }
   bool is_canonical() const { return is_canonical_; }
-  bool is_immutable() const { return is_immutable_; }
+  bool is_deeply_immutable() const { return is_deeply_immutable_; }
   intptr_t size() const { return size_; }
   intptr_t num_objects() const { return num_objects_; }
 
@@ -208,7 +208,7 @@ class SerializationCluster : public ZoneAllocated {
   const intptr_t cid_;
   const intptr_t target_instance_size_;
   const bool is_canonical_;
-  const bool is_immutable_;
+  const bool is_deeply_immutable_;
   intptr_t size_ = 0;
   intptr_t num_objects_ = 0;
   intptr_t target_memory_size_ = 0;
@@ -218,10 +218,10 @@ class DeserializationCluster : public ZoneAllocated {
  public:
   explicit DeserializationCluster(const char* name,
                                   bool is_canonical = false,
-                                  bool is_immutable = false)
+                                  bool is_deeply_immutable = false)
       : name_(name),
         is_canonical_(is_canonical),
-        is_immutable_(is_immutable),
+        is_deeply_immutable_(is_deeply_immutable),
         start_index_(-1),
         stop_index_(-1) {}
   virtual ~DeserializationCluster() {}
@@ -248,14 +248,14 @@ class DeserializationCluster : public ZoneAllocated {
 
   const char* name() const { return name_; }
   bool is_canonical() const { return is_canonical_; }
-  bool is_immutable() const { return is_immutable_; }
+  bool is_deeply_immutable() const { return is_deeply_immutable_; }
 
  protected:
   void ReadAllocFixedSize(Deserializer* deserializer, intptr_t instance_size);
 
   const char* const name_;
   const bool is_canonical_;
-  const bool is_immutable_;
+  const bool is_deeply_immutable_;
   // The range of the ref array that belongs to this cluster.
   intptr_t start_index_;
   intptr_t stop_index_;
@@ -687,13 +687,13 @@ class Deserializer : public ThreadStackResource {
                                intptr_t size,
                                bool is_canonical = false) {
     InitializeHeader(raw, cid, size, is_canonical,
-                     ShouldHaveImmutabilityBitSetCid(cid));
+                     Object::ShouldHaveDeeplyImmutabilityBitSet(cid));
   }
   static void InitializeHeader(ObjectPtr raw,
                                intptr_t cid,
                                intptr_t size,
                                bool is_canonical,
-                               bool is_immutable);
+                               bool is_deeply_immutable);
 
   // Reads raw data (for basic types).
   // sizeof(T) must be in {1,2,4,8}.
@@ -887,7 +887,7 @@ void Deserializer::InitializeHeader(ObjectPtr raw,
                                     intptr_t class_id,
                                     intptr_t size,
                                     bool is_canonical,
-                                    bool is_immutable) {
+                                    bool is_deeply_immutable) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   uword tags = 0;
   tags = UntaggedObject::ClassIdTag::update(class_id, tags);
@@ -897,7 +897,9 @@ void Deserializer::InitializeHeader(ObjectPtr raw,
   tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(true, tags);
   tags = UntaggedObject::NewOrEvacuationCandidateBit::update(false, tags);
-  tags = UntaggedObject::ImmutableBit::update(is_immutable, tags);
+  tags = UntaggedObject::ShallowImmutableBit::update(
+      Object::ShouldHaveShallowImmutabilityBitSet(class_id), tags);
+  tags = UntaggedObject::DeeplyImmutableBit::update(is_deeply_immutable, tags);
   raw->untag()->tags_ = tags;
 }
 
@@ -906,9 +908,10 @@ void SerializationCluster::WriteAndMeasureAlloc(Serializer* serializer) {
   intptr_t start_size = serializer->bytes_written();
   intptr_t start_data = serializer->GetDataSize();
   intptr_t start_objects = serializer->next_ref_index();
-  uint32_t tags = UntaggedObject::ClassIdTag::encode(cid_) |
-                  UntaggedObject::CanonicalBit::encode(is_canonical()) |
-                  UntaggedObject::ImmutableBit::encode(is_immutable());
+  uint32_t tags =
+      UntaggedObject::ClassIdTag::encode(cid_) |
+      UntaggedObject::CanonicalBit::encode(is_canonical()) |
+      UntaggedObject::DeeplyImmutableBit::encode(is_deeply_immutable());
   serializer->Write<uint32_t>(tags);
   WriteAlloc(serializer);
   intptr_t stop_size = serializer->bytes_written();
@@ -4555,9 +4558,9 @@ class AbstractInstanceDeserializationCluster : public DeserializationCluster {
  protected:
   explicit AbstractInstanceDeserializationCluster(const char* name,
                                                   bool is_canonical,
-                                                  bool is_immutable,
+                                                  bool is_deeply_immutable,
                                                   bool is_root_unit)
-      : DeserializationCluster(name, is_canonical, is_immutable),
+      : DeserializationCluster(name, is_canonical, is_deeply_immutable),
         is_root_unit_(is_root_unit) {}
 
   const bool is_root_unit_;
@@ -4584,11 +4587,11 @@ class InstanceDeserializationCluster
  public:
   explicit InstanceDeserializationCluster(intptr_t cid,
                                           bool is_canonical,
-                                          bool is_immutable,
+                                          bool is_deeply_immutable,
                                           bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Instance",
                                                is_canonical,
-                                               is_immutable,
+                                               is_deeply_immutable,
                                                is_root_unit),
         cid_(cid) {}
   ~InstanceDeserializationCluster() {}
@@ -4611,7 +4614,7 @@ class InstanceDeserializationCluster
 
     const intptr_t cid = cid_;
     const bool mark_canonical = is_root_unit_ && is_canonical();
-    const bool is_immutable = is_immutable_;
+    const bool is_deeply_immutable = is_deeply_immutable_;
     intptr_t next_field_offset = next_field_offset_in_words_
                                  << kCompressedWordSizeLog2;
     intptr_t instance_size = Object::RoundedAllocationSize(
@@ -4621,7 +4624,7 @@ class InstanceDeserializationCluster
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       InstancePtr instance = static_cast<InstancePtr>(d.Ref(id));
       Deserializer::InitializeHeader(instance, cid, instance_size,
-                                     mark_canonical, is_immutable);
+                                     mark_canonical, is_deeply_immutable);
       intptr_t offset = Instance::NextFieldOffset();
       while (offset < next_field_offset) {
         if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
@@ -5248,11 +5251,11 @@ class ClosureDeserializationCluster
     : public AbstractInstanceDeserializationCluster {
  public:
   explicit ClosureDeserializationCluster(bool is_canonical,
-                                         bool is_immutable,
+                                         bool is_deeply_immutable,
                                          bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Closure",
                                                is_canonical,
-                                               is_immutable,
+                                               is_deeply_immutable,
                                                is_root_unit) {}
   ~ClosureDeserializationCluster() {}
 
@@ -5345,12 +5348,10 @@ class MintSerializationCluster : public SerializationCluster {
 class MintDeserializationCluster
     : public AbstractInstanceDeserializationCluster {
  public:
-  explicit MintDeserializationCluster(bool is_canonical,
-                                      bool is_immutable,
-                                      bool is_root_unit)
+  explicit MintDeserializationCluster(bool is_canonical, bool is_root_unit)
       : AbstractInstanceDeserializationCluster("int",
                                                is_canonical,
-                                               is_immutable,
+                                               /*is_deeply_immutable=*/true,
                                                is_root_unit) {}
   ~MintDeserializationCluster() {}
 
@@ -5417,14 +5418,12 @@ class DoubleSerializationCluster : public SerializationCluster {
 class DoubleDeserializationCluster
     : public AbstractInstanceDeserializationCluster {
  public:
-  explicit DoubleDeserializationCluster(bool is_canonical,
-                                        bool is_immutable,
-                                        bool is_root_unit)
+  explicit DoubleDeserializationCluster(bool is_canonical, bool is_root_unit)
       : AbstractInstanceDeserializationCluster("double",
                                                is_canonical,
-                                               is_immutable,
+                                               /*is_deeply_immutable=*/true,
                                                is_root_unit) {
-    ASSERT(Object::ShouldHaveImmutabilityBitSet(kDoubleCid));
+    ASSERT(Object::ShouldHaveDeeplyImmutabilityBitSet(kDoubleCid));
   }
   ~DoubleDeserializationCluster() {}
 
@@ -5492,11 +5491,10 @@ class Simd128DeserializationCluster
  public:
   explicit Simd128DeserializationCluster(intptr_t cid,
                                          bool is_canonical,
-                                         bool is_immutable,
                                          bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Simd128",
                                                is_canonical,
-                                               is_immutable,
+                                               /*is_deeply_immutable=*/true,
                                                is_root_unit),
         cid_(cid) {}
   ~Simd128DeserializationCluster() {}
@@ -5511,7 +5509,7 @@ class Simd128DeserializationCluster
     Deserializer::Local d(d_);
     const intptr_t cid = cid_;
     const bool mark_canonical = is_root_unit_ && is_canonical();
-    const bool is_immutable = ShouldHaveImmutabilityBitSetCid(cid);
+    const bool is_immutable = Object::ShouldHaveDeeplyImmutabilityBitSet(cid);
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       ObjectPtr vector = d.Ref(id);
       Deserializer::InitializeHeader(vector, cid, Int32x4::InstanceSize(),
@@ -5641,11 +5639,11 @@ class RecordDeserializationCluster
     : public AbstractInstanceDeserializationCluster {
  public:
   explicit RecordDeserializationCluster(bool is_canonical,
-                                        bool is_immutable,
+                                        bool is_deeply_immutable,
                                         bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Record",
                                                is_canonical,
-                                               is_immutable,
+                                               is_deeply_immutable,
                                                is_root_unit) {}
   ~RecordDeserializationCluster() {}
 
@@ -6278,11 +6276,11 @@ class MapDeserializationCluster
  public:
   explicit MapDeserializationCluster(intptr_t cid,
                                      bool is_canonical,
-                                     bool is_immutable,
+                                     bool is_deeply_immutable,
                                      bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Map",
                                                is_canonical,
-                                               is_immutable,
+                                               is_deeply_immutable,
                                                is_root_unit),
         cid_(cid) {}
   ~MapDeserializationCluster() {}
@@ -6355,11 +6353,11 @@ class SetDeserializationCluster
  public:
   explicit SetDeserializationCluster(intptr_t cid,
                                      bool is_canonical,
-                                     bool is_immutable,
+                                     bool is_deeply_immutable,
                                      bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Set",
                                                is_canonical,
-                                               is_immutable,
+                                               is_deeply_immutable,
                                                is_root_unit),
         cid_(cid) {}
   ~SetDeserializationCluster() {}
@@ -6497,11 +6495,11 @@ class ArrayDeserializationCluster
  public:
   explicit ArrayDeserializationCluster(intptr_t cid,
                                        bool is_canonical,
-                                       bool is_immutable,
+                                       bool is_deeply_immutable,
                                        bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Array",
                                                is_canonical,
-                                               is_immutable,
+                                               is_deeply_immutable,
                                                is_root_unit),
         cid_(cid) {}
   ~ArrayDeserializationCluster() {}
@@ -6521,7 +6519,7 @@ class ArrayDeserializationCluster
 
     const intptr_t cid = cid_;
     const bool stamp_canonical = is_root_unit_ && is_canonical();
-    const bool is_immutable = ShouldHaveImmutabilityBitSetCid(cid);
+    const bool is_immutable = Object::ShouldHaveDeeplyImmutabilityBitSet(cid);
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       ArrayPtr array = static_cast<ArrayPtr>(d.Ref(id));
       const intptr_t length = d.ReadUnsigned();
@@ -9013,11 +9011,12 @@ DeserializationCluster* Deserializer::ReadCluster() {
   const uint32_t tags = Read<uint32_t>();
   const intptr_t cid = UntaggedObject::ClassIdTag::decode(tags);
   const bool is_canonical = UntaggedObject::CanonicalBit::decode(tags);
-  const bool is_immutable = UntaggedObject::ImmutableBit::decode(tags);
+  const bool is_deeply_immutable =
+      UntaggedObject::DeeplyImmutableBit::decode(tags);
   Zone* Z = zone_;
   if (cid >= kNumPredefinedCids || cid == kInstanceCid) {
     return new (Z) InstanceDeserializationCluster(
-        cid, is_canonical, is_immutable, !is_non_root_unit_);
+        cid, is_canonical, is_deeply_immutable, !is_non_root_unit_);
   }
   if (IsTypedDataViewClassId(cid)) {
     ASSERT(!is_canonical);
@@ -9151,25 +9150,28 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z)
           TypeParameterDeserializationCluster(is_canonical, !is_non_root_unit_);
     case kClosureCid:
-      return new (Z) ClosureDeserializationCluster(is_canonical, is_immutable,
-                                                   !is_non_root_unit_);
+      return new (Z) ClosureDeserializationCluster(
+          is_canonical, is_deeply_immutable, !is_non_root_unit_);
     case kMintCid:
-      return new (Z) MintDeserializationCluster(is_canonical, is_immutable,
-                                                !is_non_root_unit_);
+      RELEASE_ASSERT(is_deeply_immutable);
+      return new (Z)
+          MintDeserializationCluster(is_canonical, !is_non_root_unit_);
     case kDoubleCid:
-      return new (Z) DoubleDeserializationCluster(is_canonical, is_immutable,
-                                                  !is_non_root_unit_);
+      RELEASE_ASSERT(is_deeply_immutable);
+      return new (Z)
+          DoubleDeserializationCluster(is_canonical, !is_non_root_unit_);
     case kInt32x4Cid:
     case kFloat32x4Cid:
     case kFloat64x2Cid:
-      return new (Z) Simd128DeserializationCluster(
-          cid, is_canonical, is_immutable, !is_non_root_unit_);
+      RELEASE_ASSERT(is_deeply_immutable);
+      return new (Z)
+          Simd128DeserializationCluster(cid, is_canonical, !is_non_root_unit_);
     case kGrowableObjectArrayCid:
       ASSERT(!is_canonical);
       return new (Z) GrowableObjectArrayDeserializationCluster();
     case kRecordCid:
-      return new (Z) RecordDeserializationCluster(is_canonical, is_immutable,
-                                                  !is_non_root_unit_);
+      return new (Z) RecordDeserializationCluster(
+          is_canonical, is_deeply_immutable, !is_non_root_unit_);
     case kStackTraceCid:
       ASSERT(!is_canonical);
       return new (Z) StackTraceDeserializationCluster();
@@ -9184,19 +9186,20 @@ DeserializationCluster* Deserializer::ReadCluster() {
       UNREACHABLE();
     case kConstMapCid:
       return new (Z) MapDeserializationCluster(
-          kConstMapCid, is_canonical, is_immutable, !is_non_root_unit_);
+          kConstMapCid, is_canonical, is_deeply_immutable, !is_non_root_unit_);
     case kSetCid:
       // We do not have mutable hash sets in snapshots.
       UNREACHABLE();
     case kConstSetCid:
       return new (Z) SetDeserializationCluster(
-          kConstSetCid, is_canonical, is_immutable, !is_non_root_unit_);
+          kConstSetCid, is_canonical, is_deeply_immutable, !is_non_root_unit_);
     case kArrayCid:
       return new (Z) ArrayDeserializationCluster(
-          kArrayCid, is_canonical, is_immutable, !is_non_root_unit_);
+          kArrayCid, is_canonical, is_deeply_immutable, !is_non_root_unit_);
     case kImmutableArrayCid:
-      return new (Z) ArrayDeserializationCluster(
-          kImmutableArrayCid, is_canonical, is_immutable, !is_non_root_unit_);
+      return new (Z)
+          ArrayDeserializationCluster(kImmutableArrayCid, is_canonical,
+                                      is_deeply_immutable, !is_non_root_unit_);
     case kWeakArrayCid:
       return new (Z) WeakArrayDeserializationCluster();
     case kStringCid:
@@ -9207,7 +9210,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
       CLASS_LIST_FFI_TYPE_MARKER(CASE_FFI_CID)
 #undef CASE_FFI_CID
       return new (Z) InstanceDeserializationCluster(
-          cid, is_canonical, is_immutable, !is_non_root_unit_);
+          cid, is_canonical, is_deeply_immutable, !is_non_root_unit_);
     case kDeltaEncodedTypedDataCid:
       return new (Z) DeltaEncodedTypedDataDeserializationCluster();
     default:

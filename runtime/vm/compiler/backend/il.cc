@@ -1057,6 +1057,11 @@ bool GuardFieldTypeInstr::AttributesEqual(const Instruction& other) const {
   return field().ptr() == other.AsGuardFieldType()->field().ptr();
 }
 
+bool CheckFieldImmutabilityInstr::AttributesEqual(
+    const Instruction& other) const {
+  return field().ptr() == other.AsCheckFieldImmutability()->field().ptr();
+}
+
 Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
   // If all inputs needed to check instantiation are constant, instantiate the
   // sub and super type and remove the instruction if the subtype test succeeds.
@@ -3944,6 +3949,10 @@ Instruction* GuardFieldTypeInstr::Canonicalize(FlowGraph* flow_graph) {
                                                                  : nullptr;
 }
 
+Instruction* CheckFieldImmutabilityInstr::Canonicalize(FlowGraph* flow_graph) {
+  return this;
+}
+
 Instruction* CheckSmiInstr::Canonicalize(FlowGraph* flow_graph) {
   return (value()->Type()->ToCid() == kSmiCid) ? nullptr : this;
 }
@@ -6432,6 +6441,34 @@ void CheckedStoreIntoSharedSlowPath::EmitNativeCode(
                              instruction()->deopt_id(), slow_path_env);
 
   // result goes into CheckedStoreIntoSharedABI::kResultReg
+
+  compiler->RestoreLiveRegisters(instruction()->locs());
+  __ Jump(exit_label());
+}
+
+void EnsureDeeplyImmutableSlowPath::EmitNativeCode(
+    FlowGraphCompiler* compiler) {
+  __ Comment("EnsureDeeplyImmutableSlowPath");
+  __ Bind(entry_label());
+
+  LocationSummary* locs = instruction()->locs();
+  locs->live_registers()->Remove(locs->out(0));
+
+  compiler->SaveLiveRegisters(locs);
+
+  auto slow_path_env =
+      compiler->SlowPathEnvironmentFor(instruction(), /*num_slow_path_args=*/0);
+
+#if defined(TARGET_ARCH_IA32)
+  __ MoveRegister(EnsureDeeplyImmutableStubABI::kValueReg, value());
+#else
+  ASSERT(value() == EnsureDeeplyImmutableStubABI::kValueReg);
+#endif
+
+  compiler->GenerateStubCall(instruction()->source(),
+                             StubCode::EnsureDeeplyImmutable(),
+                             UntaggedPcDescriptors::kOther, locs,
+                             instruction()->deopt_id(), slow_path_env);
 
   compiler->RestoreLiveRegisters(instruction()->locs());
   __ Jump(exit_label());

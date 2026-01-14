@@ -352,9 +352,19 @@ class Object {
   bool IsCanonical() const { return ptr()->untag()->IsCanonical(); }
   void SetCanonical() const { ptr()->untag()->SetCanonical(); }
   void ClearCanonical() const { ptr()->untag()->ClearCanonical(); }
-  bool IsImmutable() const { return ptr()->untag()->IsImmutable(); }
-  void SetImmutable() const { ptr()->untag()->SetImmutable(); }
-  void ClearImmutable() const { ptr()->untag()->ClearImmutable(); }
+  bool IsShallowImmutable() const {
+    return ptr()->untag()->IsShallowImmutable();
+  }
+  void SetShallowImmutable() const { ptr()->untag()->SetShallowImmutable(); }
+  void ClearShallowImmutable() const {
+    ptr()->untag()->ClearShallowImmutable();
+  }
+  bool IsDeeplyImmutable() const { return ptr()->untag()->IsDeeplyImmutable(); }
+  void SetDeeplyImmutable() const { ptr()->untag()->SetDeeplyImmutable(); }
+  void ClearDeeplyImmutable() const { ptr()->untag()->ClearDeeplyImmutable(); }
+  bool IsImmutable() const {
+    return IsShallowImmutable() || IsDeeplyImmutable();
+  }
   intptr_t GetClassId() const { return ptr()->GetClassId(); }
   inline ClassPtr clazz() const;
   static intptr_t tags_offset() { return OFFSET_OF(UntaggedObject, tags_); }
@@ -722,7 +732,10 @@ class Object {
     kNo,
   };
 
-  static bool ShouldHaveImmutabilityBitSet(classid_t class_id);
+  static bool ShouldHaveShallowImmutabilityBitSet(classid_t class_id);
+  static bool ShouldHaveDeeplyImmutabilityBitSet(classid_t class_id);
+
+  void EnsureDeeplyImmutable(Zone* zone) const;
 
  protected:
   friend ObjectPtr AllocateObject(intptr_t, intptr_t, intptr_t);

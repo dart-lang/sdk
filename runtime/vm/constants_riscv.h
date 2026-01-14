@@ -455,6 +455,12 @@ struct CheckedStoreIntoSharedStubABI {
   static constexpr Register kResultReg = A0;
 };
 
+// ABI for EnsureDeeplyImmutableStub.
+struct EnsureDeeplyImmutableStubABI {
+  static constexpr Register kValueReg = A0;
+  static constexpr Register kTempReg = T1;
+};
+
 // ABI for SuspendStub (AwaitStub, AwaitWithTypeCheckStub, YieldAsyncStarStub,
 // SuspendSyncStarAtStartStub, SuspendSyncStarAtYieldStub).
 struct SuspendStubABI {

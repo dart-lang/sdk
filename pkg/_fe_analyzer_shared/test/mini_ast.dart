@@ -6616,7 +6616,10 @@ class _MiniAstTypeAnalyzer
     Expression expression,
   ) {
     analyzeExpression(expression, operations.unknownType);
-    flow.logicalNot_end(node, expression);
+    flow.storeExpressionInfo(
+      node,
+      flow.logicalNot_end(flow.getExpressionInfo(expression)),
+    );
     return new ExpressionTypeAnalysisResult(type: operations.boolType);
   }
 

@@ -2311,6 +2311,7 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
   const int kIsBaseClassFlag = 1 << 11;
   const int kIsInterfaceFlag = 1 << 12;
   const int kIsFinalFlag = 1 << 13;
+  const int kIsDeeplyImmutableFlag = 1 << 14;
 
   // Class is allocated when reading library declaration in
   // BytecodeReaderHelper::ReadLibraryDeclaration.
@@ -2369,6 +2370,9 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
   }
   if ((flags & kIsFinalFlag) != 0) {
     cls.set_is_final();
+  }
+  if ((flags & kIsDeeplyImmutableFlag) != 0) {
+    cls.set_is_deeply_immutable(true);
   }
 
   intptr_t num_type_arguments = 0;

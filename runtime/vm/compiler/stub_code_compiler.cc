@@ -1881,6 +1881,15 @@ void StubCodeCompiler::GenerateCheckedStoreIntoSharedStub() {
   __ Ret();
 }
 
+void StubCodeCompiler::GenerateEnsureDeeplyImmutableStub() {
+  __ EnterStubFrame();
+  __ PushRegister(EnsureDeeplyImmutableStubABI::kValueReg);
+  __ CallRuntime(kEnsureDeeplyImmutableRuntimeEntry, /*argument_count=*/1);
+  __ Drop(1);
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
 static intptr_t SuspendStateFpOffset() {
   return compiler::target::frame_layout.FrameSlotForVariableIndex(
              SuspendState::kSuspendStateVarIndex) *

@@ -4890,7 +4890,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
-      node.namePart.accept(this);
+      node.namePart.typeParameters?.accept(this);
       node.extendsClause?.accept(this);
       node.withClause?.accept(this);
       node.implementsClause?.accept(this);
@@ -4898,6 +4898,10 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = InstanceScope(nameScope, element);
       _visitDocumentationComment(node.documentationComment);
+      node.namePart
+          .tryCast<PrimaryConstructorDeclarationImpl>()
+          ?.formalParameters
+          .accept(this);
       node.body.accept(this);
     } finally {
       nameScope = outerScope;
@@ -4999,12 +5003,16 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
-      node.namePart.accept(this);
+      node.namePart.typeParameters?.accept(this);
       node.withClause?.accept(this);
       node.implementsClause?.accept(this);
 
       nameScope = InstanceScope(nameScope, element);
       _visitDocumentationComment(node.documentationComment);
+      node.namePart
+          .tryCast<PrimaryConstructorDeclarationImpl>()
+          ?.formalParameters
+          .accept(this);
       node.body.accept(this);
     } finally {
       nameScope = outerScope;
@@ -5048,11 +5056,12 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
-      node.primaryConstructor.accept(this);
+      node.primaryConstructor.typeParameters?.accept(this);
       node.implementsClause?.accept(this);
 
       nameScope = InstanceScope(nameScope, element);
       _visitDocumentationComment(node.documentationComment);
+      node.primaryConstructor.formalParameters.accept(this);
       node.body.accept(this);
     } finally {
       nameScope = outerScope;

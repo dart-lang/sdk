@@ -273,6 +273,11 @@ class PrefixExpressionResolver {
 
     node.recordStaticType(_typeProvider.boolType, resolver: _resolver);
 
-    _resolver.flowAnalysis.flow?.logicalNot_end(node, operand);
+    if (_resolver.flowAnalysis.flow case var flow?) {
+      flow.storeExpressionInfo(
+        node,
+        flow.logicalNot_end(flow.getExpressionInfo(operand)),
+      );
+    }
   }
 }

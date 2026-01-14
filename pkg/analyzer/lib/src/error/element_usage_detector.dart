@@ -360,6 +360,10 @@ class ElementUsageDetector<TagInfo extends Object> {
           if (node.declaredFragment?.element == definingFunction) {
             return true;
           }
+        } else if (node is PrimaryConstructorBody) {
+          if (node.declaration?.declaredFragment?.element == definingFunction) {
+            return true;
+          }
         }
       }
     }

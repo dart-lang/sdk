@@ -1591,7 +1591,7 @@ class TypedDataViewMessageDeserializationCluster
         data = ExternalTypedData::New(
             backing_cid, reinterpret_cast<uint8_t*>(finalizable_data.data),
             length);
-        data.SetImmutable();  // Can pass by reference.
+        data.SetDeeplyImmutable();  // Can pass by reference.
         intptr_t external_size = length * element_size;
         data.AddFinalizer(finalizable_data.peer, finalizable_data.callback,
                           external_size);

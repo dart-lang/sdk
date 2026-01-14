@@ -44,6 +44,10 @@ main(List<String> args) {
 
   testFailToAssignClosureWithListToSharedVar();
 
+  testCapturesClassWithDeeplyImmutableClosure();
+  testFailToCaptureClassWithNonFinalCapturingClosure();
+  testCapturesClassWithFinalCapturingClosure();
+
   testFailToPrint();
 
   testFailToIsolateGroupRunSyncThrows();
@@ -264,6 +268,61 @@ void testFailToAssignClosureWithListToSharedVar() {
     "Expect error assigning list to shared variable",
   );
   print(getList);
+}
+
+///
+@pragma('vm:deeply-immutable')
+final class FooWithFunc {
+  final int Function() func;
+  final int kuka;
+
+  FooWithFunc(this.func, this.kuka);
+}
+
+void testCapturesClassWithDeeplyImmutableClosure() {
+  final foo = FooWithFunc(() => 42, 43);
+  final result = IsolateGroup.runSync(() {
+    return foo.func();
+  });
+  Expect.equals(42, result);
+}
+
+@pragma('vm:shared')
+bool skipAccessAtRuntime = false;
+
+void testFailToCaptureClassWithNonFinalCapturingClosure() {
+  var closureValue = 42;
+
+  // Construction of this "deeply-immutable" object should actually fail at
+  // runtime due to closure closing over non-final [closureValue] variable.
+  Expect.throws(
+    () => FooWithFunc(() => skipAccessAtRuntime ? -1 : closureValue, 43),
+    (e) => e is Error && e.toString().contains("Only final not-late"),
+  );
+}
+
+void testCapturesClassWithFinalCapturingClosure() {
+  final finalClosureValue = 43;
+  final foo = FooWithFunc(
+    () => skipAccessAtRuntime ? -1 : finalClosureValue,
+    44,
+  );
+
+  skipAccessAtRuntime = true;
+  Expect.equals(
+    -1,
+    IsolateGroup.runSync(() {
+      return foo.func();
+    }),
+  );
+
+  skipAccessAtRuntime = false;
+  Expect.equals(
+    43,
+    IsolateGroup.runSync(() {
+      return foo.func();
+    }),
+  );
 }
 
 ///

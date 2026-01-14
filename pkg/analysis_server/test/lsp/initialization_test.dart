@@ -16,11 +16,13 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'change_workspace_folders_test.dart';
+import 'request_helpers_mixin.dart';
 import 'server_abstract.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InitializationTest);
+    defineReflectiveTests(StringIdInitializationTest);
     defineReflectiveTests(SlowInitializationTest);
   });
 }
@@ -1379,4 +1381,12 @@ class SlowInitializationTest extends InitializationTest {
     // the physical watchers (for test_concurrentContextRebuilds).
     delayWatcherInitialization: Duration(milliseconds: 1),
   );
+}
+
+/// Runs all initialization tests using String IDs instead of integers (both
+/// are valid).
+@reflectiveTest
+class StringIdInitializationTest extends InitializationTest {
+  @override
+  LspMessageIdMode get idMode => LspMessageIdMode.string;
 }

@@ -243,8 +243,10 @@ DART_FORCE_INLINE static ObjectPtr InitializeHeader(uword addr,
   tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
   tags = UntaggedObject::NewOrEvacuationCandidateBit::update(!is_old, tags);
-  tags = UntaggedObject::ImmutableBit::update(
-      Object::ShouldHaveImmutabilityBitSet(class_id), tags);
+  tags = UntaggedObject::ShallowImmutableBit::update(
+      Object::ShouldHaveShallowImmutabilityBitSet(class_id), tags);
+  tags = UntaggedObject::DeeplyImmutableBit::update(
+      Object::ShouldHaveDeeplyImmutabilityBitSet(class_id), tags);
 #if defined(HASH_IN_OBJECT_HEADER)
   tags = UntaggedObject::HashTag::update(0, tags);
 #endif
