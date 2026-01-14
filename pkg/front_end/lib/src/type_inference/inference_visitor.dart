@@ -8536,7 +8536,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       fileOffset: node.fileOffset,
     ).expression;
     node.operand = operand..parent = node;
-    flowAnalysis.logicalNot_end(node, node.operand);
+    flowAnalysis.storeExpressionInfo(
+      node,
+      flowAnalysis.logicalNot_end(flowAnalysis.getExpressionInfo(node.operand)),
+    );
     return new ExpressionInferenceResult(boolType, node);
   }
 
