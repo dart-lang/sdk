@@ -91,6 +91,9 @@ mixin LspEditHelpersMixin {
   }
 }
 
+/// The kind of IDs that can be used for messages.
+enum LspMessageIdMode { integer, string }
+
 mixin LspProgressNotificationsMixin {
   Stream<NotificationMessage> get notificationsFromServer;
 
@@ -159,6 +162,9 @@ mixin LspRequestHelpersMixin {
   /// A progress token used in tests where the client-provides the token, which
   /// should not be validated as being created by the server first.
   final clientProvidedTestWorkDoneToken = ProgressToken.t2('client-test');
+
+  /// The kind of IDs to use for outbound (client-to-server) messages.
+  LspMessageIdMode get idMode => LspMessageIdMode.integer;
 
   Future<List<CallHierarchyIncomingCall>?> callHierarchyIncoming(
     CallHierarchyItem item,
@@ -846,7 +852,7 @@ mixin LspRequestHelpersMixin {
   }
 
   RequestMessage makeRequest(Method method, Object? params) {
-    var id = Either2<int, String>.t1(_id++);
+    var id = _getNextId();
     return RequestMessage(
       id: id,
       method: method,
@@ -1118,6 +1124,15 @@ mixin LspRequestHelpersMixin {
     T Function(Map<String, Object?>) fromJson,
   ) =>
       (input) => input.cast<Map<String, Object?>>().map(fromJson).toList();
+
+  /// Gets an ID to use for an outbound request, and increases the internal
+  /// counter for the next one.
+  Either2<int, String> _getNextId() {
+    return switch (idMode) {
+      .integer => Either2<int, String>.t1(_id++),
+      .string => Either2<int, String>.t2('${_id++}'),
+    };
+  }
 
   /// Creates a `canParse()` function for an `Either2<T1, T2>` using
   /// the `canParse` function for each type.
