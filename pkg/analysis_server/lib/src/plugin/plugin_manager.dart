@@ -580,10 +580,17 @@ class PluginManager {
       buffer.writeln(
         'Failed to compile "${pluginFile.path}" to an AOT snapshot.',
       );
+      var stderr = aotResult.stderr as String;
+      if (stderr.contains('does not support build hooks')) {
+        buffer.writeln(
+          'One of the plugins uses Dart build hooks (or depends on a package '
+          'which uses them); this is currently not supported.',
+        );
+      }
       buffer.writeln('  pluginFolder = ${pluginFolder.path}');
       buffer.writeln('  exitCode = ${aotResult.exitCode}');
       buffer.writeln('  stdout = ${aotResult.stdout}');
-      buffer.writeln('  stderr = ${aotResult.stderr}');
+      buffer.writeln('  stderr = $stderr');
       var exceptionReason = buffer.toString();
       instrumentationService.logError(exceptionReason);
       throw PluginException(exceptionReason);

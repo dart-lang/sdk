@@ -34,8 +34,9 @@ package:analyzer_testing/mock_packages/mock_packages.dart:
     addKernel (method: Folder Function(), deprecated)
     addMeta (method: Folder Function())
     addPedantic (method: Folder Function(), deprecated)
+    addSkyEngine (method: Folder Function({required String sdkPath}))
     addTestReflectiveLoader (method: Folder Function())
-    addUI (method: Folder Function())
+    addUI (method: Folder Function(), deprecated)
     addVectorMath (method: Folder Function())
 package:analyzer_testing/package_root.dart:
   packageRoot (static getter: String)

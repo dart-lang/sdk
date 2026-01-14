@@ -22,6 +22,14 @@ class Radius {
   const Radius.elliptical(this.x, this.y);
 }
 
+class Size {
+  final double width;
+
+  final double height;
+
+  const Size(this.width, this.height);
+}
+
 enum BlendMode {
   clear,
   src,

@@ -640,8 +640,8 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
     }
 
     if (addFlutterPackageDep) {
-      var uiPath = addUI().parent.path;
-      configCopy.add(name: 'ui', rootPath: uiPath);
+      var skyEnginePath = addSkyEngine(sdkPath: _sdkRoot.path).parent.path;
+      configCopy.add(name: 'sky_engine', rootPath: skyEnginePath);
 
       var flutterPath = addFlutter().parent.path;
       configCopy.add(name: 'flutter', rootPath: flutterPath);

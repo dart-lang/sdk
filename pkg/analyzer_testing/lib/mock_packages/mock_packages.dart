@@ -184,9 +184,55 @@ mixin MockPackagesMixin {
     return packageFolder.getChildAssumingFolder('lib');
   }
 
+  @Deprecated(
+    "Use 'addSkyEngine' to include stubs (mocks) for the 'dart:ui' library",
+  )
   Folder addUI() {
     var packageFolder = _addFiles2('ui', mock_ui.units);
     return packageFolder.getChildAssumingFolder('lib');
+  }
+
+  /// Adds a mock sky_engine package with an `_embedder.yaml` file, and returns
+  /// the [Folder] of the sky_engine package's 'lib' directory.
+  Folder addSkyEngine({required String sdkPath}) {
+    // Emulate sky engine by writing to disk:
+    // * a `sky_engine/lib` directory,
+    // * a `sky_engine/lib/_embedder.yaml` file which points to the Dart SDK
+    //   sources, and
+    // * the `dart:ui` sources into `sky_engine/lib/ui`.
+    var packageFolder = _addFiles2('ui', mock_ui.units);
+
+    var skyEngineFolder = resourceProvider.getFolder(
+      resourceProvider.convertPath('$packagesRootPath/sky_engine'),
+    )..create();
+    var skyEngineLibFolder = skyEngineFolder.getChildAssumingFolder('lib')
+      ..create();
+    var embedderFile = skyEngineLibFolder.getChildAssumingFile(
+      '_embedder.yaml',
+    );
+    embedderFile.writeAsStringSync('''
+embedded_libs:
+  "dart:ui": "${packageFolder.path}/lib/ui.dart"
+
+  "dart:async": "$sdkPath/lib/async/async.dart"
+  "dart:collection": "$sdkPath/lib/collection/collection.dart"
+  "dart:convert": "$sdkPath/lib/convert/convert.dart"
+  "dart:core": "$sdkPath/lib/core/core.dart"
+  "dart:developer": "$sdkPath/lib/developer/developer.dart"
+  "dart:ffi": "$sdkPath/lib/ffi/ffi.dart"
+  "dart:html": "$sdkPath/lib/html/dart2js/html_dart2js.dart"
+  "dart:io": "$sdkPath/lib/io/io.dart"
+  "dart:isolate": "$sdkPath/lib/isolate/isolate.dart"
+  "dart:js": "$sdkPath/lib/js/js.dart"
+  "dart:js_interop": "$sdkPath/lib/js/js_interop.dart"
+  "dart:math": "$sdkPath/lib/math/math.dart"
+  "dart:typed_data": "$sdkPath/lib/typed_data/typed_data.dart"
+
+  "dart:_interceptors": "$sdkPath/lib/_interceptors/interceptors.dart"
+  "dart:_internal": "$sdkPath/lib/internal/internal.dart"
+''');
+
+    return skyEngineLibFolder;
   }
 
   Folder addVectorMath() {

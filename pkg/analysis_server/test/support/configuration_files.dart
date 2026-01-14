@@ -24,6 +24,8 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
   /// This allows `package:vector_math/vector_math_64.dart` imports to resolve.
   bool get addVectorMathPackageDep => false;
 
+  String get dartSdkPath;
+
   /// The Dart language version of the test package being used for testing.
   String get testPackageLanguageVersion => _latestLanguageVersion;
 
@@ -68,8 +70,8 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
     }
 
     if (flutter) {
-      var uiLibFolder = addUI();
-      config.add(name: 'ui', rootPath: uiLibFolder.parent.path);
+      var skyEnginePath = addSkyEngine(sdkPath: dartSdkPath).parent.path;
+      config.add(name: 'sky_engine', rootPath: skyEnginePath);
 
       var flutterLibFolder = addFlutter();
       config.add(name: 'flutter', rootPath: flutterLibFolder.parent.path);

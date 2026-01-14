@@ -403,8 +403,8 @@ class _VisibleOutsideTemplate {
     }
 
     if (flutter) {
-      var uiPath = addUI().parent.path;
-      config.add(name: 'ui', rootPath: uiPath);
+      var skyEnginePath = addSkyEngine(sdkPath: sdkRoot.path).parent.path;
+      config.add(name: 'sky_engine', rootPath: skyEnginePath);
 
       var flutterPath = addFlutter().parent.path;
       config.add(name: 'flutter', rootPath: flutterPath);

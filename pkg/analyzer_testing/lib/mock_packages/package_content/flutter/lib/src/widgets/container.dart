@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/painting.dart';
-import 'package:ui/ui.dart';
+import 'dart:ui';
 
 import 'framework.dart';
 

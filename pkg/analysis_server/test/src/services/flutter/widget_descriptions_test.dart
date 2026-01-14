@@ -187,12 +187,12 @@ void f() {
     "kind": "ENUM",
     "enumItems": [
       {
-        "libraryUri": "package:ui/ui.dart",
+        "libraryUri": "dart:ui",
         "className": "FontStyle",
         "name": "normal"
       },
       {
-        "libraryUri": "package:ui/ui.dart",
+        "libraryUri": "dart:ui",
         "className": "FontStyle",
         "name": "italic"
       }

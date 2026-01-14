@@ -77,6 +77,9 @@ abstract class AbstractLspAnalysisServerTest
   DartFixPromptManager? get dartFixPromptManager => null;
 
   @override
+  String get dartSdkPath => sdkRoot.path;
+
+  @override
   LspClientCapabilities get editorClientCapabilities =>
       server.editorClientCapabilities!;
 
@@ -90,6 +93,8 @@ abstract class AbstractLspAnalysisServerTest
   String get packagesRootPath => resourceProvider.convertPath('/packages');
 
   bool get retainDataForTesting => false;
+
+  Folder get sdkRoot => newFolder('/sdk');
 
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
@@ -269,8 +274,6 @@ abstract class AbstractLspAnalysisServerTest
     processRunner = MockProcessRunner();
     channel = MockLspServerChannel(debugPrintCommunication);
 
-    // Create an SDK in the mock file system.
-    var sdkRoot = newFolder('/sdk');
     createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     errorNotifier = ErrorNotifier();
