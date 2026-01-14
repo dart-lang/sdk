@@ -29,7 +29,7 @@ package:analyzer_testing/mock_packages/mock_packages.dart:
     addFfi (method: Folder Function())
     addFixnum (method: Folder Function())
     addFlutter (method: Folder Function())
-    addFlutterTest (method: Folder Function())
+    addFlutterTest (method: Folder Function(), deprecated)
     addJs (method: Folder Function(), deprecated)
     addKernel (method: Folder Function(), deprecated)
     addMeta (method: Folder Function())

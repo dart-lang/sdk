@@ -141,6 +141,10 @@ mixin MockPackagesMixin {
     return packageFolder.getChildAssumingFolder('lib');
   }
 
+  @Deprecated(
+    'The mock flutter_test package is deprecated; use '
+    '`PubPackageResolutionTest.newPackage` to make a custom mock',
+  )
   Folder addFlutterTest() {
     var packageFolder = _addFiles('flutter_test');
     return packageFolder.getChildAssumingFolder('lib');

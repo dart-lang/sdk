@@ -1,5 +1,7 @@
 ## 0.1.9-dev
 - Deprecate `MockPackagesMixin.addUI`; This is replaced by `addSkyEngine`.
+- Deprecate `MockPackagesMixin.addFlutterTest`. A mock `flutter_test` package
+  can still be written with `PubPackageResolutionTest.newPackage`.
 
 ## 0.1.8
 
