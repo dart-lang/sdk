@@ -8,11 +8,13 @@ void main() {
   print(m(SomeClass.someStaticMethod)(42));
 }
 
+// Prevent the tearoff becoming a static call.
+@pragma('dart2js:never-inline')
 Function m(Function f) => f;
 
 class SomeClass {
   @RecordUse()
-  static someStaticMethod(int i) {
+  static int someStaticMethod(int i) {
     return i + 1;
   }
 }

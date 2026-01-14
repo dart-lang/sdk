@@ -6,6 +6,8 @@ import 'dart:collection' show Queue;
 import 'dart:io';
 
 // ignore: implementation_imports
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show Link, relativizeUri;
 import 'package:record_use/record_use_internal.dart'
@@ -2405,6 +2407,49 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     final uri =
         definition?.enclosingLibrary.importUri ?? element.library.canonicalUri;
 
+    record_use.Location? location = _recordUseLocation(sourceInformation);
+
+    final name = element.name!;
+    // TODO(https://github.com/dart-lang/native/issues/2948): Record the name of
+    // the extension instead of the desugared name.
+    final isExtensionMethod = hasUnnamedExtensionNamePrefix(name);
+    return RecordedCallWithArguments(
+      identifier: RecordedIdentifier(
+        name: name,
+        parent: element.enclosingClass?.name,
+        uri: relativizeUri(Uri.base, uri, Platform.isWindows),
+      ),
+      location: location,
+      positionalArguments: arguments
+          .skip(isExtensionMethod ? 1 : 0)
+          .map(_findConstant)
+          .toList(),
+    );
+  }
+
+  RecordedUse _recordTearOff(
+    FunctionEntity element,
+    SourceInformation? sourceInformation,
+  ) {
+    final definition = _closedWorld.elementMap.getMemberContextNode(element);
+    final uri =
+        definition?.enclosingLibrary.importUri ?? element.library.canonicalUri;
+
+    record_use.Location? location = _recordUseLocation(sourceInformation);
+
+    return RecordedTearOff(
+      identifier: RecordedIdentifier(
+        name: element.name!,
+        parent: element.enclosingClass?.name,
+        uri: relativizeUri(Uri.base, uri, Platform.isWindows),
+      ),
+      location: location,
+    );
+  }
+
+  record_use.Location? _recordUseLocation(
+    SourceInformation? sourceInformation,
+  ) {
     record_use.Location? location;
     if (sourceInformation != null) {
       SourceLocation? sourceLocation =
@@ -2422,14 +2467,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         }
       }
     }
-
-    return RecordedUse(
-      element.name!,
-      element.enclosingClass?.name,
-      relativizeUri(Uri.base, uri, Platform.isWindows),
-      location,
-      arguments.map(_findConstant).toList(),
-    );
+    return location;
   }
 
   ConstantValue? _findConstant(HInstruction node) {
@@ -2884,6 +2922,13 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     if (!constant.isDummy) {
       // TODO(johnniwinther): Support source information on synthetic constants.
       expression = expression.withSourceInformation(sourceInformation);
+    }
+    if (constant is FunctionConstantValue) {
+      final element = constant.element;
+      if (_closedWorld.annotationsData.shouldRecordMethodUses(element)) {
+        final recordedMethodUses = _recordTearOff(element, sourceInformation);
+        expression = expression.withAnnotation(recordedMethodUses);
+      }
     }
     push(expression);
   }
