@@ -6828,6 +6828,80 @@ library
 ''');
   }
 
+  test_primaryConstructor_typeParameters() async {
+    var library = await buildLibrary(r'''
+extension type E<T extends U, U extends num>(T it) {}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type E (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@extensionType::E
+          typeParameters
+            #F2 T (nameOffset:17) (firstTokenOffset:17) (offset:17)
+              element: #E0 T
+            #F3 U (nameOffset:30) (firstTokenOffset:30) (offset:30)
+              element: #E1 U
+          fields
+            #F4 isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@extensionType::E::@field::it
+          constructors
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+              element: <testLibrary>::@extensionType::E::@constructor::new
+              typeName: E
+              typeNameOffset: 15
+              formalParameters
+                #F6 requiredPositional final this.it (nameOffset:47) (firstTokenOffset:45) (offset:47)
+                  element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+          getters
+            #F7 synthetic isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@extensionType::E::@getter::it
+  extensionTypes
+    notSimplyBounded extension type E
+      reference: <testLibrary>::@extensionType::E
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+          bound: U
+        #E1 U
+          firstFragment: #F3
+          bound: num
+      representation: <testLibrary>::@extensionType::E::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::E::@constructor::new
+      typeErasure: T
+      fields
+        final isOriginDeclaringFormalParameter it
+          reference: <testLibrary>::@extensionType::E::@field::it
+          firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
+          type: T
+          getter: <testLibrary>::@extensionType::E::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+      constructors
+        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@extensionType::E::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E2 requiredPositional final declaring this.it
+              firstFragment: #F6
+              type: T
+              field: <testLibrary>::@extensionType::E::@field::it
+      getters
+        synthetic isExtensionTypeMember isOriginVariable it
+          reference: <testLibrary>::@extensionType::E::@getter::it
+          firstFragment: #F7
+          hasEnclosingTypeParameterReference: true
+          returnType: T
+          variable: <testLibrary>::@extensionType::E::@field::it
+''');
+  }
+
   test_primaryConstructorBody_constantInitializers_assertInitializer() async {
     var library = await buildLibrary(r'''
 extension type const E(int it) {

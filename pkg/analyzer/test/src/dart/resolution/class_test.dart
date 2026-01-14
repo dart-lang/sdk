@@ -827,6 +827,69 @@ ClassDeclaration
 ''');
   }
 
+  test_primaryConstructor_typeParameters() async {
+    await assertNoErrorsInCode(r'''
+class D<T extends U, U extends num>(T t, U u);
+''');
+
+    var node = findNode.singleClassDeclaration;
+    assertResolvedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: D
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          extendsKeyword: extends
+          bound: NamedType
+            name: U
+            element: #E0 U
+            type: U
+          declaredFragment: <testLibraryFragment> T@8
+            defaultType: num
+        TypeParameter
+          name: U
+          extendsKeyword: extends
+          bound: NamedType
+            name: num
+            element: dart:core::@class::num
+            type: num
+          declaredFragment: <testLibraryFragment> U@21
+            defaultType: num
+      rightBracket: >
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: T
+          element: #E1 T
+          type: T
+        name: t
+        declaredFragment: <testLibraryFragment> t@38
+          element: isPublic
+            type: T
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: U
+          element: #E0 U
+          type: U
+        name: u
+        declaredFragment: <testLibraryFragment> u@43
+          element: isPublic
+            type: U
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::D::@constructor::new
+        type: D<T, U> Function(T, U)
+  body: EmptyClassBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> D@6
+''');
+  }
+
   test_primaryConstructorBody_duplicate() async {
     await assertNoErrorsInCode(r'''
 class A(bool x, bool y) {

@@ -605,7 +605,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       _withNameScope(() {
         var typeParameters = node.primaryConstructor.typeParameters;
         _buildTypeParameterElements(typeParameters);
-        typeParameters?.accept(this);
 
         node.primaryConstructor.accept(this);
 
@@ -1213,6 +1212,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitPrimaryConstructorDeclaration(
     covariant PrimaryConstructorDeclarationImpl node,
   ) {
+    node.typeParameters?.accept(this);
+
     var fragment = _elementWalker!.getConstructor();
     node.declaredFragment = fragment;
 

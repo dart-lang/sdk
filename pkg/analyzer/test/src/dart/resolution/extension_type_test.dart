@@ -3088,6 +3088,56 @@ PrimaryConstructorDeclaration
 ''');
   }
 
+  test_primaryConstructor_typeParameters() async {
+    await assertNoErrorsInCode(r'''
+extension type E<T extends U, U extends num>(T it) {}
+''');
+
+    var node = findNode.singlePrimaryConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorDeclaration
+  typeName: E
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        extendsKeyword: extends
+        bound: NamedType
+          name: U
+          element: #E0 U
+          type: U
+        declaredFragment: <testLibraryFragment> T@17
+          defaultType: num
+      TypeParameter
+        name: U
+        extendsKeyword: extends
+        bound: NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+        declaredFragment: <testLibraryFragment> U@30
+          defaultType: num
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: T
+        element: #E1 T
+        type: T
+      name: it
+      declaredFragment: <testLibraryFragment> it@47
+        element: isFinal isPublic
+          type: T
+          field: <testLibrary>::@extensionType::E::@field::it
+    rightParenthesis: )
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@extensionType::E::@constructor::new
+      type: E<T, U> Function(T)
+''');
+  }
+
   test_primaryConstructorBody_duplicate() async {
     await assertNoErrorsInCode(r'''
 extension type A({bool it = false}) {

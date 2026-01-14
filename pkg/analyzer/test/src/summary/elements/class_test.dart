@@ -23729,6 +23729,59 @@ library
 ''');
   }
 
+  test_primaryConstructor_typeParameters() async {
+    var library = await buildLibrary('''
+class A<T extends U, U extends num>(T t, U u);
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          typeParameters
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+            #F3 U (nameOffset:21) (firstTokenOffset:21) (offset:21)
+              element: #E1 U
+          constructors
+            #F4 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 6
+              formalParameters
+                #F5 requiredPositional t (nameOffset:38) (firstTokenOffset:36) (offset:38)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::t
+                #F6 requiredPositional u (nameOffset:43) (firstTokenOffset:41) (offset:43)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::u
+  classes
+    notSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+          bound: U
+        #E1 U
+          firstFragment: #F3
+          bound: num
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
+          formalParameters
+            #E2 requiredPositional t
+              firstFragment: #F5
+              type: T
+            #E3 requiredPositional u
+              firstFragment: #F6
+              type: U
+''');
+  }
+
   test_primaryConstructorBody_constantInitializers_assertInitializer() async {
     var library = await buildLibrary('''
 class const A() {
