@@ -1172,6 +1172,72 @@ EnumDeclaration
 ''');
   }
 
+  test_primaryConstructor_scopes() async {
+    await assertNoErrorsInCode(r'''
+const foo = 0;
+enum A<@foo T>([@foo int x = foo]) {
+  v;
+  static const foo = 1;
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorDeclaration
+  typeName: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        metadata
+          Annotation
+            atSign: @
+            name: SimpleIdentifier
+              token: foo
+              element: <testLibrary>::@getter::foo
+              staticType: null
+            element: <testLibrary>::@getter::foo
+        name: T
+        declaredFragment: <testLibraryFragment> T@27
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    leftDelimiter: [
+    parameter: DefaultFormalParameter
+      parameter: SimpleFormalParameter
+        metadata
+          Annotation
+            atSign: @
+            name: SimpleIdentifier
+              token: foo
+              element: <testLibrary>::@enum::A::@getter::foo
+              staticType: null
+            element: <testLibrary>::@enum::A::@getter::foo
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: x
+        declaredFragment: <testLibraryFragment> x@40
+          element: isPublic
+            type: int
+      separator: =
+      defaultValue: SimpleIdentifier
+        token: foo
+        element: <testLibrary>::@enum::A::@getter::foo
+        staticType: int
+      declaredFragment: <testLibraryFragment> x@40
+        element: isPublic
+          type: int
+    rightDelimiter: ]
+    rightParenthesis: )
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@enum::A::@constructor::new
+      type: A<T> Function([int])
+''');
+  }
+
   test_primaryConstructorBody_duplicate() async {
     await assertNoErrorsInCode(r'''
 enum A(bool x, bool y) {

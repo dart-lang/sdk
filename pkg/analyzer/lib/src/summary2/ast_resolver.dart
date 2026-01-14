@@ -132,12 +132,12 @@ class AstResolver {
 
   void resolvePrimaryConstructor(
     PrimaryConstructorDeclarationImpl node,
-    PrimaryConstructorBodyImpl? body,
+    PrimaryConstructorBodyImpl body,
   ) {
     var element = node.declaredFragment!.element;
 
     void accept(AstVisitor<Object?> visitor) {
-      body?.initializers.accept(visitor);
+      body.initializers.accept(visitor);
     }
 
     _prepareEnclosingDeclarations();

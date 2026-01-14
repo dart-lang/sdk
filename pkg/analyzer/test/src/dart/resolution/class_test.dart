@@ -725,6 +725,71 @@ ClassDeclaration
 ''');
   }
 
+  test_primaryConstructor_scopes() async {
+    await assertNoErrorsInCode(r'''
+const foo = 0;
+class A<@foo T>([@foo int x = foo]) {
+  static const foo = 1;
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorDeclaration
+  typeName: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        metadata
+          Annotation
+            atSign: @
+            name: SimpleIdentifier
+              token: foo
+              element: <testLibrary>::@getter::foo
+              staticType: null
+            element: <testLibrary>::@getter::foo
+        name: T
+        declaredFragment: <testLibraryFragment> T@28
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    leftDelimiter: [
+    parameter: DefaultFormalParameter
+      parameter: SimpleFormalParameter
+        metadata
+          Annotation
+            atSign: @
+            name: SimpleIdentifier
+              token: foo
+              element: <testLibrary>::@class::A::@getter::foo
+              staticType: null
+            element: <testLibrary>::@class::A::@getter::foo
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: x
+        declaredFragment: <testLibraryFragment> x@41
+          element: isPublic
+            type: int
+      separator: =
+      defaultValue: SimpleIdentifier
+        token: foo
+        element: <testLibrary>::@class::A::@getter::foo
+        staticType: int
+      declaredFragment: <testLibraryFragment> x@41
+        element: isPublic
+          type: int
+    rightDelimiter: ]
+    rightParenthesis: )
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@class::A::@constructor::new
+      type: A<T> Function([int])
+''');
+  }
+
   test_primaryConstructor_superFormalParameter() async {
     await assertNoErrorsInCode(r'''
 class A(final int a);

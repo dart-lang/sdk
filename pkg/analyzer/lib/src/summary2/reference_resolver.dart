@@ -85,7 +85,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     );
 
     node.metadata.accept(this);
-    node.namePart.accept(this);
+    node.namePart.typeParameters?.accept(this);
     node.extendsClause?.accept(this);
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
@@ -93,6 +93,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = InstanceScope(scope, fragment.asElement2);
     LinkingNodeContext(node, scope);
 
+    node.namePart
+        .tryCast<PrimaryConstructorDeclaration>()
+        ?.formalParameters
+        .accept(this);
     node.body.accept(this);
     nodesToBuildType.addDeclaration(node);
 
@@ -164,13 +168,17 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     );
 
     node.metadata.accept(this);
-    node.namePart.accept(this);
+    node.namePart.typeParameters?.accept(this);
     node.implementsClause?.accept(this);
     node.withClause?.accept(this);
 
     scope = InstanceScope(scope, element);
     LinkingNodeContext(node, scope);
 
+    node.namePart
+        .tryCast<PrimaryConstructorDeclaration>()
+        ?.formalParameters
+        .accept(this);
     node.body.members.accept(this);
     nodesToBuildType.addDeclaration(node);
 
@@ -238,12 +246,13 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     );
 
     node.metadata.accept(this);
-    node.primaryConstructor.accept(this);
+    node.primaryConstructor.typeParameters?.accept(this);
     node.implementsClause?.accept(this);
 
     scope = InstanceScope(scope, fragment.asElement2);
     LinkingNodeContext(node, scope);
 
+    node.primaryConstructor.formalParameters.accept(this);
     node.body.accept(this);
     nodesToBuildType.addDeclaration(node);
 
@@ -524,7 +533,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {}
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    LinkingNodeContext(node, scope);
+  }
 
   @override
   void visitPrimaryConstructorDeclaration(

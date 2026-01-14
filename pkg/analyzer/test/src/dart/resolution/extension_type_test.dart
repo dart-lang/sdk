@@ -3021,6 +3021,73 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  test_primaryConstructor_scopes() async {
+    await assertNoErrorsInCode(r'''
+const foo = 0;
+extension type E<@foo T>([@foo int it = foo]) {
+  static const foo = 1;
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorDeclaration
+  typeName: E
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        metadata
+          Annotation
+            atSign: @
+            name: SimpleIdentifier
+              token: foo
+              element: <testLibrary>::@getter::foo
+              staticType: null
+            element: <testLibrary>::@getter::foo
+        name: T
+        declaredFragment: <testLibraryFragment> T@37
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    leftDelimiter: [
+    parameter: DefaultFormalParameter
+      parameter: SimpleFormalParameter
+        metadata
+          Annotation
+            atSign: @
+            name: SimpleIdentifier
+              token: foo
+              element: <testLibrary>::@extensionType::E::@getter::foo
+              staticType: null
+            element: <testLibrary>::@extensionType::E::@getter::foo
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: it
+        declaredFragment: <testLibraryFragment> it@50
+          element: isFinal isPublic
+            type: int
+            field: <testLibrary>::@extensionType::E::@field::it
+      separator: =
+      defaultValue: SimpleIdentifier
+        token: foo
+        element: <testLibrary>::@extensionType::E::@getter::foo
+        staticType: int
+      declaredFragment: <testLibraryFragment> it@50
+        element: isFinal isPublic
+          type: int
+          field: <testLibrary>::@extensionType::E::@field::it
+    rightDelimiter: ]
+    rightParenthesis: )
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@extensionType::E::@constructor::new
+      type: E<T> Function([int])
+''');
+  }
+
   test_primaryConstructorBody_duplicate() async {
     await assertNoErrorsInCode(r'''
 extension type A({bool it = false}) {

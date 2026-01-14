@@ -23594,6 +23594,141 @@ library
 ''');
   }
 
+  test_primaryConstructor_scopes() async {
+    var library = await buildLibrary('''
+const foo = 0;
+class A<@foo T>([@foo int x = foo]) {
+  static const foo = 1;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:21) (firstTokenOffset:15) (offset:21)
+          element: <testLibrary>::@class::A
+          typeParameters
+            #F2 T (nameOffset:28) (firstTokenOffset:23) (offset:28)
+              element: #E0 T
+              metadata
+                Annotation
+                  atSign: @ @23
+                  name: SimpleIdentifier
+                    token: foo @24
+                    element: <testLibrary>::@getter::foo
+                    staticType: null
+                  element: <testLibrary>::@getter::foo
+          fields
+            #F3 hasInitializer isOriginDeclaration foo (nameOffset:68) (firstTokenOffset:68) (offset:68)
+              element: <testLibrary>::@class::A::@field::foo
+              initializer: expression_0
+                IntegerLiteral
+                  literal: 1 @74
+                  staticType: int
+          constructors
+            #F4 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 21
+              formalParameters
+                #F5 optionalPositional x (nameOffset:41) (firstTokenOffset:32) (offset:41)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                  metadata
+                    Annotation
+                      atSign: @ @32
+                      name: SimpleIdentifier
+                        token: foo @33
+                        element: <testLibrary>::@class::A::@getter::foo
+                        staticType: null
+                      element: <testLibrary>::@class::A::@getter::foo
+                  initializer: expression_1
+                    SimpleIdentifier
+                      token: foo @45
+                      element: <testLibrary>::@class::A::@getter::foo
+                      staticType: int
+          getters
+            #F6 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
+              element: <testLibrary>::@class::A::@getter::foo
+      topLevelVariables
+        #F7 hasInitializer isOriginDeclaration foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::foo
+          initializer: expression_2
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
+      getters
+        #F8 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::foo
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+          metadata
+            Annotation
+              atSign: @ @23
+              name: SimpleIdentifier
+                token: foo @24
+                element: <testLibrary>::@getter::foo
+                staticType: null
+              element: <testLibrary>::@getter::foo
+      fields
+        static const hasImplicitType hasInitializer isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: int
+          constantInitializer
+            fragment: #F3
+            expression: expression_0
+          getter: <testLibrary>::@class::A::@getter::foo
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
+          formalParameters
+            #E1 optionalPositional hasDefaultValue x
+              firstFragment: #F5
+              type: int
+              metadata
+                Annotation
+                  atSign: @ @32
+                  name: SimpleIdentifier
+                    token: foo @33
+                    element: <testLibrary>::@class::A::@getter::foo
+                    staticType: null
+                  element: <testLibrary>::@class::A::@getter::foo
+              constantInitializer
+                fragment: #F5
+                expression: expression_1
+      getters
+        synthetic static isOriginVariable foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F6
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+  topLevelVariables
+    const hasImplicitType hasInitializer isOriginDeclaration foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F7
+      type: int
+      constantInitializer
+        fragment: #F7
+        expression: expression_2
+      getter: <testLibrary>::@getter::foo
+  getters
+    synthetic static isOriginVariable foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F8
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
   test_primaryConstructorBody_constantInitializers_assertInitializer() async {
     var library = await buildLibrary('''
 class const A() {

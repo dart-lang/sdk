@@ -10,6 +10,7 @@ import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class MetadataResolver extends ThrowingAstVisitor<void> {
   final Linker _linker;
@@ -46,10 +47,14 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     node.metadata.accept(this);
-    node.namePart.accept(this);
+    node.namePart.typeParameters?.accept(this);
 
     _scope = LinkingNodeContext.get(node).scope;
     try {
+      node.namePart
+          .tryCast<PrimaryConstructorDeclaration>()
+          ?.formalParameters
+          .accept(this);
       node.body.accept(this);
     } finally {
       _scope = _containerScope;
@@ -94,6 +99,10 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
     _scope = LinkingNodeContext.get(node).scope;
     try {
+      node.namePart
+          .tryCast<PrimaryConstructorDeclaration>()
+          ?.formalParameters
+          .accept(this);
       node.body.constants.accept(this);
       node.body.members.accept(this);
     } finally {
@@ -127,10 +136,11 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     node.metadata.accept(this);
-    node.primaryConstructor.accept(this);
+    node.primaryConstructor.typeParameters?.accept(this);
 
     _scope = LinkingNodeContext.get(node).scope;
     try {
+      node.primaryConstructor.formalParameters.accept(this);
       node.body.accept(this);
     } finally {
       _scope = _containerScope;
