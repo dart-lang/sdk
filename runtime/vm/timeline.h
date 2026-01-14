@@ -138,7 +138,7 @@ class TimelineStream {
 
   // This field is accessed by generated code (intrinsic) and expects to see
   // 0 or 1. If this becomes a BitField, the generated code must be updated.
-  uintptr_t enabled_;
+  RelaxedAtomic<uintptr_t> enabled_;
 
 #if defined(DART_HOST_OS_FUCHSIA)
   trace_site_t trace_site_ = {};
