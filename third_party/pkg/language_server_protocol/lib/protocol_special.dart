@@ -26,6 +26,11 @@ int lspHashCode(dynamic obj) {
 Object? specToJson(Object? obj) {
   if (obj is ToJsonable) {
     return obj.toJson();
+  } else if (obj is List) {
+    return List.generate(
+      obj.length,
+      (index) => specToJson(obj[index]),
+    );
   } else {
     return obj;
   }

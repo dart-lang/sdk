@@ -257,6 +257,11 @@ bool _isSpecType(TypeBase type) {
           (_namespaces.containsKey(type.name)));
 }
 
+bool _isUnionType(TypeBase type) {
+  type = resolveTypeAlias(type);
+  return type is UnionType;
+}
+
 bool _isUriType(TypeBase type) {
   type = resolveTypeAlias(type);
   return type is TypeReference && type.dartType == 'Uri';
@@ -1140,6 +1145,12 @@ void _writeToJsonCode(
     buffer.write(', ');
     _writeToJsonCode(buffer, type.valueType, 'value', '');
     buffer.write('))');
+  } else if (_isUnionType(type)) {
+    // We must call toJson() on EitherX classes to ensure the generated Map
+    // contains the raw value and not the EitherX. We don't need to handle
+    // LiteralUnionTypes because those are stored as a single underlying type
+    // without a wrapper class anyway.
+    buffer.write('$valueCode$nullOp.toJson()');
   } else if (_isUriType(type)) {
     buffer.write('$valueCode$nullOp.toString()');
   } else {
@@ -1170,6 +1181,10 @@ void _writeToJsonFieldsForResponseMessage(
     ..writeIndentedln('} else if (error != null) {')
     ..indent()
     ..writeIndentedln('''$mapName['error'] = error;''')
+    ..outdent()
+    ..writeIndentedln('} else if (result case ToJsonable result?) {')
+    ..indent()
+    ..writeIndentedln('''$mapName['result'] = result.toJson();''')
     ..outdent()
     ..writeIndentedln('} else {')
     ..indent()

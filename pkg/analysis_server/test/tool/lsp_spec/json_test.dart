@@ -31,7 +31,7 @@ void main() {
       expect(output, equals('{"id":1,"jsonrpc":"test","method":"shutdown"}'));
     });
 
-    test('returns correct output for nested union types', () {
+    test('returns correct JSON string for nested union types', () {
       var message = ResponseMessage(
         id: Either2<int, String>.t1(1),
         result:
@@ -53,6 +53,36 @@ void main() {
       );
     });
 
+    test('returns correct Map values for nested union types', () {
+      var message = ResponseMessage(
+        id: Either2<int, String>.t1(1),
+        result:
+            Either2<Either2<List<Location>, Location>, List<LocationLink>>.t1(
+              Either2<List<Location>, Location>.t1([
+                Location(range: range, uri: Uri.parse('http://example.org/')),
+              ]),
+            ),
+        jsonrpc: jsonRpcVersion,
+      );
+      var map = message.toJson();
+      expect(
+        map,
+        equals({
+          'id': 1,
+          'jsonrpc': '2.0',
+          'result': [
+            {
+              'range': {
+                'end': {'character': 2, 'line': 2},
+                'start': {'character': 1, 'line': 1},
+              },
+              'uri': 'http://example.org/',
+            },
+          ],
+        }),
+      );
+    });
+
     test('returns correct output for union types containing interface types', () {
       var params = Either2<String, TextDocumentItem>.t2(
         TextDocumentItem(
@@ -71,7 +101,7 @@ void main() {
       );
     });
 
-    test('returns correct output for types with lists', () {
+    test('returns correct JSON string for types with lists', () {
       var location = Location(
         uri: Uri.parse('http://example.org/'),
         range: range,
@@ -112,6 +142,28 @@ void main() {
       }'''
               .replaceAll(RegExp('[ \n]'), '');
       expect(output, equals(expected));
+    });
+
+    test('returns correct Map values for untyped lists', () {
+      var list = <Object>[
+        Location(uri: Uri.parse('http://example.org/'), range: range),
+        true,
+      ];
+
+      var output = specToJson(list);
+      expect(
+        output,
+        equals([
+          {
+            'range': {
+              'end': {'character': 2, 'line': 2},
+              'start': {'character': 1, 'line': 1},
+            },
+            'uri': 'http://example.org/',
+          },
+          true,
+        ]),
+      );
     });
 
     test('toJson() converts lists of enums to their underlying values', () {
