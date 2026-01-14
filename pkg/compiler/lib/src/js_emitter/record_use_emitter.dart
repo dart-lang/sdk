@@ -14,7 +14,8 @@ library;
 import 'package:record_use/record_use_internal.dart';
 
 import '../js/js.dart' as js;
-import '../universe/recorded_use.dart' show RecordedUse;
+import '../universe/recorded_use.dart'
+    show RecordedUse, RecordedCallWithArguments, RecordedTearOff;
 
 class _AnnotationMonitor implements js.JavaScriptAnnotationMonitor {
   final RecordUseCollector _collector;
@@ -42,21 +43,20 @@ class RecordUseCollector {
 
   /// Save a [recordedUse] in the [callMap].
   void _register(String loadingUnit, RecordedUse recordedUse) {
-    final identifier = Identifier(
-      importUri: recordedUse.uri.toString(),
-      scope: recordedUse.parent,
-      name: recordedUse.name,
-    );
-    callMap
-        .putIfAbsent(identifier, () => [])
-        .add(
-          CallWithArguments(
-            loadingUnit: loadingUnit,
-            namedArguments: {},
-            positionalArguments: recordedUse.arguments,
-            location: recordedUse.location,
-          ),
-        );
+    final identifier = recordedUse.identifier.toPackageRecordUseFormat();
+    final callReference = switch (recordedUse) {
+      RecordedCallWithArguments() => CallWithArguments(
+        loadingUnit: loadingUnit,
+        namedArguments: {},
+        positionalArguments: recordedUse.arguments,
+        location: recordedUse.location,
+      ),
+      RecordedTearOff() => CallTearOff(
+        loadingUnit: loadingUnit,
+        location: recordedUse.location,
+      ),
+    };
+    callMap.putIfAbsent(identifier, () => []).add(callReference);
   }
 
   Map<String, dynamic> finish(Map<String, String> environment) => Recordings(

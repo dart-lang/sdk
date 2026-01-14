@@ -61,7 +61,9 @@ Future<void> main() async {
             // https://github.com/dart-lang/native/issues/2890
             allowDefinitionLoadingUnitNull: true,
             allowMoreConstArguments: true,
-            allowTearOffToStaticPromotion: true,
+            // Ensure test coverage of tear offs, add pragmas to prevent
+            // optimiations if necessary.
+            allowTearOffToStaticPromotion: false,
             uriMapping: (String uri) =>
                 uri.replaceFirst('memory:sdk/tests/web/native/', ''),
             loadingUnitMapping: (String unit) =>

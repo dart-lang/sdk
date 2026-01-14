@@ -2405,6 +2405,42 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     final uri =
         definition?.enclosingLibrary.importUri ?? element.library.canonicalUri;
 
+    record_use.Location? location = _recordUseLocation(sourceInformation);
+
+    return RecordedCallWithArguments(
+      identifier: RecordedIdentifier(
+        name: element.name!,
+        parent: element.enclosingClass?.name,
+        uri: relativizeUri(Uri.base, uri, Platform.isWindows),
+      ),
+      location: location,
+      positionalArguments: arguments.map(_findConstant).toList(),
+    );
+  }
+
+  RecordedUse _recordTearOff(
+    FunctionEntity element,
+    SourceInformation? sourceInformation,
+  ) {
+    final definition = _closedWorld.elementMap.getMemberContextNode(element);
+    final uri =
+        definition?.enclosingLibrary.importUri ?? element.library.canonicalUri;
+
+    record_use.Location? location = _recordUseLocation(sourceInformation);
+
+    return RecordedTearOff(
+      identifier: RecordedIdentifier(
+        name: element.name!,
+        parent: element.enclosingClass?.name,
+        uri: relativizeUri(Uri.base, uri, Platform.isWindows),
+      ),
+      location: location,
+    );
+  }
+
+  record_use.Location? _recordUseLocation(
+    SourceInformation? sourceInformation,
+  ) {
     record_use.Location? location;
     if (sourceInformation != null) {
       SourceLocation? sourceLocation =
@@ -2422,14 +2458,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         }
       }
     }
-
-    return RecordedUse(
-      element.name!,
-      element.enclosingClass?.name,
-      relativizeUri(Uri.base, uri, Platform.isWindows),
-      location,
-      arguments.map(_findConstant).toList(),
-    );
+    return location;
   }
 
   ConstantValue? _findConstant(HInstruction node) {
@@ -2884,6 +2913,13 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     if (!constant.isDummy) {
       // TODO(johnniwinther): Support source information on synthetic constants.
       expression = expression.withSourceInformation(sourceInformation);
+    }
+    if (constant is FunctionConstantValue) {
+      final element = constant.element;
+      if (_closedWorld.annotationsData.shouldRecordMethodUses(element)) {
+        final recordedMethodUses = _recordTearOff(element, sourceInformation);
+        expression = expression.withAnnotation(recordedMethodUses);
+      }
     }
     push(expression);
   }
