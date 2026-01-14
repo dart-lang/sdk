@@ -8,19 +8,6 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 
 VerifySuperFormalParametersResult verifySuperFormalParameters({
-  required ConstructorDeclaration constructor,
-  DiagnosticReporter? diagnosticReporter,
-  bool hasExplicitPositionalArguments = false,
-}) {
-  return verifySuperFormalParameters2(
-    formalParameterList: constructor.parameters,
-    diagnosticReporter: diagnosticReporter,
-    hasExplicitPositionalArguments: hasExplicitPositionalArguments,
-  );
-}
-
-// TODO(scheglov): migrate all to it
-VerifySuperFormalParametersResult verifySuperFormalParameters2({
   required FormalParameterList formalParameterList,
   DiagnosticReporter? diagnosticReporter,
   bool hasExplicitPositionalArguments = false,

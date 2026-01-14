@@ -19,6 +19,17 @@ void main() {
 
 @reflectiveTest
 class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
+  Matcher isSymbol(String name, {String? containerName, SymbolKind? kind}) {
+    return isA<SymbolInformation>()
+        .having((s) => s.name, 'name', name)
+        .having(
+          (s) => s.containerName,
+          'containerName',
+          containerName ?? anything,
+        )
+        .having((s) => s.kind, 'kind', kind ?? anything);
+  }
+
   Future<void> test_cancellation() async {
     const content = '''
 void f() {}
@@ -59,6 +70,56 @@ void f() {}
     var symbolsResponse2 = responses[2] as ResponseMessage;
     expect(symbolsResponse2.result, hasLength(greaterThanOrEqualTo(1)));
     expect(symbolsResponse2.error, isNull);
+  }
+
+  Future<void> test_constructors_matchClassName() async {
+    const content = '''
+class UniqueClassName {
+  UniqueClassName(int a);
+  UniqueClassName.named(int a);
+}
+''';
+    var code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
+    await initialize();
+
+    var symbols = await getWorkspaceSymbols('UniqueClassName');
+    expect(
+      symbols,
+      unorderedEquals([
+        isSymbol('UniqueClassName', kind: SymbolKind.Class),
+        isSymbol(
+          'UniqueClassName.new(…)',
+          kind: SymbolKind.Constructor,
+          containerName: 'UniqueClassName',
+        ),
+        isSymbol(
+          'UniqueClassName.named(…)',
+          kind: SymbolKind.Constructor,
+          containerName: 'UniqueClassName',
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_constructors_matchConstructorName() async {
+    const content = '''
+class UniqueClassName {
+  UniqueClassName.uniqueConstructorName(int a);
+}
+''';
+    var code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
+    await initialize();
+
+    var symbols = await getWorkspaceSymbols('uniqueConstructorName');
+    expect(symbols, [
+      isSymbol(
+        'UniqueClassName.uniqueConstructorName(…)',
+        kind: SymbolKind.Constructor,
+        containerName: 'UniqueClassName',
+      ),
+    ]);
   }
 
   Future<void> test_dependencies_excluded() async {

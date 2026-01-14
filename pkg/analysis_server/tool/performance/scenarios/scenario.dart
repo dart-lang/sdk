@@ -60,8 +60,10 @@ class Scenario {
       );
     }
     var logs = Log.fromFile(logFile, {
-      for (var i = 0; i < workspace.rootDirectories.length; i++)
-        '{{workspaceFolder-$i}}': workspace.rootDirectories.elementAt(i).path,
+      for (var i = 0; i < workspace.workspaceDirectories.length; i++)
+        '{{workspaceFolder-$i}}': workspace.workspaceDirectories
+            .elementAt(i)
+            .path,
       '{{dartSdkRoot}}': sdkPath,
       for (var package in workspace.contextRoots.single.packageConfig.packages)
         '{{package-root:${package.name}}}': package.root.toString(),
@@ -72,7 +74,7 @@ class Scenario {
 
     print(
       'Scenario initialized with workpace dirs:\n'
-      '${workspace.rootDirectories.map((dir) => '  - ${dir.path}').join('\n')}',
+      '${workspace.workspaceDirectories.map((dir) => '  - ${dir.path}').join('\n')}',
     );
     try {
       var scenarioWatch = Stopwatch()..start();

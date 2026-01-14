@@ -24,6 +24,16 @@ import '../type_inference/promotion_key_store.dart';
 import 'flow_analysis_operations.dart';
 import 'flow_link.dart';
 
+/// Safely downcasts [expressionInfo] to a [_Reference].
+///
+/// If [expressionInfo] implements [_Reference], it is returned. Otherwise,
+/// `null` is returned.
+_Reference? _getExpressionReference(ExpressionInfo? expressionInfo) =>
+    switch (expressionInfo) {
+      _Reference reference => reference,
+      _ => null,
+    };
+
 /// [PropertyTarget] representing an implicit reference to the target of the
 /// innermost enclosing cascade expression.
 class CascadePropertyTarget extends PropertyTarget<Never> {
@@ -146,7 +156,7 @@ class ExpressionPropertyTarget<Expression extends Object>
 
   @override
   SsaNode? _getSsaNode(covariant _PropertyTargetHelper<Expression> helper) =>
-      helper._getExpressionReference(expression)?.ssaNode;
+      _getExpressionReference(helper._getExpressionInfo(expression))?.ssaNode;
 }
 
 /// Implementation of flow analysis to be shared between the analyzer and the
@@ -4877,14 +4887,14 @@ class WhyNotPromotedInfo {}
 
 /// [_FlowContext] representing an assert statement or assert initializer.
 class _AssertContext extends _SimpleContext {
-  /// Flow models associated with the condition being asserted.
-  ExpressionInfo? _conditionInfo;
+  /// Flow model if the condition being asserted is true.
+  FlowModel? _conditionTrue;
 
   _AssertContext(super.previous);
 
   @override
   Map<String, Object?> get _debugFields =>
-      super._debugFields..['conditionInfo'] = _conditionInfo;
+      super._debugFields..['conditionTrue'] = _conditionTrue;
 
   @override
   String get _debugType => '_AssertContext';
@@ -5049,9 +5059,6 @@ class _FlowAnalysisImpl<
   /// The mapping from expressions to their [ExpressionInfo]s.
   final Map<Expression, ExpressionInfo> _expressionInfoMap = {};
 
-  /// The mapping from expressions to their [_Reference]s.
-  final Map<Expression, _Reference> _expressionReferenceMap = {};
-
   final AssignedVariables<Node, Variable> _assignedVariables;
 
   @override
@@ -5107,7 +5114,9 @@ class _FlowAnalysisImpl<
       _current = _current.setUnreachable();
     }
 
-    _Reference? reference = _getExpressionReference(subExpression);
+    _Reference? reference = _getExpressionReference(
+      _getExpressionInfo(subExpression),
+    );
     if (reference == null) return;
     _current = _current.tryPromoteForTypeCast(this, reference, castType);
   }
@@ -5115,8 +5124,9 @@ class _FlowAnalysisImpl<
   @override
   void assert_afterCondition(Expression condition) {
     _AssertContext context = _stack.last as _AssertContext;
-    ExpressionInfo conditionInfo = _expressionEnd(condition, boolType);
-    context._conditionInfo = conditionInfo;
+    ExpressionInfo conditionInfo =
+        _getExpressionInfo(condition) ?? _makeTrivialExpressionInfo(boolType);
+    context._conditionTrue = conditionInfo.ifTrue;
     _current = conditionInfo.ifFalse;
   }
 
@@ -5129,10 +5139,7 @@ class _FlowAnalysisImpl<
   @override
   void assert_end() {
     _AssertContext context = _stack.removeLast() as _AssertContext;
-    _current = _join(
-      context._previous,
-      context._conditionInfo!.ifTrue,
-    ).unsplit();
+    _current = _join(context._previous, context._conditionTrue!).unsplit();
   }
 
   @override
@@ -5198,7 +5205,9 @@ class _FlowAnalysisImpl<
     // hasn't been created yet (e.g. because it's not a read of a local
     // variable), create a fresh SSA node for it, so that field promotions that
     // occur during cascade sections will persist in later cascade sections.
-    _Reference? expressionReference = _getExpressionReference(target);
+    _Reference? expressionReference = _getExpressionReference(
+      _getExpressionInfo(target),
+    );
     SsaNode ssaNode = expressionReference?.ssaNode ?? new SsaNode();
     // Create a temporary reference to represent the implicit temporary variable
     // that holds the cascade target. It is important that this is different
@@ -5218,7 +5227,7 @@ class _FlowAnalysisImpl<
     // will be followed by a call to [nullAwareAccess_rightBegin], and the
     // expression reference will be needed again. So store it back.
     if (expressionReference != null) {
-      _storeExpressionReference(target, expressionReference);
+      _storeExpressionInfo(target, expressionReference);
     }
     if (isNullAware) {
       _nullAwareAccess_rightBegin(
@@ -5242,7 +5251,7 @@ class _FlowAnalysisImpl<
     // (e.g. `(x..f())._field` will still receive the benefit of field
     // promotion.
     _Reference targetInfo = _cascadeTargetStack.removeLast();
-    _storeExpressionReference(wholeExpression, targetInfo);
+    _storeExpressionInfo(wholeExpression, targetInfo);
   }
 
   @override
@@ -5256,7 +5265,9 @@ class _FlowAnalysisImpl<
     SharedTypeView thenType,
   ) {
     _ConditionalContext context = _stack.last as _ConditionalContext;
-    context._thenInfo = _expressionEnd(thenExpression, thenType);
+    context._thenInfo =
+        _getExpressionInfo(thenExpression) ??
+        _makeTrivialExpressionInfo(thenType);
     context._thenModel = _current;
     _current = context._branchModel;
   }
@@ -5271,7 +5282,9 @@ class _FlowAnalysisImpl<
     _ConditionalContext context = _stack.removeLast() as _ConditionalContext;
     ExpressionInfo thenInfo = context._thenInfo!;
     FlowModel thenModel = context._thenModel!;
-    ExpressionInfo elseInfo = _expressionEnd(elseExpression, elseType);
+    ExpressionInfo elseInfo =
+        _getExpressionInfo(elseExpression) ??
+        _makeTrivialExpressionInfo(elseType);
     FlowModel elseModel = _current;
     _current = _join(thenModel, elseModel).unsplit();
     _storeExpressionInfo(
@@ -5286,7 +5299,8 @@ class _FlowAnalysisImpl<
 
   @override
   void conditional_thenBegin(Expression condition, Node conditionalExpression) {
-    ExpressionInfo conditionInfo = _expressionEnd(condition, boolType);
+    ExpressionInfo conditionInfo =
+        _getExpressionInfo(condition) ?? _makeTrivialExpressionInfo(boolType);
     _stack.add(new _ConditionalContext(conditionInfo.ifFalse));
     _current = conditionInfo.ifTrue;
   }
@@ -5399,7 +5413,8 @@ class _FlowAnalysisImpl<
   void doStatement_end(Expression condition) {
     _BranchTargetContext context = _stack.removeLast() as _BranchTargetContext;
     _current = _join(
-      _expressionEnd(condition, boolType).ifFalse,
+      (_getExpressionInfo(condition) ?? _makeTrivialExpressionInfo(boolType))
+          .ifFalse,
       context._breakModel,
     ).unsplit();
   }
@@ -5508,10 +5523,10 @@ class _FlowAnalysisImpl<
             ifTrue: _current,
             ifFalse: _current.setUnreachable(),
           )
-        : _expressionEnd(condition, boolType);
+        : _getExpressionInfo(condition) ?? _makeTrivialExpressionInfo(boolType);
     _WhileContext context = new _WhileContext(
       _current.reachable.parent!,
-      conditionInfo,
+      conditionInfo.ifFalse,
     );
     _stack.add(context);
     if (node != null) {
@@ -5535,7 +5550,7 @@ class _FlowAnalysisImpl<
     _WhileContext context = _stack.removeLast() as _WhileContext;
     // Tail of the stack: falseCondition, break
     FlowModel? breakState = context._breakModel;
-    FlowModel falseCondition = context._conditionInfo.ifFalse;
+    FlowModel falseCondition = context._conditionFalse;
 
     _current = _join(
       falseCondition,
@@ -5662,7 +5677,9 @@ class _FlowAnalysisImpl<
     Expression leftHandSide,
     SharedTypeView leftHandSideType,
   ) {
-    _Reference? lhsReference = _getExpressionReference(leftHandSide);
+    _Reference? lhsReference = _getExpressionReference(
+      _getExpressionInfo(leftHandSide),
+    );
     FlowModel shortcutState;
     _current = _current.split();
     if (lhsReference != null) {
@@ -5716,7 +5733,8 @@ class _FlowAnalysisImpl<
 
   @override
   void ifStatement_thenBegin(Expression condition, Node ifNode) {
-    ExpressionInfo conditionInfo = _expressionEnd(condition, boolType);
+    ExpressionInfo conditionInfo =
+        _getExpressionInfo(condition) ?? _makeTrivialExpressionInfo(boolType);
     _stack.add(new _IfContext(conditionInfo.ifFalse));
     _current = conditionInfo.ifTrue;
   }
@@ -5767,7 +5785,7 @@ class _FlowAnalysisImpl<
       booleanLiteral(isExpression, isNot);
     } else {
       _Reference? subExpressionReference = _getExpressionReference(
-        subExpression,
+        _getExpressionInfo(subExpression),
       );
       if (subExpressionReference != null) {
         ExpressionInfo expressionInfo = _current.tryPromoteForTypeCheck(
@@ -5873,7 +5891,9 @@ class _FlowAnalysisImpl<
     required bool isAnd,
   }) {
     _BranchContext context = _stack.removeLast() as _BranchContext;
-    ExpressionInfo rhsInfo = _expressionEnd(rightOperand, boolType);
+    ExpressionInfo rhsInfo =
+        _getExpressionInfo(rightOperand) ??
+        _makeTrivialExpressionInfo(boolType);
 
     FlowModel trueResult;
     FlowModel falseResult;
@@ -5901,7 +5921,8 @@ class _FlowAnalysisImpl<
     Node wholeExpression, {
     required bool isAnd,
   }) {
-    ExpressionInfo conditionInfo = _expressionEnd(leftOperand, boolType);
+    ExpressionInfo conditionInfo =
+        _getExpressionInfo(leftOperand) ?? _makeTrivialExpressionInfo(boolType);
     _stack.add(
       new _BranchContext(isAnd ? conditionInfo.ifFalse : conditionInfo.ifTrue),
     );
@@ -5910,7 +5931,8 @@ class _FlowAnalysisImpl<
 
   @override
   void logicalNot_end(Expression notExpression, Expression operand) {
-    ExpressionInfo conditionInfo = _expressionEnd(operand, boolType);
+    ExpressionInfo conditionInfo =
+        _getExpressionInfo(operand) ?? _makeTrivialExpressionInfo(boolType);
     _storeExpressionInfo(notExpression, conditionInfo._invert());
   }
 
@@ -5960,7 +5982,9 @@ class _FlowAnalysisImpl<
 
   @override
   void nonNullAssert_end(Expression operand) {
-    _Reference? operandReference = _getExpressionReference(operand);
+    _Reference? operandReference = _getExpressionReference(
+      _getExpressionInfo(operand),
+    );
     if (operandReference != null) {
       _current = _current.tryMarkNonNullable(this, operandReference).ifTrue;
     }
@@ -5975,7 +5999,6 @@ class _FlowAnalysisImpl<
     // null-aware expression, it was only valid in the case where the target
     // expression was not null. So it needs to be cleared now.
     _expressionInfoMap.remove(wholeExpression);
-    _expressionReferenceMap.remove(wholeExpression);
   }
 
   @override
@@ -6006,7 +6029,7 @@ class _FlowAnalysisImpl<
     required bool isKeyNullAware,
   }) {
     if (!isKeyNullAware) return;
-    _Reference? keyReference = _getExpressionReference(key);
+    _Reference? keyReference = _getExpressionReference(_getExpressionInfo(key));
     FlowModel shortcutState;
     _current = _current.split();
     if (keyReference != null) {
@@ -6306,7 +6329,6 @@ class _FlowAnalysisImpl<
     );
     if (wholeExpression != null) {
       _storeExpressionInfo(wholeExpression, propertyReference);
-      _storeExpressionReference(wholeExpression, propertyReference);
     }
     return promotedType;
   }
@@ -6548,7 +6570,6 @@ class _FlowAnalysisImpl<
       isSuper: isSuper,
     );
     _storeExpressionInfo(expression, reference);
-    _storeExpressionReference(expression, reference);
   }
 
   @override
@@ -6694,7 +6715,6 @@ class _FlowAnalysisImpl<
           this,
           _current,
         );
-    _storeExpressionReference(expression, expressionInfo);
     _storeExpressionInfo(expression, expressionInfo);
     return promotionModel.promotedTypes.lastOrNull;
   }
@@ -6704,10 +6724,11 @@ class _FlowAnalysisImpl<
     Statement whileStatement,
     Expression condition,
   ) {
-    ExpressionInfo conditionInfo = _expressionEnd(condition, boolType);
+    ExpressionInfo conditionInfo =
+        _getExpressionInfo(condition) ?? _makeTrivialExpressionInfo(boolType);
     _WhileContext context = new _WhileContext(
       _current.reachable.parent!,
-      conditionInfo,
+      conditionInfo.ifFalse,
     );
     _stack.add(context);
     _statementToContext[whileStatement] = context;
@@ -6725,7 +6746,7 @@ class _FlowAnalysisImpl<
   void whileStatement_end() {
     _WhileContext context = _stack.removeLast() as _WhileContext;
     _current = _join(
-      context._conditionInfo.ifFalse,
+      context._conditionFalse,
       context._breakModel,
     ).unsplit().inheritTested(this, _current);
   }
@@ -6734,7 +6755,7 @@ class _FlowAnalysisImpl<
   Map<SharedTypeView, NonPromotionReason> Function() whyNotPromoted(
     Expression target,
   ) {
-    if (_expressionReferenceMap[target] case var reference?) {
+    if (_expressionInfoMap[target] case _Reference reference) {
       PromotionModel? currentPromotionInfo = _current.promotionInfo?.get(
         this,
         reference.promotionKey,
@@ -7012,19 +7033,6 @@ class _FlowAnalysisImpl<
       );
       expressionInfoEntryIndex++;
     }
-    int expressionReferenceEntryIndex = 0;
-    for (MapEntry<Expression, _Reference> expressionReferenceEntry
-        in _expressionReferenceMap.entries) {
-      print(
-        '  expressionWithReference #$expressionReferenceEntryIndex: '
-        '${expressionReferenceEntry.key}',
-      );
-      print(
-        '  expressionReference #$expressionReferenceEntryIndex: '
-        '${expressionReferenceEntry.value}',
-      );
-      expressionReferenceEntryIndex++;
-    }
     if (_stack.isNotEmpty) {
       print('  stack:');
       for (_FlowContext stackEntry in _stack.reversed) {
@@ -7081,22 +7089,9 @@ class _FlowAnalysisImpl<
     }
   }
 
-  /// Gets the [ExpressionInfo] associated with the [expression] (which should
-  /// be the last expression that was traversed).  If there is no
-  /// [ExpressionInfo] associated with the [expression], then a fresh
-  /// [ExpressionInfo] is created recording the current flow analysis state.
-  ExpressionInfo _expressionEnd(Expression? expression, SharedTypeView type) =>
-      _getExpressionInfo(expression) ??
-      new ExpressionInfo.trivial(model: _current, type: type);
-
   void _forwardExpression(Expression newExpression, Expression oldExpression) {
     if (_expressionInfoMap[oldExpression] case var expressionInfo?) {
-      _expressionInfoMap.remove(oldExpression);
       _expressionInfoMap[newExpression] = expressionInfo;
-    }
-    if (_expressionReferenceMap[oldExpression] case var expressionReference?) {
-      _expressionReferenceMap.remove(oldExpression);
-      _expressionReferenceMap[newExpression] = expressionReference;
     }
   }
 
@@ -7116,42 +7111,9 @@ class _FlowAnalysisImpl<
     _current = context._previous;
   }
 
-  /// Gets the [ExpressionInfo] associated with the [expression] (which should
-  /// be the last expression that was traversed).  If there is no
-  /// [ExpressionInfo] associated with the [expression], then `null` is
-  /// returned.
-  ///
-  /// To reduce GC pressure, if this method returns a non-null value, it deletes
-  /// the association of the [expression] with its [ExpressionInfo] object. This
-  /// means that if [_getExpressionInfo] is called twice for the same
-  /// [expression] (without an intervening call to [_storeExpressionInfo]), the
-  /// second call will return `null`. This should not be a problem because the
-  /// client is expected to visit AST nodes in a single-pass depth-first
-  /// pre-order fashion.
-  ExpressionInfo? _getExpressionInfo(Expression? expression) {
-    if (expression == null) {
-      return null;
-    } else {
-      ExpressionInfo? expressionInfo = _expressionInfoMap[expression];
-      _expressionInfoMap.remove(expression);
-      return expressionInfo;
-    }
-  }
-
   @override
-  _Reference? _getExpressionReference(Expression? expression) {
-    if (expression == null) {
-      return null;
-    } else {
-      _Reference? expressionInfo = _expressionReferenceMap[expression];
-      if (expressionInfo != null) {
-        _expressionReferenceMap.remove(expression);
-        return expressionInfo;
-      } else {
-        return null;
-      }
-    }
-  }
+  ExpressionInfo? _getExpressionInfo(Expression? expression) =>
+      _expressionInfoMap[expression];
 
   /// Gets the matched value type that should be used to type check the pattern
   /// currently being analyzed.
@@ -7527,6 +7489,11 @@ class _FlowAnalysisImpl<
     );
   }
 
+  /// Creates a fresh [ExpressionInfo] recording the current flow analysis
+  /// state.
+  ExpressionInfo _makeTrivialExpressionInfo(SharedTypeView type) =>
+      new ExpressionInfo.trivial(model: _current, type: type);
+
   void _nullAwareAccess_rightBegin(
     Expression? target,
     SharedTypeView targetType, {
@@ -7534,7 +7501,9 @@ class _FlowAnalysisImpl<
   }) {
     _current = _current.split();
     FlowModel shortcutControlPath = _current;
-    _Reference? targetReference = _getExpressionReference(target);
+    _Reference? targetReference = _getExpressionReference(
+      _getExpressionInfo(target),
+    );
     if (targetReference != null) {
       _current = _current.tryMarkNonNullable(this, targetReference).ifTrue;
     }
@@ -7555,12 +7524,13 @@ class _FlowAnalysisImpl<
     _stack.add(new _NullAwareAccessContext(shortcutControlPath));
     SsaNode? targetSsaNode;
     if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
-      // Store back the target reference so that it can be used for field
-      // promotion.
-      if (target != null && targetReference != null) {
-        _storeExpressionReference(target, targetReference);
-        targetSsaNode = targetReference.ssaNode;
-      }
+      // Pick up the target SSA node so that it can be used for field promotion.
+      targetSsaNode = targetReference?.ssaNode;
+    } else {
+      // Field promotion was broken for null-aware field accesses prior to the
+      // implementation of sound flow analysis. So to replicate the bug, destroy
+      // the target reference so that it can't be used for field promotion.
+      _expressionInfoMap.remove(target);
     }
     if (guardVariable != null) {
       // Promote the guard variable as well.
@@ -7635,7 +7605,8 @@ class _FlowAnalysisImpl<
     FlowModel unmatched = _unmatched!;
     _unmatched = context._previousUnmatched;
     if (guard != null) {
-      ExpressionInfo guardInfo = _expressionEnd(guard, boolType);
+      ExpressionInfo guardInfo =
+          _getExpressionInfo(guard) ?? _makeTrivialExpressionInfo(boolType);
       _current = guardInfo.ifTrue;
       unmatched = _join(unmatched, guardInfo.ifFalse);
     }
@@ -7701,21 +7672,6 @@ class _FlowAnalysisImpl<
     _expressionInfoMap[expression] = expressionInfo;
   }
 
-  /// Associates [expression], which should be the most recently visited
-  /// expression, with the given [expressionReference] object.
-  ///
-  /// This method serves the same role as [_storeExpressionInfo], but it only
-  /// handles expressions that might refer to something promotable (a get of a
-  /// local variable or a property), so it is less likely to have trouble if the
-  /// client doesn't visit AST nodes in the proper order (see
-  /// https://github.com/dart-lang/sdk/issues/56887).
-  void _storeExpressionReference(
-    Expression expression,
-    _Reference expressionReference,
-  ) {
-    _expressionReferenceMap[expression] = expressionReference;
-  }
-
   TrivialVariableReference _thisOrSuperReference(
     SharedTypeView staticType, {
     required bool isSuper,
@@ -7776,7 +7732,6 @@ class _FlowAnalysisImpl<
         !isPostfixIncDec) {
       _Reference reference = _variableReference(variableKey, unpromotedType);
       _storeExpressionInfo(node, reference);
-      _storeExpressionReference(node, reference);
     }
   }
 }
@@ -8057,17 +8012,11 @@ abstract class _PropertyTargetHelper<Expression extends Object> {
   /// SSA node representing the implicit variable `this`.
   SsaNode get _thisSsaNode;
 
-  /// Gets the [_Reference] associated with the [expression] (which should be
-  /// the last expression that was traversed).  If there is no [_Reference]
-  /// associated with the [expression], then `null` is returned.
-  ///
-  /// This method serves the same role as
-  /// [_FlowAnalysisImpl._getExpressionInfo], but it only handles expressions
-  /// that might refer to something promotable (a get of a local variable or a
-  /// property), so it is less likely to have trouble if the client doesn't
-  /// visit AST nodes in the proper order (see
-  /// https://github.com/dart-lang/sdk/issues/56887).
-  _Reference? _getExpressionReference(Expression? expression);
+  /// Gets the [ExpressionInfo] associated with the [expression] (which should
+  /// be the last expression that was traversed).  If there is no
+  /// [ExpressionInfo] associated with the [expression], then `null` is
+  /// returned.
+  ExpressionInfo? _getExpressionInfo(Expression? expression);
 }
 
 /// Specialization of [ExpressionInfo] for the case where the expression is a
@@ -8271,14 +8220,14 @@ class _TryFinallyContext extends _FlowContext {
 /// [_FlowContext] representing a `while` loop (or a C-style `for` loop, which
 /// is functionally similar).
 class _WhileContext extends _BranchTargetContext {
-  /// Flow models associated with the loop condition.
-  final ExpressionInfo _conditionInfo;
+  /// Flow model if the condition evaluates to `false`.
+  final FlowModel _conditionFalse;
 
-  _WhileContext(super.checkpoint, this._conditionInfo);
+  _WhileContext(super.checkpoint, this._conditionFalse);
 
   @override
   Map<String, Object?> get _debugFields =>
-      super._debugFields..['conditionInfo'] = _conditionInfo;
+      super._debugFields..['conditionFalse'] = _conditionFalse;
 
   @override
   String get _debugType => '_WhileContext';

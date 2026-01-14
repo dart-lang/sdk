@@ -291,7 +291,7 @@ class DeprecatedFunctionalityVerifier {
     var VerifySuperFormalParametersResult(
       :positionalArgumentCount,
       :namedArgumentNames,
-    ) = verifySuperFormalParameters2(
+    ) = verifySuperFormalParameters(
       formalParameterList: parameters,
       diagnosticReporter: _diagnosticReporter,
     );

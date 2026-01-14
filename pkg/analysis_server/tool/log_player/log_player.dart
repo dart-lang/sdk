@@ -126,13 +126,13 @@ class LogPlayer {
                   // We have already seen this message, just remove it from the
                   // list of extra messages.
                   extraServerMessages.remove(foundMessage);
-                  if (isServerInitiatedRequest) {
+                  if (isServerInitiatedRequest && entry.message.id != null) {
                     // Record the ID mapping if it was a server initiated request.
                     actualServerMessageIds[entry.message.id!] =
                         foundMessage.id!;
                   }
                   stderr.writeln(
-                    'Matched previous extra message with ID: ${foundMessage.id}!',
+                    'Matched previous message: ${foundMessage.preview}',
                   );
                 } else if (isServerInitiatedRequest &&
                     entry.message.id == null) {
@@ -150,6 +150,7 @@ class LogPlayer {
                   // consistent ordering.
                   await _waitForMessagesFromServer(
                     pendingServerMessageExpectations,
+                    extraServerMessages,
                   );
                 }
               } else if (entry.sender == ProcessId.watcher &&
@@ -166,7 +167,10 @@ class LogPlayer {
           nextIndex++;
         }
       }
-      await _waitForMessagesFromServer(pendingServerMessageExpectations);
+      await _waitForMessagesFromServer(
+        pendingServerMessageExpectations,
+        extraServerMessages,
+      );
       if (extraServerMessages.isNotEmpty) {
         stderr.writeln(
           'There were ${extraServerMessages.length} extra messages '
@@ -196,13 +200,7 @@ class LogPlayer {
     if (message.method == 'window/workDoneProgress/create' &&
         message.params?['token'] == 'ANALYZING') {
       server?.sendMessageFromIde(
-        Message({
-          'time': DateTime.now().millisecondsSinceEpoch,
-          'kind': 'message',
-          'sender': 'ide',
-          'receiver': 'server',
-          'message': {'jsonrpc': '2.0', 'id': message.id, 'result': null},
-        }),
+        Message({'jsonrpc': '2.0', 'id': message.id, 'result': null}),
       );
       return;
     }
@@ -225,36 +223,23 @@ class LogPlayer {
       if (message.method == 'workspace/configuration') {
         // The server always sends this but we don't always record it,
         // and it requires a response.
-        var now = DateTime.now();
         server?.sendMessageFromIde(
           Message({
-            'time': now.millisecond,
-            'kind': 'message',
-            'sender': 'ide',
-            'receiver': 'server',
-            'message': {
-              'jsonrpc': '2.0',
-              'id': message.id,
-              'result': [
-                {
-                  'analysisExcludedFolders': [],
-                  'clientRequestTime': now.millisecond,
-                },
-              ],
-            },
+            'jsonrpc': '2.0',
+            'id': message.id,
+            'result': [
+              {
+                'analysisExcludedFolders': [],
+                'clientRequestTime': DateTime.now().millisecond,
+              },
+            ],
           }),
         );
       } else if (message.method == 'client/registerCapability') {
         // The server always sends this but we don't always record
         // it, just return an empty response.
         server?.sendMessageFromIde(
-          Message({
-            'time': DateTime.now().millisecond,
-            'kind': 'message',
-            'sender': 'ide',
-            'receiver': 'server',
-            'message': {'jsonrpc': '2.0', 'id': message.id, 'result': []},
-          }),
+          Message({'jsonrpc': '2.0', 'id': message.id, 'result': []}),
         );
       } else {
         if (!_shouldSkip(message)) {
@@ -310,16 +295,13 @@ class LogPlayer {
   /// emptied out.
   Future<void> _waitForMessagesFromServer(
     List<Message> pendingServerMessageExpectations,
+    List<Message> extraServerMessages,
   ) async {
     if (pendingServerMessageExpectations.isEmpty) return;
     var watch = Stopwatch()..start();
-    var trimmed = json.encode(pendingServerMessageExpectations.first.map);
-    if (trimmed.length > 100) {
-      trimmed = '${trimmed.substring(0, 100)}...';
-    }
     var progress = logger.progress(
       'Waiting for ${pendingServerMessageExpectations.length} analysis server '
-      'message(s): $trimmed',
+      'message(s): ${pendingServerMessageExpectations.first.preview}',
     );
     try {
       while (watch.elapsed < timeout) {
@@ -330,7 +312,9 @@ class LogPlayer {
       }
       throw TimeoutException(
         'Timed out waiting for analysis server messages:\n\n'
-        '${pendingServerMessageExpectations.map(json.encode).join('\n\n')}',
+        '${pendingServerMessageExpectations.map(json.encode).join('\n\n')}'
+        '\n\nUnmatched analysis server messages:\n\n'
+        '${extraServerMessages.map(json.encode).join('\n\n')}',
       );
     } finally {
       progress.finish(showTiming: true);
@@ -339,6 +323,15 @@ class LogPlayer {
 }
 
 extension MessageExtension on Message {
+  // A preview of the message, first 100 chars followed by "..."
+  String get preview {
+    var content = json.encode(map);
+    if (content.length > 100) {
+      content = '${content.substring(0, 100)}...';
+    }
+    return content;
+  }
+
   bool equals(Message other, {bool skipMatchId = true}) {
     if (method != other.method) return false;
     if (!skipMatchId && id != other.id) return false;

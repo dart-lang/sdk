@@ -2457,7 +2457,6 @@ class _TreeShakerConstantVisitor implements ConstantVisitor<void> {
   final TreeShaker shaker;
   final _TreeShakerTypeVisitor typeVisitor;
   final Set<Constant> constants = new Set<Constant>();
-  final Set<InstanceConstant> instanceConstants = new Set<InstanceConstant>();
 
   _TreeShakerConstantVisitor(this.shaker, this.typeVisitor);
 
@@ -2525,7 +2524,6 @@ class _TreeShakerConstantVisitor implements ConstantVisitor<void> {
 
   @override
   visitInstanceConstant(InstanceConstant constant) {
-    instanceConstants.add(constant);
     shaker.addClassUsedInType(constant.classNode);
     visitList(constant.typeArguments, typeVisitor);
     constant.fieldValues.forEach((Reference fieldRef, Constant value) {

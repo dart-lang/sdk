@@ -110,15 +110,19 @@ class WorkspaceSymbolHandler
       range: range,
     );
 
+    var containerName = declaration.className ?? declaration.mixinName;
     var parameters = declaration.parameters;
     var hasParameters = parameters != null && parameters.isNotEmpty;
+    var namePrefix = declaration.kind == search.DeclarationKind.CONSTRUCTOR
+        ? '$containerName.'
+        : '';
     var nameSuffix = hasParameters ? (parameters == '()' ? '()' : '(…)') : '';
 
     return SymbolInformation(
-      name: '${declaration.name}$nameSuffix',
+      name: '$namePrefix${declaration.name}$nameSuffix',
       kind: kind,
       location: location,
-      containerName: declaration.className ?? declaration.mixinName,
+      containerName: containerName,
     );
   }
 }

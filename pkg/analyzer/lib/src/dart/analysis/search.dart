@@ -1333,10 +1333,6 @@ class _FindLibraryDeclarations {
       throw const _MaxNumberOfDeclarationsError();
     }
 
-    if (matcher.score(name) < 0) {
-      return;
-    }
-
     var enclosing = element.enclosingElement;
 
     String? className;
@@ -1347,6 +1343,14 @@ class _FindLibraryDeclarations {
       mixinName = enclosing.name;
     } else if (enclosing is InterfaceElement) {
       className = enclosing.name;
+    }
+
+    // For constructors, include the class name as part of the searched name.
+    var filteredName = element is ConstructorElement
+        ? '$className.$name'
+        : name;
+    if (matcher.score(filteredName) < 0) {
+      return;
     }
 
     var kind = _getSearchElementKind(element);
