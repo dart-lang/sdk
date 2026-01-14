@@ -142,7 +142,4 @@ const dart2jsNotSupported = {
   'named_both.dart',
   'named_optional.dart',
   'named_required.dart',
-  // Extension methods are broken.
-  // https://github.com/dart-lang/native/issues/2926
-  'extension.dart',
 };

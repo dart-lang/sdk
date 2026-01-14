@@ -6,6 +6,8 @@ import 'dart:collection' show Queue;
 import 'dart:io';
 
 // ignore: implementation_imports
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show Link, relativizeUri;
 import 'package:record_use/record_use_internal.dart'
@@ -2407,14 +2409,21 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
 
     record_use.Location? location = _recordUseLocation(sourceInformation);
 
+    final name = element.name!;
+    // TODO(https://github.com/dart-lang/native/issues/2948): Record the name of
+    // the extension instead of the desugared name.
+    final isExtensionMethod = hasUnnamedExtensionNamePrefix(name);
     return RecordedCallWithArguments(
       identifier: RecordedIdentifier(
-        name: element.name!,
+        name: name,
         parent: element.enclosingClass?.name,
         uri: relativizeUri(Uri.base, uri, Platform.isWindows),
       ),
       location: location,
-      positionalArguments: arguments.map(_findConstant).toList(),
+      positionalArguments: arguments
+          .skip(isExtensionMethod ? 1 : 0)
+          .map(_findConstant)
+          .toList(),
     );
   }
 
