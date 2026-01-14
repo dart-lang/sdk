@@ -78,7 +78,9 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
     }
 
     if (addFlutterTestPackageDep) {
-      var flutterTestRootPath = '/packages/flutter_test';
+      var flutterTestRootPath = resourceProvider.convertPath(
+        '$packagesRootPath/flutter_test',
+      );
 
       var flutterTestRoot = resourceProvider.getFolder(flutterTestRootPath);
       var libFolder = flutterTestRoot.getChildAssumingFolder('lib')..create();
