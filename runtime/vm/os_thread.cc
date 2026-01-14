@@ -115,13 +115,6 @@ OSThread::~OSThread() {
 #endif
   timeline_block_ = nullptr;
   free(name_);
-#if !defined(PRODUCT)
-  if (prepared_for_interrupts_) {
-    ThreadInterrupter::CleanupCurrentThreadState(thread_interrupter_state_);
-    thread_interrupter_state_ = nullptr;
-    prepared_for_interrupts_ = false;
-  }
-#endif  // !defined(PRODUCT)
 }
 
 void OSThread::SetName(const char* name) {
@@ -161,12 +154,6 @@ void OSThread::EnableThreadInterrupts() {
   ASSERT(OSThread::Current() == this);
   uintptr_t old = thread_interrupt_disabled_.fetch_sub(1u);
   if (FLAG_profiler && (old == 1)) {
-    // We just decremented from 1 to 0.
-    // Make sure the thread interrupter is awake.
-    if (!prepared_for_interrupts_) {
-      thread_interrupter_state_ = ThreadInterrupter::PrepareCurrentThread();
-      prepared_for_interrupts_ = true;
-    }
     ThreadInterrupter::WakeUp();
   }
   if (old == 0) {
