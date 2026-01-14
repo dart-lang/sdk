@@ -7662,9 +7662,8 @@ class _FlowAnalysisImpl<
     ).restoreConditionVariableState(scrutineeInfo, this, _current);
   }
 
-  /// Associates [expression], which should be the most recently visited
-  /// expression, with the given [expressionInfo] object, and updates the
-  /// current flow model state to correspond to it.
+  /// Associates [expression] with the given [expressionInfo] object, for later
+  /// retrieval by [_getExpressionInfo].
   void _storeExpressionInfo(
     Expression expression,
     ExpressionInfo expressionInfo,
@@ -8012,10 +8011,10 @@ abstract class _PropertyTargetHelper<Expression extends Object> {
   /// SSA node representing the implicit variable `this`.
   SsaNode get _thisSsaNode;
 
-  /// Gets the [ExpressionInfo] associated with the [expression] (which should
-  /// be the last expression that was traversed).  If there is no
-  /// [ExpressionInfo] associated with the [expression], then `null` is
-  /// returned.
+  /// Gets the [ExpressionInfo] associated with the [expression].
+  ///
+  /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
+  /// the [expression], then `null` is returned.
   ExpressionInfo? _getExpressionInfo(Expression? expression);
 }
 
