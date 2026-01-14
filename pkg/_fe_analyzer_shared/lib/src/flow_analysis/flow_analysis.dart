@@ -625,6 +625,12 @@ abstract class FlowAnalysis<
   /// local function.
   void functionExpression_end();
 
+  /// Gets the [ExpressionInfo] associated with the [expression].
+  ///
+  /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
+  /// the [expression], then `null` is returned.
+  ExpressionInfo? getExpressionInfo(Expression? expression);
+
   /// Gets the matched value type that should be used to type check the pattern
   /// currently being analyzed.
   ///
@@ -1099,6 +1105,13 @@ abstract class FlowAnalysis<
   /// is write captured.
   @visibleForTesting
   SsaNode? ssaNodeForTesting(Variable variable);
+
+  /// Associates [expression] with the given [expressionInfo] object, for later
+  /// retrieval by [getExpressionInfo].
+  void storeExpressionInfo(
+    Expression expression,
+    ExpressionInfo? expressionInfo,
+  );
 
   /// Call this method just after visiting a `case` or `default` body.
   ///
@@ -1812,6 +1825,15 @@ class FlowAnalysisDebug<
   }
 
   @override
+  ExpressionInfo? getExpressionInfo(Expression? expression) {
+    return _wrap(
+      'getExpressionInfo($expression)',
+      () => _wrapped.getExpressionInfo(expression),
+      isQuery: true,
+    );
+  }
+
+  @override
   SharedTypeView getMatchedValueType() {
     return _wrap(
       'getMatchedValueType()',
@@ -2367,6 +2389,17 @@ class FlowAnalysisDebug<
       'ssaNodeForTesting($variable)',
       () => _wrapped.ssaNodeForTesting(variable),
       isQuery: true,
+    );
+  }
+
+  @override
+  void storeExpressionInfo(
+    Expression expression,
+    ExpressionInfo? expressionInfo,
+  ) {
+    _wrap(
+      'storeExpressionInfo($expression, $expressionInfo)',
+      () => _wrapped.storeExpressionInfo(expression, expressionInfo),
     );
   }
 
@@ -5057,7 +5090,7 @@ class _FlowAnalysisImpl<
   _Reference? _scrutineeReference;
 
   /// The mapping from expressions to their [ExpressionInfo]s.
-  final Map<Expression, ExpressionInfo> _expressionInfoMap = {};
+  final Map<Expression, ExpressionInfo?> _expressionInfoMap = {};
 
   final AssignedVariables<Node, Variable> _assignedVariables;
 
@@ -5602,6 +5635,10 @@ class _FlowAnalysisImpl<
   }
 
   @override
+  ExpressionInfo? getExpressionInfo(Expression? expression) =>
+      _getExpressionInfo(expression);
+
+  @override
   SharedTypeView getMatchedValueType() => _getMatchedValueType();
 
   @override
@@ -5998,7 +6035,7 @@ class _FlowAnalysisImpl<
     // If any expression info or expression reference was stored for the
     // null-aware expression, it was only valid in the case where the target
     // expression was not null. So it needs to be cleared now.
-    _expressionInfoMap.remove(wholeExpression);
+    _storeExpressionInfo(wholeExpression, null);
   }
 
   @override
@@ -6413,6 +6450,14 @@ class _FlowAnalysisImpl<
   SsaNode? ssaNodeForTesting(Variable variable) => _current.promotionInfo
       ?.get(this, promotionKeyStore.keyForVariable(variable))
       ?.ssaNode;
+
+  @override
+  void storeExpressionInfo(
+    Expression expression,
+    ExpressionInfo? expressionInfo,
+  ) {
+    _storeExpressionInfo(expression, expressionInfo);
+  }
 
   @override
   bool switchStatement_afterCase() {
@@ -7021,7 +7066,7 @@ class _FlowAnalysisImpl<
       print('  scrutineeReference: $_scrutineeReference');
     }
     int expressionInfoEntryIndex = 0;
-    for (MapEntry<Expression, ExpressionInfo> expressionInfoEntry
+    for (MapEntry<Expression, ExpressionInfo?> expressionInfoEntry
         in _expressionInfoMap.entries) {
       print(
         '  expressionWithInfo #$expressionInfoEntryIndex: '
@@ -7530,7 +7575,7 @@ class _FlowAnalysisImpl<
       // Field promotion was broken for null-aware field accesses prior to the
       // implementation of sound flow analysis. So to replicate the bug, destroy
       // the target reference so that it can't be used for field promotion.
-      _expressionInfoMap.remove(target);
+      if (target != null) _storeExpressionInfo(target, null);
     }
     if (guardVariable != null) {
       // Promote the guard variable as well.
@@ -7662,12 +7707,11 @@ class _FlowAnalysisImpl<
     ).restoreConditionVariableState(scrutineeInfo, this, _current);
   }
 
-  /// Associates [expression], which should be the most recently visited
-  /// expression, with the given [expressionInfo] object, and updates the
-  /// current flow model state to correspond to it.
+  /// Associates [expression] with the given [expressionInfo] object, for later
+  /// retrieval by [_getExpressionInfo].
   void _storeExpressionInfo(
     Expression expression,
-    ExpressionInfo expressionInfo,
+    ExpressionInfo? expressionInfo,
   ) {
     _expressionInfoMap[expression] = expressionInfo;
   }
@@ -8012,10 +8056,10 @@ abstract class _PropertyTargetHelper<Expression extends Object> {
   /// SSA node representing the implicit variable `this`.
   SsaNode get _thisSsaNode;
 
-  /// Gets the [ExpressionInfo] associated with the [expression] (which should
-  /// be the last expression that was traversed).  If there is no
-  /// [ExpressionInfo] associated with the [expression], then `null` is
-  /// returned.
+  /// Gets the [ExpressionInfo] associated with the [expression].
+  ///
+  /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
+  /// the [expression], then `null` is returned.
   ExpressionInfo? _getExpressionInfo(Expression? expression);
 }
 
