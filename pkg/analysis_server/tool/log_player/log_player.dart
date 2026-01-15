@@ -14,6 +14,7 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:collection/collection.dart';
 
 import 'log.dart';
+import 'message_equality.dart';
 import 'server_driver.dart';
 
 /// Some messages from the analysis server should just be ignored.
@@ -323,6 +324,8 @@ class LogPlayer {
 }
 
 extension MessageExtension on Message {
+  static final _messageEquality = MessageEquality(ignoredKeys: {'version'});
+
   // A preview of the message, first 100 chars followed by "..."
   String get preview {
     var content = json.encode(map);
@@ -332,22 +335,8 @@ extension MessageExtension on Message {
     return content;
   }
 
-  bool equals(Message other, {bool skipMatchId = true}) {
-    if (method != other.method) return false;
-    if (!skipMatchId && id != other.id) return false;
-    return switch (method) {
-      // No method means this is a response, compare the result.
-      null => const DeepCollectionEquality.unordered().equals(
-        result,
-        other.result,
-      ),
-      // A method means this is a request, compare the params.
-      String() => const DeepCollectionEquality.unordered().equals(
-        params,
-        other.params,
-      ),
-    };
-  }
+  bool equals(Message other, {bool skipMatchId = true}) =>
+      _messageEquality.equals(this, other, skipMatchId: skipMatchId);
 
   // Can't be a setter https://github.com/dart-lang/language/issues/4334
   void setId(int newId) => map['id'] = newId;

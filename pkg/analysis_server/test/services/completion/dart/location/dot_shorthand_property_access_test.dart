@@ -593,4 +593,22 @@ suggestions
     kind: getter
 ''');
   }
+
+  Future<void> test_record() async {
+    await computeSuggestions('''
+enum E { e01, e02 }
+int foo((E,) r) {
+  return switch (r) {
+    (.^) => 1,
+  };
+}
+''');
+    assertResponse(r'''
+suggestions
+  e01
+    kind: enumConstant
+  e02
+    kind: enumConstant
+''');
+  }
 }

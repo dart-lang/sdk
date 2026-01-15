@@ -599,6 +599,17 @@ void f(E e) {
 ''', 'E');
   }
 
+  Future<void> test_dotShorthand_parenthesizedPattern() async {
+    await assertContextType('''
+enum E { a }
+int foo((E,) r) {
+  return switch (r) {
+    (.^) => 1,
+  };
+}
+''', 'E');
+  }
+
   Future<void> test_fieldDeclaration_int() async {
     await assertContextType('''
 class Foo {
