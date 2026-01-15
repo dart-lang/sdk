@@ -9,12 +9,15 @@
 ///   composite constants.
 /// * [Entity] is used for definitions, so that it can be used in the last stage
 ///   of the compiler to see in which loading unit it ended up.
+/// * [SourceLocation] is used for source locations instead of
+///   [record_use.Location] to keep the serialization smaller.
 ///
 /// Please keep this library in sync with `package:record_use`.
 library;
 
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/io/source_information.dart';
 import 'package:record_use/record_use_internal.dart' as record_use;
 
 import '../serialization/serialization.dart';
@@ -28,33 +31,30 @@ sealed class RecordedUse {
 
   final FunctionEntity function;
 
-  /// Location of the resource identifier instance. This is `null` for constant
-  /// resource identifiers. For other resource identifier instances this is the
-  /// call site to the constructor or method.
-  final record_use.Location location;
+  final SourceInformation sourceInformation;
 
   RecordedUseKind get kind;
 
-  RecordedUse({required this.function, required this.location});
+  RecordedUse({required this.function, required this.sourceInformation});
 
   factory RecordedUse.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     RecordedUseKind kind = source.readEnum(RecordedUseKind.values);
     final function = source.readMember() as FunctionEntity;
-    final location = RecordUseLocation.readFromDataSource(source);
+    final sourceInformation = SourceInformation.readFromDataSource(source);
     RecordedUse result;
     switch (kind) {
       case RecordedUseKind.call:
         result = RecordedCallWithArguments._readFromDataSource(
           function,
-          location,
+          sourceInformation,
           source,
         );
         break;
       case RecordedUseKind.tearOff:
         result = RecordedTearOff._readFromDataSource(
           function,
-          location,
+          sourceInformation,
           source,
         );
         break;
@@ -67,7 +67,7 @@ sealed class RecordedUse {
     sink.begin(tag);
     sink.writeEnum(kind);
     sink.writeMember(function);
-    location.writeToDataSink(sink);
+    SourceInformation.writeToDataSink(sink, sourceInformation);
     _writeFieldsForKind(sink);
     sink.end(tag);
   }
@@ -77,11 +77,12 @@ sealed class RecordedUse {
   @override
   bool operator ==(Object other) {
     if (other is! RecordedUse) return false;
-    return function == other.function && location == other.location;
+    return function == other.function &&
+        sourceInformation == other.sourceInformation;
   }
 
   @override
-  int get hashCode => Object.hash(function, location);
+  int get hashCode => Object.hash(function, sourceInformation);
 }
 
 /// Dart2js version of [record_use.CallWithArguments], with [ConstantValue]s
@@ -95,7 +96,7 @@ class RecordedCallWithArguments extends RecordedUse {
 
   RecordedCallWithArguments({
     required super.function,
-    required super.location,
+    required super.sourceInformation,
     required this.positionalArguments,
   });
 
@@ -104,7 +105,7 @@ class RecordedCallWithArguments extends RecordedUse {
 
   static RecordedCallWithArguments _readFromDataSource(
     FunctionEntity function,
-    record_use.Location location,
+    SourceInformation sourceInformation,
     DataSourceReader source,
   ) {
     final positionalArguments = source.readList(
@@ -112,7 +113,7 @@ class RecordedCallWithArguments extends RecordedUse {
     );
     return RecordedCallWithArguments(
       function: function,
-      location: location,
+      sourceInformation: sourceInformation,
       positionalArguments: positionalArguments,
     );
   }
@@ -144,18 +145,21 @@ class RecordedCallWithArguments extends RecordedUse {
 
 /// Dart2js version of [record_use.CallTearOff].
 class RecordedTearOff extends RecordedUse {
-  RecordedTearOff({required super.function, required super.location});
+  RecordedTearOff({required super.function, required super.sourceInformation});
 
   @override
   RecordedUseKind get kind => RecordedUseKind.tearOff;
 
   static RecordedTearOff _readFromDataSource(
     FunctionEntity function,
-    record_use.Location location,
+    SourceInformation sourceInformation,
     DataSourceReader source,
   ) {
     // No specific fields to read.
-    return RecordedTearOff(function: function, location: location);
+    return RecordedTearOff(
+      function: function,
+      sourceInformation: sourceInformation,
+    );
   }
 
   @override
@@ -229,21 +233,4 @@ record_use.InstanceConstant? _findInstanceValue(
     fieldValues[name] = value;
   }
   return record_use.InstanceConstant(fields: fieldValues);
-}
-
-extension RecordUseLocation on record_use.Location {
-  static record_use.Location readFromDataSource(DataSourceReader source) {
-    final uri = source.readUri();
-    //TODO(mosum): Use a verbose flag for line and column info
-    // final line = source.readIntOrNull();
-    // final column = source.readIntOrNull();
-    return record_use.Location(uri: uri.toFilePath());
-  }
-
-  void writeToDataSink(DataSinkWriter sink) {
-    sink.writeUri(Uri.file(uri));
-    //TODO(mosum): Use a verbose flag for line and column info
-    // sink.writeIntOrNull(line);
-    // sink.writeIntOrNull(column);
-  }
 }

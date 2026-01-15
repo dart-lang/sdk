@@ -3,16 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection' show Queue;
-import 'dart:io';
 
 // ignore: implementation_imports
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 // ignore: implementation_imports
-import 'package:front_end/src/api_unstable/dart2js.dart'
-    show Link, relativizeUri;
-import 'package:record_use/record_use_internal.dart'
-    as record_use
-    show Location;
+import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry;
@@ -2403,15 +2398,13 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     List<HInstruction> arguments,
     SourceInformation sourceInformation,
   ) {
-    final location = _recordUseLocation(sourceInformation);
-
     final name = element.name!;
     // TODO(https://github.com/dart-lang/native/issues/2948): Record the name of
     // the extension instead of the desugared name.
     final isExtensionMethod = hasUnnamedExtensionNamePrefix(name);
     return RecordedCallWithArguments(
       function: element,
-      location: location,
+      sourceInformation: sourceInformation,
       positionalArguments: arguments
           .skip(isExtensionMethod ? 1 : 0)
           .map(_findConstant)
@@ -2423,27 +2416,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     FunctionEntity element,
     SourceInformation sourceInformation,
   ) {
-    final location = _recordUseLocation(sourceInformation);
-    return RecordedTearOff(function: element, location: location);
-  }
-
-  record_use.Location _recordUseLocation(SourceInformation sourceInformation) {
-    SourceLocation? sourceLocation =
-        sourceInformation.startPosition ??
-        sourceInformation.innerPosition ??
-        sourceInformation.endPosition;
-    if (sourceLocation == null) {
-      throw UnsupportedError('Source location is null.');
-    }
-    final sourceUri = sourceLocation.sourceUri;
-    if (sourceUri == null) {
-      throw UnsupportedError('Source uri is null.');
-    }
-
-    // Is [sourceUri] normalized in some way or does that need to be done
-    // here?
-    return record_use.Location(
-      uri: relativizeUri(Uri.base, sourceUri, Platform.isWindows),
+    return RecordedTearOff(
+      function: element,
+      sourceInformation: sourceInformation,
     );
   }
 
