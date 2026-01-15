@@ -469,6 +469,10 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
       node.expression.accept(this)?.asynchronousOrNull;
 
   @override
+  AsyncState? visitNullAwareElement(NullAwareElement node) =>
+      node.value.accept(this)?.asynchronousOrNull;
+
+  @override
   AsyncState? visitParenthesizedExpression(ParenthesizedExpression node) =>
       node.expression.accept(this);
 
