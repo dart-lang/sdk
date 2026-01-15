@@ -1034,6 +1034,18 @@ parent3: ${node.parent?.parent?.parent}
   }
 
   @override
+  DartType? visitParenthesizedPattern(ParenthesizedPattern node) {
+    var type = _visitParent(node);
+
+    // `(int) r = (^)` without any fields.
+    if (type is RecordType) {
+      return type.positionalFields.firstOrNull?.type;
+    }
+
+    return type;
+  }
+
+  @override
   DartType? visitPatternAssignment(PatternAssignment node) {
     if (offset >= node.equals.end) {
       return _requiredTypeOfPattern(node.pattern);
