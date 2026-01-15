@@ -41,15 +41,24 @@ extension type Message(JsonMap map) {
   /// do not.
   int? get id => map['id'] as int?;
 
+  /// Whether this message is a notification that a file has changed.
+  bool get isDidChange => method == 'textDocument/didChange';
+
+  /// Whether this message is a notification that a file has been closed.
+  bool get isDidClose => method == 'textDocument/didClose';
+
+  /// Whether this message is a notification that a file has been opened.
+  bool get isDidOpen => method == 'textDocument/didOpen';
+
   /// Whether this message is a request for the server to exit.
   bool get isExit => method == 'exit';
-
-  /// Whether this message is a request for the server to initialize itself.
-  bool get isInitialize => method == 'initialize';
 
   /// Whether this message is a notification to the server indicating that the
   /// client is initialized.
   bool get isInitialized => method == 'initialized';
+
+  /// Whether this message is a request for the server to initialize itself.
+  bool get isInitializeRequest => method == 'initialize';
 
   /// Whether this message is a request from the server to log a message.
   bool get isLogMessage => method == 'window/logMessage';
@@ -75,6 +84,10 @@ extension type Message(JsonMap map) {
   /// Whether this message is a request for the server to shut down.
   bool get isShutdown => method == 'shutdown';
 
+  /// Whether this message is a request for the server to set the configuration
+  /// of the workspace.
+  bool get isWorkspaceConfiguration => method == 'workspace/configuration';
+
   /// The method being sent in this message, or `null` if this message isn't an
   /// LSP request
   String? get method => map['method'] as String?;
@@ -86,4 +99,13 @@ extension type Message(JsonMap map) {
   ///
   /// Could be any valid type for a result, which is dependent on the [method].
   Object? get result => map['result'];
+
+  /// The URI of the text document associated with this message.
+  ///
+  /// Return `null` if this message is not associated with a text document.
+  String? get textDocument =>
+      (params?['textDocument'] as Map<String, Object?>?)?['uri'] as String?;
+
+  /// Whether this message is a response to the request with the [requestId].
+  bool isResponseTo(int requestId) => isResponse && id == requestId;
 }
