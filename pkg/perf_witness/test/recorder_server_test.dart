@@ -516,47 +516,42 @@ void main() {
           '${busyLoopProcess.pid}.timeline',
         ]),
       );
-    }, timeout: Timeout(Duration(seconds: 15)));
+    });
 
-    test(
-      'record new processes - specific tag',
-      () async {
-        final outputDir = io.Directory('${tempDir.path}/output')..createSync();
+    test('record new processes - specific tag', () async {
+      final outputDir = io.Directory('${tempDir.path}/output')..createSync();
 
-        // Run the recorder in a separate process.
-        final recorder = await RecorderProcess.start(
-          tempDir,
-          outputDir,
-          tag: 'new-process-tag',
-          recordNewProcesses: true,
-        );
+      // Run the recorder in a separate process.
+      final recorder = await RecorderProcess.start(
+        tempDir,
+        outputDir,
+        tag: 'new-process-tag',
+        recordNewProcesses: true,
+      );
+      // Start a new process that should be recorded.
+      final newProcess = await BusyLoopProcess.start(
+        'new-process-tag',
+        tempDir,
+      );
 
-        // Start a new process that should be recorded.
-        final newProcess = await BusyLoopProcess.start(
-          'new-process-tag',
-          tempDir,
-        );
+      // Start a new process that should NOT be recorded.
+      final ignoredProcess = await BusyLoopProcess.start(
+        'ignored-tag',
+        tempDir,
+      );
 
-        // Start a new process that should NOT be recorded.
-        final ignoredProcess = await BusyLoopProcess.start(
-          'ignored-tag',
-          tempDir,
-        );
+      await Future.delayed(const Duration(seconds: 2));
+      await recorder.stop();
 
-        await Future.delayed(const Duration(seconds: 2));
-        await recorder.stop();
+      newProcess.kill();
+      ignoredProcess.kill();
 
-        newProcess.kill();
-        ignoredProcess.kill();
-
-        final timelines = outputDir
-            .listSync()
-            .map((e) => p.basename(e.path))
-            .toList();
-        expect(timelines, unorderedEquals(['${newProcess.pid}.timeline']));
-      },
-      timeout: Timeout(Duration(seconds: 15)),
-    );
+      final timelines = outputDir
+          .listSync()
+          .map((e) => p.basename(e.path))
+          .toList();
+      expect(timelines, unorderedEquals(['${newProcess.pid}.timeline']));
+    });
   });
 }
 
