@@ -1422,6 +1422,61 @@ EnumDeclaration
 ''');
   }
 
+  test_primaryConstructorBody_metadata() async {
+    await assertNoErrorsInCode(r'''
+enum E(int a) {
+  v(0);
+  @deprecated
+  this;
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  metadata
+    Annotation
+      atSign: @
+      name: SimpleIdentifier
+        token: deprecated
+        element: dart:core::@getter::deprecated
+        staticType: null
+      element: dart:core::@getter::deprecated
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_primaryConstructorBody_metadata_noDeclaration() async {
+    await assertErrorsInCode(
+      r'''
+enum E {
+  v;
+  @deprecated
+  this;
+}
+''',
+      [error(diag.primaryConstructorBodyWithoutDeclaration, 16, 19)],
+    );
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  metadata
+    Annotation
+      atSign: @
+      name: SimpleIdentifier
+        token: deprecated
+        element: dart:core::@getter::deprecated
+        staticType: null
+      element: dart:core::@getter::deprecated
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   test_primaryConstructorBody_noDeclaration() async {
     await assertErrorsInCode(
       r'''
