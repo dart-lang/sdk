@@ -2403,10 +2403,6 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     List<HInstruction> arguments,
     SourceInformation? sourceInformation,
   ) {
-    final definition = _closedWorld.elementMap.getMemberContextNode(element);
-    final uri =
-        definition?.enclosingLibrary.importUri ?? element.library.canonicalUri;
-
     record_use.Location? location = _recordUseLocation(sourceInformation);
 
     final name = element.name!;
@@ -2414,11 +2410,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     // the extension instead of the desugared name.
     final isExtensionMethod = hasUnnamedExtensionNamePrefix(name);
     return RecordedCallWithArguments(
-      identifier: RecordedIdentifier(
-        name: name,
-        parent: element.enclosingClass?.name,
-        uri: relativizeUri(Uri.base, uri, Platform.isWindows),
-      ),
+      function: element,
       location: location,
       positionalArguments: arguments
           .skip(isExtensionMethod ? 1 : 0)
@@ -2431,20 +2423,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     FunctionEntity element,
     SourceInformation? sourceInformation,
   ) {
-    final definition = _closedWorld.elementMap.getMemberContextNode(element);
-    final uri =
-        definition?.enclosingLibrary.importUri ?? element.library.canonicalUri;
-
     record_use.Location? location = _recordUseLocation(sourceInformation);
 
-    return RecordedTearOff(
-      identifier: RecordedIdentifier(
-        name: element.name!,
-        parent: element.enclosingClass?.name,
-        uri: relativizeUri(Uri.base, uri, Platform.isWindows),
-      ),
-      location: location,
-    );
+    return RecordedTearOff(function: element, location: location);
   }
 
   record_use.Location? _recordUseLocation(

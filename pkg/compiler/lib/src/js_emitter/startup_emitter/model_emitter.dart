@@ -113,7 +113,9 @@ class ModelEmitter {
   final DiagnosticReporter _reporter;
   final api.CompilerOutput _outputProvider;
   final DumpInfoJsAstRegistry _dumpInfoRegistry;
-  final RecordUseCollector _recordUseCollector = RecordUseCollector();
+  late final RecordUseCollector _recordUseCollector = RecordUseCollector(
+    _closedWorld,
+  );
   final Namer _namer;
   final CompilerTask _task;
   final Emitter _emitter;
@@ -392,7 +394,10 @@ class ModelEmitter {
     }
 
     if (_options.writeRecordedUses) {
-      writeRecordedUses();
+      Map<OutputUnit, String> outputUnitToName = _createOutputUnitToName(
+        program,
+      );
+      writeRecordedUses(outputUnitToName);
     }
 
     // Return the total program size.
@@ -746,17 +751,35 @@ var $startupMetricsGlobal =
       ..close();
   }
 
+  Map<OutputUnit, String> _createOutputUnitToName(Program program) {
+    Map<OutputUnit, String> outputUnitToName = {};
+    outputUnitToName[program.mainFragment.outputUnit] =
+        _options.outputUri?.pathSegments.last ?? 'out';
+    finalizedFragmentsToLoad.forEach((loadId, fragments) {
+      for (var finalizedFragment in fragments) {
+        // Each FinalizedFragment has a list of CodeFragments,
+        // and each CodeFragment is associated with a set of OutputUnits.
+        for (var codeFragment in finalizedFragment.codeFragments) {
+          for (var outputUnit in codeFragment.outputUnits) {
+            outputUnitToName[outputUnit] = finalizedFragment.outputFileName;
+          }
+        }
+      }
+    });
+    return outputUnitToName;
+  }
+
   /// Writes all recorded uses as a JSON file.
-  void writeRecordedUses() {
+  void writeRecordedUses(Map<OutputUnit, String> outputUnitToName) {
     _outputProvider.createOutputSink(
         '',
         'resources.json',
         api.OutputType.recordedUses,
       )
       ..add(
-        JsonEncoder.withIndent(
-          '  ',
-        ).convert(_recordUseCollector.finish(_options.environment)),
+        JsonEncoder.withIndent('  ').convert(
+          _recordUseCollector.finish(_options.environment, outputUnitToName),
+        ),
       )
       ..close();
   }

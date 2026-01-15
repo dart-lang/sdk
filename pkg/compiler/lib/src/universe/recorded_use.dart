@@ -5,60 +5,19 @@
 /// This library contains data structures that loosely represent the data
 /// structures in `package:record_use`. However these data structures are
 /// different in the following ways:
-/// * [ConstantValue]s are used for constants, to enable serialization of
+/// * [ConstantValue] is used for constants, to enable serialization of
 ///   composite constants.
-/// * No loading units are present. The loading units only get assigned in a
-///   later phase in the compiler.
+/// * [Entity] is used for definitions, so that it can be used in the last stage
+///   of the compiler to see in which loading unit it ended up.
 ///
 /// Please keep this library in sync with `package:record_use`.
 library;
 
 import 'package:compiler/src/constants/values.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:record_use/record_use_internal.dart' as record_use;
 
 import '../serialization/serialization.dart';
-
-/// Dart2js version of [record_use.Identifier].
-class RecordedIdentifier {
-  /// Name of the class or method that is a resource identifier.
-  final String name;
-
-  /// Name of the parent, if existing.
-  final String? parent;
-
-  /// Where the class or method is defined.
-  final String uri;
-
-  RecordedIdentifier({required this.name, this.parent, required this.uri});
-
-  factory RecordedIdentifier.readFromDataSource(DataSourceReader source) {
-    String uri = source.readString();
-    String name = source.readString();
-    String? parent = source.readStringOrNull();
-    return RecordedIdentifier(uri: uri, name: name, parent: parent);
-  }
-
-  void writeToDataSink(DataSinkWriter sink) {
-    sink.writeString(uri);
-    sink.writeString(name);
-    sink.writeStringOrNull(parent);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is! RecordedIdentifier) return false;
-    return uri == other.uri && name == other.name && parent == other.parent;
-  }
-
-  @override
-  int get hashCode => Object.hash(uri, name, parent);
-
-  record_use.Identifier toPackageRecordUseFormat() => record_use.Identifier(
-    importUri: uri.toString(),
-    scope: parent,
-    name: name,
-  );
-}
 
 enum RecordedUseKind { call, tearOff }
 
@@ -67,7 +26,7 @@ enum RecordedUseKind { call, tearOff }
 sealed class RecordedUse {
   static const String tag = 'record-use';
 
-  final RecordedIdentifier identifier;
+  final FunctionEntity function;
 
   /// Location of the resource identifier instance. This is `null` for constant
   /// resource identifiers. For other resource identifier instances this is the
@@ -76,12 +35,12 @@ sealed class RecordedUse {
 
   RecordedUseKind get kind;
 
-  RecordedUse({required this.identifier, this.location});
+  RecordedUse({required this.function, this.location});
 
   factory RecordedUse.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     RecordedUseKind kind = source.readEnum(RecordedUseKind.values);
-    final identifier = RecordedIdentifier.readFromDataSource(source);
+    final function = source.readMember() as FunctionEntity;
     final location = source.readValueOrNull(
       () => RecordUseLocation.readFromDataSource(source),
     );
@@ -89,14 +48,14 @@ sealed class RecordedUse {
     switch (kind) {
       case RecordedUseKind.call:
         result = RecordedCallWithArguments._readFromDataSource(
-          identifier,
+          function,
           location,
           source,
         );
         break;
       case RecordedUseKind.tearOff:
         result = RecordedTearOff._readFromDataSource(
-          identifier,
+          function,
           location,
           source,
         );
@@ -109,7 +68,7 @@ sealed class RecordedUse {
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeEnum(kind);
-    identifier.writeToDataSink(sink);
+    sink.writeMember(function);
     sink.writeValueOrNull(location, (l) => location!.writeToDataSink);
     _writeFieldsForKind(sink);
     sink.end(tag);
@@ -120,11 +79,11 @@ sealed class RecordedUse {
   @override
   bool operator ==(Object other) {
     if (other is! RecordedUse) return false;
-    return identifier == other.identifier && location == other.location;
+    return function == other.function && location == other.location;
   }
 
   @override
-  int get hashCode => Object.hash(identifier, location);
+  int get hashCode => Object.hash(function, location);
 }
 
 /// Dart2js version of [record_use.CallWithArguments], with [ConstantValue]s
@@ -137,7 +96,7 @@ class RecordedCallWithArguments extends RecordedUse {
       positionalArguments.map(_findValue).toList();
 
   RecordedCallWithArguments({
-    required super.identifier,
+    required super.function,
     super.location,
     required this.positionalArguments,
   });
@@ -146,7 +105,7 @@ class RecordedCallWithArguments extends RecordedUse {
   RecordedUseKind get kind => RecordedUseKind.call;
 
   static RecordedCallWithArguments _readFromDataSource(
-    RecordedIdentifier identifier,
+    FunctionEntity function,
     record_use.Location? location,
     DataSourceReader source,
   ) {
@@ -154,7 +113,7 @@ class RecordedCallWithArguments extends RecordedUse {
       () => source.readValueOrNull(source.readConstant),
     );
     return RecordedCallWithArguments(
-      identifier: identifier,
+      function: function,
       location: location,
       positionalArguments: positionalArguments,
     );
@@ -187,18 +146,18 @@ class RecordedCallWithArguments extends RecordedUse {
 
 /// Dart2js version of [record_use.CallTearOff].
 class RecordedTearOff extends RecordedUse {
-  RecordedTearOff({required super.identifier, super.location});
+  RecordedTearOff({required super.function, super.location});
 
   @override
   RecordedUseKind get kind => RecordedUseKind.tearOff;
 
   static RecordedTearOff _readFromDataSource(
-    RecordedIdentifier identifier,
+    FunctionEntity function,
     record_use.Location? location,
     DataSourceReader source,
   ) {
     // No specific fields to read.
-    return RecordedTearOff(identifier: identifier, location: location);
+    return RecordedTearOff(function: function, location: location);
   }
 
   @override
