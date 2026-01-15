@@ -41,7 +41,7 @@ class ContextsPage extends DiagnosticPageWithNav {
   Future<void> generateContent(Map<String, String> params) async {
     var driverMap = SplayTreeMap.of(
       server.driverMap,
-      (a, b) => a.shortName.compareTo(b.shortName),
+      (a, b) => a.path.compareTo(b.path),
     );
     if (driverMap.isEmpty) {
       blankslate('No contexts.');
@@ -54,16 +54,11 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln('<div class="tabnav">');
     buf.writeln('<nav class="tabnav-tabs">');
     for (var f in driverMap.keys) {
-      if (f == folder) {
-        buf.writeln(
-          '<a class="tabnav-tab selected">${escape(f.shortName)}</a>',
-        );
-      } else {
-        var p = '${this.path}?context=${Uri.encodeQueryComponent(f.path)}';
-        buf.writeln(
-          '<a href="$p" class="tabnav-tab">${escape(f.shortName)}</a>',
-        );
-      }
+      var selectedClass = f == folder ? 'selected' : '';
+      var href = '${this.path}?context=${Uri.encodeQueryComponent(f.path)}';
+      buf.writeln(
+        '<a href="${escape(href)}" class="tabnav-tab $selectedClass" title="${escape(f.path)}">${escape(f.shortName)}</a>',
+      );
     }
     buf.writeln('</nav>');
     buf.writeln('</div>');

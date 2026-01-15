@@ -8237,10 +8237,10 @@ class CallHierarchyIncomingCallsParams
     var result = <String, Object?>{};
     result['item'] = item.toJson();
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -8629,10 +8629,10 @@ class CallHierarchyOutgoingCallsParams
     var result = <String, Object?>{};
     result['item'] = item.toJson();
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -8724,7 +8724,7 @@ class CallHierarchyPrepareParams
     result['position'] = position.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -8894,7 +8894,7 @@ class CancelParams implements ToJsonable {
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['id'] = id;
+    result['id'] = id.toJson();
     return result;
   }
 
@@ -9384,10 +9384,10 @@ class ClientSemanticTokensRequestOptions implements ToJsonable {
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (full != null) {
-      result['full'] = full;
+      result['full'] = full?.toJson();
     }
     if (range != null) {
-      result['range'] = range;
+      result['range'] = range?.toJson();
     }
     return result;
   }
@@ -10321,12 +10321,12 @@ class CodeActionParams
     var result = <String, Object?>{};
     result['context'] = context.toJson();
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['range'] = range.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -10858,11 +10858,11 @@ class CodeLensParams
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -11380,12 +11380,12 @@ class ColorPresentationParams
     var result = <String, Object?>{};
     result['color'] = color.toJson();
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['range'] = range.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -12296,7 +12296,7 @@ class CompletionItem implements ToJsonable {
       result['detail'] = detail;
     }
     if (documentation != null) {
-      result['documentation'] = documentation;
+      result['documentation'] = documentation?.toJson();
     }
     if (filterText != null) {
       result['filterText'] = filterText;
@@ -12327,7 +12327,7 @@ class CompletionItem implements ToJsonable {
       result['tags'] = tags?.map((item) => item.toJson()).toList();
     }
     if (textEdit != null) {
-      result['textEdit'] = textEdit;
+      result['textEdit'] = textEdit?.toJson();
     }
     if (textEditText != null) {
       result['textEditText'] = textEditText;
@@ -12574,7 +12574,7 @@ class CompletionItemDefaults implements ToJsonable {
       result['data'] = data;
     }
     if (editRange != null) {
-      result['editRange'] = editRange;
+      result['editRange'] = editRange?.toJson();
     }
     if (insertTextFormat != null) {
       result['insertTextFormat'] = insertTextFormat?.toJson();
@@ -13277,12 +13277,12 @@ class CompletionParams
       result['context'] = context?.toJson();
     }
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['position'] = position.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -14107,12 +14107,12 @@ class DeclarationParams
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['position'] = position.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -14450,12 +14450,12 @@ class DefinitionParams
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['position'] = position.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -16696,11 +16696,11 @@ class DocumentColorParams
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -16904,14 +16904,14 @@ class DocumentDiagnosticParams
       result['identifier'] = identifier;
     }
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     if (previousResultId != null) {
       result['previousResultId'] = previousResultId;
     }
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -17032,8 +17032,8 @@ class DocumentDiagnosticReportPartialResult implements ToJsonable {
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['relatedDocuments'] =
-        relatedDocuments.map((key, value) => MapEntry(key.toString(), value));
+    result['relatedDocuments'] = relatedDocuments
+        .map((key, value) => MapEntry(key.toString(), value.toJson()));
     return result;
   }
 
@@ -17225,7 +17225,7 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
     result['options'] = options.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -17628,12 +17628,12 @@ class DocumentHighlightParams
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['position'] = position.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -18067,11 +18067,11 @@ class DocumentLinkParams
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -18718,7 +18718,7 @@ class DocumentRangeFormattingParams
     result['range'] = range.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -19409,11 +19409,11 @@ class DocumentSymbolParams
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -19854,7 +19854,7 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
     }
     result['command'] = command;
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -21041,7 +21041,7 @@ class FileSystemWatcher implements ToJsonable {
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['globPattern'] = globPattern;
+    result['globPattern'] = globPattern.toJson();
     if (kind != null) {
       result['kind'] = kind?.toJson();
     }
@@ -21611,11 +21611,11 @@ class FoldingRangeParams
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -22230,7 +22230,7 @@ class Hover implements ToJsonable {
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['contents'] = contents;
+    result['contents'] = contents.toJson();
     if (range != null) {
       result['range'] = range?.toJson();
     }
@@ -22448,7 +22448,7 @@ class HoverParams
     result['position'] = position.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -22757,12 +22757,12 @@ class ImplementationParams
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['position'] = position.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -23070,7 +23070,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       result['trace'] = trace?.toJson();
     }
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     if (workspaceFolders != null) {
       result['workspaceFolders'] =
@@ -23337,7 +23337,7 @@ class InlayHint implements ToJsonable {
     if (kind != null) {
       result['kind'] = kind?.toJson();
     }
-    result['label'] = label;
+    result['label'] = label.toJson();
     if (paddingLeft != null) {
       result['paddingLeft'] = paddingLeft;
     }
@@ -23349,7 +23349,7 @@ class InlayHint implements ToJsonable {
       result['textEdits'] = textEdits?.map((item) => item.toJson()).toList();
     }
     if (tooltip != null) {
-      result['tooltip'] = tooltip;
+      result['tooltip'] = tooltip?.toJson();
     }
     return result;
   }
@@ -23658,7 +23658,7 @@ class InlayHintLabelPart implements ToJsonable {
       result['location'] = location?.toJson();
     }
     if (tooltip != null) {
-      result['tooltip'] = tooltip;
+      result['tooltip'] = tooltip?.toJson();
     }
     result['value'] = value;
     return result;
@@ -23835,7 +23835,7 @@ class InlayHintParams implements WorkDoneProgressParams, ToJsonable {
     result['range'] = range.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -24377,7 +24377,7 @@ class InlineValueParams implements WorkDoneProgressParams, ToJsonable {
     result['range'] = range.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -25082,7 +25082,7 @@ class LinkedEditingRangeParams
     result['position'] = position.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -26552,12 +26552,12 @@ class MonikerParams
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['position'] = position.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -26958,7 +26958,7 @@ class NotebookCellTextDocumentFilter implements ToJsonable {
     if (language != null) {
       result['language'] = language;
     }
-    result['notebook'] = notebook;
+    result['notebook'] = notebook.toJson();
     return result;
   }
 
@@ -28030,7 +28030,7 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
     if (cells != null) {
       result['cells'] = cells?.map((item) => item.toJson()).toList();
     }
-    result['notebook'] = notebook;
+    result['notebook'] = notebook.toJson();
     return result;
   }
 
@@ -28109,7 +28109,7 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
     var result = <String, Object?>{};
     result['cells'] = cells.map((item) => item.toJson()).toList();
     if (notebook != null) {
-      result['notebook'] = notebook;
+      result['notebook'] = notebook?.toJson();
     }
     return result;
   }
@@ -28491,7 +28491,7 @@ class ParameterInformation implements ToJsonable {
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (documentation != null) {
-      result['documentation'] = documentation;
+      result['documentation'] = documentation?.toJson();
     }
     result['label'] = label;
     return result;
@@ -28556,7 +28556,7 @@ class PartialResultParams implements ToJsonable {
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     return result;
   }
@@ -28851,7 +28851,7 @@ class PrepareRenameParams
     result['position'] = position.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -29138,7 +29138,7 @@ class ProgressParams implements ToJsonable {
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['token'] = token;
+    result['token'] = token.toJson();
     result['value'] = value;
     return result;
   }
@@ -29757,12 +29757,12 @@ class ReferenceParams
     var result = <String, Object?>{};
     result['context'] = context.toJson();
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['position'] = position.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -30179,7 +30179,7 @@ class RelatedFullDocumentDiagnosticReport
     result['kind'] = kind;
     if (relatedDocuments != null) {
       result['relatedDocuments'] = relatedDocuments
-          ?.map((key, value) => MapEntry(key.toString(), value));
+          ?.map((key, value) => MapEntry(key.toString(), value.toJson()));
     }
     if (resultId != null) {
       result['resultId'] = resultId;
@@ -30302,7 +30302,7 @@ class RelatedUnchangedDocumentDiagnosticReport
     result['kind'] = kind;
     if (relatedDocuments != null) {
       result['relatedDocuments'] = relatedDocuments
-          ?.map((key, value) => MapEntry(key.toString(), value));
+          ?.map((key, value) => MapEntry(key.toString(), value.toJson()));
     }
     result['resultId'] = resultId;
     return result;
@@ -30390,7 +30390,7 @@ class RelativePattern implements ToJsonable {
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['baseUri'] = baseUri;
+    result['baseUri'] = baseUri.toJson();
     result['pattern'] = pattern;
     return result;
   }
@@ -30927,7 +30927,7 @@ class RenameParams implements WorkDoneProgressParams, ToJsonable {
     result['position'] = position.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -31488,12 +31488,12 @@ class SelectionRangeParams
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['positions'] = positions.map((item) => item.toJson()).toList();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -32177,12 +32177,12 @@ class SemanticTokensDeltaParams
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['previousResultId'] = previousResultId;
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -32546,11 +32546,11 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (full != null) {
-      result['full'] = full;
+      result['full'] = full?.toJson();
     }
     result['legend'] = legend.toJson();
     if (range != null) {
-      result['range'] = range;
+      result['range'] = range?.toJson();
     }
     if (workDoneProgress != null) {
       result['workDoneProgress'] = workDoneProgress;
@@ -32687,11 +32687,11 @@ class SemanticTokensParams
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -32839,12 +32839,12 @@ class SemanticTokensRangeParams
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['range'] = range.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -32968,14 +32968,14 @@ class SemanticTokensRegistrationOptions
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
     if (full != null) {
-      result['full'] = full;
+      result['full'] = full?.toJson();
     }
     if (id != null) {
       result['id'] = id;
     }
     result['legend'] = legend.toJson();
     if (range != null) {
-      result['range'] = range;
+      result['range'] = range?.toJson();
     }
     if (workDoneProgress != null) {
       result['workDoneProgress'] = workDoneProgress;
@@ -33447,34 +33447,35 @@ class ServerCapabilities implements ToJsonable {
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (callHierarchyProvider != null) {
-      result['callHierarchyProvider'] = callHierarchyProvider;
+      result['callHierarchyProvider'] = callHierarchyProvider?.toJson();
     }
     if (codeActionProvider != null) {
-      result['codeActionProvider'] = codeActionProvider;
+      result['codeActionProvider'] = codeActionProvider?.toJson();
     }
     if (codeLensProvider != null) {
       result['codeLensProvider'] = codeLensProvider?.toJson();
     }
     if (colorProvider != null) {
-      result['colorProvider'] = colorProvider;
+      result['colorProvider'] = colorProvider?.toJson();
     }
     if (completionProvider != null) {
       result['completionProvider'] = completionProvider?.toJson();
     }
     if (declarationProvider != null) {
-      result['declarationProvider'] = declarationProvider;
+      result['declarationProvider'] = declarationProvider?.toJson();
     }
     if (definitionProvider != null) {
-      result['definitionProvider'] = definitionProvider;
+      result['definitionProvider'] = definitionProvider?.toJson();
     }
     if (diagnosticProvider != null) {
-      result['diagnosticProvider'] = diagnosticProvider;
+      result['diagnosticProvider'] = diagnosticProvider?.toJson();
     }
     if (documentFormattingProvider != null) {
-      result['documentFormattingProvider'] = documentFormattingProvider;
+      result['documentFormattingProvider'] =
+          documentFormattingProvider?.toJson();
     }
     if (documentHighlightProvider != null) {
-      result['documentHighlightProvider'] = documentHighlightProvider;
+      result['documentHighlightProvider'] = documentHighlightProvider?.toJson();
     }
     if (documentLinkProvider != null) {
       result['documentLinkProvider'] = documentLinkProvider?.toJson();
@@ -33485,10 +33486,10 @@ class ServerCapabilities implements ToJsonable {
     }
     if (documentRangeFormattingProvider != null) {
       result['documentRangeFormattingProvider'] =
-          documentRangeFormattingProvider;
+          documentRangeFormattingProvider?.toJson();
     }
     if (documentSymbolProvider != null) {
-      result['documentSymbolProvider'] = documentSymbolProvider;
+      result['documentSymbolProvider'] = documentSymbolProvider?.toJson();
     }
     if (executeCommandProvider != null) {
       result['executeCommandProvider'] = executeCommandProvider?.toJson();
@@ -33497,61 +33498,62 @@ class ServerCapabilities implements ToJsonable {
       result['experimental'] = experimental;
     }
     if (foldingRangeProvider != null) {
-      result['foldingRangeProvider'] = foldingRangeProvider;
+      result['foldingRangeProvider'] = foldingRangeProvider?.toJson();
     }
     if (hoverProvider != null) {
-      result['hoverProvider'] = hoverProvider;
+      result['hoverProvider'] = hoverProvider?.toJson();
     }
     if (implementationProvider != null) {
-      result['implementationProvider'] = implementationProvider;
+      result['implementationProvider'] = implementationProvider?.toJson();
     }
     if (inlayHintProvider != null) {
-      result['inlayHintProvider'] = inlayHintProvider;
+      result['inlayHintProvider'] = inlayHintProvider?.toJson();
     }
     if (inlineValueProvider != null) {
-      result['inlineValueProvider'] = inlineValueProvider;
+      result['inlineValueProvider'] = inlineValueProvider?.toJson();
     }
     if (linkedEditingRangeProvider != null) {
-      result['linkedEditingRangeProvider'] = linkedEditingRangeProvider;
+      result['linkedEditingRangeProvider'] =
+          linkedEditingRangeProvider?.toJson();
     }
     if (monikerProvider != null) {
-      result['monikerProvider'] = monikerProvider;
+      result['monikerProvider'] = monikerProvider?.toJson();
     }
     if (notebookDocumentSync != null) {
-      result['notebookDocumentSync'] = notebookDocumentSync;
+      result['notebookDocumentSync'] = notebookDocumentSync?.toJson();
     }
     if (positionEncoding != null) {
       result['positionEncoding'] = positionEncoding?.toJson();
     }
     if (referencesProvider != null) {
-      result['referencesProvider'] = referencesProvider;
+      result['referencesProvider'] = referencesProvider?.toJson();
     }
     if (renameProvider != null) {
-      result['renameProvider'] = renameProvider;
+      result['renameProvider'] = renameProvider?.toJson();
     }
     if (selectionRangeProvider != null) {
-      result['selectionRangeProvider'] = selectionRangeProvider;
+      result['selectionRangeProvider'] = selectionRangeProvider?.toJson();
     }
     if (semanticTokensProvider != null) {
-      result['semanticTokensProvider'] = semanticTokensProvider;
+      result['semanticTokensProvider'] = semanticTokensProvider?.toJson();
     }
     if (signatureHelpProvider != null) {
       result['signatureHelpProvider'] = signatureHelpProvider?.toJson();
     }
     if (textDocumentSync != null) {
-      result['textDocumentSync'] = textDocumentSync;
+      result['textDocumentSync'] = textDocumentSync?.toJson();
     }
     if (typeDefinitionProvider != null) {
-      result['typeDefinitionProvider'] = typeDefinitionProvider;
+      result['typeDefinitionProvider'] = typeDefinitionProvider?.toJson();
     }
     if (typeHierarchyProvider != null) {
-      result['typeHierarchyProvider'] = typeHierarchyProvider;
+      result['typeHierarchyProvider'] = typeHierarchyProvider?.toJson();
     }
     if (workspace != null) {
       result['workspace'] = workspace?.toJson();
     }
     if (workspaceSymbolProvider != null) {
-      result['workspaceSymbolProvider'] = workspaceSymbolProvider;
+      result['workspaceSymbolProvider'] = workspaceSymbolProvider?.toJson();
     }
     return result;
   }
@@ -35181,7 +35183,7 @@ class SignatureHelpParams
     result['position'] = position.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -35445,7 +35447,7 @@ class SignatureInformation implements ToJsonable {
       result['activeParameter'] = activeParameter;
     }
     if (documentation != null) {
-      result['documentation'] = documentation;
+      result['documentation'] = documentation?.toJson();
     }
     result['label'] = label;
     if (parameters != null) {
@@ -37829,7 +37831,7 @@ class TextDocumentSyncOptions implements ToJsonable {
       result['openClose'] = openClose;
     }
     if (save != null) {
-      result['save'] = save;
+      result['save'] = save?.toJson();
     }
     if (willSave != null) {
       result['willSave'] = willSave;
@@ -38215,12 +38217,12 @@ class TypeDefinitionParams
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['position'] = position.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -38704,7 +38706,7 @@ class TypeHierarchyPrepareParams
     result['position'] = position.toJson();
     result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -38894,10 +38896,10 @@ class TypeHierarchySubtypesParams
     var result = <String, Object?>{};
     result['item'] = item.toJson();
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -38987,10 +38989,10 @@ class TypeHierarchySupertypesParams
     var result = <String, Object?>{};
     result['item'] = item.toJson();
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -39782,7 +39784,7 @@ class WorkDoneProgressCancelParams implements ToJsonable {
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['token'] = token;
+    result['token'] = token.toJson();
     return result;
   }
 
@@ -39834,7 +39836,7 @@ class WorkDoneProgressCreateParams implements ToJsonable {
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['token'] = token;
+    result['token'] = token.toJson();
     return result;
   }
 
@@ -40100,7 +40102,7 @@ class WorkDoneProgressParams implements ToJsonable {
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -40745,12 +40747,12 @@ class WorkspaceDiagnosticParams
       result['identifier'] = identifier;
     }
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['previousResultIds'] =
         previousResultIds.map((item) => item.toJson()).toList();
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }
@@ -41442,7 +41444,7 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (changeNotifications != null) {
-      result['changeNotifications'] = changeNotifications;
+      result['changeNotifications'] = changeNotifications?.toJson();
     }
     if (supported != null) {
       result['supported'] = supported;
@@ -41775,7 +41777,7 @@ class WorkspaceSymbol implements BaseSymbolInformation, ToJsonable {
       result['data'] = data;
     }
     result['kind'] = kind.toJson();
-    result['location'] = location;
+    result['location'] = location.toJson();
     result['name'] = name;
     if (tags != null) {
       result['tags'] = tags?.map((item) => item.toJson()).toList();
@@ -42311,11 +42313,11 @@ class WorkspaceSymbolParams
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
-      result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken?.toJson();
     }
     result['query'] = query;
     if (workDoneToken != null) {
-      result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken?.toJson();
     }
     return result;
   }

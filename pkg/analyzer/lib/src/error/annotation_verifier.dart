@@ -740,18 +740,32 @@ class AnnotationVerifier {
       }
     }
 
+    // Handle the case of the deprecated `TargetKind.directive` before handling
+    // the Directive subclasses below.
+    // ignore: deprecated_member_use
+    if (kinds.contains(TargetKind.directive) && target is Directive) {
+      return true;
+    }
+
+    // To support Dart language versions where unnamed libraries did not exist,
+    // we allow annotating the first directive, if the annotation is intended for
+    // a library directive.
+    if (kinds.contains(TargetKind.library)) {
+      if (target is Directive &&
+          (target.parent as CompilationUnit).directives.first == target) {
+        return true;
+      }
+    }
+
     return switch (target) {
       ClassDeclaration() =>
         kinds.contains(TargetKind.classType) || kinds.contains(TargetKind.type),
       ClassTypeAlias() =>
         kinds.contains(TargetKind.classType) || kinds.contains(TargetKind.type),
-      Directive() =>
-        kinds.contains(TargetKind.directive) ||
-            (target.parent as CompilationUnit).directives.first == target &&
-                kinds.contains(TargetKind.library),
       EnumConstantDeclaration() => kinds.contains(TargetKind.enumValue),
       EnumDeclaration() =>
         kinds.contains(TargetKind.enumType) || kinds.contains(TargetKind.type),
+      ExportDirective() => kinds.contains(TargetKind.exportDirective),
       ExtensionTypeDeclaration() => kinds.contains(TargetKind.extensionType),
       ExtensionDeclaration() => kinds.contains(TargetKind.extension),
       FieldDeclaration() => kinds.contains(TargetKind.field),
@@ -763,6 +777,7 @@ class AnnotationVerifier {
       MethodDeclaration() => kinds.contains(TargetKind.method),
       MixinDeclaration() =>
         kinds.contains(TargetKind.mixinType) || kinds.contains(TargetKind.type),
+      PartOfDirective() => kinds.contains(TargetKind.partOfDirective),
       FormalParameter() =>
         kinds.contains(TargetKind.parameter) ||
             (target.isOptional && kinds.contains(TargetKind.optionalParameter)),

@@ -532,11 +532,6 @@ class FunctionReferenceResolver {
         )
         .getter2;
 
-    if (propertyElement is TypeParameterElement) {
-      _resolve(node: node, rawType: propertyElement!.type);
-      return;
-    }
-
     _resolve(
       node: node,
       rawType: function.staticType,

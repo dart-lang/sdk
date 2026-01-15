@@ -78,8 +78,26 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
     }
 
     if (addFlutterTestPackageDep) {
-      var libFolder = addFlutterTest();
-      config.add(name: 'flutter_test', rootPath: libFolder.parent.path);
+      var flutterTestRootPath = resourceProvider.convertPath(
+        '$packagesRootPath/flutter_test',
+      );
+
+      var flutterTestRoot = resourceProvider.getFolder(flutterTestRootPath);
+      var libFolder = flutterTestRoot.getChildAssumingFolder('lib')..create();
+      libFolder.getChildAssumingFile('flutter_test.dart').writeAsStringSync(r'''
+void test(Object description, dynamic Function() body) {}
+
+void group(Object description, void Function() body) {}
+
+void main() {
+  // Because this file is called 'flutter_test.dart' and is inside the 'test'
+  // folder, it will be considered a test suite. To avoid it failing the bots
+  // with "Invoked Dart programs must have a 'main' function defined", provide
+  // an empty main function.
+}
+
+''');
+      config.add(name: 'flutter_test', rootPath: flutterTestRootPath);
     }
 
     if (addVectorMathPackageDep) {

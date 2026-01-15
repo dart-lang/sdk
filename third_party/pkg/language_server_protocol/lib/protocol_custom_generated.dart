@@ -2790,7 +2790,7 @@ class RequestMessage implements IncomingMessage, ToJsonable {
     if (clientRequestTime != null) {
       result['clientRequestTime'] = clientRequestTime;
     }
-    result['id'] = id;
+    result['id'] = id.toJson();
     result['jsonrpc'] = jsonrpc;
     result['method'] = method.toJson();
     if (params != null) {
@@ -2974,12 +2974,14 @@ class ResponseMessage implements Message, ToJsonable {
     if (clientRequestTime != null) {
       map['clientRequestTime'] = clientRequestTime;
     }
-    map['id'] = id;
+    map['id'] = id?.toJson();
     map['jsonrpc'] = jsonrpc;
     if (error != null && result != null) {
       throw 'result and error cannot both be set';
     } else if (error != null) {
       map['error'] = error;
+    } else if (result case ToJsonable result?) {
+      map['result'] = result.toJson();
     } else {
       map['result'] = result;
     }
