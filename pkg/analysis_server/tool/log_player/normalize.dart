@@ -95,7 +95,7 @@ String normalizeLog(File input, PackageConfig packageCofig) {
   // First, replace the workspace folder paths.
   var original = Log.fromString(content, {});
   var initializeMessage = original.entries.firstWhere(
-    (log) => log.isMessage && log.message.isInitialize,
+    (log) => log.isMessage && log.message.isInitializeRequest,
   );
   var workspaceFolders =
       ((initializeMessage.message.map['params']

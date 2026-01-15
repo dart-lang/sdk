@@ -2132,7 +2132,7 @@ void CheckFieldImmutabilityInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
            compiler::Immediate(
                1 << compiler::target::UntaggedObject::kDeeplyImmutableBit));
   // If immutability bit is not set, go to runtime.
-  __ j(ZERO, slow_path->entry_label(), compiler::Assembler::kNearJump);
+  __ j(ZERO, slow_path->entry_label());
 
   __ Bind(slow_path->exit_label());
 }
