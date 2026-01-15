@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  synthetic constructor •() → self::C1
+    ;
+}
+class C2 extends core::Object {
+  synthetic constructor •() → self::C2
+    ;
+}
+class C3 extends core::Object {
+  synthetic constructor •() → self::C3
+    ;
+}

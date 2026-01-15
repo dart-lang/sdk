@@ -103,7 +103,15 @@ class ConstructorFragment implements Fragment, FunctionFragment {
   String get name => constructorName.name;
 
   @override
-  FunctionBodyBuildingContext createFunctionBodyBuildingContext() {
+  FunctionBodyBuildingContext? createFunctionBodyBuildingContext() {
+    if (builder.isExtensionTypeMember && modifiers.isConst) {
+      // TODO(johnniwinther): Ensure building of const extension type
+      //  constructor body. An error is reported by the parser but we skip
+      //  the body here to avoid overwriting the already lowering const
+      //  constructor.
+      return null;
+    }
+
     return new _ConstructorBodyBuildingContext(this);
   }
 
@@ -130,12 +138,8 @@ class _ConstructorBodyBuildingContext implements FunctionBodyBuildingContext {
   MemberKind get memberKind => MemberKind.NonStaticMethod;
 
   @override
-  bool get shouldBuild =>
-      // TODO(johnniwinther): Ensure building of const extension type
-      //  constructor body. An error is reported by the parser but we skip
-      //  the body here to avoid overwriting the already lowering const
-      //  constructor.
-      !(_fragment.builder.isExtensionTypeMember && _fragment.modifiers.isConst);
+  // Coverage-ignore(suite): Not run.
+  bool get shouldFinishFunction => true;
 
   @override
   List<TypeParameter>? get thisTypeParameters =>

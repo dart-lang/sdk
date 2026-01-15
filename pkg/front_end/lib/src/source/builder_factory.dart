@@ -150,6 +150,7 @@ class BuilderFactory {
     String name, {
     List<Fragment>? fragments,
     SyntheticDeclaration? syntheticDeclaration,
+    List<PrimaryConstructorBodyFragment>? primaryConstructorBodies,
   }) {
     List<_PreBuilder> nonConstructorPreBuilders = [];
     List<_PreBuilder> constructorPreBuilders = [];
@@ -170,6 +171,7 @@ class BuilderFactory {
           fragment,
           inLibrary: _inLibrary,
           unnamedFragments: unnamedFragments,
+          primaryConstructorBodies: primaryConstructorBodies,
         );
 
         declaration?.registerPreBuilder(
@@ -215,6 +217,7 @@ class BuilderFactory {
       // Coverage-ignore(suite): Not run.
       case ConstructorFragment():
       case PrimaryConstructorFragment():
+      case PrimaryConstructorBodyFragment():
       case FactoryFragment():
       case FieldFragment():
       case PrimaryConstructorFieldFragment():
@@ -427,6 +430,7 @@ class BuilderFactory {
     Fragment fragment, {
     required bool inLibrary,
     required List<Fragment> unnamedFragments,
+    required List<PrimaryConstructorBodyFragment>? primaryConstructorBodies,
   }) {
     switch (fragment) {
       case ClassFragment():
@@ -534,8 +538,13 @@ class BuilderFactory {
           uriOffset: fragment.uriOffset,
         );
       case PrimaryConstructorFragment():
+        PrimaryConstructorBodyFragment? bodyFragment;
+        if (primaryConstructorBodies != null &&
+            primaryConstructorBodies.isNotEmpty) {
+          bodyFragment = primaryConstructorBodies.removeAt(0);
+        }
         return new _GenerativeConstructorDeclaration(
-          new PrimaryConstructorDeclaration(fragment),
+          new PrimaryConstructorDeclaration(fragment, bodyFragment),
           name: fragment.name,
           displayName: fragment.constructorName.fullName,
           isAugment: fragment.modifiers.isAugment,
@@ -544,6 +553,9 @@ class BuilderFactory {
           isConst: fragment.modifiers.isConst,
           uriOffset: fragment.uriOffset,
         );
+      case PrimaryConstructorBodyFragment():
+        // Coverage-ignore(suite): Not run.
+        throw new UnsupportedError("Unexpected primary constructor body.");
       case FieldFragment():
         RegularFieldDeclaration declaration = new RegularFieldDeclaration(
           fragment,

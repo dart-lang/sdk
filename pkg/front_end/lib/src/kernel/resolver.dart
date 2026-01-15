@@ -98,6 +98,9 @@ class Resolver {
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
       constantContext: constantContext,
+      thisVariable: null,
+      thisTypeParameters: null,
+      formalParameterScope: null,
     );
     List<int> indicesOfAnnotationsToBeInferred = [];
 
@@ -176,6 +179,9 @@ class Resolver {
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
       constantContext: constantContext,
+      thisVariable: null,
+      thisTypeParameters: null,
+      formalParameterScope: null,
     );
     BuildEnumConstantResult? result;
     ActualArguments arguments;
@@ -255,6 +261,9 @@ class Resolver {
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
       constantContext: constantContext,
+      thisVariable: null,
+      thisTypeParameters: null,
+      formalParameterScope: null,
     );
     BuildFieldInitializerResult result = bodyBuilder.buildFieldInitializer(
       startToken: startToken,
@@ -298,6 +307,9 @@ class Resolver {
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
       constantContext: constantContext,
+      thisVariable: null,
+      thisTypeParameters: null,
+      formalParameterScope: null,
     );
     BuildFieldsResult result = bodyBuilder.buildFields(
       startToken: startToken,
@@ -416,15 +428,15 @@ class Resolver {
     CompilerContext compilerContext = libraryBuilder.loader.target.context;
     ProblemReporting problemReporting = libraryBuilder;
     LibraryFeatures libraryFeatures = libraryBuilder.libraryFeatures;
-    ConstantContext constantContext = isConst
-        ? ConstantContext.required
-        : ConstantContext.none;
+    ConstantContext constantContext = bodyBuilderContext.constantContext;
     BodyBuilder bodyBuilder = _createBodyBuilder(
       context: context,
       bodyBuilderContext: bodyBuilderContext,
       scope: typeParameterScope,
       constantContext: constantContext,
       formalParameterScope: formalParameterScope,
+      thisVariable: null,
+      thisTypeParameters: null,
     );
     constructorBuilder.inferFormalTypes(_classHierarchy);
     BuildInitializersResult result = bodyBuilder.buildInitializers(
@@ -485,6 +497,10 @@ class Resolver {
       bodyBuilderContext: bodyBuilderContext,
       scope: typeParameterScope,
       constantContext: constantContext,
+      thisVariable: null,
+      thisTypeParameters: null,
+      // TODO(johnniwinther): Should we provide this?
+      formalParameterScope: null,
     );
     return bodyBuilder.buildInitializersUnfinished(
       beginInitializers: beginInitializers,
@@ -513,6 +529,9 @@ class Resolver {
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
       constantContext: constantContext,
+      thisVariable: null,
+      thisTypeParameters: null,
+      formalParameterScope: null,
     );
     BuildMetadataListResult result = bodyBuilder.buildMetadataList(
       metadata: metadata,
@@ -559,6 +578,9 @@ class Resolver {
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
       constantContext: constantContext,
+      thisVariable: null,
+      thisTypeParameters: null,
+      formalParameterScope: null,
     );
     BuildParameterInitializerResult result = bodyBuilder
         .buildParameterInitializer(initializerToken: initializerToken);
@@ -577,6 +599,7 @@ class Resolver {
     required FunctionBodyBuildingContext functionBodyBuildingContext,
     required Uri fileUri,
     required Token startToken,
+    required bool finishFunction,
   }) {
     _benchmarker
     // Coverage-ignore(suite): Not run.
@@ -614,19 +637,98 @@ class Resolver {
     try {
       BuildPrimaryConstructorResult result = bodyBuilder
           .buildPrimaryConstructor(startToken: startToken);
+      if (finishFunction) {
+        _finishFunction(
+          context: context,
+          compilerContext: compilerContext,
+          problemReporting: problemReporting,
+          libraryBuilder: libraryBuilder,
+          libraryFeatures: libraryFeatures,
+          asyncModifier: AsyncMarker.Sync,
+          body: null,
+          fileUri: fileUri,
+          bodyBuilderContext: bodyBuilderContext,
+          thisVariable: functionBodyBuildingContext.thisVariable,
+          initializers: result.initializers,
+          constantContext: constantContext,
+        );
+
+        context.performBacklog(result.annotations);
+      }
+    }
+    // Coverage-ignore(suite): Not run.
+    on DebugAbort {
+      rethrow;
+    } catch (e, s) {
+      throw new Crash(fileUri, startToken.charOffset, e, s);
+    }
+    _benchmarker
+        // Coverage-ignore(suite): Not run.
+        ?.endSubdivide();
+  }
+
+  void buildPrimaryConstructorBody({
+    required SourceLibraryBuilder libraryBuilder,
+    required SourceConstructorBuilder constructorBuilder,
+    required FunctionBodyBuildingContext functionBodyBuildingContext,
+    required Uri fileUri,
+    required Token startToken,
+    required Token? metadata,
+  }) {
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.beginSubdivide(
+      BenchmarkSubdivides.diet_listener_buildPrimaryConstructorBody,
+    );
+
+    ExtensionScope extensionScope = functionBodyBuildingContext.extensionScope;
+    LookupScope typeParameterScope =
+        functionBodyBuildingContext.typeParameterScope;
+    LocalScope formalParameterScope =
+        functionBodyBuildingContext.formalParameterScope;
+    BodyBuilderContext bodyBuilderContext = functionBodyBuildingContext
+        .createBodyBuilderContext();
+    _ResolverContext context = new _ResolverContext(
+      typeInferenceEngine: _typeInferenceEngine,
+      libraryBuilder: libraryBuilder,
+      bodyBuilderContext: bodyBuilderContext,
+      extensionScope: extensionScope,
+      fileUri: fileUri,
+    );
+
+    CompilerContext compilerContext = libraryBuilder.loader.target.context;
+    ProblemReporting problemReporting = libraryBuilder;
+    LibraryFeatures libraryFeatures = libraryBuilder.libraryFeatures;
+    ConstantContext constantContext = bodyBuilderContext.constantContext;
+    BodyBuilder bodyBuilder = _createBodyBuilder(
+      context: context,
+      bodyBuilderContext: bodyBuilderContext,
+      scope: typeParameterScope,
+      constantContext: constantContext,
+      formalParameterScope: formalParameterScope,
+      thisVariable: functionBodyBuildingContext.thisVariable,
+      thisTypeParameters: functionBodyBuildingContext.thisTypeParameters,
+    );
+    constructorBuilder.inferFormalTypes(_classHierarchy);
+    try {
+      BuildPrimaryConstructorBodyResult result = bodyBuilder
+          .buildPrimaryConstructorBody(
+            startToken: startToken,
+            metadata: metadata,
+          );
       _finishFunction(
         context: context,
         compilerContext: compilerContext,
         problemReporting: problemReporting,
         libraryBuilder: libraryBuilder,
         libraryFeatures: libraryFeatures,
-        asyncModifier: AsyncMarker.Sync,
-        body: null,
-        fileUri: fileUri,
         bodyBuilderContext: bodyBuilderContext,
-        thisVariable: functionBodyBuildingContext.thisVariable,
-        initializers: result.initializers,
+        asyncModifier: result.asyncMarker,
+        body: result.body,
+        fileUri: fileUri,
         constantContext: constantContext,
+        initializers: result.initializers,
+        thisVariable: functionBodyBuildingContext.thisVariable,
       );
       context.performBacklog(result.annotations);
     }
@@ -716,6 +818,9 @@ class Resolver {
       scope: scope,
       thisVariable: extensionThis,
       constantContext: constantContext,
+      // TODO(johnniwinther): Should we provide these?
+      thisTypeParameters: null,
+      formalParameterScope: null,
     );
     int fileOffset = token.charOffset;
 
@@ -925,9 +1030,9 @@ class Resolver {
     required BodyBuilderContext bodyBuilderContext,
     required LookupScope scope,
     required ConstantContext constantContext,
-    VariableDeclaration? thisVariable,
-    List<TypeParameter>? thisTypeParameters,
-    LocalScope? formalParameterScope,
+    required VariableDeclaration? thisVariable,
+    required List<TypeParameter>? thisTypeParameters,
+    required LocalScope? formalParameterScope,
   }) {
     _benchmarker
     // Coverage-ignore(suite): Not run.

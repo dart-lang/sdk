@@ -21,6 +21,7 @@ class OffsetMap {
   final Map<int, DeclarationFragmentImpl> _declarations = {};
   final Map<int, FieldFragment> _fields = {};
   final Map<int, PrimaryConstructorFragment> _primaryConstructors = {};
+  final Map<int, PrimaryConstructorBodyFragment> _primaryConstructorBodies = {};
   final Map<int, ConstructorFragment> _constructors = {};
   final Map<int, FactoryFragment> _factoryFragments = {};
   final Map<int, GetterFragment> _getters = {};
@@ -145,6 +146,23 @@ class OffsetMap {
     return _checkFragment(
       _primaryConstructors[beginToken.charOffset],
       '<primary-constructor>',
+      beginToken.charOffset,
+    );
+  }
+
+  void registerPrimaryConstructorBody(
+    Token token,
+    PrimaryConstructorBodyFragment fragment,
+  ) {
+    _primaryConstructorBodies[token.charOffset] = fragment;
+  }
+
+  PrimaryConstructorBodyFragment lookupPrimaryConstructorBody(
+    Token beginToken,
+  ) {
+    return _checkFragment(
+      _primaryConstructorBodies[beginToken.charOffset],
+      '<primary-constructor-body>',
       beginToken.charOffset,
     );
   }

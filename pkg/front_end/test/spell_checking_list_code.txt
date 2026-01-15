@@ -451,6 +451,7 @@ deftypes
 degrades
 degree
 del
+delaying
 delegated
 delegating
 delim

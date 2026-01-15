@@ -401,9 +401,9 @@ class DietListener extends StackListenerImpl {
       case ProcedureKind.Factory:
         throw new UnsupportedError("Unexpected procedure kind: $kind");
     }
-    FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
+    FunctionBodyBuildingContext? functionBodyBuildingContext = functionFragment
         .createFunctionBodyBuildingContext();
-    if (functionBodyBuildingContext.shouldBuild) {
+    if (functionBodyBuildingContext != null) {
       buildFunctionBody(functionBodyBuildingContext, bodyToken, metadata);
     }
   }
@@ -744,9 +744,9 @@ class DietListener extends StackListenerImpl {
       identifier,
     );
 
-    FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
+    FunctionBodyBuildingContext? functionBodyBuildingContext = functionFragment
         .createFunctionBodyBuildingContext();
-    if (functionBodyBuildingContext.shouldBuild) {
+    if (functionBodyBuildingContext != null) {
       if (_inRedirectingFactory) {
         libraryBuilder.loader.createResolver().buildRedirectingFactoryMethod(
           libraryBuilder: libraryBuilder,
@@ -869,9 +869,9 @@ class DietListener extends StackListenerImpl {
       case ProcedureKind.Factory:
         throw new UnsupportedError("Unexpected procedure kind: $kind");
     }
-    FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
+    FunctionBodyBuildingContext? functionBodyBuildingContext = functionFragment
         .createFunctionBodyBuildingContext();
-    if (functionBodyBuildingContext.shouldBuild) {
+    if (functionBodyBuildingContext != null) {
       buildFunctionBody(functionBodyBuildingContext, beginParam, metadata);
     }
   }
@@ -898,9 +898,9 @@ class DietListener extends StackListenerImpl {
     FunctionFragment functionFragment = _offsetMap.lookupConstructor(
       identifier,
     );
-    FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
+    FunctionBodyBuildingContext? functionBodyBuildingContext = functionFragment
         .createFunctionBodyBuildingContext();
-    if (functionBodyBuildingContext.shouldBuild) {
+    if (functionBodyBuildingContext != null) {
       buildFunctionBody(functionBodyBuildingContext, beginParam, metadata);
     }
   }
@@ -1159,14 +1159,15 @@ class DietListener extends StackListenerImpl {
     FunctionFragment functionFragment = _offsetMap.lookupPrimaryConstructor(
       beginToken,
     );
-    FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
+    FunctionBodyBuildingContext? functionBodyBuildingContext = functionFragment
         .createFunctionBodyBuildingContext();
-    if (functionBodyBuildingContext.shouldBuild) {
+    if (functionBodyBuildingContext != null) {
       libraryBuilder.loader.createResolver().buildPrimaryConstructor(
         libraryBuilder: libraryBuilder,
         functionBodyBuildingContext: functionBodyBuildingContext,
         fileUri: uri,
         startToken: formalsToken,
+        finishFunction: functionBodyBuildingContext.shouldFinishFunction,
       );
     }
 
@@ -1189,7 +1190,9 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
+  void beginPrimaryConstructorBody(Token token) {}
+
+  @override
   void endPrimaryConstructorBody(
     Token beginToken,
     Token? beginInitializers,
@@ -1199,9 +1202,23 @@ class DietListener extends StackListenerImpl {
     assert(
       checkState(beginToken, [/* metadata token */ ValueKinds.TokenOrNull]),
     );
-    // TODO(primary-constructors): Implement primary constructor body.
-    pop() as Token?;
+    Token? metadata = pop() as Token?;
     checkEmpty(beginToken.charOffset);
+
+    PrimaryConstructorBodyFragment functionFragment = _offsetMap
+        .lookupPrimaryConstructorBody(beginToken);
+    FunctionBodyBuildingContext? functionBodyBuildingContext = functionFragment
+        .createFunctionBodyBuildingContext();
+    if (functionBodyBuildingContext != null) {
+      libraryBuilder.loader.createResolver().buildPrimaryConstructorBody(
+        libraryBuilder: libraryBuilder,
+        constructorBuilder: functionFragment.builder,
+        functionBodyBuildingContext: functionBodyBuildingContext,
+        fileUri: uri,
+        startToken: beginToken,
+        metadata: metadata,
+      );
+    }
   }
 
   @override

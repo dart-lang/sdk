@@ -1,0 +1,11 @@
+class C1 {
+  this;
+}
+
+class C2 {
+  this : assert(true);
+}
+
+class C3 {
+  this {}
+}

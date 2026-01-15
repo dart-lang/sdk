@@ -360,6 +360,14 @@ abstract class FragmentFactory {
     required bool isConst,
   });
 
+  void addPrimaryConstructorBody({
+    required OffsetMap offsetMap,
+    required Token beginToken,
+    required List<MetadataBuilder>? metadata,
+    required int endOffset,
+    required Token? beginInitializers,
+  });
+
   void addPrimaryConstructorField({
     required List<MetadataBuilder>? metadata,
     required Modifiers modifiers,

@@ -24,6 +24,8 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
 
   ConstructorFragmentDeclaration? _declaration;
 
+  PrimaryConstructorBodyFragment? _primaryConstructorBodyFragment;
+
   @override
   late final UriOffsetLength uriOffset = new UriOffsetLength(
     fileUri,
@@ -81,14 +83,27 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
     _declaration = value;
   }
 
+  void set primaryConstructorBodyFragment(
+    PrimaryConstructorBodyFragment? value,
+  ) {
+    _primaryConstructorBodyFragment = value;
+  }
+
   int get fileOffset => constructorName.nameOffset ?? formalsOffset;
 
   @override
   String get name => constructorName.name;
 
   @override
-  FunctionBodyBuildingContext createFunctionBodyBuildingContext() {
-    return new _PrimaryConstructorBodyBuildingContext(this);
+  FunctionBodyBuildingContext? createFunctionBodyBuildingContext() {
+    if (modifiers.isConst) {
+      // TODO(johnniwinther): Why?
+      return null;
+    }
+    return new _PrimaryConstructorBodyBuildingContext(
+      this,
+      shouldFinishFunction: _primaryConstructorBodyFragment == null,
+    );
   }
 
   @override
@@ -97,9 +112,15 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
 
 class _PrimaryConstructorBodyBuildingContext
     implements FunctionBodyBuildingContext {
-  PrimaryConstructorFragment _fragment;
+  final PrimaryConstructorFragment _fragment;
 
-  _PrimaryConstructorBodyBuildingContext(this._fragment);
+  @override
+  final bool shouldFinishFunction;
+
+  _PrimaryConstructorBodyBuildingContext(
+    this._fragment, {
+    required this.shouldFinishFunction,
+  });
 
   @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment
@@ -114,9 +135,6 @@ class _PrimaryConstructorBodyBuildingContext
   // odd given that it used to allow 'covariant' modifiers, which shouldn't be
   // allowed on constructors.
   MemberKind get memberKind => MemberKind.NonStaticMethod;
-
-  @override
-  bool get shouldBuild => !_fragment.modifiers.isConst;
 
   @override
   ExtensionScope get extensionScope {

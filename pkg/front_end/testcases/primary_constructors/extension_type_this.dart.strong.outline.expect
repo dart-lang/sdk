@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type ET1(core::int a) {
+  abstract extension-type-member representation-field get a() → core::int;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2<T extends core::Object? = dynamic>(T% a) {
+  abstract extension-type-member representation-field get a() → T%;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#(core::int a) → self::ET1% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int a) → self::ET1% /* erasure=core::int, declared=! */
+  return self::ET1|constructor#(a);
+static extension-type-member method ET2|constructor#<T extends core::Object? = dynamic>(self::ET2|constructor#::T% a) → self::ET2<self::ET2|constructor#::T%>% /* erasure=self::ET2|constructor#::T%, declared=! */
+  ;
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET2|constructor#_#new#tearOff::T% a) → self::ET2<self::ET2|constructor#_#new#tearOff::T%>% /* erasure=self::ET2|constructor#_#new#tearOff::T%, declared=! */
+  return self::ET2|constructor#<self::ET2|constructor#_#new#tearOff::T%>(a);
