@@ -2381,7 +2381,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
             element,
             callStructure,
             node.inputs,
-            node.sourceInformation,
+            node.sourceInformation!,
           );
         }
       }
@@ -2401,9 +2401,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     FunctionEntity element,
     CallStructure callStructure,
     List<HInstruction> arguments,
-    SourceInformation? sourceInformation,
+    SourceInformation sourceInformation,
   ) {
-    record_use.Location? location = _recordUseLocation(sourceInformation);
+    final location = _recordUseLocation(sourceInformation);
 
     final name = element.name!;
     // TODO(https://github.com/dart-lang/native/issues/2948): Record the name of
@@ -2421,34 +2421,30 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
 
   RecordedUse _recordTearOff(
     FunctionEntity element,
-    SourceInformation? sourceInformation,
+    SourceInformation sourceInformation,
   ) {
-    record_use.Location? location = _recordUseLocation(sourceInformation);
-
+    final location = _recordUseLocation(sourceInformation);
     return RecordedTearOff(function: element, location: location);
   }
 
-  record_use.Location? _recordUseLocation(
-    SourceInformation? sourceInformation,
-  ) {
-    record_use.Location? location;
-    if (sourceInformation != null) {
-      SourceLocation? sourceLocation =
-          sourceInformation.startPosition ??
-          sourceInformation.innerPosition ??
-          sourceInformation.endPosition;
-      if (sourceLocation != null) {
-        final sourceUri = sourceLocation.sourceUri;
-        if (sourceUri != null) {
-          // Is [sourceUri] normalized in some way or does that need to be done
-          // here?
-          location = record_use.Location(
-            uri: relativizeUri(Uri.base, sourceUri, Platform.isWindows),
-          );
-        }
-      }
+  record_use.Location _recordUseLocation(SourceInformation sourceInformation) {
+    SourceLocation? sourceLocation =
+        sourceInformation.startPosition ??
+        sourceInformation.innerPosition ??
+        sourceInformation.endPosition;
+    if (sourceLocation == null) {
+      throw UnsupportedError('Source location is null.');
     }
-    return location;
+    final sourceUri = sourceLocation.sourceUri;
+    if (sourceUri == null) {
+      throw UnsupportedError('Source uri is null.');
+    }
+
+    // Is [sourceUri] normalized in some way or does that need to be done
+    // here?
+    return record_use.Location(
+      uri: relativizeUri(Uri.base, sourceUri, Platform.isWindows),
+    );
   }
 
   ConstantValue? _findConstant(HInstruction node) {
@@ -2907,7 +2903,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     if (constant is FunctionConstantValue) {
       final element = constant.element;
       if (_closedWorld.annotationsData.shouldRecordMethodUses(element)) {
-        final recordedMethodUses = _recordTearOff(element, sourceInformation);
+        final recordedMethodUses = _recordTearOff(element, sourceInformation!);
         expression = expression.withAnnotation(recordedMethodUses);
       }
     }

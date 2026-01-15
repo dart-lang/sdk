@@ -31,19 +31,17 @@ sealed class RecordedUse {
   /// Location of the resource identifier instance. This is `null` for constant
   /// resource identifiers. For other resource identifier instances this is the
   /// call site to the constructor or method.
-  final record_use.Location? location;
+  final record_use.Location location;
 
   RecordedUseKind get kind;
 
-  RecordedUse({required this.function, this.location});
+  RecordedUse({required this.function, required this.location});
 
   factory RecordedUse.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     RecordedUseKind kind = source.readEnum(RecordedUseKind.values);
     final function = source.readMember() as FunctionEntity;
-    final location = source.readValueOrNull(
-      () => RecordUseLocation.readFromDataSource(source),
-    );
+    final location = RecordUseLocation.readFromDataSource(source);
     RecordedUse result;
     switch (kind) {
       case RecordedUseKind.call:
@@ -69,7 +67,7 @@ sealed class RecordedUse {
     sink.begin(tag);
     sink.writeEnum(kind);
     sink.writeMember(function);
-    sink.writeValueOrNull(location, (l) => location!.writeToDataSink);
+    location.writeToDataSink(sink);
     _writeFieldsForKind(sink);
     sink.end(tag);
   }
@@ -97,7 +95,7 @@ class RecordedCallWithArguments extends RecordedUse {
 
   RecordedCallWithArguments({
     required super.function,
-    super.location,
+    required super.location,
     required this.positionalArguments,
   });
 
@@ -106,7 +104,7 @@ class RecordedCallWithArguments extends RecordedUse {
 
   static RecordedCallWithArguments _readFromDataSource(
     FunctionEntity function,
-    record_use.Location? location,
+    record_use.Location location,
     DataSourceReader source,
   ) {
     final positionalArguments = source.readList(
@@ -146,14 +144,14 @@ class RecordedCallWithArguments extends RecordedUse {
 
 /// Dart2js version of [record_use.CallTearOff].
 class RecordedTearOff extends RecordedUse {
-  RecordedTearOff({required super.function, super.location});
+  RecordedTearOff({required super.function, required super.location});
 
   @override
   RecordedUseKind get kind => RecordedUseKind.tearOff;
 
   static RecordedTearOff _readFromDataSource(
     FunctionEntity function,
-    record_use.Location? location,
+    record_use.Location location,
     DataSourceReader source,
   ) {
     // No specific fields to read.
