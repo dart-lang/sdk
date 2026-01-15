@@ -775,8 +775,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await initialize(allowEmptyRootUri: true);
 
     unawaited(openFile(file1Uri, content)); // Don't wait
-    var result = await getSelectionRanges(file1Uri, [startOfDocPos]);
-    expect(result, hasLength(1));
+    var result = await getSelectionRanges(file1Uri, startOfDocPos);
+    expect(result, isNotNull);
   }
 
   Future<void> test_emptyAnalysisRoots_multipleOpenFiles() async {

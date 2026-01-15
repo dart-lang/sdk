@@ -669,6 +669,23 @@ mixin LspRequestHelpersMixin {
     );
   }
 
+  Future<List<SelectionRange>?> getManySelectionRanges(
+    Uri uri,
+    List<Position> positions,
+  ) {
+    var request = makeRequest(
+      Method.textDocument_selectionRange,
+      SelectionRangeParams(
+        textDocument: TextDocumentIdentifier(uri: uri),
+        positions: positions,
+      ),
+    );
+    return expectSuccessfulResponseTo(
+      request,
+      _fromJsonList(SelectionRange.fromJson),
+    );
+  }
+
   Future<List<Location>> getReferences(
     Uri uri,
     Position pos, {
@@ -704,21 +721,9 @@ mixin LspRequestHelpersMixin {
     return result;
   }
 
-  Future<List<SelectionRange>?> getSelectionRanges(
-    Uri uri,
-    List<Position> positions,
-  ) {
-    var request = makeRequest(
-      Method.textDocument_selectionRange,
-      SelectionRangeParams(
-        textDocument: TextDocumentIdentifier(uri: uri),
-        positions: positions,
-      ),
-    );
-    return expectSuccessfulResponseTo(
-      request,
-      _fromJsonList(SelectionRange.fromJson),
-    );
+  Future<SelectionRange> getSelectionRanges(Uri uri, Position position) async {
+    var result = await getManySelectionRanges(uri, [position]);
+    return result!.single;
   }
 
   Future<SemanticTokens> getSemanticTokens(Uri uri) {
