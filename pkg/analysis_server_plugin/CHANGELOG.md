@@ -1,3 +1,7 @@
+## 0.3.7-dev
+
+- Require version `10.0.1` of the `analyzer` package.
+
 ## 0.3.6
 
 - Fix issue with displaying diagnostic context messages in IDEs.
