@@ -194,7 +194,30 @@ enum StaticIntrinsic {
   wasmI31RefExtensionsExternalize(
       'dart:_wasm', null, 'WasmI31RefExtensions|externalize'),
   wasmI31RefExtensionsGetS('dart:_wasm', null, 'WasmI31RefExtensions|get_s'),
-  wasmI31RefExtensionsGetU('dart:_wasm', null, 'WasmI31RefExtensions|get_u');
+  wasmI31RefExtensionsGetU('dart:_wasm', null, 'WasmI31RefExtensions|get_u'),
+  wasmMemorySize('dart:_wasm', null, 'MemoryAccessExtension|get#size'),
+  wasmMemoryGrow('dart:_wasm', null, 'MemoryAccessExtension|grow'),
+  wasmMemoryFill('dart:_wasm', null, 'MemoryAccessExtension|fill'),
+  wasmMemoryLoadFloat32(
+      'dart:_wasm', null, 'MemoryAccessExtension|loadFloat32'),
+  wasmMemoryLoadFloat64(
+      'dart:_wasm', null, 'MemoryAccessExtension|loadFloat64'),
+  wasmMemoryLoadInt8('dart:_wasm', null, 'MemoryAccessExtension|loadInt8'),
+  wasmMemoryLoadInt16('dart:_wasm', null, 'MemoryAccessExtension|loadInt16'),
+  wasmMemoryLoadInt32('dart:_wasm', null, 'MemoryAccessExtension|loadInt32'),
+  wasmMemoryLoadInt64('dart:_wasm', null, 'MemoryAccessExtension|loadInt64'),
+  wasmMemoryLoadUint8('dart:_wasm', null, 'MemoryAccessExtension|loadUint8'),
+  wasmMemoryLoadUint16('dart:_wasm', null, 'MemoryAccessExtension|loadUint16'),
+  wasmMemoryLoadUint32('dart:_wasm', null, 'MemoryAccessExtension|loadUint32'),
+  wasmMemoryStoreFloat32(
+      'dart:_wasm', null, 'MemoryAccessExtension|storeFloat32'),
+  wasmMemoryStoreFloat64(
+      'dart:_wasm', null, 'MemoryAccessExtension|storeFloat64'),
+  wasmMemoryStoreInt8('dart:_wasm', null, 'MemoryAccessExtension|storeInt8'),
+  wasmMemoryStoreInt16('dart:_wasm', null, 'MemoryAccessExtension|storeInt16'),
+  wasmMemoryStoreInt32('dart:_wasm', null, 'MemoryAccessExtension|storeInt32'),
+  wasmMemoryStoreInt64('dart:_wasm', null, 'MemoryAccessExtension|storeInt64'),
+  ;
 
   final String library;
   final String? cls;
@@ -307,7 +330,7 @@ class Intrinsifier {
       _inlineUnaryOperatorMap = {
     intType: {
       'unary-': (c, receiver) {
-        final int? intValue = _extractIntValue(receiver);
+        final int? intValue = extractIntValue(receiver);
         if (intValue == null) {
           c.translateExpression(receiver, intType);
           c.b.i64_const(-1);
@@ -317,7 +340,7 @@ class Intrinsifier {
         }
       },
       '~': (c, receiver) {
-        final int? intValue = _extractIntValue(receiver);
+        final int? intValue = extractIntValue(receiver);
         if (intValue == null) {
           c.translateExpression(receiver, intType);
           c.b.i64_const(-1);
@@ -327,7 +350,7 @@ class Intrinsifier {
         }
       },
       'toDouble': (c, receiver) {
-        final int? intValue = _extractIntValue(receiver);
+        final int? intValue = extractIntValue(receiver);
         if (intValue == null) {
           c.translateExpression(receiver, intType);
           c.b.f64_convert_i64_s();
@@ -1538,6 +1561,125 @@ class Intrinsifier {
         codeGen.translateExpression(value, w.RefType.i31(nullable: false));
         b.i31_get_u();
         return w.NumType.i32;
+
+      case StaticIntrinsic.wasmMemorySize:
+        final memory = _extractMemoryFromCall(node, b);
+        b.memory_size(memory);
+        // Unsigned because memory sizes can't be negative.
+        b.i64_extend_i32_u();
+        return w.NumType.i64;
+      case StaticIntrinsic.wasmMemoryGrow:
+        final memory = _extractMemoryFromCall(node, b);
+        codeGen.translateExpression(
+            node.arguments.positional[1], w.NumType.i64);
+        b.i32_wrap_i64();
+        b.memory_grow(memory);
+        // Signed because memory.grow returns -1 on failure.
+        b.i64_extend_i32_s();
+        return w.NumType.i64;
+      case StaticIntrinsic.wasmMemoryFill:
+        final memory = _extractMemoryFromCall(node, b);
+        // The positional arguments in Dart are value, startOffset, length. The
+        // stack for memory_fill needs to be [..., start, value, length] though.
+        final [_, value, start, length] = node.arguments.positional;
+        codeGen.translateExpression(value, w.NumType.i32);
+        codeGen.translateExpression(start, w.NumType.i64);
+        b.i32_wrap_i64();
+        final startVar = b.addLocal(w.NumType.i32);
+        final valueVar = b.addLocal(w.NumType.i32);
+
+        b
+          ..local_set(startVar)
+          ..local_set(valueVar)
+          ..local_get(startVar)
+          ..local_get(valueVar);
+        codeGen.translateExpression(length, w.NumType.i64);
+        b.i32_wrap_i64();
+        b.memory_fill(memory);
+        return codeGen.voidMarker;
+      case StaticIntrinsic.wasmMemoryLoadFloat32:
+      case StaticIntrinsic.wasmMemoryLoadFloat64:
+      case StaticIntrinsic.wasmMemoryLoadInt8:
+      case StaticIntrinsic.wasmMemoryLoadInt16:
+      case StaticIntrinsic.wasmMemoryLoadInt32:
+      case StaticIntrinsic.wasmMemoryLoadInt64:
+      case StaticIntrinsic.wasmMemoryLoadUint8:
+      case StaticIntrinsic.wasmMemoryLoadUint16:
+      case StaticIntrinsic.wasmMemoryLoadUint32:
+        final (:memory, :align, :offset) = _extractMemoryOperands(node, b);
+
+        codeGen.translateExpression(
+            node.arguments.positional[1], w.NumType.i64);
+        b.i32_wrap_i64();
+
+        switch (intrinsic) {
+          case StaticIntrinsic.wasmMemoryLoadFloat32:
+            b.f32_load(memory, offset, align);
+            return w.NumType.f32;
+          case StaticIntrinsic.wasmMemoryLoadFloat64:
+            b.f64_load(memory, offset, align);
+            return w.NumType.f64;
+          case StaticIntrinsic.wasmMemoryLoadInt8:
+            b.i32_load8_s(memory, offset, align);
+            return w.NumType.i32;
+          case StaticIntrinsic.wasmMemoryLoadInt16:
+            b.i32_load16_s(memory, offset, align);
+            return w.NumType.i32;
+          case StaticIntrinsic.wasmMemoryLoadInt32:
+            b.i32_load(memory, offset, align);
+            return w.NumType.i32;
+          case StaticIntrinsic.wasmMemoryLoadInt64:
+            b.i64_load(memory, offset, align);
+            return w.NumType.i64;
+          case StaticIntrinsic.wasmMemoryLoadUint8:
+            b.i32_load8_u(memory, offset, align);
+            return w.NumType.i32;
+          case StaticIntrinsic.wasmMemoryLoadUint16:
+            b.i32_load16_u(memory, offset, align);
+            return w.NumType.i32;
+          case StaticIntrinsic.wasmMemoryLoadUint32:
+            b.i32_load(memory, offset, align);
+            return w.NumType.i32;
+          default:
+            throw AssertionError('unreachable');
+        }
+      case StaticIntrinsic.wasmMemoryStoreFloat32:
+      case StaticIntrinsic.wasmMemoryStoreFloat64:
+      case StaticIntrinsic.wasmMemoryStoreInt8:
+      case StaticIntrinsic.wasmMemoryStoreInt16:
+      case StaticIntrinsic.wasmMemoryStoreInt32:
+      case StaticIntrinsic.wasmMemoryStoreInt64:
+        final (:memory, :align, :offset) = _extractMemoryOperands(node, b);
+
+        codeGen.translateExpression(
+            node.arguments.positional[1], w.NumType.i64);
+        b.i32_wrap_i64();
+        final valueExpression = node.arguments.positional[2];
+
+        switch (intrinsic) {
+          case StaticIntrinsic.wasmMemoryStoreFloat32:
+            codeGen.translateExpression(valueExpression, w.NumType.f32);
+            b.f32_store(memory, offset, align);
+          case StaticIntrinsic.wasmMemoryStoreFloat64:
+            codeGen.translateExpression(valueExpression, w.NumType.f64);
+            b.f64_store(memory, offset, align);
+          case StaticIntrinsic.wasmMemoryStoreInt8:
+            codeGen.translateExpression(valueExpression, w.NumType.i32);
+            b.i32_store8(memory, offset, align);
+          case StaticIntrinsic.wasmMemoryStoreInt16:
+            codeGen.translateExpression(valueExpression, w.NumType.i32);
+            b.i32_store16(memory, offset, align);
+          case StaticIntrinsic.wasmMemoryStoreInt32:
+            codeGen.translateExpression(valueExpression, w.NumType.i32);
+            b.i32_store(memory, offset, align);
+          case StaticIntrinsic.wasmMemoryStoreInt64:
+            codeGen.translateExpression(valueExpression, w.NumType.i64);
+            b.i64_store(memory, offset, align);
+          default:
+            throw AssertionError('unreachable');
+        }
+
+        return codeGen.voidMarker;
     }
   }
 
@@ -2155,9 +2297,40 @@ class Intrinsifier {
     }
     return wasmType.unpacked;
   }
+
+  /// Extracts the memory instance for an intrinsic call on a memory extension.
+  w.Memory _extractMemoryFromCall(
+      Expression expr, w.InstructionsBuilder builder) {
+    // All validated memory calls look like MemoryAccessExtension|size(memory)
+    final memory =
+        (expr as StaticInvocation).arguments.positional[0] as StaticGet;
+    return translator.findMemory(
+        memory.target as Procedure, builder.moduleBuilder);
+  }
+
+  ({w.Memory memory, int offset, int align}) _extractMemoryOperands(
+      StaticInvocation call, w.InstructionsBuilder builder) {
+    final memory = _extractMemoryFromCall(call, builder);
+    var align = 0;
+    var offset = 0;
+
+    for (final NamedExpression(:name, :value) in call.arguments.named) {
+      // align and offset are verified to be compile-time constants in
+      // wasm_library_checks.dart
+      if (name == 'align') {
+        align = extractIntValue(value)!;
+      } else if (name == 'offset') {
+        offset = extractIntValue(value)!;
+      } else {
+        throw UnsupportedError('Unhandled named argument: $name');
+      }
+    }
+
+    return (memory: memory, align: align, offset: offset);
+  }
 }
 
-int? _extractIntValue(Expression expr) {
+int? extractIntValue(Expression expr) {
   if (expr is IntLiteral) {
     return expr.value;
   }

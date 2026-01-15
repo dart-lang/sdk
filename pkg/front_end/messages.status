@@ -162,6 +162,10 @@ front_end/UnsoundSwitchStatementError/example: missingExample # Used in throw in
 front_end/Unspecified/example: missingExample # This should generally not be used.
 front_end/UnterminatedToken/example: missingExample # This is a fall-back message that shouldn't happen.
 front_end/WasmImportOrExportInUserCode/example: missingExample # only issued by wasm build
+front_end/WasmExternInvalidLoad/example: missingExample # only issued by wasm build
+front_end/WasmExternInvalidTarget/example: missingExample # only issued by wasm build
+front_end/WasmIntrinsicTearOff/example: missingExample # only issued by wasm build
+front_end/WasmExternMemoryMissingAnnotation/example: missingExample # only issued by wasm build
 front_end/WebLiteralCannotBeRepresentedExactly/example: missingExample # only issued on web build
 
 # Can we do better?

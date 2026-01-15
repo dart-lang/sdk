@@ -9,8 +9,6 @@ import 'package:kernel/library_index.dart';
 /// Kernel nodes for classes and members referenced specifically by the
 /// compiler.
 mixin KernelNodes {
-  Component get component;
-
   LibraryIndex get index;
 
   CoreTypes get coreTypes;
@@ -201,6 +199,14 @@ mixin KernelNodes {
       "dart:_compact_hash", "_uninitializedHashBaseIndex");
   late final Field wasmI64ValueField =
       index.getField("dart:_wasm", "WasmI64", "_value");
+
+  late final Class wasmMemoryClass = index.getClass('dart:_wasm', 'Memory');
+  late final Class wasmMemoryTypeClass =
+      index.getClass('dart:_wasm', 'MemoryType');
+  late final Field wasmLimitsMinimum =
+      index.getField('dart:_wasm', 'Limits', 'minimum');
+  late final Field wasmLimitsMaximum =
+      index.getField('dart:_wasm', 'Limits', 'maximum');
 
   // dart:_js_helper procedures
   late final Procedure getInternalizedString =

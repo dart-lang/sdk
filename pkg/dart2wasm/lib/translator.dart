@@ -40,6 +40,7 @@ import 'symbols.dart';
 import 'tags.dart';
 import 'types.dart';
 import 'util.dart' as util;
+import 'wasm_annotations.dart';
 
 /// Options controlling the translation.
 class TranslatorOptions {
@@ -149,7 +150,6 @@ class Translator with KernelNodes {
   late final Exporter exporter;
 
   // Kernel input and context.
-  @override
   final Component component;
   final List<Library> libraries;
   @override
@@ -249,6 +249,7 @@ class Translator with KernelNodes {
   // Lazily import FFI memory if used.
   late final w.Memory ffiMemory = mainModule.memories.import("ffi", "memory",
       options.importSharedMemory, 0, options.sharedMemoryMaxPages);
+  final Map<Procedure, w.Memory> _memories = {};
 
   /// Maps record shapes to the record class for the shape. Classes generated
   /// by `record_class_generator` library.
@@ -762,6 +763,8 @@ class Translator with KernelNodes {
 
   late final WasmFunctionImporter _importedFunctions =
       WasmFunctionImporter(this, 'func');
+  late final WasmMemoryImporter _importedMemories =
+      WasmMemoryImporter(this, 'memory');
 
   /// Generates a set of instructions to call [function] adding indirection
   /// if the call crosses a module boundary. Calls the function directly if it
@@ -2128,6 +2131,51 @@ class Translator with KernelNodes {
     _internalizedStringGlobals[(module, s)] = internalizedString;
     return internalizedString;
   }
+
+  w.Memory findMemory(
+      Procedure topLevelExternalMemoryGetter, w.ModuleBuilder moduleBuilder) {
+    final inMain = _findMemoryForMainModule(topLevelExternalMemoryGetter);
+    if (moduleBuilder == mainModule) {
+      return inMain;
+    }
+
+    return _importedMemories.get(inMain, moduleBuilder);
+  }
+
+  w.Memory _findMemoryForMainModule(Procedure topLevelExternalMemoryGetter) {
+    return _memories.putIfAbsent(topLevelExternalMemoryGetter, () {
+      final limits =
+          MemoryLimits.readAnnotation(this, topLevelExternalMemoryGetter)!;
+      final exportName = getExportName(topLevelExternalMemoryGetter.reference);
+      final import =
+          util.getWasmImportPragma(coreTypes, topLevelExternalMemoryGetter);
+
+      w.Memory memory;
+      if (import != null) {
+        memory = mainModule.memories.import(import.moduleName, import.itemName,
+            false, limits.minSize, limits.maxSize);
+      } else {
+        memory =
+            mainModule.memories.define(false, limits.minSize, limits.maxSize);
+      }
+
+      if (exportName != null) {
+        mainModule.exports.export(exportName, memory);
+      }
+      return memory;
+    });
+  }
+
+  /// If the member with the reference [target] is exported, get the export
+  /// name.
+  String? getExportName(Reference target) {
+    final member = target.asMember;
+    if (member.reference == target) {
+      return util.getWasmExportPragma(coreTypes, member) ??
+          util.getWasmWeakExportPragma(coreTypes, member);
+    }
+    return null;
+  }
 }
 
 class CompilationQueue {
@@ -3287,6 +3335,17 @@ class WasmGlobalImporter extends _WasmImporter<w.Global> {
         importingModule.globals.import(moduleName, importName, definition.type);
     global.globalName = definition.globalName;
     return global;
+  }
+}
+
+class WasmMemoryImporter extends _WasmImporter<w.Memory> {
+  WasmMemoryImporter(super._translator, super._exportPrefix);
+
+  @override
+  w.Memory _import(w.ModuleBuilder importingModule, w.Memory definition,
+      String moduleName, String importName) {
+    return importingModule.memories.import(moduleName, importName,
+        definition.shared, definition.minSize, definition.maxSize);
   }
 }
 

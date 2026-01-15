@@ -16,8 +16,8 @@
     (result (ref $MyConstClass))))
   (global $.h0-nonshared-const (import "" "h0-nonshared-const") (ref extern))
   (table $module0.static1-0 (import "module0" "static1-0") 1 (ref null $type0))
-  (global $"C503 MyConstClass" (ref $MyConstClass)
-    (i32.const 118)
+  (global $"C505 MyConstClass" (ref $MyConstClass)
+    (i32.const 120)
     (i32.const 0)
     (i32.const 4)
     (i32.const 0)
@@ -27,7 +27,7 @@
   (func $"modH0Use <noInline>" (param $var0 i32) (result (ref $MyConstClass))
     local.get $var0
     if (result (ref $MyConstClass))
-      global.get $"C503 MyConstClass"
+      global.get $"C505 MyConstClass"
     else
       i32.const 0
       call_indirect $module0.static1-0 (result (ref $MyConstClass))

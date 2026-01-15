@@ -1159,6 +1159,14 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(ir.MemoryGrow(memory));
   }
 
+  /// Emit a `memory.fill` instruction.
+  void memory_fill(ir.Memory memory) {
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32, ir.NumType.i32], const []));
+    assert(memory.enclosingModule == module);
+    _add(ir.MemoryFill(memory));
+  }
+
   // Reference instructions
 
   /// Emit a `ref.null` instruction.

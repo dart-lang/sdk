@@ -289,6 +289,10 @@ class Module implements Serializable {
         }
       }
 
+      for (final memory in [...memories.imported, ...memories.defined]) {
+        mp.enqueueMemory(memory);
+      }
+
       for (final table in [...tables.imported, ...tables.defined]) {
         mp.enqueueTable(table);
       }
