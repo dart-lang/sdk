@@ -1,0 +1,83 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/fields.dart:14:6: Error: The setter 'b' isn't defined for the type 'C1'.
+//  - 'C1' is from 'pkg/front_end/testcases/primary_constructors/fields.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'b'.
+//   c1.b = '5'; // Error
+//      ^
+//
+// pkg/front_end/testcases/primary_constructors/fields.dart:15:6: Error: The getter 'c' isn't defined for the type 'C1'.
+//  - 'C1' is from 'pkg/front_end/testcases/primary_constructors/fields.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'c'.
+//   c1.c; // Error
+//      ^
+//
+// pkg/front_end/testcases/primary_constructors/fields.dart:16:6: Error: The setter 'c' isn't defined for the type 'C1'.
+//  - 'C1' is from 'pkg/front_end/testcases/primary_constructors/fields.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'c'.
+//   c1.c = 6.0; // Error
+//      ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  field core::int a;
+  final field core::String b;
+  constructor •(core::int a, final core::String b, core::double c) → self::C1
+    : self::C1::a = a, self::C1::b = b, super core::Object::•()
+    ;
+}
+class C2 extends core::Object {
+  field core::int a;
+  final field core::String b;
+  constructor •([core::int a = #C1, final core::String b = #C2, core::double c = #C3]) → self::C2
+    : self::C2::a = a, self::C2::b = b, super core::Object::•()
+    ;
+}
+class C3 extends core::Object {
+  field core::int a;
+  final field core::String b;
+  constructor •({required core::int a, required final core::String b, required core::double c}) → self::C3
+    : self::C3::a = a, self::C3::b = b, super core::Object::•()
+    ;
+}
+class C4 extends core::Object {
+  field core::int a;
+  final field core::String b;
+  constructor •({core::int a = #C1, final core::String b = #C2, core::double c = #C3}) → self::C4
+    : self::C4::a = a, self::C4::b = b, super core::Object::•()
+    ;
+}
+static method test(self::C1 c1) → dynamic {
+  invalid-expression "pkg/front_end/testcases/primary_constructors/fields.dart:14:6: Error: The setter 'b' isn't defined for the type 'C1'.
+ - 'C1' is from 'pkg/front_end/testcases/primary_constructors/fields.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'b'.
+  c1.b = '5'; // Error
+     ^" in c1.{<unresolved>}b = "5";
+  invalid-expression "pkg/front_end/testcases/primary_constructors/fields.dart:15:6: Error: The getter 'c' isn't defined for the type 'C1'.
+ - 'C1' is from 'pkg/front_end/testcases/primary_constructors/fields.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'c'.
+  c1.c; // Error
+     ^" in c1{<unresolved>}.c;
+  invalid-expression "pkg/front_end/testcases/primary_constructors/fields.dart:16:6: Error: The setter 'c' isn't defined for the type 'C1'.
+ - 'C1' is from 'pkg/front_end/testcases/primary_constructors/fields.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'c'.
+  c1.c = 6.0; // Error
+     ^" in c1.{<unresolved>}c = 6.0;
+}
+static method main() → dynamic {
+  self::C1 c1 = new self::C1::•(1, "2", 3.0);
+  core::print(c1.{self::C1::a}{core::int});
+  core::print(c1.{self::C1::b}{core::String});
+  c1.{self::C1::a} = 4;
+  core::print(c1.{self::C1::b}{core::String});
+}
+
+constants  {
+  #C1 = 0
+  #C2 = ""
+  #C3 = 0.0
+}

@@ -584,7 +584,9 @@ class BuilderFactory {
         return new _FieldDeclaration(
           displayName: fragment.name,
           isAugment: false,
-          propertyKind: _PropertyKind.FinalField,
+          propertyKind: fragment.hasSetter
+              ? _PropertyKind.Field
+              : _PropertyKind.FinalField,
           isStatic: false,
           inPatch: fragment.enclosingDeclaration.isPatch,
           inLibrary: false,
@@ -592,6 +594,7 @@ class BuilderFactory {
           declarations: new _PropertyDeclarations(
             field: declaration,
             getter: declaration,
+            setter: fragment.hasSetter ? declaration : null,
           ),
         );
       case GetterFragment():
