@@ -10,6 +10,9 @@ import '../rule_test_support.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferInitializingFormalsTest);
+    defineReflectiveTests(
+      PreferInitializingFormalsWithoutPrivateNamedParametersTest,
+    );
   });
 }
 
@@ -102,6 +105,59 @@ class C {
 ''');
   }
 
+  test_assignedInBody_privateToPrivate() async {
+    // This code has an error because it's using a private named parameter that
+    // doesn't refer to a field. But we still want the lint to fire because the
+    // lint can help the user fix that error by turning the parameter into an
+    // initializing formal.
+    await assertDiagnostics(
+      r'''
+class C {
+  num? _x, _y;
+  C(num? _x, {num? _y}) {
+    this._x = _x;
+    this._y = _y;
+  }
+}
+''',
+      [
+        error(diag.privateNamedNonFieldParameter, 44, 2),
+        // Only the named parameter is linted.
+        lint(73, 12),
+      ],
+    );
+  }
+
+  test_assignedInBody_publicToPrivate_positional() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  num? _x, _y;
+  C(num? x, {num? y}) {
+    this._x = x;
+    this._y = y;
+  }
+}
+''',
+      [
+        // Only the named parameter is linted.
+        lint(70, 11),
+      ],
+    );
+  }
+
+  test_assignedInBody_publicToPrivateRenamed() async {
+    await assertNoDiagnostics(r'''
+class C {
+  num? _a, _b;
+  C(num? x, {num? y}) {
+    this._a = x;
+    this._b = y;
+  }
+}
+''');
+  }
+
   test_assignedInBody_subsequent() async {
     await assertDiagnostics(
       r'''
@@ -171,6 +227,50 @@ class C {
 ''',
       [lint(56, 10), lint(76, 10)],
     );
+  }
+
+  test_assignedInInitializer_privateToPrivate() async {
+    // This code has an error because it's using a private named parameter that
+    // doesn't refer to a field. But we still want the lint to fire because the
+    // lint can help the user fix that error by turning the parameter into an
+    // initializing formal.
+    await assertDiagnostics(
+      r'''
+class C {
+  num? _x, _y;
+  C(num? _x, {num? _y}) : _x = _x, _y = _y;
+}
+''',
+      [
+        error(diag.privateNamedNonFieldParameter, 44, 2),
+        // Only the named parameter is linted.
+        lint(60, 7),
+      ],
+    );
+  }
+
+  test_assignedInInitializer_publicToPrivate() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  num? _x, _y;
+  C(num? x, {num? y}) : _x = x, _y = y;
+}
+''',
+      [
+        // Only the named parameter is linted.
+        lint(57, 6),
+      ],
+    );
+  }
+
+  test_assignedInInitializer_publicToPrivateRenamed() async {
+    await assertNoDiagnostics(r'''
+class C {
+  num? _a, _b;
+  C(num? x, {num? y}) : _a = x, _b = y;
+}
+''');
   }
 
   test_assignedInInitializer_renamedParameter() async {
@@ -334,6 +434,118 @@ void f(int p) {}
 class C {
   int? x;
   C(int initialX) : x = initialX;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class PreferInitializingFormalsWithoutPrivateNamedParametersTest
+    extends LintRuleTest {
+  @override
+  String get lintRule => LintNames.prefer_initializing_formals;
+
+  test_assignedInBody_privateToPrivate() async {
+    // This code has an error because it's using a private named parameter that
+    // doesn't refer to a field. It's also in a file that can't use a private
+    // named parameter so there should be the error but no lint.
+    await assertDiagnostics(
+      r'''
+// @dart=3.10
+class C {
+  num? _x, _y;
+  C(num? _x, {num? _y}) {
+    this._x = _x;
+    this._y = _y;
+  }
+}
+''',
+      [error(diag.privateOptionalParameter, 58, 2)],
+    );
+  }
+
+  test_assignedInBody_publicToPrivate() async {
+    await assertNoDiagnostics(r'''
+// @dart=3.10
+class C {
+  num? _x, _y;
+  C(num? x, {num? y}) {
+    this._x = x;
+    this._y = y;
+  }
+}
+''');
+  }
+
+  test_assignedInBody_publicToPrivateRenamed() async {
+    await assertNoDiagnostics(r'''
+// @dart=3.10
+class C {
+  num? _a, _b;
+  C(num? x, {num? y}) {
+    this._a = x;
+    this._b = y;
+  }
+}
+''');
+  }
+
+  test_assignedInInitializer_privateToPrivate() async {
+    // This code has an error because it's using a private named parameter that
+    // doesn't refer to a field. It's also in a file that can't use a private
+    // named parameter so there should be the error but no lint.
+    await assertDiagnostics(
+      r'''
+// @dart=3.10
+class C {
+  num? _x, _y;
+  C(num? _x, {num? _y}) : _x = _x, _y = _y;
+}
+''',
+      [error(diag.privateOptionalParameter, 58, 2)],
+    );
+  }
+
+  test_assignedInInitializer_publicToPrivate() async {
+    await assertNoDiagnostics(r'''
+// @dart=3.10
+class C {
+  num? _x, _y;
+  C(num? x, {num? y}) : _x = x, _y = y;
+}
+''');
+  }
+
+  test_assignedInInitializer_publicToPrivateRenamed() async {
+    await assertNoDiagnostics(r'''
+// @dart=3.10
+class C {
+  num? _a, _b;
+  C(num? x, {num? y}) : _a = x, _b = y;
+}
+''');
+  }
+
+  test_assignedInInitializer_renamedToBePrivate() async {
+    await assertNoDiagnostics(r'''
+// @dart=3.10
+class C {
+  final num _x, _y;
+  C(num x, num y)
+      : _x = x,
+        _y = y;
+}
+''');
+  }
+
+  test_assignedInInitializer_renamedToBePrivate_explicitThis() async {
+    await assertNoDiagnostics(r'''
+// @dart=3.10
+class C {
+  final num _x, _y;
+  C(num x, num y)
+      : this._x = x,
+        this._y = y;
 }
 ''');
   }
