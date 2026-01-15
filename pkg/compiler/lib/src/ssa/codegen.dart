@@ -2374,7 +2374,6 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         if (_closedWorld.annotationsData.shouldRecordMethodUses(element)) {
           recordedMethodUses = _recordMethodUses(
             element,
-            callStructure,
             node.inputs,
             node.sourceInformation!,
           );
@@ -2391,24 +2390,44 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     }
   }
 
-  // TODO(https://github.com/dart-lang/native/issues/2883): Support named arguments.
   RecordedUse _recordMethodUses(
     FunctionEntity element,
-    CallStructure callStructure,
     List<HInstruction> arguments,
     SourceInformation sourceInformation,
   ) {
-    final name = element.name!;
     // TODO(https://github.com/dart-lang/native/issues/2948): Record the name of
     // the extension instead of the desugared name.
-    final isExtensionMethod = hasUnnamedExtensionNamePrefix(name);
+    final isExtensionMethod = hasUnnamedExtensionNamePrefix(element.name!);
+
+    final originalParameterStructure = element.parameterStructure;
+
+    final positionalArguments = <ConstantValue?>[];
+    final namedArguments = <String, ConstantValue?>{};
+    var argumentIndex = 0;
+    // Loop over arguments in namedOrdering or in nativeOrdering.
+    _closedWorld.elementEnvironment.forEachParameter(element, (
+      DartType type,
+      String? name,
+      ConstantValue? defaultValue,
+    ) {
+      if (argumentIndex == 0 && isExtensionMethod) {
+        // Skip extension method receiver.
+        argumentIndex++;
+        // TODO(https://github.com/dart-lang/native/issues/2948): Support
+        // extension method receiver.
+      } else if (argumentIndex <
+          originalParameterStructure.positionalParameters) {
+        positionalArguments.add(_findConstant(arguments[argumentIndex++]));
+      } else {
+        namedArguments[name!] = _findConstant(arguments[argumentIndex++]);
+      }
+    });
+
     return RecordedCallWithArguments(
       function: element,
       sourceInformation: sourceInformation,
-      positionalArguments: arguments
-          .skip(isExtensionMethod ? 1 : 0)
-          .map(_findConstant)
-          .toList(),
+      positionalArguments: positionalArguments,
+      namedArguments: namedArguments,
     );
   }
 

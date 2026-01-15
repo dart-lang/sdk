@@ -89,15 +89,21 @@ sealed class RecordedUse {
 /// instead of [record_use.Constant]s.
 class RecordedCallWithArguments extends RecordedUse {
   final List<ConstantValue?> positionalArguments;
+  final Map<String, ConstantValue?> namedArguments;
 
-  /// Constant argument values in `package:record_use` format.
-  List<record_use.Constant?> get arguments =>
+  /// Constant positional argument values in `package:record_use` format.
+  List<record_use.Constant?> positionalArgumentsInRecordUseFormat() =>
       positionalArguments.map(_findValue).toList();
+
+  /// Constant named argument values in `package:record_use` format.
+  Map<String, record_use.Constant?> namedArgumentsInRecordUseFormat() =>
+      namedArguments.map((k, v) => MapEntry(k, _findValue(v)));
 
   RecordedCallWithArguments({
     required super.function,
     required super.sourceInformation,
     required this.positionalArguments,
+    required this.namedArguments,
   });
 
   @override
@@ -108,22 +114,20 @@ class RecordedCallWithArguments extends RecordedUse {
     SourceInformation sourceInformation,
     DataSourceReader source,
   ) {
-    final positionalArguments = source.readList(
-      () => source.readValueOrNull(source.readConstant),
-    );
+    final positionalArguments = source.readList(source.readConstantOrNull);
+    final namedArguments = source.readStringMap(source.readConstantOrNull);
     return RecordedCallWithArguments(
       function: function,
       sourceInformation: sourceInformation,
       positionalArguments: positionalArguments,
+      namedArguments: namedArguments,
     );
   }
 
   @override
   void _writeFieldsForKind(DataSinkWriter sink) {
-    sink.writeList(
-      positionalArguments,
-      (c) => sink.writeValueOrNull(c, sink.writeConstant),
-    );
+    sink.writeList(positionalArguments, sink.writeConstantOrNull);
+    sink.writeStringMap(namedArguments, sink.writeConstantOrNull);
   }
 
   @override

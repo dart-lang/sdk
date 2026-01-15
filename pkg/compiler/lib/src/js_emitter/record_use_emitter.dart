@@ -76,8 +76,8 @@ class RecordUseCollector {
     final callReference = switch (recordedUse) {
       RecordedCallWithArguments() => CallWithArguments(
         loadingUnit: loadingUnit,
-        namedArguments: {},
-        positionalArguments: recordedUse.arguments,
+        namedArguments: recordedUse.namedArgumentsInRecordUseFormat(),
+        positionalArguments: recordedUse.positionalArgumentsInRecordUseFormat(),
         location: location,
       ),
       RecordedTearOff() => CallTearOff(

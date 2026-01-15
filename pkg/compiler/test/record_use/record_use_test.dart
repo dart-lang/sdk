@@ -133,10 +133,4 @@ const dart2jsNotSupported = {
   'nested.dart',
   'record_enum.dart',
   'record_instance_constant_empty.dart',
-  // Named arguments are converted to positional arguments.
-  // https://github.com/dart-lang/native/issues/2883
-  'named_and_positional.dart',
-  'named_both.dart',
-  'named_optional.dart',
-  'named_required.dart',
 };
