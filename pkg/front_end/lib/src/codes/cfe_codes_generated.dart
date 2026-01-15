@@ -16299,10 +16299,39 @@ const MessageCode codeVoidExpression = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode codeWasmExternInvalidLoad = const MessageCode(
+  "WasmExternInvalidLoad",
+  problemMessage:
+      """WebAssembly elements may only be referenced to directly call a method on them.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode codeWasmExternInvalidTarget = const MessageCode(
+  "WasmExternInvalidTarget",
+  problemMessage:
+      """The receiver of this call must be a top-level variable describing the WebAssembly element.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode codeWasmExternMemoryMissingAnnotation = const MessageCode(
+  "WasmExternMemoryMissingAnnotation",
+  problemMessage:
+      """This external getter returns a memory instance, but no annotation describing it was found""",
+  correctionMessage:
+      """Try adding a `@MemoryType()` or `@Import.memory()` annotation.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeWasmImportOrExportInUserCode = const MessageCode(
   "WasmImportOrExportInUserCode",
   problemMessage:
       """Pragmas `wasm:import` and `wasm:export` are for internal use only and cannot be used by user code.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode codeWasmIntrinsicTearOff = const MessageCode(
+  "WasmIntrinsicTearOff",
+  problemMessage: """This intrinsic extension member may not be torn off.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

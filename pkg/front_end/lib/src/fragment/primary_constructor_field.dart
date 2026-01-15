@@ -10,6 +10,7 @@ class PrimaryConstructorFieldDeclaration
         FieldDeclaration,
         FieldFragmentDeclaration,
         GetterDeclaration,
+        SetterDeclaration,
         Inferable,
         InferredTypeListener {
   final PrimaryConstructorFieldFragment _fragment;
@@ -51,7 +52,7 @@ class PrimaryConstructorFieldDeclaration
   bool get hasInitializer => false;
 
   @override
-  bool get hasSetter => false;
+  bool get hasSetter => _fragment.hasSetter;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -80,6 +81,9 @@ class PrimaryConstructorFieldDeclaration
   List<ClassMember> get localMembers => _encoding.localMembers;
 
   @override
+  List<ClassMember> get localSetters => _encoding.localSetters;
+
+  @override
   // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => _fragment.metadata;
 
@@ -90,11 +94,18 @@ class PrimaryConstructorFieldDeclaration
   Member get readTarget => _encoding.readTarget;
 
   @override
+  SetterQuality get setterQuality =>
+      !hasSetter ? SetterQuality.Absent : SetterQuality.Implicit;
+
+  @override
   TypeBuilder get type => _fragment.type;
 
   @override
   // Coverage-ignore(suite): Not run.
   UriOffsetLength get uriOffset => _fragment.uriOffset;
+
+  @override
+  Member? get writeTarget => _encoding.writeTarget;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -217,6 +228,26 @@ class PrimaryConstructorFieldDeclaration
   }
 
   @override
+  void buildSetterOutlineExpressions({
+    required ClassHierarchy classHierarchy,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required SourcePropertyBuilder propertyBuilder,
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+  }) {}
+
+  @override
+  void buildSetterOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback f,
+    required PropertyReferences? references,
+    required List<TypeParameter>? classTypeParameters,
+  }) {}
+
+  @override
   void checkFieldTypes(
     ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
@@ -267,6 +298,18 @@ class PrimaryConstructorFieldDeclaration
   ) {}
 
   @override
+  void checkSetterTypes(
+    ProblemReporting problemReporting,
+    TypeEnvironment typeEnvironment,
+  ) {}
+
+  @override
+  void checkSetterVariance(
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  ) {}
+
+  @override
   int computeFieldDefaultTypes(ComputeDefaultTypeContext context) {
     if (type is! OmittedTypeBuilder) {
       context.reportInboundReferenceIssuesForType(type);
@@ -277,6 +320,11 @@ class PrimaryConstructorFieldDeclaration
 
   @override
   int computeGetterDefaultTypes(ComputeDefaultTypeContext context) {
+    return 0;
+  }
+
+  @override
+  int computeSetterDefaultTypes(ComputeDefaultTypeContext context) {
     return 0;
   }
 
@@ -337,12 +385,29 @@ class PrimaryConstructorFieldDeclaration
   ) {}
 
   @override
+  void createSetterEncoding(
+    ProblemReporting problemReporting,
+    SourcePropertyBuilder builder,
+    PropertyEncodingStrategy encodingStrategy,
+    TypeParameterFactory typeParameterFactory,
+  ) {}
+
+  @override
   // Coverage-ignore(suite): Not run.
   void ensureGetterTypes({
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder? declarationBuilder,
     required ClassMembersBuilder membersBuilder,
     required Set<ClassMember>? getterOverrideDependencies,
+  }) {}
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void ensureSetterTypes({
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required ClassMembersBuilder membersBuilder,
+    required Set<ClassMember>? setterOverrideDependencies,
   }) {}
 
   @override
@@ -379,6 +444,14 @@ class PrimaryConstructorFieldDeclaration
     PropertyReferences references,
   ) {
     return [references.getterReference];
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> getExportedSetterReferences(
+    PropertyReferences references,
+  ) {
+    return hasSetter ? [references.setterReference] : const [];
   }
 
   @override

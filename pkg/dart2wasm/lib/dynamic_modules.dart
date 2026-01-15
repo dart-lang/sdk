@@ -110,7 +110,6 @@ class DynamicSubmoduleOutputData extends ModuleOutputData {
 }
 
 class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
-  @override
   final Component component;
   @override
   final CoreTypes coreTypes;

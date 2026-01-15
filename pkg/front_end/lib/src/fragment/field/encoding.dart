@@ -430,7 +430,6 @@ class PrimaryConstructorFieldEncoding with RegularFieldEncodingMixin {
   ];
 
   @override
-  // Coverage-ignore(suite): Not run.
   List<ClassMember> get localSetters => _fragment.hasSetter
       ? [
           new _FieldClassMember(

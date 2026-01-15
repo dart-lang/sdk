@@ -170,15 +170,12 @@ class DefaultModuleStrategy extends ModuleStrategy {
       DeferredModuleLoadingMap loadingMap) async {}
 }
 
-bool _hasWasmExportPragma(CoreTypes coreTypes, Member m) =>
-    hasPragma(coreTypes, m, 'wasm:export');
-
 bool containsWasmExport(CoreTypes coreTypes, Library lib) {
-  if (lib.members.any((m) => _hasWasmExportPragma(coreTypes, m))) {
+  if (lib.members.any((m) => hasWasmExportPragma(coreTypes, m))) {
     return true;
   }
   return lib.classes
-      .any((c) => c.members.any((m) => _hasWasmExportPragma(coreTypes, m)));
+      .any((c) => c.members.any((m) => hasWasmExportPragma(coreTypes, m)));
 }
 
 abstract class ModuleStrategy {

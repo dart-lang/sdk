@@ -2,4 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-wasm_sdk_sources = [ "wasm_types.dart" ]
+wasm_sdk_sources = [
+  "memory.dart",
+  "wasm_types.dart",
+]

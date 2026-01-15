@@ -1,0 +1,32 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  field core::int a;
+  final field core::String b;
+  constructor •(core::int a, final core::String b, core::double c) → self::C1
+    ;
+}
+class C2 extends core::Object {
+  field core::int a;
+  final field core::String b;
+  constructor •([core::int a = 0, final core::String b = "", core::double c = 0.0]) → self::C2
+    ;
+}
+class C3 extends core::Object {
+  field core::int a;
+  final field core::String b;
+  constructor •({required core::int a, required final core::String b, required core::double c}) → self::C3
+    ;
+}
+class C4 extends core::Object {
+  field core::int a;
+  final field core::String b;
+  constructor •({core::int a = 0, final core::String b = "", core::double c = 0.0}) → self::C4
+    ;
+}
+static method test(self::C1 c1) → dynamic
+  ;
+static method main() → dynamic
+  ;

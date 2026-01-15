@@ -552,6 +552,8 @@ abstract class Instruction implements Serializable {
               return I64TruncSatF64S.deserialize(d);
             case 0x07:
               return I64TruncSatF64U.deserialize(d);
+            case 0x0B:
+              return MemoryFill.deserialize(d, memories);
             case 0x10:
               return TableSize.deserialize(d, tables);
             case 0x11:
@@ -2004,6 +2006,7 @@ class MemorySize extends Instruction {
   @override
   void printTo(IrPrinter p) {
     p.write(name);
+    p.write(' ');
     p.writeMemoryReference(memory);
   }
 }
@@ -2025,6 +2028,33 @@ class MemoryGrow extends Instruction {
 
   @override
   String get name => 'memory.grow';
+
+  @override
+  void printTo(IrPrinter p) {
+    p.write(name);
+    p.write(' ');
+    p.writeMemoryReference(memory);
+  }
+}
+
+class MemoryFill extends Instruction {
+  final Memory memory;
+
+  MemoryFill(this.memory);
+
+  static MemoryFill deserialize(Deserializer d, Memories memories) {
+    return MemoryFill(memories[d.readUnsigned()]);
+  }
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFC);
+    s.writeUnsigned(0x0B);
+    s.writeUnsigned(memory.index);
+  }
+
+  @override
+  String get name => 'memory.fill';
 
   @override
   void printTo(IrPrinter p) {

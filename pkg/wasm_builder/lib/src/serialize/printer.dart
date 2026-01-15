@@ -22,6 +22,8 @@ class ModulePrinter {
       TableNamer(settings.scrubAbsoluteUris, _module, enqueueTable);
   late final dataNamer =
       DataNamer(settings.scrubAbsoluteUris, _module, enqueueDataSegment);
+  late final memoryNamer =
+      MemoryNamer(settings.scrubAbsoluteUris, _module, enqueueMemory);
 
   final _types = <ir.DefType, String>{};
   final _tags = <ir.Tag, String>{};
@@ -32,6 +34,7 @@ class ModulePrinter {
   final _globals = <ir.Global, String>{};
   final _functions = <ir.BaseFunction, String>{};
   final _dataSegments = <ir.BaseDataSegment, String>{};
+  final _memories = <ir.Memory, String>{};
 
   final _typeQueue = Queue<ir.DefType>();
   final _functionsQueue = Queue<ir.DefinedFunction>();
@@ -42,8 +45,16 @@ class ModulePrinter {
 
   ModulePrinter(this._module, {this.settings = const ModulePrintSettings()});
 
-  IrPrinter newIrPrinter() => IrPrinter._(settings.preferMultiline, _module,
-      typeNamer, globalNamer, functionNamer, tagNamer, tableNamer, dataNamer);
+  IrPrinter newIrPrinter() => IrPrinter._(
+      settings.preferMultiline,
+      _module,
+      typeNamer,
+      globalNamer,
+      functionNamer,
+      tagNamer,
+      tableNamer,
+      dataNamer,
+      memoryNamer);
 
   void enqueueType(ir.DefType type) {
     if (!_types.containsKey(type)) {
@@ -78,6 +89,13 @@ class ModulePrinter {
     if (!_tags.containsKey(tag)) {
       _tags[tag] = '';
       _generateTag(tag);
+    }
+  }
+
+  void enqueueMemory(ir.Memory memory) {
+    if (!_memories.containsKey(memory)) {
+      _memories[memory] = '';
+      _generateMemory(memory);
     }
   }
 
@@ -242,8 +260,10 @@ class ModulePrinter {
         }
       }
 
+      printOrdered(_module.memories.imported, memoryNamer, _memories);
       printOrdered(_module.functions.imported, functionNamer, _functions);
       printOrdered(_module.globals.imported, globalNamer, _globals);
+      printOrdered(_module.memories.defined, memoryNamer, _memories);
       printOrdered(_module.tables.imported, tableNamer, _tables);
       printOrdered(_module.tables.defined, tableNamer, _tables);
       printOrdered(_module.tags.defined, tagNamer, _tags);
@@ -284,6 +304,12 @@ class ModulePrinter {
     final p = newIrPrinter();
     tag.printTo(p);
     _tags[tag] = p.getText();
+  }
+
+  void _generateMemory(ir.Memory memory) {
+    final p = newIrPrinter();
+    memory.printTo(p);
+    _memories[memory] = p.getText();
   }
 
   void _generateTable(ir.Table table) {
@@ -456,6 +482,7 @@ class IrPrinter extends IndentPrinter {
   final TagNamer _tagNamer;
   final TableNamer _tableNamer;
   final DataNamer _dataNamer;
+  final MemoryNamer _memoryNamer;
 
   _LocalNamer? _localNamer;
   final _labelNamer = _LabelNamer();
@@ -468,12 +495,21 @@ class IrPrinter extends IndentPrinter {
       this._functionNamer,
       this._tagNamer,
       this._tableNamer,
-      this._dataNamer);
+      this._dataNamer,
+      this._memoryNamer);
 
   /// Returns a new [IrPrinter] with same settings, but empty indentation,
   /// empty text content and no local namer.
-  IrPrinter dup() => IrPrinter._(preferMultiline, module, _typeNamer,
-      _globalNamer, _functionNamer, _tagNamer, _tableNamer, _dataNamer);
+  IrPrinter dup() => IrPrinter._(
+      preferMultiline,
+      module,
+      _typeNamer,
+      _globalNamer,
+      _functionNamer,
+      _tagNamer,
+      _tableNamer,
+      _dataNamer,
+      _memoryNamer);
 
   void beginLabeledBlock(ir.Instruction? instruction) {
     _labelNamer.stack.add(LabelInfo(instruction));
@@ -604,7 +640,7 @@ class IrPrinter extends IndentPrinter {
   }
 
   void writeMemoryReference(ir.Memory memory) {
-    throw UnimplementedError();
+    write(_memoryNamer.name(memory));
   }
 }
 
@@ -756,6 +792,19 @@ class DataNamer extends Namer<ir.BaseDataSegment> {
   String name(ir.BaseDataSegment data,
       {bool activateOnReferenceCallback = true}) {
     return super._name(data, null, 'data', true);
+  }
+}
+
+class MemoryNamer extends Namer<ir.Memory> {
+  MemoryNamer(super.scubUris, super.module, super.onReference);
+
+  @override
+  String name(ir.Memory memory, {bool activateOnReferenceCallback = true}) {
+    return super._name(
+        memory,
+        memory is ir.ImportedMemory ? '${memory.module}.${memory.name}' : null,
+        'memory',
+        activateOnReferenceCallback);
   }
 }
 

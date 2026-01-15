@@ -7182,6 +7182,23 @@ wasmImportOrExportInUserCode:
   parameters: none
   problemMessage: "Pragmas `wasm:import` and `wasm:export` are for internal use only and cannot be used by user code."
 
+wasmExternMemoryMissingAnnotation:
+  parameters: none
+  problemMessage: "This external getter returns a memory instance, but no annotation describing it was found"
+  correctionMessage: "Try adding a `@MemoryType()` or `@Import.memory()` annotation."
+
+wasmExternInvalidLoad:
+  parameters: none
+  problemMessage: "WebAssembly elements may only be referenced to directly call a method on them."
+
+wasmExternInvalidTarget:
+  parameters: none
+  problemMessage: "The receiver of this call must be a top-level variable describing the WebAssembly element."
+
+wasmIntrinsicTearOff:
+  parameters: none
+  problemMessage: This intrinsic extension member may not be torn off.
+
 weakReferenceNotStatic:
   parameters: none
   problemMessage: "Weak reference pragma can be used on a static method only."

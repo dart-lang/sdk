@@ -6,6 +6,8 @@ library dart._wasm;
 
 import 'dart:js_interop';
 
+part 'memory.dart';
+
 // A collection a special Dart types that are mapped directly to Wasm types
 // by the dart2wasm compiler. These types have a number of constraints:
 //

@@ -4895,6 +4895,7 @@ static void AddVMMappings(JSONArray* rss_children) {
       }
 
       strncpy(path, path_start, sizeof(path) - 1);
+      path[sizeof(path) - 1] = '\0';
       int len = strlen(path);
       if ((len > 0) && path[len - 1] == '\n') {
         path[len - 1] = 0;
@@ -4923,7 +4924,8 @@ static void AddVMMappings(JSONArray* rss_children) {
         }
         if (!updated) {
           VMMapping mapping;
-          strncpy(mapping.path, path, sizeof(mapping.path));
+          strncpy(mapping.path, path, sizeof(mapping.path) - 1);
+          mapping.path[sizeof(mapping.path) - 1] = '\0';
           mapping.size = size;
           mappings.Add(mapping);
         }
