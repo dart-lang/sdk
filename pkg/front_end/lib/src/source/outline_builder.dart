@@ -1976,7 +1976,6 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void endPrimaryConstructorBody(
     Token beginToken,
     Token? beginInitializers,
@@ -1991,13 +1990,16 @@ class OutlineBuilder extends StackListenerImpl {
       ]),
     );
 
-    // TODO(primary-constructors): Implement primary constructor body.
-    // ignore: unused_local_variable
-    MethodBody bodyKind = pop() as MethodBody;
-    // ignore: unused_local_variable
-    AsyncMarker asyncModifier = pop() as AsyncMarker;
-    // ignore: unused_local_variable
+    pop() as MethodBody;
+    pop() as AsyncMarker;
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
+    _builderFactory.addPrimaryConstructorBody(
+      offsetMap: _offsetMap,
+      metadata: metadata,
+      beginToken: beginToken,
+      endOffset: endToken.charOffset,
+      beginInitializers: beginInitializers,
+    );
   }
 
   @override

@@ -1577,6 +1577,29 @@ class FragmentFactoryImpl implements FragmentFactory {
   }
 
   @override
+  void addPrimaryConstructorBody({
+    required OffsetMap offsetMap,
+    required Token beginToken,
+    required List<MetadataBuilder>? metadata,
+    required int endOffset,
+    required Token? beginInitializers,
+  }) {
+    DeclarationFragmentImpl enclosingDeclaration =
+        _declarationFragments.current;
+    PrimaryConstructorBodyFragment fragment =
+        new PrimaryConstructorBodyFragment(
+          fileUri: _compilationUnit.fileUri,
+          thisOffset: beginToken.charOffset,
+          metadata: metadata,
+          enclosingScope: _declarationFragments.current.bodyScope,
+          enclosingDeclaration: enclosingDeclaration,
+          enclosingCompilationUnit: _compilationUnit,
+        );
+    _addFragment(fragment);
+    offsetMap.registerPrimaryConstructorBody(beginToken, fragment);
+  }
+
+  @override
   void addPrimaryConstructorField({
     required List<MetadataBuilder>? metadata,
     required Modifiers modifiers,

@@ -139,6 +139,11 @@ abstract class BodyBuilder {
     required MemberKind kind,
   });
 
+  BuildPrimaryConstructorBodyResult buildPrimaryConstructorBody({
+    required Token startToken,
+    required Token? metadata,
+  });
+
   /// Builds a single [Expression] for an annotation starting at [atToken].
   Expression buildAnnotation({required Token atToken});
 
@@ -11203,6 +11208,56 @@ class BodyBuilderImpl extends StackListenerImpl
     checkEmpty(token.charOffset);
     return new BuildFunctionBodyResult(
       asyncModifier: asyncModifier,
+      body: body,
+      initializers: _initializers,
+      annotations: _takePendingAnnotations(),
+    );
+  }
+
+  @override
+  BuildPrimaryConstructorBodyResult buildPrimaryConstructorBody({
+    required Token startToken,
+    required Token? metadata,
+  }) {
+    assert(startToken.isA(Keyword.THIS));
+    Token token = startToken;
+    Parser parser = new Parser(
+      this,
+      useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+      experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
+    );
+    if (metadata != null) {
+      parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
+      pop(); // Annotations.
+    }
+    checkEmpty(token.next!.charOffset);
+    List<FormalParameterBuilder>? formals = _context.formals;
+    if (formals != null) {
+      for (FormalParameterBuilder formal in formals) {
+        // We pass `ignoreDuplicates: true` because the variable might have been
+        // previously passed to `declare` in the `BodyBuilder` constructor.
+        assignedVariables.declare(formal.variable!, ignoreDuplicates: true);
+      }
+    }
+    token = parser.parseInitializersOpt(token);
+    token = parser.parseAsyncModifierOpt(token);
+    AsyncMarker asyncMarker = pop() as AsyncMarker? ?? AsyncMarker.Sync;
+    bool isExpression = false;
+    bool allowAbstract = asyncMarker == AsyncMarker.Sync;
+
+    benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.beginSubdivide(
+      BenchmarkSubdivides.diet_listener_buildFunctionBody_parseFunctionBody,
+    );
+    parser.parseFunctionBody(token, isExpression, allowAbstract);
+    Statement? body = pop() as Statement?;
+    benchmarker
+        // Coverage-ignore(suite): Not run.
+        ?.endSubdivide();
+    checkEmpty(token.charOffset);
+    return new BuildPrimaryConstructorBodyResult(
+      asyncMarker: asyncMarker,
       body: body,
       initializers: _initializers,
       annotations: _takePendingAnnotations(),

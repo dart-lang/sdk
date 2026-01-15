@@ -374,6 +374,11 @@ abstract class _ProcedureEtcChunk extends _SortableChunk {
   }
 }
 
+class _PrimaryConstructorBodyChunk extends _ProcedureEtcChunk {
+  _PrimaryConstructorBodyChunk(Token startToken, Token endToken)
+    : super(startToken, endToken);
+}
+
 class _ClassMethodChunk extends _ProcedureEtcChunk {
   _ClassMethodChunk(Token startToken, Token endToken)
     : super(startToken, endToken);
@@ -826,6 +831,18 @@ class TextualOutlineListener extends Listener {
   // Coverage-ignore(suite): Not run.
   void handleScript(Token token) {
     unsortableElementStartToChunk[token] = new _ScriptTagChunk(token);
+  }
+
+  @override
+  void endPrimaryConstructorBody(
+    Token beginToken,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _PrimaryConstructorBodyChunk(
+      beginToken,
+      endToken,
+    );
   }
 
   @override

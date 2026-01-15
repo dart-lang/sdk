@@ -536,6 +536,20 @@ class BuildFunctionBodyResult {
   });
 }
 
+class BuildPrimaryConstructorBodyResult {
+  final AsyncMarker asyncMarker;
+  final Statement? body;
+  final List<Initializer> initializers;
+  final PendingAnnotations? annotations;
+
+  BuildPrimaryConstructorBodyResult({
+    required this.asyncMarker,
+    required this.body,
+    required this.initializers,
+    required this.annotations,
+  });
+}
+
 class BuildMetadataListResult {
   final List<Expression> expressions;
   final PendingAnnotations? annotations;

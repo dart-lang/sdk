@@ -63,8 +63,13 @@ class DeclarationNameSpaceBuilder {
         );
 
     Map<String, List<Fragment>> fragmentsByName = {};
+    List<PrimaryConstructorBodyFragment>? primaryConstructorBodies;
     for (Fragment fragment in _fragments) {
-      (fragmentsByName[fragment.name] ??= []).add(fragment);
+      if (fragment is PrimaryConstructorBodyFragment) {
+        (primaryConstructorBodies ??= []).add(fragment);
+      } else {
+        (fragmentsByName[fragment.name] ??= []).add(fragment);
+      }
     }
 
     BuilderFactory builderFactory = new BuilderFactory(
@@ -87,6 +92,7 @@ class DeclarationNameSpaceBuilder {
         name,
         fragments: entry.value,
         syntheticDeclaration: syntheticDeclarations?.remove(name),
+        primaryConstructorBodies: primaryConstructorBodies,
       );
     }
     if (syntheticDeclarations != null) {
@@ -96,6 +102,7 @@ class DeclarationNameSpaceBuilder {
         builderFactory.computeBuildersByName(
           name,
           syntheticDeclaration: entry.value,
+          primaryConstructorBodies: primaryConstructorBodies,
         );
       }
     }

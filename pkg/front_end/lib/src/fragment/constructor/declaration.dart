@@ -1170,6 +1170,7 @@ class PrimaryConstructorDeclaration
         ConstructorFragmentDeclaration,
         InferredTypeListener {
   final PrimaryConstructorFragment _fragment;
+  final PrimaryConstructorBodyFragment? _bodyFragment;
 
   late final List<FormalParameterBuilder>? _formals;
 
@@ -1182,7 +1183,7 @@ class PrimaryConstructorDeclaration
   @override
   Token? _beginInitializers;
 
-  PrimaryConstructorDeclaration(this._fragment)
+  PrimaryConstructorDeclaration(this._fragment, this._bodyFragment)
     : _beginInitializers = _fragment.beginInitializers {
     _fragment.declaration = this;
   }
@@ -1205,6 +1206,9 @@ class PrimaryConstructorDeclaration
     required ConstructorEncodingStrategy encodingStrategy,
   }) {
     _fragment.builder = constructorBuilder;
+    _bodyFragment?.builder = constructorBuilder;
+    _bodyFragment?.primaryConstructorFragment = _fragment;
+    _fragment.primaryConstructorBodyFragment = _bodyFragment;
     _typeParameters = encodingStrategy.createTypeParameters(
       declarationBuilder: declarationBuilder,
       declarationTypeParameterFragments:
@@ -1355,7 +1359,20 @@ class PrimaryConstructorDeclaration
     required BodyBuilderContext bodyBuilderContext,
     required ClassHierarchy classHierarchy,
   }) {
-    // There is no metadata on a primary constructor.
+    if (_bodyFragment case var bodyFragment?) {
+      for (Annotatable annotatable in annotatables) {
+        MetadataBuilder.buildAnnotations(
+          annotatable: annotatable,
+          annotatableFileUri: annotatablesFileUri,
+          metadata: bodyFragment.metadata,
+          annotationsFileUri: bodyFragment.fileUri,
+          bodyBuilderContext: bodyBuilderContext,
+          libraryBuilder: libraryBuilder,
+          extensionScope: bodyFragment.enclosingCompilationUnit.extensionScope,
+          scope: bodyFragment.enclosingScope,
+        );
+      }
+    }
   }
 
   @override
