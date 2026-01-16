@@ -248,8 +248,16 @@ class RelevanceData {
   }
 }
 
-/// An object that visits a compilation unit in order to record the data used to
-/// compute the metrics.
+/// An object that visits a compilation unit in order to collect the data used
+/// to create the relevance tables.
+///
+/// Even though this class subclasses [RecursiveAstVisitor], and therefore isn't
+/// required to implement every visit method, by convention it does have an
+/// implementation of every visit method so that we can record that we have
+/// considered the node class and don't need to collect any data at that
+/// location. This makes it easier to figure out which node classes need to be
+/// considered when updating the tool (because adding new visit methods to
+/// [AstVisitor] won't force them to be added to this class).
 class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   static const List<Keyword> declarationKeywords = [
     Keyword.MIXIN,
@@ -291,6 +299,15 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     Keyword.OPERATOR,
     Keyword.SET,
     Keyword.STATIC,
+  ];
+
+  static const List<Keyword> patternKeywords = [
+    Keyword.CONST,
+    Keyword.FALSE,
+    Keyword.FINAL,
+    Keyword.NULL,
+    Keyword.TRUE,
+    Keyword.VAR,
   ];
 
   static const List<Keyword> noKeywords = [];
@@ -392,6 +409,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitAssignedVariablePattern(AssignedVariablePattern node) {
+    _recordElementKind('AssignedVariablePattern_identifier', node);
+    super.visitAssignedVariablePattern(node);
+  }
+
+  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     _recordDataForNode(
       'AssignmentExpression_rightHandSide',
@@ -437,6 +460,15 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitBlockClassBody(BlockClassBody node) {
+    // Data is not recorded here. It is recorded in the parent
+    // (ClassDeclaration, MixinDeclaration, etc.) in order to allow the tables
+    // to have different probabilities for the same construct depending on the
+    // context.
+    super.visitBlockClassBody(node);
+  }
+
+  @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     _recordKeyword(
       'BlockFunctionBody_start',
@@ -467,9 +499,31 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitCaseClause(CaseClause node) {
+    _recordDataForNode(
+      'CaseClause_guardedPattern',
+      node.guardedPattern,
+      allowedKeywords: patternKeywords,
+    );
+    super.visitCaseClause(node);
+  }
+
+  @override
+  void visitCastPattern(CastPattern node) {
+    _recordDataForNode('CastPattern_type', node.type);
+    super.visitCastPattern(node);
+  }
+
+  @override
   void visitCatchClause(CatchClause node) {
     _recordDataForNode('CatchClause_exceptionType', node.exceptionType);
     super.visitCatchClause(node);
+  }
+
+  @override
+  void visitCatchClauseParameter(CatchClauseParameter node) {
+    // There are no completions.
+    super.visitCatchClauseParameter(node);
   }
 
   @override
@@ -571,8 +625,17 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitConstantPattern(ConstantPattern node) {
+    _recordDataForNode(
+      'ConstantPattern_expression',
+      node.expression,
+      allowedKeywords: [Keyword.CONST],
+    );
+    super.visitConstantPattern(node);
+  }
+
+  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    // TODO(scheglov): support primary constructors
     _recordDataForNode('ConstructorDeclaration_returnType', node.typeName!);
     for (var initializer in node.initializers) {
       _recordDataForNode('ConstructorDeclaration_initializer', initializer);
@@ -597,6 +660,18 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitConstructorReference(ConstructorReference node) {
+    // The only valid option is a constructor name.
+    super.visitConstructorReference(node);
+  }
+
+  @override
+  void visitConstructorSelector(ConstructorSelector node) {
+    // The only valid option is a constructor name.
+    super.visitConstructorSelector(node);
+  }
+
+  @override
   void visitContinueStatement(ContinueStatement node) {
     // The token following the `continue` (if there is one) is always a label.
     super.visitContinueStatement(node);
@@ -606,6 +681,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     // There are no completions.
     super.visitDeclaredIdentifier(node);
+  }
+
+  @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    // There are no completions.
+    super.visitDeclaredVariablePattern(node);
   }
 
   @override
@@ -634,6 +715,32 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    _recordDataForNode(
+      'DotShorthandConstructorInvocation_constructorName',
+      node.constructorName,
+    );
+    super.visitDotShorthandConstructorInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    _recordDataForNode('DotShorthandInvocation_memberName', node.memberName);
+    super.visitDotShorthandInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    _recordDataForNode(
+      'DotShorthandPropertyAccess_propertyName',
+      node.propertyName,
+    );
+    super.visitDotShorthandPropertyAccess(node);
+  }
+
+  @override
   void visitDottedName(DottedName node) {
     // The components are always identifiers.
     super.visitDottedName(node);
@@ -643,6 +750,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitDoubleLiteral(DoubleLiteral node) {
     // There are no completions.
     super.visitDoubleLiteral(node);
+  }
+
+  @override
+  void visitEmptyClassBody(EmptyClassBody node) {
+    // There are no completions.
+    super.visitEmptyClassBody(node);
   }
 
   @override
@@ -658,6 +771,25 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitEnumBody(EnumBody node) {
+    // TODO(brianwilkerson): Record data for the enum constants.
+    for (var member in node.members) {
+      _recordDataForNode(
+        'EnumDeclaration_member',
+        member,
+        allowedKeywords: memberKeywords,
+      );
+    }
+    super.visitEnumBody(node);
+  }
+
+  @override
+  void visitEnumConstantArguments(EnumConstantArguments node) {
+    // There are no completions.
+    super.visitEnumConstantArguments(node);
+  }
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     // There are no completions.
     super.visitEnumConstantDeclaration(node);
@@ -665,7 +797,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    // There are no completions.
+    _recordKeyword(
+      'EnumDeclaration_name',
+      node.implementsClause,
+      allowedKeywords: [Keyword.IMPLEMENTS],
+    );
     super.visitEnumDeclaration(node);
   }
 
@@ -742,9 +878,21 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExtensionOnClause(ExtensionOnClause node) {
+    _recordDataForNode('ExtensionOnClause_extendedType', node.extendedType);
+    super.visitExtensionOnClause(node);
+  }
+
+  @override
   void visitExtensionOverride(ExtensionOverride node) {
     // There are no completions.
     super.visitExtensionOverride(node);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    // TODO(brianwilkerson): implement visitExtensionTypeDeclaration
+    super.visitExtensionTypeDeclaration(node);
   }
 
   @override
@@ -785,6 +933,21 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       allowedKeywords: expressionKeywords,
     );
     super.visitForEachPartsWithIdentifier(node);
+  }
+
+  @override
+  void visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
+    _recordDataForNode(
+      'ForEachPartsWithPattern_pattern',
+      node.pattern,
+      allowedKeywords: patternKeywords,
+    );
+    _recordDataForNode(
+      'ForEachPartsWithPattern_iterable',
+      node.iterable,
+      allowedKeywords: expressionKeywords,
+    );
+    super.visitForEachPartsWithPattern(node);
   }
 
   @override
@@ -841,6 +1004,23 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitForPartsWithPattern(ForPartsWithPattern node) {
+    _recordDataForNode(
+      'ForParts_condition',
+      node.condition,
+      allowedKeywords: expressionKeywords,
+    );
+    for (var updater in node.updaters) {
+      _recordDataForNode(
+        'ForParts_updater',
+        updater,
+        allowedKeywords: expressionKeywords,
+      );
+    }
+    super.visitForPartsWithPattern(node);
+  }
+
+  @override
   void visitForStatement(ForStatement node) {
     _recordDataForNode('ForStatement_forLoopParts', node.forLoopParts);
     _recordDataForNode(
@@ -876,6 +1056,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFunctionReference(FunctionReference node) {
+    // There are no completions.
+    super.visitFunctionReference(node);
+  }
+
+  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     // There are no completions.
     super.visitFunctionTypeAlias(node);
@@ -901,6 +1087,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       allowedKeywords: [Keyword.FUNCTION],
     );
     super.visitGenericTypeAlias(node);
+  }
+
+  @override
+  void visitGuardedPattern(GuardedPattern node) {
+    // There are no completions.
+    super.visitGuardedPattern(node);
   }
 
   @override
@@ -953,6 +1145,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitImplicitCallReference(ImplicitCallReference node) {
+    // TODO(brianwilkerson): implement visitImplicitCallReference
+    super.visitImplicitCallReference(node);
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     var context = 'uri';
     var deferredKeyword = node.deferredKeyword;
@@ -988,6 +1186,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       );
     }
     super.visitImportDirective(node);
+  }
+
+  @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    // There are no completions.
+    super.visitImportPrefixReference(node);
   }
 
   @override
@@ -1080,13 +1284,68 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitListPattern(ListPattern node) {
+    for (var element in node.elements) {
+      _recordDataForNode(
+        'ListPattern_element',
+        element,
+        allowedKeywords: patternKeywords,
+      );
+    }
+    super.visitListPattern(node);
+  }
+
+  @override
+  void visitLogicalAndPattern(LogicalAndPattern node) {
+    _recordDataForNode(
+      'LogicalAndPattern_rightOperand',
+      node.rightOperand,
+      allowedKeywords: patternKeywords,
+    );
+    super.visitLogicalAndPattern(node);
+  }
+
+  @override
+  void visitLogicalOrPattern(LogicalOrPattern node) {
+    _recordDataForNode(
+      'LogicalOrPattern_rightOperand',
+      node.rightOperand,
+      allowedKeywords: patternKeywords,
+    );
+    super.visitLogicalOrPattern(node);
+  }
+
+  @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
+    // The information about the key is recorded in `visitSetOrMapLiteral` under
+    // the key 'SetOrMapLiteral_element'.
     _recordDataForNode(
       'MapLiteralEntry_value',
       node.value,
       allowedKeywords: expressionKeywords,
     );
     super.visitMapLiteralEntry(node);
+  }
+
+  @override
+  void visitMapPattern(MapPattern node) {
+    // There are no completions.
+    super.visitMapPattern(node);
+  }
+
+  @override
+  void visitMapPatternEntry(MapPatternEntry node) {
+    _recordDataForNode(
+      'MapPatternEntry_key',
+      node.key,
+      allowedKeywords: expressionKeywords,
+    );
+    _recordDataForNode(
+      'MapPatternEntry_value',
+      node.value,
+      allowedKeywords: patternKeywords,
+    );
+    super.visitMapPatternEntry(node);
   }
 
   @override
@@ -1149,6 +1408,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNameWithTypeParameters(NameWithTypeParameters node) {
+    // TODO(brianwilkerson): implement visitNameWithTypeParameters
+    super.visitNameWithTypeParameters(node);
+  }
+
+  @override
   void visitNativeClause(NativeClause node) {
     // There are no completions.
     super.visitNativeClause(node);
@@ -1161,9 +1426,33 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNullAssertPattern(NullAssertPattern node) {
+    // There are no completions.
+    super.visitNullAssertPattern(node);
+  }
+
+  @override
+  void visitNullAwareElement(NullAwareElement node) {
+    _recordDataForNode('NullAwareElement_value', node.value);
+    super.visitNullAwareElement(node);
+  }
+
+  @override
+  void visitNullCheckPattern(NullCheckPattern node) {
+    // There are no completions.
+    super.visitNullCheckPattern(node);
+  }
+
+  @override
   void visitNullLiteral(NullLiteral node) {
     // There are no completions.
     super.visitNullLiteral(node);
+  }
+
+  @override
+  void visitObjectPattern(ObjectPattern node) {
+    // There are no completions.
+    super.visitObjectPattern(node);
   }
 
   @override
@@ -1177,6 +1466,16 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitParenthesizedPattern(ParenthesizedPattern node) {
+    _recordDataForNode(
+      'ParenthesizedPattern_pattern',
+      node.pattern,
+      allowedKeywords: patternKeywords,
+    );
+    super.visitParenthesizedPattern(node);
+  }
+
+  @override
   void visitPartDirective(PartDirective node) {
     // There are no completions.
     super.visitPartDirective(node);
@@ -1186,6 +1485,51 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitPartOfDirective(PartOfDirective node) {
     // There are no completions.
     super.visitPartOfDirective(node);
+  }
+
+  @override
+  void visitPatternAssignment(PatternAssignment node) {
+    _recordDataForNode('PatternAssignment_expression', node.expression);
+    super.visitPatternAssignment(node);
+  }
+
+  @override
+  void visitPatternField(PatternField node) {
+    _recordDataForNode(
+      'PatternField_pattern',
+      node.pattern,
+      allowedKeywords: patternKeywords,
+    );
+    super.visitPatternField(node);
+  }
+
+  @override
+  void visitPatternFieldName(PatternFieldName node) {
+    // There are no completions.
+    super.visitPatternFieldName(node);
+  }
+
+  @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    _recordDataForNode(
+      'PatternVariableDeclaration_pattern',
+      node.pattern,
+      allowedKeywords: patternKeywords,
+    );
+    _recordDataForNode(
+      'PatternVariableDeclaration_expression',
+      node.expression,
+      allowedKeywords: expressionKeywords,
+    );
+    super.visitPatternVariableDeclaration(node);
+  }
+
+  @override
+  void visitPatternVariableDeclarationStatement(
+    PatternVariableDeclarationStatement node,
+  ) {
+    // There are no completions.
+    super.visitPatternVariableDeclarationStatement(node);
   }
 
   @override
@@ -1211,9 +1555,73 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    for (var initializer in node.initializers) {
+      _recordDataForNode('ConstructorDeclaration_initializer', initializer);
+    }
+    super.visitPrimaryConstructorBody(node);
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    // There are no completions.
+    super.visitPrimaryConstructorDeclaration(node);
+  }
+
+  @override
+  void visitPrimaryConstructorName(PrimaryConstructorName node) {
+    // There are no completions.
+    super.visitPrimaryConstructorName(node);
+  }
+
+  @override
   void visitPropertyAccess(PropertyAccess node) {
     _recordDataForNode('PropertyAccess_propertyName', node.propertyName);
     super.visitPropertyAccess(node);
+  }
+
+  @override
+  void visitRecordLiteral(RecordLiteral node) {
+    for (var field in node.fields) {
+      _recordDataForNode('RecordLiteral_field', field);
+    }
+    super.visitRecordLiteral(node);
+  }
+
+  @override
+  void visitRecordPattern(RecordPattern node) {
+    // There are no completions.
+    super.visitRecordPattern(node);
+  }
+
+  @override
+  void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
+    // TODO(brianwilkerson): implement visitRecordTypeAnnotation
+    super.visitRecordTypeAnnotation(node);
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedField(
+    RecordTypeAnnotationNamedField node,
+  ) {
+    // TODO(brianwilkerson): implement visitRecordTypeAnnotationNamedField
+    super.visitRecordTypeAnnotationNamedField(node);
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedFields(
+    RecordTypeAnnotationNamedFields node,
+  ) {
+    // TODO(brianwilkerson): implement visitRecordTypeAnnotationNamedFields
+    super.visitRecordTypeAnnotationNamedFields(node);
+  }
+
+  @override
+  void visitRecordTypeAnnotationPositionalField(
+    RecordTypeAnnotationPositionalField node,
+  ) {
+    // TODO(brianwilkerson): implement visitRecordTypeAnnotationPositionalField
+    super.visitRecordTypeAnnotationPositionalField(node);
   }
 
   @override
@@ -1222,6 +1630,26 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   ) {
     // There are no completions.
     super.visitRedirectingConstructorInvocation(node);
+  }
+
+  @override
+  void visitRelationalPattern(RelationalPattern node) {
+    _recordDataForNode(
+      'RelationalPattern_${node.operator}_operand',
+      node.operand,
+      allowedKeywords: expressionKeywords,
+    );
+    super.visitRelationalPattern(node);
+  }
+
+  @override
+  void visitRestPatternElement(RestPatternElement node) {
+    _recordDataForNode(
+      'RestPatternElement_pattern',
+      node.pattern,
+      allowedKeywords: patternKeywords,
+    );
+    super.visitRestPatternElement(node);
   }
 
   @override
@@ -1273,6 +1701,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    // There are no completions.
+    super.visitSimpleIdentifier(node);
+  }
+
+  @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     // There are no completions.
     super.visitSimpleStringLiteral(node);
@@ -1307,6 +1741,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    // The only completions are parameters of the superclass constructor.
+    super.visitSuperFormalParameter(node);
+  }
+
+  @override
   void visitSwitchCase(SwitchCase node) {
     _recordDataForNode(
       'SwitchCase_expression',
@@ -1333,6 +1773,48 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       );
     }
     super.visitSwitchDefault(node);
+  }
+
+  @override
+  void visitSwitchExpression(SwitchExpression node) {
+    _recordDataForNode(
+      'SwitchExpression_expression',
+      node.expression,
+      allowedKeywords: expressionKeywords,
+    );
+    super.visitSwitchExpression(node);
+  }
+
+  @override
+  void visitSwitchExpressionCase(SwitchExpressionCase node) {
+    _recordDataForNode(
+      'SwitchExpressionCase_guardedPattern',
+      node.guardedPattern,
+      allowedKeywords: patternKeywords,
+    );
+    _recordDataForNode(
+      'SwitchExpressionCase_expression',
+      node.expression,
+      allowedKeywords: expressionKeywords,
+    );
+    super.visitSwitchExpressionCase(node);
+  }
+
+  @override
+  void visitSwitchPatternCase(SwitchPatternCase node) {
+    _recordDataForNode(
+      'SwitchPatternCase_guardedPattern',
+      node.guardedPattern,
+      allowedKeywords: patternKeywords,
+    );
+    for (var statement in node.statements) {
+      _recordDataForNode(
+        'SwitchPatternCase_statement',
+        statement,
+        allowedKeywords: statementKeywords,
+      );
+    }
+    super.visitSwitchPatternCase(node);
   }
 
   @override
@@ -1400,6 +1882,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitTypeLiteral(TypeLiteral node) {
+    // TODO(brianwilkerson): Consider recording the kind of declaration that
+    //  produced the type. If it's more common to see classes than mixins, for
+    //  example, then we could use that to adjust the relevance of completions.
+    super.visitTypeLiteral(node);
+  }
+
+  @override
   void visitTypeParameter(TypeParameter node) {
     if (node.bound != null) {
       _recordDataForNode('TypeParameter_bound', node.bound);
@@ -1439,6 +1929,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitWhenClause(WhenClause node) {
+    _recordDataForNode('WhenClause_expression', node.expression);
+    super.visitWhenClause(node);
+  }
+
+  @override
   void visitWhileStatement(WhileStatement node) {
     _recordDataForNode(
       'WhileStatement_condition',
@@ -1451,6 +1947,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       allowedKeywords: statementKeywords,
     );
     super.visitWhileStatement(node);
+  }
+
+  @override
+  void visitWildcardPattern(WildcardPattern node) {
+    // There are no completions.
+    super.visitWildcardPattern(node);
   }
 
   @override
@@ -1478,6 +1980,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       var parent = node.parent;
       if (parent is Annotation) {
         return 'annotation';
+      } else if (parent is EnumConstantArguments) {
+        return 'enumConstant';
       } else if (parent is ExtensionOverride) {
         return 'extensionOverride';
       } else if (parent is FunctionExpressionInvocation) {
