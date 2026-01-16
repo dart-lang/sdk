@@ -7,17 +7,17 @@
   (global $".Foo1.doitDispatch(" (import "" "Foo1.doitDispatch(") (ref extern))
   (global $".FooBase(" (import "" "FooBase(") (ref extern))
   (table $static0-0 (export "static0-0") 1 (ref null $type0))
-  (global $"C385 \"FooBase(\"" (ref $JSStringImpl)
+  (global $"C386 \"FooBase(\"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
     (global.get $".FooBase(")
     (struct.new $JSStringImpl))
-  (global $"C386 \"Foo1.doitDispatch(\"" (ref $JSStringImpl)
+  (global $"C387 \"Foo1.doitDispatch(\"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
     (global.get $".Foo1.doitDispatch(")
     (struct.new $JSStringImpl))
-  (global $"C387 \"Foo0.doitDispatch(\"" (ref $JSStringImpl)
+  (global $"C388 \"Foo0.doitDispatch(\"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
     (global.get $".Foo0.doitDispatch(")
@@ -46,7 +46,7 @@
   )
   (func $runtimeTrue implicit getter (result i32) <...>)
   (func $Foo0.doitDispatch (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
-    global.get $"C387 \"Foo0.doitDispatch(\""
+    global.get $"C388 \"Foo0.doitDispatch(\""
     local.get $var1
     global.get $"C8 \")\""
     call $JSStringImpl._interpolate3
@@ -58,7 +58,7 @@
   )
   (func $Foo1 (result (ref $Object)) <...>)
   (func $Foo1.doitDispatch (export "func1") (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
-    global.get $"C386 \"Foo1.doitDispatch(\""
+    global.get $"C387 \"Foo1.doitDispatch(\""
     local.get $var1
     global.get $"C8 \")\""
     call $JSStringImpl._interpolate3
@@ -69,7 +69,7 @@
     ref.null none
   )
   (func $FooBase.doitDispatch (param $var0 (ref null $#Top))
-    global.get $"C385 \"FooBase(\""
+    global.get $"C386 \"FooBase(\""
     local.get $var0
     global.get $"C8 \")\""
     call $JSStringImpl._interpolate3

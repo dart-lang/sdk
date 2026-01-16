@@ -1249,6 +1249,8 @@ class RuntimeTypeInformation {
         InterfaceType(translator.typeClass, Nullability.nonNullable);
     final arrayOfType = InterfaceType(
         translator.wasmArrayClass, Nullability.nonNullable, [typeType]);
+    final wasmI16 =
+        InterfaceType(translator.wasmI16Class, Nullability.nonNullable);
     final wasmI32 =
         InterfaceType(translator.wasmI32Class, Nullability.nonNullable);
 
@@ -1260,17 +1262,21 @@ class RuntimeTypeInformation {
 
     rows.sort((Row a, Row b) => -weight(a).compareTo(weight(b)));
     final table = buildRowDisplacementTable(rows, firstAvailable: 1);
+    const invalidClassId = 0;
     final typeRowDisplacementTable = translator.constants.makeArrayOf(wasmI32, [
       for (final entry in table)
-        translator.constants.makeWasmI32(entry == null
-            ? 0
-            : (entry.$2 == noSubstitutionIndex ? -entry.$1 : entry.$1)),
+        translator.constants
+            .makeWasmI32(entry == null ? invalidClassId : entry.$1),
     ]);
     final typeRowDisplacementSubstTable =
-        translator.constants.makeArrayOf(arrayOfType, [
+        translator.constants.makeArrayOf(wasmI16, [
       for (final entry in table)
-        _substitutionTableByIndex[
-            entry == null ? noSubstitutionIndex : entry.$2],
+        translator.constants
+            .makeWasmI32(entry == null ? noSubstitutionIndex : entry.$2),
+    ]);
+    final canonicalSubstitutionTable =
+        translator.constants.makeArrayOf(arrayOfType, [
+      for (final sustitution in _substitutionTableByIndex) sustitution,
     ]);
 
     final typeRowDisplacementOffsets =
@@ -1288,8 +1294,9 @@ class RuntimeTypeInformation {
       translator.moduleRttOffsets.fieldReference: typeRowDisplacementOffsets,
       translator.moduleRttDisplacementTable.fieldReference:
           typeRowDisplacementTable,
-      translator.moduleRttSubstTable.fieldReference:
+      translator.moduleRttDisplacementSubstTable.fieldReference:
           typeRowDisplacementSubstTable,
+      translator.moduleRttSubstTable.fieldReference: canonicalSubstitutionTable,
       translator.moduleRttTypeNames.fieldReference: typeNames,
     });
   }
