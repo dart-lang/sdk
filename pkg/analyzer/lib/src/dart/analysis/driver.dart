@@ -611,11 +611,10 @@ class AnalysisDriver {
         var libraryElement = libraryResult.element as LibraryElementImpl;
         bundleWriter.writeLibraryElement(libraryElement);
 
+        var unitUris = libraryElement.internal.allUnitSourceUris();
         packageBundleBuilder.addLibrary(
           uriStr,
-          libraryElement.fragments.map((e) {
-            return e.source.uri.toString();
-          }).toList(),
+          unitUris.map((uri) => uri.toString()).toList(),
         );
       }
     }
