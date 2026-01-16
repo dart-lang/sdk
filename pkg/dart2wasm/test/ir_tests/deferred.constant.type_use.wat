@@ -5,7 +5,7 @@
   (type $_InterfaceType <...>)
   (type $type0 <...>)
   (table $static0-0 (export "static0-0") 1 (ref null $type0))
-  (global $"C419 _InterfaceType" (ref $_InterfaceType) <...>)
+  (global $"C420 _InterfaceType" (ref $_InterfaceType) <...>)
   (func $_loaded implicit getter (result (ref $_DefaultSet&_HashFieldBase&SetMixin)) <...>)
   (func $"useFoo <noInline>"
     call $"useFooAsType <noInline>"
@@ -26,7 +26,7 @@
     drop
   )
   (func $"useFooAsType <noInline>"
-    global.get $"C419 _InterfaceType"
+    global.get $"C420 _InterfaceType"
     call $print
     drop
   )

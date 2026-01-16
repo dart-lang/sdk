@@ -127,8 +127,10 @@ mixin KernelNodes {
       index.getField("dart:core", "_ModuleRtt", "typeRowDisplacementOffsets");
   late final Field moduleRttDisplacementTable =
       index.getField("dart:core", "_ModuleRtt", "typeRowDisplacementTable");
-  late final Field moduleRttSubstTable = index.getField(
+  late final Field moduleRttDisplacementSubstTable = index.getField(
       "dart:core", "_ModuleRtt", "typeRowDisplacementSubstTable");
+  late final Field moduleRttSubstTable =
+      index.getField("dart:core", "_ModuleRtt", "canonicalSubstitutionTable");
   late final Field moduleRttTypeNames =
       index.getField("dart:core", "_ModuleRtt", "typeNames");
   late final Procedure registerModuleRtt =
@@ -438,6 +440,8 @@ mixin KernelNodes {
       index.getTopLevelField('dart:_internal', 'i8ConstImmutableArray');
   late final Field i32ConstArrayCache =
       index.getTopLevelField('dart:_internal', 'i32ConstArray');
+  late final Field i16ConstArrayCache =
+      index.getTopLevelField('dart:_internal', 'i16ConstArray');
   late final Field i64ConstImmutableArrayCache =
       index.getTopLevelField('dart:_internal', 'i64ConstImmutableArray');
   late final Field boxedIntImmutableArrayCache =
@@ -468,6 +472,7 @@ mixin KernelNodes {
     _makeElementType(namedParameterClass): namedParameterConstArrayCache,
     _makeElementType(coreTypes.stringClass): stringConstArrayCache,
     _makeElementType(wasmI32Class): i32ConstArrayCache,
+    _makeElementType(wasmI16Class): i16ConstArrayCache,
     _makeElementType(wasmArrayClass,
         typeArguments: [_makeElementType(typeClass)]): typeArrayConstArrayCache,
   };

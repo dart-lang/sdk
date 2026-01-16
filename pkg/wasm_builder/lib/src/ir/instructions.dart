@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../../source_map.dart';
-import '../serialize/serialize.dart';
 import '../serialize/printer.dart';
+import '../serialize/serialize.dart';
 import 'ir.dart';
 
 class Instructions implements Serializable {
@@ -27,7 +27,7 @@ class Instructions implements Serializable {
   /// A string trace.
   late final trace = _traceLines.join();
 
-  /// Mappings for the instructions in [_instructions] to their source code.
+  /// Mappings for the instructions in `_instructions` to their source code.
   ///
   /// Since we add mappings as we generate instructions, this will be sorted
   /// based on [SourceMapping.instructionOffset].

@@ -164,7 +164,7 @@ typedef ConstantCodeGeneratorLazy = bool Function(
 class Constants {
   final Translator translator;
   final Map<Constant, ConstantInfo> constantInfo = {};
-  w.DataSegmentBuilder? int32Segment;
+  w.DataSegmentBuilder? byteSegment;
   late final ClassInfo typeInfo = translator.classInfo[translator.typeClass]!;
 
   late final _constantAccessor = _ConstantAccessor(translator);
@@ -888,25 +888,40 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         // This can be a little bit larger than individual array stores, but the
         // data section will compress better, so for app.wasm.gz it'a a win and
         // will cause much faster validation & faster initialization.
-        if (arrayType.elementType.type == w.NumType.i32) {
+        final fieldType = arrayType.elementType.type;
+        final isI32 = fieldType == w.NumType.i32;
+        final isI16 = fieldType == w.PackedType.i16;
+        if (isI32 || isI16) {
           // Initialize array contents from passive data segment.
           final w.DataSegmentBuilder segment =
-              constants.int32Segment ??= b.moduleBuilder.dataSegments.define();
-
+              constants.byteSegment ??= b.moduleBuilder.dataSegments.define();
           final field = translator.wasmI32Value.fieldReference;
 
-          final list = Uint32List(elements.length);
-          for (int i = 0; i < list.length; ++i) {
-            // The constant is a `const WasmI32 {WasmI32._value: <XXX>}`
-            final constant = elements[i] as InstanceConstant;
-            assert(constant.classNode == translator.wasmI32Class);
-            list[i] = (constant.fieldValues[field] as IntConstant).value;
+          Uint8List bytes;
+          if (isI16) {
+            final list = Uint16List(elements.length);
+            for (int i = 0; i < list.length; ++i) {
+              // The constant is a `const WasmI32 {WasmI32._value: <XXX>}`
+              final constant = elements[i] as InstanceConstant;
+              assert(constant.classNode == translator.wasmI32Class);
+              list[i] = (constant.fieldValues[field] as IntConstant).value;
+            }
+            bytes = list.buffer.asUint8List();
+          } else {
+            assert(isI32);
+            final list = Uint32List(elements.length);
+            for (int i = 0; i < list.length; ++i) {
+              // The constant is a `const WasmI32 {WasmI32._value: <XXX>}`
+              final constant = elements[i] as InstanceConstant;
+              assert(constant.classNode == translator.wasmI32Class);
+              list[i] = (constant.fieldValues[field] as IntConstant).value;
+            }
+            bytes = list.buffer.asUint8List();
           }
-          final offset = segment.length;
-          segment.append(list.buffer.asUint8List());
-          b.i32_const(offset);
+          b.i32_const(segment.length);
           b.i32_const(elements.length);
           b.array_new_data(arrayType, segment);
+          segment.append(bytes);
           return;
         }
 

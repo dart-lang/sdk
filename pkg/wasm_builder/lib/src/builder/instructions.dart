@@ -4,9 +4,9 @@
 
 // ignore_for_file: non_constant_identifier_names
 
+import '../../source_map.dart';
 import '../ir/ir.dart' as ir;
 import 'builder.dart';
-import '../../source_map.dart';
 
 // TODO(joshualitt): Suggested further optimizations:
 //   1) Add size estimates to `_Instruction`, and then remove logic where we
@@ -319,7 +319,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   }
 
   /// Marks a region in the instruction stream (defined by instructions emitted
-  /// by [fun]) which will be updated in the link phase via the [linkFun].
+  /// by `fun`) which will be updated in the link phase via the `linkFun`.
   InstructionsBuilder? createPatchableRegion(
       List<ir.ValueType> inputs, List<ir.ValueType> outputs) {
     assert(_verifyTypes(inputs, outputs, trace: ['<patchable region>']));

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data';
 import 'dart:collection';
+import 'dart:typed_data';
 
 import '../ir/ir.dart' as ir;
 
@@ -209,7 +209,7 @@ class ModulePrinter {
     mp.writeln('(module \$${_module.moduleName}');
     mp.withIndent(() {
       final groups = _module.types.recursionGroups
-          .where((group) => group.any((t) => _types.containsKey(t)))
+          .where((group) => group.any(_types.containsKey))
           .toList();
       if (settings.printInSortedOrder) {
         groups.sort((a, b) {
@@ -228,7 +228,7 @@ class ModulePrinter {
       }
 
       for (final group in groups) {
-        final filtered = group.where((t) => _types.containsKey(t)).toList();
+        final filtered = group.where(_types.containsKey).toList();
         if (filtered.isNotEmpty) {
           if (filtered.length == 1) {
             mp.write(_types[filtered.single]!);

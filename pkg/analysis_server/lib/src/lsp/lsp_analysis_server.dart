@@ -487,7 +487,9 @@ class LspAnalysisServer extends AnalysisServer {
           // Record performance information for the request.
           var rootPerformance = OperationPerformanceImpl('<root>');
           RequestPerformance? requestPerformance;
-          await rootPerformance.runAsync('request', (performance) async {
+          await rootPerformance.runAsync('request[${message.method}]', (
+            performance,
+          ) async {
             requestPerformance = RequestPerformance(
               operation: message.method.toString(),
               performance: performance,
