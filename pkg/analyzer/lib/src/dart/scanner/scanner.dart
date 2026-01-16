@@ -130,7 +130,7 @@ class Scanner {
   void reportError(
     DiagnosticCode diagnosticCode,
     int offset,
-    List<Object?>? arguments,
+    List<Object>? arguments,
   ) {
     _diagnosticListener.onDiagnostic(
       Diagnostic.tmp(
