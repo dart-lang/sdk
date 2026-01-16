@@ -2176,6 +2176,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Replace with Unicode escape',
   );
+  static const replaceWithIs = FixKind(
+    'dart.fix.replace.withIs',
+    DartFixKindPriority.standard,
+    "Replace '{0}' with 'is{1}'",
+  );
   static const replaceWithVar = FixKind(
     'dart.fix.replace.withVar',
     DartFixKindPriority.standard,

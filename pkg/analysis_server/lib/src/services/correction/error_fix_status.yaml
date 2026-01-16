@@ -2514,7 +2514,7 @@ unnecessary_underscores:
 unreachable_from_main:
   status: hasFix
 unrelated_type_equality_checks_in_expression:
-  status: needsEvaluation
+  status: hasFix
 unrelated_type_equality_checks_in_pattern:
   status: needsEvaluation
 unsafe_variance:

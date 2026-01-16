@@ -230,6 +230,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_eight_
 import 'package:analysis_server/src/services/correction/dart/replace_with_extension_name.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_identifier.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_interpolation.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_is.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_empty.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_nan.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_named_constant.dart';
@@ -465,6 +466,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.unnecessaryUnawaited: [RemoveUnawaited.new],
   diag.unnecessaryUnderscores: [ConvertToWildcardVariable.automatically],
   diag.unreachableFromMain: [RemoveUnusedElement.new],
+  diag.unrelatedTypeEqualityChecksInExpression: [ReplaceWithIs.new],
   diag.useColoredBox: [ReplaceContainerWithColoredBox.new],
   diag.useDecoratedBox: [ReplaceWithDecoratedBox.new],
   diag.useEnums: [ConvertClassToEnum.new],
