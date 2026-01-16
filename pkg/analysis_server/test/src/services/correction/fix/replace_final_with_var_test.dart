@@ -142,6 +142,21 @@ void f() {
 ''');
   }
 
+  Future<void> test_pattern() async {
+    await resolveTestCode('''
+void foo(int a) {
+  final int(:isEven) = a;
+  print(isEven);
+}
+''');
+    await assertHasFix('''
+void foo(int a) {
+  var int(:isEven) = a;
+  print(isEven);
+}
+''');
+  }
+
   /// https://github.com/dart-lang/sdk/issues/51864
   Future<void> test_recordPattern_assignment() async {
     await resolveTestCode(r'''
