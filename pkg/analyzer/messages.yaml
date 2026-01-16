@@ -22812,8 +22812,8 @@ ParserErrorCode:
   expectedToken:
     type: syntacticError
     parameters:
-      String p0: the token that was expected but not found
-    problemMessage: "Expected to find '#p0'."
+      String token: the token that was expected but not found
+    problemMessage: "Expected to find '#token'."
     hasPublishedDocs: false
   expectedTypeName:
     type: syntacticError
@@ -24267,8 +24267,8 @@ ScannerErrorCode:
   illegalCharacter:
     type: syntacticError
     parameters:
-      Object p0: the illegal character
-    problemMessage: Illegal character '#p0'.
+      int codePoint: the illegal character
+    problemMessage: Illegal character '#codePoint'.
     hasPublishedDocs: false
   missingDigit:
     type: syntacticError
@@ -24306,8 +24306,8 @@ ScannerErrorCode:
   unsupportedOperator:
     type: syntacticError
     parameters:
-      String p0: the unsupported operator
-    problemMessage: The '#p0' operator is not supported.
+      String lexeme: the unsupported operator
+    problemMessage: The '#lexeme' operator is not supported.
     hasPublishedDocs: false
   unterminatedMultiLineComment:
     type: syntacticError

@@ -4,18 +4,18 @@
 
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Token, TokenType;
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/translate_error_token.dart'
     show translateErrorToken;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -123,17 +123,8 @@ class Scanner {
     _featureSet = featureSet;
   }
 
-  void reportError(
-    DiagnosticCode diagnosticCode,
-    int offset,
-    List<Object>? arguments,
-  ) {
-    _diagnosticReporter.atOffset(
-      offset: offset,
-      length: 1,
-      diagnosticCode: diagnosticCode,
-      arguments: arguments,
-    );
+  void reportError(LocatedDiagnostic locatedDiagnostic) {
+    _diagnosticReporter.report(locatedDiagnostic);
   }
 
   /// The fasta parser handles error tokens produced by the scanner

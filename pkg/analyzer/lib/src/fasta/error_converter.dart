@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Code, Message, PseudoSharedCode;
 import 'package:analyzer/dart/ast/token.dart' show Token;
-import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_code_values.dart';
 import 'package:analyzer/src/error/listener.dart';
@@ -97,11 +96,10 @@ class FastaErrorReporter {
         );
         return;
       case PseudoSharedCode.expectedToken:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.expectedToken,
-          arguments: [arguments['string'] as Object],
+        diagnosticReporter?.report(
+          diag.expectedToken
+              .withArguments(token: arguments['string'] as String)
+              .atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.expectedTypeName:
@@ -391,19 +389,8 @@ class FastaErrorReporter {
     reportByCode(code.pseudoSharedCode, offset, length, message);
   }
 
-  void reportScannerError(
-    DiagnosticCode code,
-    int offset,
-    List<Object>? arguments,
-  ) {
-    // TODO(danrubel): update client to pass length in addition to offset.
-    int length = 1;
-    diagnosticReporter?.atOffset(
-      diagnosticCode: code,
-      offset: offset,
-      length: length,
-      arguments: arguments ?? const [],
-    );
+  void reportScannerError(LocatedDiagnostic locatedDiagnostic) {
+    diagnosticReporter?.report(locatedDiagnostic);
   }
 
   void _reportByCode({

@@ -4705,9 +4705,9 @@ const DiagnosticWithoutArguments expectedSwitchStatementBody =
     );
 
 /// Parameters:
-/// String p0: the token that was expected but not found
+/// String token: the token that was expected but not found
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String token})
 >
 expectedToken = DiagnosticWithArguments(
   name: 'expected_token',
@@ -6494,9 +6494,9 @@ illegalAsyncReturnType = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Object p0: the illegal character
+/// int codePoint: the illegal character
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required int codePoint})
 >
 illegalCharacter = DiagnosticWithArguments(
   name: 'illegal_character',
@@ -6504,7 +6504,7 @@ illegalCharacter = DiagnosticWithArguments(
   type: DiagnosticType.SYNTACTIC_ERROR,
   uniqueName: 'illegal_character',
   withArguments: _withArgumentsIllegalCharacter,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.int],
 );
 
 /// Parameters:
@@ -16926,9 +16926,9 @@ unsupportedChromeOsHardware = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the unsupported operator
+/// String lexeme: the unsupported operator
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String lexeme})
 >
 unsupportedOperator = DiagnosticWithArguments(
   name: 'unsupported_operator',
@@ -18969,8 +18969,8 @@ LocatableDiagnostic _withArgumentsExpectedOneSetTypeArguments({
   return LocatableDiagnosticImpl(diag.expectedOneSetTypeArguments, [count]);
 }
 
-LocatableDiagnostic _withArgumentsExpectedToken({required String p0}) {
-  return LocatableDiagnosticImpl(diag.expectedToken, [p0]);
+LocatableDiagnostic _withArgumentsExpectedToken({required String token}) {
+  return LocatableDiagnosticImpl(diag.expectedToken, [token]);
 }
 
 LocatableDiagnostic _withArgumentsExpectedTwoMapPatternTypeArguments({
@@ -19302,8 +19302,8 @@ LocatableDiagnostic _withArgumentsHack({required String message}) {
   return LocatableDiagnosticImpl(diag.hack, [message]);
 }
 
-LocatableDiagnostic _withArgumentsIllegalCharacter({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.illegalCharacter, [p0]);
+LocatableDiagnostic _withArgumentsIllegalCharacter({required int codePoint}) {
+  return LocatableDiagnosticImpl(diag.illegalCharacter, [codePoint]);
 }
 
 LocatableDiagnostic _withArgumentsIllegalConcreteEnumMemberDeclaration({
@@ -21564,8 +21564,10 @@ LocatableDiagnostic _withArgumentsUnsupportedChromeOsHardware({
   return LocatableDiagnosticImpl(diag.unsupportedChromeOsHardware, [name]);
 }
 
-LocatableDiagnostic _withArgumentsUnsupportedOperator({required String p0}) {
-  return LocatableDiagnosticImpl(diag.unsupportedOperator, [p0]);
+LocatableDiagnostic _withArgumentsUnsupportedOperator({
+  required String lexeme,
+}) {
+  return LocatableDiagnosticImpl(diag.unsupportedOperator, [lexeme]);
 }
 
 LocatableDiagnostic _withArgumentsUnsupportedOptionWithLegalValue({
