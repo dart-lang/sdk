@@ -1,4 +1,4 @@
-## 1.18.0-dev
+## 1.18.0
 
 - The `@redeclare` annotation is no longer considered experimental.
 - Two new TargetKinds are introduced: `TargetKind.exportDirective`, which

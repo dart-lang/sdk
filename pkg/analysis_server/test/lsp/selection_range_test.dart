@@ -34,14 +34,11 @@ void f() {
     await initialize();
     await openFile(mainFileUri, code.code);
     var lineInfo = LineInfo.fromContent(code.code);
-    var regions = await getSelectionRanges(mainFileUri, [
-      code.position.position,
-    ]);
-    expect(regions!.length, equals(1));
+    var region = await getSelectionRanges(mainFileUri, code.position.position);
     var regionTexts = _getSelectionRangeText(
       lineInfo,
       code.code,
-      regions.first,
+      region,
     ).toList();
 
     expect(
@@ -72,14 +69,11 @@ void f() {
     await initialize();
     await openFile(mainFileUri, code.code);
     var lineInfo = LineInfo.fromContent(code.code);
-    var regions = await getSelectionRanges(mainFileUri, [
-      code.position.position,
-    ]);
-    expect(regions!.length, equals(1));
+    var region = await getSelectionRanges(mainFileUri, code.position.position);
     var regionTexts = _getSelectionRangeText(
       lineInfo,
       code.code,
-      regions.first,
+      region,
     ).toList();
 
     expect(
@@ -108,14 +102,11 @@ void f() {
     await initialize();
     await openFile(mainFileUri, code.code);
     var lineInfo = LineInfo.fromContent(code.code);
-    var regions = await getSelectionRanges(mainFileUri, [
-      code.position.position,
-    ]);
-    expect(regions!.length, equals(1));
+    var region = await getSelectionRanges(mainFileUri, code.position.position);
     var regionTexts = _getSelectionRangeText(
       lineInfo,
       code.code,
-      regions.first,
+      region,
     ).toList();
 
     expect(
@@ -146,7 +137,7 @@ class Foo {
     var lineInfo = LineInfo.fromContent(code.code);
 
     // Send a request for two positions.
-    var regions = await getSelectionRanges(mainFileUri, [
+    var regions = await getManySelectionRanges(mainFileUri, [
       code.positions[0].position,
       code.positions[1].position,
     ]);
@@ -200,14 +191,11 @@ class Foo<T> {
     // The returned List corresponds to the input list of positions, and not
     // the set of ranges - each range within that list has a (recursive) parent
     // to walk up all ranges for that position.
-    var regions = await getSelectionRanges(mainFileUri, [
-      code.position.position,
-    ]);
-    expect(regions!.length, equals(1)); // Only one position was sent.
+    var region = await getSelectionRanges(mainFileUri, code.position.position);
     var regionTexts = _getSelectionRangeText(
       lineInfo,
       code.code,
-      regions.first,
+      region,
     ).toList();
 
     expect(
@@ -243,14 +231,11 @@ class Foo<T> {
     // The returned List corresponds to the input list of positions, and not
     // the set of ranges - each range within that list has a (recursive) parent
     // to walk up all ranges for that position.
-    var regions = await getSelectionRanges(mainFileUri, [
-      code.position.position,
-    ]);
-    expect(regions!.length, equals(1)); // Only one position was sent.
+    var region = await getSelectionRanges(mainFileUri, code.position.position);
     var regionTexts = _getSelectionRangeText(
       lineInfo,
       code.code,
-      regions.first,
+      region,
     ).toList();
 
     expect(
@@ -286,14 +271,11 @@ class Foo<T> {
     // The returned List corresponds to the input list of positions, and not
     // the set of ranges - each range within that list has a (recursive) parent
     // to walk up all ranges for that position.
-    var regions = await getSelectionRanges(mainFileUri, [
-      code.position.position,
-    ]);
-    expect(regions!.length, equals(1)); // Only one position was sent.
+    var region = await getSelectionRanges(mainFileUri, code.position.position);
     var regionTexts = _getSelectionRangeText(
       lineInfo,
       code.code,
-      regions.first,
+      region,
     ).toList();
 
     expect(
@@ -329,14 +311,11 @@ class Foo<T> {
     // The returned List corresponds to the input list of positions, and not
     // the set of ranges - each range within that list has a (recursive) parent
     // to walk up all ranges for that position.
-    var regions = await getSelectionRanges(mainFileUri, [
-      code.position.position,
-    ]);
-    expect(regions!.length, equals(1)); // Only one position was sent.
+    var region = await getSelectionRanges(mainFileUri, code.position.position);
     var regionTexts = _getSelectionRangeText(
       lineInfo,
       code.code,
-      regions.first,
+      region,
     ).toList();
 
     expect(
@@ -352,6 +331,69 @@ class Foo<T> {
         'Set<int> a(String b) {\n    return {?(1 + 2) * 3};\n  }',
         '{\n  Set<int> a(String b) {\n    return {?(1 + 2) * 3};\n  }\n}',
         'class Foo<T> {\n  Set<int> a(String b) {\n    return {?(1 + 2) * 3};\n  }\n}',
+      ]),
+    );
+  }
+
+  Future<void> test_primaryConstructor_body() async {
+    var code = TestCode.parseNormalized('''
+class A(int a) {
+  this {
+    print(^a);
+  }
+}
+''');
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var lineInfo = LineInfo.fromContent(code.code);
+
+    var region = await getSelectionRanges(mainFileUri, code.position.position);
+    var regionTexts = _getSelectionRangeText(
+      lineInfo,
+      code.code,
+      region,
+    ).toList();
+
+    expect(
+      regionTexts,
+      equalsNormalized([
+        'a',
+        '(a)',
+        'print(a)',
+        'print(a);',
+        '{\n    print(a);\n  }',
+        'this {\n    print(a);\n  }',
+        '{\n  this {\n    print(a);\n  }\n}',
+        'class A(int a) {\n  this {\n    print(a);\n  }\n}',
+      ]),
+    );
+  }
+
+  Future<void> test_primaryConstructor_declaration() async {
+    var code = TestCode.parseNormalized('''
+class A(final int a, { final i^nt b });
+''');
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var lineInfo = LineInfo.fromContent(code.code);
+
+    var region = await getSelectionRanges(mainFileUri, code.position.position);
+    var regionTexts = _getSelectionRangeText(
+      lineInfo,
+      code.code,
+      region,
+    ).toList();
+
+    expect(
+      regionTexts,
+      equalsNormalized([
+        'int',
+        'final int b',
+        '(final int a, { final int b })',
+        'A(final int a, { final int b })',
+        'class A(final int a, { final int b });',
       ]),
     );
   }
@@ -372,14 +414,11 @@ class Foo<T> {
     // The returned List corresponds to the input list of positions, and not
     // the set of ranges - each range within that list has a (recursive) parent
     // to walk up all ranges for that position.
-    var regions = await getSelectionRanges(mainFileUri, [
-      code.position.position,
-    ]);
-    expect(regions!.length, equals(1)); // Only one position was sent.
+    var region = await getSelectionRanges(mainFileUri, code.position.position);
     var regionTexts = _getSelectionRangeText(
       lineInfo,
       code.code,
-      regions.first,
+      region,
     ).toList();
 
     expect(

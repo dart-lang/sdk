@@ -15919,6 +15919,712 @@ library
 ''');
   }
 
+  test_class_primaryConstructor_named_parameters_super_optionalNamed() async {
+    var library = await buildLibrary('''
+class A {
+  A.named({required int a, required double b});
+}
+
+class B({String o1, super.a, String o2, super.b}) extends A {
+  this : super.named();
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginDeclaration named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F3 requiredNamed a (nameOffset:34) (firstTokenOffset:21) (offset:34)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::a
+                #F4 requiredNamed b (nameOffset:53) (firstTokenOffset:37) (offset:53)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::b
+        #F5 class B (nameOffset:67) (firstTokenOffset:61) (offset:67)
+          element: <testLibrary>::@class::B
+          constructors
+            #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:67) (offset:67)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 67
+              thisKeywordOffset: 125
+              formalParameters
+                #F7 optionalNamed o1 (nameOffset:77) (firstTokenOffset:70) (offset:77)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::o1
+                #F8 optionalNamed final super.a (nameOffset:87) (firstTokenOffset:81) (offset:87)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
+                #F9 optionalNamed o2 (nameOffset:97) (firstTokenOffset:90) (offset:97)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::o2
+                #F10 optionalNamed final super.b (nameOffset:107) (firstTokenOffset:101) (offset:107)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::b
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginDeclaration named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F2
+          formalParameters
+            #E0 requiredNamed a
+              firstFragment: #F3
+              type: int
+            #E1 requiredNamed b
+              firstFragment: #F4
+              type: double
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F5
+      supertype: A
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F6
+          formalParameters
+            #E2 optionalNamed o1
+              firstFragment: #F7
+              type: String
+            #E3 optionalNamed final hasImplicitType super.a
+              firstFragment: #F8
+              type: int
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::a
+            #E4 optionalNamed o2
+              firstFragment: #F9
+              type: String
+            #E5 optionalNamed final hasImplicitType super.b
+              firstFragment: #F10
+              type: double
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::b
+          superConstructor: <testLibrary>::@class::A::@constructor::named
+''');
+  }
+
+  test_class_primaryConstructor_named_parameters_super_optionalPositional() async {
+    var library = await buildLibrary('''
+class A {
+  A.named(int a, double b);
+}
+
+class B([String o1, super.a, String o2, super.b]) extends A {
+  this : super.named();
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginDeclaration named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F3 requiredPositional a (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::a
+                #F4 requiredPositional b (nameOffset:34) (firstTokenOffset:27) (offset:34)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::b
+        #F5 class B (nameOffset:47) (firstTokenOffset:41) (offset:47)
+          element: <testLibrary>::@class::B
+          constructors
+            #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:47) (offset:47)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 47
+              thisKeywordOffset: 105
+              formalParameters
+                #F7 optionalPositional o1 (nameOffset:57) (firstTokenOffset:50) (offset:57)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::o1
+                #F8 optionalPositional final super.a (nameOffset:67) (firstTokenOffset:61) (offset:67)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
+                #F9 optionalPositional o2 (nameOffset:77) (firstTokenOffset:70) (offset:77)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::o2
+                #F10 optionalPositional final super.b (nameOffset:87) (firstTokenOffset:81) (offset:87)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::b
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginDeclaration named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F2
+          formalParameters
+            #E0 requiredPositional a
+              firstFragment: #F3
+              type: int
+            #E1 requiredPositional b
+              firstFragment: #F4
+              type: double
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F5
+      supertype: A
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F6
+          formalParameters
+            #E2 optionalPositional o1
+              firstFragment: #F7
+              type: String
+            #E3 optionalPositional final hasImplicitType super.a
+              firstFragment: #F8
+              type: int
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::a
+            #E4 optionalPositional o2
+              firstFragment: #F9
+              type: String
+            #E5 optionalPositional final hasImplicitType super.b
+              firstFragment: #F10
+              type: double
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::b
+          superConstructor: <testLibrary>::@class::A::@constructor::named
+''');
+  }
+
+  test_class_primaryConstructor_named_parameters_super_requiredNamed() async {
+    var library = await buildLibrary('''
+class A {
+  A.named({required int a, required double b});
+}
+
+class B({
+  required String o1,
+  required super.a,
+  required String o2,
+  required super.b,
+}) extends A {
+  this : super.named();
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginDeclaration named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F3 requiredNamed a (nameOffset:34) (firstTokenOffset:21) (offset:34)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::a
+                #F4 requiredNamed b (nameOffset:53) (firstTokenOffset:37) (offset:53)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::b
+        #F5 class B (nameOffset:67) (firstTokenOffset:61) (offset:67)
+          element: <testLibrary>::@class::B
+          constructors
+            #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:67) (offset:67)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 67
+              thisKeywordOffset: 172
+              formalParameters
+                #F7 requiredNamed o1 (nameOffset:89) (firstTokenOffset:73) (offset:89)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::o1
+                #F8 requiredNamed final super.a (nameOffset:110) (firstTokenOffset:95) (offset:110)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
+                #F9 requiredNamed o2 (nameOffset:131) (firstTokenOffset:115) (offset:131)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::o2
+                #F10 requiredNamed final super.b (nameOffset:152) (firstTokenOffset:137) (offset:152)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::b
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginDeclaration named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F2
+          formalParameters
+            #E0 requiredNamed a
+              firstFragment: #F3
+              type: int
+            #E1 requiredNamed b
+              firstFragment: #F4
+              type: double
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F5
+      supertype: A
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F6
+          formalParameters
+            #E2 requiredNamed o1
+              firstFragment: #F7
+              type: String
+            #E3 requiredNamed final hasImplicitType super.a
+              firstFragment: #F8
+              type: int
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::a
+            #E4 requiredNamed o2
+              firstFragment: #F9
+              type: String
+            #E5 requiredNamed final hasImplicitType super.b
+              firstFragment: #F10
+              type: double
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::b
+          superConstructor: <testLibrary>::@class::A::@constructor::named
+''');
+  }
+
+  test_class_primaryConstructor_named_parameters_super_requiredPositional() async {
+    var library = await buildLibrary('''
+class A {
+  A.named(int a, double b);
+}
+
+class B(String o1, super.a, String o2, super.b) extends A {
+  this : super.named();
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginDeclaration named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F3 requiredPositional a (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::a
+                #F4 requiredPositional b (nameOffset:34) (firstTokenOffset:27) (offset:34)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::b
+        #F5 class B (nameOffset:47) (firstTokenOffset:41) (offset:47)
+          element: <testLibrary>::@class::B
+          constructors
+            #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:47) (offset:47)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 47
+              thisKeywordOffset: 103
+              formalParameters
+                #F7 requiredPositional o1 (nameOffset:56) (firstTokenOffset:49) (offset:56)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::o1
+                #F8 requiredPositional final super.a (nameOffset:66) (firstTokenOffset:60) (offset:66)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
+                #F9 requiredPositional o2 (nameOffset:76) (firstTokenOffset:69) (offset:76)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::o2
+                #F10 requiredPositional final super.b (nameOffset:86) (firstTokenOffset:80) (offset:86)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::b
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginDeclaration named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F2
+          formalParameters
+            #E0 requiredPositional a
+              firstFragment: #F3
+              type: int
+            #E1 requiredPositional b
+              firstFragment: #F4
+              type: double
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F5
+      supertype: A
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F6
+          formalParameters
+            #E2 requiredPositional o1
+              firstFragment: #F7
+              type: String
+            #E3 requiredPositional final hasImplicitType super.a
+              firstFragment: #F8
+              type: int
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::a
+            #E4 requiredPositional o2
+              firstFragment: #F9
+              type: String
+            #E5 requiredPositional final hasImplicitType super.b
+              firstFragment: #F10
+              type: double
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::b
+          superConstructor: <testLibrary>::@class::A::@constructor::named
+''');
+  }
+
+  test_class_primaryConstructor_unnamed_parameters_super_optionalNamed() async {
+    var library = await buildLibrary('''
+class A {
+  A({required int a, required double b});
+}
+
+class B({String o1, super.a, String o2, super.b}) extends A;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 12
+              formalParameters
+                #F3 requiredNamed a (nameOffset:28) (firstTokenOffset:15) (offset:28)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                #F4 requiredNamed b (nameOffset:47) (firstTokenOffset:31) (offset:47)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+        #F5 class B (nameOffset:61) (firstTokenOffset:55) (offset:61)
+          element: <testLibrary>::@class::B
+          constructors
+            #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:61) (offset:61)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 61
+              formalParameters
+                #F7 optionalNamed o1 (nameOffset:71) (firstTokenOffset:64) (offset:71)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::o1
+                #F8 optionalNamed final super.a (nameOffset:81) (firstTokenOffset:75) (offset:81)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
+                #F9 optionalNamed o2 (nameOffset:91) (firstTokenOffset:84) (offset:91)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::o2
+                #F10 optionalNamed final super.b (nameOffset:101) (firstTokenOffset:95) (offset:101)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::b
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E0 requiredNamed a
+              firstFragment: #F3
+              type: int
+            #E1 requiredNamed b
+              firstFragment: #F4
+              type: double
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F5
+      supertype: A
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F6
+          formalParameters
+            #E2 optionalNamed o1
+              firstFragment: #F7
+              type: String
+            #E3 optionalNamed final hasImplicitType super.a
+              firstFragment: #F8
+              type: int
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+            #E4 optionalNamed o2
+              firstFragment: #F9
+              type: String
+            #E5 optionalNamed final hasImplicitType super.b
+              firstFragment: #F10
+              type: double
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+          superConstructor: <testLibrary>::@class::A::@constructor::new
+''');
+  }
+
+  test_class_primaryConstructor_unnamed_parameters_super_optionalPositional() async {
+    var library = await buildLibrary('''
+class A {
+  A(int a, double b);
+}
+
+class B([String o1, super.a, String o2, super.b]) extends A;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 12
+              formalParameters
+                #F3 requiredPositional a (nameOffset:18) (firstTokenOffset:14) (offset:18)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                #F4 requiredPositional b (nameOffset:28) (firstTokenOffset:21) (offset:28)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+        #F5 class B (nameOffset:41) (firstTokenOffset:35) (offset:41)
+          element: <testLibrary>::@class::B
+          constructors
+            #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:41) (offset:41)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 41
+              formalParameters
+                #F7 optionalPositional o1 (nameOffset:51) (firstTokenOffset:44) (offset:51)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::o1
+                #F8 optionalPositional final super.a (nameOffset:61) (firstTokenOffset:55) (offset:61)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
+                #F9 optionalPositional o2 (nameOffset:71) (firstTokenOffset:64) (offset:71)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::o2
+                #F10 optionalPositional final super.b (nameOffset:81) (firstTokenOffset:75) (offset:81)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::b
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E0 requiredPositional a
+              firstFragment: #F3
+              type: int
+            #E1 requiredPositional b
+              firstFragment: #F4
+              type: double
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F5
+      supertype: A
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F6
+          formalParameters
+            #E2 optionalPositional o1
+              firstFragment: #F7
+              type: String
+            #E3 optionalPositional final hasImplicitType super.a
+              firstFragment: #F8
+              type: int
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+            #E4 optionalPositional o2
+              firstFragment: #F9
+              type: String
+            #E5 optionalPositional final hasImplicitType super.b
+              firstFragment: #F10
+              type: double
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+          superConstructor: <testLibrary>::@class::A::@constructor::new
+''');
+  }
+
+  test_class_primaryConstructor_unnamed_parameters_super_requiredNamed() async {
+    var library = await buildLibrary('''
+class A {
+  A({required int a, required double b});
+}
+
+class B({
+  required String o1,
+  required super.a,
+  required String o2,
+  required super.b,
+}) extends A;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 12
+              formalParameters
+                #F3 requiredNamed a (nameOffset:28) (firstTokenOffset:15) (offset:28)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                #F4 requiredNamed b (nameOffset:47) (firstTokenOffset:31) (offset:47)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+        #F5 class B (nameOffset:61) (firstTokenOffset:55) (offset:61)
+          element: <testLibrary>::@class::B
+          constructors
+            #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:61) (offset:61)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 61
+              formalParameters
+                #F7 requiredNamed o1 (nameOffset:83) (firstTokenOffset:67) (offset:83)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::o1
+                #F8 requiredNamed final super.a (nameOffset:104) (firstTokenOffset:89) (offset:104)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
+                #F9 requiredNamed o2 (nameOffset:125) (firstTokenOffset:109) (offset:125)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::o2
+                #F10 requiredNamed final super.b (nameOffset:146) (firstTokenOffset:131) (offset:146)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::b
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E0 requiredNamed a
+              firstFragment: #F3
+              type: int
+            #E1 requiredNamed b
+              firstFragment: #F4
+              type: double
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F5
+      supertype: A
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F6
+          formalParameters
+            #E2 requiredNamed o1
+              firstFragment: #F7
+              type: String
+            #E3 requiredNamed final hasImplicitType super.a
+              firstFragment: #F8
+              type: int
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+            #E4 requiredNamed o2
+              firstFragment: #F9
+              type: String
+            #E5 requiredNamed final hasImplicitType super.b
+              firstFragment: #F10
+              type: double
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+          superConstructor: <testLibrary>::@class::A::@constructor::new
+''');
+  }
+
+  test_class_primaryConstructor_unnamed_parameters_super_requiredPositional() async {
+    var library = await buildLibrary('''
+class A {
+  A(int a, double b);
+}
+
+class B(String o1, super.a, String o2, super.b) extends A;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 12
+              formalParameters
+                #F3 requiredPositional a (nameOffset:18) (firstTokenOffset:14) (offset:18)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                #F4 requiredPositional b (nameOffset:28) (firstTokenOffset:21) (offset:28)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+        #F5 class B (nameOffset:41) (firstTokenOffset:35) (offset:41)
+          element: <testLibrary>::@class::B
+          constructors
+            #F6 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:41) (offset:41)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 41
+              formalParameters
+                #F7 requiredPositional o1 (nameOffset:50) (firstTokenOffset:43) (offset:50)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::o1
+                #F8 requiredPositional final super.a (nameOffset:60) (firstTokenOffset:54) (offset:60)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
+                #F9 requiredPositional o2 (nameOffset:70) (firstTokenOffset:63) (offset:70)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::o2
+                #F10 requiredPositional final super.b (nameOffset:80) (firstTokenOffset:74) (offset:80)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::b
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E0 requiredPositional a
+              firstFragment: #F3
+              type: int
+            #E1 requiredPositional b
+              firstFragment: #F4
+              type: double
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F5
+      supertype: A
+      constructors
+        declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F6
+          formalParameters
+            #E2 requiredPositional o1
+              firstFragment: #F7
+              type: String
+            #E3 requiredPositional final hasImplicitType super.a
+              firstFragment: #F8
+              type: int
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+            #E4 requiredPositional o2
+              firstFragment: #F9
+              type: String
+            #E5 requiredPositional final hasImplicitType super.b
+              firstFragment: #F10
+              type: double
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+          superConstructor: <testLibrary>::@class::A::@constructor::new
+''');
+  }
+
   test_class_ref_nullability_none() async {
     var library = await buildLibrary('''
 class C {}

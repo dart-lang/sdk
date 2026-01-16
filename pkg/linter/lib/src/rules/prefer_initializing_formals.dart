@@ -5,6 +5,7 @@
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -28,7 +29,7 @@ class PreferInitializingFormals extends AnalysisRule {
     RuleVisitorRegistry registry,
     RuleContext context,
   ) {
-    var visitor = _Visitor(this);
+    var visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);
   }
 }
@@ -51,10 +52,18 @@ class _ConstructorChecker {
   /// which one should be.
   final Map<Element, List<AstNode>> _nodesToLintByField = {};
 
-  _ConstructorChecker(this._rule, this._constructor)
-    : _parameters = _constructor.parameters.parameters
-          .map((e) => e.declaredFragment?.element)
-          .toList();
+  /// True if the "private_named_parameters" feature is enabled in the
+  /// surrounding library.
+  final bool _privateNamedParametersEnabled;
+
+  _ConstructorChecker(
+    this._rule,
+    this._constructor, {
+    required bool privateNamedParametersEnabled,
+  }) : _parameters = _constructor.parameters.parameters
+           .map((e) => e.declaredFragment?.element)
+           .toList(),
+       _privateNamedParametersEnabled = privateNamedParametersEnabled;
 
   void check() {
     // Don't lint initializers from parameters that are already initializing
@@ -122,20 +131,35 @@ class _ConstructorChecker {
   /// If the initialization of [field] with [parameter] should be linted, adds
   /// it to [_nodesToLintByField].
   void _checkInitializer(AstNode node, Element? field, Element? parameter) {
-    // Must be assigning to a public instance field.
+    // Must be assigning to an instance field.
     if (field is! FieldElement) return;
     if (field.isStatic) return;
-    if (field.isPrivate) return;
 
     if (_initializingParameters.contains(parameter)) return;
 
     // Must be an actual field and not a setter.
     if (!field.isOriginDeclaration) return;
 
-    // Must be assigning from a constructor parameter with the same name.
-    if (parameter == null) return;
+    // Must be assigning from a constructor parameter with a matching name.
+    if (parameter is! FormalParameterElement) return;
     if (!_parameters.contains(parameter)) return;
-    if (field.name != parameter.name) return;
+
+    // Must be the same name (modulo privacy for private named parameters).
+    if (field.isPrivate) {
+      // Never lint on private names if the feature isn't supported.
+      if (!_privateNamedParametersEnabled) return;
+
+      // Only lint on private named parameters.
+      if (parameter.isPositional) return;
+
+      // Allow initializing a private field from a parameter with the same
+      // private name or the corresponding public one.
+      if (field.name != parameter.name && field.name != '_${parameter.name}') {
+        return;
+      }
+    } else if (field.name != parameter.name) {
+      return; // The name must match exactly.
+    }
 
     // Must be initializing a field on the surrounding class and not an
     // inherited one.
@@ -149,9 +173,10 @@ class _ConstructorChecker {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
+  final AnalysisRule _rule;
+  final RuleContext _context;
 
-  _Visitor(this.rule);
+  _Visitor(this._rule, this._context);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
@@ -159,6 +184,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     // https://github.com/dart-lang/linter/issues/2441
     if (node.factoryKeyword != null) return;
 
-    _ConstructorChecker(rule, node).check();
+    _ConstructorChecker(
+      _rule,
+      node,
+      privateNamedParametersEnabled: _context.isFeatureEnabled(
+        Feature.private_named_parameters,
+      ),
+    ).check();
   }
 }

@@ -1,3 +1,7 @@
+## 10.0.1-dev
+
+* Require version ^1.18.0 of the meta package.
+
 ## 10.0.0
 * Deprecations in `ClassDeclaration`:
   * Properties `leftBracket`, `members`, `rightBracket` are deprecated; use

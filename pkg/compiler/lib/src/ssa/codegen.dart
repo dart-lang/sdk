@@ -3,16 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection' show Queue;
-import 'dart:io';
 
 // ignore: implementation_imports
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 // ignore: implementation_imports
-import 'package:front_end/src/api_unstable/dart2js.dart'
-    show Link, relativizeUri;
-import 'package:record_use/record_use_internal.dart'
-    as record_use
-    show Location;
+import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry;
@@ -2379,9 +2374,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         if (_closedWorld.annotationsData.shouldRecordMethodUses(element)) {
           recordedMethodUses = _recordMethodUses(
             element,
-            callStructure,
             node.inputs,
-            node.sourceInformation,
+            node.sourceInformation!,
           );
         }
       }
@@ -2396,78 +2390,55 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     }
   }
 
-  // TODO(https://github.com/dart-lang/native/issues/2883): Support named arguments.
   RecordedUse _recordMethodUses(
     FunctionEntity element,
-    CallStructure callStructure,
     List<HInstruction> arguments,
-    SourceInformation? sourceInformation,
+    SourceInformation sourceInformation,
   ) {
-    final definition = _closedWorld.elementMap.getMemberContextNode(element);
-    final uri =
-        definition?.enclosingLibrary.importUri ?? element.library.canonicalUri;
-
-    record_use.Location? location = _recordUseLocation(sourceInformation);
-
-    final name = element.name!;
     // TODO(https://github.com/dart-lang/native/issues/2948): Record the name of
     // the extension instead of the desugared name.
-    final isExtensionMethod = hasUnnamedExtensionNamePrefix(name);
+    final isExtensionMethod = hasUnnamedExtensionNamePrefix(element.name!);
+
+    final originalParameterStructure = element.parameterStructure;
+
+    final positionalArguments = <ConstantValue?>[];
+    final namedArguments = <String, ConstantValue?>{};
+    var argumentIndex = 0;
+    // Loop over arguments in namedOrdering or in nativeOrdering.
+    _closedWorld.elementEnvironment.forEachParameter(element, (
+      DartType type,
+      String? name,
+      ConstantValue? defaultValue,
+    ) {
+      if (argumentIndex == 0 && isExtensionMethod) {
+        // Skip extension method receiver.
+        argumentIndex++;
+        // TODO(https://github.com/dart-lang/native/issues/2948): Support
+        // extension method receiver.
+      } else if (argumentIndex <
+          originalParameterStructure.positionalParameters) {
+        positionalArguments.add(_findConstant(arguments[argumentIndex++]));
+      } else {
+        namedArguments[name!] = _findConstant(arguments[argumentIndex++]);
+      }
+    });
+
     return RecordedCallWithArguments(
-      identifier: RecordedIdentifier(
-        name: name,
-        parent: element.enclosingClass?.name,
-        uri: relativizeUri(Uri.base, uri, Platform.isWindows),
-      ),
-      location: location,
-      positionalArguments: arguments
-          .skip(isExtensionMethod ? 1 : 0)
-          .map(_findConstant)
-          .toList(),
+      function: element,
+      sourceInformation: sourceInformation,
+      positionalArguments: positionalArguments,
+      namedArguments: namedArguments,
     );
   }
 
   RecordedUse _recordTearOff(
     FunctionEntity element,
-    SourceInformation? sourceInformation,
+    SourceInformation sourceInformation,
   ) {
-    final definition = _closedWorld.elementMap.getMemberContextNode(element);
-    final uri =
-        definition?.enclosingLibrary.importUri ?? element.library.canonicalUri;
-
-    record_use.Location? location = _recordUseLocation(sourceInformation);
-
     return RecordedTearOff(
-      identifier: RecordedIdentifier(
-        name: element.name!,
-        parent: element.enclosingClass?.name,
-        uri: relativizeUri(Uri.base, uri, Platform.isWindows),
-      ),
-      location: location,
+      function: element,
+      sourceInformation: sourceInformation,
     );
-  }
-
-  record_use.Location? _recordUseLocation(
-    SourceInformation? sourceInformation,
-  ) {
-    record_use.Location? location;
-    if (sourceInformation != null) {
-      SourceLocation? sourceLocation =
-          sourceInformation.startPosition ??
-          sourceInformation.innerPosition ??
-          sourceInformation.endPosition;
-      if (sourceLocation != null) {
-        final sourceUri = sourceLocation.sourceUri;
-        if (sourceUri != null) {
-          // Is [sourceUri] normalized in some way or does that need to be done
-          // here?
-          location = record_use.Location(
-            uri: relativizeUri(Uri.base, sourceUri, Platform.isWindows),
-          );
-        }
-      }
-    }
-    return location;
   }
 
   ConstantValue? _findConstant(HInstruction node) {
@@ -2926,7 +2897,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     if (constant is FunctionConstantValue) {
       final element = constant.element;
       if (_closedWorld.annotationsData.shouldRecordMethodUses(element)) {
-        final recordedMethodUses = _recordTearOff(element, sourceInformation);
+        final recordedMethodUses = _recordTearOff(element, sourceInformation!);
         expression = expression.withAnnotation(recordedMethodUses);
       }
     }

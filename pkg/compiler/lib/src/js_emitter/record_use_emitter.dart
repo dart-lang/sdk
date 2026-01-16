@@ -11,11 +11,19 @@
 /// simply be missing as though they were not constants.
 library;
 
+import 'dart:io';
+
+import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/io/source_information.dart';
+// ignore: implementation_imports
+import 'package:front_end/src/api_unstable/dart2js.dart' show relativizeUri;
+import 'package:compiler/src/deferred_load/output_unit.dart';
+import 'package:compiler/src/js_model/js_world.dart';
 import 'package:record_use/record_use_internal.dart';
 
 import '../js/js.dart' as js;
 import '../universe/recorded_use.dart'
-    show RecordedUse, RecordedCallWithArguments, RecordedTearOff;
+    show RecordedCallWithArguments, RecordedTearOff, RecordedUse;
 
 class _AnnotationMonitor implements js.JavaScriptAnnotationMonitor {
   final RecordUseCollector _collector;
@@ -33,33 +41,57 @@ class _AnnotationMonitor implements js.JavaScriptAnnotationMonitor {
 }
 
 class RecordUseCollector {
-  final Map<Identifier, List<CallReference>> callMap = {};
-  //TODO(mosum): Also register the part file of the definition.
-  final Map<Identifier, String> loadingUnits = {};
+  RecordUseCollector(this._closedWorld);
+
+  final JClosedWorld _closedWorld;
+
+  final Map<FunctionEntity, List<CallReference>> callMap = {};
 
   js.JavaScriptAnnotationMonitor monitorFor(String fileName) {
     return _AnnotationMonitor(this, fileName);
   }
 
-  /// Save a [recordedUse] in the [callMap].
+  Location _recordUseLocation(SourceInformation sourceInformation) {
+    SourceLocation? sourceLocation =
+        sourceInformation.startPosition ??
+        sourceInformation.innerPosition ??
+        sourceInformation.endPosition;
+    if (sourceLocation == null) {
+      throw UnsupportedError('Source location is null.');
+    }
+    final sourceUri = sourceLocation.sourceUri;
+    if (sourceUri == null) {
+      throw UnsupportedError('Source uri is null.');
+    }
+
+    // Is [sourceUri] normalized in some way or does that need to be done
+    // here?
+    return Location(
+      uri: relativizeUri(Uri.base, sourceUri, Platform.isWindows),
+    );
+  }
+
   void _register(String loadingUnit, RecordedUse recordedUse) {
-    final identifier = recordedUse.identifier.toPackageRecordUseFormat();
+    final location = _recordUseLocation(recordedUse.sourceInformation);
     final callReference = switch (recordedUse) {
       RecordedCallWithArguments() => CallWithArguments(
         loadingUnit: loadingUnit,
-        namedArguments: {},
-        positionalArguments: recordedUse.arguments,
-        location: recordedUse.location,
+        namedArguments: recordedUse.namedArgumentsInRecordUseFormat(),
+        positionalArguments: recordedUse.positionalArgumentsInRecordUseFormat(),
+        location: location,
       ),
       RecordedTearOff() => CallTearOff(
         loadingUnit: loadingUnit,
-        location: recordedUse.location,
+        location: location,
       ),
     };
-    callMap.putIfAbsent(identifier, () => []).add(callReference);
+    callMap.putIfAbsent(recordedUse.function, () => []).add(callReference);
   }
 
-  Map<String, dynamic> finish(Map<String, String> environment) => Recordings(
+  Map<String, dynamic> finish(
+    Map<String, String> environment,
+    Map<OutputUnit, String> outputUnitToName,
+  ) => Recordings(
     metadata: Metadata.fromJson({
       'comment': 'Resources referenced by annotated resource identifiers',
       'AppTag': 'TBD',
@@ -68,7 +100,21 @@ class RecordUseCollector {
     }),
     callsForDefinition: callMap.map(
       (key, value) => MapEntry(
-        Definition(identifier: key, loadingUnit: loadingUnits[key]),
+        Definition(
+          identifier: Identifier(
+            name: key.name!,
+            scope: key.enclosingClass?.name,
+            importUri: relativizeUri(
+              Uri.base,
+              key.library.canonicalUri,
+              Platform.isWindows,
+            ),
+          ),
+          loadingUnit:
+              outputUnitToName[_closedWorld.outputUnitData.outputUnitForMember(
+                key,
+              )]!,
+        ),
         value,
       ),
     ),

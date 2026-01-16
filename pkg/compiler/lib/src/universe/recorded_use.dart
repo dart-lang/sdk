@@ -5,60 +5,22 @@
 /// This library contains data structures that loosely represent the data
 /// structures in `package:record_use`. However these data structures are
 /// different in the following ways:
-/// * [ConstantValue]s are used for constants, to enable serialization of
+/// * [ConstantValue] is used for constants, to enable serialization of
 ///   composite constants.
-/// * No loading units are present. The loading units only get assigned in a
-///   later phase in the compiler.
+/// * [Entity] is used for definitions, so that it can be used in the last stage
+///   of the compiler to see in which loading unit it ended up.
+/// * [SourceLocation] is used for source locations instead of
+///   [record_use.Location] to keep the serialization smaller.
 ///
 /// Please keep this library in sync with `package:record_use`.
 library;
 
 import 'package:compiler/src/constants/values.dart';
+import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/io/source_information.dart';
 import 'package:record_use/record_use_internal.dart' as record_use;
 
 import '../serialization/serialization.dart';
-
-/// Dart2js version of [record_use.Identifier].
-class RecordedIdentifier {
-  /// Name of the class or method that is a resource identifier.
-  final String name;
-
-  /// Name of the parent, if existing.
-  final String? parent;
-
-  /// Where the class or method is defined.
-  final String uri;
-
-  RecordedIdentifier({required this.name, this.parent, required this.uri});
-
-  factory RecordedIdentifier.readFromDataSource(DataSourceReader source) {
-    String uri = source.readString();
-    String name = source.readString();
-    String? parent = source.readStringOrNull();
-    return RecordedIdentifier(uri: uri, name: name, parent: parent);
-  }
-
-  void writeToDataSink(DataSinkWriter sink) {
-    sink.writeString(uri);
-    sink.writeString(name);
-    sink.writeStringOrNull(parent);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is! RecordedIdentifier) return false;
-    return uri == other.uri && name == other.name && parent == other.parent;
-  }
-
-  @override
-  int get hashCode => Object.hash(uri, name, parent);
-
-  record_use.Identifier toPackageRecordUseFormat() => record_use.Identifier(
-    importUri: uri.toString(),
-    scope: parent,
-    name: name,
-  );
-}
 
 enum RecordedUseKind { call, tearOff }
 
@@ -67,37 +29,32 @@ enum RecordedUseKind { call, tearOff }
 sealed class RecordedUse {
   static const String tag = 'record-use';
 
-  final RecordedIdentifier identifier;
+  final FunctionEntity function;
 
-  /// Location of the resource identifier instance. This is `null` for constant
-  /// resource identifiers. For other resource identifier instances this is the
-  /// call site to the constructor or method.
-  final record_use.Location? location;
+  final SourceInformation sourceInformation;
 
   RecordedUseKind get kind;
 
-  RecordedUse({required this.identifier, this.location});
+  RecordedUse({required this.function, required this.sourceInformation});
 
   factory RecordedUse.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     RecordedUseKind kind = source.readEnum(RecordedUseKind.values);
-    final identifier = RecordedIdentifier.readFromDataSource(source);
-    final location = source.readValueOrNull(
-      () => RecordUseLocation.readFromDataSource(source),
-    );
+    final function = source.readMember() as FunctionEntity;
+    final sourceInformation = SourceInformation.readFromDataSource(source);
     RecordedUse result;
     switch (kind) {
       case RecordedUseKind.call:
         result = RecordedCallWithArguments._readFromDataSource(
-          identifier,
-          location,
+          function,
+          sourceInformation,
           source,
         );
         break;
       case RecordedUseKind.tearOff:
         result = RecordedTearOff._readFromDataSource(
-          identifier,
-          location,
+          function,
+          sourceInformation,
           source,
         );
         break;
@@ -109,8 +66,8 @@ sealed class RecordedUse {
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeEnum(kind);
-    identifier.writeToDataSink(sink);
-    sink.writeValueOrNull(location, (l) => location!.writeToDataSink);
+    sink.writeMember(function);
+    SourceInformation.writeToDataSink(sink, sourceInformation);
     _writeFieldsForKind(sink);
     sink.end(tag);
   }
@@ -120,52 +77,57 @@ sealed class RecordedUse {
   @override
   bool operator ==(Object other) {
     if (other is! RecordedUse) return false;
-    return identifier == other.identifier && location == other.location;
+    return function == other.function &&
+        sourceInformation == other.sourceInformation;
   }
 
   @override
-  int get hashCode => Object.hash(identifier, location);
+  int get hashCode => Object.hash(function, sourceInformation);
 }
 
 /// Dart2js version of [record_use.CallWithArguments], with [ConstantValue]s
 /// instead of [record_use.Constant]s.
 class RecordedCallWithArguments extends RecordedUse {
   final List<ConstantValue?> positionalArguments;
+  final Map<String, ConstantValue?> namedArguments;
 
-  /// Constant argument values in `package:record_use` format.
-  List<record_use.Constant?> get arguments =>
+  /// Constant positional argument values in `package:record_use` format.
+  List<record_use.Constant?> positionalArgumentsInRecordUseFormat() =>
       positionalArguments.map(_findValue).toList();
 
+  /// Constant named argument values in `package:record_use` format.
+  Map<String, record_use.Constant?> namedArgumentsInRecordUseFormat() =>
+      namedArguments.map((k, v) => MapEntry(k, _findValue(v)));
+
   RecordedCallWithArguments({
-    required super.identifier,
-    super.location,
+    required super.function,
+    required super.sourceInformation,
     required this.positionalArguments,
+    required this.namedArguments,
   });
 
   @override
   RecordedUseKind get kind => RecordedUseKind.call;
 
   static RecordedCallWithArguments _readFromDataSource(
-    RecordedIdentifier identifier,
-    record_use.Location? location,
+    FunctionEntity function,
+    SourceInformation sourceInformation,
     DataSourceReader source,
   ) {
-    final positionalArguments = source.readList(
-      () => source.readValueOrNull(source.readConstant),
-    );
+    final positionalArguments = source.readList(source.readConstantOrNull);
+    final namedArguments = source.readStringMap(source.readConstantOrNull);
     return RecordedCallWithArguments(
-      identifier: identifier,
-      location: location,
+      function: function,
+      sourceInformation: sourceInformation,
       positionalArguments: positionalArguments,
+      namedArguments: namedArguments,
     );
   }
 
   @override
   void _writeFieldsForKind(DataSinkWriter sink) {
-    sink.writeList(
-      positionalArguments,
-      (c) => sink.writeValueOrNull(c, sink.writeConstant),
-    );
+    sink.writeList(positionalArguments, sink.writeConstantOrNull);
+    sink.writeStringMap(namedArguments, sink.writeConstantOrNull);
   }
 
   @override
@@ -187,18 +149,21 @@ class RecordedCallWithArguments extends RecordedUse {
 
 /// Dart2js version of [record_use.CallTearOff].
 class RecordedTearOff extends RecordedUse {
-  RecordedTearOff({required super.identifier, super.location});
+  RecordedTearOff({required super.function, required super.sourceInformation});
 
   @override
   RecordedUseKind get kind => RecordedUseKind.tearOff;
 
   static RecordedTearOff _readFromDataSource(
-    RecordedIdentifier identifier,
-    record_use.Location? location,
+    FunctionEntity function,
+    SourceInformation sourceInformation,
     DataSourceReader source,
   ) {
     // No specific fields to read.
-    return RecordedTearOff(identifier: identifier, location: location);
+    return RecordedTearOff(
+      function: function,
+      sourceInformation: sourceInformation,
+    );
   }
 
   @override
@@ -272,21 +237,4 @@ record_use.InstanceConstant? _findInstanceValue(
     fieldValues[name] = value;
   }
   return record_use.InstanceConstant(fields: fieldValues);
-}
-
-extension RecordUseLocation on record_use.Location {
-  static record_use.Location readFromDataSource(DataSourceReader source) {
-    final uri = source.readUri();
-    //TODO(mosum): Use a verbose flag for line and column info
-    // final line = source.readIntOrNull();
-    // final column = source.readIntOrNull();
-    return record_use.Location(uri: uri.toFilePath());
-  }
-
-  void writeToDataSink(DataSinkWriter sink) {
-    sink.writeUri(Uri.file(uri));
-    //TODO(mosum): Use a verbose flag for line and column info
-    // sink.writeIntOrNull(line);
-    // sink.writeIntOrNull(column);
-  }
 }

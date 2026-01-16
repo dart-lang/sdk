@@ -38,18 +38,27 @@ class SuperConstructorResolver {
     }
 
     var invokesDefaultSuperConstructor = true;
+
+    void handleInitializers(List<ConstructorInitializer> initializers) {
+      for (var initializer in initializers) {
+        if (initializer is RedirectingConstructorInvocation) {
+          invokesDefaultSuperConstructor = false;
+        } else if (initializer is SuperConstructorInvocation) {
+          invokesDefaultSuperConstructor = false;
+          var name = initializer.constructorName?.name ?? 'new';
+          element.superConstructor = classElement.supertype
+              ?.getNamedConstructor(name);
+        }
+      }
+    }
+
     for (var fragment in element.fragments) {
       var node = _linker.getLinkingNode2(fragment);
       if (node is ConstructorDeclaration) {
-        for (var initializer in node.initializers) {
-          if (initializer is RedirectingConstructorInvocation) {
-            invokesDefaultSuperConstructor = false;
-          } else if (initializer is SuperConstructorInvocation) {
-            invokesDefaultSuperConstructor = false;
-            var name = initializer.constructorName?.name ?? 'new';
-            element.superConstructor = classElement.supertype
-                ?.getNamedConstructor(name);
-          }
+        handleInitializers(node.initializers);
+      } else if (node is PrimaryConstructorDeclaration) {
+        if (node.body case var body?) {
+          handleInitializers(body.initializers);
         }
       }
     }

@@ -2,6 +2,7 @@
 - Deprecate `MockPackagesMixin.addUI`; This is replaced by `addSkyEngine`.
 - Deprecate `MockPackagesMixin.addFlutterTest`. A mock `flutter_test` package
   can still be written with `PubPackageResolutionTest.newPackage`.
+- Require version `10.0.1` of the `analyzer` package.
 
 ## 0.1.8
 

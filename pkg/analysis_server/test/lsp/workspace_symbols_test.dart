@@ -72,6 +72,30 @@ void f() {}
     expect(symbolsResponse2.error, isNull);
   }
 
+  Future<void> test_constructors_doNotMatchNew() async {
+    const content = '''
+class UniqueClassName {
+  UniqueClassName.new(int a);
+}
+''';
+    var code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
+    await initialize();
+
+    var symbols = await getWorkspaceSymbols('new');
+    expect(
+      symbols,
+      isNot(
+        anyOf([
+          contains(isSymbol('UniqueClassName(…)')),
+          // We never expect this format, but still ensure it never slips
+          // through.
+          contains(isSymbol('UniqueClassName.new(…)')),
+        ]),
+      ),
+    );
+  }
+
   Future<void> test_constructors_matchClassName() async {
     const content = '''
 class UniqueClassName {
@@ -89,7 +113,7 @@ class UniqueClassName {
       unorderedEquals([
         isSymbol('UniqueClassName', kind: SymbolKind.Class),
         isSymbol(
-          'UniqueClassName.new(…)',
+          'UniqueClassName(…)',
           kind: SymbolKind.Constructor,
           containerName: 'UniqueClassName',
         ),

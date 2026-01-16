@@ -3220,6 +3220,31 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  test_primaryConstructorBody_metadata() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  @deprecated
+  this;
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  metadata
+    Annotation
+      atSign: @
+      name: SimpleIdentifier
+        token: deprecated
+        element: dart:core::@getter::deprecated
+        staticType: null
+      element: dart:core::@getter::deprecated
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   test_primaryConstructorBody_primaryInitializerScope_optionalNamed() async {
     await assertNoErrorsInCode(r'''
 extension type A({bool it = false}) {

@@ -1347,7 +1347,7 @@ class _FindLibraryDeclarations {
 
     // For constructors, include the class name as part of the searched name.
     var filteredName = element is ConstructorElement
-        ? '$className.$name'
+        ? element.displayName
         : name;
     if (matcher.score(filteredName) < 0) {
       return;
