@@ -151,4 +151,48 @@ suggestions
     kind: constructorInvocation
 ''');
   }
+
+  Future<void> test_invalid_type() async {
+    // https://github.com/dart-lang/language/issues/4606#issuecomment-3753427148
+    newFile(join(testPackageLibPath, 'private.dart'), '''
+class _C {
+  const _C();
+}
+
+void foo(_C c) {}
+''');
+    await computeSuggestions('''
+import 'private.dart';
+
+void f() {
+  foo(const .^);
+}
+''');
+    assertResponse(r'''
+suggestions
+''');
+  }
+
+  Future<void> test_invalid_type_typedef() async {
+    // https://github.com/dart-lang/language/issues/4606#issuecomment-3753427148
+    newFile(join(testPackageLibPath, 'private.dart'), '''
+class _C {
+  const _C();
+}
+
+typedef C = _C;
+
+void foo(C c) {}
+''');
+    await computeSuggestions('''
+import 'private.dart';
+
+void f() {
+  foo(const .^);
+}
+''');
+    assertResponse(r'''
+suggestions
+''');
+  }
 }
